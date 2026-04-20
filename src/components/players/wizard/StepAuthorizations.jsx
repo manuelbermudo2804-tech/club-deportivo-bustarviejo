@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Shield, Camera, AlertCircle, ShieldCheck, ShieldX, Smartphone } from "lucide-react";
+import { Shield, Camera, AlertCircle, ShieldCheck, ShieldX, Smartphone, AlertTriangle } from "lucide-react";
 import EmailInputWithTypoCheck from "@/components/ui/EmailInputWithTypoCheck";
 // base44 import removed - categoryConfigs now passed as prop
 
@@ -149,6 +149,36 @@ export default function StepAuthorizations({
             </RadioGroup>
           </div>
         </>
+      )}
+
+      {/* Responsabilidad desplazamiento - solo menores en creación */}
+      {!isEditing && !isAdultPlayerSelfRegistration && (
+        <div className={`space-y-4 border-2 rounded-lg p-4 ${fieldErrors.acepta_responsabilidad_desplazamiento ? 'border-red-500 bg-red-50' : currentPlayer.acepta_responsabilidad_desplazamiento ? 'border-green-300 bg-green-50' : 'border-amber-200 bg-amber-50'}`}>
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-5 h-5 text-amber-600" />
+            <span className="font-bold text-amber-900">RESPONSABILIDAD DE DESPLAZAMIENTO *</span>
+          </div>
+          <div className="bg-white rounded-lg p-3 text-xs max-h-48 overflow-y-auto border text-slate-700 space-y-2">
+            <p className="font-semibold text-slate-900">INFORMACIÓN Y DECLARACIÓN DE RESPONSABILIDAD - DESPLAZAMIENTO DE MENORES</p>
+            <p>El campo de fútbol municipal de Bustarviejo se encuentra en una zona cuyo acceso <strong>no dispone de acera peatonal</strong> en algunos tramos. El recorrido incluye tramos por <strong>arcén de carretera</strong> con tráfico rodado. En meses de invierno (octubre a marzo), la <strong>visibilidad es reducida</strong> a la hora de finalización de los entrenamientos.</p>
+            <p>Conforme al <strong>Art. 1903 del Código Civil</strong> y la <strong>Ley Orgánica 8/2021 (LOPIVI)</strong>, el CD Bustarviejo asume un deber de vigilancia exclusivamente durante el desarrollo de la actividad deportiva programada. <strong>Finalizada la sesión, la responsabilidad del desplazamiento de ida y vuelta al campo recae íntegramente en los padres, madres o tutores legales.</strong></p>
+            <p>El club <strong>recomienda encarecidamente</strong> que los menores utilicen <strong>chaleco reflectante</strong> en los meses de octubre a marzo debido a la falta de iluminación adecuada en el trayecto.</p>
+          </div>
+          <div className={`flex items-start gap-3 p-3 bg-white rounded-lg border-2 ${fieldErrors.acepta_responsabilidad_desplazamiento ? 'border-red-500' : currentPlayer.acepta_responsabilidad_desplazamiento ? 'border-green-400' : 'border-amber-300'}`}>
+            <Checkbox
+              id="wiz-desplazamiento"
+              checked={currentPlayer.acepta_responsabilidad_desplazamiento === true}
+              onCheckedChange={(c) => {
+                setCurrentPlayer({ ...currentPlayer, acepta_responsabilidad_desplazamiento: c });
+                if (fieldErrors.acepta_responsabilidad_desplazamiento) setFieldErrors(prev => ({ ...prev, acepta_responsabilidad_desplazamiento: null }));
+              }}
+            />
+            <label htmlFor="wiz-desplazamiento" className={`text-sm font-semibold cursor-pointer ${fieldErrors.acepta_responsabilidad_desplazamiento ? 'text-red-600' : 'text-amber-900'}`}>
+              ✅ DECLARO que he sido informado/a de las condiciones del acceso al campo y ACEPTO la plena responsabilidad sobre el desplazamiento de mi hijo/a hacia y desde las instalaciones deportivas.
+              {fieldErrors.acepta_responsabilidad_desplazamiento && <span className="block text-xs text-red-500 mt-1">⚠️ Debes aceptar esta declaración</span>}
+            </label>
+          </div>
+        </div>
       )}
 
       {/* Acceso juvenil - solo menores 13-17 en creación Y categoría competitiva */}

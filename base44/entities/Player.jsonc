@@ -1,0 +1,461 @@
+{
+  "name": "Player",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre y apellidos completos del jugador"
+    },
+    "foto_url": {
+      "type": "string",
+      "description": "URL de la foto tipo carnet del jugador (OBLIGATORIA)"
+    },
+    "deporte": {
+      "type": "string",
+      "description": "Categor\u00eda principal (LEGACY - mantener para compatibilidad)"
+    },
+    "categorias": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de todas las categor\u00edas en las que est\u00e1 inscrito (ej: ['F\u00fatbol Cadete', 'Preparaci\u00f3n F\u00edsica'])"
+    },
+    "categoria_principal": {
+      "type": "string",
+      "description": "Categor\u00eda deportiva principal (la que se usa para convocatorias/competici\u00f3n)"
+    },
+    "posicion": {
+      "type": "string",
+      "enum": [
+        "Portero",
+        "Defensa",
+        "Medio",
+        "Delantero",
+        "Sin asignar"
+      ],
+      "default": "Sin asignar",
+      "description": "Posici\u00f3n del jugador en el campo"
+    },
+    "numero_camiseta": {
+      "type": "string",
+      "description": "N\u00famero de dorsal del jugador (ej: 10)"
+    },
+    "tipo_inscripcion": {
+      "type": "string",
+      "enum": [
+        "Nueva Inscripci\u00f3n",
+        "Renovaci\u00f3n"
+      ],
+      "default": "Nueva Inscripci\u00f3n",
+      "description": "Si se trata de una nueva inscripci\u00f3n o una renovaci\u00f3n"
+    },
+    "fecha_nacimiento": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de nacimiento"
+    },
+    "es_mayor_edad": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el jugador es mayor de 18 a\u00f1os (se representa a s\u00ed mismo)"
+    },
+    "categoria_requiere_revision": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la categor\u00eda seleccionada no coincide con la edad y requiere revisi\u00f3n del admin"
+    },
+    "motivo_revision_categoria": {
+      "type": "string",
+      "description": "Motivo por el cual la categor\u00eda necesita revisi\u00f3n"
+    },
+    "categoria_revisada_por": {
+      "type": "string",
+      "description": "Email del admin que revis\u00f3 y aprob\u00f3 la categor\u00eda"
+    },
+    "fecha_revision_categoria": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se revis\u00f3 la categor\u00eda"
+    },
+    "tipo_documento": {
+      "type": "string",
+      "enum": [
+        "DNI",
+        "Pasaporte"
+      ],
+      "default": "DNI",
+      "description": "Tipo de documento de identidad del jugador"
+    },
+    "dni_jugador": {
+      "type": "string",
+      "description": "DNI o Pasaporte del jugador (obligatorio si mayor de 14 a\u00f1os)"
+    },
+    "dni_jugador_url": {
+      "type": "string",
+      "description": "URL del documento DNI o Pasaporte del jugador escaneado (cara delantera)"
+    },
+    "dni_jugador_trasero_url": {
+      "type": "string",
+      "description": "URL de la cara trasera del DNI del jugador"
+    },
+    "libro_familia_url": {
+      "type": "string",
+      "description": "URL de la p\u00e1gina del libro de familia donde aparece el jugador (si menor de 14 a\u00f1os sin DNI/Pasaporte)"
+    },
+    "tipo_documento_tutor": {
+      "type": "string",
+      "enum": [
+        "DNI",
+        "Pasaporte"
+      ],
+      "default": "DNI",
+      "description": "Tipo de documento de identidad del tutor legal"
+    },
+    "nombre_tutor_legal": {
+      "type": "string",
+      "description": "Nombre y apellidos del padre/madre/tutor legal"
+    },
+    "dni_tutor_legal": {
+      "type": "string",
+      "description": "DNI o Pasaporte del padre/madre/tutor legal (obligatorio si jugador es menor de 18)"
+    },
+    "dni_tutor_legal_url": {
+      "type": "string",
+      "description": "URL del documento DNI o Pasaporte del tutor legal escaneado (cara delantera)"
+    },
+    "dni_tutor_legal_trasero_url": {
+      "type": "string",
+      "description": "URL de la cara trasera del DNI del tutor legal"
+    },
+    "enlace_firma_jugador": {
+      "type": "string",
+      "description": "Enlace de federaci\u00f3n para firma del jugador"
+    },
+    "enlace_firma_tutor": {
+      "type": "string",
+      "description": "Enlace de federaci\u00f3n para firma del padre/tutor legal"
+    },
+    "firma_jugador_completada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el jugador ha completado la firma"
+    },
+    "firma_tutor_completada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el tutor ha completado la firma"
+    },
+    "documentos_adicionales": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "fecha_subida": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Documentos adicionales del jugador"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto del primer progenitor/tutor"
+    },
+    "email_padre": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del primer progenitor/tutor (cuenta principal para acceso a la app)"
+    },
+    "nombre_tutor_2": {
+      "type": "string",
+      "description": "Nombre y apellidos del segundo progenitor/tutor (opcional)"
+    },
+    "telefono_tutor_2": {
+      "type": "string",
+      "description": "Tel\u00e9fono del segundo progenitor/tutor (opcional)"
+    },
+    "email_tutor_2": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del segundo progenitor/tutor (recibir\u00e1 notificaciones y podr\u00e1 acceder a la app)"
+    },
+    "email_jugador": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del jugador +18 para acceso directo a la app"
+    },
+    "acceso_jugador_autorizado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el jugador +18 tiene acceso autorizado a la app"
+    },
+    "direccion": {
+      "type": "string",
+      "description": "Direcci\u00f3n completa"
+    },
+    "municipio": {
+      "type": "string",
+      "description": "Municipio de residencia"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el jugador est\u00e1 activo en el club"
+    },
+    "lesionado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el jugador est\u00e1 lesionado"
+    },
+    "sancionado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el jugador est\u00e1 sancionado"
+    },
+    "motivo_indisponibilidad": {
+      "type": "string",
+      "description": "Motivo de la lesi\u00f3n o sanci\u00f3n"
+    },
+    "fecha_disponibilidad": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha estimada en que el jugador volver\u00e1 a estar disponible"
+    },
+    "estado_renovacion": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "renovado",
+        "no_renueva"
+      ],
+      "default": "renovado",
+      "description": "Estado de renovaci\u00f3n para la temporada actual"
+    },
+    "temporada_renovacion": {
+      "type": "string",
+      "description": "Temporada para la cual se registr\u00f3 el estado de renovaci\u00f3n (ej: 2024-2025)"
+    },
+    "fecha_renovacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se renov\u00f3 o se marc\u00f3 como no renueva"
+    },
+    "tiene_descuento_hermano": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si aplica descuento de 25\u20ac por tener hermanos mayores inscritos"
+    },
+    "descuento_aplicado": {
+      "type": "number",
+      "default": 0,
+      "description": "Descuento aplicado en euros"
+    },
+    "incluye_seguro_accidentes": {
+      "type": "boolean",
+      "default": true,
+      "description": "Incluye seguro de accidentes deportivos"
+    },
+    "incluye_ficha_federativa": {
+      "type": "boolean",
+      "default": true,
+      "description": "Incluye ficha federativa"
+    },
+    "ajuste_cuota": {
+      "type": "object",
+      "properties": {
+        "cuota_original": {
+          "type": "number",
+          "description": "Cuota original antes del ajuste"
+        },
+        "cuota_ajustada": {
+          "type": "number",
+          "description": "Nueva cuota despu\u00e9s del ajuste"
+        },
+        "motivo": {
+          "type": "string",
+          "description": "Motivo del ajuste (de lista o personalizado)"
+        },
+        "motivo_tipo": {
+          "type": "string",
+          "enum": [
+            "lesion_larga",
+            "baja_anticipada",
+            "prorrateo_tardio",
+            "descuento_familiar",
+            "otro"
+          ],
+          "description": "Tipo de motivo"
+        },
+        "notas": {
+          "type": "string",
+          "description": "Notas adicionales del admin"
+        },
+        "ajustado_por": {
+          "type": "string",
+          "description": "Email del admin que hizo el ajuste"
+        },
+        "fecha_ajuste": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Fecha del ajuste"
+        }
+      },
+      "description": "Datos del ajuste de cuota del jugador"
+    },
+    "observaciones": {
+      "type": "string",
+      "description": "Notas adicionales"
+    },
+    "acepta_politica_privacidad": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si acepta la pol\u00edtica de privacidad del club"
+    },
+    "fecha_aceptacion_privacidad": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se acept\u00f3 la pol\u00edtica de privacidad"
+    },
+    "autorizacion_fotografia": {
+      "type": "string",
+      "enum": [
+        "SI AUTORIZO",
+        "NO AUTORIZO"
+      ],
+      "description": "Autorizaci\u00f3n para fotograf\u00edas y v\u00eddeos"
+    },
+    "acepta_responsabilidad_desplazamiento": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el padre/tutor acepta la responsabilidad sobre el desplazamiento del menor hacia y desde las instalaciones deportivas"
+    },
+    "fecha_aceptacion_desplazamiento": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora en que se acept\u00f3 la responsabilidad de desplazamiento"
+    },
+    "desplazamiento_texto_version": {
+      "type": "string",
+      "description": "Versi\u00f3n del texto de responsabilidad de desplazamiento aceptado (ej: v1.0)"
+    },
+    "ficha_medica": {
+      "type": "object",
+      "properties": {
+        "alergias": {
+          "type": "string",
+          "description": "Alergias conocidas (alimentos, medicamentos, etc.)"
+        },
+        "medicacion_habitual": {
+          "type": "string",
+          "description": "Medicaci\u00f3n que toma habitualmente"
+        },
+        "condiciones_medicas": {
+          "type": "string",
+          "description": "Condiciones m\u00e9dicas relevantes (asma, diabetes, etc.)"
+        },
+        "grupo_sanguineo": {
+          "type": "string",
+          "enum": [
+            "A+",
+            "A-",
+            "B+",
+            "B-",
+            "AB+",
+            "AB-",
+            "O+",
+            "O-"
+          ],
+          "description": "Grupo sangu\u00edneo del jugador"
+        },
+        "contacto_emergencia_nombre": {
+          "type": "string",
+          "description": "Nombre del primer contacto de emergencia"
+        },
+        "contacto_emergencia_telefono": {
+          "type": "string",
+          "description": "Tel\u00e9fono del primer contacto de emergencia"
+        },
+        "contacto_emergencia_2_nombre": {
+          "type": "string",
+          "description": "Nombre del segundo contacto de emergencia"
+        },
+        "contacto_emergencia_2_telefono": {
+          "type": "string",
+          "description": "Tel\u00e9fono del segundo contacto de emergencia"
+        },
+        "lesiones": {
+          "type": "string",
+          "description": "Lesiones actuales o historial de lesiones relevantes"
+        },
+        "observaciones_medicas": {
+          "type": "string",
+          "description": "Observaciones adicionales sobre la salud del jugador"
+        }
+      },
+      "description": "Informaci\u00f3n m\u00e9dica del jugador"
+    },
+    "acceso_menor_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del menor (13-17 a\u00f1os) para acceso juvenil a la app"
+    },
+    "acceso_menor_autorizado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el padre/tutor ha autorizado el acceso juvenil"
+    },
+    "acceso_menor_fecha_consentimiento": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora en que el padre dio consentimiento para acceso juvenil"
+    },
+    "acceso_menor_padre_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del padre/tutor que autoriz\u00f3 el acceso juvenil"
+    },
+    "acceso_menor_texto_version": {
+      "type": "string",
+      "description": "Versi\u00f3n del texto de consentimiento aceptado (ej: v1.0)"
+    },
+    "acceso_menor_user_agent": {
+      "type": "string",
+      "description": "Navegador del padre al dar consentimiento juvenil"
+    },
+    "acceso_menor_normas_aceptadas": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el menor acept\u00f3 las normas de uso en su primer login"
+    },
+    "acceso_menor_fecha_normas": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que el menor acept\u00f3 las normas"
+    },
+    "acceso_menor_revocado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el padre revoc\u00f3 el acceso del menor"
+    }
+  },
+  "required": [
+    "nombre",
+    "email_padre",
+    "fecha_nacimiento",
+    "tipo_inscripcion",
+    "acepta_politica_privacidad",
+    "autorizacion_fotografia",
+    "foto_url"
+  ]
+}

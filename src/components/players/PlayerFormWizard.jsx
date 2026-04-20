@@ -456,6 +456,10 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     if (s === 7 && !isEditing) {
       if (!currentPlayer.acepta_politica_privacidad) errors.acepta_politica_privacidad = "Debes aceptar la política";
       if (!currentPlayer.autorizacion_fotografia) errors.autorizacion_fotografia = "Selecciona una opción";
+      // Responsabilidad desplazamiento obligatoria para menores
+      if (!isAdultPlayerSelfRegistration && !currentPlayer.acepta_responsabilidad_desplazamiento) {
+        errors.acepta_responsabilidad_desplazamiento = "Debes aceptar la responsabilidad de desplazamiento";
+      }
       if (currentPlayer.acceso_menor_autorizado && !currentPlayer.acceso_menor_email?.trim()) {
         errors.acceso_menor_email = "Introduce el email de tu hijo/a para el acceso juvenil";
       }
@@ -520,6 +524,11 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     };
     if (!player && !finalData.fecha_aceptacion_privacidad) {
       finalData.fecha_aceptacion_privacidad = new Date().toISOString();
+    }
+    // If displacement responsibility was accepted, add metadata
+    if (finalData.acepta_responsabilidad_desplazamiento) {
+      finalData.fecha_aceptacion_desplazamiento = new Date().toISOString();
+      finalData.desplazamiento_texto_version = "v1.0";
     }
     // If minor access was authorized during registration, add consent metadata
     if (finalData.acceso_menor_autorizado && finalData.acceso_menor_email) {
