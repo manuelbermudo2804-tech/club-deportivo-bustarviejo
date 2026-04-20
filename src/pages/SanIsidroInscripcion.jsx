@@ -19,6 +19,45 @@ const MODALIDADES = [
   { id: "3para3_11_15", label: "3 para 3 (11-15 años)", tipo: "3para3", icon: "⚽", color: "green" },
 ];
 
+const WEB_CLUB = "https://www.cdbustarviejo.es";
+
+function SuccessScreen({ modLabel, onReset }) {
+  const [countdown, setCountdown] = useState(8);
+
+  useEffect(() => {
+    if (countdown <= 0) {
+      window.location.href = WEB_CLUB;
+      return;
+    }
+    const timer = setTimeout(() => setCountdown(c => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-red-600 via-yellow-500 to-green-600 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center space-y-5">
+        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+          <PartyPopper className="w-10 h-10 text-green-600" />
+        </div>
+        <h2 className="text-2xl font-black text-slate-900">¡Inscripción Enviada!</h2>
+        <p className="text-slate-600">Tu inscripción en <strong>{modLabel}</strong> se ha registrado correctamente.</p>
+        <p className="text-lg font-bold text-green-700">🎉 ¡Te esperamos el 15 de Mayo!</p>
+        <p className="text-slate-400 text-sm">Volverás a la web del club en {countdown} segundos…</p>
+        <div className="flex gap-2 justify-center pt-2">
+          <Button variant="outline" onClick={onReset}>
+            Otra inscripción
+          </Button>
+          <a href={WEB_CLUB}>
+            <Button className="bg-red-600 hover:bg-red-700 text-white">
+              Ir a la web
+            </Button>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function SanIsidroInscripcion() {
   const [step, setStep] = useState("select");
   const [selectedMod, setSelectedMod] = useState(null);
@@ -103,25 +142,9 @@ export default function SanIsidroInscripcion() {
     );
   }
 
-  // Éxito
+  // Éxito — cuenta atrás y redirige a la web del club
   if (step === "success") {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-red-600 via-yellow-500 to-green-600 flex items-center justify-center p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center space-y-4">
-          <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-            <Check className="w-10 h-10 text-green-600" />
-          </div>
-          <h2 className="text-2xl font-black text-slate-900">¡Inscripción Enviada!</h2>
-          <p className="text-slate-600">Tu inscripción en <strong>{mod?.label}</strong> se ha registrado correctamente.</p>
-          <p className="text-slate-500 text-sm">¡Te esperamos el 15 de Mayo! 🎉</p>
-          <div className="flex gap-2 justify-center pt-2">
-            <Button variant="outline" onClick={resetForm}>
-              Otra inscripción
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return <SuccessScreen modLabel={mod?.label} onReset={resetForm} />;
   }
 
   return (

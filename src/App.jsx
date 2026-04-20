@@ -47,6 +47,8 @@ const AppRouter = () => {
         <Route path="/Patrocinadores" element={<PublicSponsors />} />
         <Route path="/SanIsidro" element={<SanIsidroInscripcion />} />
         <Route path="/sanisidro" element={<SanIsidroInscripcion />} />
+        <Route path="/Sanisidro" element={<SanIsidroInscripcion />} />
+        <Route path="/SANISIDRO" element={<SanIsidroInscripcion />} />
       </Routes>
     );
   }
