@@ -19,7 +19,7 @@ const MODALIDADES = [
   { id: "3para3_11_15", label: "3 para 3 (11-15 años)", tipo: "3para3", icon: "⚽", color: "green" },
 ];
 
-const WEB_CLUB = "https://www.cdbustarviejo.es";
+const WEB_CLUB = "https://www.cdbustarviejo.com";
 
 function SuccessScreen({ modLabel, onReset }) {
   const [countdown, setCountdown] = useState(8);
