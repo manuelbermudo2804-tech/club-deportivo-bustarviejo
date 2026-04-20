@@ -86,6 +86,9 @@ export function buildAdminNavigation(ctx) {
     { title: "🔬 Centro de Diagnóstico", url: createPageUrl("AppAnalytics"), icon: BarChart3 },
     { title: "⚡ Monitor de Créditos", url: createPageUrl("CreditUsage"), icon: BarChart3 },
 
+    { title: "─ SAN ISIDRO ─", section: true },
+    { title: "🎉 Inscripciones San Isidro", url: createPageUrl("SanIsidroAdmin"), icon: Calendar },
+
     { title: "─ DESARROLLO ─", section: true },
     { title: "📲 Check-in Tablet", url: createPageUrl("CheckinTablet"), icon: Smartphone },
     { title: "🧪 Test Chats", url: createPageUrl("ChatTestConsole"), icon: BarChart3 },
@@ -185,6 +188,7 @@ export function buildCoordinatorNavigation(ctx) {
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     { title: "📋 Contactos Web", url: createPageUrl("WebContacts"), icon: Users },
     { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
+    { title: "🎉 San Isidro 2026", url: createPageUrl("SanIsidroAdmin"), icon: Calendar },
 
     ...(isPlayer ? [
       { title: "─ MI PERFIL JUGADOR ─", section: true },

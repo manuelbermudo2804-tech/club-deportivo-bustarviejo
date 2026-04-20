@@ -1,0 +1,58 @@
+{
+  "name": "SanIsidroRegistration",
+  "type": "object",
+  "properties": {
+    "modalidad": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol Chapa - Ni\u00f1os/J\u00f3venes",
+        "F\u00fatbol Chapa - Adultos",
+        "3 para 3 (7-10 a\u00f1os)",
+        "3 para 3 (11-15 a\u00f1os)"
+      ],
+      "description": "Modalidad y categor\u00eda de inscripci\u00f3n"
+    },
+    "nombre_responsable": {
+      "type": "string",
+      "description": "Nombre y apellidos del responsable de la inscripci\u00f3n"
+    },
+    "telefono_responsable": {
+      "type": "string",
+      "description": "Tel\u00e9fono del responsable"
+    },
+    "email_responsable": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del responsable"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre y apellidos del jugador (para F\u00fatbol Chapa)"
+    },
+    "nombre_equipo": {
+      "type": "string",
+      "description": "Nombre del equipo (para 3 para 3)"
+    },
+    "jugador_1": {
+      "type": "string",
+      "description": "Nombre y apellidos del jugador 1 (para 3 para 3)"
+    },
+    "jugador_2": {
+      "type": "string",
+      "description": "Nombre y apellidos del jugador 2 (para 3 para 3)"
+    },
+    "jugador_3": {
+      "type": "string",
+      "description": "Nombre y apellidos del jugador 3 (para 3 para 3)"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Observaciones adicionales"
+    }
+  },
+  "required": [
+    "modalidad",
+    "nombre_responsable",
+    "telefono_responsable"
+  ]
+}
