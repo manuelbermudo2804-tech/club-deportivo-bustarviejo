@@ -46,6 +46,7 @@ const AppRouter = () => {
         <Route path="/SolicitarAcceso" element={<PublicAccessRequest />} />
         <Route path="/Patrocinadores" element={<PublicSponsors />} />
         <Route path="/SanIsidro" element={<SanIsidroInscripcion />} />
+        <Route path="/sanisidro" element={<SanIsidroInscripcion />} />
       </Routes>
     );
   }
