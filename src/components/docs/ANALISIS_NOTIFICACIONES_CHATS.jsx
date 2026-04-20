@@ -1,1 +1,1 @@
-export default function ANALISIS_NOTIFICACIONES_CHATS() { return null; }
+export default function ANALISIS_NOTIFICACIONES_CHATSMd() { return null; }

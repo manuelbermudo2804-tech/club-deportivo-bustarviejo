@@ -1,1 +1,1 @@
-export default function AUDITORIA_SISTEMA_NOTIFICACIONES() { return null; }
+export default function AUDITORIA_SISTEMA_NOTIFICACIONESMd() { return null; }

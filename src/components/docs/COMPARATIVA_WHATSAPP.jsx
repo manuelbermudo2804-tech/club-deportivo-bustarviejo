@@ -1,1 +1,1 @@
-export default function COMPARATIVA_WHATSAPP() { return null; }
+export default function COMPARATIVA_WHATSAPPMd() { return null; }
