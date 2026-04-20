@@ -3,7 +3,6 @@ import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Check, Trophy, Users, Loader2, PartyPopper, Clock } from "lucide-react";
 import { toast } from "sonner";
 
@@ -63,15 +62,13 @@ export default function SanIsidroInscripcion() {
   const [selectedMod, setSelectedMod] = useState(null);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    nombre_responsable: "",
-    telefono_responsable: "",
-    email_responsable: "",
-    jugador_nombre: "",
+    nombre: "",
+    telefono: "",
+    email: "",
     nombre_equipo: "",
     jugador_1: "",
     jugador_2: "",
     jugador_3: "",
-    notas: "",
   });
 
   const now = new Date();
@@ -86,39 +83,34 @@ export default function SanIsidroInscripcion() {
   const resetForm = () => {
     setStep("select");
     setSelectedMod(null);
-    setForm({ nombre_responsable: "", telefono_responsable: "", email_responsable: "", jugador_nombre: "", nombre_equipo: "", jugador_1: "", jugador_2: "", jugador_3: "", notas: "" });
+    setForm({ nombre: "", telefono: "", email: "", nombre_equipo: "", jugador_1: "", jugador_2: "", jugador_3: "" });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.nombre_responsable || !form.telefono_responsable) {
-      toast.error("Por favor, rellena el nombre y teléfono del responsable");
+    if (isChapa && (!form.nombre || !form.telefono)) {
+      toast.error("Por favor, rellena nombre y teléfono");
       return;
     }
-    if (isChapa && !form.jugador_nombre) {
-      toast.error("Por favor, indica el nombre del jugador");
-      return;
-    }
-    if (is3para3 && (!form.nombre_equipo || !form.jugador_1 || !form.jugador_2 || !form.jugador_3)) {
-      toast.error("Por favor, rellena el nombre del equipo y los 3 jugadores");
+    if (is3para3 && (!form.nombre_equipo || !form.jugador_1 || !form.jugador_2 || !form.jugador_3 || !form.telefono)) {
+      toast.error("Por favor, rellena todos los campos obligatorios");
       return;
     }
 
     setSaving(true);
     const data = {
       modalidad: mod.label,
-      nombre_responsable: form.nombre_responsable,
-      telefono_responsable: form.telefono_responsable,
+      nombre_responsable: isChapa ? form.nombre : form.jugador_1,
+      telefono_responsable: form.telefono,
     };
-    if (form.email_responsable) data.email_responsable = form.email_responsable;
-    if (isChapa) data.jugador_nombre = form.jugador_nombre;
+    if (form.email) data.email_responsable = form.email;
+    if (isChapa) data.jugador_nombre = form.nombre;
     if (is3para3) {
       data.nombre_equipo = form.nombre_equipo;
       data.jugador_1 = form.jugador_1;
       data.jugador_2 = form.jugador_2;
       data.jugador_3 = form.jugador_3;
     }
-    if (form.notas) data.notas = form.notas;
 
     await base44.functions.invoke("sanIsidroRegister", data);
     setSaving(false);
@@ -226,62 +218,54 @@ export default function SanIsidroInscripcion() {
               </div>
             </div>
 
-            {/* Responsable */}
-            <div className="bg-slate-50 rounded-xl p-4 space-y-3">
-              <p className="text-xs font-semibold text-slate-600 uppercase">Datos del responsable</p>
-              <div>
-                <Label className="text-xs text-slate-700">Nombre y apellidos *</Label>
-                <Input value={form.nombre_responsable} onChange={e => updateField("nombre_responsable", e.target.value)} placeholder="Ej: Juan García López" />
-              </div>
-              <div>
-                <Label className="text-xs text-slate-700">Teléfono *</Label>
-                <Input value={form.telefono_responsable} onChange={e => updateField("telefono_responsable", e.target.value)} placeholder="Ej: 600 123 456" type="tel" />
-              </div>
-              <div>
-                <Label className="text-xs text-slate-700">Email (opcional)</Label>
-                <Input value={form.email_responsable} onChange={e => updateField("email_responsable", e.target.value)} placeholder="Ej: email@ejemplo.com" type="email" />
-              </div>
-            </div>
-
-            {/* Chapa */}
+            {/* Chapa - solo datos del jugador */}
             {isChapa && (
               <div className="bg-orange-50 rounded-xl p-4 space-y-3 border border-orange-200">
                 <p className="text-xs font-semibold text-orange-700 uppercase">Datos del jugador</p>
                 <div>
                   <Label className="text-xs text-orange-700">Nombre y apellidos *</Label>
-                  <Input value={form.jugador_nombre} onChange={e => updateField("jugador_nombre", e.target.value)} placeholder="Ej: Pedro García" />
+                  <Input value={form.nombre} onChange={e => updateField("nombre", e.target.value)} placeholder="Ej: Pedro García López" />
+                </div>
+                <div>
+                  <Label className="text-xs text-orange-700">Teléfono de contacto *</Label>
+                  <Input value={form.telefono} onChange={e => updateField("telefono", e.target.value)} placeholder="Ej: 600 123 456" type="tel" />
+                </div>
+                <div>
+                  <Label className="text-xs text-orange-700">Email (opcional)</Label>
+                  <Input value={form.email} onChange={e => updateField("email", e.target.value)} placeholder="email@ejemplo.com" type="email" />
                 </div>
               </div>
             )}
 
-            {/* 3 para 3 */}
+            {/* 3 para 3 - equipo + jugadores + contacto */}
             {is3para3 && (
               <div className="bg-green-50 rounded-xl p-4 space-y-3 border border-green-200">
-                <p className="text-xs font-semibold text-green-700 uppercase">Datos del equipo</p>
                 <div>
                   <Label className="text-xs text-green-700">Nombre del equipo *</Label>
                   <Input value={form.nombre_equipo} onChange={e => updateField("nombre_equipo", e.target.value)} placeholder="Ej: Los Tigres" />
                 </div>
                 <div>
-                  <Label className="text-xs text-green-700">Jugador 1 - Nombre y apellidos *</Label>
-                  <Input value={form.jugador_1} onChange={e => updateField("jugador_1", e.target.value)} placeholder="Nombre completo" />
+                  <Label className="text-xs text-green-700">Jugador 1 *</Label>
+                  <Input value={form.jugador_1} onChange={e => updateField("jugador_1", e.target.value)} placeholder="Nombre y apellidos" />
                 </div>
                 <div>
-                  <Label className="text-xs text-green-700">Jugador 2 - Nombre y apellidos *</Label>
-                  <Input value={form.jugador_2} onChange={e => updateField("jugador_2", e.target.value)} placeholder="Nombre completo" />
+                  <Label className="text-xs text-green-700">Jugador 2 *</Label>
+                  <Input value={form.jugador_2} onChange={e => updateField("jugador_2", e.target.value)} placeholder="Nombre y apellidos" />
                 </div>
                 <div>
-                  <Label className="text-xs text-green-700">Jugador 3 - Nombre y apellidos *</Label>
-                  <Input value={form.jugador_3} onChange={e => updateField("jugador_3", e.target.value)} placeholder="Nombre completo" />
+                  <Label className="text-xs text-green-700">Jugador 3 *</Label>
+                  <Input value={form.jugador_3} onChange={e => updateField("jugador_3", e.target.value)} placeholder="Nombre y apellidos" />
+                </div>
+                <div>
+                  <Label className="text-xs text-green-700">Teléfono de contacto *</Label>
+                  <Input value={form.telefono} onChange={e => updateField("telefono", e.target.value)} placeholder="Ej: 600 123 456" type="tel" />
+                </div>
+                <div>
+                  <Label className="text-xs text-green-700">Email (opcional)</Label>
+                  <Input value={form.email} onChange={e => updateField("email", e.target.value)} placeholder="email@ejemplo.com" type="email" />
                 </div>
               </div>
             )}
-
-            {/* Notas */}
-            <div>
-              <Label className="text-xs text-slate-700">Observaciones (opcional)</Label>
-              <Textarea value={form.notas} onChange={e => updateField("notas", e.target.value)} placeholder="Algo que quieras comentar..." rows={2} />
-            </div>
 
             <Button type="submit" disabled={saving} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 text-base">
               {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</> : "✅ Enviar Inscripción"}
