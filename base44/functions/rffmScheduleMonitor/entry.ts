@@ -467,29 +467,34 @@ Deno.serve(async (req) => {
         // Update the convocatoria
         await base44.asServiceRole.entities.Convocatoria.update(callup.id, updateData);
 
-        // Send chat message to the team
-        const grupo_id = config.categoria;
+        // Notify parents via AppNotification (links to calendar/matches section)
+        const cambiosTexto = changeParts.join(' | ');
+        const notifTitulo = `⚠️ Cambio de horario: ${config.categoria} vs ${rival}`;
+        const notifMensaje = `Jornada ${jornada} — ${cambiosTexto}. ${isLocal ? '🏠 Local' : '✈️ Visitante'}`;
 
-        const mensaje = `⚠️ *CAMBIO DE HORARIO DE PARTIDO* ⚠️\n\n` +
-          `Partido: CD Bustarviejo vs ${rival}\n` +
-          `Categoría: ${config.categoria}\n` +
-          `Jornada: ${jornada}\n\n` +
-          `Cambios detectados:\n${changeParts.join('\n')}\n\n` +
-          `${isLocal ? '🏠 Local' : '✈️ Visitante'}\n\n` +
-          `ℹ️ Información actualizada automáticamente desde la Federación (RFFM).`;
-
-        await base44.asServiceRole.entities.ChatMessage.create({
-          remitente_email: 'sistema@cdbustarviejo.es',
-          remitente_nombre: '🤖 Sistema CD Bustarviejo',
-          mensaje,
-          tipo: 'admin_a_grupo',
-          deporte: config.categoria,
-          grupo_id,
-          prioridad: 'Urgente',
-          anclado: true,
-          anclado_por: 'sistema@cdbustarviejo.es',
-          anclado_fecha: new Date().toISOString(),
+        // Get parents of this category to notify
+        const categoryPlayers = await base44.asServiceRole.entities.Player.filter({
+          categoria_principal: config.categoria, activo: true
         });
+        const parentEmails = new Set();
+        for (const p of categoryPlayers) {
+          if (p.email_padre) parentEmails.add(p.email_padre);
+          if (p.email_tutor_2) parentEmails.add(p.email_tutor_2);
+          if (p.email_jugador) parentEmails.add(p.email_jugador);
+        }
+
+        // Create AppNotification for each parent → links to CalendarAndSchedules
+        for (const email of parentEmails) {
+          await base44.asServiceRole.entities.AppNotification.create({
+            usuario_email: email,
+            titulo: notifTitulo,
+            mensaje: notifMensaje,
+            tipo: 'urgente',
+            icono: '⚠️',
+            enlace: 'CalendarAndSchedules',
+            vista: false,
+          });
+        }
 
         // Email a padres de jugadores convocados
         if (callup.jugadores_convocados?.length) {
