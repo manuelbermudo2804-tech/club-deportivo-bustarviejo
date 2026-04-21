@@ -118,21 +118,26 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   const firmasStatus = getFirmasStatus();
 
   // Season & payments
-  const getCurrentSeason = () => {
-    if (seasonConfig?.temporada) return seasonConfig.temporada;
+  const normalizeTemporada = (temp) => temp ? temp.replace(/-/g, "/").trim() : "";
+  const currentSeason = seasonConfig?.temporada || (() => {
     const now = new Date();
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
     return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
-  };
-  const currentSeason = getCurrentSeason();
-  const normalizeTemporada = (temp) => temp ? temp.replace(/-/g, "/").trim() : "";
+  })();
   const normalizedCurrentSeason = normalizeTemporada(currentSeason);
 
-  const playerPayments = payments.filter(p => {
-    if (p.jugador_id !== player.id) return false;
+  // Filtrar pagos del jugador por temporada, con fallback a todos si no hay coincidencia
+  const allPlayerPayments = payments.filter(p => p.jugador_id === player.id);
+  const seasonFilteredPayments = allPlayerPayments.filter(p => {
+    if (!p.temporada) return true;
     return normalizeTemporada(p.temporada) === normalizedCurrentSeason;
   });
+  // Si no encontramos pagos para la temporada actual pero el jugador SÍ tiene pagos,
+  // usar los pagos más recientes (evitar falso ❌ por desajuste de temporada)
+  const playerPayments = seasonFilteredPayments.length > 0 
+    ? seasonFilteredPayments 
+    : allPlayerPayments;
 
   const customPlan = getActiveCustomPlan(player.id, customPlans, normalizedCurrentSeason);
   let expectedPayments, paidCount, pendingCount, allPaid;
