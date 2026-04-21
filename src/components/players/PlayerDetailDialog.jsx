@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Phone, MapPin, Calendar, Heart, AlertTriangle, Users } from "lucide-react";
+import { User, Mail, Phone, MapPin, Calendar, Heart, AlertTriangle, Users, Shield, CheckCircle2, XCircle, Camera, FileText, AlertTriangle as AlertTriangleIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import PlayerEvaluationsSection from "../evaluations/PlayerEvaluationsSection";
@@ -305,6 +305,113 @@ export default function PlayerDetailDialog({ player, open, onOpenChange }) {
               )}
             </div>
           )}
+
+          {/* Autorizaciones */}
+          <div className="bg-purple-50 rounded-lg p-4 space-y-3 border border-purple-200">
+            <h3 className="font-bold text-purple-900 flex items-center gap-2">
+              <Shield className="w-5 h-5 text-purple-600" />
+              Autorizaciones y Consentimientos
+            </h3>
+
+            <div className="space-y-2">
+              {/* Política de Privacidad */}
+              <div className="flex items-center justify-between bg-white rounded-lg p-2.5 border border-purple-100">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-purple-500" />
+                  <span className="text-sm text-slate-700">Política de Privacidad</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {player.acepta_politica_privacidad ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      <span className="text-xs text-green-700 font-medium">Aceptada</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-4 h-4 text-red-500" />
+                      <span className="text-xs text-red-600 font-medium">No aceptada</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              {player.fecha_aceptacion_privacidad && (
+                <p className="text-[10px] text-slate-400 pl-7">
+                  Fecha: {format(new Date(player.fecha_aceptacion_privacidad), "d MMM yyyy 'a las' HH:mm", { locale: es })}
+                </p>
+              )}
+
+              {/* Autorización Fotografías */}
+              <div className="flex items-center justify-between bg-white rounded-lg p-2.5 border border-purple-100">
+                <div className="flex items-center gap-2">
+                  <Camera className="w-4 h-4 text-purple-500" />
+                  <span className="text-sm text-slate-700">Fotografías y Vídeos</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {player.autorizacion_fotografia === "SI AUTORIZO" ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      <span className="text-xs text-green-700 font-medium">Autoriza</span>
+                    </>
+                  ) : player.autorizacion_fotografia === "NO AUTORIZO" ? (
+                    <>
+                      <XCircle className="w-4 h-4 text-red-500" />
+                      <span className="text-xs text-red-600 font-medium">No autoriza</span>
+                    </>
+                  ) : (
+                    <span className="text-xs text-slate-400">Sin respuesta</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Responsabilidad Desplazamiento */}
+              <div className="flex items-center justify-between bg-white rounded-lg p-2.5 border border-purple-100">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-purple-500" />
+                  <span className="text-sm text-slate-700">Responsabilidad Desplazamiento</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {player.acepta_responsabilidad_desplazamiento ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      <span className="text-xs text-green-700 font-medium">Aceptada</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-4 h-4 text-red-500" />
+                      <span className="text-xs text-red-600 font-medium">No aceptada</span>
+                    </>
+                  )}
+                </div>
+              </div>
+              {player.fecha_aceptacion_desplazamiento && (
+                <p className="text-[10px] text-slate-400 pl-7">
+                  Fecha: {format(new Date(player.fecha_aceptacion_desplazamiento), "d MMM yyyy 'a las' HH:mm", { locale: es })}
+                  {player.desplazamiento_texto_version && ` • Versión: ${player.desplazamiento_texto_version}`}
+                </p>
+              )}
+
+              {/* Normativa del Club */}
+              <div className="flex items-center justify-between bg-white rounded-lg p-2.5 border border-purple-100">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-purple-500" />
+                  <span className="text-sm text-slate-700">Normativa del Club</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {player.acepta_normativa ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-green-600" />
+                      <span className="text-xs text-green-700 font-medium">Aceptada</span>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="w-4 h-4 text-red-500" />
+                      <span className="text-xs text-red-600 font-medium">No aceptada</span>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Observaciones */}
           {player.observaciones && (
