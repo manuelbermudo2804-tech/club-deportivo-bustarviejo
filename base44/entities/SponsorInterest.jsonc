@@ -7,6 +7,12 @@
       "enum": [
         "Colaborador (solo cuota base)",
         "Pancarta en el campo",
+        "Camiseta OFICIAL - Pecho",
+        "Camiseta OFICIAL - Trasera",
+        "Camiseta OFICIAL - Manga",
+        "Camiseta OFICIAL - Trasero derecha",
+        "Camiseta OFICIAL - Trasero izquierda",
+        "Camiseta ENTRENAMIENTO",
         "Camiseta PECHO",
         "Camiseta TRASERA",
         "Camiseta Entrenamiento",

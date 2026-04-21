@@ -7,12 +7,12 @@ import DeadlineCountdown from "./DeadlineCountdown";
 
 const addons = [
   { name: "Pancarta en el campo", price: "150€", sub: "1ª temporada · 100€ la siguiente", icon: Flag },
-  { name: "Camiseta PECHO", price: "400€", sub: "~130 jugadores llevan tu logo", icon: Shirt, highlight: true },
-  { name: "Camiseta TRASERA", price: "250€", sub: "máxima visibilidad por detrás", icon: Shirt },
-  { name: "Camiseta Entrenamiento", price: "350€", sub: "logo en la camiseta de entrenamientos", icon: Shirt },
-  { name: "Manga", price: "150€", sub: "posición lateral en camiseta", icon: Shirt },
-  { name: "Trasero derecha", price: "150€", sub: "parte trasera camiseta, lado derecho", icon: Shirt },
-  { name: "Trasero izquierda", price: "150€", sub: "parte trasera camiseta, lado izquierdo", icon: Shirt },
+  { name: "Camiseta OFICIAL - Pecho", price: "400€", sub: "Camiseta oficial de partidos · ~130 jugadores llevan tu logo", icon: Shirt, highlight: true },
+  { name: "Camiseta OFICIAL - Trasera", price: "250€", sub: "Camiseta oficial de partidos · máxima visibilidad por detrás", icon: Shirt },
+  { name: "Camiseta OFICIAL - Manga", price: "150€", sub: "Camiseta oficial de partidos · posición lateral", icon: Shirt },
+  { name: "Camiseta OFICIAL - Trasero derecha", price: "150€", sub: "Camiseta oficial de partidos · parte trasera, lado derecho", icon: Shirt },
+  { name: "Camiseta OFICIAL - Trasero izquierda", price: "150€", sub: "Camiseta oficial de partidos · parte trasera, lado izquierdo", icon: Shirt },
+  { name: "Camiseta ENTRENAMIENTO", price: "350€", sub: "Camiseta usada en todos los entrenamientos", icon: Shirt },
 ];
 
 const baseIncludes = [
