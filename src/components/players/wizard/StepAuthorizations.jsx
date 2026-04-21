@@ -159,10 +159,23 @@ export default function StepAuthorizations({
             <span className="font-bold text-amber-900">RESPONSABILIDAD DE DESPLAZAMIENTO *</span>
           </div>
           <div className="bg-white rounded-lg p-3 text-xs max-h-48 overflow-y-auto border text-slate-700 space-y-2">
-            <p className="font-semibold text-slate-900">INFORMACIÓN Y DECLARACIÓN DE RESPONSABILIDAD - DESPLAZAMIENTO DE MENORES</p>
+            <p className="font-semibold text-slate-900">INFORMACIÓN Y DECLARACIÓN DE RESPONSABILIDAD - DESPLAZAMIENTO, CUSTODIA Y SEGURO DE MENORES</p>
+
+            <p className="font-semibold text-slate-900 mt-2">1. ACCESO AL CAMPO</p>
             <p>El campo de fútbol municipal de Bustarviejo se encuentra en una zona cuyo acceso <strong>no dispone de acera peatonal</strong> en algunos tramos. El recorrido incluye tramos por <strong>arcén de carretera</strong> con tráfico rodado. En meses de invierno (octubre a marzo), la <strong>visibilidad es reducida</strong> a la hora de finalización de los entrenamientos.</p>
-            <p>Conforme al <strong>Art. 1903 del Código Civil</strong> y la <strong>Ley Orgánica 8/2021 (LOPIVI)</strong>, el CD Bustarviejo asume un deber de vigilancia exclusivamente durante el desarrollo de la actividad deportiva programada. <strong>Finalizada la sesión, la responsabilidad del desplazamiento de ida y vuelta al campo recae íntegramente en los padres, madres o tutores legales.</strong></p>
             <p>El club <strong>recomienda encarecidamente</strong> que los menores utilicen <strong>chaleco reflectante</strong> en los meses de octubre a marzo debido a la falta de iluminación adecuada en el trayecto.</p>
+
+            <p className="font-semibold text-slate-900 mt-2">2. RESPONSABILIDAD DE LOS ENTRENADORES Y CUSTODIA</p>
+            <p>Los entrenadores del CD Bustarviejo son responsables de los menores <strong>única y exclusivamente durante el horario de la actividad deportiva programada</strong> (entrenamiento o partido). Cada sesión tiene un <strong>horario de inicio y fin determinado</strong>, que será comunicado a las familias. <strong>Fuera de ese horario, los entrenadores no ejercen función de custodia ni supervisión sobre los menores.</strong></p>
+            <p>Los padres, madres o tutores legales tienen la <strong>obligación de recoger al menor puntualmente</strong> a la hora de finalización del entrenamiento o partido. El campo de fútbol <strong>no es un servicio de guardería</strong>: los entrenadores no pueden quedarse custodiando menores más allá del horario establecido. <strong>El retraso reiterado en la recogida podrá ser comunicado a las autoridades competentes en materia de protección del menor.</strong></p>
+
+            <p className="font-semibold text-slate-900 mt-2">3. DESPLAZAMIENTO DE IDA Y VUELTA</p>
+            <p>Conforme al <strong>Art. 1903 del Código Civil</strong> y la <strong>Ley Orgánica 8/2021 (LOPIVI)</strong>, el CD Bustarviejo asume un deber de vigilancia exclusivamente durante el desarrollo de la actividad deportiva programada. <strong>Finalizada la sesión, la responsabilidad del desplazamiento de ida y vuelta al campo recae íntegramente en los padres, madres o tutores legales.</strong></p>
+            <p>Si el padre/madre/tutor autoriza a su hijo/a a <strong>acudir o regresar solo/a</strong>, asume toda la responsabilidad derivada de dicho desplazamiento, eximiendo al club y a sus entrenadores de cualquier incidencia que pueda ocurrir fuera del horario y recinto de la actividad deportiva.</p>
+
+            <p className="font-semibold text-slate-900 mt-2">4. COBERTURA DEL SEGURO DEPORTIVO</p>
+            <p>El seguro deportivo federativo contratado por el club cubre <strong>exclusivamente los accidentes que se produzcan durante la actividad deportiva programada</strong> (entrenamientos y partidos oficiales) y en el recinto donde esta se desarrolle. <strong>Cualquier incidente que ocurra fuera del horario de la actividad o fuera de las instalaciones deportivas NO está cubierto por el seguro del club.</strong></p>
+            <p>Esto incluye, sin limitación: el trayecto de ida y vuelta, el tiempo de espera antes o después de la actividad, y cualquier permanencia en las instalaciones fuera del horario establecido.</p>
           </div>
           <div className={`flex items-start gap-3 p-3 bg-white rounded-lg border-2 ${fieldErrors.acepta_responsabilidad_desplazamiento ? 'border-red-500' : currentPlayer.acepta_responsabilidad_desplazamiento ? 'border-green-400' : 'border-amber-300'}`}>
             <Checkbox
@@ -174,7 +187,7 @@ export default function StepAuthorizations({
               }}
             />
             <label htmlFor="wiz-desplazamiento" className={`text-sm font-semibold cursor-pointer ${fieldErrors.acepta_responsabilidad_desplazamiento ? 'text-red-600' : 'text-amber-900'}`}>
-              ✅ DECLARO que he sido informado/a de las condiciones del acceso al campo y ACEPTO la plena responsabilidad sobre el desplazamiento de mi hijo/a hacia y desde las instalaciones deportivas.
+              ✅ DECLARO que he sido informado/a de las condiciones de acceso al campo, los horarios de actividad, la responsabilidad de custodia de los entrenadores, la obligación de recogida puntual y la cobertura del seguro deportivo. ACEPTO la plena responsabilidad sobre el desplazamiento y la custodia de mi hijo/a fuera del horario de la actividad deportiva programada.
               {fieldErrors.acepta_responsabilidad_desplazamiento && <span className="block text-xs text-red-500 mt-1">⚠️ Debes aceptar esta declaración</span>}
             </label>
           </div>
