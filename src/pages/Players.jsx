@@ -91,7 +91,10 @@ export default function Players() {
 
   const { data: payments } = useQuery({
     queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.filter({ is_deleted: { $ne: true } }, '-created_date', 500),
+    queryFn: async () => {
+      const all = await base44.entities.Payment.list('-created_date', 500);
+      return all.filter(p => !p.is_deleted);
+    },
     initialData: [],
     staleTime: 60000,
     gcTime: 300000,
