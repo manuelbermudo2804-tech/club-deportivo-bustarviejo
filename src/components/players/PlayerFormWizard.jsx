@@ -454,7 +454,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     // If displacement responsibility was accepted, add metadata
     if (finalData.acepta_responsabilidad_desplazamiento) {
       finalData.fecha_aceptacion_desplazamiento = new Date().toISOString();
-      finalData.desplazamiento_texto_version = "v1.0";
+      finalData.desplazamiento_texto_version = "v2.0";
     }
     // If minor access was authorized during registration, add consent metadata
     if (finalData.acceso_menor_autorizado && finalData.acceso_menor_email) {
