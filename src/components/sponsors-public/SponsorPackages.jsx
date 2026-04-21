@@ -120,8 +120,11 @@ export default function SponsorPackages() {
               </div>
 
               <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
-                <p className="text-sm text-slate-600 mb-3">
-                  Las posiciones de abajo <strong>no incluyen esta cuota</strong> — se suman al precio base de 100€. Si solo quieres ser colaborador sin posición extra:
+                <p className="text-sm text-slate-700 mb-1 font-semibold">
+                  ¿Solo quieres colaborar sin añadir posiciones extra?
+                </p>
+                <p className="text-xs text-slate-500 mb-3">
+                  Los precios de las posiciones de abajo son <strong>adicionales</strong> a estos 100€ de cuota base.
                 </p>
                 <button
                   onClick={() => handleInterest("Colaborador (solo cuota base)")}
