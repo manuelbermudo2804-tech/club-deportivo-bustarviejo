@@ -5,15 +5,13 @@ import { base44 } from "@/api/base44Client";
 import SponsorInterestModal from "./SponsorInterestModal";
 import DeadlineCountdown from "./DeadlineCountdown";
 
-const AUCTION_POSITIONS = ["Camiseta PECHO", "Camiseta TRASERA", "Manga", "Trasero derecha", "Trasero izquierda"];
-
 const addons = [
-  { name: "Pancarta en el campo", price: "150\u20ac", sub: "1\u00aa temporada \u00b7 100\u20ac la siguiente", icon: Flag, biddable: true, auction: false },
-  { name: "Camiseta PECHO", price: "desde 400€", sub: "~130 jugadores llevan tu logo", icon: Shirt, highlight: true, biddable: true, auction: true },
-  { name: "Camiseta TRASERA", price: "desde 250\u20ac", sub: "m\u00e1xima visibilidad por detr\u00e1s", icon: Shirt, biddable: true, auction: true },
-  { name: "Manga", price: "desde 150\u20ac", sub: "posici\u00f3n lateral en camiseta", icon: Shirt, biddable: true, auction: true },
-  { name: "Trasero derecha", price: "desde 150\u20ac", sub: "pantal\u00f3n lado derecho", icon: Shirt, biddable: true, auction: true },
-  { name: "Trasero izquierda", price: "desde 150\u20ac", sub: "pantal\u00f3n lado izquierdo", icon: Shirt, biddable: true, auction: true },
+  { name: "Pancarta en el campo", price: "150€", sub: "1ª temporada · 100€ la siguiente", icon: Flag },
+  { name: "Camiseta PECHO", price: "400€", sub: "~130 jugadores llevan tu logo", icon: Shirt, highlight: true },
+  { name: "Camiseta TRASERA", price: "250€", sub: "máxima visibilidad por detrás", icon: Shirt },
+  { name: "Manga", price: "150€", sub: "posición lateral en camiseta", icon: Shirt },
+  { name: "Trasero derecha", price: "150€", sub: "pantalón lado derecho", icon: Shirt },
+  { name: "Trasero izquierda", price: "150€", sub: "pantalón lado izquierdo", icon: Shirt },
 ];
 
 const baseIncludes = [
@@ -160,22 +158,6 @@ export default function SponsorPackages() {
             </div>
           </div>
 
-          <div className="bg-purple-50 border-2 border-purple-300 rounded-2xl p-4 mb-6 flex items-start gap-3">
-            <span className="text-2xl flex-shrink-0">{"⚖️"}</span>
-            <div>
-              <p className="font-black text-purple-900 text-sm">Sistema de subasta en posiciones de camiseta</p>
-              <p className="text-xs text-purple-700 mt-1 leading-relaxed">
-                {"Las posiciones en la equipaci\u00f3n (pecho, trasera, manga, pantal\u00f3n) se adjudican por "}
-                <strong>subasta</strong>
-                {": el precio indicado es el "}
-                <strong>{`m\u00ednimo de salida`}</strong>
-                {`. Si hay m\u00e1s de un interesado, se abre un proceso de puja y se adjudica al mejor postor. La pancarta tiene `}
-                <strong>precio fijo</strong>
-                {", sin subasta."}
-              </p>
-            </div>
-          </div>
-
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {addons.map((addon, i) => (
               <motion.div
@@ -204,41 +186,20 @@ export default function SponsorPackages() {
                 <p className="font-bold text-slate-800 text-sm">{addon.name}</p>
                 <p className="text-xs text-slate-500 mt-0.5">{addon.sub}</p>
 
-                {addon.biddable && (
-                  <div className="mt-3 space-y-2">
-                    {addon.auction && (
-                      <div className="bg-purple-50 border border-purple-300 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
-                        <span className="text-purple-600 text-xs font-black">SUBASTA</span>
-                        <span className="text-[10px] text-purple-600">Si hay +1 interesado, se adjudica al mejor postor</span>
-                      </div>
-                    )}
-                    {addon.auction && (interestCounts[addon.name] || 0) > 0 && (
-                      <div className="bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1.5 flex items-center gap-1.5">
-                        <span className="text-amber-600 text-xs">{"🔥"}</span>
-                        <span className="text-xs font-bold text-amber-800">
-                          {interestCounts[addon.name]} interesado{interestCounts[addon.name] > 1 ? "s" : ""} ya
-                        </span>
-                      </div>
-                    )}
-                    {!addon.auction && (
-                      <div className="bg-green-50 border border-green-200 rounded-lg px-2.5 py-1.5">
-                        <span className="text-xs font-semibold text-green-700">Precio fijo - Sin subasta</span>
-                      </div>
-                    )}
-                    <button
-                      onClick={() => handleInterest(addon.name)}
-                      disabled={isDeadlinePassed}
-                      className={`w-full flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm ${
-                        isDeadlinePassed
-                          ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                          : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white hover:scale-105 active:scale-95'
-                      }`}
-                    >
-                      <Hand className="w-3.5 h-3.5" />
-                      {isDeadlinePassed ? "Plazo cerrado" : "Me interesa"}
-                    </button>
-                  </div>
-                )}
+                <div className="mt-3">
+                  <button
+                    onClick={() => handleInterest(addon.name)}
+                    disabled={isDeadlinePassed}
+                    className={`w-full flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm ${
+                      isDeadlinePassed
+                        ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white hover:scale-105 active:scale-95'
+                    }`}
+                  >
+                    <Hand className="w-3.5 h-3.5" />
+                    {isDeadlinePassed ? "Plazo cerrado" : "Me interesa"}
+                  </button>
+                </div>
               </motion.div>
             ))}
           </div>
