@@ -182,6 +182,13 @@ export default function StepAuthorizations({
             <p className="font-semibold text-slate-900 mt-3">5. COBERTURA DEL SEGURO DEPORTIVO</p>
             <p>El seguro deportivo federativo contratado por el club cubre <strong>exclusivamente los accidentes que se produzcan durante la actividad deportiva programada</strong> (entrenamientos y partidos oficiales) y en el recinto donde esta se desarrolle.</p>
             <p><strong>Cualquier incidente fuera del horario de la actividad o fuera de las instalaciones deportivas NO está cubierto por el seguro del club.</strong> Esto incluye, sin limitación: el trayecto de ida y vuelta, el tiempo de espera antes o después de la actividad, la permanencia en las instalaciones fuera del horario establecido, y cualquier incidencia durante los intervalos de transición entre grupos.</p>
+
+            <p className="font-semibold text-slate-900 mt-3">6. DESPLAZAMIENTOS A PARTIDOS FUERA DE CASA</p>
+            <p>Cuando los partidos se disputen fuera de las instalaciones habituales del club, el <strong>desplazamiento de los jugadores es responsabilidad exclusiva de sus padres, madres o tutores legales</strong>. El club no organiza ni gestiona el transporte de menores a partidos fuera de casa salvo que se comunique expresamente lo contrario para una ocasión concreta.</p>
+            <p>Si un padre/madre/tutor decide <strong>transportar en su vehículo particular a menores que no sean sus hijos</strong>, lo hace bajo su exclusiva responsabilidad y la de los tutores legales que lo autoricen. El CD Bustarviejo <strong>queda exento de toda responsabilidad</strong> derivada de estos desplazamientos privados, incluyendo accidentes de tráfico, retrasos o cualquier otra incidencia.</p>
+
+            <p className="font-semibold text-slate-900 mt-3">7. OBJETOS PERSONALES Y PERTENENCIAS</p>
+            <p>El CD Bustarviejo <strong>no se responsabiliza de la pérdida, robo o deterioro de objetos personales</strong> (mochilas, ropa, dispositivos electrónicos, balones u otros efectos) que los jugadores lleven a las instalaciones deportivas. Los padres/tutores deben instruir a los menores sobre el cuidado de sus pertenencias.</p>
           </div>
           <div className={`flex items-start gap-3 p-3 bg-white rounded-lg border-2 ${fieldErrors.acepta_responsabilidad_desplazamiento ? 'border-red-500' : currentPlayer.acepta_responsabilidad_desplazamiento ? 'border-green-400' : 'border-amber-300'}`}>
             <Checkbox
@@ -193,7 +200,7 @@ export default function StepAuthorizations({
               }}
             />
             <label htmlFor="wiz-desplazamiento" className={`text-sm font-semibold cursor-pointer ${fieldErrors.acepta_responsabilidad_desplazamiento ? 'text-red-600' : 'text-amber-900'}`}>
-              ✅ DECLARO que he sido informado/a de: (1) los horarios de actividad y límites de responsabilidad del club, (2) la obligación de recogida puntual, (3) las condiciones durante la transición entre grupos de entrenamiento, (4) las condiciones de desplazamiento al campo, y (5) la cobertura del seguro deportivo. ACEPTO la plena responsabilidad sobre la custodia y el desplazamiento de mi hijo/a fuera del horario de la actividad deportiva programada de su categoría.
+              ✅ DECLARO que he sido informado/a de: (1) los horarios de actividad y límites de responsabilidad del club, (2) la obligación de recogida puntual, (3) las condiciones durante la transición entre grupos, (4) las condiciones de desplazamiento al campo, (5) la cobertura del seguro deportivo, (6) la responsabilidad en desplazamientos a partidos fuera de casa, y (7) la exención de responsabilidad del club sobre objetos personales. ACEPTO la plena responsabilidad sobre la custodia y el desplazamiento de mi hijo/a fuera del horario de la actividad deportiva programada de su categoría.
               {fieldErrors.acepta_responsabilidad_desplazamiento && <span className="block text-xs text-red-500 mt-1">⚠️ Debes aceptar esta declaración</span>}
             </label>
           </div>
