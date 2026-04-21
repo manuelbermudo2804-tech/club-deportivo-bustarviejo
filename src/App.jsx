@@ -1,3 +1,4 @@
+import React from 'react'
 import './App.css'
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -58,7 +59,8 @@ const AppRouter = () => {
 };
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin } = useAuth();
+  const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin, checkAppState } = useAuth();
+  const retryCountRef = React.useRef(0);
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
@@ -74,7 +76,21 @@ const AuthenticatedApp = () => {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
+      // Only redirect to login if there's genuinely no token stored.
+      // If a token exists in localStorage, the auth check may have failed transiently
+      // (e.g. browser back button reload, network glitch). Retry instead of redirecting.
+      const storedToken = localStorage.getItem('base44_access_token');
+      if (storedToken && retryCountRef.current < 2) {
+        // Token exists — likely a transient failure. Retry auth check (max 2 times).
+        retryCountRef.current += 1;
+        checkAppState();
+        return (
+          <div className="fixed inset-0 flex items-center justify-center">
+            <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+          </div>
+        );
+      }
+      // No token at all — genuinely need to login
       navigateToLogin();
       return null;
     }
