@@ -6,8 +6,12 @@ Deno.serve(async (req) => {
     const allInterests = await base44.asServiceRole.entities.SponsorInterest.filter({});
     
     const counts = {};
+    const adjudicadas = [];
     for (const interest of allInterests) {
       counts[interest.posicion] = (counts[interest.posicion] || 0) + 1;
+      if (interest.estado === 'adjudicado') {
+        adjudicadas.push(interest.posicion);
+      }
     }
 
     // Obtener fecha límite de patrocinios desde SeasonConfig activa
@@ -19,7 +23,7 @@ Deno.serve(async (req) => {
       }
     } catch {}
 
-    return Response.json({ counts, fecha_limite });
+    return Response.json({ counts, adjudicadas, fecha_limite });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

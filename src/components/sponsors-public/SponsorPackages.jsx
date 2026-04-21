@@ -23,6 +23,7 @@ const baseIncludes = [
 
 export default function SponsorPackages() {
   const [interestCounts, setInterestCounts] = useState({});
+  const [adjudicadas, setAdjudicadas] = useState([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState(null);
   const [deadline, setDeadline] = useState(null);
@@ -31,6 +32,7 @@ export default function SponsorPackages() {
     base44.functions.invoke("getSponsorInterestCounts", {})
       .then(res => {
         setInterestCounts(res.data.counts || {});
+        setAdjudicadas(res.data.adjudicadas || []);
         if (res.data.fecha_limite) setDeadline(res.data.fecha_limite);
       })
       .catch(() => {});
@@ -159,34 +161,47 @@ export default function SponsorPackages() {
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {addons.map((addon, i) => (
+            {addons.map((addon, i) => {
+              const isAdjudicada = adjudicadas.includes(addon.name);
+              return (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, scale: 0.95 }}
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
-                className={`relative bg-white rounded-2xl p-5 border-2 shadow-md hover:shadow-lg transition-all hover:-translate-y-1 ${
-                  addon.highlight ? 'border-yellow-400 ring-2 ring-yellow-200' : 'border-slate-200'
+                className={`relative bg-white rounded-2xl p-5 border-2 shadow-md transition-all ${
+                  isAdjudicada ? 'border-red-300 opacity-75' : addon.highlight ? 'border-yellow-400 ring-2 ring-yellow-200 hover:shadow-lg hover:-translate-y-1' : 'border-slate-200 hover:shadow-lg hover:-translate-y-1'
                 }`}
               >
-                {addon.highlight && (
+                {isAdjudicada && (
+                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[10px] font-bold px-3 py-0.5 rounded-full shadow z-10">
+                    🔒 ADJUDICADA
+                  </div>
+                )}
+                {!isAdjudicada && addon.highlight && (
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white text-[10px] font-bold px-3 py-0.5 rounded-full shadow">
                     ⭐ MÁS IMPACTO
                   </div>
                 )}
                 <div className="flex items-center gap-3 mb-3">
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                    addon.highlight ? 'bg-yellow-100' : 'bg-slate-100'
+                    isAdjudicada ? 'bg-red-100' : addon.highlight ? 'bg-yellow-100' : 'bg-slate-100'
                   }`}>
-                    <addon.icon className={`w-5 h-5 ${addon.highlight ? 'text-yellow-600' : 'text-slate-500'}`} />
+                    <addon.icon className={`w-5 h-5 ${isAdjudicada ? 'text-red-400' : addon.highlight ? 'text-yellow-600' : 'text-slate-500'}`} />
                   </div>
-                  <p className="text-2xl font-black text-slate-900">{addon.price}</p>
+                  <p className={`text-2xl font-black ${isAdjudicada ? 'text-slate-400 line-through' : 'text-slate-900'}`}>{addon.price}</p>
                 </div>
-                <p className="font-bold text-slate-800 text-sm">{addon.name}</p>
+                <p className={`font-bold text-sm ${isAdjudicada ? 'text-slate-400' : 'text-slate-800'}`}>{addon.name}</p>
                 <p className="text-xs text-slate-500 mt-0.5">{addon.sub}</p>
 
                 <div className="mt-3">
+                  {isAdjudicada ? (
+                    <div className="w-full flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-red-100 text-red-700 border border-red-200">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      Posición ya ocupada
+                    </div>
+                  ) : (
                   <button
                     onClick={() => handleInterest(addon.name)}
                     disabled={isDeadlinePassed}
@@ -199,9 +214,11 @@ export default function SponsorPackages() {
                     <Hand className="w-3.5 h-3.5" />
                     {isDeadlinePassed ? "Plazo cerrado" : "Me interesa"}
                   </button>
+                  )}
                 </div>
               </motion.div>
-            ))}
+              );
+            })}
           </div>
 
           <p className="text-xs text-slate-400 mt-4 text-center italic">
