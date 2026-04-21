@@ -10,8 +10,8 @@ const addons = [
   { name: "Camiseta PECHO", price: "400€", sub: "~130 jugadores llevan tu logo", icon: Shirt, highlight: true },
   { name: "Camiseta TRASERA", price: "250€", sub: "máxima visibilidad por detrás", icon: Shirt },
   { name: "Manga", price: "150€", sub: "posición lateral en camiseta", icon: Shirt },
-  { name: "Trasero derecha", price: "150€", sub: "pantalón lado derecho", icon: Shirt },
-  { name: "Trasero izquierda", price: "150€", sub: "pantalón lado izquierdo", icon: Shirt },
+  { name: "Trasero derecha", price: "150€", sub: "parte trasera camiseta, lado derecho", icon: Shirt },
+  { name: "Trasero izquierda", price: "150€", sub: "parte trasera camiseta, lado izquierdo", icon: Shirt },
 ];
 
 const baseIncludes = [
