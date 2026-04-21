@@ -167,7 +167,7 @@ export default function StepAuthorizations({
             <p><strong>Fuera de ese horario — tanto antes del inicio como después de la finalización — los entrenadores no ejercen función de custodia ni supervisión sobre los menores.</strong> El club no se responsabiliza de ningún menor que permanezca en las instalaciones fuera de su franja horaria asignada.</p>
 
             <p className="font-semibold text-slate-900 mt-3">2. RECOGIDA PUNTUAL — OBLIGACIÓN DE LOS PADRES/TUTORES</p>
-            <p>Los padres, madres o tutores legales tienen la <strong>obligación de recoger al menor puntualmente</strong> a la hora de finalización de su entrenamiento o partido. El campo de fútbol <strong>no es un servicio de guardería</strong>: los entrenadores no pueden quedarse custodiando menores más allá de su horario de trabajo.</p>
+            <p>Los padres, madres o tutores legales tienen la <strong>obligación de recoger al menor puntualmente</strong> a la hora de finalización de su entrenamiento o partido. La función de los entrenadores es <strong>exclusivamente deportiva y formativa</strong>: no pueden asumir la custodia de menores más allá del horario de la actividad programada.</p>
             <p><strong>El retraso reiterado en la recogida podrá ser comunicado a las autoridades competentes en materia de protección del menor</strong>, conforme a la Ley Orgánica 8/2021 (LOPIVI).</p>
 
             <p className="font-semibold text-slate-900 mt-3">3. TRANSICIÓN ENTRE GRUPOS DE ENTRENAMIENTO</p>
