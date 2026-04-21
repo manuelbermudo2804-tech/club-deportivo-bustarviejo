@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useRef } from 'react'
 import './App.css'
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -60,7 +60,7 @@ const AppRouter = () => {
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated, navigateToLogin, checkAppState } = useAuth();
-  const retryCountRef = React.useRef(0);
+  const retryCountRef = useRef(0);
 
   // Show loading spinner while checking app public settings or auth
   if (isLoadingPublicSettings || isLoadingAuth) {
