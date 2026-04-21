@@ -160,7 +160,7 @@ export default function StepAuthorizations({
           </div>
           <div className="bg-white rounded-lg p-3 text-xs max-h-48 overflow-y-auto border text-slate-700 space-y-2">
             <p className="font-semibold text-slate-900">DECLARACIÓN DE RESPONSABILIDAD — CUSTODIA, DESPLAZAMIENTO Y SEGURO DE MENORES</p>
-            <p className="text-[10px] text-slate-400 italic">Versión v2.0 — Abril 2026</p>
+            <p className="text-[10px] text-slate-400 italic">Versión v2.1 — Abril 2026</p>
 
             <p className="font-semibold text-slate-900 mt-3">1. HORARIO DE LA ACTIVIDAD Y LÍMITES DE RESPONSABILIDAD DEL CLUB</p>
             <p>Cada categoría tiene un <strong>horario de entrenamiento y partido determinado</strong>, que será comunicado a las familias al inicio de la temporada y ante cualquier cambio. Los entrenadores del CD Bustarviejo son responsables de los menores <strong>única y exclusivamente durante el horario de la actividad deportiva programada</strong> de su grupo.</p>
@@ -189,6 +189,11 @@ export default function StepAuthorizations({
 
             <p className="font-semibold text-slate-900 mt-3">7. OBJETOS PERSONALES Y PERTENENCIAS</p>
             <p>El CD Bustarviejo <strong>no se responsabiliza de la pérdida, robo o deterioro de objetos personales</strong> (mochilas, ropa, dispositivos electrónicos, balones u otros efectos) que los jugadores lleven a las instalaciones deportivas. Los padres/tutores deben instruir a los menores sobre el cuidado de sus pertenencias.</p>
+
+            <p className="font-semibold text-slate-900 mt-3">8. RESPETO A ENTRENADORES Y PERSONAL DEL CLUB</p>
+            <p>Los padres, madres y tutores legales se comprometen a <strong>mantener en todo momento una actitud respetuosa hacia los entrenadores, monitores, coordinadores y cualquier miembro del equipo técnico y directivo del club</strong>. Queda expresamente prohibido increpar, insultar, amenazar o menospreciar a cualquier entrenador o responsable del club, tanto en persona como a través de medios digitales (WhatsApp, redes sociales, etc.).</p>
+            <p>Durante los entrenamientos, partidos y cualquier actividad del club, <strong>los padres/tutores se abstendrán de dar instrucciones técnicas o tácticas a los jugadores</strong>, siendo esta competencia exclusiva del entrenador. Las discrepancias con las decisiones deportivas deberán canalizarse de forma privada y respetuosa a través de los cauces establecidos por el club (reunión con el entrenador o el coordinador).</p>
+            <p>El incumplimiento de este compromiso podrá dar lugar a la <strong>apertura de expediente disciplinario</strong> conforme al Reglamento de Régimen Interno, pudiendo resultar en la suspensión temporal o la expulsión del jugador del club.</p>
           </div>
           <div className={`flex items-start gap-3 p-3 bg-white rounded-lg border-2 ${fieldErrors.acepta_responsabilidad_desplazamiento ? 'border-red-500' : currentPlayer.acepta_responsabilidad_desplazamiento ? 'border-green-400' : 'border-amber-300'}`}>
             <Checkbox
@@ -200,7 +205,7 @@ export default function StepAuthorizations({
               }}
             />
             <label htmlFor="wiz-desplazamiento" className={`text-sm font-semibold cursor-pointer ${fieldErrors.acepta_responsabilidad_desplazamiento ? 'text-red-600' : 'text-amber-900'}`}>
-              ✅ DECLARO que he sido informado/a de: (1) los horarios de actividad y límites de responsabilidad del club, (2) la obligación de recogida puntual, (3) las condiciones durante la transición entre grupos, (4) las condiciones de desplazamiento al campo, (5) la cobertura del seguro deportivo, (6) la responsabilidad en desplazamientos a partidos fuera de casa, y (7) la exención de responsabilidad del club sobre objetos personales. ACEPTO la plena responsabilidad sobre la custodia y el desplazamiento de mi hijo/a fuera del horario de la actividad deportiva programada de su categoría.
+              ✅ DECLARO que he sido informado/a de: (1) los horarios de actividad y límites de responsabilidad del club, (2) la obligación de recogida puntual, (3) las condiciones durante la transición entre grupos, (4) las condiciones de desplazamiento al campo, (5) la cobertura del seguro deportivo, (6) la responsabilidad en desplazamientos a partidos fuera de casa, (7) la exención de responsabilidad del club sobre objetos personales, y (8) el compromiso de respeto hacia entrenadores y personal del club. ACEPTO la plena responsabilidad sobre la custodia y el desplazamiento de mi hijo/a y me COMPROMETO a respetar a todos los miembros del equipo técnico y directivo del CD Bustarviejo.
               {fieldErrors.acepta_responsabilidad_desplazamiento && <span className="block text-xs text-red-500 mt-1">⚠️ Debes aceptar esta declaración</span>}
             </label>
           </div>
