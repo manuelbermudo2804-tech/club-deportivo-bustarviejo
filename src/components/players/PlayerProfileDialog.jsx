@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +19,7 @@ export default function PlayerProfileDialog({
   open, 
   onOpenChange, 
   onEdit,
-  payments = [],
+  payments: propPayments = [],
   evaluations = [],
   attendances = [],
   isAdmin = false,
@@ -26,6 +27,7 @@ export default function PlayerProfileDialog({
 }) {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showFeeAdjustment, setShowFeeAdjustment] = useState(false);
+  const [directPayments, setDirectPayments] = useState(null);
 
   useEffect(() => {
     if (open) {
@@ -33,8 +35,24 @@ export default function PlayerProfileDialog({
     }
   }, [open, initialTab]);
 
-  // Filtrar datos del jugador
-  const playerPayments = payments.filter(p => p.jugador_id === player.id);
+  // Cargar pagos directamente si los props están vacíos
+  useEffect(() => {
+    if (!open || !player?.id) return;
+    const propsHavePayments = propPayments.some(p => p.jugador_id === player.id);
+    if (!propsHavePayments) {
+      base44.entities.Payment.filter({ jugador_id: player.id }, '-created_date', 50)
+        .then(data => {
+          const filtered = data.filter(p => !p.is_deleted);
+          if (filtered.length > 0) setDirectPayments(filtered);
+        })
+        .catch(() => {});
+    } else {
+      setDirectPayments(null);
+    }
+  }, [open, player?.id, propPayments]);
+
+  // Usar pagos directos si están disponibles, o filtrar de props
+  const playerPayments = directPayments || propPayments.filter(p => p.jugador_id === player.id);
   const playerEvaluations = evaluations.filter(e => e.jugador_id === player.id);
   const playerAttendances = attendances.filter(a => 
     a.asistencias?.some(asist => asist.jugador_id === player.id)
@@ -657,7 +675,7 @@ export default function PlayerProfileDialog({
         open={showFeeAdjustment}
         onOpenChange={setShowFeeAdjustment}
         player={player}
-        payments={payments}
+        payments={playerPayments}
       />
     </Dialog>
   );
