@@ -30,12 +30,22 @@ export default function StepPlayerData({
             </div>
             <div>
               <p className={`font-semibold text-sm ${fieldErrors.foto_url ? 'text-red-900' : 'text-slate-900'}`}>Foto Tipo Carnet *</p>
-              <p className="text-xs text-slate-500">De frente, fondo claro</p>
+              <p className="text-xs text-slate-500">De frente, fondo blanco o claro</p>
             </div>
           </div>
         </div>
         
         <div className="p-4 bg-white">
+          <div className="mb-3 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2.5">
+            <p className="text-xs font-semibold text-blue-900 mb-1">📸 Requisitos de la foto:</p>
+            <ul className="text-[11px] text-blue-800 space-y-0.5 list-disc pl-4">
+              <li>Tipo <strong>carnet</strong>: solo la cara, de frente</li>
+              <li>Fondo <strong>blanco o liso</strong> (sin paisajes ni objetos)</li>
+              <li>Sin gafas de sol, gorras ni accesorios</li>
+              <li><strong>No</strong> valen fotos de cuerpo entero, en grupo o de actividades</li>
+            </ul>
+          </div>
+
           {fieldErrors.foto_url && (
             <div className="mb-3 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
               <p className="text-xs text-red-700 font-medium">⚠️ {fieldErrors.foto_url}</p>
