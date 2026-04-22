@@ -25,6 +25,7 @@ import BudgetPlanner from '@/pages/BudgetPlanner';
 import SanIsidroAdmin from '@/pages/SanIsidroAdmin';
 import SanIsidroInscripcion from '@/pages/SanIsidroInscripcion';
 import ExternalLinks from '@/pages/ExternalLinks';
+import ReciboGenerator from '@/pages/ReciboGenerator';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -124,6 +125,7 @@ const AuthenticatedApp = () => {
       <Route path="/BudgetPlanner" element={<LayoutWrapper currentPageName="BudgetPlanner"><BudgetPlanner /></LayoutWrapper>} />
       <Route path="/SanIsidroAdmin" element={<LayoutWrapper currentPageName="SanIsidroAdmin"><SanIsidroAdmin /></LayoutWrapper>} />
       <Route path="/ExternalLinks" element={<LayoutWrapper currentPageName="ExternalLinks"><ExternalLinks /></LayoutWrapper>} />
+      <Route path="/ReciboGenerator" element={<LayoutWrapper currentPageName="ReciboGenerator"><ReciboGenerator /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
   );
