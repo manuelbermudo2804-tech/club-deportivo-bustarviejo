@@ -3,9 +3,10 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Building2 } from "lucide-react";
+import { Plus, Search, Building2, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 
 import SponsorForm from "../components/sponsors/SponsorForm";
 import SponsorCard from "../components/sponsors/SponsorCard";
@@ -122,16 +123,24 @@ export default function Sponsorships() {
           </h1>
           <p className="text-slate-600 mt-1">Administra los patrocinadores del club</p>
         </div>
-        <Button
-          onClick={() => {
-            setEditingSponsor(null);
-            setShowForm(!showForm);
-          }}
-          className="bg-amber-600 hover:bg-amber-700"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Nuevo Patrocinador
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Link to="/ReciboGenerator">
+            <Button variant="outline" className="border-orange-300 text-orange-700 hover:bg-orange-50">
+              <FileText className="w-4 h-4 mr-2" />
+              Generar Recibo
+            </Button>
+          </Link>
+          <Button
+            onClick={() => {
+              setEditingSponsor(null);
+              setShowForm(!showForm);
+            }}
+            className="bg-amber-600 hover:bg-amber-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Nuevo Patrocinador
+          </Button>
+        </div>
       </div>
 
       {/* Formulario */}
