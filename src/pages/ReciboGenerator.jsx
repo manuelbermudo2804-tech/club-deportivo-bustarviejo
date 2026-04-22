@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Upload, Download, FileText, Trash2, Image as ImageIcon } from "lucide-react";
+import { Upload, Download, FileText, Trash2, Image as ImageIcon, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import ReciboPreview from "@/components/recibos/ReciboPreview";
-import { generateReciboPDF } from "@/components/recibos/reciboPdfGenerator";
+import { generateReciboPDF, generateReciboBlob } from "@/components/recibos/reciboPdfGenerator";
 
 const CLUB_LOGO_DEFAULT = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
@@ -30,6 +30,8 @@ export default function ReciboGenerator() {
     temporada: "2025-2026",
     lugar: "Bustarviejo",
   });
+  const [telefonoWA, setTelefonoWA] = useState("");
+  const [sharingWA, setSharingWA] = useState(false);
 
   const logoInputRef = useRef(null);
   const selloInputRef = useRef(null);
@@ -68,6 +70,58 @@ export default function ReciboGenerator() {
     } catch (e) {
       console.error(e);
       toast.error("Error al generar el PDF");
+    }
+  };
+
+  const handleShareWhatsApp = async () => {
+    if (!form.recibiDe || !form.cantidad) {
+      toast.error("Rellena al menos 'Recibí de' y 'Cantidad'");
+      return;
+    }
+    setSharingWA(true);
+    try {
+      const { blob, filename } = await generateReciboBlob({ ...form, logoUrl, selloUrl, firmaUrl });
+      const file = new File([blob], filename, { type: "application/pdf" });
+
+      const mensaje = `Hola ${form.recibiDe}, te adjunto el recibo Nº ${form.numero || "—"} por importe de ${form.cantidad}€ en concepto de ${form.concepto}${form.temporada ? ` (Temporada ${form.temporada})` : ""}. ¡Muchas gracias por tu colaboración con el CD Bustarviejo! 🧡`;
+
+      // Intentar Web Share API con archivo (móvil)
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: `Recibo ${form.numero || ""}`,
+            text: mensaje,
+          });
+          toast.success("Recibo compartido");
+          return;
+        } catch (err) {
+          if (err?.name === "AbortError") return;
+          console.warn("Share API falló, usando fallback:", err);
+        }
+      }
+
+      // Fallback: descargar PDF y abrir WhatsApp con mensaje pre-rellenado
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+      const tel = telefonoWA.replace(/\D/g, "");
+      const waUrl = tel
+        ? `https://wa.me/${tel.startsWith("34") ? tel : "34" + tel}?text=${encodeURIComponent(mensaje)}`
+        : `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
+      window.open(waUrl, "_blank");
+      toast.success("PDF descargado. Adjúntalo en WhatsApp 📎");
+    } catch (e) {
+      console.error(e);
+      toast.error("Error al compartir el recibo");
+    } finally {
+      setSharingWA(false);
     }
   };
 
@@ -201,9 +255,33 @@ export default function ReciboGenerator() {
               </CardContent>
             </Card>
 
-            <Button onClick={handleDownload} className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12 text-base font-bold">
-              <Download className="w-5 h-5 mr-2" /> Descargar recibo en PDF
-            </Button>
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base flex items-center gap-2">
+                  <MessageCircle className="w-4 h-4 text-green-600" /> Enviar por WhatsApp (opcional)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <Label className="text-xs">Teléfono del destinatario</Label>
+                <Input
+                  value={telefonoWA}
+                  onChange={(e) => setTelefonoWA(e.target.value)}
+                  placeholder="600 123 456 (sin prefijo si es España)"
+                />
+                <p className="text-[11px] text-slate-400">
+                  Si lo dejas vacío, podrás elegir el contacto al compartir. En móvil se adjunta el PDF directamente; en ordenador se descarga y se abre WhatsApp Web.
+                </p>
+              </CardContent>
+            </Card>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <Button onClick={handleDownload} className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12 text-base font-bold">
+                <Download className="w-5 h-5 mr-2" /> Descargar PDF
+              </Button>
+              <Button onClick={handleShareWhatsApp} disabled={sharingWA} className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-bold">
+                <MessageCircle className="w-5 h-5 mr-2" /> {sharingWA ? "Preparando..." : "Enviar por WhatsApp"}
+              </Button>
+            </div>
           </div>
 
           {/* Preview */}

@@ -42,7 +42,7 @@ const numeroALetras = (num) => {
   return r.charAt(0).toUpperCase() + r.slice(1);
 };
 
-export async function generateReciboPDF({ numero, fecha, recibiDe, cantidad, concepto, temporada, lugar, logoUrl, selloUrl, firmaUrl }) {
+export async function buildReciboPDF({ numero, fecha, recibiDe, cantidad, concepto, temporada, lugar, logoUrl, selloUrl, firmaUrl }) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = 210;
   const marginX = 20;
@@ -168,5 +168,17 @@ export async function generateReciboPDF({ numero, fecha, recibiDe, cantidad, con
   }
 
   const filename = `Recibo_${numero || "sin-numero"}_${recibiDe ? recibiDe.replace(/\s+/g, "_").slice(0, 20) : ""}.pdf`;
+  const blob = doc.output("blob");
+  return { doc, blob, filename };
+}
+
+export async function generateReciboPDF(params) {
+  const { doc, filename } = await buildReciboPDF(params);
   doc.save(filename);
+  return filename;
+}
+
+export async function generateReciboBlob(params) {
+  const { blob, filename } = await buildReciboPDF(params);
+  return { blob, filename };
 }
