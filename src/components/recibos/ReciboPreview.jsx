@@ -41,7 +41,7 @@ const numeroALetras = (num) => {
   return result.charAt(0).toUpperCase() + result.slice(1);
 };
 
-export default function ReciboPreview({ numero, fecha, recibiDe, cantidad, concepto, temporada, lugar, logoUrl, selloUrl }) {
+export default function ReciboPreview({ numero, fecha, recibiDe, cantidad, concepto, temporada, lugar, logoUrl, selloUrl, firmaUrl }) {
   let fechaFmt = "";
   try {
     if (fecha) fechaFmt = format(parseISO(fecha), "d 'de' MMMM 'de' yyyy", { locale: es });
@@ -98,7 +98,10 @@ export default function ReciboPreview({ numero, fecha, recibiDe, cantidad, conce
         </p>
 
         <div className="flex items-end justify-between">
-          <div className="text-center">
+          <div className="text-center relative">
+            {firmaUrl && (
+              <img src={firmaUrl} alt="firma" className="absolute -top-10 left-1/2 -translate-x-1/2 h-14 object-contain" crossOrigin="anonymous" />
+            )}
             <div className="w-40 border-t border-slate-400 pt-1">
               <p className="text-[10px] text-slate-500">Firma y sello del club</p>
             </div>

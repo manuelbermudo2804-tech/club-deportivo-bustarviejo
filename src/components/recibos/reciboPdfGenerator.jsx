@@ -42,7 +42,7 @@ const numeroALetras = (num) => {
   return r.charAt(0).toUpperCase() + r.slice(1);
 };
 
-export async function generateReciboPDF({ numero, fecha, recibiDe, cantidad, concepto, temporada, lugar, logoUrl, selloUrl }) {
+export async function generateReciboPDF({ numero, fecha, recibiDe, cantidad, concepto, temporada, lugar, logoUrl, selloUrl, firmaUrl }) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = 210;
   const marginX = 20;
@@ -135,6 +135,19 @@ export async function generateReciboPDF({ numero, fecha, recibiDe, cantidad, con
 
   // Firma y sello
   y += 40;
+
+  // Firma (encima de la línea)
+  if (firmaUrl) {
+    const firmaData = await loadImageAsDataUrl(firmaUrl);
+    if (firmaData) {
+      try {
+        doc.addImage(firmaData, "PNG", marginX + 10, y - 18, 50, 18);
+      } catch {
+        try { doc.addImage(firmaData, "JPEG", marginX + 10, y - 18, 50, 18); } catch {}
+      }
+    }
+  }
+
   doc.setDrawColor(148, 163, 184);
   doc.setLineWidth(0.3);
   doc.line(marginX, y, marginX + 70, y);

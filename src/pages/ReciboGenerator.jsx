@@ -13,10 +13,12 @@ const CLUB_LOGO_DEFAULT = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/o
 
 const LS_SELLO = "recibo_sello_url";
 const LS_LOGO = "recibo_logo_url";
+const LS_FIRMA = "recibo_firma_url";
 
 export default function ReciboGenerator() {
   const [logoUrl, setLogoUrl] = useState(() => localStorage.getItem(LS_LOGO) || CLUB_LOGO_DEFAULT);
   const [selloUrl, setSelloUrl] = useState(() => localStorage.getItem(LS_SELLO) || "");
+  const [firmaUrl, setFirmaUrl] = useState(() => localStorage.getItem(LS_FIRMA) || "");
   const [uploading, setUploading] = useState(null);
 
   const [form, setForm] = useState({
@@ -31,6 +33,7 @@ export default function ReciboGenerator() {
 
   const logoInputRef = useRef(null);
   const selloInputRef = useRef(null);
+  const firmaInputRef = useRef(null);
 
   const uploadImage = async (file, type) => {
     if (!file) return;
@@ -42,6 +45,10 @@ export default function ReciboGenerator() {
         setLogoUrl(file_url);
         localStorage.setItem(LS_LOGO, file_url);
         toast.success("Logo actualizado");
+      } else if (type === "firma") {
+        setFirmaUrl(file_url);
+        localStorage.setItem(LS_FIRMA, file_url);
+        toast.success("Firma guardada");
       } else {
         setSelloUrl(file_url);
         localStorage.setItem(LS_SELLO, file_url);
@@ -56,7 +63,7 @@ export default function ReciboGenerator() {
 
   const handleDownload = async () => {
     try {
-      await generateReciboPDF({ ...form, logoUrl, selloUrl });
+      await generateReciboPDF({ ...form, logoUrl, selloUrl, firmaUrl });
       toast.success("Recibo descargado");
     } catch (e) {
       console.error(e);
@@ -67,6 +74,11 @@ export default function ReciboGenerator() {
   const resetSello = () => {
     localStorage.removeItem(LS_SELLO);
     setSelloUrl("");
+  };
+
+  const resetFirma = () => {
+    localStorage.removeItem(LS_FIRMA);
+    setFirmaUrl("");
   };
 
   return (
@@ -122,6 +134,25 @@ export default function ReciboGenerator() {
                     )}
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">El sello se guarda en este navegador para reutilizarlo.</p>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-slate-500">Firma escaneada (PNG con fondo transparente recomendado)</Label>
+                  <div className="flex items-center gap-3 mt-1">
+                    <div className="w-16 h-16 rounded-lg border bg-white flex items-center justify-center overflow-hidden">
+                      {firmaUrl ? <img src={firmaUrl} alt="firma" className="max-w-full max-h-full object-contain" /> : <ImageIcon className="w-5 h-5 text-slate-300" />}
+                    </div>
+                    <input ref={firmaInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => uploadImage(e.target.files?.[0], "firma")} />
+                    <Button variant="outline" size="sm" onClick={() => firmaInputRef.current?.click()} disabled={uploading === "firma"}>
+                      <Upload className="w-3.5 h-3.5 mr-1" /> {uploading === "firma" ? "Subiendo..." : (firmaUrl ? "Cambiar firma" : "Subir firma")}
+                    </Button>
+                    {firmaUrl && (
+                      <Button variant="ghost" size="sm" onClick={resetFirma}>
+                        <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                      </Button>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-1">La firma se guarda en este navegador para reutilizarla.</p>
                 </div>
               </CardContent>
             </Card>
@@ -182,7 +213,7 @@ export default function ReciboGenerator() {
                 <CardTitle className="text-base">Vista previa</CardTitle>
               </CardHeader>
               <CardContent>
-                <ReciboPreview {...form} logoUrl={logoUrl} selloUrl={selloUrl} />
+                <ReciboPreview {...form} logoUrl={logoUrl} selloUrl={selloUrl} firmaUrl={firmaUrl} />
               </CardContent>
             </Card>
           </div>
