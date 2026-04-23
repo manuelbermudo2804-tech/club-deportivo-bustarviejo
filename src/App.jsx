@@ -47,7 +47,11 @@ const AppRouter = () => {
         <Route path="/PublicMemberCard" element={<PublicMemberCard />} />
         <Route path="/FamilyPresentation" element={<FamilyPresentation />} />
         <Route path="/SolicitarAcceso" element={<PublicAccessRequest />} />
+        <Route path="/solicitaracceso" element={<PublicAccessRequest />} />
+        <Route path="/Solicitaracceso" element={<PublicAccessRequest />} />
+        <Route path="/SOLICITARACCESO" element={<PublicAccessRequest />} />
         <Route path="/Patrocinadores" element={<PublicSponsors />} />
+        <Route path="/patrocinadores" element={<PublicSponsors />} />
         <Route path="/SanIsidro" element={<SanIsidroInscripcion />} />
         <Route path="/sanisidro" element={<SanIsidroInscripcion />} />
         <Route path="/Sanisidro" element={<SanIsidroInscripcion />} />
