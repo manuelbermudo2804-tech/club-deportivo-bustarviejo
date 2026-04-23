@@ -194,12 +194,13 @@ export default function SponsorPackages() {
                     <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
                       <div className="flex items-center gap-2 mb-2">
                         <Globe className="w-5 h-5 text-blue-300" />
-                        <p className="font-bold text-white text-sm">🌐 En la WEB</p>
+                        <p className="font-bold text-white text-sm">🌐 En la WEB <span className="text-[10px] text-blue-300 font-semibold">· NUEVA Y RENOVADA</span></p>
                       </div>
                       <ul className="text-xs text-purple-100 space-y-1.5">
-                        <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span>Logo destacado en <strong>cabecera</strong></span></li>
+                        <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span>Logo destacado en <strong>cabecera</strong> (visible en cada visita)</span></li>
                         <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span>Sección <strong>"Patrocinador Principal"</strong> en la home</span></li>
                         <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span>Logo en el <strong>footer</strong> de todas las páginas</span></li>
+                        <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span>Web <strong>completamente nueva</strong>, con tráfico del pueblo y la sierra</span></li>
                       </ul>
                     </div>
 
