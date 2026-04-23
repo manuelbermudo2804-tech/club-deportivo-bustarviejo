@@ -145,29 +145,31 @@ export default function SponsorBanner() {
               const showBadge = ["Principal", "Oro", "Plata", "Bronce"].includes(sponsor.nivel_patrocinio);
 
               const inner = (
-                <div className={`flex items-center gap-2 flex-shrink-0 ${showBadge ? `${style.card} rounded-lg px-2.5 py-1` : ''}`}>
+                <div className={`flex items-center gap-2 flex-shrink-0 ${showBadge ? `${style.card} rounded-lg px-2 py-1` : ''}`}>
                   {style.icon && (
-                    <span className="text-base leading-none">{style.icon}</span>
+                    <span className="text-sm leading-none flex-shrink-0">{style.icon}</span>
                   )}
                   {sponsor.logo_url ? (
                     <img
                       src={sponsor.logo_url}
                       alt={sponsor.nombre}
-                      className={`${style.logoSize} w-auto object-contain`}
+                      className={`${style.logoSize} w-auto object-contain flex-shrink-0`}
                     />
                   ) : (
-                    <div className={`${style.logoSize} aspect-square rounded bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center`}>
+                    <div className={`${style.logoSize} aspect-square rounded bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center flex-shrink-0`}>
                       <Building2 className="w-4 h-4 text-white" />
                     </div>
                   )}
-                  <span className={style.text}>
-                    {sponsor.nombre}
-                  </span>
-                  {showBadge && (
-                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-wide ${style.badge}`}>
-                      {sponsor.nivel_patrocinio}
+                  <div className="flex flex-col leading-tight">
+                    <span className={style.text}>
+                      {sponsor.nombre}
                     </span>
-                  )}
+                    {showBadge && (
+                      <span className={`text-[8px] font-bold uppercase tracking-wide ${style.text} opacity-70`}>
+                        {sponsor.nivel_patrocinio}
+                      </span>
+                    )}
+                  </div>
                 </div>
               );
 
