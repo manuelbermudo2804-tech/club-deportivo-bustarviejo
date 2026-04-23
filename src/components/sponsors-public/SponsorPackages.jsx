@@ -1,18 +1,19 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { CheckCircle2, Plus, Shirt, Flag, CreditCard, Users, ArrowRight, Hand, Gift } from "lucide-react";
+import { CheckCircle2, Plus, Shirt, Flag, CreditCard, Users, ArrowRight, Hand, Gift, Smartphone, Globe, Mail, Instagram } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import SponsorInterestModal from "./SponsorInterestModal";
 import DeadlineCountdown from "./DeadlineCountdown";
 
 const addons = [
-  { name: "Pancarta en el campo", price: "150€", sub: "1ª temporada · 100€ la siguiente", icon: Flag },
   { name: "Camiseta OFICIAL - Pecho", price: "400€", sub: "Camiseta oficial de partidos · ~130 jugadores llevan tu logo", icon: Shirt, highlight: true },
   { name: "Camiseta OFICIAL - Trasera", price: "250€", sub: "Camiseta oficial de partidos · máxima visibilidad por detrás", icon: Shirt },
+  { name: "Chándal oficial del club", price: "250€", sub: "Chándal oficial del club · lo llevan jugadores y staff fuera del campo", icon: Shirt },
+  { name: "Camiseta ENTRENAMIENTO y CALENTAMIENTO", price: "250€", sub: "Camiseta usada en entrenamientos y en el calentamiento previo a los partidos", icon: Shirt },
   { name: "Camiseta OFICIAL - Manga", price: "150€", sub: "Camiseta oficial de partidos · posición lateral", icon: Shirt },
   { name: "Camiseta OFICIAL - Trasero derecha", price: "150€", sub: "Camiseta oficial de partidos · parte trasera, lado derecho", icon: Shirt },
   { name: "Camiseta OFICIAL - Trasero izquierda", price: "150€", sub: "Camiseta oficial de partidos · parte trasera, lado izquierdo", icon: Shirt },
-  { name: "Camiseta ENTRENAMIENTO y CALENTAMIENTO", price: "350€", sub: "Camiseta usada en entrenamientos y en el calentamiento previo a los partidos", icon: Shirt },
+  { name: "Pancarta en el campo", price: "150€", sub: "1ª temporada · 100€ la siguiente", icon: Flag },
 ];
 
 const baseIncludes = [
@@ -144,6 +145,138 @@ export default function SponsorPackages() {
           </div>
         </motion.div>
 
+        {/* PATROCINADOR PRINCIPAL DIGITAL - Tarjeta destacada */}
+        {(() => {
+          const principalName = "Patrocinador Principal Digital";
+          const isAdjudicadaPrincipal = adjudicadas.includes(principalName);
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="relative mb-12"
+            >
+              <div className="absolute -inset-2 bg-gradient-to-br from-purple-300 via-indigo-300 to-blue-300 rounded-[2rem] blur-xl opacity-50" />
+              <div className={`relative bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 rounded-3xl overflow-hidden shadow-2xl border-2 ${isAdjudicadaPrincipal ? 'border-red-400' : 'border-purple-400'}`}>
+                {/* Badge superior */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white text-[10px] font-black px-6 py-1 rounded-b-xl shadow-lg tracking-widest">
+                  👑 EXCLUSIVO · SOLO 1 COMERCIO
+                </div>
+
+                <div className="p-6 lg:p-10 pt-12">
+                  <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+                    <div>
+                      <p className="text-purple-300 text-xs font-bold uppercase tracking-widest mb-1">Patrocinador Principal</p>
+                      <h3 className="text-3xl lg:text-4xl font-black text-white">Digital</h3>
+                      <p className="text-purple-200 text-sm mt-1">El patrocinador oficial del mundo digital del club</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-5xl lg:text-6xl font-black text-white">300€</p>
+                      <p className="text-purple-300 text-xs">+ 100€ cuota base = <strong className="text-white">400€ total</strong></p>
+                    </div>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-4 mb-6">
+                    {/* APP */}
+                    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Smartphone className="w-5 h-5 text-purple-300" />
+                        <p className="font-bold text-white text-sm">📱 En la APP</p>
+                      </div>
+                      <ul className="text-xs text-purple-100 space-y-1.5">
+                        <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span>Logo en la <strong>pantalla de bienvenida</strong> (2 segundos al abrir)</span></li>
+                        <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span><strong>Banner destacado</strong> en el dashboard principal</span></li>
+                        <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span><strong>Primera posición</strong> en el carrusel de sponsors</span></li>
+                      </ul>
+                    </div>
+
+                    {/* WEB */}
+                    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Globe className="w-5 h-5 text-blue-300" />
+                        <p className="font-bold text-white text-sm">🌐 En la WEB</p>
+                      </div>
+                      <ul className="text-xs text-purple-100 space-y-1.5">
+                        <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span>Logo destacado en <strong>cabecera</strong></span></li>
+                        <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span>Sección <strong>"Patrocinador Principal"</strong> en la home</span></li>
+                        <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span>Logo en el <strong>footer</strong> de todas las páginas</span></li>
+                      </ul>
+                    </div>
+
+                    {/* REDES */}
+                    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Instagram className="w-5 h-5 text-pink-300" />
+                        <p className="font-bold text-white text-sm">📲 En REDES SOCIALES</p>
+                      </div>
+                      <ul className="text-xs text-purple-100 space-y-1.5">
+                        <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span><strong>Mención destacada</strong> como patrocinador principal</span></li>
+                        <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span>Presencia en publicaciones relevantes del club</span></li>
+                      </ul>
+                    </div>
+
+                    {/* EMAILS */}
+                    <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Mail className="w-5 h-5 text-amber-300" />
+                        <p className="font-bold text-white text-sm">📧 En EMAILS</p>
+                      </div>
+                      <ul className="text-xs text-purple-100 space-y-1.5">
+                        <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span>Logo en el <strong>footer</strong> de todos los emails oficiales</span></li>
+                        <li className="flex items-start gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0 mt-0.5" /><span>Convocatorias, recibos, anuncios, recordatorios...</span></li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {/* Alcance */}
+                  <div className="bg-gradient-to-r from-purple-500/20 to-pink-500/20 border border-purple-400/30 rounded-xl p-4 mb-6">
+                    <p className="text-white font-bold text-sm mb-2">📊 Alcance real</p>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                      <div>
+                        <p className="text-2xl font-black text-white">~400</p>
+                        <p className="text-[10px] text-purple-200 uppercase tracking-wide">personas en la app</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-black text-white">130</p>
+                        <p className="text-[10px] text-purple-200 uppercase tracking-wide">familias del club</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-black text-white">Diaria</p>
+                        <p className="text-[10px] text-purple-200 uppercase tracking-wide">apertura de app</p>
+                      </div>
+                      <div>
+                        <p className="text-2xl font-black text-white">1</p>
+                        <p className="text-[10px] text-purple-200 uppercase tracking-wide">único comercio</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CTA */}
+                  {isAdjudicadaPrincipal ? (
+                    <div className="w-full flex items-center justify-center gap-2 text-sm font-bold px-4 py-3 rounded-xl bg-red-500/20 text-red-300 border border-red-400/40">
+                      <CheckCircle2 className="w-4 h-4" />
+                      Posición ya ocupada
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => handleInterest(principalName)}
+                      disabled={isDeadlinePassed}
+                      className={`w-full flex items-center justify-center gap-2 font-black px-6 py-3.5 rounded-xl transition-all text-sm shadow-lg ${
+                        isDeadlinePassed
+                          ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-600 hover:via-pink-600 hover:to-orange-600 text-white hover:scale-[1.02] active:scale-95'
+                      }`}
+                    >
+                      <Hand className="w-4 h-4" />
+                      {isDeadlinePassed ? "Plazo cerrado" : "Quiero ser el Patrocinador Principal Digital"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          );
+        })()}
+
         {/* Opciones adicionales */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -156,7 +289,7 @@ export default function SponsorPackages() {
               <Plus className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h3 className="text-xl lg:text-2xl font-black text-slate-900">Opciones adicionales</h3>
+              <h3 className="text-xl lg:text-2xl font-black text-slate-900">Otras opciones adicionales</h3>
               <p className="text-sm text-slate-500">Combínalas con la cuota de colaborador</p>
             </div>
           </div>

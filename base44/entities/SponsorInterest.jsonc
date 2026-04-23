@@ -6,6 +6,7 @@
       "type": "string",
       "enum": [
         "Colaborador (solo cuota base)",
+        "Patrocinador Principal Digital",
         "Pancarta en el campo",
         "Camiseta OFICIAL - Pecho",
         "Camiseta OFICIAL - Trasera",
@@ -13,6 +14,7 @@
         "Camiseta OFICIAL - Trasero derecha",
         "Camiseta OFICIAL - Trasero izquierda",
         "Camiseta ENTRENAMIENTO y CALENTAMIENTO",
+        "Ch\u00e1ndal oficial del club",
         "Camiseta ENTRENAMIENTO",
         "Camiseta PECHO",
         "Camiseta TRASERA",
