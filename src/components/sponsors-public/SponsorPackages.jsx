@@ -12,7 +12,7 @@ const addons = [
   { name: "Camiseta OFICIAL - Manga", price: "150€", sub: "Camiseta oficial de partidos · posición lateral", icon: Shirt },
   { name: "Camiseta OFICIAL - Trasero derecha", price: "150€", sub: "Camiseta oficial de partidos · parte trasera, lado derecho", icon: Shirt },
   { name: "Camiseta OFICIAL - Trasero izquierda", price: "150€", sub: "Camiseta oficial de partidos · parte trasera, lado izquierdo", icon: Shirt },
-  { name: "Camiseta ENTRENAMIENTO", price: "350€", sub: "Camiseta usada en todos los entrenamientos", icon: Shirt },
+  { name: "Camiseta ENTRENAMIENTO y CALENTAMIENTO", price: "350€", sub: "Camiseta usada en entrenamientos y en el calentamiento previo a los partidos", icon: Shirt },
 ];
 
 const baseIncludes = [
