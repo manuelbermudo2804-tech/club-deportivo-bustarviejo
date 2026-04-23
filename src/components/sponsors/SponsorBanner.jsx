@@ -77,6 +77,40 @@ export default function SponsorBanner() {
     "Colaborador": "from-blue-400 to-blue-500"
   };
 
+  // Estilos visuales por nivel (badge + color texto)
+  const nivelStyles = {
+    "Principal": {
+      badge: "bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-sm",
+      text: "text-amber-700 font-bold text-sm",
+      logoSize: "h-10",
+      glow: "drop-shadow(0 0 6px rgba(255,200,0,0.5))"
+    },
+    "Oro": {
+      badge: "bg-gradient-to-r from-yellow-400 to-amber-500 text-white shadow-sm",
+      text: "text-amber-700 font-bold text-sm",
+      logoSize: "h-9",
+      glow: "drop-shadow(0 0 4px rgba(255,200,0,0.4))"
+    },
+    "Plata": {
+      badge: "bg-gradient-to-r from-slate-300 to-slate-400 text-slate-800 shadow-sm",
+      text: "text-slate-700 font-semibold text-sm",
+      logoSize: "h-8",
+      glow: "drop-shadow(0 0 3px rgba(148,163,184,0.4))"
+    },
+    "Bronce": {
+      badge: "bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-sm",
+      text: "text-orange-700 font-semibold text-sm",
+      logoSize: "h-8",
+      glow: "drop-shadow(0 0 3px rgba(251,146,60,0.4))"
+    },
+    "Colaborador": {
+      badge: "",
+      text: "text-slate-600 font-medium text-xs",
+      logoSize: "h-7",
+      glow: "none"
+    }
+  };
+
   // Duplicate items for seamless infinite loop
   const items = [...sponsors, ...sponsors];
 
@@ -102,29 +136,28 @@ export default function SponsorBanner() {
         >
           <div className="flex items-center px-4 whitespace-nowrap">
             {items.map((sponsor, idx) => {
-              const isPremium = ["Principal", "Oro"].includes(sponsor.nivel_patrocinio);
+              const style = nivelStyles[sponsor.nivel_patrocinio] || nivelStyles["Colaborador"];
+              const showBadge = ["Principal", "Oro", "Plata", "Bronce"].includes(sponsor.nivel_patrocinio);
 
               const inner = (
-                <div
-                  className="flex items-center gap-2 flex-shrink-0"
-                >
+                <div className="flex items-center gap-2 flex-shrink-0">
                   {sponsor.logo_url ? (
                     <img
                       src={sponsor.logo_url}
                       alt={sponsor.nombre}
-                      className={`${isPremium ? 'h-9' : 'h-7'} w-auto object-contain`}
-                      style={{ filter: isPremium ? 'drop-shadow(0 0 4px rgba(255,200,0,0.3))' : 'none' }}
+                      className={`${style.logoSize} w-auto object-contain`}
+                      style={{ filter: style.glow !== 'none' ? style.glow : 'none' }}
                     />
                   ) : (
-                    <div className={`${isPremium ? 'w-9 h-9' : 'w-7 h-7'} rounded bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center`}>
+                    <div className={`${style.logoSize} aspect-square rounded bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center`}>
                       <Building2 className="w-4 h-4 text-white" />
                     </div>
                   )}
-                  <span className={`${isPremium ? 'text-sm font-bold text-amber-700' : 'text-xs font-medium text-slate-600'}`}>
+                  <span className={style.text}>
                     {sponsor.nombre}
                   </span>
-                  {isPremium && (
-                    <span className="text-[8px] bg-amber-500/20 text-amber-700 px-1 rounded font-bold uppercase">
+                  {showBadge && (
+                    <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide ${style.badge}`}>
                       {sponsor.nivel_patrocinio}
                     </span>
                   )}
