@@ -100,6 +100,18 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // Calcular hace cuánto se actualizó el borrador desde RFFM
+      const lastUpdate = draft.updated_date ? new Date(draft.updated_date) : null;
+      const now = new Date();
+      let syncText = 'Datos sincronizados con la Federación';
+      if (lastUpdate) {
+        const diffH = Math.round((now - lastUpdate) / 3600000);
+        if (diffH < 1) syncText = '🟢 Datos RFFM actualizados hace menos de 1 hora';
+        else if (diffH < 3) syncText = `🟢 Datos RFFM actualizados hace ${diffH} h`;
+        else if (diffH < 12) syncText = `🟡 Datos RFFM actualizados hace ${diffH} h`;
+        else syncText = `⚠️ Datos RFFM actualizados hace ${diffH} h — verifica en la web de la Federación antes de publicar`;
+      }
+
       for (const coach of categoryCoaches) {
         const title = `${emoji} [Entrenador] Convocatoria pendiente`;
         const pushBody = `${draft.categoria}: ${draft.rival || draft.titulo} es ${daysText}. Revisa y publica cuando esté lista.`;
@@ -113,6 +125,9 @@ Deno.serve(async (req) => {
           </div>
           <p>Hola ${coach.full_name || 'entrenador/a'},</p>
           <p>El partido de <strong>${draft.categoria}</strong> contra <strong>${draft.rival || draft.titulo}</strong> es <strong>${daysText}</strong> y la convocatoria aún no está publicada.</p>
+          <div style="background:#f1f5f9;border-left:4px solid #0ea5e9;padding:10px 12px;margin:12px 0;border-radius:6px;font-size:13px;color:#334155">
+            ${syncText}
+          </div>
           <p>Revísala y publícala cuando esté lista para que los padres puedan confirmar asistencia.</p>
           <div style="text-align:center;margin:24px 0">
             <a href="https://app.cdbustarviejo.com/CoachCallups" style="background:#ea580c;color:white;padding:14px 28px;border-radius:10px;text-decoration:none;font-weight:700">📋 Ver convocatorias</a>
