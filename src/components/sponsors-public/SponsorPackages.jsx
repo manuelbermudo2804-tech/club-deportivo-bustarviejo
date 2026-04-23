@@ -171,8 +171,8 @@ export default function SponsorPackages() {
                       <p className="text-purple-200 text-sm mt-1">El patrocinador oficial del mundo digital del club</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-5xl lg:text-6xl font-black text-white">300€</p>
-                      <p className="text-purple-300 text-xs">+ 100€ cuota base = <strong className="text-white">400€ total</strong></p>
+                      <p className="text-5xl lg:text-6xl font-black text-white">600€</p>
+                      <p className="text-purple-300 text-xs">+ 100€ cuota base = <strong className="text-white">700€ total</strong></p>
                     </div>
                   </div>
 
