@@ -77,37 +77,42 @@ export default function SponsorBanner() {
     "Colaborador": "from-blue-400 to-blue-500"
   };
 
-  // Estilos visuales por nivel (badge + color texto)
+  // Estilos visuales por nivel — cada nivel tiene tarjeta con fondo+borde distintivo
   const nivelStyles = {
     "Principal": {
-      badge: "bg-gradient-to-r from-amber-500 to-yellow-600 text-white shadow-sm",
-      text: "text-amber-700 font-bold text-sm",
+      card: "bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 border-2 border-amber-400 shadow-md shadow-amber-200/50",
+      badge: "bg-gradient-to-r from-amber-500 to-yellow-600 text-white",
+      text: "text-amber-900 font-bold text-sm",
       logoSize: "h-10",
-      glow: "drop-shadow(0 0 6px rgba(255,200,0,0.5))"
+      icon: "👑"
     },
     "Oro": {
-      badge: "bg-gradient-to-r from-yellow-400 to-amber-500 text-white shadow-sm",
-      text: "text-amber-700 font-bold text-sm",
+      card: "bg-gradient-to-r from-yellow-100 via-amber-50 to-yellow-100 border-2 border-yellow-400 shadow-md shadow-yellow-200/50",
+      badge: "bg-gradient-to-r from-yellow-400 to-amber-500 text-white",
+      text: "text-amber-800 font-bold text-sm",
       logoSize: "h-9",
-      glow: "drop-shadow(0 0 4px rgba(255,200,0,0.4))"
+      icon: "🥇"
     },
     "Plata": {
-      badge: "bg-gradient-to-r from-slate-300 to-slate-400 text-slate-800 shadow-sm",
+      card: "bg-gradient-to-r from-slate-100 via-gray-50 to-slate-100 border-2 border-slate-400 shadow-sm",
+      badge: "bg-gradient-to-r from-slate-400 to-slate-500 text-white",
       text: "text-slate-700 font-semibold text-sm",
       logoSize: "h-8",
-      glow: "drop-shadow(0 0 3px rgba(148,163,184,0.4))"
+      icon: "🥈"
     },
     "Bronce": {
-      badge: "bg-gradient-to-r from-orange-400 to-orange-500 text-white shadow-sm",
-      text: "text-orange-700 font-semibold text-sm",
+      card: "bg-gradient-to-r from-orange-100 via-amber-50 to-orange-100 border-2 border-orange-400 shadow-sm",
+      badge: "bg-gradient-to-r from-orange-500 to-amber-600 text-white",
+      text: "text-orange-800 font-semibold text-sm",
       logoSize: "h-8",
-      glow: "drop-shadow(0 0 3px rgba(251,146,60,0.4))"
+      icon: "🥉"
     },
     "Colaborador": {
+      card: "",
       badge: "",
       text: "text-slate-600 font-medium text-xs",
       logoSize: "h-7",
-      glow: "none"
+      icon: null
     }
   };
 
@@ -140,13 +145,15 @@ export default function SponsorBanner() {
               const showBadge = ["Principal", "Oro", "Plata", "Bronce"].includes(sponsor.nivel_patrocinio);
 
               const inner = (
-                <div className="flex items-center gap-2 flex-shrink-0">
+                <div className={`flex items-center gap-2 flex-shrink-0 ${showBadge ? `${style.card} rounded-lg px-2.5 py-1` : ''}`}>
+                  {style.icon && (
+                    <span className="text-base leading-none">{style.icon}</span>
+                  )}
                   {sponsor.logo_url ? (
                     <img
                       src={sponsor.logo_url}
                       alt={sponsor.nombre}
                       className={`${style.logoSize} w-auto object-contain`}
-                      style={{ filter: style.glow !== 'none' ? style.glow : 'none' }}
                     />
                   ) : (
                     <div className={`${style.logoSize} aspect-square rounded bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center`}>
@@ -157,7 +164,7 @@ export default function SponsorBanner() {
                     {sponsor.nombre}
                   </span>
                   {showBadge && (
-                    <span className={`text-[8px] px-1.5 py-0.5 rounded font-bold uppercase tracking-wide ${style.badge}`}>
+                    <span className={`text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-wide ${style.badge}`}>
                       {sponsor.nivel_patrocinio}
                     </span>
                   )}
