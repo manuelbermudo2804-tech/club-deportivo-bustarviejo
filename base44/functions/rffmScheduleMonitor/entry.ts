@@ -436,8 +436,11 @@ Deno.serve(async (req) => {
         const venueChanged = match.campo && callup.ubicacion && 
           !callup.ubicacion.toUpperCase().includes(match.campo.toUpperCase()) &&
           !match.campo.toUpperCase().includes(callup.ubicacion.toUpperCase());
+        const rivalChanged = rival && callup.rival && 
+          callup.rival.trim().toUpperCase() !== rival.trim().toUpperCase();
+        const localVisitanteChanged = (isLocal ? 'Local' : 'Visitante') !== callup.local_visitante;
 
-        if (!dateChanged && !timeChanged && !venueChanged) return null;
+        if (!dateChanged && !timeChanged && !venueChanged && !rivalChanged && !localVisitanteChanged) return null;
 
         // Something changed! Build update data
         const updateData = {};
@@ -459,6 +462,17 @@ Deno.serve(async (req) => {
         if (venueChanged) {
           updateData.ubicacion = match.campo;
           changeParts.push(`📍 Campo: ${match.campo}`);
+        }
+
+        if (rivalChanged) {
+          updateData.rival = rival;
+          updateData.titulo = `Jornada ${jornada} vs ${rival}`;
+          changeParts.push(`🆚 Rival: ${rival}`);
+        }
+
+        if (localVisitanteChanged) {
+          updateData.local_visitante = isLocal ? 'Local' : 'Visitante';
+          changeParts.push(`${isLocal ? '🏠 Local' : '✈️ Visitante'}`);
         }
 
         updateData.estado_convocatoria = 'reprogramada';
