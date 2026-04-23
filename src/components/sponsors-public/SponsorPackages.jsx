@@ -238,12 +238,12 @@ export default function SponsorPackages() {
                         <p className="text-[10px] text-purple-200 uppercase tracking-wide">personas en la app</p>
                       </div>
                       <div>
-                        <p className="text-2xl font-black text-white">130</p>
-                        <p className="text-[10px] text-purple-200 uppercase tracking-wide">familias del club</p>
+                        <p className="text-2xl font-black text-white">~200</p>
+                        <p className="text-[10px] text-purple-200 uppercase tracking-wide">seguidores en redes</p>
                       </div>
                       <div>
-                        <p className="text-2xl font-black text-white">Diaria</p>
-                        <p className="text-[10px] text-purple-200 uppercase tracking-wide">apertura de app</p>
+                        <p className="text-2xl font-black text-white">Miles</p>
+                        <p className="text-[10px] text-purple-200 uppercase tracking-wide">visitas a la web</p>
                       </div>
                       <div>
                         <p className="text-2xl font-black text-white">1</p>
