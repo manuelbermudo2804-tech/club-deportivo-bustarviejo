@@ -6,14 +6,14 @@ import SponsorInterestModal from "./SponsorInterestModal";
 import DeadlineCountdown from "./DeadlineCountdown";
 
 const addons = [
-  { name: "Camiseta OFICIAL - Pecho", price: "400€", sub: "Camiseta oficial de partidos · ~130 jugadores llevan tu logo", icon: Shirt, highlight: true },
-  { name: "Camiseta OFICIAL - Trasera", price: "250€", sub: "Camiseta oficial de partidos · máxima visibilidad por detrás", icon: Shirt },
-  { name: "Chándal oficial del club", price: "250€", sub: "Chándal oficial del club · lo llevan jugadores y staff fuera del campo", icon: Shirt },
-  { name: "Camiseta ENTRENAMIENTO y CALENTAMIENTO", price: "250€", sub: "Camiseta usada en entrenamientos y en el calentamiento previo a los partidos", icon: Shirt },
-  { name: "Camiseta OFICIAL - Manga", price: "150€", sub: "Camiseta oficial de partidos · posición lateral", icon: Shirt },
-  { name: "Camiseta OFICIAL - Trasero derecha", price: "150€", sub: "Camiseta oficial de partidos · parte trasera, lado derecho", icon: Shirt },
-  { name: "Camiseta OFICIAL - Trasero izquierda", price: "150€", sub: "Camiseta oficial de partidos · parte trasera, lado izquierdo", icon: Shirt },
-  { name: "Pancarta en el campo", price: "150€", sub: "1ª temporada · 100€ la siguiente", icon: Flag },
+  { name: "Camiseta OFICIAL - Pecho", price: 400, sub: "Camiseta oficial de partidos · ~130 jugadores llevan tu logo", icon: Shirt, highlight: true },
+  { name: "Camiseta OFICIAL - Trasera", price: 250, sub: "Camiseta oficial de partidos · máxima visibilidad por detrás", icon: Shirt },
+  { name: "Chándal oficial del club", price: 250, sub: "Chándal oficial del club · lo llevan jugadores y staff fuera del campo", icon: Shirt },
+  { name: "Camiseta ENTRENAMIENTO y CALENTAMIENTO", price: 250, sub: "Camiseta usada en entrenamientos y en el calentamiento previo a los partidos", icon: Shirt },
+  { name: "Camiseta OFICIAL - Manga", price: 150, sub: "Camiseta oficial de partidos · posición lateral", icon: Shirt },
+  { name: "Camiseta OFICIAL - Trasero derecha", price: 150, sub: "Camiseta oficial de partidos · parte trasera, lado derecho", icon: Shirt },
+  { name: "Camiseta OFICIAL - Trasero izquierda", price: 150, sub: "Camiseta oficial de partidos · parte trasera, lado izquierdo", icon: Shirt },
+  { name: "Pancarta en el campo", price: 150, sub: "1ª temporada · 100€ la siguiente", icon: Flag },
 ];
 
 const baseIncludes = [
@@ -319,13 +319,18 @@ export default function SponsorPackages() {
                     ⭐ MÁS IMPACTO
                   </div>
                 )}
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-3 mb-2">
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
                     isAdjudicada ? 'bg-red-100' : addon.highlight ? 'bg-yellow-100' : 'bg-slate-100'
                   }`}>
                     <addon.icon className={`w-5 h-5 ${isAdjudicada ? 'text-red-400' : addon.highlight ? 'text-yellow-600' : 'text-slate-500'}`} />
                   </div>
-                  <p className={`text-2xl font-black ${isAdjudicada ? 'text-slate-400 line-through' : 'text-slate-900'}`}>{addon.price}</p>
+                  <div>
+                    <p className={`text-2xl font-black leading-none ${isAdjudicada ? 'text-slate-400 line-through' : 'text-slate-900'}`}>{addon.price}€</p>
+                    <p className={`text-[10px] font-semibold mt-0.5 ${isAdjudicada ? 'text-slate-400' : 'text-slate-500'}`}>
+                      + 100€ base = <strong className={isAdjudicada ? '' : 'text-orange-600'}>{addon.price + 100}€ total</strong>
+                    </p>
+                  </div>
                 </div>
                 <p className={`font-bold text-sm ${isAdjudicada ? 'text-slate-400' : 'text-slate-800'}`}>{addon.name}</p>
                 <p className="text-xs text-slate-500 mt-0.5">{addon.sub}</p>
