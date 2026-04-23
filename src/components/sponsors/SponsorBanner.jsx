@@ -153,19 +153,16 @@ export default function SponsorBanner() {
                     <img
                       src={sponsor.logo_url}
                       alt={sponsor.nombre}
-                      title={sponsor.nombre}
                       className={`${style.logoSize} w-auto object-contain`}
                     />
                   ) : (
-                    <>
-                      <div className={`${style.logoSize} aspect-square rounded bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center`}>
-                        <Building2 className="w-4 h-4 text-white" />
-                      </div>
-                      <span className={style.text}>
-                        {sponsor.nombre}
-                      </span>
-                    </>
+                    <div className={`${style.logoSize} aspect-square rounded bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center`}>
+                      <Building2 className="w-4 h-4 text-white" />
+                    </div>
                   )}
+                  <span className={style.text}>
+                    {sponsor.nombre}
+                  </span>
                   {showBadge && (
                     <span className={`text-[9px] px-1.5 py-0.5 rounded font-black uppercase tracking-wide ${style.badge}`}>
                       {sponsor.nivel_patrocinio}
