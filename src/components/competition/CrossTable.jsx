@@ -173,11 +173,11 @@ export default function CrossTable({ category, config }) {
                   <th
                     key={t.id}
                     className={`px-1 py-2 text-center font-semibold min-w-[48px] max-w-[60px] border-l border-slate-200 ${
-                      isBust(t.name) ? "bg-orange-100 text-orange-800" : "bg-slate-100 text-slate-700"
+                      isBust(t.name) ? "bg-orange-600 text-white" : "bg-slate-100 text-slate-700"
                     }`}
                     title={t.name}
                   >
-                    <div className="text-[9px] sm:text-[10px] leading-tight truncate" style={{ writingMode: "vertical-lr", transform: "rotate(180deg)", maxHeight: 80 }}>
+                    <div className="text-[9px] sm:text-[10px] leading-tight truncate font-bold" style={{ writingMode: "vertical-lr", transform: "rotate(180deg)", maxHeight: 80 }}>
                       {shortName(t.name)}
                     </div>
                   </th>
@@ -190,8 +190,8 @@ export default function CrossTable({ category, config }) {
                 return (
                   <tr key={localTeam.id} className={isBustRow ? "bg-orange-50" : localIdx % 2 === 0 ? "bg-white" : "bg-slate-50"}>
                     <td
-                      className={`sticky left-0 z-10 px-2 py-1.5 font-semibold border-t border-slate-200 truncate max-w-[150px] ${
-                        isBustRow ? "bg-orange-100 text-orange-900 border-l-4 border-l-orange-500" : "bg-white text-slate-800"
+                      className={`sticky left-0 z-10 px-2 py-1.5 font-bold border-t border-slate-200 truncate max-w-[150px] ${
+                        isBustRow ? "bg-orange-600 text-white border-l-4 border-l-orange-800" : "bg-white text-slate-800"
                       }`}
                       title={localTeam.name}
                     >
