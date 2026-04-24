@@ -408,7 +408,9 @@ export default function TreasurerFinancialPanel() {
       sociosPagados: currentSeasonMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + ((m.cuota_pagada || m.cuota_socio || 0)), 0),
       sociosPendientes: currentSeasonMembers.filter(m => m.estado_pago !== "Pagado").reduce((sum, m) => sum + (m.cuota_socio || 0), 0),
       
-      patrociniosTotal: sponsors.filter(s => s.estado === "Activo" && seasonMatches(s.temporada, activeSeason.temporada)).reduce((sum, s) => sum + (s.monto || 0), 0),
+      patrociniosTotal: sponsors
+        .filter(s => s.activo === true && isInSeason(s.fecha_inicio, activeSeason))
+        .reduce((sum, s) => sum + (Number(s.precio_anual) || 0), 0),
     };
   }, [activeSeason, payments, players, clothingOrders, lotteryOrders, clubMembers, sponsors, customPlans]);
 
@@ -1016,7 +1018,7 @@ export default function TreasurerFinancialPanel() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
                     <span className="text-sm text-slate-700">🏢 Activos</span>
-                    <span className="text-lg font-bold text-purple-700">{sponsors.filter(s => s.estado === "Activo").length}</span>
+                    <span className="text-lg font-bold text-purple-700">{sponsors.filter(s => s.activo === true).length}</span>
                   </div>
                   <div className="flex justify-between items-center p-3 bg-purple-100 rounded-lg">
                     <span className="text-sm text-slate-700">💰 Total</span>
