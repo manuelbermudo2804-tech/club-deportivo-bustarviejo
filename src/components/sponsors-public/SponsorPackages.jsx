@@ -145,7 +145,7 @@ export default function SponsorPackages() {
           </div>
         </motion.div>
 
-        {/* PATROCINADOR PRINCIPAL DIGITAL - Tarjeta destacada */}
+        {/* PATROCINADOR PRINCIPAL - Tarjeta destacada */}
         {(() => {
           const principalName = "Patrocinador Principal Digital";
           const isAdjudicadaPrincipal = adjudicadas.includes(principalName);
@@ -166,9 +166,9 @@ export default function SponsorPackages() {
                 <div className="p-6 lg:p-10 pt-12">
                   <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
                     <div>
-                      <p className="text-purple-300 text-xs font-bold uppercase tracking-widest mb-1">Patrocinador Principal</p>
-                      <h3 className="text-3xl lg:text-4xl font-black text-white">Digital</h3>
-                      <p className="text-purple-200 text-sm mt-1">El patrocinador oficial del mundo digital del club</p>
+                      <p className="text-purple-300 text-xs font-bold uppercase tracking-widest mb-1">⭐ Exclusivo</p>
+                      <h3 className="text-3xl lg:text-4xl font-black text-white">Patrocinador Principal</h3>
+                      <p className="text-purple-200 text-sm mt-1">La marca de referencia del club en app, web, redes y emails</p>
                     </div>
                     <div className="text-right">
                       <p className="text-5xl lg:text-6xl font-black text-white">500€</p>
@@ -269,7 +269,7 @@ export default function SponsorPackages() {
                       }`}
                     >
                       <Hand className="w-4 h-4" />
-                      {isDeadlinePassed ? "Plazo cerrado" : "Quiero ser el Patrocinador Principal Digital"}
+                      {isDeadlinePassed ? "Plazo cerrado" : "Quiero ser el Patrocinador Principal"}
                     </button>
                   )}
                 </div>
