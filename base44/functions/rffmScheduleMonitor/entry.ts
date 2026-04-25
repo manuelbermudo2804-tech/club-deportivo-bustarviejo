@@ -416,6 +416,7 @@ Deno.serve(async (req) => {
             fecha_partido: matchDate,
             hora_partido: match.hora || '00:00',
             ubicacion: match.campo || 'Por confirmar',
+            enlace_ubicacion: match.campo ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(match.campo)}` : '',
             local_visitante: isLocal ? 'Local' : 'Visitante',
             jugadores_convocados,
             entrenador_email: 'sistema@cdbustarviejo.es',
@@ -461,6 +462,8 @@ Deno.serve(async (req) => {
 
         if (venueChanged) {
           updateData.ubicacion = match.campo;
+          // Regenerate enlace_ubicacion to match the new venue (Google Maps search)
+          updateData.enlace_ubicacion = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(match.campo)}`;
           changeParts.push(`📍 Campo: ${match.campo}`);
         }
 
