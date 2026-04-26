@@ -1,0 +1,43 @@
+{
+  "name": "SanIsidroVoluntario",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre y apellidos del voluntario"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto"
+    },
+    "disponibilidad_manana": {
+      "type": "boolean",
+      "default": false,
+      "description": "Disponible por la ma\u00f1ana"
+    },
+    "disponibilidad_tarde": {
+      "type": "boolean",
+      "default": false,
+      "description": "Disponible por la tarde"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas o tareas en las que puede ayudar"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "contactado",
+        "confirmado",
+        "descartado"
+      ],
+      "default": "pendiente",
+      "description": "Estado de gesti\u00f3n del voluntario"
+    }
+  },
+  "required": [
+    "nombre",
+    "telefono"
+  ]
+}

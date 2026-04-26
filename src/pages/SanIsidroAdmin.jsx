@@ -5,7 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Trophy, Users, Phone, Mail, Clock, Download } from "lucide-react";
+import { Trophy, Users, Phone, Mail, Clock, Download, Heart } from "lucide-react";
+import VolunteersList from "../components/sanisidro/VolunteersList";
 
 const MODALIDADES = [
   "Fútbol Chapa - Niños/Jóvenes",
@@ -15,11 +16,17 @@ const MODALIDADES = [
 ];
 
 export default function SanIsidroAdmin() {
+  const [section, setSection] = useState("inscripciones");
   const [tab, setTab] = useState("all");
 
   const { data: registrations = [], isLoading } = useQuery({
     queryKey: ["sanIsidroRegistrations"],
     queryFn: () => base44.entities.SanIsidroRegistration.list("-created_date", 500),
+  });
+
+  const { data: voluntarios = [] } = useQuery({
+    queryKey: ["sanIsidroVoluntariosCount"],
+    queryFn: () => base44.entities.SanIsidroVoluntario.list("-created_date", 500),
   });
 
   const filtered = tab === "all" ? registrations : registrations.filter(r => r.modalidad === tab);
@@ -61,11 +68,29 @@ export default function SanIsidroAdmin() {
           </h1>
           <p className="text-slate-500 text-sm">Inscripciones a los torneos deportivos</p>
         </div>
-        <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1">
-          <Download className="w-4 h-4" /> Exportar CSV
-        </Button>
+        {section === "inscripciones" && (
+          <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1">
+            <Download className="w-4 h-4" /> Exportar CSV
+          </Button>
+        )}
       </div>
 
+      {/* Selector sección */}
+      <Tabs value={section} onValueChange={setSection}>
+        <TabsList className="w-full">
+          <TabsTrigger value="inscripciones" className="flex-1 gap-1">
+            <Trophy className="w-4 h-4" /> Inscripciones ({registrations.length})
+          </TabsTrigger>
+          <TabsTrigger value="voluntarios" className="flex-1 gap-1">
+            <Heart className="w-4 h-4" /> Voluntarios ({voluntarios.length})
+          </TabsTrigger>
+        </TabsList>
+      </Tabs>
+
+      {section === "voluntarios" ? (
+        <VolunteersList />
+      ) : (
+        <>
       {/* Resumen */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
         {MODALIDADES.map(mod => (
@@ -114,6 +139,8 @@ export default function SanIsidroAdmin() {
             <RegistrationCard key={reg.id} reg={reg} />
           ))}
         </div>
+      )}
+        </>
       )}
     </div>
   );

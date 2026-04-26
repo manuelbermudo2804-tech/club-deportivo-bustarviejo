@@ -3,8 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Check, Trophy, Users, Loader2, PartyPopper, Clock } from "lucide-react";
+import { ArrowLeft, Check, Trophy, Users, Loader2, PartyPopper, Clock, Heart } from "lucide-react";
 import { toast } from "sonner";
+import VolunteerModal from "../components/sanisidro/VolunteerModal";
 
 const FECHA_INICIO = new Date("2026-04-19T00:00:00");
 const FECHA_FIN = new Date("2026-05-15T23:59:59");
@@ -61,6 +62,7 @@ export default function SanIsidroInscripcion() {
   const [step, setStep] = useState("select");
   const [selectedMod, setSelectedMod] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [volunteerOpen, setVolunteerOpen] = useState(false);
   const [form, setForm] = useState({
     nombre: "",
     telefono: "",
@@ -196,6 +198,22 @@ export default function SanIsidroInscripcion() {
                 </button>
               ))}
             </div>
+
+            {/* Voluntariado */}
+            <div className="pt-3 border-t border-slate-200">
+              <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide mb-2">💖 ¿Quieres ayudar?</p>
+              <button
+                type="button"
+                onClick={() => setVolunteerOpen(true)}
+                className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-pink-200 hover:border-pink-400 bg-gradient-to-r from-pink-50 to-red-50 hover:from-pink-100 hover:to-red-100 transition-all text-left active:scale-95"
+              >
+                <Heart className="w-7 h-7 text-pink-600 flex-shrink-0" />
+                <div>
+                  <p className="font-bold text-slate-800">Apuntarme como voluntario</p>
+                  <p className="text-xs text-slate-500">Échanos una mano en las fiestas</p>
+                </div>
+              </button>
+            </div>
           </div>
         )}
 
@@ -278,6 +296,8 @@ export default function SanIsidroInscripcion() {
           <p className="text-xs text-slate-400">CD Bustarviejo • Fiestas de San Isidro 2026</p>
         </div>
       </div>
+
+      <VolunteerModal open={volunteerOpen} onOpenChange={setVolunteerOpen} />
     </div>
   );
 }
