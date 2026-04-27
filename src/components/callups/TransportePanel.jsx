@@ -1,5 +1,5 @@
-import React from "react";
-import { Car, Users, Phone, MapPin, MessageCircle } from "lucide-react";
+import React, { useState } from "react";
+import { Car, Users, Phone, MapPin, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -21,6 +21,7 @@ function WhatsAppButton({ telefono, nombre }) {
 }
 
 export default function TransportePanel({ callup, currentUserEmail }) {
+  const [expanded, setExpanded] = useState(false);
   const jugadores = callup.jugadores_convocados || [];
   
   const ofertas = jugadores.filter(j => 
@@ -33,26 +34,58 @@ export default function TransportePanel({ callup, currentUserEmail }) {
   const totalPlazasOfrecidas = ofertas.reduce((sum, j) => sum + (j.transporte?.plazas || 0), 0);
   const totalPlazasNecesitadas = necesitan.reduce((sum, j) => sum + (j.transporte?.plazas || 0), 0);
 
-  if (ofertas.length === 0 && necesitan.length === 0) return null;
+  // Si no hay nadie usándolo todavía, mostrar invitación mínima
+  if (ofertas.length === 0 && necesitan.length === 0) {
+    return (
+      <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center gap-3">
+        <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+          <Car className="w-4 h-4 text-white" />
+        </div>
+        <p className="text-xs text-blue-800 flex-1">
+          💡 ¿Vas en coche? Pulsa <strong>🚗 Transporte</strong> en tu hijo/a para ofrecer o pedir plazas.
+        </p>
+      </div>
+    );
+  }
 
   const cubierto = totalPlazasOfrecidas >= totalPlazasNecesitadas;
 
   return (
-    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 space-y-3">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-            <Car className="w-4.5 h-4.5 text-white" />
+    <div className="bg-blue-50 border-2 border-blue-200 rounded-xl overflow-hidden">
+      {/* Cabecera plegable */}
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="w-full p-3 flex items-center justify-between gap-2 hover:bg-blue-100 transition-colors"
+      >
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+            <Car className="w-4 h-4 text-white" />
           </div>
-          <h3 className="font-bold text-blue-900">🚗 Compartir Coche</h3>
+          <div className="text-left flex-1 min-w-0">
+            <h3 className="font-bold text-blue-900 text-sm">🚗 Compartir Coche</h3>
+            <p className="text-[11px] text-blue-700">
+              {ofertas.length > 0 && `${ofertas.length} ${ofertas.length === 1 ? 'ofrece' : 'ofrecen'} plazas`}
+              {ofertas.length > 0 && necesitan.length > 0 && ' · '}
+              {necesitan.length > 0 && `${necesitan.length} ${necesitan.length === 1 ? 'busca' : 'buscan'}`}
+            </p>
+          </div>
         </div>
-        <Badge className={cubierto 
-          ? "bg-green-100 text-green-800 border border-green-300" 
-          : "bg-amber-100 text-amber-800 border border-amber-300"
-        }>
-          {cubierto ? "✅ Plazas cubiertas" : `⚠️ Faltan ${totalPlazasNecesitadas - totalPlazasOfrecidas} plazas`}
-        </Badge>
-      </div>
+        <div className="flex items-center gap-2 flex-shrink-0">
+          <Badge className={cubierto 
+            ? "bg-green-100 text-green-800 border border-green-300 text-[10px]" 
+            : "bg-amber-100 text-amber-800 border border-amber-300 text-[10px]"
+          }>
+            {cubierto ? "✅" : `Faltan ${totalPlazasNecesitadas - totalPlazasOfrecidas}`}
+          </Badge>
+          {expanded ? <ChevronUp className="w-4 h-4 text-blue-700" /> : <ChevronDown className="w-4 h-4 text-blue-700" />}
+        </div>
+      </button>
+
+      {!expanded && null}
+
+      {expanded && (
+      <div className="p-4 pt-0 space-y-3">
 
       {/* Resumen rápido */}
       <div className="flex gap-3">
@@ -131,6 +164,8 @@ export default function TransportePanel({ callup, currentUserEmail }) {
       <p className="text-[10px] text-blue-600 text-center italic">
         Contacta directamente por WhatsApp para coordinar el viaje
       </p>
+      </div>
+      )}
     </div>
   );
 }
