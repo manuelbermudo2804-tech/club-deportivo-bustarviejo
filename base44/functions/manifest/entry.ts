@@ -8,8 +8,8 @@ Deno.serve(async (_req) => {
     background_color: "#ffffff",
     theme_color: "#1e1e1e",
     icons: [
-      { src: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { src: "/icon-512.png", sizes: "512x512", type: "image/png" }
+      { src: "https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/img/escudo.png", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/img/escudo.png", sizes: "512x512", type: "image/png", purpose: "any maskable" }
     ]
   };
 
