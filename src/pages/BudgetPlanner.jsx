@@ -1,28 +1,31 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, TrendingUp, TrendingDown, Euro, Users, PieChart, BarChart3, Target, Wallet, Pencil, Check, X, Download, ArrowLeftRight, Info } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, Euro, Users, PieChart, BarChart3, Target, Wallet, Pencil, Check, X, Download, ArrowLeftRight, Info, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart as RePieChart, Pie, Cell } from "recharts";
 import jsPDF from "jspdf";
 import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
+import { useActiveSeason } from "../components/season/SeasonProvider";
 
 // ── DATOS INICIALES ──
 
-const INITIAL_PLAYERS = {
-  "Aficionado": { jugadores: 24, cuota: 360 },
-  "Juvenil": { jugadores: 17, cuota: 350 },
-  "Cadete": { jugadores: 17, cuota: 350 },
-  "Infantil": { jugadores: 19, cuota: 301 },
-  "Alevín": { jugadores: 15, cuota: 301 },
-  "Benjamín": { jugadores: 14, cuota: 270 },
-  "Prebenjamín": { jugadores: 4, cuota: 270 },
-  "Femenino": { jugadores: 15, cuota: 350 },
-  "Baloncesto": { jugadores: 12, cuota: 235 },
-};
+// Mapeo de nombres CategoryConfig → nombre corto en planificador (+ jugadores estimados por defecto)
+const CATEGORY_MAP = [
+  { configName: "Fútbol Aficionado",          shortName: "Aficionado",   defaultPlayers: 24 },
+  { configName: "Fútbol Juvenil",             shortName: "Juvenil",      defaultPlayers: 17 },
+  { configName: "Fútbol Cadete",              shortName: "Cadete",       defaultPlayers: 17 },
+  { configName: "Fútbol Infantil (Mixto)",    shortName: "Infantil",     defaultPlayers: 19 },
+  { configName: "Fútbol Alevín (Mixto)",      shortName: "Alevín",       defaultPlayers: 15 },
+  { configName: "Fútbol Benjamín (Mixto)",    shortName: "Benjamín",     defaultPlayers: 14 },
+  { configName: "Fútbol Pre-Benjamín (Mixto)",shortName: "Prebenjamín",  defaultPlayers: 4  },
+  { configName: "Fútbol Femenino",            shortName: "Femenino",     defaultPlayers: 15 },
+  { configName: "Baloncesto (Mixto)",         shortName: "Baloncesto",   defaultPlayers: 12 },
+];
 
 // Partidas equilibradas: el club intermedia pero solo gana el margen
 const INITIAL_PASSTHROUGH = [
@@ -66,12 +69,42 @@ const COLORS = ["#3b82f6","#22c55e","#f59e0b","#ef4444","#8b5cf6","#ec4899","#14
 const fmt = (n) => n.toLocaleString("es-ES");
 
 export default function BudgetPlanner() {
-  const [categories, setCategories] = useState(INITIAL_PLAYERS);
+  const { activeSeason } = useActiveSeason();
+  const [categories, setCategories] = useState({});
   const [passthrough, setPassthrough] = useState(INITIAL_PASSTHROUGH);
   const [netIncome, setNetIncome] = useState(INITIAL_NET_INCOME);
   const [netExpenses, setNetExpenses] = useState(INITIAL_NET_EXPENSES);
   const [editing, setEditing] = useState(null);
   const [editValue, setEditValue] = useState("");
+  const [loadingCuotas, setLoadingCuotas] = useState(true);
+
+  // Cargar cuotas reales desde CategoryConfig (temporada activa, formato 2026-2027)
+  const loadCuotasFromConfig = async () => {
+    setLoadingCuotas(true);
+    try {
+      const seasonStr = (activeSeason || "2026/2027").replace("/", "-");
+      const configs = await base44.entities.CategoryConfig.filter({ temporada: seasonStr, activa: true });
+      const next = {};
+      CATEGORY_MAP.forEach(({ configName, shortName, defaultPlayers }) => {
+        const cfg = configs.find(c => c.nombre === configName);
+        next[shortName] = {
+          jugadores: categories[shortName]?.jugadores ?? defaultPlayers,
+          cuota: cfg?.cuota_total ?? categories[shortName]?.cuota ?? 0,
+        };
+      });
+      setCategories(next);
+    } catch (e) {
+      console.error("Error cargando cuotas:", e);
+      toast.error("No se pudieron cargar las cuotas");
+    } finally {
+      setLoadingCuotas(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCuotasFromConfig();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeSeason]);
 
   const startEdit = (section, key, field, currentValue) => {
     setEditing({ section, key, field });
@@ -220,13 +253,18 @@ export default function BudgetPlanner() {
             </Button>
           </Link>
         </div>
-        <h1 className="text-2xl md:text-3xl font-bold">📋 Presupuesto Temporada 2026-2027</h1>
-        <p className="text-slate-300 mt-1 text-sm">Simulador interactivo — haz clic en cualquier número para editarlo</p>
-        <div className="flex flex-wrap gap-2 mt-3">
+        <h1 className="text-2xl md:text-3xl font-bold">📋 Presupuesto Temporada {(activeSeason || "2026/2027").replace("/", "-")}</h1>
+        <p className="text-slate-300 mt-1 text-sm">Cuotas sincronizadas con Temporadas y Categorías — haz clic en cualquier número para editarlo</p>
+        <div className="flex flex-wrap gap-2 mt-3 items-center">
           <Badge className="bg-blue-500/20 text-blue-200 border-blue-400/30">{totals.totalJugadores} jugadores</Badge>
           <Badge className={`${totals.resultado >= 0 ? "bg-green-500/20 text-green-200 border-green-400/30" : "bg-red-500/20 text-red-200 border-red-400/30"}`}>
             {totals.resultado >= 0 ? "Superávit" : "Déficit"}: {totals.resultado >= 0 ? "+" : ""}{fmt(totals.resultado)}€
           </Badge>
+          <Button size="sm" variant="ghost" onClick={loadCuotasFromConfig} disabled={loadingCuotas}
+            className="text-white hover:bg-white/10 ml-auto">
+            <RefreshCw className={`w-4 h-4 mr-1 ${loadingCuotas ? "animate-spin" : ""}`} />
+            Recargar cuotas
+          </Button>
         </div>
       </div>
 
