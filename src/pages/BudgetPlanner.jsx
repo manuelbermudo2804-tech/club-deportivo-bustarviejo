@@ -77,6 +77,7 @@ export default function BudgetPlanner() {
   const [editing, setEditing] = useState(null);
   const [editValue, setEditValue] = useState("");
   const [loadingCuotas, setLoadingCuotas] = useState(true);
+  const [ipcPercent, setIpcPercent] = useState(0); // % de incremento aplicado a gastos
 
   // Cargar cuotas reales desde CategoryConfig (temporada activa, formato 2026-2027)
   const loadCuotasFromConfig = async () => {
@@ -132,21 +133,24 @@ export default function BudgetPlanner() {
     const passthroughGasto = passthrough.reduce((sum, p) => sum + p.gasto, 0);
 
     const netIncomeTotal = netIncome.reduce((sum, i) => sum + i.importe, 0);
-    const netExpensesTotal = netExpenses.reduce((sum, e) => sum + e.importe, 0);
+    const netExpensesBase = netExpenses.reduce((sum, e) => sum + e.importe, 0);
+    const ipcFactor = 1 + (Number(ipcPercent) || 0) / 100;
+    const netExpensesTotal = Math.round(netExpensesBase * ipcFactor);
+    const ipcImpact = netExpensesTotal - netExpensesBase;
 
     // Dinero real disponible = cuotas + ingresos netos + beneficio de intermediación
     const dineroDisponible = cuotasTotal + netIncomeTotal + passthroughBenefit;
-    // Gastos reales del club
+    // Gastos reales del club (con IPC aplicado)
     const gastoReal = netExpensesTotal;
     const resultado = dineroDisponible - gastoReal;
 
     return {
       cuotasTotal, totalJugadores,
       passthroughBenefit, passthroughIngreso, passthroughGasto,
-      netIncomeTotal, netExpensesTotal,
+      netIncomeTotal, netExpensesBase, netExpensesTotal, ipcImpact, ipcFactor,
       dineroDisponible, gastoReal, resultado,
     };
-  }, [categories, passthrough, netIncome, netExpenses]);
+  }, [categories, passthrough, netIncome, netExpenses, ipcPercent]);
 
   const cuotasPieData = useMemo(() =>
     Object.entries(categories).map(([name, data], i) => ({
@@ -196,13 +200,21 @@ export default function BudgetPlanner() {
     doc.setFontSize(10); y += 2;
     doc.text(`Total ingresos netos: ${fmt(totals.netIncomeTotal)}EUR`, 25, y); y += 12;
 
-    doc.setFontSize(13); doc.text("GASTOS REALES DEL CLUB", 20, y); y += 8;
+    doc.setFontSize(13);
+    doc.text(`GASTOS REALES DEL CLUB${ipcPercent !== 0 ? ` (IPC +${ipcPercent}%)` : ""}`, 20, y); y += 8;
     doc.setFontSize(9);
     netExpenses.forEach(e => {
       if (y > 270) { doc.addPage(); y = 20; }
-      doc.text(`${e.nombre}: ${fmt(e.importe)}EUR`, 25, y); y += 6;
+      const ajustado = Math.round(e.importe * totals.ipcFactor);
+      const linea = ipcPercent !== 0
+        ? `${e.nombre}: ${fmt(e.importe)}EUR -> ${fmt(ajustado)}EUR`
+        : `${e.nombre}: ${fmt(e.importe)}EUR`;
+      doc.text(linea, 25, y); y += 6;
     });
     doc.setFontSize(10); y += 2;
+    if (ipcPercent !== 0) {
+      doc.text(`Base: ${fmt(totals.netExpensesBase)}EUR + IPC ${ipcPercent}% = ${fmt(totals.gastoReal)}EUR`, 25, y); y += 6;
+    }
     doc.text(`Total gastos reales: ${fmt(totals.gastoReal)}EUR`, 25, y); y += 14;
 
     if (y > 250) { doc.addPage(); y = 20; }
@@ -484,17 +496,70 @@ export default function BudgetPlanner() {
           <p className="text-xs text-slate-500 mt-1">Gastos propios — sin contar lo que se autofinancia (lotería, equipaciones...)</p>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {netExpenses.map((item, i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-red-50 rounded-lg hover:bg-red-100">
-                <span className="text-sm font-medium text-slate-700">{item.nombre}</span>
-                <span className="font-bold text-red-700">
-                  <EditableCell section="netExpenses" keyId={i} field="importe" value={item.importe} />
-                </span>
+          {/* Control de IPC */}
+          <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex flex-wrap items-center gap-3">
+              <label className="text-sm font-semibold text-amber-900 flex items-center gap-1">
+                <TrendingUp className="w-4 h-4" />
+                Previsión IPC sobre gastos:
+              </label>
+              <div className="flex items-center gap-1">
+                <Input
+                  type="number"
+                  step="0.1"
+                  value={ipcPercent}
+                  onChange={(e) => setIpcPercent(Number(e.target.value) || 0)}
+                  className="w-24 h-8"
+                />
+                <span className="text-sm font-bold text-amber-900">%</span>
               </div>
-            ))}
+              <div className="flex gap-1">
+                {[0, 2, 3, 5].map(v => (
+                  <Button key={v} size="sm" variant={ipcPercent === v ? "default" : "outline"}
+                    onClick={() => setIpcPercent(v)} className="h-7 px-2 text-xs">
+                    {v}%
+                  </Button>
+                ))}
+              </div>
+              {ipcPercent !== 0 && (
+                <Badge className="bg-amber-200 text-amber-900 border-amber-300 ml-auto">
+                  Impacto: {totals.ipcImpact >= 0 ? "+" : ""}{fmt(totals.ipcImpact)}€
+                </Badge>
+              )}
+            </div>
+            <p className="text-[11px] text-amber-700 mt-2">
+              Aplica el porcentaje a todos los gastos para previsionar inflación. El importe base no se modifica.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            {netExpenses.map((item, i) => {
+              const ajustado = Math.round(item.importe * totals.ipcFactor);
+              return (
+                <div key={i} className="flex items-center justify-between p-3 bg-red-50 rounded-lg hover:bg-red-100">
+                  <span className="text-sm font-medium text-slate-700">{item.nombre}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-bold text-red-700">
+                      <EditableCell section="netExpenses" keyId={i} field="importe" value={item.importe} />
+                    </span>
+                    {ipcPercent !== 0 && (
+                      <span className="text-xs text-amber-700 font-semibold whitespace-nowrap">
+                        → {fmt(ajustado)}€
+                      </span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
             <div className="flex items-center justify-between p-3 bg-red-200 rounded-lg font-bold">
-              <span>TOTAL GASTOS REALES</span>
+              <span>
+                TOTAL GASTOS REALES
+                {ipcPercent !== 0 && (
+                  <span className="text-xs font-normal text-red-700 ml-2">
+                    (base: {fmt(totals.netExpensesBase)}€ + {ipcPercent}%)
+                  </span>
+                )}
+              </span>
               <span className="text-red-800">{fmt(totals.gastoReal)}€</span>
             </div>
           </div>
