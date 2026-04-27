@@ -8,9 +8,9 @@ import { CreditCard, Gift, Info, Loader2, CheckCircle2 } from "lucide-react";
 
 import { CATEGORY_NAME_MAPPING, getCuotasFromConfig as getCuotasFromConfigShared } from '../../lib/cuotasConfig';
 
-const getCuotasFromConfig = (categoria, categoryConfigs) => {
+const getCuotasFromConfig = (categoria, categoryConfigs, temporada) => {
   if (!categoryConfigs || categoryConfigs.length === 0) return null;
-  const result = getCuotasFromConfigShared(categoria, categoryConfigs);
+  const result = getCuotasFromConfigShared(categoria, categoryConfigs, temporada);
   // Return null if no config found (to trigger fallback UI)
   if (result.inscripcion === 0 && result.segunda === 0 && result.tercera === 0 && result.total === 0) return null;
   return result;
@@ -74,7 +74,7 @@ export default function InscriptionPaymentFlow({
     }
     return null;
   };
-  const cuotas = getCuotasFromConfig(playerData.deporte, categoryConfigs) || deriveFromSeason(seasonConfig);
+  const cuotas = getCuotasFromConfig(playerData.deporte, categoryConfigs, seasonConfig?.temporada) || deriveFromSeason(seasonConfig);
 
   const importeTotal = cuotas ? cuotas.total - descuentoHermano : 0;
   const importeInscripcion = cuotas ? cuotas.inscripcion - descuentoHermano : 0;

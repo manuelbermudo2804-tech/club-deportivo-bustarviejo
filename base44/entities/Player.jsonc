@@ -457,5 +457,57 @@
     "acepta_politica_privacidad",
     "autorizacion_fotografia",
     "foto_url"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.email_padre": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.email_padre": "{{user.email}}"
+        },
+        {
+          "data.email_tutor_2": "{{user.email}}"
+        },
+        {
+          "data.email_jugador": "{{user.email}}"
+        },
+        {
+          "data.acceso_menor_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.email_padre": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

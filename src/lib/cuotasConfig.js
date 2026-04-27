@@ -40,16 +40,25 @@ export const FECHAS_VENCIMIENTO = {
 /**
  * Obtiene las cuotas de una categoría.
  * Prioriza CategoryConfig (BD), cae a CUOTAS_FALLBACK si no hay config.
+ * Si se proporciona temporada, prioriza la config de esa temporada.
  */
-export const getCuotasFromConfig = (categoria, categoryConfigs) => {
+export const getCuotasFromConfig = (categoria, categoryConfigs, temporada = null) => {
   if (!categoryConfigs || categoryConfigs.length === 0) {
     return CUOTAS_FALLBACK[categoria] || { inscripcion: 0, segunda: 0, tercera: 0, total: 0 };
   }
   
   const mappedName = CATEGORY_NAME_MAPPING[categoria] || categoria;
-  const categoryConfig = categoryConfigs.find(c => 
-    (c.nombre === categoria || c.nombre === mappedName) && c.activa
-  );
+  const matchesName = (c) => (c.nombre === categoria || c.nombre === mappedName) && c.activa;
+  
+  // Prioridad 1: misma categoría Y misma temporada
+  let categoryConfig = temporada
+    ? categoryConfigs.find(c => matchesName(c) && c.temporada === temporada)
+    : null;
+  
+  // Prioridad 2: misma categoría sin filtro de temporada (compatibilidad)
+  if (!categoryConfig) {
+    categoryConfig = categoryConfigs.find(matchesName);
+  }
   
   if (categoryConfig) {
     return {
