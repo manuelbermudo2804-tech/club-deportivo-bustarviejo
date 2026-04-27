@@ -441,20 +441,39 @@ export default function ParentCallups() {
                                 </p>
                               )}
                             </div>
-                            <Button
-                              onClick={() => handleOpenConfirm(callup, player.playerData)}
-                              size="sm"
-                              className={isPending 
-                                ? "bg-orange-600 hover:bg-orange-700 text-white shadow-md animate-pulse" 
-                                : "bg-slate-100 hover:bg-slate-200 text-slate-700 border"
-                              }
-                            >
-                              {isPending ? "✅ Confirmar" : "✏️ Modificar"}
-                            </Button>
+                            <div className="flex flex-col gap-2">
+                              <Button
+                                onClick={() => handleOpenConfirm(callup, player.playerData)}
+                                size="sm"
+                                className={isPending 
+                                  ? "bg-orange-600 hover:bg-orange-700 text-white shadow-md animate-pulse" 
+                                  : "bg-slate-100 hover:bg-slate-200 text-slate-700 border"
+                                }
+                              >
+                                {isPending ? "✅ Confirmar" : "✏️ Modificar"}
+                              </Button>
+                              {callup.local_visitante === "Visitante" && player.confirmacion === "asistire" && (
+                                <Button
+                                  onClick={() => handleOpenTransporte(callup, player.playerData)}
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                                >
+                                  🚗 {player.transporte?.tipo ? "Editar" : "Transporte"}
+                                </Button>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
                     </div>
+
+                    {/* Panel de transporte compartido (solo en partidos visitantes) */}
+                    {callup.local_visitante === "Visitante" && (
+                      <div className="mt-4">
+                        <TransportePanel callup={callup} currentUserEmail={user?.email} />
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
