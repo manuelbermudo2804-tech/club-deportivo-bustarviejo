@@ -698,17 +698,18 @@ Email: cdbustarviejo@gmail.com
     if (editingPlayer) {
       updatePlayerMutation.mutate({ id: editingPlayer.id, playerData });
     } else {
-      // REFETCH FORZADO para obtener jugadores más actuales (evitar cache)
-      console.log('🔄 [ParentPlayers] Refrescando lista de jugadores antes de calcular descuentos...');
-      const currentUserForSubmit = await base44.auth.me();
-      // Consultas paralelas sin $or para compatibilidad con todos los dispositivos
-      const [_byP, _byT] = await Promise.all([
-        base44.entities.Player.filter({ email_padre: currentUserForSubmit.email }).catch(() => []),
-        base44.entities.Player.filter({ email_tutor_2: currentUserForSubmit.email }).catch(() => []),
-      ]);
-      const _map = new Map();
-      [..._byP, ..._byT].forEach(p => _map.set(p.id, p));
-      const todosJugadoresBD = Array.from(_map.values());
+      try {
+        // REFETCH FORZADO para obtener jugadores más actuales (evitar cache)
+        console.log('🔄 [ParentPlayers] Refrescando lista de jugadores antes de calcular descuentos...');
+        const currentUserForSubmit = await base44.auth.me();
+        // Consultas paralelas sin $or para compatibilidad con todos los dispositivos
+        const [_byP, _byT] = await Promise.all([
+          base44.entities.Player.filter({ email_padre: currentUserForSubmit.email }).catch(() => []),
+          base44.entities.Player.filter({ email_tutor_2: currentUserForSubmit.email }).catch(() => []),
+        ]);
+        const _map = new Map();
+        [..._byP, ..._byT].forEach(p => _map.set(p.id, p));
+        const todosJugadoresBD = Array.from(_map.values());
       
       // Calcular descuento por hermano ANTES de mostrar el flujo
       // INCLUIR TODOS LOS JUGADORES DE LA FAMILIA (activos o no, porque pueden estar en proceso de renovación)
@@ -736,15 +737,23 @@ Email: cdbustarviejo@gmail.com
 
       console.log('💰 [ParentPlayers] Descuento calculado para', playerData.nombre, ':', descuentoCalculado, '€', esMayor ? '(ES EL MAYOR)' : '(NO ES EL MAYOR)');
 
-      // Guardar datos con descuento ya calculado
-      setPendingPlayerData({
-        ...playerData,
-        tiene_descuento_hermano: !esMayor,
-        descuento_aplicado: descuentoCalculado,
-        _descuentoCalculado: descuentoCalculado
-      });
-      setShowForm(false);
-      setShowPaymentFlow(true);
+        // Guardar datos con descuento ya calculado
+        setPendingPlayerData({
+          ...playerData,
+          tiene_descuento_hermano: !esMayor,
+          descuento_aplicado: descuentoCalculado,
+          _descuentoCalculado: descuentoCalculado
+        });
+        setShowForm(false);
+        setShowPaymentFlow(true);
+      } catch (err) {
+        console.error('❌ [ParentPlayers] Error preparando flujo de pago:', err);
+        toast.error('Error al preparar las cuotas: ' + (err?.message || 'Error desconocido'));
+        // Igualmente abrir el flujo de pago con los datos básicos para que pueda continuar
+        setPendingPlayerData({ ...playerData, _descuentoCalculado: 0 });
+        setShowForm(false);
+        setShowPaymentFlow(true);
+      }
     }
   };
 
