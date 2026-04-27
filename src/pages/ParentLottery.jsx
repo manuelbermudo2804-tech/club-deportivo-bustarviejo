@@ -13,6 +13,7 @@ import { Gift, Sparkles, Star, PartyPopper, AlertCircle, Upload, X, Loader2, Che
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { createPageUrl } from "@/utils";
+import PaymentInstructions from "@/components/payments/PaymentInstructions";
 
 const NUMERO_LOTERIA = "28720";
 
@@ -731,11 +732,13 @@ export default function ParentLottery() {
                     )}
 
                     {metodoPago === "Transferencia" && (
-                      <div className="bg-white rounded-lg p-3 border-2 border-blue-300">
-                        <p className="text-sm text-slate-900">
-                          🏦 <strong>Transferencia bancaria</strong> (si no pagas con tarjeta). Recuerda que deberás subir un justificante para confirmar tu pedido.
-                        </p>
-                      </div>
+                      <PaymentInstructions
+                        playerName={isStaff && pedidoPersonal ? user?.full_name : (players.find(p => p.id === selectedPlayer)?.nombre || "")}
+                        playerCategory="Lotería Navidad"
+                        amount={numDecimos * precioDecimo}
+                        paymentType="Único"
+                        paymentMonth="LOTERIA"
+                      />
                     )}
 
                     {/* Justificante obligatorio (no aplica a Tarjeta) */}
