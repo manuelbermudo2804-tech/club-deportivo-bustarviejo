@@ -23,9 +23,25 @@
     <meta name="twitter:title" content="CD Bustarviejo - App del Club" />
     <meta name="twitter:description" content="App oficial del Club Deportivo Bustarviejo. Deporte y valores desde 1989." />
     <meta name="twitter:image" content="https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/img/escudo.png" />
+
+    <!-- PWA: Manifest e iconos Apple -->
+    <link rel="manifest" href="/functions/manifest" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="CD Bustarviejo" />
+    <link rel="apple-touch-icon" href="https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/img/escudo.png" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Registrar Service Worker para habilitar instalacion PWA
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/functions/sw', { scope: '/' })
+            .catch((err) => console.warn('SW register failed:', err));
+        });
+      }
+    </script>
   </body>
 </html>
