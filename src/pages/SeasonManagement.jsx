@@ -870,14 +870,19 @@ export default function SeasonManagement() {
       }
 
       // 18. Desactivar socios de temporada anterior (NO se eliminan, se desactivan)
+      // IMPORTANTE: respetamos los socios que ya pertenecen a la NUEVA temporada (ya pagaron)
       if (resetConfig.resetClubMembers) {
         setProcessingStep("Desactivando socios de temporada anterior...");
-        for (const member of clubMembers.filter(m => m.activo !== false)) {
+        const membersToDeactivate = clubMembers.filter(m => 
+          m.activo !== false && m.temporada !== resetConfig.newSeasonName
+        );
+        for (const member of membersToDeactivate) {
           await base44.entities.ClubMember.update(member.id, {
             activo: false,
             temporada_anterior: activeSeason?.temporada || ""
           });
         }
+        console.log(`✅ Socios desactivados: ${membersToDeactivate.length}. Conservados de la nueva temporada: ${clubMembers.filter(m => m.temporada === resetConfig.newSeasonName).length}`);
         currentStep++;
         setProcessingProgress((currentStep / totalSteps) * 100);
       }
