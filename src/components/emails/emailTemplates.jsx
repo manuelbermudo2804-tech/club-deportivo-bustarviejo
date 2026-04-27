@@ -60,8 +60,14 @@ function dataRow(label, value) {
   return `<div style="padding:10px 0;border-bottom:1px solid #f1f5f9;"><span style="color:#64748b;font-size:12px;font-weight:600;">${label}</span><div style="color:#0f172a;font-size:15px;font-weight:600;margin-top:2px;">${value}</div></div>`;
 }
 
+// IBAN/Banco por defecto (se sobrescriben desde SeasonConfig en las funciones que los reciben)
+const DEFAULT_IBAN = 'ES82 0049 4447 38 2010004048';
+const DEFAULT_BANK = 'Santander';
+
 // ─── 1. Recordatorio pagos morosos (+30 días) ───
-export function overduePaymentReminderHtml(paymentLines) {
+export function overduePaymentReminderHtml(paymentLines, bankInfo = {}) {
+  const iban = bankInfo.iban || DEFAULT_IBAN;
+  const bank = bankInfo.bank || DEFAULT_BANK;
   const rows = paymentLines.map(p =>
     `<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:#fff7ed;border-radius:8px;margin-bottom:8px;border:1px solid #fed7aa;">
       <div><div style="font-weight:700;color:#9a3412;font-size:14px;">${p.player}</div><div style="color:#c2410c;font-size:12px;">${p.mes} · ${p.daysOverdue} días de retraso</div></div>
@@ -74,7 +80,7 @@ export function overduePaymentReminderHtml(paymentLines) {
     `<p style="color:#334155;font-size:15px;margin:0 0 16px;">Hola,</p>
     <p style="color:#334155;font-size:14px;margin:0 0 16px;">Tienes pagos pendientes desde hace más de 30 días. Por favor, regulariza tu situación lo antes posible:</p>
     ${rows}
-    ${infoBox('orange', '<div style="color:#9a3412;font-size:13px;"><strong>📧 Datos bancarios:</strong><br>IBAN: ES82 0049 4447 38 2010604048<br>Banco: Santander · Beneficiario: CD Bustarviejo</div>')}
+    ${infoBox('orange', `<div style="color:#9a3412;font-size:13px;"><strong>📧 Datos bancarios:</strong><br>IBAN: ${iban}<br>Banco: ${bank} · Beneficiario: CD Bustarviejo</div>`)}
     ${ctaButton('https://app.cdbustarviejo.com/parentpayments', '💳 VER MIS PAGOS', 'linear-gradient(135deg,#dc2626,#b91c1c)')}`
   );
 }
@@ -131,7 +137,9 @@ export function marketReservationReminderHtml(titulo, compradorNombre) {
 }
 
 // ─── 6. Recordatorio pago escalonado (15/7/2 días) ───
-export function scheduledPaymentReminderHtml(tipoRecordatorio, mesRecordatorio, fechaLimite, jugadores, totalFamilia) {
+export function scheduledPaymentReminderHtml(tipoRecordatorio, mesRecordatorio, fechaLimite, jugadores, totalFamilia, bankInfo = {}) {
+  const iban = bankInfo.iban || DEFAULT_IBAN;
+  const bank = bankInfo.bank || DEFAULT_BANK;
   const isUrgent = tipoRecordatorio === '2_dias_despues';
   const isWarning = tipoRecordatorio === '7_dias_antes';
   const bg = isUrgent ? 'linear-gradient(135deg,#dc2626,#b91c1c)' : isWarning ? 'linear-gradient(135deg,#ea580c,#c2410c)' : 'linear-gradient(135deg,#2563eb,#1d4ed8)';
@@ -154,7 +162,7 @@ export function scheduledPaymentReminderHtml(tipoRecordatorio, mesRecordatorio, 
       <div style="font-size:12px;color:#94a3b8;">TOTAL A PAGAR</div>
       <div style="font-size:28px;font-weight:800;margin-top:4px;">${totalFamilia}€</div>
     </div>
-    ${infoBox('orange', '<div style="color:#9a3412;font-size:13px;"><strong>📧 Datos bancarios:</strong><br>IBAN: ES82 0049 4447 38 2010604048<br>Banco: Santander · CD Bustarviejo<br>Concepto: Nombre jugador + ' + mesRecordatorio + '</div>')}
+    ${infoBox('orange', `<div style="color:#9a3412;font-size:13px;"><strong>📧 Datos bancarios:</strong><br>IBAN: ${iban}<br>Banco: ${bank} · CD Bustarviejo<br>Concepto: Nombre jugador + ${mesRecordatorio}</div>`)}
     ${ctaButton('https://app.cdbustarviejo.com/parentpayments', '💳 REGISTRAR MI PAGO', bg)}
     <p style="color:#94a3b8;font-size:12px;text-align:center;margin:8px 0 0;">Si ya realizaste el pago, ignora este mensaje.</p>`
   );

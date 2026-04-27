@@ -62,6 +62,34 @@ export default function FeatureControlSection({
             </div>
           </div>
 
+          {/* Datos bancarios del club */}
+          <div className="space-y-3 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-600">
+            <div className="flex items-center gap-2">
+              <CreditCard className="w-5 h-5 text-blue-600" />
+              <p className="font-semibold text-blue-900">🏦 Datos Bancarios del Club</p>
+            </div>
+            <p className="text-xs text-slate-600">Se usan en las instrucciones de pago de cuotas y en los emails de recordatorio. Si dejas un campo vacío, se usa el valor por defecto.</p>
+            <div>
+              <Label className="text-sm font-medium">IBAN</Label>
+              <Input
+                value={activeSeason.club_iban || ""}
+                onChange={(e) => update({ club_iban: e.target.value })}
+                placeholder="ES8200494447382010004048"
+                className="mt-1 font-mono"
+              />
+              <p className="text-xs text-slate-500 mt-1">Sin espacios. Se formatean automáticamente al mostrarlo.</p>
+            </div>
+            <div>
+              <Label className="text-sm font-medium">Banco</Label>
+              <Input
+                value={activeSeason.club_bank || ""}
+                onChange={(e) => update({ club_bank: e.target.value })}
+                placeholder="Banco Santander"
+                className="mt-1"
+              />
+            </div>
+          </div>
+
           {/* Lotería */}
           <FeatureRow icon={<Clover className="w-5 h-5 text-green-600" />} title="Lotería de Navidad" subtitle="Permitir pedidos de lotería" checked={activeSeason.loteria_navidad_abierta || false} onChange={(v) => toggleFeature('loteria_navidad_abierta', v)} />
           {activeSeason.loteria_navidad_abierta && (

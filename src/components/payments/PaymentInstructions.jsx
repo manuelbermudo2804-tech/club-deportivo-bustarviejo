@@ -4,11 +4,15 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Copy, CheckCircle2, QrCode, CreditCard, Info } from "lucide-react";
 import CopyButton from "./CopyButton";
+import { useActiveSeason } from "@/components/season/SeasonProvider";
 
-const CLUB_IBAN = "ES8200494447382010004048";
-const CLUB_BANK = "Banco Santander";
+const DEFAULT_CLUB_IBAN = "ES8200494447382010004048";
+const DEFAULT_CLUB_BANK = "Banco Santander";
 
 export default function PaymentInstructions({ playerName, playerCategory, amount, paymentType, paymentMonth }) {
+  const { seasonConfig } = useActiveSeason();
+  const CLUB_IBAN = seasonConfig?.club_iban?.trim() || DEFAULT_CLUB_IBAN;
+  const CLUB_BANK = seasonConfig?.club_bank?.trim() || DEFAULT_CLUB_BANK;
 
   const generateReference = () => {
     if (!playerName) return "";

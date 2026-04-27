@@ -29,6 +29,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
+    // Cargar IBAN/Banco desde la configuración de temporada activa (con fallback)
+    let CLUB_IBAN = 'ES82 0049 4447 38 2010004048';
+    let CLUB_BANK = 'Santander';
+    try {
+      const activeSeasons = await base44.asServiceRole.entities.SeasonConfig.filter({ activa: true });
+      const cfg = activeSeasons?.[0];
+      if (cfg?.club_iban?.trim()) {
+        const raw = cfg.club_iban.replace(/\s+/g, '');
+        CLUB_IBAN = raw.replace(/(.{4})/g, '$1 ').trim();
+      }
+      if (cfg?.club_bank?.trim()) CLUB_BANK = cfg.club_bank.trim();
+    } catch (e) {
+      console.warn('[sendPaymentReminders] No se pudo cargar SeasonConfig, usando IBAN por defecto');
+    }
+
     // Obtener pagos pendientes
     const pendingPayments = await base44.entities.Payment.filter({ estado: 'Pendiente' });
     
@@ -88,7 +103,7 @@ Deno.serve(async (req) => {
   <p style="color:#334155;font-size:14px;margin:0 0 16px;">Tienes pagos pendientes desde hace más de 30 días:</p>
   ${paymentRows}
   <div style="background:#fff7ed;border-radius:10px;padding:14px 16px;margin:16px 0;border-left:4px solid #f97316;">
-    <div style="color:#9a3412;font-size:13px;"><strong>📧 Datos bancarios:</strong><br>IBAN: ES82 0049 4447 38 2010604048<br>Banco: Santander · Beneficiario: CD Bustarviejo</div>
+    <div style="color:#9a3412;font-size:13px;"><strong>📧 Datos bancarios:</strong><br>IBAN: ${CLUB_IBAN}<br>Banco: ${CLUB_BANK} · Beneficiario: CD Bustarviejo</div>
   </div>
   <div style="text-align:center;margin:20px 0 8px;">
     <a href="https://app.cdbustarviejo.com/parentpayments" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#ffffff;font-size:16px;font-weight:800;text-decoration:none;padding:16px 32px;border-radius:12px;">💳 VER MIS PAGOS</a>

@@ -145,6 +145,14 @@
       "type": "string",
       "description": "N\u00famero de tel\u00e9fono del club para Bizum"
     },
+    "club_iban": {
+      "type": "string",
+      "description": "IBAN del club para transferencias bancarias (sin espacios). Si est\u00e1 vac\u00edo, se usa el IBAN por defecto."
+    },
+    "club_bank": {
+      "type": "string",
+      "description": "Nombre del banco del club (ej: Banco Santander). Si est\u00e1 vac\u00edo, se usa el banco por defecto."
+    },
     "mostrar_patrocinadores": {
       "type": "boolean",
       "default": false,
