@@ -6,7 +6,7 @@ import { useActiveSeason } from "../season/SeasonProvider";
 // Motor de recordatorios automáticos de pago
 export default function AutomaticPaymentReminders({ user }) {
   const [processing, setProcessing] = useState(false);
-  const { activeSeason } = useActiveSeason();
+  const { activeSeason, seasonConfig } = useActiveSeason();
 
   useEffect(() => {
     if (!user) return;
@@ -224,9 +224,14 @@ export default function AutomaticPaymentReminders({ user }) {
             
             mensaje += `\nTotal a pagar: ${totalFamilia}€\n`;
             mensaje += mensajeTipo.urgencia;
+            // Leer IBAN/Banco desde la configuración de temporada (con fallback)
+            const rawIban = (seasonConfig?.club_iban || 'ES8200494447382010004048').replace(/\s+/g, '');
+            const clubIban = rawIban.replace(/(.{4})/g, '$1 ').trim();
+            const clubBank = seasonConfig?.club_bank?.trim() || 'Santander';
+
             mensaje += `\n📧 DATOS BANCARIOS:\n`;
-            mensaje += `IBAN: ES82 0049 4447 38 2010604048\n`;
-            mensaje += `Banco: Santander\n`;
+            mensaje += `IBAN: ${clubIban}\n`;
+            mensaje += `Banco: ${clubBank}\n`;
             mensaje += `Beneficiario: CD Bustarviejo\n`;
             mensaje += `Concepto: Nombre del jugador + ${mesRecordatorio}\n\n`;
             mensaje += `📲 Por favor, accede a la app en la sección "💳 Pagos" para registrar tu pago y subir el justificante.\n\n`;
@@ -281,7 +286,8 @@ export default function AutomaticPaymentReminders({ user }) {
             const { scheduledPaymentReminderHtml } = await import('../emails/emailTemplates');
             const emailHtml = scheduledPaymentReminderHtml(
               tipoRecordatorio, mesRecordatorio, fechasLimite[mesRecordatorio],
-              family.jugadores, totalFamilia
+              family.jugadores, totalFamilia,
+              { iban: clubIban, bank: clubBank }
             );
             const subjectEmoji = tipoRecordatorio === '2_dias_despues' ? '🔴' : tipoRecordatorio === '7_dias_antes' ? '⚠️' : '📅';
             const emailSubject = `${subjectEmoji} ${mensajeTipo.titulo} - ${mesRecordatorio}`;
