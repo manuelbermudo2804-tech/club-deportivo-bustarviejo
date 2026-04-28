@@ -107,12 +107,32 @@ export default function TeamRosters() {
     }
   });
 
+  // Mutation específica para posición y dorsal
+  const updatePositionMutation = useMutation({
+    mutationFn: ({ playerId, data }) => base44.entities.Player.update(playerId, data),
+    onMutate: ({ playerId }) => {
+      setUpdatingPlayerId(playerId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['allPlayers'] });
+      toast.success("Posición y dorsal actualizados");
+    },
+    onError: (error) => {
+      console.error("Error updating player position:", error);
+      const msg = error?.response?.data?.error || error?.message || "Error al actualizar posición";
+      toast.error(msg);
+    },
+    onSettled: () => {
+      setUpdatingPlayerId(null);
+    }
+  });
+
   const handleUpdateAvailability = (playerId, data) => {
     updateAvailabilityMutation.mutate({ playerId, data });
   };
 
-  const handleUpdatePosition = (playerId, data) => {
-    updateAvailabilityMutation.mutate({ playerId, data });
+  const handleUpdatePosition = async (playerId, data) => {
+    await updatePositionMutation.mutateAsync({ playerId, data });
   };
 
   // Helpers: ¿el jugador pertenece a alguna de las categorías del entrenador? ¿coincide con la categoría seleccionada?

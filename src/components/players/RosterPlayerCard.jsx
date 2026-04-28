@@ -63,8 +63,10 @@ export default function RosterPlayerCard({ player, onUpdateAvailability, onUpdat
         player={player}
         open={showPosition}
         onOpenChange={setShowPosition}
-        onSave={(data) => {
-          if (onUpdatePosition) onUpdatePosition(player.id, data);
+        onSave={async (data) => {
+          if (onUpdatePosition) {
+            await onUpdatePosition(player.id, data);
+          }
           setShowPosition(false);
         }}
         isSaving={isUpdating}
