@@ -25,10 +25,15 @@ export default function TeamRosters() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      // Coordinador ve todas las categorías
-      if (currentUser.es_coordinador) {
-        const allPlayers = await base44.entities.Player.list();
-        const allCategories = [...new Set(allPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
+      // Admin y coordinador ven TODAS las categorías (las activas de CategoryConfig + las que ya tienen jugadores)
+      if (currentUser.role === "admin" || currentUser.es_coordinador) {
+        const [allPlayers, configs] = await Promise.all([
+          base44.entities.Player.list(),
+          base44.entities.CategoryConfig.filter({ activa: true })
+        ]);
+        const fromConfig = (configs || []).filter(c => !c.es_actividad_complementaria).map(c => c.nombre);
+        const fromPlayers = (allPlayers || []).map(p => p.categoria_principal || p.deporte).filter(Boolean);
+        const allCategories = [...new Set([...fromConfig, ...fromPlayers])];
         setCoachCategories(allCategories);
         if (allCategories.length > 0) {
           setSelectedCategory(allCategories[0]);

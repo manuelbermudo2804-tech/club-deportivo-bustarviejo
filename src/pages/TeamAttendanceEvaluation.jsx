@@ -39,17 +39,20 @@ export default function TeamAttendanceEvaluation() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      if (currentUser.es_coordinador) return;
-      if (currentUser.role === "admin") {
-        const allPlayers = await base44.entities.Player.filter({ activo: true });
-        const categories = [...new Set(allPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
-        if (categories.length > 0) setSelectedCategory(categories[0]);
-      } else if (currentUser.categorias_entrena?.length > 0) {
+      // La selección inicial de categoría se hace en otro useEffect cuando availableCategories esté listo
+      if (!currentUser.es_coordinador && currentUser.role !== "admin" && currentUser.categorias_entrena?.length > 0) {
         setSelectedCategory(currentUser.categorias_entrena[0]);
       }
     };
     fetchUser();
   }, []);
+
+  // Asegurar selección inicial cuando llegan las categorías disponibles (admin/coordinador)
+  useEffect(() => {
+    if (!selectedCategory && availableCategories.length > 0) {
+      setSelectedCategory(availableCategories[0]);
+    }
+  }, [availableCategories, selectedCategory]);
 
   // Solo cargar jugadores activos, con staleTime alto para no re-fetch continuamente
   const { data: players } = useQuery({
@@ -388,11 +391,16 @@ export default function TeamAttendanceEvaluation() {
 
   const availableCategories = useMemo(() => {
     if (!user) return [];
-    if (user.es_coordinador) return [...new Set((players || []).map(p => p.categoria_principal || p.deporte).filter(Boolean))];
+    // Admins y coordinadores ven todas las categorías activas (de CategoryConfig + las que ya tienen jugadores)
+    if (user.role === "admin" || user.es_coordinador) {
+      const fromConfig = (categoryConfigs || []).filter(c => !c.es_actividad_complementaria).map(c => c.nombre);
+      const fromPlayers = (players || []).map(p => p.categoria_principal || p.deporte).filter(Boolean);
+      return [...new Set([...fromConfig, ...fromPlayers])];
+    }
     return user.categorias_entrena || [];
-  }, [user, players]);
+  }, [user, players, categoryConfigs]);
 
-  if (!user || !user.es_entrenador || availableCategories.length === 0) {
+  if (!user || (!user.es_entrenador && !user.es_coordinador && user.role !== "admin") || availableCategories.length === 0) {
     return (
       <div className="p-4 lg:p-6">
         <div className="text-center py-12">
