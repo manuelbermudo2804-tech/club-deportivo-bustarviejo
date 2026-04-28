@@ -484,7 +484,7 @@ export default function CentroCompeticion() {
             </div>
             <div>
               <h1 className="text-xl md:text-2xl font-bold text-white">Centro de Competición</h1>
-              <p className="text-sm text-orange-300">CD Bustarviejo — Temporada {(() => { const n = new Date(); const y = n.getFullYear(); return n.getMonth() >= 8 ? `${y}/${y+1}` : `${y-1}/${y}`; })()}</p>
+              <p className="text-sm text-orange-300">CD Bustarviejo — Temporada {(() => { const n = new Date(); const y = n.getFullYear(); return n.getMonth() >= 6 ? `${y}/${y+1}` : `${y-1}/${y}`; })()}</p>
             </div>
             {fav ? (
               <Button variant="ghost" size="icon" onClick={toggleFav} title="Quitar favorito" className="text-yellow-400 hover:text-yellow-300"><Star className="w-5 h-5"/></Button>

@@ -181,7 +181,7 @@ function parseScorers(html) {
   });
 }
 
-function getSeason() { const n = new Date(); const y = n.getFullYear(); return n.getMonth() >= 8 ? `${y}/${y+1}` : `${y-1}/${y}`; }
+function getSeason() { const n = new Date(); const y = n.getFullYear(); /* Corte: 1 de julio (la temporada en curso se mantiene hasta el 30 de junio inclusive) */ return n.getMonth() >= 6 ? `${y}/${y+1}` : `${y-1}/${y}`; }
 
 // ---- Helpers (ANTI-RATE-LIMIT: generous pauses) ----
 

@@ -22,7 +22,8 @@ const timeAgo = (dateStr) => {
 const getSeason = () => {
   const n = new Date();
   const y = n.getFullYear();
-  return n.getMonth() >= 8 ? `${y}/${y + 1}` : `${y - 1}/${y}`;
+  // Corte: 1 de julio. Temporada activa hasta 30 junio inclusive.
+  return n.getMonth() >= 6 ? `${y}/${y + 1}` : `${y - 1}/${y}`;
 };
 
 export default function RffmMonitorPanel() {
