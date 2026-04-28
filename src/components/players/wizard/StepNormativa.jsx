@@ -156,13 +156,15 @@ export default function StepNormativa({ currentPlayer, setCurrentPlayer, fieldEr
             checked={accepted}
             disabled={!allSectionsRead}
             onCheckedChange={(c) => {
-              setCurrentPlayer(prev => ({ ...prev, acepta_normativa: c }));
+              if (!allSectionsRead) return;
+              setCurrentPlayer(prev => ({ ...prev, acepta_normativa: c === true }));
               if (fieldErrors?.acepta_normativa) setFieldErrors(prev => ({ ...prev, acepta_normativa: null }));
             }}
           />
           <label
-            htmlFor="wiz-normativa"
-            className={`text-sm font-semibold cursor-pointer ${!allSectionsRead ? 'text-slate-400' : fieldErrors?.acepta_normativa ? 'text-red-600' : 'text-slate-900'}`}
+            htmlFor={allSectionsRead ? "wiz-normativa" : undefined}
+            onClick={(e) => { if (!allSectionsRead) e.preventDefault(); }}
+            className={`text-sm font-semibold ${!allSectionsRead ? 'text-slate-400 cursor-not-allowed' : 'cursor-pointer'} ${fieldErrors?.acepta_normativa ? 'text-red-600' : !allSectionsRead ? '' : 'text-slate-900'}`}
           >
             ✅ HE LEÍDO Y ACEPTO EL REGLAMENTO DE RÉGIMEN INTERNO DEL CD BUSTARVIEJO
             {fieldErrors?.acepta_normativa && <span className="block text-xs text-red-500 mt-1">⚠️ Debes aceptar el reglamento</span>}
