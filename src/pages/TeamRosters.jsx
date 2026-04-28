@@ -74,8 +74,9 @@ export default function TeamRosters() {
       return await base44.entities.Player.list() || [];
     },
     initialData: [],
-    staleTime: 30 * 1000,
+    staleTime: 0,
     refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     enabled: !!user,
   });
 
