@@ -314,13 +314,23 @@ export default function PlayerProfileDialog({
                       <p className="text-sm text-slate-900">{player.ficha_medica.condiciones_medicas}</p>
                     </div>
                   )}
-                  {player.ficha_medica.contacto_emergencia_nombre && (
+                  {(player.ficha_medica.contacto_emergencia_nombre || player.ficha_medica.contacto_emergencia_telefono) && (
                     <div>
-                      <p className="text-xs text-slate-500">Contacto de Emergencia</p>
+                      <p className="text-xs text-slate-500">Contacto de Emergencia 1</p>
                       <p className="text-sm text-slate-900">
                         {player.ficha_medica.contacto_emergencia_nombre}
                         {player.ficha_medica.contacto_emergencia_telefono && 
                           ` - ${player.ficha_medica.contacto_emergencia_telefono}`}
+                      </p>
+                    </div>
+                  )}
+                  {(player.ficha_medica.contacto_emergencia_2_nombre || player.ficha_medica.contacto_emergencia_2_telefono) && (
+                    <div>
+                      <p className="text-xs text-slate-500">Contacto de Emergencia 2</p>
+                      <p className="text-sm text-slate-900">
+                        {player.ficha_medica.contacto_emergencia_2_nombre}
+                        {player.ficha_medica.contacto_emergencia_2_telefono && 
+                          ` - ${player.ficha_medica.contacto_emergencia_2_telefono}`}
                       </p>
                     </div>
                   )}
