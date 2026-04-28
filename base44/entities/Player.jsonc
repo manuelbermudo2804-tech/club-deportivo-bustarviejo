@@ -212,6 +212,13 @@
       "type": "string",
       "format": "date-time"
     },
+    "recordatorios_renovacion_enviados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Umbrales (ej: '30','15','7','3','1') ya enviados para evitar duplicados"
+    },
     "tiene_descuento_hermano": {
       "type": "boolean",
       "default": false

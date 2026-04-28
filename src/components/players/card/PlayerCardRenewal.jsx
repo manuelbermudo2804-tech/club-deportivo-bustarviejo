@@ -20,20 +20,43 @@ export default function PlayerCardRenewal({ player, needsCategoryChange, categor
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   const isSpecialRenewal = needsCategoryChange;
-  const gradientClass = isSpecialRenewal
-    ? "from-purple-50 to-purple-100 border-purple-400"
-    : "from-orange-50 to-orange-100 border-orange-400";
-  const accentColor = isSpecialRenewal ? "purple" : "orange";
+
+  // ⚠️ Tailwind purga clases dinámicas. Definir mapas estáticos para que se incluyan en el build.
+  const styles = isSpecialRenewal
+    ? {
+        gradient: "from-purple-50 to-purple-100 border-purple-400",
+        icon: "text-purple-700",
+        title: "text-purple-900",
+        body: "text-purple-800",
+        label: "text-purple-900",
+        select: "border-purple-300",
+        primaryBtn: "bg-purple-600 hover:bg-purple-700",
+        confirmBox: "bg-purple-100 border-purple-400",
+        confirmTitle: "text-purple-900",
+        confirmText: "text-purple-800",
+      }
+    : {
+        gradient: "from-orange-50 to-orange-100 border-orange-400",
+        icon: "text-orange-700",
+        title: "text-orange-900",
+        body: "text-orange-800",
+        label: "text-orange-900",
+        select: "border-orange-300",
+        primaryBtn: "bg-orange-600 hover:bg-orange-700",
+        confirmBox: "bg-orange-100 border-orange-400",
+        confirmTitle: "text-orange-900",
+        confirmText: "text-orange-800",
+      };
 
   return (
-    <div className={`bg-gradient-to-r ${gradientClass} border-2 rounded-lg p-3 space-y-2`}>
+    <div className={`bg-gradient-to-r ${styles.gradient} border-2 rounded-lg p-3 space-y-2`}>
       <div className="flex items-start gap-2">
-        <AlertCircle className={`w-5 h-5 text-${accentColor}-700 mt-0.5 flex-shrink-0`} />
+        <AlertCircle className={`w-5 h-5 ${styles.icon} mt-0.5 flex-shrink-0`} />
         <div className="flex-1">
-          <p className={`text-sm font-bold text-${accentColor}-900 mb-1`}>
+          <p className={`text-sm font-bold ${styles.title} mb-1`}>
             {isSpecialRenewal ? "🎉 Renovación de Categoría" : "⏰ Renovación Pendiente"}
           </p>
-          <p className={`text-xs text-${accentColor}-800 leading-relaxed mb-3`}>
+          <p className={`text-xs ${styles.body} leading-relaxed mb-3`}>
             {isSpecialRenewal
               ? `${player.nombre} tiene ${edadActual} años. Elige la categoría para la próxima temporada:`
               : `Es momento de renovar la inscripción de ${player.nombre} para la próxima temporada. Elige categoría:`}
@@ -42,13 +65,13 @@ export default function PlayerCardRenewal({ player, needsCategoryChange, categor
           {!confirmingRenew ? (
             <div className="space-y-2">
               <div className="space-y-1">
-                <label className={`text-xs font-bold text-${accentColor}-900 block`}>
+                <label className={`text-xs font-bold ${styles.label} block`}>
                   {isSpecialRenewal ? "Selecciona categoría:" : "Categoría:"}
                 </label>
                 <select
                   value={selectedCategory || player.deporte}
                   onChange={(e) => setSelectedCategory(e.target.value)}
-                  className={`w-full px-3 py-2 border-2 border-${accentColor}-300 rounded-lg text-sm bg-white relative z-50`}
+                  className={`w-full px-3 py-2 border-2 ${styles.select} rounded-lg text-sm bg-white relative z-50`}
                 >
                   <option value={player.deporte}>{player.deporte} (actual)</option>
                   {ALL_CATEGORIES.map(cat => (
@@ -67,15 +90,15 @@ export default function PlayerCardRenewal({ player, needsCategoryChange, categor
               <Button
                 size="sm"
                 onClick={(e) => { e.stopPropagation(); setConfirmingRenew(true); }}
-                className={`w-full bg-${accentColor}-600 hover:bg-${accentColor}-700 text-white font-bold shadow-lg`}
+                className={`w-full ${styles.primaryBtn} text-white font-bold shadow-lg`}
               >
                 {isSpecialRenewal ? "✨ Continuar Renovación" : "🔄 Continuar Renovación"}
               </Button>
             </div>
           ) : (
-            <div className={`bg-${accentColor}-100 border-2 border-${accentColor}-400 rounded-lg p-2 space-y-2`}>
-              <p className={`text-xs text-${accentColor}-900 font-bold`}>✅ Confirmar renovación:</p>
-              <p className={`text-xs text-${accentColor}-800`}>
+            <div className={`${styles.confirmBox} border-2 rounded-lg p-2 space-y-2`}>
+              <p className={`text-xs ${styles.confirmTitle} font-bold`}>✅ Confirmar renovación:</p>
+              <p className={`text-xs ${styles.confirmText}`}>
                 {isSpecialRenewal ? `${player.deporte} → ` : "Categoría: "}
                 <strong>{selectedCategory || player.deporte}</strong>
               </p>
@@ -87,7 +110,7 @@ export default function PlayerCardRenewal({ player, needsCategoryChange, categor
                     onRenew(player, selectedCategory || player.deporte);
                     setConfirmingRenew(false);
                   }}
-                  className={`flex-1 bg-${accentColor}-600 hover:bg-${accentColor}-700 text-white`}
+                  className={`flex-1 ${styles.primaryBtn} text-white`}
                 >
                   ✅ Confirmar
                 </Button>

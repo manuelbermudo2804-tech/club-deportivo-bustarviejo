@@ -51,25 +51,34 @@ export default function PlayerRenewalBanner({ player, seasonConfig }) {
 
   const renewMutation = useMutation({
     mutationFn: async ({ paymentsData }) => {
-      await base44.entities.Player.update(player.id, {
-        deporte: paymentsData.newCategory,
-        categoria_principal: paymentsData.newCategory,
-        estado_renovacion: "renovado",
-        fecha_renovacion: new Date().toISOString(),
-        activo: true,
-        temporada_renovacion: seasonConfig.temporada
+      // ✅ Renovación vía backend (RLS estricto: jugadores no pueden tocar estado_renovacion/activo)
+      const paymentsWithCategory = (paymentsData.payments || []).map(p => ({
+        ...p,
+        jugador_id: player.id,
+        jugador_nombre: player.nombre,
+      }));
+      const { data: result } = await base44.functions.invoke('playerRenewalAction', {
+        action: 'renew',
+        playerId: player.id,
+        playerData: {
+          deporte: paymentsData.newCategory,
+          categoria_principal: paymentsData.newCategory,
+        },
+        payments: paymentsWithCategory,
+        temporada: seasonConfig.temporada
       });
-      for (const payment of paymentsData.payments) {
-        await base44.entities.Payment.create(payment);
+      if (!result?.success) {
+        throw new Error(result?.error || 'Error al renovar');
       }
       const emailTo = player.email_jugador || player.email_padre;
       if (emailTo) {
-        await base44.integrations.Core.SendEmail({
-          from_name: "CD Bustarviejo",
-          to: emailTo,
-          subject: `✅ Renovación Confirmada - ${player.nombre} - Temporada ${seasonConfig.temporada}`,
-          body: `¡Hola ${player.nombre}!\n\nTu renovación ha sido procesada correctamente.\n\n📋 Categoría: ${paymentsData.newCategory}\n💳 Modalidad: ${paymentsData.tipoPago}\n\nAccede a "Pagos" en la app para registrar tus transferencias.\n\n¡Gracias por seguir con nosotros!\nCD Bustarviejo`
-        });
+        try {
+          await base44.functions.invoke('sendEmail', {
+            to: emailTo,
+            subject: `✅ Renovación Confirmada - ${player.nombre} - Temporada ${seasonConfig.temporada}`,
+            html: `¡Hola ${player.nombre}!<br/><br/>Tu renovación ha sido procesada correctamente.<br/><br/>📋 Categoría: ${paymentsData.newCategory}<br/>💳 Modalidad: ${paymentsData.tipoPago}<br/><br/>Accede a "Pagos" en la app para registrar tus transferencias.<br/><br/>¡Gracias por seguir con nosotros!<br/>CD Bustarviejo`
+          });
+        } catch (e) { console.error('Error enviando email confirmación:', e); }
       }
       return paymentsData;
     },
