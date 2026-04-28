@@ -26,6 +26,7 @@ import { buildCallupEmailHtml } from "../components/callups/callupEmailTemplate"
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
 import { useActiveSeason } from "../components/season/SeasonProvider";
+import { playerInCategory } from "../components/utils/playerCategoryFilter";
 
 export default function CoachCallups() {
   usePageTutorial("coach_callups");
@@ -67,8 +68,11 @@ export default function CoachCallups() {
           return;
         }
         
-        // Get coach categories
-        const categories = currentUser.categorias_entrena || [];
+        // Get coach categories (entrenador + coordinador unificados)
+        const categories = [...new Set([
+          ...(currentUser.categorias_entrena || []),
+          ...(currentUser.categorias_coordina || [])
+        ])];
         console.log('🔍 Categorías del usuario:', categories);
         setCoachCategories(categories);
         
@@ -141,17 +145,16 @@ export default function CoachCallups() {
   const activeSeasonConfig = seasonConfigs[0] || null;
 
   // Filter players by selected category (or editing callup's category)
+  // Soporta categoria_principal, deporte (legacy) y categorias[] (inscripción múltiple)
   const players = allPlayers.filter(p => {
+    if (!p.activo) return false;
     const targetCategory = editingCallup?.categoria || selectedCategory;
-    const playerCat = p.categoria_principal || p.deporte;
     
     if (targetCategory === "all" || targetCategory === "admin") {
-      if (user?.role === "admin") {
-        return p.activo;
-      }
-      return coachCategories.includes(playerCat) && p.activo;
+      if (user?.role === "admin") return true;
+      return coachCategories.some(cat => playerInCategory(p, cat));
     }
-    return playerCat === targetCategory && p.activo;
+    return playerInCategory(p, targetCategory);
   });
 
   const createCallupMutation = useMutation({

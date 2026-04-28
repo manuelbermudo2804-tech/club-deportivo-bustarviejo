@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import PlayerAttendanceCard from "../components/attendance/PlayerAttendanceCard";
+import { playerAllCategories } from "../components/utils/playerCategoryFilter";
 
 // Vista de detalle de un jugador individual
 function PlayerDetailView({ player, evaluations, onBack, onSendReport, sendingReport }) {
@@ -258,7 +259,7 @@ export default function CoachEvaluationReports() {
   });
 
   const allCategories = [...new Set(
-    players.map(p => p.categoria_principal || p.deporte).filter(c => c && validCategoryNames.has(c))
+    players.flatMap(p => playerAllCategories(p)).filter(c => c && validCategoryNames.has(c))
   )].sort();
   const categories = (user?.role === "admin" || user?.es_coordinador) 
     ? allCategories 

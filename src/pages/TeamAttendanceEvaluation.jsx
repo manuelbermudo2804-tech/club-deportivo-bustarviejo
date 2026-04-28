@@ -14,6 +14,7 @@ import PlayerAttendanceRow from "../components/attendance/PlayerAttendanceRow";
 import AttendanceLiveStats from "../components/attendance/AttendanceLiveStats";
 import AttendanceConfig from "../components/attendance/AttendanceConfig";
 import CheckinGrid from "../components/attendance/CheckinGrid";
+import { playerInCategory } from "../components/utils/playerCategoryFilter";
 
 // Lazy load: el gráfico pesa mucho (recharts) y no se necesita al inicio
 const AttendanceStatsChart = lazy(() => import("../components/attendance/AttendanceStatsChart"));
@@ -228,12 +229,9 @@ export default function TeamAttendanceEvaluation() {
   });
 
   const categoryPlayers = useMemo(() => 
-    (players || []).filter(p => {
-      if (p.activo === false) return false;
-      if (p.deporte === selectedCategory || p.categoria_principal === selectedCategory) return true;
-      if ((p.categorias || []).includes(selectedCategory)) return true;
-      return false;
-    }).sort((a, b) => a.nombre.localeCompare(b.nombre)),
+    (players || [])
+      .filter(p => p.activo !== false && playerInCategory(p, selectedCategory))
+      .sort((a, b) => a.nombre.localeCompare(b.nombre)),
     [players, selectedCategory]
   );
 
@@ -387,7 +385,11 @@ export default function TeamAttendanceEvaluation() {
     // Admins y coordinadores ven todas las categorías activas (de CategoryConfig + las que ya tienen jugadores)
     if (user.role === "admin" || user.es_coordinador) {
       const fromConfig = (categoryConfigs || []).filter(c => !c.es_actividad_complementaria).map(c => c.nombre);
-      const fromPlayers = (players || []).map(p => p.categoria_principal || p.deporte).filter(Boolean);
+      const fromPlayers = (players || []).flatMap(p => [
+        p.categoria_principal,
+        p.deporte,
+        ...(p.categorias || [])
+      ]).filter(Boolean);
       return [...new Set([...fromConfig, ...fromPlayers])];
     }
     return user.categorias_entrena || [];
@@ -398,7 +400,7 @@ export default function TeamAttendanceEvaluation() {
   useEffect(() => {
     if (!selectedCategory && availableCategories.length > 0) {
       const catWithPlayers = availableCategories.find(cat =>
-        (players || []).some(p => p.activo && (p.categoria_principal === cat || p.deporte === cat || (p.categorias || []).includes(cat)))
+        (players || []).some(p => p.activo && playerInCategory(p, cat))
       );
       setSelectedCategory(catWithPlayers || availableCategories[0]);
     }

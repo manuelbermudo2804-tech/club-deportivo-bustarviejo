@@ -8,6 +8,7 @@ import { Search, Users, AlertTriangle, Shield, ChevronDown, Filter, User } from 
 import { toast } from "sonner";
 
 import RosterPlayerCard from "../components/players/RosterPlayerCard";
+import { playerInCategory, playerPrimaryCategory } from "../components/utils/playerCategoryFilter";
 
 export default function TeamRosters() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -32,7 +33,7 @@ export default function TeamRosters() {
           base44.entities.CategoryConfig.filter({ activa: true })
         ]);
         const fromConfig = (configs || []).filter(c => !c.es_actividad_complementaria).map(c => c.nombre);
-        const fromPlayers = (allPlayers || []).map(p => p.categoria_principal || p.deporte).filter(Boolean);
+        const fromPlayers = (allPlayers || []).flatMap(p => [p.categoria_principal, p.deporte, ...(p.categorias || [])]).filter(Boolean);
         const allCategories = [...new Set([...fromConfig, ...fromPlayers])];
         setCoachCategories(allCategories);
         if (allCategories.length > 0) {
@@ -86,11 +87,12 @@ export default function TeamRosters() {
     updateAvailabilityMutation.mutate({ playerId, data });
   };
 
+  // Helpers: ¿el jugador pertenece a alguna de las categorías del entrenador? ¿coincide con la categoría seleccionada?
+  const isInMyTeamsFn = (p) => coachCategories.some(cat => playerInCategory(p, cat));
+  const matchesSelectedCategory = (p) => selectedCategory === "all" || playerInCategory(p, selectedCategory);
+
   const filteredPlayers = players.filter(player => {
     const matchesSearch = player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
-    const playerCat = player.categoria_principal || player.deporte;
-    const matchesCategory = selectedCategory === "all" || playerCat === selectedCategory;
-    const isInMyTeams = coachCategories.includes(playerCat);
     const isRenewed = !player.estado_renovacion || player.estado_renovacion === "renovado";
     
     // Aplicar filtro de estado
@@ -98,13 +100,13 @@ export default function TeamRosters() {
       (statusFilter === "active" && player.activo) ||
       (statusFilter === "inactive" && !player.activo);
     
-    return matchesSearch && matchesCategory && isInMyTeams && isRenewed && matchesStatus;
+    return matchesSearch && matchesSelectedCategory(player) && isInMyTeamsFn(player) && isRenewed && matchesStatus;
   });
 
   const activePlayers = filteredPlayers.length;
-  const totalActiveInTeams = players.filter(p => coachCategories.includes(p.categoria_principal || p.deporte) && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
-  const totalInactiveInTeams = players.filter(p => coachCategories.includes(p.categoria_principal || p.deporte) && !p.activo).length;
-  const unavailablePlayers = players.filter(p => coachCategories.includes(p.categoria_principal || p.deporte) && (p.lesionado || p.sancionado)).length;
+  const totalActiveInTeams = players.filter(p => isInMyTeamsFn(p) && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
+  const totalInactiveInTeams = players.filter(p => isInMyTeamsFn(p) && !p.activo).length;
+  const unavailablePlayers = players.filter(p => isInMyTeamsFn(p) && (p.lesionado || p.sancionado)).length;
 
   // Group players by position for stats
   const positionStats = useMemo(() => {
@@ -183,7 +185,7 @@ export default function TeamRosters() {
           </button>
         )}
         {coachCategories.map((cat) => {
-          const count = players.filter(p => (p.categoria_principal || p.deporte) === cat && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
+          const count = players.filter(p => playerInCategory(p, cat) && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
           const shortName = cat.replace("Fútbol ", "").replace(" (Mixto)", "");
           return (
             <button

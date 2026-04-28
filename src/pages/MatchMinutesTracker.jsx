@@ -9,6 +9,7 @@ import { Clock, BarChart3, Loader2 } from "lucide-react";
 
 import MinutesSpreadsheet from "../components/minutes/MinutesSpreadsheet";
 import MinutesStatsPanel from "../components/minutes/MinutesStatsPanel";
+import { playerInCategory } from "../components/utils/playerCategoryFilter";
 
 const CLUB_NAME = "C.D. BUSTARVIEJO";
 
@@ -21,8 +22,8 @@ export default function MatchMinutesTracker() {
   useEffect(() => {
     base44.auth.me().then(u => {
       setUser(u);
-      const cats = u.categorias_entrena || [];
-      if (cats.length > 0) setSelectedCategory(cats[0]);
+      // No fijamos selectedCategory aquí. Se selecciona después con allCategories
+      // (que ya tiene en cuenta admin/coordinador y la primera con jugadores).
     });
   }, []);
 
@@ -49,14 +50,14 @@ export default function MatchMinutesTracker() {
     if (!selectedCategory && allCategories.length > 0) setSelectedCategory(allCategories[0]);
   }, [allCategories, selectedCategory]);
 
-  // Jugadores de la categoría
+  // Jugadores de la categoría (incluye categoria_principal, deporte legacy y categorias[])
   const { data: players = [] } = useQuery({
     queryKey: ['playersMinutes', selectedCategory],
     queryFn: async () => {
       if (!selectedCategory) return [];
       const list = await base44.entities.Player.filter({ activo: true });
       return list
-        .filter(p => (p.categoria_principal || p.deporte) === selectedCategory)
+        .filter(p => playerInCategory(p, selectedCategory))
         .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
     },
     enabled: !!selectedCategory,
