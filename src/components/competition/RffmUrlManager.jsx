@@ -273,12 +273,35 @@ export default function RffmUrlManager({ open, onOpenChange }) {
         </DialogHeader>
 
         <div className="space-y-2">
-          <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-            <p className="text-sm text-blue-900 font-medium">📌 Instrucciones</p>
-            <p className="text-xs text-blue-700 mt-1">
-              Al inicio de cada temporada, abre la intranet de la RFFM, navega a la competición de cada categoría, 
-              y pega la URL aquí. El sistema generará automáticamente las URLs de clasificación, resultados y goleadores.
+          <div className="bg-gradient-to-br from-orange-50 to-amber-50 rounded-lg p-4 border-2 border-orange-300">
+            <p className="text-sm text-orange-900 font-bold flex items-center gap-1.5">
+              ⚡ ¿Qué URL necesito pegar al cambiar de temporada?
             </p>
+            <div className="mt-2 space-y-2 text-xs text-slate-700">
+              <p className="font-semibold text-orange-800">
+                Solo necesitas <span className="underline">UNA URL por categoría</span>: la de la <strong>Clasificación</strong>.
+              </p>
+              <p>
+                Con esa única URL, el sistema extrae los 4 códigos internos (<code className="bg-white px-1 rounded text-[10px]">cod_primaria</code>, <code className="bg-white px-1 rounded text-[10px]">codcompeticion</code>, <code className="bg-white px-1 rounded text-[10px]">codgrupo</code>, <code className="bg-white px-1 rounded text-[10px]">codtemporada</code>) y construye automáticamente todo lo demás:
+              </p>
+              <ul className="list-disc list-inside space-y-0.5 ml-1 text-slate-600">
+                <li>🏆 Clasificación</li>
+                <li>📅 Resultados de cada jornada</li>
+                <li>⚽ Goleadores</li>
+                <li>🔀 Tabla cruzada</li>
+                <li>📝 Actas de partidos</li>
+                <li>🎯 Próximo partido del Bustarviejo</li>
+              </ul>
+              <div className="bg-white/70 rounded p-2 mt-2 border border-orange-200">
+                <p className="text-[11px] font-semibold text-slate-700">Ejemplo de URL válida:</p>
+                <code className="text-[10px] text-slate-600 break-all block mt-0.5">
+                  https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=1000128&codcompeticion=24037796&codgrupo=24037807&codtemporada=21
+                </code>
+              </div>
+              <p className="text-[11px] text-slate-600 mt-2">
+                <strong>👉 Pasos:</strong> entra en la intranet RFFM → busca tu categoría → abre su clasificación → copia la URL del navegador → pégala abajo en "Pega aquí cualquier URL de la intranet RFFM" → pulsa "Generar URLs".
+              </p>
+            </div>
           </div>
 
           <div className="flex items-center justify-between">
