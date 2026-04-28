@@ -48,12 +48,13 @@ export default function TeamAttendanceEvaluation() {
     fetchUser();
   }, []);
 
-  // Solo cargar jugadores activos, con staleTime alto para no re-fetch continuamente
+  // Cargar jugadores activos; refresco al entrar para reflejar altas/reset recientes
   const { data: players } = useQuery({
     queryKey: ['players'],
     queryFn: () => base44.entities.Player.filter({ activo: true }),
     initialData: [],
-    staleTime: 5 * 60 * 1000, // 5 min cache
+    staleTime: 30 * 1000,
+    refetchOnMount: 'always',
   });
 
   // Cargar configuración de categorías para check-in automático

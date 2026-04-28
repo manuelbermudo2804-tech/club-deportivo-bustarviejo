@@ -62,6 +62,8 @@ export default function TeamRosters() {
     queryKey: ['allPlayers'],
     queryFn: () => base44.entities.Player.list(),
     initialData: [],
+    staleTime: 30 * 1000, // 30s - refresca tras reseteos/altas recientes
+    refetchOnMount: 'always',
   });
 
   // Mutation para actualizar disponibilidad del jugador
@@ -98,7 +100,8 @@ export default function TeamRosters() {
 
   const filteredPlayers = players.filter(player => {
     const matchesSearch = player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
-    const isRenewed = !player.estado_renovacion || player.estado_renovacion === "renovado";
+    // Excluir SOLO los que explícitamente NO renuevan; aceptar nulos, "renovado" y nuevos altas
+    const isRenewed = player.estado_renovacion !== "no_renueva";
     
     // Aplicar filtro de estado
     const matchesStatus = statusFilter === "all" || 
@@ -109,7 +112,7 @@ export default function TeamRosters() {
   });
 
   const activePlayers = filteredPlayers.length;
-  const totalActiveInTeams = players.filter(p => isInMyTeamsFn(p) && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
+  const totalActiveInTeams = players.filter(p => isInMyTeamsFn(p) && p.activo && p.estado_renovacion !== "no_renueva").length;
   const totalInactiveInTeams = players.filter(p => isInMyTeamsFn(p) && !p.activo).length;
   const unavailablePlayers = players.filter(p => isInMyTeamsFn(p) && (p.lesionado || p.sancionado)).length;
 
@@ -190,7 +193,7 @@ export default function TeamRosters() {
           </button>
         )}
         {coachCategories.map((cat) => {
-          const count = players.filter(p => playerInCategory(p, cat) && p.activo && (!p.estado_renovacion || p.estado_renovacion === "renovado")).length;
+          const count = players.filter(p => playerInCategory(p, cat) && p.activo && p.estado_renovacion !== "no_renueva").length;
           const shortName = cat.replace("Fútbol ", "").replace(" (Mixto)", "");
           return (
             <button
