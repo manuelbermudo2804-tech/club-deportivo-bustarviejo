@@ -36,12 +36,15 @@ export default function TeamRosters() {
         const allCategories = [...new Set([...fromConfig, ...fromPlayers])];
         setCoachCategories(allCategories);
         if (allCategories.length > 0) {
-          setSelectedCategory(allCategories[0]);
+          // Mostrar "Todas" por defecto cuando hay varias categorías para que se vean todos los jugadores
+          setSelectedCategory("all");
         }
       } else {
         const categories = currentUser.categorias_entrena || [];
         setCoachCategories(categories);
-        if (categories.length > 0) {
+        if (categories.length > 1) {
+          setSelectedCategory("all");
+        } else if (categories.length === 1) {
           setSelectedCategory(categories[0]);
         }
       }

@@ -394,11 +394,15 @@ export default function TeamAttendanceEvaluation() {
   }, [user, players, categoryConfigs]);
 
   // Asegurar selección inicial cuando llegan las categorías disponibles (admin/coordinador)
+  // Preferir una categoría que ya tenga jugadores para que la pantalla no aparezca vacía
   useEffect(() => {
     if (!selectedCategory && availableCategories.length > 0) {
-      setSelectedCategory(availableCategories[0]);
+      const catWithPlayers = availableCategories.find(cat =>
+        (players || []).some(p => p.activo && (p.categoria_principal === cat || p.deporte === cat || (p.categorias || []).includes(cat)))
+      );
+      setSelectedCategory(catWithPlayers || availableCategories[0]);
     }
-  }, [availableCategories, selectedCategory]);
+  }, [availableCategories, selectedCategory, players]);
 
   if (!user || (!user.es_entrenador && !user.es_coordinador && user.role !== "admin") || availableCategories.length === 0) {
     return (
