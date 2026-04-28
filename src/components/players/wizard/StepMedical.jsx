@@ -4,15 +4,42 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import ValidatedInput from "@/components/ui/ValidatedInput";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Heart, Copy } from "lucide-react";
+import { toast } from "sonner";
 
-export default function StepMedical({ currentPlayer, setCurrentPlayer }) {
+export default function StepMedical({ currentPlayer, setCurrentPlayer, existingFamilyPlayers = [] }) {
   const fm = currentPlayer.ficha_medica || {};
   const update = (field, value) => {
     setCurrentPlayer({
       ...currentPlayer,
       ficha_medica: { ...fm, [field]: value }
     });
+  };
+
+  // Hermanos con datos de contacto de emergencia rellenos
+  const siblingsWithContacts = (existingFamilyPlayers || []).filter(p => {
+    if (p.id === currentPlayer.id) return false;
+    const f = p.ficha_medica || {};
+    return f.contacto_emergencia_nombre || f.contacto_emergencia_telefono ||
+           f.contacto_emergencia_2_nombre || f.contacto_emergencia_2_telefono;
+  });
+
+  const copyFromSibling = (siblingId) => {
+    const sibling = siblingsWithContacts.find(p => p.id === siblingId);
+    if (!sibling) return;
+    const sf = sibling.ficha_medica || {};
+    setCurrentPlayer({
+      ...currentPlayer,
+      ficha_medica: {
+        ...fm,
+        contacto_emergencia_nombre: sf.contacto_emergencia_nombre || "",
+        contacto_emergencia_telefono: sf.contacto_emergencia_telefono || "",
+        contacto_emergencia_2_nombre: sf.contacto_emergencia_2_nombre || "",
+        contacto_emergencia_2_telefono: sf.contacto_emergencia_2_telefono || "",
+      }
+    });
+    toast.success(`Contactos copiados de ${sibling.nombre.split(' ')[0]}`);
   };
 
   return (
@@ -57,7 +84,40 @@ export default function StepMedical({ currentPlayer, setCurrentPlayer }) {
 
       {/* Contactos de emergencia */}
       <div className="border-t pt-4 space-y-4">
-        <h4 className="font-semibold text-red-800">📞 Contactos de Emergencia</h4>
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h4 className="font-semibold text-red-800">📞 Contactos de Emergencia</h4>
+          {siblingsWithContacts.length > 0 && (
+            <div className="flex items-center gap-2">
+              {siblingsWithContacts.length === 1 ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                  onClick={() => copyFromSibling(siblingsWithContacts[0].id)}
+                >
+                  <Copy className="w-3 h-3 mr-1" />
+                  Copiar de {siblingsWithContacts[0].nombre.split(' ')[0]}
+                </Button>
+              ) : (
+                <Select onValueChange={copyFromSibling}>
+                  <SelectTrigger className="h-8 text-xs border-blue-300 text-blue-700 w-auto">
+                    <SelectValue placeholder="📋 Copiar de hermano..." />
+                  </SelectTrigger>
+                  <SelectContent position="popper" sideOffset={4} className="z-[9999]">
+                    {siblingsWithContacts.map(s => (
+                      <SelectItem key={s.id} value={s.id}>{s.nombre}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          )}
+        </div>
+
+        <p className="text-xs text-slate-500">
+          Te recomendamos añadir 2 contactos para llamarles en caso de no localizarte.
+        </p>
 
         <div className="bg-red-50 rounded-lg p-4 space-y-3">
           <p className="text-sm font-medium text-red-700">Contacto 1</p>

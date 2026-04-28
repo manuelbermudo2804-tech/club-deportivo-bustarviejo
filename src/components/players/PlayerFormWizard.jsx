@@ -344,7 +344,13 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (!currentPlayer.foto_url) errors.foto_url = "La foto es obligatoria";
     }
     if (s === 2) {
-      if (requiresDNI && !currentPlayer.dni_jugador?.trim()) errors.dni_jugador = "DNI obligatorio (mayor de 14)";
+      // Número de documento obligatorio si: mayor 14 O ya subió imagen del documento
+      const hasDocImage = !!(currentPlayer.dni_jugador_url || currentPlayer.dni_jugador_trasero_url);
+      if ((requiresDNI || hasDocImage) && !currentPlayer.dni_jugador?.trim()) {
+        errors.dni_jugador = currentPlayer.tipo_documento === "Pasaporte"
+          ? "Número de pasaporte obligatorio"
+          : "Número de DNI obligatorio";
+      }
       // Validar formato DNI (solo si es tipo DNI, no pasaporte)
       if (currentPlayer.dni_jugador?.trim() && currentPlayer.tipo_documento === "DNI") {
         const dniCheck = validators.dni(currentPlayer.dni_jugador);
@@ -516,7 +522,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
           <SecondParentSection currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} existingFamilyPlayers={existingFamilyPlayers} isEditing={isEditing} />
         </div>
       );
-      case 5: return <StepMedical currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} />;
+      case 5: return <StepMedical currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} existingFamilyPlayers={existingFamilyPlayers} />;
       case 6: return isEditing ? null : <StepNormativa currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} />;
       case 7: return isEditing ? null : <StepAuthorizations currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} isEditing={isEditing} playerAge={playerAge} categoryConfigs={categoryConfigsData} />;
       case 8: return isEditing ? null : <StepSummary currentPlayer={currentPlayer} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} siblingDiscount={siblingDiscount} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} />;
