@@ -47,13 +47,6 @@ export default function TeamAttendanceEvaluation() {
     fetchUser();
   }, []);
 
-  // Asegurar selección inicial cuando llegan las categorías disponibles (admin/coordinador)
-  useEffect(() => {
-    if (!selectedCategory && availableCategories.length > 0) {
-      setSelectedCategory(availableCategories[0]);
-    }
-  }, [availableCategories, selectedCategory]);
-
   // Solo cargar jugadores activos, con staleTime alto para no re-fetch continuamente
   const { data: players } = useQuery({
     queryKey: ['players'],
@@ -399,6 +392,13 @@ export default function TeamAttendanceEvaluation() {
     }
     return user.categorias_entrena || [];
   }, [user, players, categoryConfigs]);
+
+  // Asegurar selección inicial cuando llegan las categorías disponibles (admin/coordinador)
+  useEffect(() => {
+    if (!selectedCategory && availableCategories.length > 0) {
+      setSelectedCategory(availableCategories[0]);
+    }
+  }, [availableCategories, selectedCategory]);
 
   if (!user || (!user.es_entrenador && !user.es_coordinador && user.role !== "admin") || availableCategories.length === 0) {
     return (

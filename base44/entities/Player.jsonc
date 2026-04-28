@@ -411,6 +411,16 @@
           "user_condition": {
             "role": "admin"
           }
+        },
+        {
+          "user_condition": {
+            "es_entrenador": true
+          }
+        },
+        {
+          "user_condition": {
+            "es_coordinador": true
+          }
         }
       ]
     },
@@ -456,6 +466,16 @@
         {
           "user_condition": {
             "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "es_entrenador": true
+          }
+        },
+        {
+          "user_condition": {
+            "es_coordinador": true
           }
         }
       ]
