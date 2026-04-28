@@ -389,32 +389,6 @@ export default function PlayerDetailDialog({ player, open, onOpenChange }) {
                   {player.desplazamiento_texto_version && ` • Versión: ${player.desplazamiento_texto_version}`}
                 </p>
               )}
-
-              {/* Normativa del Club */}
-              <div className="flex items-center justify-between bg-white rounded-lg p-2.5 border border-purple-100">
-                <div className="flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-purple-500" />
-                  <span className="text-sm text-slate-700">Normativa del Club</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  {(player.acepta_normativa || player.acceso_menor_normas_aceptadas) ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 text-green-600" />
-                      <span className="text-xs text-green-700 font-medium">Aceptada</span>
-                    </>
-                  ) : (
-                    <>
-                      <XCircle className="w-4 h-4 text-red-500" />
-                      <span className="text-xs text-red-600 font-medium">No aceptada</span>
-                    </>
-                  )}
-                </div>
-              </div>
-              {player.acceso_menor_fecha_normas && (
-                <p className="text-[10px] text-slate-400 pl-7">
-                  Fecha: {format(new Date(player.acceso_menor_fecha_normas), "d MMM yyyy 'a las' HH:mm", { locale: es })}
-                </p>
-              )}
             </div>
           </div>
 

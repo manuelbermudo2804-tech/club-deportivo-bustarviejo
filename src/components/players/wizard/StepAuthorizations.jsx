@@ -36,8 +36,10 @@ export default function StepAuthorizations({
 }) {
   const privacyRef = useRef(null);
   const photoRef = useRef(null);
+  const desplazamientoRef = useRef(null);
   const privacyScrolled = useScrollToBottom(privacyRef);
   const photoScrolled = useScrollToBottom(photoRef);
+  const desplazamientoScrolled = useScrollToBottom(desplazamientoRef);
 
   // Detectar si la categoría es complementaria (sin competición → sin acceso juvenil)
   const isComplementaria = React.useMemo(() => {
@@ -158,7 +160,7 @@ export default function StepAuthorizations({
             <AlertTriangle className="w-5 h-5 text-amber-600" />
             <span className="font-bold text-amber-900">RESPONSABILIDAD DE DESPLAZAMIENTO *</span>
           </div>
-          <div className="bg-white rounded-lg p-3 text-xs max-h-48 overflow-y-auto border text-slate-700 space-y-2">
+          <div ref={desplazamientoRef} className="bg-white rounded-lg p-3 text-xs max-h-48 overflow-y-auto border text-slate-700 space-y-2">
             <p className="font-semibold text-slate-900">DECLARACIÓN DE RESPONSABILIDAD — CUSTODIA, DESPLAZAMIENTO Y SEGURO DE MENORES</p>
             <p className="text-[10px] text-slate-400 italic">Versión v2.1 — Abril 2026</p>
 
@@ -195,9 +197,16 @@ export default function StepAuthorizations({
             <p>Durante los entrenamientos, partidos y cualquier actividad del club, <strong>los padres/tutores se abstendrán de dar instrucciones técnicas o tácticas a los jugadores</strong>, siendo esta competencia exclusiva del entrenador. Las discrepancias con las decisiones deportivas deberán canalizarse de forma privada y respetuosa a través de los cauces establecidos por el club (reunión con el entrenador o el coordinador).</p>
             <p>El incumplimiento de este compromiso podrá dar lugar a la <strong>apertura de expediente disciplinario</strong> conforme al Reglamento de Régimen Interno, pudiendo resultar en la suspensión temporal o la expulsión del jugador del club.</p>
           </div>
+          {!desplazamientoScrolled && (
+            <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>Desplázate hasta el final del texto para poder aceptar.</span>
+            </div>
+          )}
           <div className={`flex items-start gap-3 p-3 bg-white rounded-lg border-2 ${fieldErrors.acepta_responsabilidad_desplazamiento ? 'border-red-500' : currentPlayer.acepta_responsabilidad_desplazamiento ? 'border-green-400' : 'border-amber-300'}`}>
             <Checkbox
               id="wiz-desplazamiento"
+              disabled={!desplazamientoScrolled}
               checked={currentPlayer.acepta_responsabilidad_desplazamiento === true}
               onCheckedChange={(c) => {
                 setCurrentPlayer({ ...currentPlayer, acepta_responsabilidad_desplazamiento: c });
