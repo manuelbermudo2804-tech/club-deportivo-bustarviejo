@@ -59,11 +59,24 @@ export default function TeamRosters() {
   }, []);
 
   const { data: players, isLoading } = useQuery({
-    queryKey: ['allPlayers'],
-    queryFn: () => base44.entities.Player.list(),
+    queryKey: ['allPlayers', user?.email],
+    queryFn: async () => {
+      const isStaff = user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador;
+      if (isStaff) {
+        try {
+          const { data } = await base44.functions.invoke('getStaffPlayers', {});
+          return data?.players || [];
+        } catch (e) {
+          console.error('[TeamRosters] getStaffPlayers falló:', e);
+          return await base44.entities.Player.list() || [];
+        }
+      }
+      return await base44.entities.Player.list() || [];
+    },
     initialData: [],
-    staleTime: 30 * 1000, // 30s - refresca tras reseteos/altas recientes
+    staleTime: 30 * 1000,
     refetchOnMount: 'always',
+    enabled: !!user,
   });
 
   // Mutation para actualizar disponibilidad del jugador
