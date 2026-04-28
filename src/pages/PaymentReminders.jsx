@@ -33,7 +33,15 @@ export default function PaymentReminders() {
   const [filterCategory, setFilterCategory] = useState("all");
   const [filterDebtRange, setFilterDebtRange] = useState("all"); // all, low, medium, high
 
-  const { activeSeason } = useActiveSeason();
+  const { activeSeason, seasonConfig } = useActiveSeason();
+
+  // Datos bancarios desde SeasonConfig (con fallback)
+  const clubIban = useMemo(() => {
+    const raw = seasonConfig?.club_iban?.trim();
+    if (!raw) return "ES82 0049 4447 38 2010604048";
+    return raw.replace(/\s+/g, '').replace(/(.{4})/g, '$1 ').trim();
+  }, [seasonConfig]);
+  const clubBank = seasonConfig?.club_bank?.trim() || "Santander";
 
   const { data: payments = [], refetch: refetchPayments } = useQuery({
     queryKey: ['payments'],
@@ -431,8 +439,8 @@ export default function PaymentReminders() {
 
         mensaje += `Total pendiente: ${family.totalFamilyDue}€\n\n`;
         mensaje += `📧 DATOS BANCARIOS:\n`;
-        mensaje += `IBAN: ES82 0049 4447 38 2010604048\n`;
-        mensaje += `Banco: Santander\n`;
+        mensaje += `IBAN: ${clubIban}\n`;
+        mensaje += `Banco: ${clubBank}\n`;
         mensaje += `Beneficiario: CD Bustarviejo\n\n`;
         mensaje += `Por favor, accede a la app y registra los pagos.\n\n`;
         mensaje += `Atentamente,\nCD Bustarviejo`;
@@ -574,8 +582,8 @@ export default function PaymentReminders() {
 
       mensaje += `Total pendiente: ${totalRecordatorio}€\n\n`;
       mensaje += `📧 DATOS BANCARIOS:\n`;
-      mensaje += `IBAN: ES82 0049 4447 38 2010604048\n`;
-      mensaje += `Banco: Santander\n`;
+      mensaje += `IBAN: ${clubIban}\n`;
+      mensaje += `Banco: ${clubBank}\n`;
       mensaje += `Beneficiario: CD Bustarviejo\n\n`;
       mensaje += `Por favor, accede a la app y registra los pagos.\n\n`;
       mensaje += `Atentamente,\nCD Bustarviejo`;
@@ -1067,8 +1075,8 @@ export default function PaymentReminders() {
 
                         mensaje += `Total pendiente: ${family.totalFamilyDue}€\n\n`;
                         mensaje += `📧 DATOS BANCARIOS:\n`;
-                        mensaje += `IBAN: ES82 0049 4447 38 2010604048\n`;
-                        mensaje += `Banco: Santander\n`;
+                        mensaje += `IBAN: ${clubIban}\n`;
+                        mensaje += `Banco: ${clubBank}\n`;
                         mensaje += `Beneficiario: CD Bustarviejo\n\n`;
                         mensaje += `Por favor, accede a la app y registra los pagos.\n\n`;
                         mensaje += `Atentamente,\nCD Bustarviejo`;
