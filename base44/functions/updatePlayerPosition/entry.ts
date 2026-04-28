@@ -21,6 +21,26 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'playerId is required' }, { status: 400 });
     }
 
+    // Si es entrenador/coordinador (no admin), verificar que el jugador esté en sus categorías
+    if (user.role !== 'admin') {
+      const player = await base44.asServiceRole.entities.Player.get(playerId);
+      if (!player) {
+        return Response.json({ error: 'Player not found' }, { status: 404 });
+      }
+      const myCategories = user.categorias_entrena || user.categorias_coordina || [];
+      const playerCategories = [
+        player.categoria_principal,
+        player.deporte,
+        ...(player.categorias || [])
+      ].filter(Boolean).map(c => String(c).trim());
+      const hasAccess = myCategories.some(myCat =>
+        playerCategories.some(pc => pc === String(myCat).trim())
+      );
+      if (!hasAccess) {
+        return Response.json({ error: 'Forbidden: player not in your categories' }, { status: 403 });
+      }
+    }
+
     const updateData = {};
     if (posicion !== undefined) updateData.posicion = posicion;
     if (numero_camiseta !== undefined) updateData.numero_camiseta = numero_camiseta || null;
