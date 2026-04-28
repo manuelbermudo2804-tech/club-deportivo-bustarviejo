@@ -1,0 +1,78 @@
+{
+  "name": "VolunteerSignup",
+  "type": "object",
+  "properties": {
+    "opportunity_id": {
+      "type": "string",
+      "description": "ID de VolunteerOpportunity"
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "telefono": {
+      "type": "string"
+    },
+    "relacion": {
+      "type": "string",
+      "enum": [
+        "yo",
+        "familiar",
+        "otro"
+      ],
+      "default": "yo"
+    },
+    "mensaje": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "opportunity_id",
+    "nombre",
+    "email"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": [
+          "admin",
+          "user"
+        ]
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": [
+          "admin",
+          "user"
+        ]
+      }
+    },
+    "update": {
+      "$or": [
+        {
+          "data.email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

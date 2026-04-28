@@ -1,0 +1,121 @@
+{
+  "name": "VolunteerProfile",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre completo del voluntario"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email del voluntario"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto"
+    },
+    "relacion": {
+      "type": "string",
+      "enum": [
+        "padre",
+        "madre",
+        "jugador",
+        "familiar",
+        "otro"
+      ],
+      "description": "Relaci\u00f3n con el club"
+    },
+    "areas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "dia_a_dia",
+          "eventos",
+          "logistica",
+          "bar",
+          "transporte",
+          "fotografia"
+        ]
+      },
+      "description": "\u00c1reas donde puede ayudar"
+    },
+    "disponibilidad": {
+      "type": "string",
+      "description": "Texto libre sobre disponibilidad (d\u00edas/horas)"
+    },
+    "jugadores_relacionados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de jugadores vinculados (opcional)"
+    },
+    "notas": {
+      "type": "string"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "registrado_por_email": {
+      "type": "string",
+      "description": "Email del usuario que registr\u00f3 a este voluntario"
+    },
+    "registrado_por_nombre": {
+      "type": "string",
+      "description": "Nombre del usuario que lo registr\u00f3"
+    }
+  },
+  "required": [
+    "nombre",
+    "email",
+    "telefono",
+    "relacion"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": [
+          "admin",
+          "user"
+        ]
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": [
+          "admin",
+          "user"
+        ]
+      }
+    },
+    "update": {
+      "$or": [
+        {
+          "data.registrado_por_email": "{{user.email}}"
+        },
+        {
+          "data.email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.registrado_por_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

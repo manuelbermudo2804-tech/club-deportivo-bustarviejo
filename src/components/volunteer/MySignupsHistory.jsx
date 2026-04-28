@@ -26,8 +26,8 @@ export default function MySignupsHistory({ signups, opportunities }) {
                 <div className="flex-1 min-w-0">
                   <span className="font-medium text-sm">{opp?.titulo || "Oportunidad"}</span>
                   {opp?.fecha && <span className="text-xs text-slate-500 ml-2">📅 {opp.fecha}</span>}
-                  {s.por_quien && s.por_quien !== "yo" && (
-                    <Badge variant="secondary" className="ml-2 text-[10px]">Para: {s.volunteer_nombre}</Badge>
+                  {s.relacion && s.relacion !== "yo" && (
+                    <Badge variant="secondary" className="ml-2 text-[10px]">Para: {s.nombre}</Badge>
                   )}
                 </div>
               </div>

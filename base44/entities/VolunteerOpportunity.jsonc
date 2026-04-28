@@ -1,0 +1,104 @@
+{
+  "name": "VolunteerOpportunity",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "dia_a_dia",
+        "evento",
+        "logistica",
+        "comunicacion",
+        "otro"
+      ],
+      "default": "evento"
+    },
+    "fecha": {
+      "type": "string",
+      "format": "date"
+    },
+    "hora": {
+      "type": "string"
+    },
+    "ubicacion": {
+      "type": "string"
+    },
+    "plazas": {
+      "type": "number",
+      "description": "N\u00famero de plazas necesarias (0 = ilimitado)"
+    },
+    "creado_por": {
+      "type": "string",
+      "description": "Email del organizador"
+    },
+    "creado_por_nombre": {
+      "type": "string",
+      "description": "Nombre del organizador"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "abierta",
+        "completa",
+        "cerrada"
+      ],
+      "default": "abierta"
+    },
+    "publicada": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "titulo",
+    "descripcion"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": [
+          "admin",
+          "user"
+        ]
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": [
+          "admin",
+          "user"
+        ]
+      }
+    },
+    "update": {
+      "$or": [
+        {
+          "data.creado_por": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.creado_por": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
