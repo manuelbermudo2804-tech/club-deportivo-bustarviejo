@@ -213,7 +213,7 @@ export default function PlayerDetailDialog({ player, open, onOpenChange }) {
                 {(player.ficha_medica.contacto_emergencia_nombre || player.ficha_medica.contacto_emergencia_telefono) && (
                   <div className="bg-white rounded-lg p-3 border border-red-200">
                     <p className="font-semibold text-red-800 mb-1 flex items-center gap-2">
-                      📞 Contacto de Emergencia
+                      📞 Contacto de Emergencia 1
                     </p>
                     <div className="space-y-1">
                       {player.ficha_medica.contacto_emergencia_nombre && (
@@ -225,6 +225,27 @@ export default function PlayerDetailDialog({ player, open, onOpenChange }) {
                         <a href={`tel:${player.ficha_medica.contacto_emergencia_telefono}`} className="text-slate-700 text-sm hover:text-red-600 flex items-center gap-2">
                           <Phone className="w-4 h-4" />
                           <span><strong>Teléfono:</strong> {player.ficha_medica.contacto_emergencia_telefono}</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {(player.ficha_medica.contacto_emergencia_2_nombre || player.ficha_medica.contacto_emergencia_2_telefono) && (
+                  <div className="bg-white rounded-lg p-3 border border-red-200">
+                    <p className="font-semibold text-red-800 mb-1 flex items-center gap-2">
+                      📞 Contacto de Emergencia 2
+                    </p>
+                    <div className="space-y-1">
+                      {player.ficha_medica.contacto_emergencia_2_nombre && (
+                        <p className="text-slate-700 text-sm">
+                          <strong>Nombre:</strong> {player.ficha_medica.contacto_emergencia_2_nombre}
+                        </p>
+                      )}
+                      {player.ficha_medica.contacto_emergencia_2_telefono && (
+                        <a href={`tel:${player.ficha_medica.contacto_emergencia_2_telefono}`} className="text-slate-700 text-sm hover:text-red-600 flex items-center gap-2">
+                          <Phone className="w-4 h-4" />
+                          <span><strong>Teléfono:</strong> {player.ficha_medica.contacto_emergencia_2_telefono}</span>
                         </a>
                       )}
                     </div>
