@@ -397,7 +397,7 @@ export default function PlayerDetailDialog({ player, open, onOpenChange }) {
                   <span className="text-sm text-slate-700">Normativa del Club</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  {player.acepta_normativa ? (
+                  {(player.acepta_normativa || player.acceso_menor_normas_aceptadas) ? (
                     <>
                       <CheckCircle2 className="w-4 h-4 text-green-600" />
                       <span className="text-xs text-green-700 font-medium">Aceptada</span>
@@ -410,6 +410,11 @@ export default function PlayerDetailDialog({ player, open, onOpenChange }) {
                   )}
                 </div>
               </div>
+              {player.acceso_menor_fecha_normas && (
+                <p className="text-[10px] text-slate-400 pl-7">
+                  Fecha: {format(new Date(player.acceso_menor_fecha_normas), "d MMM yyyy 'a las' HH:mm", { locale: es })}
+                </p>
+              )}
             </div>
           </div>
 

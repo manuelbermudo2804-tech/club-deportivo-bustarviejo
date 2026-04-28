@@ -107,9 +107,17 @@ export default function TeamRosters() {
     }
   });
 
-  // Mutation específica para posición y dorsal
+  // Mutation específica para posición y dorsal (vía función backend con service role)
   const updatePositionMutation = useMutation({
-    mutationFn: ({ playerId, data }) => base44.entities.Player.update(playerId, data),
+    mutationFn: async ({ playerId, data }) => {
+      const res = await base44.functions.invoke('updatePlayerPosition', {
+        playerId,
+        posicion: data.posicion,
+        numero_camiseta: data.numero_camiseta
+      });
+      if (res?.data?.error) throw new Error(res.data.error);
+      return res?.data;
+    },
     onMutate: ({ playerId }) => {
       setUpdatingPlayerId(playerId);
     },
