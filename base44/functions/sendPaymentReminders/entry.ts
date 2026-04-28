@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const SOCIAL_FOOTER = `<div style="background:#1e293b;padding:24px;text-align:center;border-radius:0 0 12px 12px;margin-top:24px;"><div style="margin-bottom:12px;"><a href="https://www.cdbustarviejo.com" style="display:inline-block;background:#ea580c;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:10px 24px;border-radius:8px;">🌐 www.cdbustarviejo.com</a></div><div style="margin-bottom:14px;"><a href="https://www.facebook.com/cdbustarviejo" style="display:inline-block;margin:0 6px;text-decoration:none;font-size:22px;" title="Facebook">📘</a><a href="https://www.instagram.com/cdbustarviejo" style="display:inline-block;margin:0 6px;text-decoration:none;font-size:22px;" title="Instagram">📸</a></div><div style="color:#94a3b8;font-size:12px;line-height:1.6;"><strong style="color:#f8fafc;">CD Bustarviejo</strong><br><a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none;">info@cdbustarviejo.com</a></div></div>`;
 
@@ -118,6 +118,25 @@ Deno.serve(async (req) => {
 
       emailsSent.push(email);
       console.log(`📧 Email sent to: ${email}`);
+
+      // Enviar también notificación push (no bloqueante)
+      try {
+        const totalAmount = payments.reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+        const cuerpo = payments.length === 1
+          ? `${payments[0].player}: ${payments[0].amount}€ pendiente (${payments[0].daysOverdue} días)`
+          : `${payments.length} pagos pendientes · Total: ${totalAmount}€`;
+        await base44.functions.invoke('sendPushNotification', {
+          usuario_email: email,
+          titulo: '🔴 Tienes pagos atrasados',
+          cuerpo,
+          url: '/parentpayments',
+          tag: 'payment-reminder',
+          requireInteraction: true
+        });
+        console.log(`🔔 Push sent to: ${email}`);
+      } catch (pushErr) {
+        console.error(`[PUSH] Error enviando push a ${email}:`, pushErr.message);
+      }
     }
 
     return Response.json({ 
