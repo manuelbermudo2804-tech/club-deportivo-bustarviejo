@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Check, Trophy, Users, Loader2, PartyPopper, Clock, Heart } from "lucide-react";
 import { toast } from "sonner";
 import VolunteerModal from "../components/sanisidro/VolunteerModal";
+import EventInfoBanner from "../components/sanisidro/EventInfoBanner";
 
 const FECHA_INICIO = new Date("2026-04-19T00:00:00");
 const FECHA_FIN = new Date("2026-05-15T23:59:59");
@@ -142,15 +143,19 @@ export default function SanIsidroInscripcion() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-600 via-yellow-500 to-green-600 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-red-600 via-yellow-500 to-green-600 py-6 px-4">
+      <div className="max-w-md w-full mx-auto space-y-4">
+
+        {/* Cartel festivo con info del evento */}
+        <EventInfoBanner />
+
+        <div className="bg-white rounded-2xl shadow-2xl overflow-hidden">
 
         {/* Header */}
         <div className="bg-gradient-to-r from-red-700 via-red-600 to-green-700 p-5 text-center relative">
           <img src={CLUB_LOGO} alt="CD Bustarviejo" className="w-14 h-14 rounded-full mx-auto object-cover mb-2 border-2 border-white shadow-lg" />
-          <h1 className="text-white text-xl font-black">🎉 SAN ISIDRO 2026</h1>
-          <p className="text-white/80 text-xs mt-1">Inscripciones Torneos Deportivos</p>
-          <p className="text-yellow-200 text-xs mt-1 font-semibold">15 de Mayo • CD Bustarviejo</p>
+          <h1 className="text-white text-xl font-black">📝 INSCRIPCIÓN ONLINE</h1>
+          <p className="text-white/80 text-xs mt-1">Apúntate a los torneos deportivos</p>
         </div>
 
         {/* Selección de modalidad */}
@@ -294,6 +299,7 @@ export default function SanIsidroInscripcion() {
         {/* Footer */}
         <div className="bg-slate-50 border-t px-4 py-3 text-center">
           <p className="text-xs text-slate-400">CD Bustarviejo • Fiestas de San Isidro 2026</p>
+        </div>
         </div>
       </div>
 

@@ -647,7 +647,7 @@ export default function FamilyPresentation() {
       {/* Slide content — NO scroll en desktop, scroll permitido en móvil */}
       <div
         className="w-full overflow-y-auto md:overflow-hidden transition-opacity duration-200 flex items-start md:items-center justify-center"
-        style={{ height: `calc(100vh - ${BAR_H}px)`, height: `calc(100dvh - ${BAR_H}px)`, opacity: transitioning ? 0 : 1 }}
+        style={{ height: `calc(100dvh - ${BAR_H}px)`, minHeight: `calc(100vh - ${BAR_H}px)`, opacity: transitioning ? 0 : 1 }}
       >
         <div className="w-full max-w-[1400px] mx-auto h-full">
           {slide.content}

@@ -19,7 +19,7 @@ const TYPO_DOMAINS = {
   "yaho.com": "yahoo.com", "yahooo.com": "yahoo.com", "yahoo.co": "yahoo.com",
   "yahho.com": "yahoo.com", "yhaoo.com": "yahoo.com",
   "iclod.com": "icloud.com", "icluod.com": "icloud.com", "icloud.co": "icloud.com",
-  "gmail.con": "gmail.com", "hotmail.con": "hotmail.com", "outlook.con": "outlook.com",
+  "outlook.con": "outlook.com",
 };
 
 function checkEmailTypo(emailValue) {

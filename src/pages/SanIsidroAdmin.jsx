@@ -1,12 +1,15 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Trophy, Users, Phone, Mail, Clock, Download, Heart } from "lucide-react";
-import VolunteersList from "../components/sanisidro/VolunteersList";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Trophy, Download, Heart, Search } from "lucide-react";
+import { toast } from "sonner";
+import VolunteersList from "../components/sanisidro/VolunteersList.jsx";
+import RegistrationCard from "../components/sanisidro/RegistrationCard.jsx";
 
 const MODALIDADES = [
   "Fútbol Chapa - Niños/Jóvenes",
@@ -18,6 +21,8 @@ const MODALIDADES = [
 export default function SanIsidroAdmin() {
   const [section, setSection] = useState("inscripciones");
   const [tab, setTab] = useState("all");
+  const [search, setSearch] = useState("");
+  const queryClient = useQueryClient();
 
   const { data: registrations = [], isLoading } = useQuery({
     queryKey: ["sanIsidroRegistrations"],
@@ -29,15 +34,43 @@ export default function SanIsidroAdmin() {
     queryFn: () => base44.entities.SanIsidroVoluntario.list("-created_date", 500),
   });
 
-  const filtered = tab === "all" ? registrations : registrations.filter(r => r.modalidad === tab);
+  const filtered = useMemo(() => {
+    let list = tab === "all" ? registrations : registrations.filter(r => r.modalidad === tab);
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      list = list.filter(r =>
+        (r.nombre_responsable || "").toLowerCase().includes(q) ||
+        (r.telefono_responsable || "").toLowerCase().includes(q) ||
+        (r.email_responsable || "").toLowerCase().includes(q) ||
+        (r.jugador_nombre || "").toLowerCase().includes(q) ||
+        (r.nombre_equipo || "").toLowerCase().includes(q) ||
+        (r.jugador_1 || "").toLowerCase().includes(q) ||
+        (r.jugador_2 || "").toLowerCase().includes(q) ||
+        (r.jugador_3 || "").toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [registrations, tab, search]);
 
   const countByMod = (mod) => registrations.filter(r => r.modalidad === mod).length;
-
   const isChapa = (mod) => mod?.startsWith("Fútbol Chapa");
 
+  const handleDelete = async (reg) => {
+    const ok = window.confirm(`¿Borrar la inscripción de ${reg.nombre_responsable}?\n\nEsta acción no se puede deshacer.`);
+    if (!ok) return;
+    try {
+      await base44.entities.SanIsidroRegistration.delete(reg.id);
+      toast.success("Inscripción borrada");
+      queryClient.invalidateQueries({ queryKey: ["sanIsidroRegistrations"] });
+    } catch {
+      toast.error("No se pudo borrar la inscripción");
+    }
+  };
+
   const exportCSV = () => {
+    const source = filtered.length > 0 ? filtered : registrations;
     const headers = ["Modalidad", "Responsable", "Teléfono", "Email", "Jugador/Equipo", "Jugador 1", "Jugador 2", "Jugador 3", "Notas", "Fecha"];
-    const rows = registrations.map(r => [
+    const rows = source.map(r => [
       r.modalidad,
       r.nombre_responsable,
       r.telefono_responsable,
@@ -91,113 +124,73 @@ export default function SanIsidroAdmin() {
         <VolunteersList />
       ) : (
         <>
-      {/* Resumen */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-        {MODALIDADES.map(mod => (
-          <Card key={mod} className="cursor-pointer hover:border-orange-300 transition-colors" onClick={() => setTab(mod)}>
-            <CardContent className="p-3 text-center">
-              <p className="text-2xl font-black text-orange-600">{countByMod(mod)}</p>
-              <p className="text-xs text-slate-600 font-medium leading-tight">{mod}</p>
+          {/* Resumen */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+            {MODALIDADES.map(mod => (
+              <Card key={mod} className="cursor-pointer hover:border-orange-300 transition-colors" onClick={() => setTab(mod)}>
+                <CardContent className="p-3 text-center">
+                  <p className="text-2xl font-black text-orange-600">{countByMod(mod)}</p>
+                  <p className="text-xs text-slate-600 font-medium leading-tight">{mod}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          <Card>
+            <CardContent className="p-3">
+              <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
+                <span>Total inscripciones:</span>
+                <Badge className="bg-red-600 text-white">{registrations.length}</Badge>
+                {(search || tab !== "all") && (
+                  <Badge variant="outline" className="ml-auto">Mostrando: {filtered.length}</Badge>
+                )}
+              </div>
             </CardContent>
           </Card>
-        ))}
-      </div>
 
-      <Card>
-        <CardContent className="p-3">
-          <div className="flex items-center gap-2 text-sm font-bold text-slate-700">
-            <span>Total inscripciones:</span>
-            <Badge className="bg-red-600 text-white">{registrations.length}</Badge>
+          {/* Buscador */}
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <Input
+              placeholder="Buscar por nombre, teléfono, email, equipo..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Filtros */}
-      <Tabs value={tab} onValueChange={setTab}>
-        <TabsList className="flex-wrap h-auto gap-1">
-          <TabsTrigger value="all" className="text-xs">Todas ({registrations.length})</TabsTrigger>
-          {MODALIDADES.map(mod => (
-            <TabsTrigger key={mod} value={mod} className="text-xs">{mod.replace("Fútbol Chapa - ", "Chapa ").replace("3 para 3 ", "3×3 ")} ({countByMod(mod)})</TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+          {/* Filtros */}
+          <Tabs value={tab} onValueChange={setTab}>
+            <TabsList className="flex-wrap h-auto gap-1">
+              <TabsTrigger value="all" className="text-xs">Todas ({registrations.length})</TabsTrigger>
+              {MODALIDADES.map(mod => (
+                <TabsTrigger key={mod} value={mod} className="text-xs">
+                  {mod.replace("Fútbol Chapa - ", "Chapa ").replace("3 para 3 ", "3×3 ")} ({countByMod(mod)})
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
 
-      {/* Listado */}
-      {isLoading ? (
-        <div className="text-center py-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto" />
-        </div>
-      ) : filtered.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center text-slate-500">
-            No hay inscripciones{tab !== "all" ? " en esta categoría" : ""} todavía.
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map((reg) => (
-            <RegistrationCard key={reg.id} reg={reg} />
-          ))}
-        </div>
-      )}
+          {/* Listado */}
+          {isLoading ? (
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600 mx-auto" />
+            </div>
+          ) : filtered.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center text-slate-500">
+                {search ? "No se encontraron inscripciones con esa búsqueda." : `No hay inscripciones${tab !== "all" ? " en esta categoría" : ""} todavía.`}
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-2">
+              {filtered.map((reg) => (
+                <RegistrationCard key={reg.id} reg={reg} onDelete={handleDelete} />
+              ))}
+            </div>
+          )}
         </>
       )}
     </div>
-  );
-}
-
-function RegistrationCard({ reg }) {
-  const isChapa = reg.modalidad?.startsWith("Fútbol Chapa");
-  const colorClass = isChapa ? "border-l-orange-500" : "border-l-green-500";
-
-  return (
-    <Card className={`border-l-4 ${colorClass}`}>
-      <CardContent className="p-3 space-y-2">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <Badge className={isChapa ? "bg-orange-100 text-orange-800" : "bg-green-100 text-green-800"}>
-              {isChapa ? <Trophy className="w-3 h-3 mr-1" /> : <Users className="w-3 h-3 mr-1" />}
-              {reg.modalidad}
-            </Badge>
-          </div>
-          <span className="text-xs text-slate-400 flex items-center gap-1 whitespace-nowrap">
-            <Clock className="w-3 h-3" />
-            {new Date(reg.created_date).toLocaleDateString("es-ES", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-          </span>
-        </div>
-
-        <div className="text-sm">
-          <p className="font-bold text-slate-800">{reg.nombre_responsable}</p>
-          <div className="flex flex-wrap items-center gap-3 text-slate-500 text-xs mt-1">
-            <span className="flex items-center gap-1"><Phone className="w-3 h-3" />{reg.telefono_responsable}</span>
-            {reg.email_responsable && <span className="flex items-center gap-1"><Mail className="w-3 h-3" />{reg.email_responsable}</span>}
-          </div>
-        </div>
-
-        {isChapa && reg.jugador_nombre && (
-          <div className="bg-orange-50 rounded-lg px-3 py-2">
-            <p className="text-xs text-orange-600 font-semibold">Jugador</p>
-            <p className="text-sm font-bold text-orange-900">{reg.jugador_nombre}</p>
-          </div>
-        )}
-
-        {!isChapa && (
-          <div className="bg-green-50 rounded-lg px-3 py-2 space-y-1">
-            {reg.nombre_equipo && <p className="text-sm font-bold text-green-900">🏅 {reg.nombre_equipo}</p>}
-            <div className="grid grid-cols-3 gap-1">
-              {[reg.jugador_1, reg.jugador_2, reg.jugador_3].map((j, i) => j && (
-                <div key={i} className="text-xs text-green-700">
-                  <span className="text-green-500 font-bold">J{i + 1}:</span> {j}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {reg.notas && (
-          <p className="text-xs text-slate-500 italic">📝 {reg.notas}</p>
-        )}
-      </CardContent>
-    </Card>
   );
 }
