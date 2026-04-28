@@ -176,18 +176,17 @@ export default function ParentPlayers() {
         ...playerData,
         email_padre: currentUser?.email || playerData.email_padre
       };
-      const newPlayer = await base44.entities.Player.create(dataWithParentEmail);
 
-      // Crear pagos automáticamente si se seleccionó modalidad
-      if (paymentsData?.payments) {
-        for (const payment of paymentsData.payments) {
-          await base44.entities.Payment.create({
-            ...payment,
-            jugador_id: newPlayer.id,
-            jugador_nombre: newPlayer.nombre
-          });
-        }
+      // ✅ Crear jugador + pagos vía backend (RLS estricto: padres no pueden crear directamente)
+      const { data: result } = await base44.functions.invoke('playerRenewalAction', {
+        action: 'create_with_payments',
+        playerData: dataWithParentEmail,
+        payments: paymentsData?.payments || []
+      });
+      if (!result?.success) {
+        throw new Error(result?.error || 'Error al crear jugador');
       }
+      const newPlayer = result.player;
 
       // ===== INVITACIONES (PRIORIDAD ALTA - ejecutar ANTES de operaciones pesadas) =====
       
@@ -344,101 +343,9 @@ export default function ParentPlayers() {
         }
       }
       
-      // Recalcular descuentos de TODOS los hermanos de la familia
-      try {
-        // Buscar SOLO jugadores de esta familia (no todos los del club)
-        const [famByPadre, famByTutor] = await Promise.all([
-          base44.entities.Player.filter({ email_padre: currentUser?.email || dataWithParentEmail.email_padre, activo: true }).catch(() => []),
-          dataWithParentEmail.email_padre !== currentUser?.email
-            ? base44.entities.Player.filter({ email_padre: dataWithParentEmail.email_padre, activo: true }).catch(() => [])
-            : Promise.resolve([])
-        ]);
-        const famMap = new Map();
-        [...famByPadre, ...famByTutor].forEach(p => famMap.set(p.id, p));
-        const familyPlayers = Array.from(famMap.values()).filter(p => p.id !== newPlayer.id);
-        
-        if (familyPlayers.length > 0) {
-          // Incluir el nuevo jugador en el cálculo
-          const allFamilyBirthDates = [
-            ...familyPlayers.map(p => ({ id: p.id, nombre: p.nombre, fecha: p.fecha_nacimiento })),
-            { id: newPlayer.id, nombre: newPlayer.nombre, fecha: newPlayer.fecha_nacimiento }
-          ].filter(p => p.fecha);
-          
-          // Ordenar por fecha (el mayor primero - fecha más antigua)
-          allFamilyBirthDates.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
-          
-          // El mayor (primera posición) no tiene descuento, los demás sí
-          const oldestPlayerId = allFamilyBirthDates[0]?.id;
-          
-          // Actualizar descuentos de todos los hermanos existentes
-          for (const sibling of familyPlayers) {
-            const shouldHaveDiscount = sibling.id !== oldestPlayerId;
-            const currentHasDiscount = sibling.tiene_descuento_hermano === true;
-            
-            if (shouldHaveDiscount !== currentHasDiscount) {
-              // Actualizar el jugador
-              await base44.entities.Player.update(sibling.id, {
-                tiene_descuento_hermano: shouldHaveDiscount,
-                descuento_aplicado: shouldHaveDiscount ? 25 : 0
-              });
-              console.log(`📋 Descuento actualizado para ${sibling.nombre}: ${shouldHaveDiscount ? '25€' : 'sin descuento'}`);
-              
-              // Buscar dónde aplicar el descuento de 25€
-              if (shouldHaveDiscount && !currentHasDiscount) {
-                // El hermano ahora tiene derecho a descuento - buscar dónde aplicarlo
-                const siblingPayments = await base44.entities.Payment.filter({ jugador_id: sibling.id, estado: "Pendiente", is_deleted: { $ne: true } }).catch(() => []);
-                
-                // Primero intentar en Junio si está pendiente
-                const junioPendiente = siblingPayments.find(p =>
-                  p.mes === "Junio"
-                );
-                
-                if (junioPendiente) {
-                  // Aplicar descuento en Junio
-                  const newAmount = (junioPendiente.cantidad || 0) - 25;
-                  if (newAmount > 0) {
-                    await base44.entities.Payment.update(junioPendiente.id, {
-                      cantidad: newAmount,
-                      notas: `${junioPendiente.notas || ''} [Descuento hermano 25€ aplicado]`.trim()
-                    });
-                    console.log(`💰 Descuento aplicado en Junio de ${sibling.nombre}: -25€`);
-                  }
-                } else {
-                  // Junio ya está pagado/en revisión - aplicar en siguiente cuota pendiente
-                  const siguienteCuotaPendiente = siblingPayments.find(p => 
-                    (p.mes === "Septiembre" || p.mes === "Diciembre")
-                  );
-                  
-                  if (siguienteCuotaPendiente) {
-                    const newAmount = (siguienteCuotaPendiente.cantidad || 0) - 25;
-                    if (newAmount > 0) {
-                      await base44.entities.Payment.update(siguienteCuotaPendiente.id, {
-                        cantidad: newAmount,
-                        notas: `${siguienteCuotaPendiente.notas || ''} [Descuento hermano 25€ aplicado - trasladado de inscripción]`.trim()
-                      });
-                      console.log(`💰 Descuento trasladado a ${siguienteCuotaPendiente.mes} de ${sibling.nombre}: -25€`);
-                    }
-                  } else {
-                    // No hay cuotas pendientes - guardar nota en el jugador para aplicar manualmente
-                    console.log(`⚠️ ${sibling.nombre} tiene derecho a 25€ de descuento pero no hay cuotas pendientes`);
-                  }
-                }
-              }
-            }
-          }
-          
-          // Actualizar el nuevo jugador si corresponde
-          const newPlayerShouldHaveDiscount = newPlayer.id !== oldestPlayerId;
-          if (newPlayerShouldHaveDiscount !== newPlayer.tiene_descuento_hermano) {
-            await base44.entities.Player.update(newPlayer.id, {
-              tiene_descuento_hermano: newPlayerShouldHaveDiscount,
-              descuento_aplicado: newPlayerShouldHaveDiscount ? 25 : 0
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Error recalculando descuentos familiares:", error);
-      }
+      // ℹ️ Los descuentos por hermanos se recalculan AUTOMÁTICAMENTE en el backend
+      // (automation entity 'Recálculo automático de descuentos hermanos' sobre Player).
+      // Ya no hace falta tocar nada desde el frontend.
       
       // (Invitación segundo progenitor ya enviada arriba)
       
@@ -759,28 +666,18 @@ Email: cdbustarviejo@gmail.com
 
   const renewPlayerMutation = useMutation({
     mutationFn: async ({ playerData, paymentsData }) => {
-      // Actualizar jugador existente con nueva temporada y estado renovado
-      const updatedPlayer = await base44.entities.Player.update(playerData.id, {
-        deporte: playerData.deporte,
-        tipo_inscripcion: "Renovación",
-        estado_renovacion: "renovado",
-        activo: true,
-        temporada_renovacion: seasonConfig?.temporada,
-        fecha_renovacion: new Date().toISOString()
+      // ✅ Renovar vía backend (RLS estricto: padres no pueden tocar estado_renovacion/activo)
+      const { data: result } = await base44.functions.invoke('playerRenewalAction', {
+        action: 'renew',
+        playerId: playerData.id,
+        playerData: { deporte: playerData.deporte },
+        payments: paymentsData?.payments || [],
+        temporada: seasonConfig?.temporada
       });
-
-      // Crear pagos para la nueva temporada
-      if (paymentsData?.payments) {
-        for (const payment of paymentsData.payments) {
-          await base44.entities.Payment.create({
-            ...payment,
-            jugador_id: updatedPlayer.id,
-            jugador_nombre: updatedPlayer.nombre
-          });
-        }
+      if (!result?.success) {
+        throw new Error(result?.error || 'Error al renovar');
       }
-
-      return { player: updatedPlayer, paymentsData };
+      return { player: result.player, paymentsData };
     },
     onSuccess: (data) => {
       setIsProcessing(false);
@@ -884,16 +781,20 @@ Email: cdbustarviejo@gmail.com
     try {
       const currentYear = new Date().getFullYear();
       const defaultSeason = `${currentYear}/${currentYear + 1}`;
-      
-      await base44.entities.Player.update(player.id, {
-        estado_renovacion: "no_renueva",
-        fecha_renovacion: new Date().toISOString(),
-        temporada_renovacion: seasonConfig?.temporada || defaultSeason
+
+      // ✅ Vía backend (RLS estricto)
+      const { data: result } = await base44.functions.invoke('playerRenewalAction', {
+        action: 'not_renewing',
+        playerId: player.id,
+        temporada: seasonConfig?.temporada || defaultSeason
       });
-      
+      if (!result?.success) {
+        throw new Error(result?.error || 'Error al actualizar');
+      }
+
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
       queryClient.invalidateQueries({ queryKey: ['players'] });
-      
+
       toast.success(`${player.nombre} marcado como NO RENUEVA para la próxima temporada`);
     } catch (error) {
       console.error("Error marking player as not renewing:", error);
