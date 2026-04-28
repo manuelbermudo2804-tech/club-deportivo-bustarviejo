@@ -3,14 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import {
-  Shield,
-  UserCheck,
   AlertTriangle,
-  Eye,
-  EyeOff,
   MoreVertical,
   Users,
-
   HeartHandshake,
 } from "lucide-react";
 import {
@@ -27,6 +22,8 @@ export default function UserManagementTable({
   onCoachToggle,
   onCoordinatorToggle,
   onTreasurerToggle,
+  onPlayerToggle,
+  onMinorRevoke,
   onToggleHijos,
   onToggleFirmas,
   onToggleJunta,
@@ -43,10 +40,13 @@ export default function UserManagementTable({
 
   const getUserPlayers = (userEmail) => {
     const email = (userEmail || "").trim().toLowerCase();
+    if (!email) return [];
     return players.filter(
       (p) =>
         (p.email_padre && p.email_padre.trim().toLowerCase() === email) ||
-        (p.email_tutor_2 && p.email_tutor_2.trim().toLowerCase() === email)
+        (p.email_tutor_2 && p.email_tutor_2.trim().toLowerCase() === email) ||
+        (p.email_jugador && p.email_jugador.trim().toLowerCase() === email) ||
+        (p.acceso_menor_email && p.acceso_menor_email.trim().toLowerCase() === email)
     );
   };
 
@@ -164,7 +164,7 @@ export default function UserManagementTable({
                 {/* PAIR HEADER - solo para el primer miembro de la pareja */}
                 {pairGroup?.position === 'first' && (
                   <tr className="bg-gradient-to-r from-pink-50 to-purple-50 border-t-2 border-pink-300">
-                    <td colSpan="13" className="px-4 py-1.5">
+                    <td colSpan="12" className="px-4 py-1.5">
                       <div className="flex items-center gap-2">
                         <HeartHandshake className="w-4 h-4 text-pink-500" />
                         <span className="text-xs font-bold text-pink-700">
@@ -243,7 +243,7 @@ export default function UserManagementTable({
                   <td className="px-4 py-3 text-center">
                     <Switch
                       checked={user.es_jugador === true}
-                      onCheckedChange={() => console.log("Jugador toggle")}
+                      onCheckedChange={() => onPlayerToggle && onPlayerToggle(user)}
                       disabled={isRestricted || isDeleted}
                     />
                   </td>
@@ -251,8 +251,9 @@ export default function UserManagementTable({
                   {/* Juvenil (menor) */}
                   <td className="px-4 py-3 text-center">
                     <Switch
-                      checked={user.es_menor === true}
-                      disabled={true}
+                      checked={user.es_menor === true && !user.acceso_menor_revocado}
+                      onCheckedChange={() => onMinorRevoke && onMinorRevoke(user)}
+                      disabled={isRestricted || isDeleted || !user.es_menor}
                     />
                   </td>
 
@@ -366,7 +367,7 @@ export default function UserManagementTable({
                 {/* FILA EXPANDIDA - Detalles y Hijos */}
                 {isExpanded && (
                   <tr className="bg-slate-50 border-b border-slate-300">
-                    <td colSpan="11" className="px-4 py-4">
+                    <td colSpan="12" className="px-4 py-4">
                       <div className="grid md:grid-cols-2 gap-6">
                         {/* Detalles del usuario */}
                         <div>
