@@ -219,24 +219,54 @@ export default function CoachEvaluationReports() {
     fetchUser();
   }, []);
 
+  // Temporada activa para filtrar attendances
+  const { data: activeSeasons = [] } = useQuery({
+    queryKey: ['activeSeasonReports'],
+    queryFn: () => base44.entities.SeasonConfig.filter({ activa: true }),
+    staleTime: 600000,
+  });
+  const currentSeason = activeSeasons[0];
+  const seasonStart = currentSeason?.fecha_inicio || null;
+
+  // Solo jugadores activos
   const { data: players } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
+    queryKey: ['playersActiveReports'],
+    queryFn: () => base44.entities.Player.filter({ activo: true }),
     initialData: [],
   });
 
+  // CategoryConfig para excluir actividades complementarias
+  const { data: categoryConfigs = [] } = useQuery({
+    queryKey: ['categoryConfigsReports'],
+    queryFn: () => base44.entities.CategoryConfig.filter({ activa: true }),
+    staleTime: 600000,
+  });
+  const validCategoryNames = useMemo(
+    () => new Set(categoryConfigs.filter(c => !c.es_actividad_complementaria).map(c => c.nombre)),
+    [categoryConfigs]
+  );
+
+  // Attendances filtrados por temporada actual (desde fecha_inicio en adelante)
   const { data: attendances } = useQuery({
-    queryKey: ['attendances'],
-    queryFn: () => base44.entities.Attendance.list('-fecha'),
+    queryKey: ['attendancesSeason', seasonStart],
+    queryFn: () => {
+      const filter = seasonStart ? { fecha: { $gte: seasonStart } } : {};
+      return base44.entities.Attendance.filter(filter, '-fecha');
+    },
     initialData: [],
+    enabled: !!currentSeason,
   });
 
-  const allCategories = [...new Set(players.map(p => p.deporte).filter(Boolean))].sort();
+  const allCategories = [...new Set(
+    players.map(p => p.categoria_principal || p.deporte).filter(c => c && validCategoryNames.has(c))
+  )].sort();
   const categories = (user?.role === "admin" || user?.es_coordinador) 
     ? allCategories 
-    : (user?.categorias_entrena || []);
+    : (user?.categorias_entrena || []).filter(c => validCategoryNames.has(c));
 
   const filteredAttendances = attendances.filter(att => {
+    // Excluir actividades complementarias
+    if (!validCategoryNames.has(att.categoria)) return false;
     if (user?.role !== "admin" && !user?.es_coordinador) {
       const coachCategories = user?.categorias_entrena || [];
       if (!coachCategories.includes(att.categoria)) return false;
@@ -373,10 +403,10 @@ CD Bustarviejo
           for (const recipientEmail of recipients) {
             try {
               console.log('📧 [REPORT] Enviando email a:', recipientEmail);
-              await base44.integrations.Core.SendEmail({
+              await base44.functions.invoke('sendEmail', {
                 to: recipientEmail,
                 subject: `Reporte de Evaluación - ${player.nombre} - CD Bustarviejo`,
-                body: reportHTML
+                html: reportHTML
               });
               console.log('📧 [REPORT] Email enviado OK a:', recipientEmail);
               emailsSent.push(recipientEmail);

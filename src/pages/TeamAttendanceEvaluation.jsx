@@ -41,8 +41,8 @@ export default function TeamAttendanceEvaluation() {
       setUser(currentUser);
       if (currentUser.es_coordinador) return;
       if (currentUser.role === "admin") {
-        const allPlayers = await base44.entities.Player.list();
-        const categories = [...new Set(allPlayers.map(p => p.deporte).filter(Boolean))];
+        const allPlayers = await base44.entities.Player.filter({ activo: true });
+        const categories = [...new Set(allPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
         if (categories.length > 0) setSelectedCategory(categories[0]);
       } else if (currentUser.categorias_entrena?.length > 0) {
         setSelectedCategory(currentUser.categorias_entrena[0]);
@@ -158,11 +158,10 @@ export default function TeamAttendanceEvaluation() {
         const recipients = [player.email_padre, player.email_tutor_2].filter(Boolean);
         if (recipients.length === 0) throw new Error(`${player.nombre} no tiene emails configurados`);
         for (const email of recipients) {
-          await base44.integrations.Core.SendEmail({
-            from_name: `${user.full_name} - CD Bustarviejo`,
+          await base44.functions.invoke('sendEmail', {
             to: email,
             subject: `Reporte - ${player.nombre} - ${format(new Date(dateRange.start), "dd/MM/yyyy")} al ${format(new Date(dateRange.end), "dd/MM/yyyy")}`,
-            body: reportText
+            html: `<pre style="font-family:system-ui,sans-serif;white-space:pre-wrap;line-height:1.5;">${reportText}</pre>`
           });
           await new Promise(r => setTimeout(r, 300));
         }
@@ -207,11 +206,10 @@ export default function TeamAttendanceEvaluation() {
         try {
           if (sendMethod === 'email' || sendMethod === 'both') {
             for (const email of [player.email_padre, player.email_tutor_2].filter(Boolean)) {
-              await base44.integrations.Core.SendEmail({
-                from_name: `${user.full_name} - CD Bustarviejo`,
+              await base44.functions.invoke('sendEmail', {
                 to: email,
                 subject: `Reporte - ${player.nombre} - ${format(new Date(dateRange.start), "dd/MM/yyyy")} al ${format(new Date(dateRange.end), "dd/MM/yyyy")}`,
-                body: reportText
+                html: `<pre style="font-family:system-ui,sans-serif;white-space:pre-wrap;line-height:1.5;">${reportText}</pre>`
               });
             }
           }
@@ -390,7 +388,7 @@ export default function TeamAttendanceEvaluation() {
 
   const availableCategories = useMemo(() => {
     if (!user) return [];
-    if (user.es_coordinador) return [...new Set((players || []).map(p => p.deporte).filter(Boolean))];
+    if (user.es_coordinador) return [...new Set((players || []).map(p => p.categoria_principal || p.deporte).filter(Boolean))];
     return user.categorias_entrena || [];
   }, [user, players]);
 

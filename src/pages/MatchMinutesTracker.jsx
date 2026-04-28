@@ -95,12 +95,22 @@ export default function MatchMinutesTracker() {
     staleTime: 60000,
   });
 
-  // MatchMinutes existentes
+  // Temporada activa para filtrar
+  const { data: activeSeasons = [] } = useQuery({
+    queryKey: ['activeSeasonMinutes'],
+    queryFn: () => base44.entities.SeasonConfig.filter({ activa: true }),
+    staleTime: 600000,
+  });
+  const currentSeason = activeSeasons[0]?.temporada || "";
+
+  // MatchMinutes existentes (filtrados por temporada activa)
   const { data: matchMinutes = [], isLoading: loadingMinutes } = useQuery({
-    queryKey: ['matchMinutes', selectedCategory],
+    queryKey: ['matchMinutes', selectedCategory, currentSeason],
     queryFn: async () => {
       if (!selectedCategory) return [];
-      return base44.entities.MatchMinutes.filter({ categoria: selectedCategory });
+      const filter = { categoria: selectedCategory };
+      if (currentSeason) filter.temporada = currentSeason;
+      return base44.entities.MatchMinutes.filter(filter);
     },
     enabled: !!selectedCategory,
     staleTime: 30000,
@@ -154,7 +164,6 @@ export default function MatchMinutesTracker() {
   // Auto-crear registros MatchMinutes que no existen
   const createMutation = useMutation({
     mutationFn: async ({ rival, vuelta, jornada, localVisitante }) => {
-      const seasons = await base44.entities.SeasonConfig.filter({ activa: true });
       return base44.entities.MatchMinutes.create({
         categoria: selectedCategory,
         rival,
@@ -169,18 +178,18 @@ export default function MatchMinutesTracker() {
           minutos_2parte: 0,
         })),
         entrenador_email: user?.email || "",
-        temporada: seasons[0]?.temporada || "",
+        temporada: currentSeason,
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['matchMinutes', selectedCategory] });
+      queryClient.invalidateQueries({ queryKey: ['matchMinutes', selectedCategory, currentSeason] });
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }) => base44.entities.MatchMinutes.update(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['matchMinutes', selectedCategory] });
+      queryClient.invalidateQueries({ queryKey: ['matchMinutes', selectedCategory, currentSeason] });
     },
   });
 
