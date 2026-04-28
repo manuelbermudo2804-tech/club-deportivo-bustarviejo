@@ -549,6 +549,38 @@ export default function CentroCompeticion() {
             </div>
             <div className="text-sm text-slate-600">Categoría activa: <Badge variant="outline">{category}</Badge></div>
 
+            {/* 📌 RECORDATORIO INICIO DE TEMPORADA */}
+            <details className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-300 overflow-hidden">
+              <summary className="cursor-pointer p-3 font-bold text-amber-900 text-sm hover:bg-amber-100/50 transition-colors">
+                📌 ¿Qué URL necesito al cambiar de temporada? (clic para ver)
+              </summary>
+              <div className="px-4 pb-4 pt-1 space-y-2 text-xs text-slate-700">
+                <p className="font-semibold text-orange-800">
+                  Solo necesitas <span className="underline">UNA URL por categoría</span>: la de la <strong>Clasificación</strong>.
+                </p>
+                <p>
+                  Con esa única URL, el sistema extrae los 4 códigos internos (<code className="bg-white px-1 rounded text-[10px]">cod_primaria</code>, <code className="bg-white px-1 rounded text-[10px]">codcompeticion</code>, <code className="bg-white px-1 rounded text-[10px]">codgrupo</code>, <code className="bg-white px-1 rounded text-[10px]">codtemporada</code>) y construye automáticamente todo lo demás:
+                </p>
+                <ul className="list-disc list-inside space-y-0.5 ml-1 text-slate-600">
+                  <li>🏆 Clasificación</li>
+                  <li>📅 Resultados de cada jornada</li>
+                  <li>⚽ Goleadores</li>
+                  <li>🔀 Tabla cruzada</li>
+                  <li>📝 Actas de partidos</li>
+                  <li>🎯 Próximo partido del Bustarviejo</li>
+                </ul>
+                <div className="bg-white/70 rounded p-2 border border-amber-200">
+                  <p className="text-[11px] font-semibold text-slate-700">Ejemplo de URL válida:</p>
+                  <code className="text-[10px] text-slate-600 break-all block mt-0.5">
+                    https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=1000128&codcompeticion=24037796&codgrupo=24037807&codtemporada=21
+                  </code>
+                </div>
+                <p className="text-[11px] text-slate-600 pt-1">
+                  <strong>👉 Pasos:</strong> entra en la intranet RFFM → busca tu categoría → abre su clasificación → copia la URL del navegador → pulsa el botón <strong>"URLs RFFM"</strong> de arriba → pégala en la categoría correspondiente → pulsa "Generar URLs" → "Guardar". <strong>Repite con las 9 categorías</strong>.
+                </p>
+              </div>
+            </details>
+
             {/* Monitor RFFM integrado */}
             {showMonitor && (
               <Card className="border-2 border-purple-300 bg-purple-50/30">
