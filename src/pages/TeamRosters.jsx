@@ -41,7 +41,12 @@ export default function TeamRosters() {
           setSelectedCategory("all");
         }
       } else {
-        const categories = currentUser.categorias_entrena || [];
+        // Entrenador: combinar categorias_entrena Y categorias_coordina (algunos son ambos)
+        const categories = [...new Set([
+          ...(currentUser.categorias_entrena || []),
+          ...(currentUser.categorias_coordina || [])
+        ])];
+        console.log('🎯 [TeamRosters] Entrenador:', currentUser.email, 'categorías:', categories);
         setCoachCategories(categories);
         if (categories.length > 1) {
           setSelectedCategory("all");
