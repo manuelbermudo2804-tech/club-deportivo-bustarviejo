@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Download, Heart, Search } from "lucide-react";
 import { toast } from "sonner";
-import VolunteersList from "../components/sanisidro/VolunteersList";
-import RegistrationCard from "../components/sanisidro/RegistrationCard";
+import VolunteersList from "../components/sanisidro/VolunteersList.jsx";
+import RegistrationCard from "../components/sanisidro/RegistrationCard.jsx";
 
 const MODALIDADES = [
   "Fútbol Chapa - Niños/Jóvenes",
