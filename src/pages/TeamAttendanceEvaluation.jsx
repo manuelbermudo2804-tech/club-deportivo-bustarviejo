@@ -411,12 +411,18 @@ export default function TeamAttendanceEvaluation() {
 
   // Asegurar selección inicial cuando llegan las categorías disponibles (admin/coordinador)
   // Preferir una categoría que ya tenga jugadores para que la pantalla no aparezca vacía
+  // Espera a que players esté cargado para no elegir una categoría vacía
   useEffect(() => {
-    if (!selectedCategory && availableCategories.length > 0) {
-      const catWithPlayers = availableCategories.find(cat =>
-        (players || []).some(p => p.activo && playerInCategory(p, cat))
-      );
-      setSelectedCategory(catWithPlayers || availableCategories[0]);
+    if (availableCategories.length === 0 || !players || players.length === 0) return;
+    const currentHasPlayers = selectedCategory && players.some(p => p.activo !== false && playerInCategory(p, selectedCategory));
+    if (selectedCategory && currentHasPlayers) return;
+    const catWithPlayers = availableCategories.find(cat =>
+      players.some(p => p.activo !== false && playerInCategory(p, cat))
+    );
+    if (catWithPlayers && catWithPlayers !== selectedCategory) {
+      setSelectedCategory(catWithPlayers);
+    } else if (!selectedCategory) {
+      setSelectedCategory(availableCategories[0]);
     }
   }, [availableCategories, selectedCategory, players]);
 
