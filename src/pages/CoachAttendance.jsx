@@ -37,9 +37,23 @@ export default function CoachAttendance() {
   }, []);
 
   const { data: players } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
+    queryKey: ['players', user?.email],
+    queryFn: async () => {
+      const isStaff = user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador;
+      if (isStaff) {
+        try {
+          const { data } = await base44.functions.invoke('getStaffPlayers', {});
+          return data?.players || [];
+        } catch (e) {
+          console.error('[CoachAttendance] getStaffPlayers falló:', e);
+          return await base44.entities.Player.list() || [];
+        }
+      }
+      return await base44.entities.Player.list() || [];
+    },
     initialData: [],
+    enabled: !!user,
+    refetchOnMount: 'always',
   });
 
   const { data: attendances } = useQuery({
