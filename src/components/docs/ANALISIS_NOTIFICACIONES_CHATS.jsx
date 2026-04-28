@@ -1,1 +1,1 @@
-export default function AnalisisNotificacionesChatsMd() { return null; }
+export default function AnalisisNotificacionesChatsMdDoc() { return null; }

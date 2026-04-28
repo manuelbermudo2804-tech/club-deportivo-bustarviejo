@@ -1,1 +1,1 @@
-export default function AnalyticsGuideMd() { return null; }
+export default function AnalyticsGuideMdDoc() { return null; }

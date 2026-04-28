@@ -1,1 +1,1 @@
-export default function AuditoriaSistemaNotificacionesMd() { return null; }
+export default function AuditoriaSistemaNotificacionesMdDoc() { return null; }

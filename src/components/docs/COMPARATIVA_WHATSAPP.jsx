@@ -1,1 +1,1 @@
-export default function ComparativaWhatsappMd() { return null; }
+export default function ComparativaWhatsappMdDoc() { return null; }
