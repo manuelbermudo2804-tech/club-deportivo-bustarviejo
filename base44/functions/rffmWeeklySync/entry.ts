@@ -434,11 +434,16 @@ function getLatestCookies(syncResult, fallback) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (user?.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const body = await req.json().catch(() => ({}));
     const targetCat = body?.categoria;
+
+    // Permitir invocaciones internas (service-role desde rffmSyncDispatcher) o admins
+    const user = await base44.auth.me().catch(() => null);
+    const isInternalInvocation = !user; // service-role invocations no tienen user
+    if (!isInternalInvocation && user?.role !== 'admin') {
+      return Response.json({ error: 'Forbidden' }, { status: 403 });
+    }
 
     console.log(`[RFFM] Starting sync${targetCat ? ` for ${targetCat}` : ' (all)'}...`);
     const t0 = Date.now();
