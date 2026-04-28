@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 Deno.serve(async (req) => {
   try {
@@ -13,7 +13,7 @@ Deno.serve(async (req) => {
     }
 
     // Configuración de temporada activa y validaciones
-    const configs = await base44.entities.SeasonConfig.list();
+    const configs = await base44.asServiceRole.entities.SeasonConfig.list();
     const activeConfig = configs.find((c) => c.activa === true);
 
     if (!activeConfig) {
@@ -25,23 +25,28 @@ Deno.serve(async (req) => {
 
     const temporada = activeConfig.temporada;
 
-    // NOTA: No tocar historial de staff ni conversaciones de chat
-    // (blindado para evitar pérdidas en reset de temporada)
+    // Obtener todos los jugadores (asServiceRole para evitar restricciones RLS)
+    const allPlayers = await base44.asServiceRole.entities.Player.list('-updated_date', 20000);
 
-    // Obtener todos los jugadores
-    const allPlayers = await base44.entities.Player.list('-updated_date', 20000);
-
-    // Preparar cambios: marcar como pendiente para la temporada activa
+    // Preparar cambios
     let updatedCount = 0;
+    let skippedNoRenueva = 0;
     const affectedFamilies = new Set();
 
     for (const p of allPlayers) {
+      // ⚠️ FIX: Respetar jugadores ya marcados como "no_renueva" PARA ESTA TEMPORADA
+      // (no se les vuelve a marcar pendiente ni se les notifica)
+      if (p.estado_renovacion === 'no_renueva' && p.temporada_renovacion === temporada) {
+        skippedNoRenueva += 1;
+        continue;
+      }
+
       const needsPreparation =
         p.temporada_renovacion !== temporada || p.estado_renovacion !== 'pendiente';
 
       if (!needsPreparation) continue;
 
-      await base44.entities.Player.update(p.id, {
+      await base44.asServiceRole.entities.Player.update(p.id, {
         temporada_renovacion: temporada,
         estado_renovacion: 'pendiente',
         activo: false,
@@ -53,21 +58,20 @@ Deno.serve(async (req) => {
       if (p.email_tutor_2) affectedFamilies.add(p.email_tutor_2);
     }
 
-    // Detectar jugadores +18 que se gestionan solos (tienen email_jugador propio)
+    // Detectar jugadores +18 que se gestionan solos
     const adultPlayerEmails = new Set();
     for (const p of allPlayers) {
-      if (p.es_mayor_edad && p.email_jugador) {
+      if (p.es_mayor_edad && p.email_jugador && p.estado_renovacion !== 'no_renueva') {
         adultPlayerEmails.add(p.email_jugador);
       }
     }
 
-    // Notificar a familias afectadas (AppNotification + Email)
+    // Notificar a familias afectadas
     const familiesNotified = [];
     if (updatedCount > 0 && affectedFamilies.size > 0) {
       for (const email of affectedFamilies) {
         if (!email) continue;
-        // App notification
-        await base44.entities.AppNotification.create({
+        await base44.asServiceRole.entities.AppNotification.create({
           usuario_email: email,
           titulo: 'Es hora de renovar la plaza',
           mensaje: `Ya puedes renovar a tus jugadores para la temporada ${temporada}. Ve a Mis Jugadores y pulsa Renovar/Activar.`,
@@ -76,16 +80,13 @@ Deno.serve(async (req) => {
           enlace: 'ParentPlayers',
           vista: false,
         });
-        // Email (best-effort)
         try {
           await base44.functions.invoke('sendEmail', {
             to: email,
             subject: `Renovaciones abiertas – Temporada ${temporada}`,
             html: `Hola,<br/><br/>Ya puedes renovar a tus jugadores para la temporada <b>${temporada}</b>.<br/>Entra en la app → <b>Mis Jugadores</b> → <b>Renovar/Activar</b> en cada jugador.<br/><br/>Si necesitas ayuda, responde a este correo.<br/><br/>CD Bustarviejo`,
           });
-        } catch (_e) {
-          // Ignorar fallo de email para no abortar el proceso
-        }
+        } catch (_e) {}
         familiesNotified.push(email);
       }
     }
@@ -95,7 +96,7 @@ Deno.serve(async (req) => {
     if (updatedCount > 0 && adultPlayerEmails.size > 0) {
       for (const email of adultPlayerEmails) {
         if (!email) continue;
-        await base44.entities.AppNotification.create({
+        await base44.asServiceRole.entities.AppNotification.create({
           usuario_email: email,
           titulo: '⚽ Es hora de renovar tu plaza',
           mensaje: `Ya puedes renovar tu inscripción para la temporada ${temporada}. Entra en tu panel de jugador para confirmar.`,
@@ -119,6 +120,7 @@ Deno.serve(async (req) => {
       success: true,
       temporada,
       updatedPlayers: updatedCount,
+      skippedNoRenueva,
       familiesNotified: Array.from(new Set(familiesNotified)).length,
       adultPlayersNotified: adultPlayersNotified.length,
     });

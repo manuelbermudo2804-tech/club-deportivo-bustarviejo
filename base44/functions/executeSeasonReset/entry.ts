@@ -149,17 +149,16 @@ Deno.serve(async (req) => {
       }
       
       // Desactivar TODOS y resetear estado renovación
+      // ⚠️ FIX: Las firmas federativas SIEMPRE se resetean (cada temporada son nuevas)
       const updateData = {
         activo: false,
         estado_renovacion: 'pendiente',
-        temporada_renovacion: config.newSeasonName
+        temporada_renovacion: config.newSeasonName,
+        enlace_firma_jugador: '',
+        enlace_firma_tutor: '',
+        firma_jugador_completada: false,
+        firma_tutor_completada: false
       };
-      if (config.resetPlayerSignatures) {
-        updateData.enlace_firma_jugador = '';
-        updateData.enlace_firma_tutor = '';
-        updateData.firma_jugador_completada = false;
-        updateData.firma_tutor_completada = false;
-      }
       const r = await updateAllInChunks(base44, 'Player', activePlayers, updateData);
       log.push(`✅ Jugadores desactivados: ${r.updated}/${r.total} (archivados a histórico: ${archived})`);
     }

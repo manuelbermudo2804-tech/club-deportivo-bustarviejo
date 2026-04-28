@@ -164,6 +164,18 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     currentUser && (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email)
   );
 
+  // ⚠️ Detectar posible duplicado: mismo nombre o misma fecha+nombre similar en la familia
+  const possibleDuplicate = useMemo(() => {
+    if (isEditing || !currentPlayer.nombre || !currentPlayer.fecha_nacimiento) return null;
+    const normalize = (s) => String(s || '').trim().toLowerCase();
+    const targetName = normalize(currentPlayer.nombre);
+    const match = existingFamilyPlayers.find(p =>
+      p.fecha_nacimiento === currentPlayer.fecha_nacimiento &&
+      normalize(p.nombre).split(' ')[0] === targetName.split(' ')[0]
+    );
+    return match || null;
+  }, [currentPlayer.nombre, currentPlayer.fecha_nacimiento, existingFamilyPlayers, isEditing]);
+
   const playerAge = useMemo(() => calculateAge(currentPlayer.fecha_nacimiento), [currentPlayer.fecha_nacimiento]);
   const isMayorDeEdad = playerAge !== null && playerAge >= 18;
   const requiresDNI = playerAge !== null && playerAge >= 14;
@@ -533,6 +545,21 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
               <AlertCircle className="h-4 w-4 text-green-600" />
               <AlertDescription className="text-green-800">
                 <strong>🎉 Descuento familiar:</strong> {siblingDiscount.amount}€ por tener hermanos inscritos.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {possibleDuplicate && step === 0 && (
+            <Alert className="mb-4 bg-amber-50 border-2 border-amber-400">
+              <AlertCircle className="h-4 w-4 text-amber-700" />
+              <AlertDescription className="text-amber-900">
+                <strong>⚠️ Posible jugador duplicado:</strong> Ya existe <strong>{possibleDuplicate.nombre}</strong> con esta fecha de nacimiento en tu familia ({possibleDuplicate.activo ? 'activo' : 'inactivo'}).
+                {!possibleDuplicate.activo && (
+                  <span> Si es la misma persona, contacta con el club en lugar de crear una ficha nueva (se reactivará la existente).</span>
+                )}
+                {possibleDuplicate.activo && (
+                  <span> No lo registres otra vez. Si necesitas editarlo, ciérra este formulario y pulsa "Editar" en su tarjeta.</span>
+                )}
               </AlertDescription>
             </Alert>
           )}
