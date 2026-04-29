@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import AttendanceStats from "../components/coach/AttendanceStats";
 import ExportButton from "../components/ExportButton";
+import { playerInCategory } from "../components/utils/playerCategoryFilter";
 
 export default function CoachAttendance() {
   const [user, setUser] = useState(null);
@@ -87,7 +88,7 @@ export default function CoachAttendance() {
   });
 
   const categoryPlayers = players.filter(p => 
-    p.deporte === selectedCategory && p.activo
+    p.activo !== false && playerInCategory(p, selectedCategory)
   ).sort((a, b) => a.nombre.localeCompare(b.nombre));
 
   const categoryAttendances = attendances.filter(a => 
