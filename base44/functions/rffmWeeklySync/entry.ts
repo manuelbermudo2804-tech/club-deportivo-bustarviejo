@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.26';
 import { load } from 'npm:cheerio@1.0.0';
 
 // Helper: send email via Resend (no integration credits)

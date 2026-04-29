@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.26';
 import webpush from 'npm:web-push@3.6.7';
 
 webpush.setVapidDetails(
@@ -73,6 +73,13 @@ Deno.serve(async (req) => {
     let totalPending = 0;
     let totalNotified = 0;
 
+    // Cargar todos los Player una vez para resolver tutor_2 y acceso menor
+    let allPlayers = [];
+    try {
+      allPlayers = await base44.asServiceRole.entities.Player.list();
+      if (!Array.isArray(allPlayers)) allPlayers = [];
+    } catch { allPlayers = []; }
+
     for (const callup of tomorrowCallups) {
       const jugadores = Array.isArray(callup.jugadores_convocados) ? callup.jugadores_convocados : [];
       const pendientes = jugadores.filter(j => !j.confirmacion || j.confirmacion === 'pendiente');
@@ -80,15 +87,27 @@ Deno.serve(async (req) => {
       console.log(`[CallupReminder] ${callup.titulo}: ${pendientes.length} pendientes de ${jugadores.length}`);
 
       for (const j of pendientes) {
-        const emailPadre = j.email_padre;
-        if (!emailPadre) continue;
+        // Recopilar todos los emails relacionados con el jugador (padre, tutor_2, menor con acceso)
+        const playerData = allPlayers.find(p => p.id === j.jugador_id);
+        const emails = new Set();
+        if (j.email_padre) emails.add(j.email_padre);
+        if (playerData?.email_tutor_2) emails.add(playerData.email_tutor_2);
+        if (!j.email_padre && j.email_jugador) emails.add(j.email_jugador);
+        if (playerData?.acceso_menor_email && playerData?.acceso_menor_autorizado && !playerData?.acceso_menor_revocado) {
+          emails.add(playerData.acceso_menor_email);
+        }
+        if (emails.size === 0) continue;
+
+        const emailPadre = [...emails][0]; // mantener variable para compatibilidad
 
         totalPending++;
 
-        // Enviar push
+        // Enviar push a todos los emails relacionados
         const pushTitle = `⚠️ ¡Confirma la convocatoria!`;
         const pushBody = `${j.jugador_nombre}: ${callup.titulo} es MAÑANA a las ${callup.hora_partido || '??:??'}. Confirma asistencia.`;
-        await sendPush(base44, emailPadre, pushTitle, pushBody, '/ParentCallups');
+        for (const e of emails) {
+          await sendPush(base44, e, pushTitle, pushBody, '/ParentCallups');
+        }
 
         // Enviar email
         const emailHtml = `<!DOCTYPE html>
@@ -119,7 +138,10 @@ Deno.serve(async (req) => {
 </td></tr>
 </table></td></tr></table></body></html>`;
 
-        await sendViaResend(emailPadre, `⚠️ ¡MAÑANA! Confirma convocatoria de ${j.jugador_nombre}`, emailHtml);
+        // Enviar email a todos los destinatarios (padre, tutor_2, menor con acceso)
+        for (const e of emails) {
+          await sendViaResend(e, `⚠️ ¡MAÑANA! Confirma convocatoria de ${j.jugador_nombre}`, emailHtml);
+        }
         totalNotified++;
       }
     }

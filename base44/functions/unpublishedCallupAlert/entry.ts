@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.26';
 import webpush from 'npm:web-push@3.6.7';
 
 webpush.setVapidDetails(
@@ -81,7 +81,7 @@ Deno.serve(async (req) => {
     // Get users once
     let users = await base44.asServiceRole.entities.User.list('-created_date', 200);
     if (!Array.isArray(users)) users = [];
-    const coaches = users.filter(u => u.es_entrenador);
+    const coaches = users.filter(u => u.es_entrenador || u.es_coordinador);
 
     let totalSent = 0;
 
@@ -90,9 +90,10 @@ Deno.serve(async (req) => {
       const daysText = days === 0 ? 'HOY' : days === 1 ? 'MAÑANA' : `pasado mañana`;
       const emoji = days === 0 ? '🚨' : '⚽';
 
-      // Only notify the coach(es) of this category — not all admins
+      // Only notify the coach(es)/coordinator(s) of this category — not all admins
       const categoryCoaches = coaches.filter(u =>
-        (u.categorias_entrena || []).includes(draft.categoria)
+        (u.categorias_entrena || []).includes(draft.categoria) ||
+        (u.categorias_coordina || []).includes(draft.categoria)
       );
 
       if (categoryCoaches.length === 0) {
