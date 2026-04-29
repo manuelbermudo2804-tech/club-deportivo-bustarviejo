@@ -27,6 +27,7 @@ import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import { playerInCategory } from "../components/utils/playerCategoryFilter";
+import { useStaffPlayers } from "../hooks/useStaffPlayers";
 
 export default function CoachCallups() {
   usePageTutorial("coach_callups");
@@ -123,27 +124,9 @@ export default function CoachCallups() {
     initialData: [],
   });
 
-  // Para staff usamos getStaffPlayers (service role) porque RLS limita a entrenadores a ver solo sus hijos
-  const { data: allPlayers } = useQuery({
-    queryKey: ['players-staff-callups', user?.email],
-    queryFn: async () => {
-      const isStaff = user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador;
-      if (isStaff) {
-        try {
-          const { data } = await base44.functions.invoke('getStaffPlayers', {});
-          return data?.players || [];
-        } catch (e) {
-          console.error('[CoachCallups] getStaffPlayers falló:', e);
-          return await base44.entities.Player.list();
-        }
-      }
-      return await base44.entities.Player.list();
-    },
-    initialData: [],
-    enabled: !!user,
-    staleTime: 0,
-    refetchOnMount: 'always',
-  });
+  // Hook unificado: garantiza que cualquier staff (admin/entrenador/coordinador)
+  // recibe la lista completa de jugadores vía getStaffPlayers (service role).
+  const { data: allPlayers } = useStaffPlayers(user, { queryKeyExtra: 'callups' });
 
   const { data: allPayments = [] } = useQuery({
     queryKey: ['payments-callup'],

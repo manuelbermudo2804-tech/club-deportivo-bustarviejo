@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import PlayerAttendanceCard from "../components/attendance/PlayerAttendanceCard";
 import { playerAllCategories } from "../components/utils/playerCategoryFilter";
+import { useStaffPlayers } from "../hooks/useStaffPlayers";
 
 // Vista de detalle de un jugador individual
 function PlayerDetailView({ player, evaluations, onBack, onSendReport, sendingReport }) {
@@ -229,26 +230,8 @@ export default function CoachEvaluationReports() {
   const currentSeason = activeSeasons[0];
   const seasonStart = currentSeason?.fecha_inicio || null;
 
-  // Solo jugadores activos
-  // Para staff usamos getStaffPlayers (service role) porque RLS limita a entrenadores a ver solo sus hijos
-  const { data: players } = useQuery({
-    queryKey: ['playersActiveReports', user?.email],
-    queryFn: async () => {
-      const isStaff = user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador;
-      if (isStaff) {
-        try {
-          const { data } = await base44.functions.invoke('getStaffPlayers', {});
-          return (data?.players || []).filter(p => p.activo !== false);
-        } catch (e) {
-          console.error('[CoachEvaluationReports] getStaffPlayers falló:', e);
-          return await base44.entities.Player.filter({ activo: true });
-        }
-      }
-      return await base44.entities.Player.filter({ activo: true });
-    },
-    initialData: [],
-    enabled: !!user,
-  });
+  // Hook unificado: solo activos
+  const { data: players } = useStaffPlayers(user, { onlyActive: true, queryKeyExtra: 'reports' });
 
   // CategoryConfig para excluir actividades complementarias
   const { data: categoryConfigs = [] } = useQuery({
@@ -275,15 +258,25 @@ export default function CoachEvaluationReports() {
   const allCategories = [...new Set(
     players.flatMap(p => playerAllCategories(p)).filter(c => c && validCategoryNames.has(c))
   )].sort();
+  const userManagedCategories = useMemo(() => {
+    return [...new Set([
+      ...(user?.categorias_entrena || []),
+      ...(user?.categorias_coordina || [])
+    ])];
+  }, [user]);
   const categories = (user?.role === "admin" || user?.es_coordinador) 
     ? allCategories 
-    : (user?.categorias_entrena || []).filter(c => validCategoryNames.has(c));
+    : userManagedCategories.filter(c => validCategoryNames.has(c));
 
   const filteredAttendances = attendances.filter(att => {
     // Excluir actividades complementarias
     if (!validCategoryNames.has(att.categoria)) return false;
     if (user?.role !== "admin" && !user?.es_coordinador) {
-      const coachCategories = user?.categorias_entrena || [];
+      // Combinar entrena + coordina (algunos staff son ambos)
+      const coachCategories = [...new Set([
+        ...(user?.categorias_entrena || []),
+        ...(user?.categorias_coordina || [])
+      ])];
       if (!coachCategories.includes(att.categoria)) return false;
     }
     return true;

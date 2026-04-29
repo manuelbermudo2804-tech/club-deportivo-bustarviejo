@@ -612,6 +612,11 @@ export default function SeasonManagement() {
       queryClient.invalidateQueries();
       setProcessingProgress(100);
       toast.success(`¡Temporada ${data?.newSeason} iniciada! ${data?.log?.length || 0} acciones en ${data?.durationSec}s`, { duration: 8000 });
+      // Aviso explícito para otros dispositivos / pestañas
+      toast.info(
+        "ℹ️ Si tienes la app abierta en otros dispositivos o pestañas, refrescarán automáticamente. Si no, pídeles que recarguen.",
+        { duration: 12000 }
+      );
     } catch (error) {
       console.error("Error reset:", error);
       toast.error(`Error: ${error.message}`);

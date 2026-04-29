@@ -51,6 +51,23 @@ export function SeasonProvider({ children, externalConfig }) {
     }
   }, []);
 
+  // Suscripción real-time a SeasonConfig: si cambia la temporada activa
+  // (p. ej. tras un reset desde otro dispositivo), refrescamos automáticamente.
+  // Esto evita que pestañas/dispositivos abiertos sigan viendo datos stale.
+  useEffect(() => {
+    let unsubscribe;
+    try {
+      unsubscribe = base44.entities.SeasonConfig.subscribe(() => {
+        loadActiveConfig();
+      });
+    } catch (e) {
+      // Si el SDK no soporta subscribe en este entorno, no pasa nada
+    }
+    return () => {
+      try { unsubscribe && unsubscribe(); } catch {}
+    };
+  }, []);
+
   const activeSeason = useMemo(() => {
     if (manualSeason) return manualSeason;
     if (seasonConfig?.temporada) return seasonConfig.temporada;

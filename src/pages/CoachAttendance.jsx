@@ -14,6 +14,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import AttendanceStats from "../components/coach/AttendanceStats";
 import ExportButton from "../components/ExportButton";
 import { playerInCategory } from "../components/utils/playerCategoryFilter";
+import { useStaffPlayers } from "../hooks/useStaffPlayers";
 
 export default function CoachAttendance() {
   const [user, setUser] = useState(null);
@@ -30,33 +31,25 @@ export default function CoachAttendance() {
     const fetchUser = async () => {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
-      if (currentUser.categorias_entrena?.length > 0) {
-        setSelectedCategory(currentUser.categorias_entrena[0]);
-      }
+      // Combinar entrenador + coordinador (algunos son ambos)
+      const cats = [...new Set([
+        ...(currentUser.categorias_entrena || []),
+        ...(currentUser.categorias_coordina || [])
+      ])];
+      if (cats.length > 0) setSelectedCategory(cats[0]);
     };
     fetchUser();
   }, []);
 
-  const { data: players } = useQuery({
-    queryKey: ['players-staff-attendance', user?.email],
-    queryFn: async () => {
-      const isStaff = user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador;
-      if (isStaff) {
-        try {
-          const { data } = await base44.functions.invoke('getStaffPlayers', {});
-          return data?.players || [];
-        } catch (e) {
-          console.error('[CoachAttendance] getStaffPlayers falló:', e);
-          return await base44.entities.Player.list() || [];
-        }
-      }
-      return await base44.entities.Player.list() || [];
-    },
-    initialData: [],
-    enabled: !!user,
-    staleTime: 0,
-    refetchOnMount: 'always',
-  });
+  const userCategories = React.useMemo(() => {
+    if (!user) return [];
+    return [...new Set([
+      ...(user.categorias_entrena || []),
+      ...(user.categorias_coordina || [])
+    ])];
+  }, [user]);
+
+  const { data: players } = useStaffPlayers(user);
 
   const { data: attendances } = useQuery({
     queryKey: ['attendances', selectedCategory, selectedDate],
@@ -170,7 +163,7 @@ export default function CoachAttendance() {
     tardanza: { icon: Clock, color: "text-orange-600", bg: "bg-orange-100", label: "Tardanza" }
   };
 
-  if (!user || !user.categorias_entrena || user.categorias_entrena.length === 0) {
+  if (!user || userCategories.length === 0) {
     return (
       <div className="p-4 lg:p-6">
         <div className="text-center py-12">
@@ -256,7 +249,7 @@ export default function CoachAttendance() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {user.categorias_entrena.map(cat => (
+                      {userCategories.map(cat => (
                         <SelectItem key={cat} value={cat}>{cat}</SelectItem>
                       ))}
                     </SelectContent>

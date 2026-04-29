@@ -219,10 +219,63 @@ export default function CategoryConfigAdmin() {
     setShowDialog(true);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.nombre) {
       toast.error("El nombre es requerido");
       return;
+    }
+
+    // Detectar si se está renombrando una categoría existente
+    if (editingId) {
+      const original = categories.find(c => c.id === editingId);
+      const isRename = original && original.nombre !== formData.nombre;
+      // Bloquear renombrar BASE
+      if (isRename && BASE_CATEGORIES.includes(original.nombre)) {
+        toast.error("❌ No puedes renombrar una categoría BASE");
+        return;
+      }
+      // Si es renombrado, propagar en cascada a Player / User / Convocatoria / etc.
+      if (isRename) {
+        const ok = window.confirm(
+          `Vas a renombrar "${original.nombre}" → "${formData.nombre}".\n\n` +
+          `Esto actualizará en cascada:\n` +
+          `• Jugadores asignados a esa categoría\n` +
+          `• Entrenadores y coordinadores\n` +
+          `• Convocatorias, asistencias, evaluaciones, etc.\n\n` +
+          `¿Continuar?`
+        );
+        if (!ok) return;
+        try {
+          toast.loading("Renombrando en cascada...", { id: "rename" });
+          const { data } = await base44.functions.invoke('renameCategory', {
+            oldName: original.nombre,
+            newName: formData.nombre
+          });
+          if (data?.error) throw new Error(data.error);
+          toast.success(`✅ Renombrado correctamente`, { id: "rename" });
+          // Actualizar también el resto de campos (cuotas, etc.) sobre la nueva categoría
+          const dataToSave = {
+            cuota_inscripcion: formData.cuota_inscripcion,
+            cuota_segunda: formData.cuota_segunda,
+            cuota_tercera: formData.cuota_tercera,
+            cuota_total: formData.cuota_inscripcion + formData.cuota_segunda + formData.cuota_tercera,
+            es_actividad_complementaria: formData.es_actividad_complementaria,
+            incluye_preparacion_fisica: formData.incluye_preparacion_fisica,
+            suplemento_prep_fisica: formData.suplemento_prep_fisica,
+            deporte: formData.deporte,
+            compite_en_liga: formData.es_actividad_complementaria ? false : undefined
+          };
+          await base44.entities.CategoryConfig.update(editingId, dataToSave);
+          await queryClient.invalidateQueries();
+          setShowDialog(false);
+          setEditingId(null);
+          return;
+        } catch (e) {
+          console.error("[handleSave] rename error:", e);
+          toast.error(`Error renombrando: ${e.message}`, { id: "rename" });
+          return;
+        }
+      }
     }
 
     const dataToSave = {

@@ -10,6 +10,7 @@ import { Clock, BarChart3, Loader2 } from "lucide-react";
 import MinutesSpreadsheet from "../components/minutes/MinutesSpreadsheet";
 import MinutesStatsPanel from "../components/minutes/MinutesStatsPanel";
 import { playerInCategory } from "../components/utils/playerCategoryFilter";
+import { useStaffPlayers } from "../hooks/useStaffPlayers";
 
 const CLUB_NAME = "C.D. BUSTARVIEJO";
 
@@ -41,7 +42,11 @@ export default function MatchMinutesTracker() {
     if (isAdmin || isCoordinator) {
       cats = categoryConfigs.filter(c => !c.es_actividad_complementaria).map(c => c.nombre).filter(Boolean);
     } else {
-      cats = user?.categorias_entrena || [];
+      // Combinar entrena + coordina (algunos staff son ambos)
+      cats = [
+        ...(user?.categorias_entrena || []),
+        ...(user?.categorias_coordina || [])
+      ];
     }
     return [...new Set(cats)];
   }, [isAdmin, isCoordinator, categoryConfigs, user]);
@@ -50,32 +55,15 @@ export default function MatchMinutesTracker() {
     if (!selectedCategory && allCategories.length > 0) setSelectedCategory(allCategories[0]);
   }, [allCategories, selectedCategory]);
 
-  // Jugadores de la categoría (incluye categoria_principal, deporte legacy y categorias[])
-  // Para staff usamos getStaffPlayers (service role) porque RLS limita a entrenadores a ver solo sus hijos
-  const { data: players = [] } = useQuery({
-    queryKey: ['playersMinutes', selectedCategory, user?.email],
-    queryFn: async () => {
-      if (!selectedCategory) return [];
-      const isStaff = user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador;
-      let list = [];
-      if (isStaff) {
-        try {
-          const { data } = await base44.functions.invoke('getStaffPlayers', {});
-          list = (data?.players || []).filter(p => p.activo !== false);
-        } catch (e) {
-          console.error('[MatchMinutesTracker] getStaffPlayers falló:', e);
-          list = await base44.entities.Player.filter({ activo: true });
-        }
-      } else {
-        list = await base44.entities.Player.filter({ activo: true });
-      }
-      return list
-        .filter(p => playerInCategory(p, selectedCategory))
-        .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
-    },
-    enabled: !!selectedCategory && !!user,
-    staleTime: 60000,
-  });
+  // Hook unificado para todos los jugadores activos del staff
+  const { data: allActivePlayers = [] } = useStaffPlayers(user, { onlyActive: true, queryKeyExtra: 'minutes' });
+  // Filtrar localmente por categoría (soporta categoria_principal, deporte legacy y categorias[])
+  const players = useMemo(() => {
+    if (!selectedCategory) return [];
+    return allActivePlayers
+      .filter(p => playerInCategory(p, selectedCategory))
+      .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+  }, [allActivePlayers, selectedCategory]);
 
   // Rivales desde Clasificacion (todos los equipos menos el nuestro)
   const { data: rivals = [] } = useQuery({

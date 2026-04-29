@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 import RosterPlayerCard from "../components/players/RosterPlayerCard";
 import { playerInCategory, playerPrimaryCategory } from "../components/utils/playerCategoryFilter";
+import { useStaffPlayers } from "../hooks/useStaffPlayers";
 
 export default function TeamRosters() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -58,34 +59,7 @@ export default function TeamRosters() {
     fetchUser();
   }, []);
 
-  const { data: players, isLoading } = useQuery({
-    queryKey: ['allPlayers', user?.email],
-    queryFn: async () => {
-      const isStaff = user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador;
-      console.log('🎯 [TeamRosters] fetching players. isStaff:', isStaff, 'user:', user?.email);
-      if (isStaff) {
-        try {
-          const response = await base44.functions.invoke('getStaffPlayers', {});
-          const list = response?.data?.players || [];
-          console.log('🎯 [TeamRosters] getStaffPlayers OK:', list.length, 'jugadores');
-          return list;
-        } catch (e) {
-          console.error('🎯 [TeamRosters] getStaffPlayers falló:', e);
-          const fallback = await base44.entities.Player.list() || [];
-          console.log('🎯 [TeamRosters] fallback Player.list():', fallback.length);
-          return fallback;
-        }
-      }
-      const list = await base44.entities.Player.list() || [];
-      console.log('🎯 [TeamRosters] Player.list() (no staff):', list.length);
-      return list;
-    },
-    initialData: [],
-    staleTime: 0,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
-    enabled: !!user,
-  });
+  const { data: players, isLoading } = useStaffPlayers(user, { queryKeyExtra: 'rosters' });
 
   // Mutation para actualizar disponibilidad del jugador
   const updateAvailabilityMutation = useMutation({
