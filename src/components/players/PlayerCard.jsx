@@ -307,6 +307,27 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
 
           <CardContent className="px-4 pb-4 pt-0 space-y-2.5">
 
+            {/* ═══════ DOCS INCOMPLETOS (banner visible) ═══════ */}
+            {isParent && (!checklistItems.foto || !checklistItems.dni) && onEdit && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onEdit(player); }}
+                className="w-full bg-amber-50 border-2 border-amber-400 rounded-xl p-3 text-left hover:bg-amber-100 transition-colors"
+              >
+                <div className="flex items-start gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <p className="text-xs font-bold text-amber-900">📄 Documentación incompleta</p>
+                    <p className="text-[11px] text-amber-700 mt-0.5">
+                      {!checklistItems.foto && !checklistItems.dni && 'Falta foto carnet y DNI/Libro de Familia'}
+                      {!checklistItems.foto && checklistItems.dni && 'Falta la foto tipo carnet'}
+                      {checklistItems.foto && !checklistItems.dni && 'Falta el DNI o Libro de Familia'}
+                    </p>
+                    <p className="text-[10px] text-amber-600 mt-1 font-semibold">Toca aquí para completarla →</p>
+                  </div>
+                </div>
+              </button>
+            )}
+
             {/* ═══════ CATEGORY REVIEW (admin) ═══════ */}
             {player.categoria_requiere_revision && onEdit && (
               <div className="bg-orange-50 border border-orange-300 rounded-xl p-3">

@@ -280,6 +280,20 @@
       "type": "string",
       "format": "date-time"
     },
+    "acepta_normativa": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si acept\u00f3 el Reglamento de R\u00e9gimen Interno del club"
+    },
+    "fecha_aceptacion_normativa": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que acept\u00f3 el Reglamento"
+    },
+    "version_normativa_aceptada": {
+      "type": "string",
+      "description": "Versi\u00f3n del Reglamento que acept\u00f3 (ej: v1.0)"
+    },
     "autorizacion_fotografia": {
       "type": "string",
       "enum": [

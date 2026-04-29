@@ -164,17 +164,29 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     currentUser && (p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email)
   );
 
-  // ⚠️ Detectar posible duplicado: mismo nombre o misma fecha+nombre similar en la familia
+  // ⚠️ Detectar posible duplicado: mismo nombre+fecha O mismo DNI en la familia
   const possibleDuplicate = useMemo(() => {
-    if (isEditing || !currentPlayer.nombre || !currentPlayer.fecha_nacimiento) return null;
-    const normalize = (s) => String(s || '').trim().toLowerCase();
-    const targetName = normalize(currentPlayer.nombre);
-    const match = existingFamilyPlayers.find(p =>
-      p.fecha_nacimiento === currentPlayer.fecha_nacimiento &&
-      normalize(p.nombre).split(' ')[0] === targetName.split(' ')[0]
-    );
-    return match || null;
-  }, [currentPlayer.nombre, currentPlayer.fecha_nacimiento, existingFamilyPlayers, isEditing]);
+    if (isEditing) return null;
+    const normalize = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, '');
+    // 1) Match por DNI (más fiable - DNI es único)
+    if (currentPlayer.dni_jugador?.trim()) {
+      const targetDni = normalize(currentPlayer.dni_jugador);
+      const dniMatch = existingFamilyPlayers.find(p =>
+        p.dni_jugador && normalize(p.dni_jugador) === targetDni
+      );
+      if (dniMatch) return dniMatch;
+    }
+    // 2) Match por nombre + fecha de nacimiento
+    if (currentPlayer.nombre && currentPlayer.fecha_nacimiento) {
+      const targetName = String(currentPlayer.nombre || '').trim().toLowerCase();
+      const nameMatch = existingFamilyPlayers.find(p =>
+        p.fecha_nacimiento === currentPlayer.fecha_nacimiento &&
+        String(p.nombre || '').trim().toLowerCase().split(' ')[0] === targetName.split(' ')[0]
+      );
+      if (nameMatch) return nameMatch;
+    }
+    return null;
+  }, [currentPlayer.nombre, currentPlayer.fecha_nacimiento, currentPlayer.dni_jugador, existingFamilyPlayers, isEditing]);
 
   const playerAge = useMemo(() => calculateAge(currentPlayer.fecha_nacimiento), [currentPlayer.fecha_nacimiento]);
   const isMayorDeEdad = playerAge !== null && playerAge >= 18;
@@ -473,6 +485,11 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     if (finalData.acepta_responsabilidad_desplazamiento) {
       finalData.fecha_aceptacion_desplazamiento = new Date().toISOString();
       finalData.desplazamiento_texto_version = "v2.1";
+    }
+    // Trazabilidad legal de aceptación del Reglamento (normativa)
+    if (finalData.acepta_normativa && !finalData.fecha_aceptacion_normativa) {
+      finalData.fecha_aceptacion_normativa = new Date().toISOString();
+      finalData.version_normativa_aceptada = "v1.0";
     }
     // If minor access was authorized during registration, add consent metadata
     if (finalData.acceso_menor_autorizado && finalData.acceso_menor_email) {
