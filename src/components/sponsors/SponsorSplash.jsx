@@ -10,10 +10,10 @@ import { Crown } from "lucide-react";
  *  - Solo se muestra UNA vez por sesión del navegador (sessionStorage flag).
  *  - Solo aparece si existe un Sponsor con nivel_patrocinio="Principal" Y activo=true.
  *  - Si no hay patrocinador principal o ya se mostró → no renderiza nada (return null).
- *  - Duración: 2 segundos exactos, después se cierra automáticamente.
+ *  - Duración: 4 segundos, después se cierra automáticamente.
  */
 const SESSION_KEY = "sponsor_splash_shown_v1";
-const DURATION_MS = 2000;
+const DURATION_MS = 4000;
 
 export default function SponsorSplash() {
   const [sponsor, setSponsor] = useState(null);
