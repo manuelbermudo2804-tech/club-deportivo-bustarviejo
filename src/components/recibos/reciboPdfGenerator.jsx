@@ -76,13 +76,18 @@ export async function buildReciboPDF({ numero, fecha, recibiDe, cantidad, concep
   doc.line(pageW - 15 - cornerSize, pageH - 15, pageW - 15, pageH - 15);
   doc.line(pageW - 15, pageH - 15 - cornerSize, pageW - 15, pageH - 15);
 
-  // ===== MARCA DE AGUA =====
+  // ===== MARCA DE AGUA (translúcida) =====
   const logoData = await loadImageAsDataUrl(logoUrl);
   if (logoData) {
     try {
-      // Marca de agua centrada (jsPDF no soporta opacity nativa, pero el dibujo encima la tapa)
+      const gStateWatermark = new doc.GState({ opacity: 0.06 });
+      doc.setGState(gStateWatermark);
       doc.addImage(logoData, "PNG", pageW / 2 - 50, pageH / 2 - 50, 100, 100, undefined, "FAST");
-    } catch {}
+      // Restaurar opacidad normal para el resto del documento
+      doc.setGState(new doc.GState({ opacity: 1 }));
+    } catch (e) {
+      console.warn("No se pudo aplicar opacidad a la marca de agua:", e);
+    }
   }
 
   // ===== HEADER =====
