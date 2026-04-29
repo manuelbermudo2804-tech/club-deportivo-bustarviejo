@@ -55,7 +55,7 @@ export default function MainSponsorBadge() {
       title={`Patrocinador Principal: ${principal.nombre}`}
     >
       <Crown className="w-3.5 h-3.5 text-white flex-shrink-0" />
-      {principal.logo_url ? (
+      {principal.logo_url && (
         <div className="bg-white rounded px-1 py-0.5 flex items-center">
           <img
             src={principal.logo_url}
@@ -63,11 +63,10 @@ export default function MainSponsorBadge() {
             className="h-4 w-auto object-contain"
           />
         </div>
-      ) : (
-        <span className="text-white font-bold text-xs whitespace-nowrap">
-          {principal.nombre}
-        </span>
       )}
+      <span className="text-white font-bold text-[10px] uppercase tracking-wide whitespace-nowrap hidden sm:inline">
+        {principal.nombre}
+      </span>
     </Wrapper>
   );
 }
