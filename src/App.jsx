@@ -26,6 +26,7 @@ import SanIsidroAdmin from '@/pages/SanIsidroAdmin';
 import SanIsidroInscripcion from '@/pages/SanIsidroInscripcion';
 import ExternalLinks from '@/pages/ExternalLinks';
 import ReciboGenerator from '@/pages/ReciboGenerator';
+import SponsorSplash from '@/components/sponsors/SponsorSplash';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -103,6 +104,8 @@ const AuthenticatedApp = () => {
 
   // Render the main app
   return (
+    <>
+    <SponsorSplash />
     <Routes>
       <Route path="/" element={
         <LayoutWrapper currentPageName={mainPageKey}>
@@ -132,6 +135,7 @@ const AuthenticatedApp = () => {
       <Route path="/ReciboGenerator" element={<LayoutWrapper currentPageName="ReciboGenerator"><ReciboGenerator /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
+    </>
   );
 };
 
