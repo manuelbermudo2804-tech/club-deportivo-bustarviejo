@@ -100,10 +100,12 @@ export default function ReciboPreview({ numero, fecha, recibiDe, cantidad, conce
         <div className="flex items-end justify-between">
           <div className="text-center relative">
             {firmaUrl && (
-              <img src={firmaUrl} alt="firma" className="absolute -top-10 left-1/2 -translate-x-1/2 h-14 object-contain" crossOrigin="anonymous" />
+              <img src={firmaUrl} alt="firma" className="absolute -top-12 left-1/2 -translate-x-1/2 h-16 object-contain" crossOrigin="anonymous" />
             )}
-            <div className="w-40 border-t border-slate-400 pt-1">
-              <p className="text-[10px] text-slate-500">Firma y sello del club</p>
+            <div className="w-48 border-t border-slate-400 pt-1.5">
+              <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">El Presidente</p>
+              <p className="text-[11px] font-bold text-slate-800 mt-0.5">Manuel Bermudo Santacruz</p>
+              <p className="text-[9px] text-slate-500 italic">DNI: 51404895X</p>
             </div>
           </div>
           {selloUrl && (

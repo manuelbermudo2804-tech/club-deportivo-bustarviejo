@@ -141,19 +141,33 @@ export async function buildReciboPDF({ numero, fecha, recibiDe, cantidad, concep
     const firmaData = await loadImageAsDataUrl(firmaUrl);
     if (firmaData) {
       try {
-        doc.addImage(firmaData, "PNG", marginX + 10, y - 18, 50, 18);
+        doc.addImage(firmaData, "PNG", marginX + 10, y - 20, 50, 20);
       } catch {
-        try { doc.addImage(firmaData, "JPEG", marginX + 10, y - 18, 50, 18); } catch {}
+        try { doc.addImage(firmaData, "JPEG", marginX + 10, y - 20, 50, 20); } catch {}
       }
     }
   }
 
+  // Línea de firma
   doc.setDrawColor(148, 163, 184);
   doc.setLineWidth(0.3);
-  doc.line(marginX, y, marginX + 70, y);
-  doc.setFontSize(9);
+  doc.line(marginX, y, marginX + 75, y);
+
+  // Datos del firmante
+  doc.setFont("times", "normal");
+  doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
-  doc.text("Firma y sello del club", marginX + 35, y + 5, { align: "center" });
+  doc.text("EL PRESIDENTE", marginX + 37.5, y + 4, { align: "center" });
+
+  doc.setFont("times", "bold");
+  doc.setFontSize(10);
+  doc.setTextColor(15, 23, 42);
+  doc.text("Manuel Bermudo Santacruz", marginX + 37.5, y + 9, { align: "center" });
+
+  doc.setFont("times", "italic");
+  doc.setFontSize(8);
+  doc.setTextColor(100, 116, 139);
+  doc.text("DNI: 51404895X", marginX + 37.5, y + 13, { align: "center" });
 
   // Sello
   if (selloUrl) {
