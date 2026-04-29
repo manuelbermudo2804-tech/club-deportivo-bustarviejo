@@ -51,8 +51,9 @@ Deno.serve(async (req) => {
       });
       const principal = sponsors && sponsors.length > 0 ? sponsors[0] : null;
 
-      // Si el HTML ya incluye un bloque de Patrocinador Principal, no duplicarlo
-      const alreadyHasSponsorBlock = /Patrocinador Principal/i.test(finalHtml);
+      // Si el HTML ya incluye el logo del patrocinador, no duplicar el bloque
+      const sponsorLogoUrl = sponsors?.[0]?.logo_url || '';
+      const alreadyHasSponsorBlock = sponsorLogoUrl && finalHtml.includes(sponsorLogoUrl);
 
       if (principal && principal.logo_url && !alreadyHasSponsorBlock) {
         const sponsorLink = principal.website_url || 'https://www.cdbustarviejo.com';
