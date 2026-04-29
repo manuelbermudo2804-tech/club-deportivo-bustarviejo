@@ -37,9 +37,7 @@ import { useUnifiedNotifications } from "./components/notifications/useUnifiedNo
 import { ChatUnreadProvider } from "./components/chat/ChatUnreadProvider";
 import ChatCountsBridge from "./components/chat/ChatCountsBridge";
 import { SeasonProvider } from "./components/season/SeasonProvider";
-import ExtraChargePayModal from "./components/charges/ExtraChargePayModal";
 import ActiveBanner from "./components/announcements/ActiveBanner";
-import ExtraChargeBanner from "./components/charges/ExtraChargeBanner";
 import AutoPushSubscriber from "./components/notifications/AutoPushSubscriber";
 import PushPermissionBanner from "./components/notifications/PushPermissionBanner";
 import SponsorRecruitBanner from "./components/sponsors/SponsorRecruitBanner";
@@ -107,7 +105,7 @@ export default function Layout({ children, currentPageName }) {
   const {
     user, isAdmin, isCoach, isCoordinator, isTreasurer, isJunta, isPlayer, isMinor, minorPlayerData,
     hasPlayers, playerName, isLoading, showSpecialScreen, activeSeasonConfig, isMemberPaid,
-    loteriaVisible, sponsorBannerVisible, extraChargeVisible, onlyComplementary, authChecked, isPublicPageRef,
+    loteriaVisible, sponsorBannerVisible, onlyComplementary, authChecked, isPublicPageRef,
     executeFetch
   } = useFetchUser(location);
   const clothingStoreUrl = activeSeasonConfig?.tienda_ropa_url || null;
@@ -177,7 +175,6 @@ export default function Layout({ children, currentPageName }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [currentLang, setCurrentLang] = useState('es');
   const [showMemberCard, setShowMemberCard] = useState(false);
-  const [extraChargeModalOpen, setExtraChargeModalOpen] = useState(false);
   const [memberCardActive, setMemberCardActive] = useState(false);
   const programaSociosActivo = activeSeasonConfig?.programa_socios_activo || false;
   const [showInstallInstructions, setShowInstallInstructions] = useState(false);
@@ -641,9 +638,6 @@ export default function Layout({ children, currentPageName }) {
 
         <ActiveBanner position="top" user={user} />
 
-          {extraChargeVisible && (
-            <ExtraChargeBanner charge={extraChargeVisible} onOpen={() => setExtraChargeModalOpen(true)} />
-          )}
           <PullToRefresh>
             <ErrorBoundary label="la página actual" onReset={() => window.location.reload()}>
               <div className="page-transition-wrapper">
@@ -654,54 +648,6 @@ export default function Layout({ children, currentPageName }) {
           <SponsorRecruitBanner user={user} />
           <ActiveBanner position="bottom" user={user} />
 
-          <ExtraChargePayModal
-            open={extraChargeModalOpen}
-            charge={extraChargeVisible}
-            onClose={() => setExtraChargeModalOpen(false)}
-            onPayCard={async (selection) => {
-              // Crear registro y mandar a Stripe
-              try {
-                const chosen = (selection || []).filter(s => Number(s.cantidad) > 0);
-                const total = chosen.reduce((sum, s) => {
-                  const def = extraChargeVisible.items.find(i => i.nombre === s.nombre);
-                  return sum + (Number(s.cantidad)||0) * Number(def?.precio||0);
-                }, 0);
-                if (window.top !== window.self) { alert('Por seguridad, el pago con tarjeta solo funciona en la app publicada.'); return; }
-                const lineItems = chosen.map((s) => {
-                  const def = extraChargeVisible.items.find(i => i.nombre === s.nombre);
-                  return {
-                    price_data: { currency: 'eur', product_data: { name: `${extraChargeVisible.titulo} - ${s.nombre}` }, unit_amount: Math.round(Number(def?.precio||0) * 100) },
-                    quantity: Number(s.cantidad||0)
-                  };
-                });
-                // Serializar selección para que el webhook pueda crear el ExtraChargePayment
-                const seleccionParaWebhook = chosen.map(s => {
-                  const def = extraChargeVisible.items.find(i => i.nombre === s.nombre);
-                  return { item_nombre: s.nombre, cantidad: Number(s.cantidad||0), precio_unitario: Number(def?.precio||0) };
-                });
-                const baseUrl = window.location.href.split('#')[0].split('?')[0];
-                const successUrl = `${baseUrl}?payment=ok&type=extra_charge&extra_charge_id=${encodeURIComponent(extraChargeVisible.id)}&session_id={CHECKOUT_SESSION_ID}`;
-                const cancelUrl = baseUrl;
-                const { data } = await base44.functions.invoke('stripeCheckout', {
-                  lineItems,
-                  successUrl,
-                  cancelUrl,
-                  metadata: { 
-                    tipo: 'extra_charge', 
-                    extra_charge_id: extraChargeVisible.id,
-                    titulo: extraChargeVisible.titulo,
-                    seleccion: JSON.stringify(seleccionParaWebhook)
-                  }
-                });
-                if (data?.url) window.location.href = data.url;
-              } catch (e) { console.error('ExtraCharge Stripe error', e); }
-            }}
-            onChooseTransfer={async (selection) => {
-              // Registrar transferencia + pedir justificante tras subir (familia usará ParentPayments formulario)
-              setExtraChargeModalOpen(false);
-              alert('Para transferencias: sube el justificante desde Mis Pagos. Añadiremos el detalle al panel de tesorería.');
-            }}
-          />
           {showPaymentSuccess && <PaymentSuccessOverlay />}
 
           {/* Modal de felicitación de cumpleaños */}

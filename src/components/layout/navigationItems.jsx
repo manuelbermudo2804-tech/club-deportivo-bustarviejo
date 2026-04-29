@@ -36,7 +36,6 @@ export function buildAdminNavigation(ctx) {
     { title: "─ FINANZAS ─", section: true },
     { title: "💳 Pagos", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerFinancialPanel"), icon: BarChart3 },
-    { title: "💸 Cobros Extra", url: createPageUrl("ExtraCharges"), icon: CreditCard },
     { title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
 
@@ -301,7 +300,6 @@ export function buildTreasurerNavigation(ctx) {
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "💳 Pagos Club", url: createPageUrl("Payments"), icon: CreditCard },
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerFinancialPanel"), icon: BarChart3 },
-    { title: "💸 Cobros Extra", url: createPageUrl("ExtraCharges"), icon: CreditCard },
     { title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
     { title: "🛍️ Tienda", url: createPageUrl("Tienda"), icon: ShoppingBag },

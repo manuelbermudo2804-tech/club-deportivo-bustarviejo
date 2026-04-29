@@ -16,7 +16,6 @@ export const ALL_ADMIN_BUTTONS = [
   // --- FINANZAS ---
   { id: "pagos", title: "💳 Pagos", icon: CreditCard, url: createPageUrl("Payments"), gradient: "from-green-600 to-green-700", priority: 7 },
   { id: "financiero", title: "📊 Panel Financiero", icon: TrendingUp, url: createPageUrl("TreasurerFinancialPanel"), gradient: "from-emerald-600 to-emerald-700", priority: 8 },
-  { id: "cobros_extra", title: "💸 Cobros Extra", icon: CreditCard, url: createPageUrl("ExtraCharges"), gradient: "from-red-600 to-red-700", priority: 9 },
   { id: "recordatorios", title: "🔔 Recordatorios", icon: Bell, url: createPageUrl("PaymentReminders"), gradient: "from-red-600 to-orange-700", priority: 10 },
   { id: "historico", title: "📁 Histórico", icon: Archive, url: createPageUrl("PaymentHistory"), gradient: "from-slate-600 to-slate-700", priority: 11 },
 

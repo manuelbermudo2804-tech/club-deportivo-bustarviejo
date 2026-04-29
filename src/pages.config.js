@@ -91,8 +91,7 @@ import DocumentManagement from './pages/DocumentManagement';
 import EmailTemplates from './pages/EmailTemplates';
 import EventManagement from './pages/EventManagement';
 import ExerciseLibrary from './pages/ExerciseLibrary';
-import ExtraCharges from './pages/ExtraCharges';
-import ExtraPayments from './pages/ExtraPayments';
+
 import FamilyChats from './pages/FamilyChats';
 import FamilyChatsHub from './pages/FamilyChatsHub';
 import FamilyGuide from './pages/FamilyGuide';
@@ -130,7 +129,6 @@ import ParentDashboard from './pages/ParentDashboard';
 import ParentDirectMessages from './pages/ParentDirectMessages';
 import ParentDocuments from './pages/ParentDocuments';
 import ParentEventRSVP from './pages/ParentEventRSVP';
-import ParentExtraPayments from './pages/ParentExtraPayments';
 import ParentGallery from './pages/ParentGallery';
 import ParentLottery from './pages/ParentLottery';
 import ParentOrders from './pages/ParentOrders';
@@ -219,8 +217,6 @@ export const PAGES = {
     "EmailTemplates": EmailTemplates,
     "EventManagement": EventManagement,
     "ExerciseLibrary": ExerciseLibrary,
-    "ExtraCharges": ExtraCharges,
-    "ExtraPayments": ExtraPayments,
     "FamilyChats": FamilyChats,
     "FamilyChatsHub": FamilyChatsHub,
     "FamilyGuide": FamilyGuide,
@@ -258,7 +254,6 @@ export const PAGES = {
     "ParentDirectMessages": ParentDirectMessages,
     "ParentDocuments": ParentDocuments,
     "ParentEventRSVP": ParentEventRSVP,
-    "ParentExtraPayments": ParentExtraPayments,
     "ParentGallery": ParentGallery,
     "ParentLottery": ParentLottery,
     "ParentOrders": ParentOrders,

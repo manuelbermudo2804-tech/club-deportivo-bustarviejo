@@ -20,7 +20,6 @@ export function useFetchUser(location) {
   const [isMemberPaid, setIsMemberPaid] = useState(false);
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
-  const [extraChargeVisible, setExtraChargeVisible] = useState(null);
   const [onlyComplementary, setOnlyComplementary] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const fetchUserOnceRef = useRef(false);
@@ -265,72 +264,6 @@ export function useFetchUser(location) {
         setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
         setIsMemberPaid(membersList.length > 0);
 
-        // Cargar cobros extra (usa allMyPlayers en vez de re-consultar)
-        if (currentUser?.email) {
-          try {
-            const charges = await base44.entities.ExtraCharge.filter({ publicado: true, estado: 'activo' });
-            const myPlayersActive = allMyPlayers.filter(p => p.activo !== false);
-
-            const isCoachVal = currentUser.es_entrenador === true;
-            const isCoordinatorVal = currentUser.es_coordinador === true;
-            const isTreasurerVal = currentUser.es_tesorero === true;
-            const isAdminUser = currentUser.role === 'admin';
-
-            const categoryNames = new Set([
-              ...myPlayersActive.map(p => p.categoria_principal).filter(Boolean),
-              ...myPlayersActive.flatMap(p => p.categorias || [])
-            ]);
-            const playerIdSet = new Set(myPlayersActive.map(p => p.id));
-
-            const matchesUser = (charge) => {
-              const dests = charge.destinatarios || [];
-              if (dests.length === 0) return true;
-              if (dests.some(d => d.tipo === 'categoria' && categoryNames.has(d.valor))) return true;
-              if (dests.some(d => d.tipo === 'jugador' && playerIdSet.has(d.valor))) return true;
-              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:entrenadores') && isCoachVal) return true;
-              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:coordinadores') && isCoordinatorVal) return true;
-              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:tesoreria') && isTreasurerVal) return true;
-              if (dests.some(d => d.tipo === 'equipo' && d.valor === 'staff:admins') && isAdminUser) return true;
-              return false;
-            };
-
-            const suppressed = (() => { try { return JSON.parse(localStorage.getItem('extraChargeSuppress') || '[]'); } catch { return []; } })();
-            const candidates = (charges || []).filter(matchesUser).filter(c => !suppressed.includes(c.id));
-            
-            if (candidates.length > 0) {
-              const [ecpPagado, ecpRevision] = await Promise.all([
-                base44.entities.ExtraChargePayment.filter({ usuario_email: currentUser.email, estado: 'Pagado' }).catch(() => []),
-                base44.entities.ExtraChargePayment.filter({ usuario_email: currentUser.email, estado: 'En revisión' }).catch(() => []),
-              ]);
-              const myPayments = [...ecpPagado, ...ecpRevision];
-              let visibleCharge = null;
-              for (const c of candidates) {
-                try {
-                  const requiredSum = (c.items || [])
-                    .filter(i => i.obligatorio)
-                    .reduce((sum, i) => sum + Number(i.precio || 0) * 1, 0);
-                  const paymentsForCharge = myPayments.filter(p => p.extra_charge_id === c.id);
-                  let hasPaidRequired = false;
-                  for (const p of paymentsForCharge) {
-                    const sel = p.seleccion || [];
-                    const mandatoryNames = new Set((c.items || []).filter(i => i.obligatorio).map(i => i.nombre));
-                    const paidMandatorySum = sel
-                      .filter(s => mandatoryNames.has(s.item_nombre))
-                      .reduce((sum, s) => sum + Number(s.cantidad || 0) * Number(s.precio_unitario || 0), 0);
-                    if ((requiredSum > 0 && paidMandatorySum >= requiredSum) || (requiredSum === 0 && Number(p.total || 0) > 0)) {
-                      hasPaidRequired = true;
-                      break;
-                    }
-                  }
-                  if (!hasPaidRequired) { visibleCharge = c; break; }
-                } catch (e) {
-                  visibleCharge = c; break;
-                }
-              }
-              setExtraChargeVisible(visibleCharge);
-            }
-          } catch {}
-        }
       } catch (error) {}
 
       // Detectar si SOLO tiene actividades complementarias (no competitivas)
@@ -399,7 +332,7 @@ export function useFetchUser(location) {
   return {
     user, isAdmin, isCoach, isCoordinator, isTreasurer, isJunta, isPlayer, isMinor, minorPlayerData,
     hasPlayers, playerName, isLoading, showSpecialScreen, activeSeasonConfig, isMemberPaid,
-    loteriaVisible, sponsorBannerVisible, extraChargeVisible, onlyComplementary, authChecked, isPublicPageRef,
+    loteriaVisible, sponsorBannerVisible, onlyComplementary, authChecked, isPublicPageRef,
     executeFetch
   };
 }

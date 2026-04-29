@@ -8,7 +8,6 @@ export const ALL_TREASURER_BUTTONS = [
   // --- Sección Tesorero ---
   { id: "panel_financiero", title: "💰 Panel Financiero", url: createPageUrl("TreasurerFinancialPanel"), icon: BarChart3, gradient: "from-purple-600 to-indigo-700", priority: 1, section: "treasurer" },
   { id: "pagos_club", title: "💳 Pagos del Club", url: createPageUrl("Payments"), icon: CreditCard, gradient: "from-green-600 to-green-700", priority: 2, section: "treasurer" },
-  { id: "cobros_extra", title: "💸 Cobros Extra", url: createPageUrl("ExtraCharges"), icon: CreditCard, gradient: "from-red-600 to-red-700", priority: 3, section: "treasurer" },
   { id: "recordatorios", title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell, gradient: "from-red-600 to-orange-700", priority: 4, section: "treasurer" },
   { id: "historico", title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive, gradient: "from-slate-600 to-slate-700", priority: 5, section: "treasurer" },
   { id: "socios", title: "🎫 Socios", url: createPageUrl("ClubMembersManagement"), icon: Users, gradient: "from-pink-600 to-pink-700", priority: 6, section: "treasurer" },
@@ -39,7 +38,6 @@ export const ALL_TREASURER_BUTTONS = [
 export const DEFAULT_TREASURER_BUTTONS = [
   "panel_financiero",
   "pagos_club",
-  "cobros_extra",
   "recordatorios",
   "historico",
   "socios",
