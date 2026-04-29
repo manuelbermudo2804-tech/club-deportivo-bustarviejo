@@ -402,11 +402,25 @@ export default function PlayerDashboard() {
   }
 
   if (!player && allowCreatePrompt) {
-
+    // Formulario en pantalla completa fija (funciona bien en móvil sobre el bottom bar)
     if (showCreateProfile && !showPaymentFlow) {
       return (
-        <div className="p-2 lg:p-6">
-          <div className="max-w-5xl mx-auto">
+        <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto" style={{ paddingBottom: '100px' }}>
+          <div className="sticky top-0 z-10 bg-orange-600 text-white px-4 py-3 shadow-md flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              <h2 className="font-bold">Completa tu Perfil</h2>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/20"
+              onClick={() => window.location.href = createPageUrl('Home')}
+            >
+              Salir
+            </Button>
+          </div>
+          <div className="p-3 lg:p-6 max-w-5xl mx-auto">
             <PlayerForm
               player={null}
               onSubmit={(playerData) => {
