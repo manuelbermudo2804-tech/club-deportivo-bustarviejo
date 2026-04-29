@@ -762,25 +762,25 @@ export default function ClubMembership() {
           
           {/* Stats de referidos del usuario - Solo para padres con hijos */}
           {currentUser && myPlayers.length > 0 && seasonConfig?.programa_referidos_activo && (
-            <div className="border-t border-slate-200 pt-4 mt-2">
-              <p className="text-center text-sm font-semibold text-slate-700 mb-3">Tu Programa "Trae un Socio Amigo"</p>
+            <div className="border-t border-white/30 pt-4 mt-4">
+              <p className="text-center text-sm font-semibold text-white mb-3">🎁 Tu Programa "Trae un Socio Amigo"</p>
               <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
-                  <p className="text-2xl font-bold text-slate-900">{currentUser.referrals_count || 0}</p>
-                  <p className="text-xs text-slate-600">Amigos referidos</p>
+                <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                  <p className="text-2xl font-bold text-white">{currentUser.referrals_count || 0}</p>
+                  <p className="text-xs text-white/80">Amigos referidos</p>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
-                  <p className="text-2xl font-bold text-orange-600">{currentUser.clothing_credit_balance || 0}€</p>
-                  <p className="text-xs text-slate-600">Crédito en ropa</p>
+                <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                  <p className="text-2xl font-bold text-white">{currentUser.clothing_credit_balance || 0}€</p>
+                  <p className="text-xs text-white/80">Crédito en ropa</p>
                 </div>
-                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
-                  <p className="text-2xl font-bold text-orange-600">{currentUser.raffle_entries_total || 0}</p>
-                  <p className="text-xs text-slate-600">Participaciones</p>
+                <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3 border border-white/20">
+                  <p className="text-2xl font-bold text-white">{currentUser.raffle_entries_total || 0}</p>
+                  <p className="text-xs text-white/80">Participaciones</p>
                 </div>
               </div>
               {(currentUser.referrals_count || 0) > 0 && (
-                <p className="text-center text-xs text-slate-600 mt-2 font-medium">
-                  Gracias por traer amigos al club
+                <p className="text-center text-xs text-white/90 mt-3 font-medium">
+                  ¡Gracias por hacer crecer al club! 💪
                 </p>
               )}
             </div>
@@ -839,32 +839,34 @@ export default function ClubMembership() {
 
       {/* Estado actual si ya es socio */}
       {currentSeasonMembership ? (
-        <Card className="border border-orange-200 bg-orange-50 shadow-sm">
-          <CardContent className="pt-6">
+        <Card className="border-none shadow-lg overflow-hidden relative bg-gradient-to-br from-orange-600 via-orange-500 to-amber-500 text-white">
+          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
+          <CardContent className="pt-6 relative">
             <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-600 flex items-center justify-center">
-                <CheckCircle2 className="w-6 h-6 text-white" />
+              <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                <Sparkles className="w-7 h-7 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-slate-900 text-lg">
-                  Ya eres socio
+                <h3 className="font-bold text-white text-xl flex items-center gap-2">
+                  ¡Ya eres socio!
                 </h3>
-                <p className="text-slate-700 text-sm mt-1">
-                  Temporada {currentSeasonMembership.temporada}
+                <p className="text-white/90 text-sm mt-1">
+                  Gracias por apoyar al club · Temporada {currentSeasonMembership.temporada}
                 </p>
                 <div className="mt-3">
-                  <Badge className={`text-sm ${
-                    currentSeasonMembership.estado_pago === "Pagado" ? "bg-orange-600" :
-                    currentSeasonMembership.estado_pago === "En revisión" ? "bg-amber-500" : "bg-slate-500"
+                  <Badge className={`text-sm border-none ${
+                    currentSeasonMembership.estado_pago === "Pagado" ? "bg-white text-orange-700" :
+                    currentSeasonMembership.estado_pago === "En revisión" ? "bg-amber-100 text-amber-800" : "bg-white/90 text-slate-700"
                   }`}>
-                    {currentSeasonMembership.estado_pago === "Pagado" ? "Pagado" :
+                    {currentSeasonMembership.estado_pago === "Pagado" ? "✓ Pagado" :
                      currentSeasonMembership.estado_pago === "En revisión" ? "En revisión" : "Pendiente de pago"}
                   </Badge>
                 </div>
                 {currentSeasonMembership.estado_pago === "Pendiente" && (
-                  <Alert className="mt-4 bg-white border-slate-200">
-                    <AlertCircle className="w-4 h-4 text-orange-600" />
-                    <AlertDescription className="text-slate-700">
+                  <Alert className="mt-4 bg-white/15 backdrop-blur-sm border-white/30">
+                    <AlertCircle className="w-4 h-4 text-white" />
+                    <AlertDescription className="text-white">
                       Recuerda subir el justificante de pago para completar tu inscripción.
                     </AlertDescription>
                   </Alert>
