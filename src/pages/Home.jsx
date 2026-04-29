@@ -17,7 +17,7 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
-import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
+import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 
 
 export default function Home() {
@@ -636,6 +636,7 @@ export default function Home() {
                 IA
               </Button>
             </Link>
+            <MainSponsorBadge />
             <ShareFormButton />
           </div>
         </div>
@@ -657,9 +658,6 @@ export default function Home() {
         )}
 
 
-
-        {/* Banner del Patrocinador Principal — solo si existe uno activo */}
-        <MainSponsorBanner />
 
         {/* ÚNICO BANNER CONSOLIDADO DE ALERTAS - Incluye TODO */}
         {(isAdmin || hasPlayers) && (
@@ -745,7 +743,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Desktop: accesos rápidos inline (SocialLinks, IA, Compartir) */}
+        {/* Desktop: accesos rápidos inline (SocialLinks, IA, Patrocinador Principal, Compartir) */}
         {isAdmin && (
           <div className="hidden lg:flex items-center gap-2">
             <SocialLinks />
@@ -755,6 +753,7 @@ export default function Home() {
                 Asistente IA
               </Button>
             </Link>
+            <MainSponsorBadge />
             <ShareFormButton />
           </div>
         )}
