@@ -711,16 +711,15 @@ export default function ClubMembership() {
           </div>
         </div>
       )}
-      {/* Header festivo */}
+      {/* Header sobrio */}
       <div className="text-center space-y-2">
-        <div className="flex justify-center gap-2 text-4xl animate-bounce">
-          <span>🎉</span>
-          <span>⚽</span>
-          <span>🏀</span>
-          <span>🎉</span>
+        <div className="flex justify-center">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
+            <Heart className="w-7 h-7 text-white" />
+          </div>
         </div>
-        <h1 className="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-orange-600 via-green-600 to-orange-600 bg-clip-text text-transparent">
-          {isRenewal ? `¡Renueva tu Membresía!` : `¡Hazte Socio del CD Bustarviejo!`}
+        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">
+          {isRenewal ? `Renueva tu Membresía` : `Hazte Socio del CD Bustarviejo`}
         </h1>
         <p className="text-slate-600 text-sm lg:text-base">
           {isRenewal 
@@ -731,18 +730,18 @@ export default function ClubMembership() {
 
       {/* Banner de renovación */}
       {isRenewal && renewalMember && (
-        <Card className="border-2 border-green-400 bg-gradient-to-r from-green-50 to-green-100">
+        <Card className="border border-orange-200 bg-orange-50 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center">
-                <CheckCircle2 className="w-8 h-8 text-white" />
+              <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+                <CheckCircle2 className="w-6 h-6 text-orange-600" />
               </div>
               <div>
-                <h3 className="font-bold text-green-900 text-xl">
-                  🔄 Renovación de Membresía
+                <h3 className="font-bold text-slate-900 text-lg">
+                  Renovación de Membresía
                 </h3>
-                <p className="text-green-700">
-                  Tus datos ya están guardados. Solo revísalos, sube el justificante y ¡listo!
+                <p className="text-slate-700 text-sm">
+                  Tus datos ya están guardados. Solo revísalos, sube el justificante y listo.
                 </p>
               </div>
             </div>
@@ -751,15 +750,14 @@ export default function ClubMembership() {
       )}
 
       {/* Contador de socios + Stats del usuario */}
-      <div className="bg-gradient-to-r from-orange-500 via-green-500 to-orange-500 rounded-2xl p-1">
-        <div className="bg-white rounded-xl p-4">
+      <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-sm">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <Users className="w-8 h-8 text-orange-600" />
+            <Users className="w-7 h-7 text-orange-600" />
             <div className="text-center">
               <p className="text-3xl font-bold text-slate-900">{totalSocios}</p>
               <p className="text-sm text-slate-600">socios esta temporada</p>
             </div>
-            <Heart className="w-8 h-8 text-red-500 animate-pulse" />
+            <Heart className="w-7 h-7 text-orange-500" />
           </div>
           
           {/* Stats de referidos del usuario - Solo para padres con hijos */}
@@ -787,31 +785,28 @@ export default function ClubMembership() {
               )}
             </div>
           )}
-        </div>
       </div>
 
       {/* Beneficios de ser socio */}
-      <Card className="border-none shadow-xl bg-gradient-to-br from-green-50 to-orange-50 overflow-hidden relative">
-        <div className="absolute top-0 right-0 w-32 h-32 bg-orange-200 rounded-full -mr-16 -mt-16 opacity-50 pointer-events-none" style={{ pointerEvents: 'none' }}></div>
-        <div className="absolute bottom-0 left-0 w-24 h-24 bg-green-200 rounded-full -ml-12 -mb-12 opacity-50 pointer-events-none" style={{ pointerEvents: 'none' }}></div>
+      <Card className="border border-slate-200 shadow-sm bg-white">
         <CardHeader className="relative">
           <CardTitle className="flex items-center gap-2 text-xl">
-            <Star className="w-6 h-6 text-yellow-500" />
+            <Star className="w-6 h-6 text-orange-500" />
             ¿Por qué ser socio?
           </CardTitle>
         </CardHeader>
         <CardContent className="relative space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="flex items-start gap-3 bg-white rounded-xl p-3 shadow-sm">
-              <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
-                <Heart className="w-5 h-5 text-green-600" />
+            <div className="flex items-start gap-3 bg-slate-50 rounded-xl p-3 border border-slate-100">
+              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <Heart className="w-5 h-5 text-orange-600" />
               </div>
               <div>
                 <p className="font-semibold text-slate-900">Apoyo esencial al club</p>
                 <p className="text-xs text-slate-600">Tu aportación es vital para el desarrollo de nuestros jóvenes deportistas</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 bg-white rounded-xl p-3 shadow-sm">
+            <div className="flex items-start gap-3 bg-slate-50 rounded-xl p-3 border border-slate-100">
               <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                 <Users className="w-5 h-5 text-orange-600" />
               </div>
@@ -820,18 +815,18 @@ export default function ClubMembership() {
                 <p className="text-xs text-slate-600">Únete a la gran familia del club y vive la pasión por el deporte en Bustarviejo</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 bg-white rounded-xl p-3 shadow-sm">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <PartyPopper className="w-5 h-5 text-blue-600" />
+            <div className="flex items-start gap-3 bg-slate-50 rounded-xl p-3 border border-slate-100">
+              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <PartyPopper className="w-5 h-5 text-orange-600" />
               </div>
               <div>
                 <p className="font-semibold text-slate-900">Eventos y momentos inolvidables</p>
                 <p className="text-xs text-slate-600">Participa en las actividades del club y comparte experiencias únicas</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 bg-white rounded-xl p-3 shadow-sm">
-              <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center flex-shrink-0">
-                <Sparkles className="w-5 h-5 text-purple-600" />
+            <div className="flex items-start gap-3 bg-slate-50 rounded-xl p-3 border border-slate-100">
+              <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <Sparkles className="w-5 h-5 text-orange-600" />
               </div>
               <div>
                 <p className="font-semibold text-slate-900">Compromiso con el deporte base</p>
@@ -935,10 +930,10 @@ export default function ClubMembership() {
               }
               setShowForm(true);
             }} 
-            className="w-full bg-gradient-to-r from-orange-600 to-green-600 hover:from-orange-700 hover:to-green-700 text-white font-bold py-8 text-xl rounded-2xl shadow-xl hover:shadow-2xl transition-all hover:scale-105"
+            className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-7 text-lg rounded-xl shadow-md transition-all"
           >
-            <UserPlus className="w-6 h-6 mr-3" />
-            ¡Quiero ser socio! 🎉
+            <UserPlus className="w-5 h-5 mr-2" />
+            Quiero ser socio
           </Button>
           <p className="text-center text-slate-500 text-sm">
             Puedes inscribir a cualquier persona: tú mismo, tu pareja, abuelos, tíos, amigos...
@@ -960,30 +955,24 @@ export default function ClubMembership() {
         />
       )}
 
-      {/* Invitar familiares y amigos - Visible para todos los usuarios logueados y SI el programa está activo */}
-      {/* Usamos activeSeasonConfig del contexto si existe, o el seasonConfig local */}
+      {/* Invitar familiares y amigos */}
       {user && (seasonConfig?.programa_referidos_activo) && (
-        <Card className="border-none shadow-xl bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 text-white overflow-hidden relative">
-          <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 pointer-events-none"></div>
-          <CardContent className="pt-6 relative">
+        <Card className="border border-slate-200 shadow-sm bg-white">
+          <CardContent className="pt-6">
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
-                <UserPlus className="w-8 h-8 text-white" />
+              <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                <UserPlus className="w-6 h-6 text-orange-600" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-2xl mb-2">
-                  ¡Invita a familiares y amigos! 👨‍👩‍👧‍👦
+                <h3 className="font-bold text-lg mb-1 text-slate-900">
+                  Invita a familiares y amigos
                 </h3>
-                <p className="text-white/90 text-sm mb-4">
-                  ¿Abuelos, tíos, padrinos, amigos de la familia? ¡Todos pueden ser socios y apoyar a nuestros deportistas! 
-                  Cada nuevo socio es un granito de arena que ayuda a que el club siga creciendo.
+                <p className="text-slate-600 text-sm mb-3">
+                  Abuelos, tíos, padrinos, amigos... Todos pueden ser socios y apoyar al club. Cada nuevo socio suma.
                 </p>
-                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-4">
-                  <p className="text-white font-semibold text-center">
-                    Solo <span className="text-3xl font-bold">{seasonConfig?.precio_socio || CUOTA_SOCIO}€</span> /temporada
-                  </p>
-                  <p className="text-white/80 text-xs text-center mt-1">
-                    ¡Un pequeño gesto con un gran impacto! 💪
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                  <p className="text-slate-900 font-semibold text-center">
+                    Solo <span className="text-2xl font-bold text-orange-600">{seasonConfig?.precio_socio || CUOTA_SOCIO}€</span> /temporada
                   </p>
                 </div>
               </div>
