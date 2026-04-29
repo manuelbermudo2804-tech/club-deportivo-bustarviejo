@@ -172,26 +172,26 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
   const programaActivo = seasonConfig?.programa_referidos_activo;
 
   return (
-    <Card className={`border-none shadow-xl text-white overflow-hidden relative ${
+    <Card className={`border-none shadow-lg text-white overflow-hidden relative ${
       programaActivo
         ? "bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500"
-        : "bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700"
+        : "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900"
     }`}>
-      <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 animate-pulse"></div>
-      <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
+      <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>
+      <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>
       {programaActivo && <div className="absolute top-1/2 right-10 text-6xl opacity-20 animate-bounce">🎉</div>}
 
       <CardHeader className="relative pb-2">
         <div className="flex items-center gap-3">
-          <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            {programaActivo ? <PartyPopper className="w-8 h-8 text-white" /> : <Heart className="w-8 h-8 text-white" />}
+          <div className={`w-12 h-12 rounded-xl backdrop-blur-sm flex items-center justify-center ${programaActivo ? 'bg-white/20' : 'bg-orange-500/20 border border-orange-400/30'}`}>
+            {programaActivo ? <PartyPopper className="w-7 h-7 text-white" /> : <Heart className="w-6 h-6 text-orange-300" />}
           </div>
           <div>
-            <CardTitle className="text-2xl font-bold flex items-center gap-2">
-              {programaActivo ? "¡TRAE UN SOCIO AMIGO!" : "HAZ CRECER TU CLUB"}
-              <Sparkles className="w-6 h-6 text-yellow-300 animate-pulse" />
+            <CardTitle className="text-xl font-bold flex items-center gap-2">
+              {programaActivo ? "¡TRAE UN SOCIO AMIGO!" : "Haz crecer tu club"}
+              {programaActivo && <Sparkles className="w-6 h-6 text-yellow-300 animate-pulse" />}
             </CardTitle>
-            <p className="text-white/90 text-sm">
+            <p className="text-white/80 text-sm">
               {programaActivo
                 ? "Invita amigos y familiares, ¡y gana premios!"
                 : "Cada socio suma. Cada amigo que traes hace al club más fuerte."}
@@ -207,23 +207,23 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
             <p className="text-sm text-white/90">Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!</p>
           </div>
         ) : (
-          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
+          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-4 border border-white/10">
             <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="bg-white/15 rounded-xl p-2">
-                <div className="text-2xl mb-1">💪</div>
-                <p className="text-xs font-semibold leading-tight">Más fuerza<br/>al club</p>
+              <div className="bg-white/5 rounded-lg p-2 border border-white/10">
+                <div className="text-xl mb-1">💪</div>
+                <p className="text-[11px] text-white/85 leading-tight">Más fuerza<br/>al club</p>
               </div>
-              <div className="bg-white/15 rounded-xl p-2">
-                <div className="text-2xl mb-1">⚽</div>
-                <p className="text-xs font-semibold leading-tight">Más medios<br/>para los equipos</p>
+              <div className="bg-white/5 rounded-lg p-2 border border-white/10">
+                <div className="text-xl mb-1">⚽</div>
+                <p className="text-[11px] text-white/85 leading-tight">Más medios<br/>para los equipos</p>
               </div>
-              <div className="bg-white/15 rounded-xl p-2">
-                <div className="text-2xl mb-1">🏡</div>
-                <p className="text-xs font-semibold leading-tight">Más ambiente<br/>en el pueblo</p>
+              <div className="bg-white/5 rounded-lg p-2 border border-white/10">
+                <div className="text-xl mb-1">🏡</div>
+                <p className="text-[11px] text-white/85 leading-tight">Más ambiente<br/>en el pueblo</p>
               </div>
             </div>
-            <p className="text-center text-sm text-white/95 mt-3 font-medium">
-              Comparte el alta de socio con quien creas que pueda sumar. ¡Es gratis y suma muchísimo!
+            <p className="text-center text-sm text-white/80 mt-3">
+              Comparte el alta de socio con quien creas que pueda sumar.
             </p>
           </div>
         )}
