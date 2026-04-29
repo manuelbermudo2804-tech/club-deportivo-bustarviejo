@@ -815,27 +815,47 @@ export default function SeasonManagement() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">⚙️ Gestión de Temporadas y Categorías</h1>
-          <p className="text-slate-600 mt-1">Configuración de temporadas y características del club</p>
+    <div className="p-4 lg:p-6 space-y-6 max-w-6xl mx-auto">
+      {/* Header con gradiente */}
+      <div className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 rounded-2xl p-5 lg:p-7 text-white shadow-xl">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+            <Settings className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight">Gestión de Temporadas</h1>
+            <p className="text-slate-300 mt-1 text-sm">Configuración de temporadas, categorías y características del club</p>
+          </div>
         </div>
       </div>
 
       {/* Aviso si no hay temporada activa */}
       {!activeSeason && (
-        <Card className="border-2 border-amber-300 bg-amber-50">
-          <CardContent className="py-5 flex items-center justify-between gap-4">
-            <div>
-              <p className="font-semibold text-amber-900">No hay temporada activa</p>
-              <p className="text-sm text-amber-800">Crea una temporada activa para poder activar renovaciones y configurar cuotas.</p>
+        <Card className="border-2 border-amber-300 bg-gradient-to-r from-amber-50 to-yellow-50 shadow-md">
+          <CardContent className="py-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center flex-shrink-0">
+                <AlertTriangle className="w-5 h-5 text-amber-700" />
+              </div>
+              <div>
+                <p className="font-semibold text-amber-900">No hay temporada activa</p>
+                <p className="text-sm text-amber-800">Crea una temporada activa para poder activar renovaciones y configurar cuotas.</p>
+              </div>
             </div>
-            <Button onClick={createActiveSeasonQuickly} className="bg-amber-600 hover:bg-amber-700">
+            <Button onClick={createActiveSeasonQuickly} className="bg-amber-600 hover:bg-amber-700 shadow-md flex-shrink-0">
               Crear temporada activa
             </Button>
           </CardContent>
         </Card>
+      )}
+
+      {/* ─── BLOQUE 1: ESTADO ACTUAL ─────────────────────── */}
+      {activeSeason && (
+        <div className="flex items-center gap-3 pt-2">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent to-slate-300" />
+          <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Estado Actual</span>
+          <div className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-300" />
+        </div>
       )}
 
       {/* Temporada Activa */}
@@ -896,6 +916,13 @@ export default function SeasonManagement() {
         </Card>
       )}
 
+      {/* ─── BLOQUE 2: CONFIGURACIÓN ─────────────────────── */}
+      <div className="flex items-center gap-3 pt-2">
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent to-slate-300" />
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Configuración</span>
+        <div className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-300" />
+      </div>
+
       {/* Sección: Control de Características */}
       <FeatureControlSection
         activeSeason={activeSeason}
@@ -904,9 +931,6 @@ export default function SeasonManagement() {
         toggleFeature={toggleFeature}
         updateSeasonMutation={updateSeasonMutation}
       />
-
-      {/* Sección: Limpieza de Categorías DUPLICADAS */}
-      <CategoryCleanupTool />
 
       {/* Sección: Programa de Referidos */}
       {activeSeason && (
@@ -917,7 +941,15 @@ export default function SeasonManagement() {
         />
       )}
 
+      {/* ─── BLOQUE 3: MANTENIMIENTO ─────────────────────── */}
+      <div className="flex items-center gap-3 pt-2">
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent to-slate-300" />
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Mantenimiento</span>
+        <div className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-300" />
+      </div>
 
+      {/* Sección: Limpieza de Categorías DUPLICADAS */}
+      <CategoryCleanupTool />
 
       {/* Sección: Backup y Restauración */}
       <Card>
@@ -1029,6 +1061,15 @@ export default function SeasonManagement() {
         )}
       </Card>
 
+      {/* ─── BLOQUE 4: ZONA PELIGROSA ─────────────────────── */}
+      {isAdmin && (
+        <div className="flex items-center gap-3 pt-2">
+          <div className="h-px flex-1 bg-gradient-to-r from-transparent to-red-300" />
+          <span className="text-xs font-bold uppercase tracking-wider text-red-600">⚠️ Zona Peligrosa</span>
+          <div className="h-px flex-1 bg-gradient-to-l from-transparent to-red-300" />
+        </div>
+      )}
+
       {/* Sección: Reset de Temporada */}
       {isAdmin && (
         <Card className="border-2 border-red-200">
@@ -1120,6 +1161,13 @@ export default function SeasonManagement() {
           )}
         </Card>
       )}
+
+      {/* ─── BLOQUE 5: HISTÓRICO ─────────────────────── */}
+      <div className="flex items-center gap-3 pt-2">
+        <div className="h-px flex-1 bg-gradient-to-r from-transparent to-slate-300" />
+        <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Histórico</span>
+        <div className="h-px flex-1 bg-gradient-to-l from-transparent to-slate-300" />
+      </div>
 
       {/* Sección: Historial de Resets */}
       <Card>
