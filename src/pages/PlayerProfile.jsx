@@ -229,39 +229,17 @@ export default function PlayerProfile() {
   }
 
   if (!player) {
-    // Mismo CTA que se muestra en el dashboard del jugador para evitar confusión
+    // Sin ficha → redirigir directamente al dashboard que abrirá el wizard automáticamente
+    // Evita pantallas intermedias confusas
+    if (typeof window !== 'undefined') {
+      window.location.replace('/PlayerDashboard?registro=1');
+    }
     return (
-      <div className="max-w-2xl mx-auto p-4 md:p-6">
-        <Card className="border-0 shadow-xl">
-          <CardContent className="p-8 text-center space-y-5">
-            <div className="w-20 h-20 mx-auto bg-orange-100 rounded-full flex items-center justify-center">
-              <UserCircle className="w-12 h-12 text-orange-600" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Completa tu Perfil de Jugador</h2>
-              <p className="text-slate-600">
-                Para acceder al panel de jugador, necesitas completar tu ficha de registro.
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 max-w-xs mx-auto">
-              <Link to="/PlayerDashboard">
-                <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold">
-                  Crear Mi Perfil
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-              <Link to="/">
-                <Button variant="outline" className="w-full">
-                  <Home className="w-4 h-4 mr-2" />
-                  Volver al inicio
-                </Button>
-              </Link>
-            </div>
-            <p className="text-xs text-slate-500 pt-2">
-              ¿Crees que ya tienes ficha? Asegúrate de haber entrado con el mismo email con el que te registraste.
-            </p>
-          </CardContent>
-        </Card>
+      <div className="min-h-[50vh] flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-3"></div>
+          <p className="text-slate-500 text-sm">Abriendo formulario de inscripción...</p>
+        </div>
       </div>
     );
   }
