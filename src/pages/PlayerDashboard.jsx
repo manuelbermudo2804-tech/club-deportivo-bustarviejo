@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import AchievementsBadges from "../components/dashboard/AchievementsBadges";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import PlayerForm from "../components/players/PlayerForm";
+import PlayerFormWizard from "../components/players/PlayerFormWizard";
 import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymentFlow";
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 import ContactCard from "../components/ContactCard";
@@ -89,11 +90,10 @@ export default function PlayerDashboard() {
   });
 
   // Mostrar "Crear perfil" solo cuando la query ya terminó y no encontró nada
+  // NO auto-abrir el formulario — mostrar dashboard con banner para evitar confusión
   useEffect(() => {
     if (playerFetched && !player) {
       setAllowCreatePrompt(true);
-      // Abrir el formulario automáticamente — sin pantalla intermedia confusa
-      setShowCreateProfile(true);
     } else {
       setAllowCreatePrompt(false);
     }
@@ -401,80 +401,51 @@ export default function PlayerDashboard() {
     );
   }
 
-  if (!player && allowCreatePrompt) {
-    // Formulario en pantalla completa fija (funciona bien en móvil sobre el bottom bar)
-    if (showCreateProfile && !showPaymentFlow) {
-      return (
-        <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto" style={{ paddingBottom: '100px' }}>
-          <div className="sticky top-0 z-10 bg-orange-600 text-white px-4 py-3 shadow-md flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <User className="w-5 h-5" />
-              <h2 className="font-bold">Completa tu Perfil</h2>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-white hover:bg-white/20"
-              onClick={() => window.location.href = createPageUrl('Home')}
-            >
-              Salir
-            </Button>
-          </div>
-          <div className="p-3 lg:p-6 max-w-5xl mx-auto">
-            <PlayerForm
-              player={null}
-              onSubmit={(playerData) => {
-                setPendingPlayerData({
-                  ...playerData,
-                  es_mayor_edad: true,
-                  email_jugador: user.email,
-                  email_padre: user.email,
-                  acceso_jugador_autorizado: true,
-                  activo: true,
-                  tipo_inscripcion: "Nueva Inscripción",
-                  tiene_descuento_hermano: false,
-                  descuento_aplicado: 0,
-                  _descuentoCalculado: 0
-                });
-                setShowCreateProfile(false);
-                setShowPaymentFlow(true);
-              }}
-              onCancel={() => setShowCreateProfile(false)}
-              isAdultPlayerSelfRegistration={true}
-            />
-          </div>
-        </div>
-      );
-    }
-
+  // Formulario de inscripción +18 en pantalla completa (sobre el bottom bar)
+  // Se muestra SOLO cuando el usuario pulsa explícitamente "Completar inscripción"
+  if (!player && allowCreatePrompt && showCreateProfile && !showPaymentFlow) {
     return (
-      <div className="p-6">
-        <Card className="border-none shadow-lg">
-          <CardContent className="p-8">
-            <div className="text-center mb-6">
-              <User className="w-16 h-16 text-orange-600 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-slate-900 mb-2">Completa tu Perfil de Jugador</h2>
-              <p className="text-slate-600">
-                Para acceder al panel de jugador, necesitas completar tu ficha de registro.
-              </p>
-            </div>
-            <div className="text-center space-y-4">
-              <Button 
-                onClick={() => setShowCreateProfile(true)}
-                className="bg-orange-600 hover:bg-orange-700"
-                size="lg"
-              >
-                Crear Mi Perfil
-              </Button>
-              <Button 
-                variant="outline"
-                onClick={() => window.location.href = createPageUrl('Home')}
-              >
-                Volver al inicio
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto" style={{ paddingBottom: '100px' }}>
+        <div className="sticky top-0 z-20 bg-orange-600 text-white px-4 py-3 shadow-md flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <User className="w-5 h-5" />
+            <h2 className="font-bold">Mi Inscripción</h2>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-white hover:bg-white/20"
+            onClick={() => setShowCreateProfile(false)}
+          >
+            Salir
+          </Button>
+        </div>
+        <div className="p-3 lg:p-6 max-w-5xl mx-auto">
+          <PlayerFormWizard
+            player={null}
+            allPlayers={[]}
+            isParent={false}
+            isAdultPlayerSelfRegistration={true}
+            isSubmitting={isCreatingProfile}
+            onSubmit={(playerData) => {
+              setPendingPlayerData({
+                ...playerData,
+                es_mayor_edad: true,
+                email_jugador: user.email,
+                email_padre: user.email,
+                acceso_jugador_autorizado: true,
+                activo: true,
+                tipo_inscripcion: "Nueva Inscripción",
+                tiene_descuento_hermano: false,
+                descuento_aplicado: 0,
+                _descuentoCalculado: 0
+              });
+              setShowCreateProfile(false);
+              setShowPaymentFlow(true);
+            }}
+            onCancel={() => setShowCreateProfile(false)}
+          />
+        </div>
       </div>
     );
   }
@@ -507,6 +478,30 @@ export default function PlayerDashboard() {
             { icon: Award, label: "Racha", value: `🔥 ${attendanceStreak}`, color: "from-purple-600 to-purple-700" },
           ]}
         />
+
+        {/* Banner: el jugador +18 aún no ha completado su inscripción */}
+        {!player && allowCreatePrompt && (
+          <div className="bg-gradient-to-r from-amber-500 to-orange-500 rounded-xl p-4 lg:p-5 shadow-lg border-2 border-amber-300">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex items-start gap-3 flex-1">
+                <AlertCircle className="w-6 h-6 text-white flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-white font-bold text-base">⚠️ Tu inscripción está pendiente</p>
+                  <p className="text-white/90 text-sm mt-1">
+                    Para poder ser convocado y acceder a todas las funciones del club, completa tu ficha de jugador.
+                  </p>
+                </div>
+              </div>
+              <Button
+                onClick={() => setShowCreateProfile(true)}
+                className="bg-white text-orange-700 hover:bg-amber-50 font-bold w-full sm:w-auto flex-shrink-0"
+                size="lg"
+              >
+                Completar ahora →
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Banner de renovación para jugadores +18 */}
         <PlayerRenewalBanner player={player} seasonConfig={seasonConfig} />
@@ -620,8 +615,11 @@ export default function PlayerDashboard() {
               Editar Mi Perfil
             </DialogTitle>
           </DialogHeader>
-          <PlayerForm
+          <PlayerFormWizard
             player={player}
+            allPlayers={player ? [player] : []}
+            isParent={false}
+            isAdultPlayerSelfRegistration={true}
             onSubmit={async (data) => {
               try {
                 await base44.entities.Player.update(player.id, data);
@@ -633,7 +631,6 @@ export default function PlayerDashboard() {
               }
             }}
             onCancel={() => setShowEditProfile(false)}
-            isAdultPlayerSelfRegistration={true}
           />
         </DialogContent>
       </Dialog>
