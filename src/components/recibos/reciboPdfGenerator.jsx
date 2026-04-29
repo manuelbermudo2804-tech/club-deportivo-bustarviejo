@@ -45,65 +45,152 @@ const numeroALetras = (num) => {
 export async function buildReciboPDF({ numero, fecha, recibiDe, cantidad, concepto, temporada, lugar, logoUrl, selloUrl, firmaUrl }) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = 210;
+  const pageH = 297;
   const marginX = 20;
 
-  // Header: logo
+  // ===== MARCO DECORATIVO =====
+  // Marco exterior fino
+  doc.setDrawColor(251, 146, 60);
+  doc.setLineWidth(0.3);
+  doc.rect(12, 12, pageW - 24, pageH - 24);
+
+  // Marco interior grueso naranja
+  doc.setDrawColor(234, 88, 12);
+  doc.setLineWidth(1.2);
+  doc.rect(15, 15, pageW - 30, pageH - 30);
+
+  // Esquinas decorativas
+  doc.setDrawColor(194, 65, 12);
+  doc.setLineWidth(1.5);
+  const cornerSize = 8;
+  // Top-left
+  doc.line(15, 15 + cornerSize, 15, 15);
+  doc.line(15, 15, 15 + cornerSize, 15);
+  // Top-right
+  doc.line(pageW - 15 - cornerSize, 15, pageW - 15, 15);
+  doc.line(pageW - 15, 15, pageW - 15, 15 + cornerSize);
+  // Bottom-left
+  doc.line(15, pageH - 15 - cornerSize, 15, pageH - 15);
+  doc.line(15, pageH - 15, 15 + cornerSize, pageH - 15);
+  // Bottom-right
+  doc.line(pageW - 15 - cornerSize, pageH - 15, pageW - 15, pageH - 15);
+  doc.line(pageW - 15, pageH - 15 - cornerSize, pageW - 15, pageH - 15);
+
+  // ===== MARCA DE AGUA =====
   const logoData = await loadImageAsDataUrl(logoUrl);
   if (logoData) {
-    try { doc.addImage(logoData, "JPEG", marginX, 15, 25, 25); } catch { try { doc.addImage(logoData, "PNG", marginX, 15, 25, 25); } catch {} }
+    try {
+      // Marca de agua centrada (jsPDF no soporta opacity nativa, pero el dibujo encima la tapa)
+      doc.addImage(logoData, "PNG", pageW / 2 - 50, pageH / 2 - 50, 100, 100, undefined, "FAST");
+    } catch {}
+  }
+
+  // ===== HEADER =====
+  // Logo
+  if (logoData) {
+    try { doc.addImage(logoData, "JPEG", marginX + 5, 22, 22, 22); } catch { try { doc.addImage(logoData, "PNG", marginX + 5, 22, 22, 22); } catch {} }
   }
 
   // Nombre del club
   doc.setFont("times", "bold");
-  doc.setFontSize(18);
+  doc.setFontSize(20);
   doc.setTextColor(15, 23, 42);
-  doc.text("CD BUSTARVIEJO", marginX + 30, 25);
-  doc.setFont("times", "normal");
-  doc.setFontSize(10);
-  doc.setTextColor(100, 116, 139);
-  doc.text("Club Deportivo — Bustarviejo, Madrid", marginX + 30, 32);
+  doc.text("CD BUSTARVIEJO", marginX + 32, 30);
 
-  // Nº recibo
+  doc.setFont("times", "italic");
   doc.setFontSize(9);
   doc.setTextColor(100, 116, 139);
-  doc.text("RECIBO Nº", pageW - marginX, 20, { align: "right" });
-  doc.setFont("times", "bold");
-  doc.setFontSize(18);
-  doc.setTextColor(234, 88, 12);
-  doc.text(String(numero || "—"), pageW - marginX, 30, { align: "right" });
+  doc.text("Club Deportivo · Bustarviejo · Madrid", marginX + 32, 36);
 
-  // Línea naranja
+  // Caja del Nº recibo
+  doc.setFillColor(255, 247, 237);
+  doc.setDrawColor(234, 88, 12);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(pageW - marginX - 38, 22, 33, 22, 2, 2, "FD");
+
+  doc.setFont("times", "normal");
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text("RECIBO Nº", pageW - marginX - 21.5, 28, { align: "center" });
+
+  doc.setFont("times", "bold");
+  doc.setFontSize(16);
+  doc.setTextColor(234, 88, 12);
+  doc.text(String(numero || "—"), pageW - marginX - 21.5, 36, { align: "center" });
+
+  // Fecha bajo el número
+  let fechaFmt = "____ de __________ de ______";
+  try { if (fecha) fechaFmt = format(parseISO(fecha), "d 'de' MMMM 'de' yyyy", { locale: es }); } catch {}
+  doc.setFont("times", "italic");
+  doc.setFontSize(7);
+  doc.setTextColor(100, 116, 139);
+  doc.text(fechaFmt, pageW - marginX - 21.5, 41.5, { align: "center" });
+
+  // ===== SEPARADOR ORNAMENTAL =====
+  doc.setDrawColor(234, 88, 12);
+  doc.setLineWidth(0.6);
+  doc.line(marginX, 55, pageW / 2 - 4, 55);
+  doc.line(pageW / 2 + 4, 55, pageW - marginX, 55);
+  // Punto central
+  doc.setFillColor(234, 88, 12);
+  doc.circle(pageW / 2, 55, 1.2, "F");
+
+  // ===== TÍTULO =====
+  doc.setFont("times", "bold");
+  doc.setFontSize(32);
+  doc.setTextColor(30, 41, 59);
+  doc.text("R E C I B Í", pageW / 2, 75, { align: "center" });
+
+  // Sub-línea bajo el título
   doc.setDrawColor(234, 88, 12);
   doc.setLineWidth(0.8);
-  doc.line(marginX, 45, pageW - marginX, 45);
+  doc.line(pageW / 2 - 12, 79, pageW / 2 + 12, 79);
 
-  // Título
-  doc.setFont("times", "bold");
-  doc.setFontSize(28);
-  doc.setTextColor(30, 41, 59);
-  doc.text("RECIBÍ", pageW / 2, 70, { align: "center" });
+  // ===== CUERPO =====
+  let y = 100;
 
-  // Cuerpo
-  let y = 90;
-  doc.setFont("times", "normal");
-  doc.setFontSize(12);
-  doc.setTextColor(30, 41, 59);
-
-  const writeField = (label, value, yPos, bold = false) => {
+  const writeMiniLabel = (label, yPos) => {
     doc.setFont("times", "normal");
-    doc.setTextColor(100, 116, 139);
-    doc.text(label, marginX, yPos);
-    doc.setFont("times", bold ? "bold" : "normal");
-    doc.setTextColor(15, 23, 42);
-    const labelWidth = doc.getTextWidth(label + " ");
-    doc.text(String(value || "________________________"), marginX + labelWidth, yPos);
+    doc.setFontSize(8);
+    doc.setTextColor(148, 163, 184);
+    doc.text(label.toUpperCase(), marginX, yPos);
   };
 
-  writeField("Recibí de", recibiDe, y, true);
+  const writeDottedLine = (yPos, value, bold = false, sizeText = 13) => {
+    doc.setFont("times", bold ? "bold" : "normal");
+    doc.setFontSize(sizeText);
+    doc.setTextColor(15, 23, 42);
+    doc.text(String(value || ""), marginX, yPos);
+    // Línea de puntos
+    doc.setLineDashPattern([0.5, 1], 0);
+    doc.setDrawColor(148, 163, 184);
+    doc.setLineWidth(0.2);
+    doc.line(marginX, yPos + 1.5, pageW - marginX, yPos + 1.5);
+    doc.setLineDashPattern([], 0);
+  };
+
+  // Recibí de
+  writeMiniLabel("Recibí de", y);
+  y += 6;
+  writeDottedLine(y, recibiDe || "________________________________", true, 13);
   y += 12;
 
-  writeField("la cantidad de", cantidad ? `${cantidad} €` : "________ €", y, true);
+  // Cantidad — caja destacada
+  writeMiniLabel("La cantidad de", y);
   y += 7;
+  doc.setFont("times", "bold");
+  doc.setFontSize(28);
+  doc.setTextColor(194, 65, 12);
+  const cantidadTxt = cantidad ? `${cantidad} €` : "________ €";
+  doc.text(cantidadTxt, marginX, y);
+  y += 2;
+  doc.setLineDashPattern([0.5, 1], 0);
+  doc.setDrawColor(148, 163, 184);
+  doc.setLineWidth(0.2);
+  doc.line(marginX, y, pageW - marginX, y);
+  doc.setLineDashPattern([], 0);
+  y += 5;
+
   if (cantidad) {
     doc.setFont("times", "italic");
     doc.setFontSize(10);
@@ -114,72 +201,94 @@ export async function buildReciboPDF({ numero, fecha, recibiDe, cantidad, concep
     y += 5;
   }
 
-  doc.setFontSize(12);
-  doc.setFont("times", "normal");
-  doc.setTextColor(100, 116, 139);
-  doc.text("en concepto de", marginX, y);
-  y += 7;
+  // En concepto de
+  writeMiniLabel("En concepto de", y);
+  y += 6;
   doc.setFont("times", "bold");
+  doc.setFontSize(12);
   doc.setTextColor(15, 23, 42);
-  const conceptoCompleto = (concepto || "________________________") + (temporada ? ` — Temporada ${temporada}` : "") + ".";
+  const conceptoCompleto = (concepto || "________________________") + (temporada ? `  ·  Temporada ${temporada}` : "");
   const conceptoLines = doc.splitTextToSize(conceptoCompleto, pageW - marginX * 2);
   doc.text(conceptoLines, marginX, y);
-  y += conceptoLines.length * 7 + 20;
+  y += conceptoLines.length * 6 + 1;
+  doc.setLineDashPattern([0.5, 1], 0);
+  doc.setDrawColor(148, 163, 184);
+  doc.setLineWidth(0.2);
+  doc.line(marginX, y, pageW - marginX, y);
+  doc.setLineDashPattern([], 0);
 
-  // Lugar y fecha
-  let fechaFmt = "____ de __________ de ______";
-  try { if (fecha) fechaFmt = format(parseISO(fecha), "d 'de' MMMM 'de' yyyy", { locale: es }); } catch {}
-  doc.setFont("times", "normal");
-  doc.setTextColor(30, 41, 59);
-  doc.text(`En ${lugar || "________"}, a ${fechaFmt}.`, marginX, y);
+  // ===== LUGAR Y FECHA =====
+  y += 25;
+  doc.setFont("times", "italic");
+  doc.setFontSize(11);
+  doc.setTextColor(71, 85, 105);
+  doc.text("En ", marginX, y);
+  doc.setFont("times", "bold");
+  doc.setTextColor(15, 23, 42);
+  doc.text(lugar || "________", marginX + 8, y);
+  doc.setFont("times", "italic");
+  doc.setTextColor(71, 85, 105);
+  const lugarW = doc.getTextWidth(lugar || "________");
+  doc.text(", a ", marginX + 8 + lugarW, y);
+  doc.setFont("times", "bold");
+  doc.setTextColor(15, 23, 42);
+  doc.text(fechaFmt + ".", marginX + 8 + lugarW + 6, y);
 
-  // Firma y sello
-  y += 40;
+  // ===== FIRMA Y SELLO =====
+  y += 35;
 
-  // Firma (encima de la línea)
+  // Firma escaneada (encima de la línea)
   if (firmaUrl) {
     const firmaData = await loadImageAsDataUrl(firmaUrl);
     if (firmaData) {
       try {
-        doc.addImage(firmaData, "PNG", marginX + 10, y - 20, 50, 20);
+        doc.addImage(firmaData, "PNG", marginX + 12, y - 22, 55, 22);
       } catch {
-        try { doc.addImage(firmaData, "JPEG", marginX + 10, y - 20, 50, 20); } catch {}
+        try { doc.addImage(firmaData, "JPEG", marginX + 12, y - 22, 55, 22); } catch {}
       }
     }
   }
 
   // Línea de firma
-  doc.setDrawColor(148, 163, 184);
-  doc.setLineWidth(0.3);
-  doc.line(marginX, y, marginX + 75, y);
+  doc.setDrawColor(30, 41, 59);
+  doc.setLineWidth(0.5);
+  doc.line(marginX, y, marginX + 80, y);
 
-  // Datos del firmante
-  doc.setFont("times", "normal");
-  doc.setFontSize(8);
-  doc.setTextColor(100, 116, 139);
-  doc.text("EL PRESIDENTE", marginX + 37.5, y + 4, { align: "center" });
-
+  // Etiqueta del cargo
   doc.setFont("times", "bold");
-  doc.setFontSize(10);
-  doc.setTextColor(15, 23, 42);
-  doc.text("Manuel Bermudo Santacruz", marginX + 37.5, y + 9, { align: "center" });
+  doc.setFontSize(8);
+  doc.setTextColor(194, 65, 12);
+  doc.text("EL PRESIDENTE", marginX + 40, y + 4.5, { align: "center" });
 
+  // Nombre
+  doc.setFont("times", "bold");
+  doc.setFontSize(11);
+  doc.setTextColor(15, 23, 42);
+  doc.text("Manuel Bermudo Santacruz", marginX + 40, y + 10, { align: "center" });
+
+  // DNI
   doc.setFont("times", "italic");
   doc.setFontSize(8);
   doc.setTextColor(100, 116, 139);
-  doc.text("DNI: 51404895X", marginX + 37.5, y + 13, { align: "center" });
+  doc.text("DNI: 51404895X", marginX + 40, y + 15, { align: "center" });
 
   // Sello
   if (selloUrl) {
     const selloData = await loadImageAsDataUrl(selloUrl);
     if (selloData) {
       try {
-        doc.addImage(selloData, "PNG", pageW - marginX - 50, y - 25, 45, 45);
+        doc.addImage(selloData, "PNG", pageW - marginX - 50, y - 30, 48, 48);
       } catch {
-        try { doc.addImage(selloData, "JPEG", pageW - marginX - 50, y - 25, 45, 45); } catch {}
+        try { doc.addImage(selloData, "JPEG", pageW - marginX - 50, y - 30, 48, 48); } catch {}
       }
     }
   }
+
+  // ===== PIE DE PÁGINA =====
+  doc.setFont("times", "italic");
+  doc.setFontSize(7);
+  doc.setTextColor(148, 163, 184);
+  doc.text("CD Bustarviejo · cdbustarviejo@gmail.com · Bustarviejo, Madrid", pageW / 2, pageH - 22, { align: "center" });
 
   const filename = `Recibo_${numero || "sin-numero"}_${recibiDe ? recibiDe.replace(/\s+/g, "_").slice(0, 20) : ""}.pdf`;
   const blob = doc.output("blob");
