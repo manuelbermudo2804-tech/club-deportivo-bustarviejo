@@ -60,6 +60,36 @@ export default function StepTutor({
             />
             {fieldErrors.telefono && <p className="text-xs text-red-600">{fieldErrors.telefono}</p>}
           </div>
+
+          {/* Dirección y municipio (obligatorios también para +18) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label className={`text-sm font-medium ${fieldErrors.direccion ? "text-red-600" : "text-slate-700"}`}>Dirección Completa *</Label>
+              <Input
+                value={currentPlayer.direccion || ""}
+                onChange={(e) => {
+                  setCurrentPlayer({ ...currentPlayer, direccion: e.target.value });
+                  if (fieldErrors.direccion) setFieldErrors(prev => ({ ...prev, direccion: null }));
+                }}
+                placeholder="Calle, número, piso..."
+                className={`rounded-xl h-12 text-base ${fieldErrors.direccion ? "border-2 border-red-500 bg-red-50" : "border-slate-200"}`}
+              />
+              {fieldErrors.direccion && <p className="text-xs text-red-600 mt-1">{fieldErrors.direccion}</p>}
+            </div>
+            <div className="space-y-1.5">
+              <Label className={`text-sm font-medium ${fieldErrors.municipio ? "text-red-600" : "text-slate-700"}`}>Municipio *</Label>
+              <Input
+                value={currentPlayer.municipio || ""}
+                onChange={(e) => {
+                  setCurrentPlayer({ ...currentPlayer, municipio: e.target.value });
+                  if (fieldErrors.municipio) setFieldErrors(prev => ({ ...prev, municipio: null }));
+                }}
+                placeholder="Escribe tu municipio"
+                className={`rounded-xl h-12 text-base ${fieldErrors.municipio ? "border-2 border-red-500 bg-red-50" : "border-slate-200"}`}
+              />
+              {fieldErrors.municipio && <p className="text-xs text-red-600 mt-1">{fieldErrors.municipio}</p>}
+            </div>
+          </div>
         </div>
       </div>
     );

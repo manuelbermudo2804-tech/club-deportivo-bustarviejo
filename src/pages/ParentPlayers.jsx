@@ -51,6 +51,10 @@ export default function ParentPlayers() {
           setShowForm(true);
           setEditingPlayer(null);
           setSuggestedCategory(null);
+          // Si el usuario eligió rol jugador_adulto en el onboarding, activar auto-registro +18
+          if (currentUser?.tipo_panel === 'jugador_adulto' || currentUser?.es_jugador === true) {
+            setIsAdultPlayerSelfRegistration(true);
+          }
           
           // Limpiar el flag
           await base44.auth.updateMe({ debe_mostrar_registro_jugador: false });
