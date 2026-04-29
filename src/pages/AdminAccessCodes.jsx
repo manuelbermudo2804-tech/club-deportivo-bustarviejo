@@ -658,7 +658,16 @@ export default function AdminAccessCodes() {
                         size="sm"
                         className="bg-orange-600 hover:bg-orange-700 whitespace-nowrap"
                         onClick={() => {
-                          generateMutation.mutate({ email: u.email, nombre_destino: u.user?.full_name || '', tipo: 'padre_nuevo' });
+                          // Buscar el último código existente para preservar el tipo de invitación original
+                          const previous = accessCodes
+                            .filter(c => c.email?.toLowerCase() === u.email)
+                            .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
+                          if (previous?.id) {
+                            // Si ya existe un código (aunque esté expirado), reenviar respetando su tipo y datos vinculados
+                            resendMutation.mutate(previous.id);
+                          } else {
+                            generateMutation.mutate({ email: u.email, nombre_destino: u.user?.full_name || '', tipo: 'padre_nuevo' });
+                          }
                         }}
                         disabled={generateMutation.isPending}
                       >
@@ -775,7 +784,15 @@ export default function AdminAccessCodes() {
                         size="sm"
                         className="bg-orange-600 hover:bg-orange-700 whitespace-nowrap"
                         onClick={() => {
-                          generateMutation.mutate({ email: u.email, nombre_destino: u.full_name || '', tipo: 'padre_nuevo' });
+                          // Buscar el último código existente para preservar el tipo de invitación original
+                          const previous = accessCodes
+                            .filter(c => c.email?.toLowerCase() === u.email?.toLowerCase())
+                            .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
+                          if (previous?.id) {
+                            resendMutation.mutate(previous.id);
+                          } else {
+                            generateMutation.mutate({ email: u.email, nombre_destino: u.full_name || '', tipo: 'padre_nuevo' });
+                          }
                         }}
                         disabled={generateMutation.isPending}
                       >
