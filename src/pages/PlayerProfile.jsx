@@ -244,7 +244,7 @@ export default function PlayerProfile() {
               </p>
             </div>
             <div className="flex flex-col gap-2 max-w-xs mx-auto">
-              <Link to="/ParentPlayers">
+              <Link to="/PlayerDashboard">
                 <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold">
                   Crear Mi Perfil
                   <ArrowRight className="w-4 h-4 ml-2" />
