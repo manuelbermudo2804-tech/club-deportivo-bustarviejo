@@ -230,10 +230,24 @@ export default function CoachEvaluationReports() {
   const seasonStart = currentSeason?.fecha_inicio || null;
 
   // Solo jugadores activos
+  // Para staff usamos getStaffPlayers (service role) porque RLS limita a entrenadores a ver solo sus hijos
   const { data: players } = useQuery({
-    queryKey: ['playersActiveReports'],
-    queryFn: () => base44.entities.Player.filter({ activo: true }),
+    queryKey: ['playersActiveReports', user?.email],
+    queryFn: async () => {
+      const isStaff = user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador;
+      if (isStaff) {
+        try {
+          const { data } = await base44.functions.invoke('getStaffPlayers', {});
+          return (data?.players || []).filter(p => p.activo !== false);
+        } catch (e) {
+          console.error('[CoachEvaluationReports] getStaffPlayers falló:', e);
+          return await base44.entities.Player.filter({ activo: true });
+        }
+      }
+      return await base44.entities.Player.filter({ activo: true });
+    },
     initialData: [],
+    enabled: !!user,
   });
 
   // CategoryConfig para excluir actividades complementarias

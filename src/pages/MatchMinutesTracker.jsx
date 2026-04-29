@@ -51,16 +51,29 @@ export default function MatchMinutesTracker() {
   }, [allCategories, selectedCategory]);
 
   // Jugadores de la categoría (incluye categoria_principal, deporte legacy y categorias[])
+  // Para staff usamos getStaffPlayers (service role) porque RLS limita a entrenadores a ver solo sus hijos
   const { data: players = [] } = useQuery({
-    queryKey: ['playersMinutes', selectedCategory],
+    queryKey: ['playersMinutes', selectedCategory, user?.email],
     queryFn: async () => {
       if (!selectedCategory) return [];
-      const list = await base44.entities.Player.filter({ activo: true });
+      const isStaff = user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador;
+      let list = [];
+      if (isStaff) {
+        try {
+          const { data } = await base44.functions.invoke('getStaffPlayers', {});
+          list = (data?.players || []).filter(p => p.activo !== false);
+        } catch (e) {
+          console.error('[MatchMinutesTracker] getStaffPlayers falló:', e);
+          list = await base44.entities.Player.filter({ activo: true });
+        }
+      } else {
+        list = await base44.entities.Player.filter({ activo: true });
+      }
       return list
         .filter(p => playerInCategory(p, selectedCategory))
         .sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
     },
-    enabled: !!selectedCategory,
+    enabled: !!selectedCategory && !!user,
     staleTime: 60000,
   });
 
