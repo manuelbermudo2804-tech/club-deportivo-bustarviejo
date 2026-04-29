@@ -42,6 +42,43 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ─── Inyectar bloque del Patrocinador Principal en el footer ───
+    // Solo si existe un Sponsor con nivel_patrocinio="Principal" y activo=true
+    try {
+      const sponsors = await base44.asServiceRole.entities.Sponsor.filter({
+        nivel_patrocinio: 'Principal',
+        activo: true
+      });
+      const principal = sponsors && sponsors.length > 0 ? sponsors[0] : null;
+
+      if (principal && principal.logo_url) {
+        const sponsorLink = principal.website_url || 'https://www.cdbustarviejo.com';
+        const SPONSOR_BLOCK = `<div style="background:#0f172a;padding:18px 24px;text-align:center;border-top:1px solid #334155;">
+<div style="color:#fbbf24;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">👑 Patrocinador Principal</div>
+<a href="${sponsorLink}" style="display:inline-block;background:#ffffff;border-radius:10px;padding:10px 18px;text-decoration:none;">
+<img src="${principal.logo_url}" alt="${principal.nombre}" style="max-height:50px;max-width:160px;display:block;" />
+</a>
+<div style="color:#cbd5e1;font-size:12px;font-weight:600;margin-top:8px;">${principal.nombre}</div>
+</div>`;
+
+        // Insertar el bloque ANTES del bloque social (si existe en el HTML final)
+        if (finalHtml.includes('www.cdbustarviejo.com')) {
+          // Lo insertamos justo antes del primer footer social oscuro
+          const marker = '<div style="background:#1e293b;padding:24px;text-align:center;';
+          if (finalHtml.includes(marker)) {
+            finalHtml = finalHtml.replace(marker, SPONSOR_BLOCK + marker);
+          } else if (finalHtml.includes('</body>')) {
+            finalHtml = finalHtml.replace('</body>', SPONSOR_BLOCK + '</body>');
+          } else {
+            finalHtml = finalHtml + SPONSOR_BLOCK;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[sendEmail] No se pudo inyectar logo de patrocinador principal:', err.message);
+      // Silencioso: si falla, el email se envía sin el logo del sponsor
+    }
+
     // Enviar email usando Resend
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
