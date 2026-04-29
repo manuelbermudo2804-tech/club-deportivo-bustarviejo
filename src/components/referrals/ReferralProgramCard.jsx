@@ -169,37 +169,62 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
     setShowAiModal(false);
   };
 
+  const programaActivo = seasonConfig?.programa_referidos_activo;
+
   return (
-    <Card className="border-none shadow-xl bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500 text-white overflow-hidden relative">
+    <Card className={`border-none shadow-xl text-white overflow-hidden relative ${
+      programaActivo
+        ? "bg-gradient-to-br from-purple-600 via-pink-500 to-orange-500"
+        : "bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-700"
+    }`}>
       <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20 animate-pulse"></div>
       <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
-      <div className="absolute top-1/2 right-10 text-6xl opacity-20 animate-bounce">🎉</div>
+      {programaActivo && <div className="absolute top-1/2 right-10 text-6xl opacity-20 animate-bounce">🎉</div>}
 
       <CardHeader className="relative pb-2">
         <div className="flex items-center gap-3">
           <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-            <PartyPopper className="w-8 h-8 text-white" />
+            {programaActivo ? <PartyPopper className="w-8 h-8 text-white" /> : <Heart className="w-8 h-8 text-white" />}
           </div>
           <div>
             <CardTitle className="text-2xl font-bold flex items-center gap-2">
-              ¡TRAE UN SOCIO AMIGO! 
+              {programaActivo ? "¡TRAE UN SOCIO AMIGO!" : "HAZ CRECER TU CLUB"}
               <Sparkles className="w-6 h-6 text-yellow-300 animate-pulse" />
             </CardTitle>
-            <p className="text-white/90 text-sm">Invita amigos y familiares, ¡y gana premios!</p>
+            <p className="text-white/90 text-sm">
+              {programaActivo
+                ? "Invita amigos y familiares, ¡y gana premios!"
+                : "Cada socio suma. Cada amigo que traes hace al club más fuerte."}
+            </p>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="relative space-y-4">
-        {seasonConfig?.programa_referidos_activo ? (
+        {programaActivo ? (
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
             <p className="text-lg font-semibold mb-1">🔥 ¡Cuantos más amigos traigas, más premios ganas! 🔥</p>
             <p className="text-sm text-white/90">Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!</p>
           </div>
         ) : (
-          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
-            <p className="text-lg font-semibold mb-1">✨ Comparte el alta de socio</p>
-            <p className="text-sm text-white/90">Invita a quien creas que pueda interesarle. El programa de premios no está activo ahora.</p>
+          <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4">
+            <div className="grid grid-cols-3 gap-2 text-center">
+              <div className="bg-white/15 rounded-xl p-2">
+                <div className="text-2xl mb-1">💪</div>
+                <p className="text-xs font-semibold leading-tight">Más fuerza<br/>al club</p>
+              </div>
+              <div className="bg-white/15 rounded-xl p-2">
+                <div className="text-2xl mb-1">⚽</div>
+                <p className="text-xs font-semibold leading-tight">Más medios<br/>para los equipos</p>
+              </div>
+              <div className="bg-white/15 rounded-xl p-2">
+                <div className="text-2xl mb-1">🏡</div>
+                <p className="text-xs font-semibold leading-tight">Más ambiente<br/>en el pueblo</p>
+              </div>
+            </div>
+            <p className="text-center text-sm text-white/95 mt-3 font-medium">
+              Comparte el alta de socio con quien creas que pueda sumar. ¡Es gratis y suma muchísimo!
+            </p>
           </div>
         )}
 
