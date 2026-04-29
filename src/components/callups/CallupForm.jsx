@@ -606,7 +606,15 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               
               <div className="border-2 border-slate-200 rounded-lg p-4 max-h-96 overflow-y-auto bg-slate-50">
                 {availablePlayers.length === 0 ? (
-                  <p className="text-slate-500 text-center py-4">No hay jugadores disponibles en esta categoría</p>
+                  <div className="text-center py-6 px-4">
+                    <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-2" />
+                    <p className="text-slate-700 font-semibold mb-1">No hay jugadores activos en {currentCallup.categoria}</p>
+                    <p className="text-xs text-slate-500">
+                      {players.length === 0 
+                        ? "No se ha encontrado ningún jugador en esta categoría. Comprueba que los jugadores estén inscritos y activos en esta temporada."
+                        : `Hay ${players.length} jugador(es) en la categoría pero todos están marcados como lesionados o sancionados.`}
+                    </p>
+                  </div>
                 ) : (
                   <div className="space-y-2">
                     {availablePlayers.map((player) => {
