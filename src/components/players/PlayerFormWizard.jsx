@@ -98,10 +98,20 @@ const NEW_TOTAL = 9;
 
 // --- STEPS for edit (reduced: no authorizations step, no summary) ---
 
-export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitting, isParent = false, allPlayers = [], isAdultPlayerSelfRegistration = false }) {
+export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitting, isParent = false, allPlayers = [], isAdultPlayerSelfRegistration: isAdultPlayerSelfRegistrationProp = false }) {
   const formRef = useRef(null);
   const [step, setStep] = useState(0);
   const [fieldErrors, setFieldErrors] = useState({});
+
+  // Estado interno: empieza con la prop, pero se puede activar dinámicamente
+  // como medida de seguridad si detectamos que el usuario es +18 y se está
+  // registrando a sí mismo (mismo email)
+  const [isAdultPlayerSelfRegistration, setIsAdultPlayerSelfRegistration] = useState(isAdultPlayerSelfRegistrationProp);
+
+  // Sincronizar si la prop cambia desde el padre
+  useEffect(() => {
+    if (isAdultPlayerSelfRegistrationProp) setIsAdultPlayerSelfRegistration(true);
+  }, [isAdultPlayerSelfRegistrationProp]);
 
   const isEditing = !!player;
 
@@ -215,6 +225,21 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     setCurrentPlayer(prev => ({ ...prev, es_mayor_edad: isMayorDeEdad, tiene_descuento_hermano: siblingDiscount.hasDiscount, descuento_aplicado: siblingDiscount.amount }));
   }, [isMayorDeEdad, siblingDiscount]);
 
+  // 🛡️ MEDIDA DE SEGURIDAD: Si es +18 y se registra a sí mismo (mismo email),
+  // forzar modo auto-registro aunque la prop no venga activada
+  useEffect(() => {
+    if (isEditing) return;
+    if (!isMayorDeEdad) return;
+    if (isAdultPlayerSelfRegistration) return;
+    if (!currentUser) return;
+    // Caso 1: el usuario tiene flags de jugador adulto sin ficha
+    const esJugadorAdultoUser = (currentUser.tipo_panel === 'jugador_adulto' || currentUser.es_jugador === true) && !currentUser.player_id;
+    if (esJugadorAdultoUser) {
+      console.log('🛡️ [Wizard] Auto-activando modo +18 (user es jugador adulto sin ficha)');
+      setIsAdultPlayerSelfRegistration(true);
+    }
+  }, [isMayorDeEdad, currentUser, isAdultPlayerSelfRegistration, isEditing]);
+
   // Track if user has manually changed the category
   const [userChangedCategory, setUserChangedCategory] = useState(false);
 
@@ -266,20 +291,32 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     if (formRef.current) formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [step]);
 
+  // Cargar SIEMPRE el currentUser para poder evaluar la medida de seguridad +18
   useEffect(() => {
-    if (isParent || isAdultPlayerSelfRegistration) {
-      base44.auth.me().then(user => {
-        setCurrentUser(user);
-        if (!player) {
-          if (isAdultPlayerSelfRegistration) {
-            setCurrentPlayer(prev => ({ ...prev, email_padre: user.email, email_jugador: user.email, nombre_tutor_legal: user.full_name || "", es_mayor_edad: true }));
-          } else {
-            setCurrentPlayer(prev => ({ ...prev, email_padre: user.email }));
-          }
+    base44.auth.me().then(user => {
+      setCurrentUser(user);
+      if (!player && (isParent || isAdultPlayerSelfRegistration)) {
+        if (isAdultPlayerSelfRegistration) {
+          setCurrentPlayer(prev => ({ ...prev, email_padre: user.email, email_jugador: user.email, nombre_tutor_legal: user.full_name || "", es_mayor_edad: true }));
+        } else {
+          setCurrentPlayer(prev => ({ ...prev, email_padre: user.email }));
         }
-      }).catch(console.error);
-    }
+      }
+    }).catch(console.error);
   }, [isParent, isAdultPlayerSelfRegistration, player]);
+
+  // Cuando se activa dinámicamente el modo +18 (por seguridad), rellenar los datos del usuario
+  useEffect(() => {
+    if (isAdultPlayerSelfRegistration && currentUser && !player) {
+      setCurrentPlayer(prev => ({
+        ...prev,
+        email_padre: prev.email_padre || currentUser.email,
+        email_jugador: prev.email_jugador || currentUser.email,
+        nombre_tutor_legal: prev.nombre_tutor_legal || currentUser.full_name || "",
+        es_mayor_edad: true
+      }));
+    }
+  }, [isAdultPlayerSelfRegistration, currentUser, player]);
 
   // Helper: sube una imagen con la instancia única y actualiza el campo correspondiente
   const handleFieldUpload = async (e, fieldName, draftKey, failSetter) => {
