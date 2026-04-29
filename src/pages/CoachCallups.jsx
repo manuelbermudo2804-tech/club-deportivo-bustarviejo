@@ -123,10 +123,24 @@ export default function CoachCallups() {
     initialData: [],
   });
 
+  // Para staff usamos getStaffPlayers (service role) porque RLS limita a entrenadores a ver solo sus hijos
   const { data: allPlayers } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
+    queryKey: ['players', user?.email],
+    queryFn: async () => {
+      const isStaff = user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador;
+      if (isStaff) {
+        try {
+          const { data } = await base44.functions.invoke('getStaffPlayers', {});
+          return data?.players || [];
+        } catch (e) {
+          console.error('[CoachCallups] getStaffPlayers falló:', e);
+          return await base44.entities.Player.list();
+        }
+      }
+      return await base44.entities.Player.list();
+    },
     initialData: [],
+    enabled: !!user,
   });
 
   const { data: allPayments = [] } = useQuery({
