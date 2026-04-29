@@ -20,6 +20,7 @@ import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } 
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
+import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
 
 
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
@@ -446,6 +447,9 @@ export default function ParentDashboard() {
             { icon: Bell, label: "Convocatorias", value: pendingCallups, color: "from-yellow-600 to-yellow-700", sub: pendingCallups > 0 ? "por confirmar" : null },
           ]}
         />
+
+        {/* Banner del Patrocinador Principal — solo si existe uno activo */}
+        <MainSponsorBanner />
 
         {/* Aviso renovaciones (aunque estén inactivos) */}
         {!playersLoading && activeSeason?.permitir_renovaciones && pendingInactivePlayers.length > 0 && (

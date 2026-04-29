@@ -18,6 +18,7 @@ import CoordinatorClassificationsMatchesBanner from "../components/dashboard/Coo
 import ShareFormButton from "../components/players/ShareFormButton";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
+import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
 
 import { Users, Calendar, Bell } from "lucide-react";
 
@@ -205,7 +206,13 @@ export default function CoordinatorDashboard() {
           ]}
         />
 
+        {/* Banner del Patrocinador Principal — solo si existe uno activo */}
+        <MainSponsorBanner />
+
         {/* Banner Clasificaciones + Partidos - Estilo ParentDashboard */}
+        {/* Banner del Patrocinador Principal — solo si existe uno activo */}
+        <MainSponsorBanner />
+
         <CoordinatorClassificationsMatchesBanner />
 
         {/* AlertCenter - Una barra por rol */}

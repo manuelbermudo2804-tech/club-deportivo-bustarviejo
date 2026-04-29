@@ -20,6 +20,7 @@ import { ALL_TREASURER_BUTTONS, DEFAULT_TREASURER_BUTTONS, MIN_BUTTONS, MAX_BUTT
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
+import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
 import { CreditCard, Users, Bell } from "lucide-react";
 
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
@@ -294,6 +295,9 @@ export default function TreasurerDashboard() {
             { icon: CreditCard, label: "Pagos Mis Hijos", value: totalPendingPaymentsParent, color: "from-red-600 to-red-700", sub: overduePaymentsCount > 0 ? `${overduePaymentsCount} vencidos` : null },
           ]}
         />
+
+        {/* Banner del Patrocinador Principal — solo si existe uno activo */}
+        <MainSponsorBanner />
 
         {/* Widget Clasificaciones y Próximo Partido */}
         {!playersLoading && myPlayers.length > 0 && (

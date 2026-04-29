@@ -31,6 +31,7 @@ import ShareFormButton from "../components/players/ShareFormButton";
 import SocialLinks from "../components/SocialLinks";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
+import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
 
 export default function PlayerDashboard() {
   const [user, setUser] = useState(null);
@@ -508,6 +509,9 @@ export default function PlayerDashboard() {
             { icon: Award, label: "Racha", value: `🔥 ${attendanceStreak}`, color: "from-purple-600 to-purple-700" },
           ]}
         />
+
+        {/* Banner del Patrocinador Principal — solo si existe uno activo */}
+        <MainSponsorBanner />
 
         {/* Banner: el jugador +18 aún no ha completado su inscripción */}
         {!player && allowCreatePrompt && (
