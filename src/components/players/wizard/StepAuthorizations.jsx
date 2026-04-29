@@ -153,12 +153,12 @@ export default function StepAuthorizations({
         </>
       )}
 
-      {/* Responsabilidad desplazamiento - solo menores en creación */}
-      {!isEditing && !isAdultPlayerSelfRegistration && (
+      {/* Responsabilidad desplazamiento - en creación (menores Y +18) */}
+      {!isEditing && (
         <div className={`space-y-4 border-2 rounded-lg p-4 ${fieldErrors.acepta_responsabilidad_desplazamiento ? 'border-red-500 bg-red-50' : currentPlayer.acepta_responsabilidad_desplazamiento ? 'border-green-300 bg-green-50' : 'border-amber-200 bg-amber-50'}`}>
           <div className="flex items-center gap-2">
             <AlertTriangle className="w-5 h-5 text-amber-600" />
-            <span className="font-bold text-amber-900">RESPONSABILIDAD DE DESPLAZAMIENTO *</span>
+            <span className="font-bold text-amber-900">{isAdultPlayerSelfRegistration ? 'RESPONSABILIDAD DEPORTIVA Y DESPLAZAMIENTO *' : 'RESPONSABILIDAD DE DESPLAZAMIENTO *'}</span>
           </div>
           <div ref={desplazamientoRef} className="bg-white rounded-lg p-3 text-xs max-h-48 overflow-y-auto border text-slate-700 space-y-2">
             <p className="font-semibold text-slate-900">DECLARACIÓN DE RESPONSABILIDAD — CUSTODIA, DESPLAZAMIENTO Y SEGURO DE MENORES</p>
@@ -214,7 +214,11 @@ export default function StepAuthorizations({
               }}
             />
             <label htmlFor="wiz-desplazamiento" className={`text-sm font-semibold cursor-pointer ${fieldErrors.acepta_responsabilidad_desplazamiento ? 'text-red-600' : 'text-amber-900'}`}>
-              ✅ DECLARO que he sido informado/a de: (1) los horarios de actividad y límites de responsabilidad del club, (2) la obligación de recogida puntual, (3) las condiciones durante la transición entre grupos, (4) las condiciones de desplazamiento al campo, (5) la cobertura del seguro deportivo, (6) la responsabilidad en desplazamientos a partidos fuera de casa, (7) la exención de responsabilidad del club sobre objetos personales, y (8) el compromiso de respeto hacia entrenadores y personal del club. ACEPTO la plena responsabilidad sobre la custodia y el desplazamiento de mi hijo/a y me COMPROMETO a respetar a todos los miembros del equipo técnico y directivo del CD Bustarviejo.
+              {isAdultPlayerSelfRegistration ? (
+                <>✅ DECLARO que he sido informado/a de: (1) los horarios de actividad y límites de responsabilidad del club, (2) las condiciones de desplazamiento al campo, (3) la cobertura del seguro deportivo, (4) la responsabilidad en desplazamientos a partidos fuera de casa, (5) la exención de responsabilidad del club sobre objetos personales, y (6) el compromiso de respeto hacia entrenadores y personal del club. ACEPTO la plena responsabilidad sobre mi propio desplazamiento y me COMPROMETO a respetar a todos los miembros del equipo técnico y directivo del CD Bustarviejo.</>
+              ) : (
+                <>✅ DECLARO que he sido informado/a de: (1) los horarios de actividad y límites de responsabilidad del club, (2) la obligación de recogida puntual, (3) las condiciones durante la transición entre grupos, (4) las condiciones de desplazamiento al campo, (5) la cobertura del seguro deportivo, (6) la responsabilidad en desplazamientos a partidos fuera de casa, (7) la exención de responsabilidad del club sobre objetos personales, y (8) el compromiso de respeto hacia entrenadores y personal del club. ACEPTO la plena responsabilidad sobre la custodia y el desplazamiento de mi hijo/a y me COMPROMETO a respetar a todos los miembros del equipo técnico y directivo del CD Bustarviejo.</>
+              )}
               {fieldErrors.acepta_responsabilidad_desplazamiento && <span className="block text-xs text-red-500 mt-1">⚠️ Debes aceptar esta declaración</span>}
             </label>
           </div>

@@ -412,8 +412,8 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     if (s === 7 && !isEditing) {
       if (!currentPlayer.acepta_politica_privacidad) errors.acepta_politica_privacidad = "Debes aceptar la política";
       if (!currentPlayer.autorizacion_fotografia) errors.autorizacion_fotografia = "Selecciona una opción";
-      // Responsabilidad desplazamiento obligatoria para menores
-      if (!isAdultPlayerSelfRegistration && !currentPlayer.acepta_responsabilidad_desplazamiento) {
+      // Responsabilidad desplazamiento obligatoria para todos (menores y +18)
+      if (!currentPlayer.acepta_responsabilidad_desplazamiento) {
         errors.acepta_responsabilidad_desplazamiento = "Debes aceptar la responsabilidad de desplazamiento";
       }
       if (currentPlayer.acceso_menor_autorizado && !currentPlayer.acceso_menor_email?.trim()) {
