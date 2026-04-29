@@ -762,25 +762,25 @@ export default function ClubMembership() {
           
           {/* Stats de referidos del usuario - Solo para padres con hijos */}
           {currentUser && myPlayers.length > 0 && seasonConfig?.programa_referidos_activo && (
-            <div className="border-t pt-4 mt-2">
-              <p className="text-center text-sm font-semibold text-slate-700 mb-3">🎁 Tu Programa "Trae un Socio Amigo"</p>
+            <div className="border-t border-slate-200 pt-4 mt-2">
+              <p className="text-center text-sm font-semibold text-slate-700 mb-3">Tu Programa "Trae un Socio Amigo"</p>
               <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="bg-purple-50 rounded-xl p-3 border border-purple-200">
-                  <p className="text-2xl font-bold text-purple-700">{currentUser.referrals_count || 0}</p>
-                  <p className="text-xs text-purple-600">Amigos referidos</p>
+                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+                  <p className="text-2xl font-bold text-slate-900">{currentUser.referrals_count || 0}</p>
+                  <p className="text-xs text-slate-600">Amigos referidos</p>
                 </div>
-                <div className="bg-green-50 rounded-xl p-3 border border-green-200">
-                  <p className="text-2xl font-bold text-green-700">{currentUser.clothing_credit_balance || 0}€</p>
-                  <p className="text-xs text-green-600">Crédito en ropa</p>
+                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+                  <p className="text-2xl font-bold text-orange-600">{currentUser.clothing_credit_balance || 0}€</p>
+                  <p className="text-xs text-slate-600">Crédito en ropa</p>
                 </div>
-                <div className="bg-orange-50 rounded-xl p-3 border border-orange-200">
-                  <p className="text-2xl font-bold text-orange-700">{currentUser.raffle_entries_total || 0}</p>
-                  <p className="text-xs text-orange-600">Participaciones</p>
+                <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+                  <p className="text-2xl font-bold text-orange-600">{currentUser.raffle_entries_total || 0}</p>
+                  <p className="text-xs text-slate-600">Participaciones</p>
                 </div>
               </div>
               {(currentUser.referrals_count || 0) > 0 && (
-                <p className="text-center text-xs text-green-600 mt-2 font-medium">
-                  🎉 ¡Gracias por traer amigos al club!
+                <p className="text-center text-xs text-slate-600 mt-2 font-medium">
+                  Gracias por traer amigos al club
                 </p>
               )}
             </div>
@@ -839,33 +839,32 @@ export default function ClubMembership() {
 
       {/* Estado actual si ya es socio */}
       {currentSeasonMembership ? (
-        <Card className="border-none shadow-xl bg-gradient-to-br from-green-100 to-green-200 border-2 border-green-400">
+        <Card className="border border-orange-200 bg-orange-50 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 rounded-full bg-green-600 flex items-center justify-center animate-pulse">
-                <CheckCircle2 className="w-8 h-8 text-white" />
+              <div className="w-12 h-12 rounded-xl bg-orange-600 flex items-center justify-center">
+                <CheckCircle2 className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-green-900 text-xl flex items-center gap-2">
-                  🎉 ¡Ya eres socio! 
-                  <Sparkles className="w-5 h-5 text-yellow-500" />
+                <h3 className="font-bold text-slate-900 text-lg">
+                  Ya eres socio
                 </h3>
-                <p className="text-green-800 text-sm mt-1">
+                <p className="text-slate-700 text-sm mt-1">
                   Temporada {currentSeasonMembership.temporada}
                 </p>
                 <div className="mt-3">
                   <Badge className={`text-sm ${
-                    currentSeasonMembership.estado_pago === "Pagado" ? "bg-green-600" :
-                    currentSeasonMembership.estado_pago === "En revisión" ? "bg-yellow-600" : "bg-red-600"
+                    currentSeasonMembership.estado_pago === "Pagado" ? "bg-orange-600" :
+                    currentSeasonMembership.estado_pago === "En revisión" ? "bg-amber-500" : "bg-slate-500"
                   }`}>
-                    {currentSeasonMembership.estado_pago === "Pagado" ? "✅ Pagado" :
-                     currentSeasonMembership.estado_pago === "En revisión" ? "⏳ En revisión" : "⚠️ Pendiente de pago"}
+                    {currentSeasonMembership.estado_pago === "Pagado" ? "Pagado" :
+                     currentSeasonMembership.estado_pago === "En revisión" ? "En revisión" : "Pendiente de pago"}
                   </Badge>
                 </div>
                 {currentSeasonMembership.estado_pago === "Pendiente" && (
-                  <Alert className="mt-4 bg-yellow-50 border-yellow-200">
-                    <AlertCircle className="w-4 h-4 text-yellow-600" />
-                    <AlertDescription className="text-yellow-800">
+                  <Alert className="mt-4 bg-white border-slate-200">
+                    <AlertCircle className="w-4 h-4 text-orange-600" />
+                    <AlertDescription className="text-slate-700">
                       Recuerda subir el justificante de pago para completar tu inscripción.
                     </AlertDescription>
                   </Alert>
@@ -878,15 +877,17 @@ export default function ClubMembership() {
 
       {/* SECCIÓN: Renovar tus referidos de años anteriores */}
       {user && myPlayers.length > 0 && myHistoricReferrals.length > 0 && (
-        <Card className="border-2 border-purple-400 bg-gradient-to-r from-purple-50 to-pink-50 shadow-xl">
+        <Card className="border border-slate-200 bg-white shadow-sm">
           <CardContent className="pt-6 space-y-4">
             <div className="flex items-center gap-3 mb-4">
-              <Gift className="w-8 h-8 text-purple-600" />
+              <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
+                <Gift className="w-6 h-6 text-orange-600" />
+              </div>
               <div>
-                <h3 className="font-bold text-purple-900 text-xl">
-                  🎁 Tus Referidos de Años Anteriores
+                <h3 className="font-bold text-slate-900 text-lg">
+                  Tus Referidos de Años Anteriores
                 </h3>
-                <p className="text-sm text-purple-700">
+                <p className="text-sm text-slate-600">
                   Detectamos que referiste a estas personas. ¿Quieres renovarlas?
                 </p>
               </div>
@@ -894,7 +895,7 @@ export default function ClubMembership() {
 
             <div className="space-y-2">
               {myHistoricReferrals.map(ref => (
-                <div key={ref.id} className="flex items-center justify-between p-3 bg-white rounded-xl border-2 border-purple-200">
+                <div key={ref.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-200">
                   <div className="flex-1">
                     <p className="font-semibold text-slate-900">{ref.nombre_completo}</p>
                     <p className="text-xs text-slate-600">Última temporada: {ref.temporada}</p>
@@ -902,17 +903,17 @@ export default function ClubMembership() {
                   <Button
                     size="sm"
                     onClick={() => handleRenovarReferido(ref)}
-                    className="bg-purple-600 hover:bg-purple-700"
+                    className="bg-orange-600 hover:bg-orange-700"
                   >
-                    ✅ Renovar por él/ella
+                    Renovar
                   </Button>
                 </div>
               ))}
             </div>
 
-            <Alert className="bg-purple-100 border-purple-300">
-              <AlertDescription className="text-purple-800 text-sm">
-                💡 Al renovarlos, seguirán sumando a tu programa de referidos cuando paguen
+            <Alert className="bg-slate-50 border-slate-200">
+              <AlertDescription className="text-slate-700 text-sm">
+                Al renovarlos, seguirán sumando a tu programa de referidos cuando paguen.
               </AlertDescription>
             </Alert>
           </CardContent>
@@ -985,8 +986,8 @@ export default function ClubMembership() {
 
       {/* Formulario de inscripción - WIZARD */}
       {((showForm && !(isPlayerUser && currentSeasonMembership)) || isRenewal) ? (
-        <Card ref={formRef} className="border-none shadow-xl">
-            <CardHeader className={`${isRenewal ? 'bg-gradient-to-r from-green-600 to-green-700' : 'bg-gradient-to-r from-orange-600 to-green-600'} text-white rounded-t-xl`}>
+        <Card ref={formRef} className="border border-slate-200 shadow-sm">
+            <CardHeader className="bg-orange-600 text-white rounded-t-xl">
               <CardTitle className="flex items-center gap-2">
                 <Users className="w-5 h-5" />
                 {isRenewal ? 'Renovar Membresía de Socio' : 'Formulario de Inscripción como Socio'}
@@ -1050,7 +1051,7 @@ export default function ClubMembership() {
                         }
                         setWizardStep(wizardStep + 1);
                       }}
-                      className="bg-gradient-to-r from-orange-600 to-green-600 hover:from-orange-700 hover:to-green-700"
+                      className="bg-orange-600 hover:bg-orange-700"
                     >
                       Siguiente <ChevronRight className="w-4 h-4 ml-1" />
                     </Button>
@@ -1058,13 +1059,13 @@ export default function ClubMembership() {
                   {wizardStep === 3 && (
                     <Button 
                       type="submit" 
-                      className={`${isRenewal ? 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800' : 'bg-gradient-to-r from-orange-600 to-green-600 hover:from-orange-700 hover:to-green-700'} py-6 text-lg font-bold`} 
+                      className="bg-orange-600 hover:bg-orange-700 py-6 text-lg font-bold"
                       disabled={createMembershipMutation.isPending || formData.metodo_pago === 'Tarjeta'}
                     >
                       {createMembershipMutation.isPending ? (
                         <><Loader2 className="w-5 h-5 animate-spin mr-2" />Enviando...</>
                       ) : isRenewal ? (
-                        <>🔄 Renovar Membresía</>
+                        <>Renovar Membresía</>
                       ) : (
                         <>Enviar solicitud</>
                       )}
@@ -1079,25 +1080,25 @@ export default function ClubMembership() {
 
           {/* Historial de membresías */}
       {myMemberships.length > 0 && (
-        <Card className="border-none shadow-lg">
+        <Card className="border border-slate-200 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Trophy className="w-5 h-5 text-yellow-500" />
+              <Trophy className="w-5 h-5 text-orange-500" />
               Mi Historial de Membresías
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
               {myMemberships.map(m => (
-                <div key={m.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl border">
+                <div key={m.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
                   <div>
                     <p className="font-semibold text-slate-900">{m.temporada}</p>
                     <p className="text-sm text-slate-600">{m.tipo_inscripcion}</p>
                     <p className="text-xs text-slate-500">{m.nombre_completo}</p>
                   </div>
                   <Badge className={`text-sm ${
-                    m.estado_pago === "Pagado" ? "bg-green-600" :
-                    m.estado_pago === "En revisión" ? "bg-yellow-600" : "bg-red-600"
+                    m.estado_pago === "Pagado" ? "bg-orange-600" :
+                    m.estado_pago === "En revisión" ? "bg-amber-500" : "bg-slate-500"
                   }`}>
                     {m.estado_pago}
                   </Badge>
