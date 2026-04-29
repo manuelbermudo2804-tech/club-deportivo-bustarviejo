@@ -32,6 +32,7 @@ import SocialLinks from "../components/SocialLinks";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
+import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 
 export default function PlayerDashboard() {
   const [user, setUser] = useState(null);
@@ -484,15 +485,16 @@ export default function PlayerDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
-        <div className="lg:hidden flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <SocialLinks />
-            <Link to={createPageUrl("Chatbot")}>
-              <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800">
-                <Sparkles className="w-4 h-4 mr-1" />
-                🤖 IA
-              </Button>
-            </Link>
+        <div className="lg:hidden flex items-center gap-1.5 w-full">
+          <SocialLinks />
+          <Link to={createPageUrl("Chatbot")} className="flex-shrink-0">
+            <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 px-2.5">
+              <Sparkles className="w-4 h-4 mr-1" />
+              IA
+            </Button>
+          </Link>
+          <div className="flex-1 min-w-0">
+            <MainSponsorBadge />
           </div>
           <ShareFormButton />
         </div>

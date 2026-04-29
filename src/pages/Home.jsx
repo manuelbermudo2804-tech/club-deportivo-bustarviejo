@@ -626,19 +626,19 @@ export default function Home() {
 
       
       <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
-        {/* Móvil: botones rápidos compactos (sin cambios) */}
-        <div className="lg:hidden flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <SocialLinks />
-            <Link to={createPageUrl("Chatbot")}>
-              <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 h-8 px-2.5 text-xs">
-                <Sparkles className="w-3.5 h-3.5 mr-1" />
-                IA
-              </Button>
-            </Link>
+        {/* Móvil: botones rápidos compactos */}
+        <div className="lg:hidden flex items-center gap-1.5 w-full">
+          <SocialLinks />
+          <Link to={createPageUrl("Chatbot")} className="flex-shrink-0">
+            <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 h-8 px-2.5 text-xs">
+              <Sparkles className="w-3.5 h-3.5 mr-1" />
+              IA
+            </Button>
+          </Link>
+          <div className="flex-1 min-w-0">
             <MainSponsorBadge />
-            <ShareFormButton />
           </div>
+          <ShareFormButton />
         </div>
 
         {/* Desktop: header mejorado con saludo, fecha y KPIs */}
