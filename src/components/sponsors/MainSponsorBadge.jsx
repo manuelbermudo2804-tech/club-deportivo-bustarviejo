@@ -51,20 +51,20 @@ export default function MainSponsorBadge() {
   return (
     <Wrapper
       {...wrapperProps}
-      className="inline-flex items-center gap-2 h-8 px-2.5 rounded-md bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 shadow-md border border-amber-300/60 transition-all hover:scale-105 active:scale-95 flex-shrink-0"
+      className="flex items-center justify-center gap-1.5 h-8 w-full px-2 rounded-md bg-gradient-to-r from-amber-500 to-yellow-600 hover:from-amber-600 hover:to-yellow-700 shadow-md border border-amber-300/60 transition-all active:scale-95 overflow-hidden"
       title={`Patrocinador Principal: ${principal.nombre}`}
     >
       <Crown className="w-3.5 h-3.5 text-white flex-shrink-0" />
       {principal.logo_url && (
-        <div className="bg-white rounded px-1 py-0.5 flex items-center">
+        <div className="bg-white rounded px-1 py-0.5 flex items-center flex-shrink-0">
           <img
             src={principal.logo_url}
             alt={principal.nombre}
-            className="h-4 w-auto object-contain"
+            className="h-5 w-auto object-contain"
           />
         </div>
       )}
-      <span className="text-white font-bold text-[10px] uppercase tracking-wide whitespace-nowrap hidden sm:inline">
+      <span className="text-white font-bold text-[10px] uppercase tracking-wide truncate">
         {principal.nombre}
       </span>
     </Wrapper>
