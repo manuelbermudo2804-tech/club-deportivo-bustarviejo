@@ -87,9 +87,13 @@ Deno.serve(async (req) => {
     const startTime = Date.now();
 
     // 1. Cargar temporada activa actual
+    // ⚠️ Protección: puede haber más de una "activa" por error histórico
     const activeSeasons = await base44.asServiceRole.entities.SeasonConfig.filter({ activa: true });
     const activeSeason = activeSeasons[0];
     const previousSeasonName = activeSeason?.temporada || 'Desconocida';
+    if (activeSeasons.length > 1) {
+      log.push(`⚠️ Detectadas ${activeSeasons.length} temporadas activas. Se desactivarán todas excepto la nueva.`);
+    }
     
     // Validación: que la nueva temporada NO sea igual a la actual
     if (config.newSeasonName === previousSeasonName) {
@@ -238,10 +242,19 @@ Deno.serve(async (req) => {
       log.push(`✅ Usuarios reseteados (referidos): ${r.updated}/${r.total}`);
     }
 
-    // 8. Desactivar temporada actual
-    if (activeSeason) {
-      await base44.asServiceRole.entities.SeasonConfig.update(activeSeason.id, { activa: false });
-      log.push(`✅ Temporada anterior ${previousSeasonName} desactivada`);
+    // 8. Desactivar TODAS las temporadas marcadas como activas (no solo la primera)
+    // Esto blinda el sistema contra el caso de tener varias "activa: true" por error.
+    if (activeSeasons.length > 0) {
+      let deactivated = 0;
+      for (const s of activeSeasons) {
+        try {
+          await withRetry(() => base44.asServiceRole.entities.SeasonConfig.update(s.id, { activa: false }));
+          deactivated++;
+        } catch (e) {
+          console.error(`Error desactivando temporada ${s.temporada}:`, e.message);
+        }
+      }
+      log.push(`✅ Temporadas anteriores desactivadas: ${deactivated}/${activeSeasons.length}`);
     }
 
     // 9. Crear nueva temporada (o reactivar si ya existe)
@@ -334,6 +347,25 @@ Deno.serve(async (req) => {
       } catch (e) { /* ignorar errores individuales */ }
     }
     log.push(`✅ Categorías base creadas para nueva temporada: ${createdCats}`);
+
+    // 11.5. GARANTÍA FINAL: solo UNA temporada puede quedar activa.
+    // Releer y desactivar cualquier "activa" que no sea la nueva.
+    try {
+      const finalActives = await base44.asServiceRole.entities.SeasonConfig.filter({ activa: true });
+      const stragglers = finalActives.filter(s => s.temporada !== config.newSeasonName);
+      if (stragglers.length > 0) {
+        for (const s of stragglers) {
+          try {
+            await withRetry(() => base44.asServiceRole.entities.SeasonConfig.update(s.id, { activa: false }));
+          } catch (e) {
+            console.error(`Error desactivando rezagada ${s.temporada}:`, e.message);
+          }
+        }
+        log.push(`✅ Garantía final: ${stragglers.length} temporada(s) rezagada(s) desactivada(s)`);
+      }
+    } catch (e) {
+      console.error('Error en garantía final de temporada única:', e.message);
+    }
 
     // 12. Registrar en historial
     const elapsedSec = Math.round((Date.now() - startTime) / 1000);

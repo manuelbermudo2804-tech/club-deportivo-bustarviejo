@@ -230,14 +230,25 @@ export default function SeasonManagement() {
   };
 
   // Crear temporada activa rápidamente (fallback si el reset no llegó a crearla)
+  // Garantiza que solo una temporada quede como `activa`.
   const createActiveSeasonQuickly = async () => {
     try {
       const now = new Date();
       const currentYear = now.getFullYear();
       const seasonName = `${currentYear}-${currentYear + 1}`;
       const existing = await base44.entities.SeasonConfig.filter({ temporada: seasonName });
+
+      // Desactivar cualquier otra activa que no sea la que vamos a marcar
+      const allActives = await base44.entities.SeasonConfig.filter({ activa: true });
+      for (const s of allActives) {
+        if (s.temporada !== seasonName) {
+          try { await base44.entities.SeasonConfig.update(s.id, { activa: false }); } catch {}
+        }
+      }
+
       if (existing.length > 0 && existing[0].activa) {
         toast.success(`La temporada ${seasonName} ya está activa`);
+        await queryClient.invalidateQueries({ queryKey: ['seasons'] });
         return;
       }
       if (existing.length > 0) {
@@ -600,11 +611,10 @@ export default function SeasonManagement() {
       
       if (resetConfig.notifyParents) {
         try {
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo",
+          await base44.functions.invoke('sendEmail', {
             to: "cdbustarviejo@gmail.com",
             subject: `🔄 Nueva Temporada ${data?.newSeason} Iniciada`,
-            body: `<h2>Reset Completado</h2><p>${data?.previousSeason} → ${data?.newSeason} (${data?.durationSec}s)</p><ul>${(data?.log || []).map(l => `<li>${l}</li>`).join('')}</ul>`
+            html: `<h2>Reset Completado</h2><p>${data?.previousSeason} → ${data?.newSeason} (${data?.durationSec}s)</p><ul>${(data?.log || []).map(l => `<li>${l}</li>`).join('')}</ul>`
           });
         } catch (e) { console.error("Email error:", e); }
       }
