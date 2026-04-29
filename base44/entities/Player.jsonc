@@ -125,6 +125,24 @@
       "type": "boolean",
       "default": false
     },
+    "firma_jugador_completada_por": {
+      "type": "string",
+      "description": "Email de quien marc\u00f3 la firma del jugador como completada"
+    },
+    "firma_jugador_completada_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se marc\u00f3 la firma del jugador como completada"
+    },
+    "firma_tutor_completada_por": {
+      "type": "string",
+      "description": "Email de quien marc\u00f3 la firma del tutor como completada"
+    },
+    "firma_tutor_completada_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se marc\u00f3 la firma del tutor como completada"
+    },
     "documentos_adicionales": {
       "type": "array",
       "items": {

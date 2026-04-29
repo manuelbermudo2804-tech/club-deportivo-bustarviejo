@@ -120,15 +120,14 @@ export default function FederationSignatures() {
   const updatePlayerMutation = useMutation({
     mutationFn: async ({ id, data, playerName, signatureType }) => {
       const result = await base44.entities.Player.update(id, data);
-      
+
       // Notificar al admin si las notificaciones están activas
       if (seasonConfig?.notificaciones_admin_email) {
         try {
-          await base44.integrations.Core.SendEmail({
-            from_name: "CD Bustarviejo - Firmas",
+          await base44.functions.invoke('sendEmail', {
             to: "cdbustarviejo@gmail.com",
             subject: `✍️ Firma Completada - ${playerName}`,
-            body: `
+            html: `
               <h2>Firma de Federación Completada</h2>
               <p><strong>Jugador:</strong> ${playerName}</p>
               <p><strong>Tipo de firma:</strong> ${signatureType === "jugador" ? "Firma del Jugador" : "Firma del Tutor"}</p>
@@ -141,7 +140,7 @@ export default function FederationSignatures() {
           console.error("Error sending signature notification:", error);
         }
       }
-      
+
       return { id, signatureType };
     },
     onSuccess: (data) => {
@@ -177,9 +176,10 @@ export default function FederationSignatures() {
     // Marcar como procesando inmediatamente
     setProcessingSignature(prev => ({ ...prev, [key]: true }));
     
-    const updateData = type === "jugador" 
-      ? { firma_jugador_completada: true }
-      : { firma_tutor_completada: true };
+    const nowIso = new Date().toISOString();
+    const updateData = type === "jugador"
+      ? { firma_jugador_completada: true, firma_jugador_completada_por: user?.email, firma_jugador_completada_fecha: nowIso }
+      : { firma_tutor_completada: true, firma_tutor_completada_por: user?.email, firma_tutor_completada_fecha: nowIso };
     
     updatePlayerMutation.mutate({ 
       id: player.id, 

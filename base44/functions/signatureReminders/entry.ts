@@ -54,19 +54,21 @@ Deno.serve(async (req) => {
       return Response.json({ sent: 0, message: 'No hay firmas pendientes' });
     }
 
-    // Agrupar por email del padre para enviar un solo correo
+    // Agrupar por email para enviar un solo correo (incluyendo segundo progenitor)
     const byEmail = {};
     for (const p of pendingPlayers) {
-      const email = p.email_padre;
-      if (!email) continue;
-      if (!byEmail[email]) byEmail[email] = [];
-      
+      const recipients = [p.email_padre, p.email_tutor_2].filter(Boolean);
+      if (!recipients.length) continue;
+
       const esMayor = calcularEdad(p.fecha_nacimiento) >= 18;
       const firmas = [];
       if (p.enlace_firma_jugador && !p.firma_jugador_completada) firmas.push('Firma del Jugador');
       if (p.enlace_firma_tutor && !p.firma_tutor_completada && !esMayor) firmas.push('Firma del Padre/Tutor');
-      
-      byEmail[email].push({ nombre: p.nombre, firmas });
+
+      for (const email of recipients) {
+        if (!byEmail[email]) byEmail[email] = [];
+        byEmail[email].push({ nombre: p.nombre, firmas });
+      }
     }
 
     let sent = 0;

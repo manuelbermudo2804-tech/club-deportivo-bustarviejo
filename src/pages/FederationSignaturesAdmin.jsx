@@ -45,9 +45,17 @@ export default function FederationSignaturesAdmin() {
   // Filtrar jugadores según rol
   // Si tiene permiso "puede_gestionar_firmas" o es tesorero, ve TODOS los jugadores
   const isTreasurer = user?.es_tesorero === true;
+  const matchesCoachCategory = (p) => {
+    const cats = user?.categorias_entrena || [];
+    if (!cats.length) return false;
+    if (p.deporte && cats.includes(p.deporte)) return true;
+    if (p.categoria_principal && cats.includes(p.categoria_principal)) return true;
+    if (Array.isArray(p.categorias) && p.categorias.some(c => cats.includes(c))) return true;
+    return false;
+  };
   const players = isAdmin || user?.puede_gestionar_firmas || isTreasurer
     ? allPlayers.filter(p => p.activo)
-    : allPlayers.filter(p => p.activo && user?.categorias_entrena?.includes(p.deporte));
+    : allPlayers.filter(p => p.activo && matchesCoachCategory(p));
 
   const updatePlayerMutation = useMutation({
     mutationFn: async ({ id, data, playerData }) => {
@@ -62,9 +70,11 @@ export default function FederationSignaturesAdmin() {
           const enlacesInfo = [];
           if (newEnlaceJugador) enlacesInfo.push("Firma del Jugador");
           if (newEnlaceTutor) enlacesInfo.push("Firma del Padre/Tutor");
-          
+
+          const recipients = [playerData.email_padre, playerData.email_tutor_2].filter(Boolean);
+          for (const recipient of recipients) {
           await base44.functions.invoke('sendEmail', {
-            to: playerData.email_padre,
+            to: recipient,
             subject: `🖊️ Enlaces de Firma Disponibles - ${playerData.nombre}`,
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -103,6 +113,7 @@ export default function FederationSignaturesAdmin() {
               </div>
             `
           });
+          }
           toast.success("📧 Notificación enviada al padre/tutor");
         } catch (error) {
           console.error("Error enviando notificación:", error);
@@ -160,9 +171,20 @@ export default function FederationSignaturesAdmin() {
   };
 
   const handleSave = (player) => {
+    const dataToSave = { ...editData };
+    const nowIso = new Date().toISOString();
+    // Trazabilidad: registrar quién/cuándo marca cada firma como completada
+    if (dataToSave.firma_jugador_completada === true && player.firma_jugador_completada !== true) {
+      dataToSave.firma_jugador_completada_por = user?.email;
+      dataToSave.firma_jugador_completada_fecha = nowIso;
+    }
+    if (dataToSave.firma_tutor_completada === true && player.firma_tutor_completada !== true) {
+      dataToSave.firma_tutor_completada_por = user?.email;
+      dataToSave.firma_tutor_completada_fecha = nowIso;
+    }
     updatePlayerMutation.mutate({
       id: player.id,
-      data: editData,
+      data: dataToSave,
       playerData: player
     });
   };
@@ -460,8 +482,10 @@ export default function FederationSignaturesAdmin() {
                                   const pendientes = [];
                                   if (player.enlace_firma_jugador && !player.firma_jugador_completada) pendientes.push("Firma del Jugador");
                                   if (player.enlace_firma_tutor && !player.firma_tutor_completada && !(calcularEdad(player.fecha_nacimiento) >= 18)) pendientes.push("Firma del Tutor");
+                                  const reminderRecipients = [player.email_padre, player.email_tutor_2].filter(Boolean);
+                                  for (const recipient of reminderRecipients) {
                                   await base44.functions.invoke('sendEmail', {
-                                    to: player.email_padre,
+                                    to: recipient,
                                     subject: `⏰ Recordatorio: Firmas pendientes - ${player.nombre}`,
                                     html: `<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;">
                                       <div style="background:linear-gradient(135deg,#f59e0b,#ea580c);padding:20px;text-align:center;border-radius:10px 10px 0 0;">
@@ -478,7 +502,8 @@ export default function FederationSignaturesAdmin() {
                                       </div>
                                     </div>`
                                   });
-                                  toast.success(`📧 Recordatorio enviado a ${player.email_padre}`);
+                                  }
+                                  toast.success(`📧 Recordatorio enviado (${reminderRecipients.length} destinatario${reminderRecipients.length !== 1 ? 's' : ''})`);
                                 } catch (e) {
                                   toast.error("Error al enviar recordatorio");
                                 }
