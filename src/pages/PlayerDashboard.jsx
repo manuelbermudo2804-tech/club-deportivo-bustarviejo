@@ -92,6 +92,8 @@ export default function PlayerDashboard() {
   useEffect(() => {
     if (playerFetched && !player) {
       setAllowCreatePrompt(true);
+      // Abrir el formulario automáticamente — sin pantalla intermedia confusa
+      setShowCreateProfile(true);
     } else {
       setAllowCreatePrompt(false);
     }

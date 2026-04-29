@@ -70,6 +70,10 @@ export default function Home() {
         } else if (currentUser.es_entrenador) {
           window.location.href = createPageUrl('CoachDashboard');
           return;
+        } else if (currentUser.tipo_panel === 'jugador_adulto' || currentUser.es_jugador === true) {
+          // Jugador +18 (con o sin ficha aún) → su dashboard, que se encarga del onboarding del formulario
+          window.location.href = createPageUrl('PlayerDashboard');
+          return;
         } else {
           window.location.href = createPageUrl('ParentDashboard');
           return;
