@@ -95,6 +95,16 @@ export default function PlayerDashboard() {
   useEffect(() => {
     if (playerFetched && !player) {
       setAllowCreatePrompt(true);
+      // Si viene desde el onboarding con ?registro=1, abrir el wizard automáticamente
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('registro') === '1') {
+          setShowCreateProfile(true);
+          // Limpiar el query param para que no se reabra al refrescar
+          const cleanUrl = window.location.pathname + window.location.hash;
+          window.history.replaceState({}, '', cleanUrl);
+        }
+      } catch {}
     } else {
       setAllowCreatePrompt(false);
     }

@@ -18,10 +18,18 @@ export default function PlayerRegistrationInvitation({ user, onClose, isPlayer =
       console.log('Error marking flag:', e);
     }
     
-    // Cerrar el onboarding y volver a recargar para que ParentPlayers abra el formulario
+    // Detectar destino según el tipo de usuario:
+    //  - Jugador +18 sin ficha → PlayerDashboard (con ?registro=1 para auto-abrir wizard)
+    //  - Familias / resto → ParentPlayers (que también detecta y abre el wizard)
+    const isAdultPlayerWithoutProfile = isPlayer || 
+      ((user?.tipo_panel === 'jugador_adulto' || user?.es_jugador === true) && !user?.player_id);
+    const target = isAdultPlayerWithoutProfile 
+      ? '/PlayerDashboard?registro=1' 
+      : '/parentplayers';
+    
     if (onClose) onClose();
     setTimeout(() => {
-      window.location.href = '/parentplayers';
+      window.location.href = target;
     }, 500);
   };
 
