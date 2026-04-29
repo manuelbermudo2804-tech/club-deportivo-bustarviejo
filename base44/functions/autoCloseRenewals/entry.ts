@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
     // Notificar al admin
     try {
       await base44.asServiceRole.integrations.Core.SendEmail({
-        to: 'cdbustarviejo@gmail.com',
+        to: 'info@cdbustarviejo.com',
         subject: `🔒 Cierre Automático de Renovaciones - ${processed.length} jugadores no renovados`,
         body: `Se ha alcanzado la fecha límite de renovaciones (${fechaLimite.toLocaleDateString('es-ES')}).\n\nEl sistema ha procesado automáticamente ${processed.length} jugador(es) que no renovaron:\n\n${processed.map(p => `• ${p.nombre} (${p.deporte}) - Familia: ${p.email_padre}`).join('\n')}\n\nEstos jugadores han sido marcados como "no_renueva" y desactivados.\n\nTemporada: ${activeConfig.temporada}`
       });

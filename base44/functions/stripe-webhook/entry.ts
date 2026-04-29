@@ -443,7 +443,7 @@ Deno.serve(async (req) => {
             // Notificar al admin
             try {
               await base44.asServiceRole.integrations.Core.SendEmail({
-                to: 'cdbustarviejo@outlook.es',
+                to: 'info@cdbustarviejo.com',
                 subject: `✅ Cobro extra pagado (Stripe) - ${payerEmail}`,
                 body: `Cobro extra "${metadata.titulo || ''}" pagado por ${payerEmail}.\nImporte: ${(Number(session.amount_total || 0) / 100).toFixed(2)}€`
               });
@@ -597,7 +597,7 @@ Deno.serve(async (req) => {
                   })
                 });
                 await base44.asServiceRole.integrations.Core.SendEmail({
-                  to: 'cdbustarviejo@outlook.es',
+                  to: 'info@cdbustarviejo.com',
                   subject: `✅ Nuevo socio pagado (Payment Link) - ${finalMember.nombre_completo}`,
                   body: `Socio pagado via Payment Link:\nNombre: ${finalMember.nombre_completo}\nEmail: ${payerEmail}\nNúmero: ${finalMember.numero_socio}\nTemporada: ${tempActual}${!pendingMember ? '\n⚠️ AUTO-CREADO (no se pre-registró en la web). Revisar datos.' : ''}`
                 });
@@ -845,7 +845,7 @@ Deno.serve(async (req) => {
               });
             }
             await base44.asServiceRole.integrations.Core.SendEmail({
-              to: 'cdbustarviejo@outlook.es',
+              to: 'info@cdbustarviejo.com',
               subject: `✅ Nuevo socio pagado (Stripe) - ${member?.nombre_completo || metadata.nombre_completo || email}`,
               body: `Socio pagado: ${member?.nombre_completo || metadata.nombre_completo || ''}\nEmail: ${email}\nNúmero: ${member?.numero_socio || 'pendiente'}\nTemporada: ${temporada}\n${member?.id ? 'Auto-creado desde web' : 'Existente actualizado'}`
             });
@@ -1127,7 +1127,7 @@ Deno.serve(async (req) => {
             // Notificar admin
             try {
               await base44.asServiceRole.integrations.Core.SendEmail({
-                to: 'cdbustarviejo@outlook.es',
+                to: 'info@cdbustarviejo.com',
                 subject: `⚠️ Fallo cobro cuota socio - ${email}`,
                 body: `Fallo al cobrar ${amount}€ de cuota de socio de ${email}.\nSuscripción: ${subId}\nStripe reintentará automáticamente.`
               });
@@ -1182,7 +1182,7 @@ Deno.serve(async (req) => {
                 });
               }
               await base44.asServiceRole.integrations.Core.SendEmail({
-                to: 'cdbustarviejo@outlook.es',
+                to: 'info@cdbustarviejo.com',
                 subject: `⚠️ Fallo cobro Plan Mensual - ${subMeta.jugador_nombre}`,
                 body: `Fallo al cobrar ${amount}€ de ${subMeta.jugador_nombre} (${email}).\nSuscripción: ${subId}\nStripe reintentará automáticamente.`
               });
@@ -1320,7 +1320,7 @@ Deno.serve(async (req) => {
         }
 
         await base44.asServiceRole.integrations.Core.SendEmail({
-          to: 'cdbustarviejo@outlook.es',
+          to: 'info@cdbustarviejo.com',
           subject: `⚠️ Fallo en pago (${tipoDesc}) - ${email || 'desconocido'}`,
           body: `Fallo al cobrar ${amount}€.\nTipo: ${tipoDesc}\nJugador: ${jugadorNombre}\nEmail: ${email}\nMotivo: ${failMessage}\nPaymentIntent: ${pi.id}`
         });
