@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
@@ -401,54 +402,58 @@ export default function PlayerDashboard() {
     );
   }
 
-  // Formulario de inscripción +18 en pantalla completa (sobre el bottom bar)
-  // Se muestra SOLO cuando el usuario pulsa explícitamente "Completar inscripción"
-  if (!player && allowCreatePrompt && showCreateProfile && !showPaymentFlow) {
-    return (
-      <div className="fixed inset-0 z-[100] bg-slate-50 overflow-y-auto" style={{ paddingBottom: '100px' }}>
-        <div className="sticky top-0 z-20 bg-orange-600 text-white px-4 py-3 shadow-md flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <User className="w-5 h-5" />
-            <h2 className="font-bold">Mi Inscripción</h2>
+  // Formulario de inscripción +18 — renderizado vía PORTAL al body
+  // (evita problemas de z-index/transform de ancestros como el Layout)
+  const inscriptionFormPortal = (!player && allowCreatePrompt && showCreateProfile && !showPaymentFlow)
+    ? createPortal(
+        <div
+          className="fixed inset-0 bg-slate-50 overflow-y-auto"
+          style={{ zIndex: 9999, paddingBottom: '100px' }}
+        >
+          <div className="sticky top-0 bg-orange-600 text-white px-4 py-3 shadow-md flex items-center justify-between" style={{ zIndex: 10 }}>
+            <div className="flex items-center gap-2">
+              <User className="w-5 h-5" />
+              <h2 className="font-bold">Mi Inscripción</h2>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white hover:bg-white/20"
+              onClick={() => setShowCreateProfile(false)}
+            >
+              Salir
+            </Button>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-white hover:bg-white/20"
-            onClick={() => setShowCreateProfile(false)}
-          >
-            Salir
-          </Button>
-        </div>
-        <div className="p-3 lg:p-6 max-w-5xl mx-auto">
-          <PlayerFormWizard
-            player={null}
-            allPlayers={[]}
-            isParent={false}
-            isAdultPlayerSelfRegistration={true}
-            isSubmitting={isCreatingProfile}
-            onSubmit={(playerData) => {
-              setPendingPlayerData({
-                ...playerData,
-                es_mayor_edad: true,
-                email_jugador: user.email,
-                email_padre: user.email,
-                acceso_jugador_autorizado: true,
-                activo: true,
-                tipo_inscripcion: "Nueva Inscripción",
-                tiene_descuento_hermano: false,
-                descuento_aplicado: 0,
-                _descuentoCalculado: 0
-              });
-              setShowCreateProfile(false);
-              setShowPaymentFlow(true);
-            }}
-            onCancel={() => setShowCreateProfile(false)}
-          />
-        </div>
-      </div>
-    );
-  }
+          <div className="p-3 lg:p-6 max-w-5xl mx-auto">
+            <PlayerFormWizard
+              player={null}
+              allPlayers={[]}
+              isParent={false}
+              isAdultPlayerSelfRegistration={true}
+              isSubmitting={isCreatingProfile}
+              onSubmit={(playerData) => {
+                setPendingPlayerData({
+                  ...playerData,
+                  es_mayor_edad: true,
+                  email_jugador: user.email,
+                  email_padre: user.email,
+                  acceso_jugador_autorizado: true,
+                  activo: true,
+                  tipo_inscripcion: "Nueva Inscripción",
+                  tiene_descuento_hermano: false,
+                  descuento_aplicado: 0,
+                  _descuentoCalculado: 0
+                });
+                setShowCreateProfile(false);
+                setShowPaymentFlow(true);
+              }}
+              onCancel={() => setShowCreateProfile(false)}
+            />
+          </div>
+        </div>,
+        document.body
+      )
+    : null;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
@@ -605,6 +610,9 @@ export default function PlayerDashboard() {
 
         <ContactCard />
       </div>
+
+      {/* Portal del formulario de inscripción +18 (fuera del Layout) */}
+      {inscriptionFormPortal}
 
       {/* Dialog Editar Perfil - Modal amplio para móvil */}
       <Dialog open={showEditProfile} onOpenChange={setShowEditProfile}>

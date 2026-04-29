@@ -92,9 +92,12 @@ const useCategoriesFromConfig = () => {
 };
 
 // --- STEPS for new player ---
-// 0: PlayerData, 1: Category, 2: Documents, 3: Tutor, 4: SecondParent, 5: Medical, 6: Normativa, 7: Authorizations, 8: Summary
+// Familia: 0:PlayerData, 1:Category, 2:Documents, 3:Tutor, 4:SecondParent, 5:Medical, 6:Normativa, 7:Authorizations, 8:Summary
+// +18 auto: salta paso "2º Progenitor" → 0:PlayerData, 1:Category, 2:Documents, 3:Tutor, 4:Medical, 5:Normativa, 6:Authorizations, 7:Summary
 const NEW_STEP_LABELS = ["Jugador", "Categoría", "Documentos", "Tutor", "2º Progenitor", "Médica", "Normativa", "Autorizaciones", "Resumen"];
+const NEW_STEP_LABELS_ADULT = ["Jugador", "Categoría", "Documentos", "Mis Datos", "Médica", "Normativa", "Autorizaciones", "Resumen"];
 const NEW_TOTAL = 9;
+const NEW_TOTAL_ADULT = 8;
 
 // --- STEPS for edit (reduced: no authorizations step, no summary) ---
 
@@ -115,11 +118,24 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
 
   const isEditing = !!player;
 
-  // Determine steps
-  const totalSteps = isEditing ? 6 : NEW_TOTAL;
-  const stepLabels = isEditing
-    ? ["Jugador", "Categoría", "Documentos", "Tutor", "2º Progenitor", "Médica"]
-    : NEW_STEP_LABELS;
+  // Determine steps — el +18 auto-registro NO tiene paso "2º Progenitor"
+  let totalSteps;
+  let stepLabels;
+  if (isEditing) {
+    if (isAdultPlayerSelfRegistrationProp) {
+      totalSteps = 5;
+      stepLabels = ["Jugador", "Categoría", "Documentos", "Mis Datos", "Médica"];
+    } else {
+      totalSteps = 6;
+      stepLabels = ["Jugador", "Categoría", "Documentos", "Tutor", "2º Progenitor", "Médica"];
+    }
+  } else if (isAdultPlayerSelfRegistrationProp) {
+    totalSteps = NEW_TOTAL_ADULT;
+    stepLabels = NEW_STEP_LABELS_ADULT;
+  } else {
+    totalSteps = NEW_TOTAL;
+    stepLabels = NEW_STEP_LABELS;
+  }
 
   const [currentPlayer, setCurrentPlayer] = useState(() => {
     if (player) return player;
@@ -385,12 +401,22 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   };
 
   // --- Per-step validation ---
+  // Para el modo +18 auto-registro: paso 4 = Médica, 5 = Normativa, 6 = Autorizaciones, 7 = Resumen
+  // Para el modo familia: paso 4 = 2ºProgenitor, 5 = Médica, 6 = Normativa, 7 = Autorizaciones, 8 = Resumen
+  const adultMode = isAdultPlayerSelfRegistration && !isEditing;
+  const NORMATIVA_STEP = adultMode ? 5 : 6;
+  const AUTH_STEP = adultMode ? 6 : 7;
+
   const validateStep = (s) => {
     const errors = {};
     if (s === 0) {
       if (!currentPlayer.nombre?.trim()) errors.nombre = "El nombre es obligatorio";
       if (!currentPlayer.fecha_nacimiento) errors.fecha_nacimiento = "La fecha es obligatoria";
       if (!currentPlayer.foto_url) errors.foto_url = "La foto es obligatoria";
+      // Validación crítica: si está en modo +18 auto-registro, la fecha DEBE dar 18+
+      if (adultMode && currentPlayer.fecha_nacimiento && playerAge !== null && playerAge < 18) {
+        errors.fecha_nacimiento = `Esta inscripción es solo para mayores de 18 años. Has indicado ${playerAge} años. Si eres menor, debe inscribirte un padre/madre/tutor desde su cuenta.`;
+      }
     }
     if (s === 2) {
       // Número de documento obligatorio si: mayor 14 O ya subió imagen del documento
@@ -443,10 +469,10 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       if (!currentPlayer.direccion?.trim()) errors.direccion = "Dirección obligatoria";
       if (!currentPlayer.municipio?.trim()) errors.municipio = "Municipio obligatorio";
     }
-    if (s === 6 && !isEditing) {
+    if (s === NORMATIVA_STEP && !isEditing) {
       if (!currentPlayer.acepta_normativa) errors.acepta_normativa = "Debes aceptar la normativa del club";
     }
-    if (s === 7 && !isEditing) {
+    if (s === AUTH_STEP && !isEditing) {
       if (!currentPlayer.acepta_politica_privacidad) errors.acepta_politica_privacidad = "Debes aceptar la política";
       if (!currentPlayer.autorizacion_fotografia) errors.autorizacion_fotografia = "Selecciona una opción";
       // Responsabilidad desplazamiento obligatoria para todos (menores y +18)
@@ -480,18 +506,18 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   const handleFinalSubmit = () => {
     // Validate normativa + authorizations steps if new
     if (!isEditing) {
-      const normErrors = validateStep(6);
+      const normErrors = validateStep(NORMATIVA_STEP);
       if (Object.keys(normErrors).length > 0) {
         setFieldErrors(normErrors);
         toast.error(Object.values(normErrors)[0]);
-        setStep(6);
+        setStep(NORMATIVA_STEP);
         return;
       }
-      const authErrors = validateStep(7);
+      const authErrors = validateStep(AUTH_STEP);
       if (Object.keys(authErrors).length > 0) {
         setFieldErrors(authErrors);
         toast.error(Object.values(authErrors)[0]);
-        setStep(7);
+        setStep(AUTH_STEP);
         return;
       }
     }
@@ -563,8 +589,17 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   }
 
   // --- Render current step ---
+  // En modo +18 auto-registro saltamos el paso "2º Progenitor" (índice 4 en familia)
   const renderStep = () => {
-    switch (step) {
+    // Mapeo de pasos según modo
+    const stepKey = adultMode ? `adult-${step}` : `family-${step}`;
+
+    // Modo familia: 0:player, 1:cat, 2:docs, 3:tutor, 4:2ºprog, 5:med, 6:norm, 7:auth, 8:sum
+    // Modo adulto:  0:player, 1:cat, 2:docs, 3:tutor, 4:med, 5:norm, 6:auth, 7:sum
+    let logicalStep = step;
+    if (adultMode && step >= 4) logicalStep = step + 1; // saltamos índice 4 (2º progenitor)
+
+    switch (logicalStep) {
       case 0: return <StepPlayerData currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} requiresDNI={requiresDNI} uploadingPhoto={uploadingPhoto || uploadingAny} onPhotoUpload={handlePhotoUpload} photoUploadFailed={photoUploadFailed} />;
       case 1: return <StepCategory currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} categories={categories} playerAge={playerAge} suggestCategoryByAge={suggestCategoryByAge} onUserChangeCategory={() => setUserChangedCategory(true)} />;
       case 2: return <StepDocuments currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} requiresDNI={requiresDNI} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} uploadingDNI={uploadingDNI || uploadingAny} uploadingDNITrasero={uploadingDNITrasero || uploadingAny} uploadingLibroFamilia={uploadingLibroFamilia || uploadingAny} onDNIUpload={handleDNIUpload} onDNITraseroUpload={handleDNITraseroUpload} onLibroFamiliaUpload={handleLibroFamiliaUpload} dniUploadFailed={dniUploadFailed} libroUploadFailed={libroUploadFailed} />;
