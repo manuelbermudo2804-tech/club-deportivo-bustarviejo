@@ -42,21 +42,34 @@ export default function ParentPlayers() {
   usePageTutorial("parent_players");
 
   // Detectar si debe abrir el formulario de registro automáticamente (onboarding)
+  // O si es un jugador +18 sin ficha → activar siempre auto-registro
   useEffect(() => {
     const checkAutoOpenForm = async () => {
       try {
         const currentUser = await base44.auth.me();
+        const esJugadorAdulto = currentUser?.tipo_panel === 'jugador_adulto' || currentUser?.es_jugador === true;
+        
+        // Si es +18 sin ficha aún (sin player_id) → SIEMPRE modo auto-registro
+        if (esJugadorAdulto && !currentUser?.player_id) {
+          console.log('👤 [ParentPlayers] Jugador +18 sin ficha → activando auto-registro');
+          setIsAdultPlayerSelfRegistration(true);
+          setShowForm(true);
+          setEditingPlayer(null);
+          setSuggestedCategory(null);
+          if (currentUser?.debe_mostrar_registro_jugador) {
+            await base44.auth.updateMe({ debe_mostrar_registro_jugador: false });
+          }
+          return;
+        }
+        
         if (currentUser?.debe_mostrar_registro_jugador === true) {
           console.log('📝 [ParentPlayers] Auto-abriendo formulario de registro (onboarding)');
           setShowForm(true);
           setEditingPlayer(null);
           setSuggestedCategory(null);
-          // Si el usuario eligió rol jugador_adulto en el onboarding, activar auto-registro +18
-          if (currentUser?.tipo_panel === 'jugador_adulto' || currentUser?.es_jugador === true) {
+          if (esJugadorAdulto) {
             setIsAdultPlayerSelfRegistration(true);
           }
-          
-          // Limpiar el flag
           await base44.auth.updateMe({ debe_mostrar_registro_jugador: false });
         }
       } catch (error) {
@@ -805,7 +818,9 @@ Email: cdbustarviejo@gmail.com
                 onClick={() => {
                   setEditingPlayer(null);
                   setSuggestedCategory(null);
-                  setIsAdultPlayerSelfRegistration(false);
+                  // Si es +18 sin ficha, activar auto-registro
+                  const esJugadorAdulto = (user?.tipo_panel === 'jugador_adulto' || user?.es_jugador === true) && !user?.player_id;
+                  setIsAdultPlayerSelfRegistration(esJugadorAdulto);
                   setShowForm(!showForm);
                 }}
                 className="bg-white text-orange-700 hover:bg-orange-50 shadow-lg font-bold"
@@ -1032,13 +1047,17 @@ Email: cdbustarviejo@gmail.com
               onClick={() => {
                 setEditingPlayer(null);
                 setSuggestedCategory(null);
-                setIsAdultPlayerSelfRegistration(false);
+                // Si es +18 sin ficha, activar auto-registro
+                const esJugadorAdulto = (user?.tipo_panel === 'jugador_adulto' || user?.es_jugador === true) && !user?.player_id;
+                setIsAdultPlayerSelfRegistration(esJugadorAdulto);
                 setShowForm(true);
               }}
               className="bg-orange-600 hover:bg-orange-700 shadow-lg"
             >
               <Plus className="w-5 h-5 mr-2" />
-              Registrar Primer Jugador
+              {(user?.tipo_panel === 'jugador_adulto' || user?.es_jugador === true) && !user?.player_id 
+                ? "Registrarme como Jugador" 
+                : "Registrar Primer Jugador"}
             </Button>
           )}
           {isPlayerUser && (
