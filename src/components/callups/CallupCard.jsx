@@ -255,16 +255,32 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
             <div className="flex flex-wrap gap-2 pt-2">
               {!canDelete && callup.estado_convocatoria !== "cancelada" && (
                 <>
-                  {/* Botón PUBLICAR prominente para borradores */}
+                  {/* Botón PUBLICAR — solo activo si hay jugadores convocados */}
                   {!callup.publicada && (
-                    <Button
-                      onClick={() => onPublish?.(callup)}
-                      size="sm"
-                      className="w-full bg-green-600 hover:bg-green-700 text-white shadow-lg font-semibold mb-1"
-                    >
-                      <Send className="w-4 h-4 mr-2" />
-                      🚀 Publicar y Enviar Convocatoria
-                    </Button>
+                    jugadores.length === 0 ? (
+                      <div className="w-full bg-amber-50 border-2 border-amber-300 rounded-lg p-3 mb-1">
+                        <div className="flex items-start gap-2">
+                          <div className="text-amber-600 text-xl flex-shrink-0">⚠️</div>
+                          <div className="flex-1">
+                            <p className="text-sm font-semibold text-amber-900 mb-1">
+                              Borrador sin jugadores convocados
+                            </p>
+                            <p className="text-xs text-amber-800 leading-relaxed">
+                              Pulsa <strong>Editar</strong> para seleccionar los jugadores que quieres convocar. Una vez revisado, podrás publicar y enviar la convocatoria.
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <Button
+                        onClick={() => onPublish?.(callup)}
+                        size="sm"
+                        className="w-full bg-green-600 hover:bg-green-700 text-white shadow-lg font-semibold mb-1"
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        🚀 Publicar y Enviar Convocatoria ({jugadores.length} convocados)
+                      </Button>
+                    )
                   )}
                   <Button
                     onClick={() => onEdit?.(callup)}
