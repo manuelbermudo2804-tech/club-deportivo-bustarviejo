@@ -450,8 +450,7 @@ export default function ParentDashboard() {
           ]}
         />
 
-        {/* Banner del Patrocinador Principal — solo si existe uno activo */}
-        <MainSponsorBanner />
+
 
         {/* Aviso renovaciones (aunque estén inactivos) */}
         {!playersLoading && activeSeason?.permitir_renovaciones && pendingInactivePlayers.length > 0 && (

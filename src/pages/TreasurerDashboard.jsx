@@ -298,8 +298,7 @@ export default function TreasurerDashboard() {
           ]}
         />
 
-        {/* Banner del Patrocinador Principal — solo si existe uno activo */}
-        <MainSponsorBanner />
+
 
         {/* Widget Clasificaciones y Próximo Partido */}
         {!playersLoading && myPlayers.length > 0 && (

@@ -208,12 +208,7 @@ export default function CoordinatorDashboard() {
           ]}
         />
 
-        {/* Banner del Patrocinador Principal — solo si existe uno activo */}
-        <MainSponsorBanner />
-
         {/* Banner Clasificaciones + Partidos - Estilo ParentDashboard */}
-        {/* Banner del Patrocinador Principal — solo si existe uno activo */}
-        <MainSponsorBanner />
 
         <CoordinatorClassificationsMatchesBanner />
 

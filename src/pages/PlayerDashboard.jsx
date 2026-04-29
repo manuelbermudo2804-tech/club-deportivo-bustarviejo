@@ -512,8 +512,7 @@ export default function PlayerDashboard() {
           ]}
         />
 
-        {/* Banner del Patrocinador Principal — solo si existe uno activo */}
-        <MainSponsorBanner />
+
 
         {/* Banner: el jugador +18 aún no ha completado su inscripción */}
         {!player && allowCreatePrompt && (
