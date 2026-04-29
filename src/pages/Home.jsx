@@ -17,6 +17,7 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
+import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
 
 
 export default function Home() {
@@ -656,6 +657,9 @@ export default function Home() {
         )}
 
 
+
+        {/* Banner del Patrocinador Principal — solo si existe uno activo */}
+        <MainSponsorBanner />
 
         {/* ÚNICO BANNER CONSOLIDADO DE ALERTAS - Incluye TODO */}
         {(isAdmin || hasPlayers) && (
