@@ -74,7 +74,9 @@ export default function ParentPlayers() {
     gcTime: 600000,
     refetchOnWindowFocus: false,
   });
-  const isPlayerUser = user?.tipo_panel === 'jugador_adulto' || user?.es_jugador === true;
+  // Es jugador adulto YA REGISTRADO (tiene player_id vinculado).
+  // Si todavía no tiene player_id, está en proceso de auto-registro y debe poder usar el formulario.
+  const isPlayerUser = (user?.tipo_panel === 'jugador_adulto' || user?.es_jugador === true) && !!user?.player_id;
 
   const { activeSeason: currentSeason, seasonConfig } = useActiveSeason();
 
@@ -518,7 +520,9 @@ Email: cdbustarviejo@gmail.com
   });
 
   const handleSubmit = async (playerData) => {
-    if (!editingPlayer && (user?.tipo_panel === 'jugador_adulto' || user?.es_jugador === true)) {
+    // Bloquear solo si YA tiene un player_id (jugador ya registrado intentando crear otro).
+    // Si está auto-registrándose por primera vez (player_id vacío), permitir.
+    if (!editingPlayer && (user?.tipo_panel === 'jugador_adulto' || user?.es_jugador === true) && !!user?.player_id) {
       toast.info('Como jugador no puedes registrar otros jugadores');
       return;
     }
