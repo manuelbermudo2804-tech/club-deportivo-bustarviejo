@@ -50,7 +50,7 @@ export default function TeamAttendanceEvaluation() {
 
   // Cargar jugadores activos; refresco al entrar para reflejar altas/reset recientes
   const { data: players } = useQuery({
-    queryKey: ['players', user?.email],
+    queryKey: ['players-staff-eval', user?.email],
     queryFn: async () => {
       const isStaff = user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador;
       if (isStaff) {
@@ -65,7 +65,7 @@ export default function TeamAttendanceEvaluation() {
       return await base44.entities.Player.filter({ activo: true }) || [];
     },
     initialData: [],
-    staleTime: 30 * 1000,
+    staleTime: 0,
     refetchOnMount: 'always',
     enabled: !!user,
   });

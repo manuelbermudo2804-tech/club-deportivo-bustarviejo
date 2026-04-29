@@ -38,7 +38,7 @@ export default function CoachAttendance() {
   }, []);
 
   const { data: players } = useQuery({
-    queryKey: ['players', user?.email],
+    queryKey: ['players-staff-attendance', user?.email],
     queryFn: async () => {
       const isStaff = user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador;
       if (isStaff) {
@@ -54,6 +54,7 @@ export default function CoachAttendance() {
     },
     initialData: [],
     enabled: !!user,
+    staleTime: 0,
     refetchOnMount: 'always',
   });
 

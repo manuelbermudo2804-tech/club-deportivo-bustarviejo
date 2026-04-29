@@ -125,7 +125,7 @@ export default function CoachCallups() {
 
   // Para staff usamos getStaffPlayers (service role) porque RLS limita a entrenadores a ver solo sus hijos
   const { data: allPlayers } = useQuery({
-    queryKey: ['players', user?.email],
+    queryKey: ['players-staff-callups', user?.email],
     queryFn: async () => {
       const isStaff = user?.role === 'admin' || user?.es_entrenador || user?.es_coordinador;
       if (isStaff) {
@@ -141,6 +141,8 @@ export default function CoachCallups() {
     },
     initialData: [],
     enabled: !!user,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const { data: allPayments = [] } = useQuery({
