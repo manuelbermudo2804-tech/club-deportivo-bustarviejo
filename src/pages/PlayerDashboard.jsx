@@ -44,6 +44,41 @@ export default function PlayerDashboard() {
   const [allowCreatePrompt, setAllowCreatePrompt] = useState(false);
   const queryClient = useQueryClient();
 
+  // Mutation: crear jugador +18 con pagos (vía backend con service role)
+  const createAdultPlayerMutation = useMutation({
+    mutationFn: async ({ playerData, paymentsData }) => {
+      console.log('🚀 [createAdultPlayer] Invocando backend...', { nombre: playerData.nombre, payments: paymentsData?.payments?.length });
+      const { data: result } = await base44.functions.invoke('playerRenewalAction', {
+        action: 'create_with_payments',
+        playerData,
+        payments: paymentsData?.payments || [],
+      });
+      console.log('📦 [createAdultPlayer] Resultado:', result);
+      if (!result?.success || !result?.player) {
+        throw new Error(result?.error || 'No se pudo crear el perfil');
+      }
+      return { player: result.player, paymentsData };
+    },
+    onSuccess: async ({ player: newPlayer, paymentsData }) => {
+      try { await base44.auth.updateMe({ player_id: newPlayer.id, es_jugador: true }); } catch {}
+      setIsCreatingProfile(false);
+      setInscriptionSuccessData({
+        player: newPlayer,
+        tipoPago: paymentsData.tipoPago,
+        cuotasGeneradas: paymentsData.payments,
+        descuentoHermano: 0
+      });
+      setShowPaymentFlow(false);
+      setShowInscriptionSuccess(true);
+    },
+    onError: (error) => {
+      console.error('❌ [createAdultPlayer] Error:', error);
+      setIsCreatingProfile(false);
+      const msg = error?.response?.data?.error || error?.message || 'Error desconocido';
+      toast.error(`Error al crear el perfil: ${msg}`);
+    },
+  });
+
   useEffect(() => {
     const fetchUser = async () => {
       try {
@@ -350,73 +385,25 @@ export default function PlayerDashboard() {
             seasonConfig={seasonConfig}
             categoryConfigs={categoryConfigs}
             descuentoHermano={0}
-            onContinue={async (paymentsData) => {
+            onContinue={(paymentsData) => {
               console.log('🎬 [PlayerDashboard] onContinue invocado', { 
-                hasPaymentsData: !!paymentsData, 
                 paymentsCount: paymentsData?.payments?.length,
                 tipoPago: paymentsData?.tipoPago,
                 isCreatingProfile,
-                hasPendingPlayerData: !!pendingPlayerData
               });
-              
-              // Prevenir doble-submit
-              if (isCreatingProfile) {
-                console.log('⚠️ [PlayerDashboard] Creación ya en proceso - ignorando');
+              if (isCreatingProfile) return;
+              if (!pendingPlayerData) {
+                toast.error('No hay datos del jugador');
                 return;
               }
-              
               setIsCreatingProfile(true);
-              try {
-                console.log('📝 [PlayerDashboard] Creando perfil de jugador con pagos...', {
-                  nombre: pendingPlayerData?.nombre,
-                  deporte: pendingPlayerData?.deporte,
-                  email_jugador: pendingPlayerData?.email_jugador,
-                });
-                
-                // Limpiar campos internos antes de crear
-                const cleanPlayerData = { ...pendingPlayerData };
-                delete cleanPlayerData._descuentoCalculado;
-                
-                // Usar backend function (service role) — RLS de Player solo permite create a admin
-                console.log('🚀 [PlayerDashboard] Invocando playerRenewalAction...');
-                const response = await base44.functions.invoke('playerRenewalAction', {
-                  action: 'create_with_payments',
-                  playerData: cleanPlayerData,
-                  payments: paymentsData?.payments || [],
-                });
-                console.log('📦 [PlayerDashboard] Respuesta backend:', response);
-                
-                const result = response?.data;
-                if (!result?.success || !result?.player) {
-                  throw new Error(result?.error || 'No se pudo crear el perfil');
-                }
-                
-                const newPlayer = result.player;
-                console.log('✅ Player creado:', newPlayer?.id, '- Pagos:', result.payments?.length || 0);
-                
-                await base44.auth.updateMe({ player_id: newPlayer.id, es_jugador: true });
-                
-                // Mostrar pantalla de éxito
-                setInscriptionSuccessData({
-                  player: newPlayer,
-                  tipoPago: paymentsData.tipoPago,
-                  cuotasGeneradas: paymentsData.payments,
-                  descuentoHermano: 0
-                });
-                setShowPaymentFlow(false);
-                setShowInscriptionSuccess(true);
-              } catch (error) {
-                console.error('❌ [PlayerDashboard] Error creating player profile:', error);
-                console.error('❌ Error details:', { 
-                  message: error?.message, 
-                  response: error?.response?.data,
-                  stack: error?.stack?.substring(0, 500)
-                });
-                const msg = error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Error desconocido';
-                toast.error(`Error al crear el perfil: ${msg}`);
-              } finally {
-                setIsCreatingProfile(false);
-              }
+              const cleanPlayerData = { ...pendingPlayerData };
+              delete cleanPlayerData._descuentoCalculado;
+              // Disparar mutation (fire-and-forget, igual que ParentPlayers)
+              createAdultPlayerMutation.mutate({
+                playerData: cleanPlayerData,
+                paymentsData,
+              });
             }}
           />
         </div>
