@@ -360,18 +360,24 @@ export default function PlayerDashboard() {
               setIsCreatingProfile(true);
               try {
                 console.log('📝 [PlayerDashboard] Creando perfil de jugador con pagos...');
-                const newPlayer = await base44.entities.Player.create(pendingPlayerData);
                 
-                // Crear pagos
-                if (paymentsData?.payments) {
-                  for (const payment of paymentsData.payments) {
-                    await base44.entities.Payment.create({
-                      ...payment,
-                      jugador_id: newPlayer.id,
-                      jugador_nombre: newPlayer.nombre
-                    });
-                  }
+                // Limpiar campos internos antes de crear
+                const cleanPlayerData = { ...pendingPlayerData };
+                delete cleanPlayerData._descuentoCalculado;
+                
+                // Usar backend function (service role) — RLS de Player solo permite create a admin
+                const { data: result } = await base44.functions.invoke('playerRenewalAction', {
+                  action: 'create_with_payments',
+                  playerData: cleanPlayerData,
+                  payments: paymentsData?.payments || [],
+                });
+                
+                if (!result?.success || !result?.player) {
+                  throw new Error(result?.error || 'No se pudo crear el perfil');
                 }
+                
+                const newPlayer = result.player;
+                console.log('✅ Player creado:', newPlayer?.id, '- Pagos:', result.payments?.length || 0);
                 
                 await base44.auth.updateMe({ player_id: newPlayer.id });
                 
@@ -386,7 +392,9 @@ export default function PlayerDashboard() {
                 setShowInscriptionSuccess(true);
               } catch (error) {
                 console.error('❌ Error creating player profile:', error);
-                toast.error("Error al crear el perfil");
+                const msg = error?.response?.data?.error || error?.response?.data?.message || error?.message || 'Error desconocido';
+                toast.error(`Error al crear el perfil: ${msg}`);
+              } finally {
                 setIsCreatingProfile(false);
               }
             }}
