@@ -293,7 +293,7 @@ export async function buildReciboPDF({ numero, fecha, recibiDe, cantidad, concep
   doc.setFont("times", "italic");
   doc.setFontSize(7);
   doc.setTextColor(148, 163, 184);
-  doc.text("CD Bustarviejo · cdbustarviejo@gmail.com · Bustarviejo, Madrid", pageW / 2, pageH - 22, { align: "center" });
+  doc.text("CD Bustarviejo · info@cdbustarviejo.com · www.cdbustarviejo.com · Bustarviejo, Madrid", pageW / 2, pageH - 22, { align: "center" });
 
   const filename = `Recibo_${numero || "sin-numero"}_${recibiDe ? recibiDe.replace(/\s+/g, "_").slice(0, 20) : ""}.pdf`;
   const blob = doc.output("blob");
