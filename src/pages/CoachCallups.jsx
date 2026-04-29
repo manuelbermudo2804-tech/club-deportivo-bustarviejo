@@ -437,7 +437,15 @@ export default function CoachCallups() {
   };
 
   const handlePublish = async (callup) => {
-    if (!window.confirm(`¿Publicar y enviar la convocatoria "${callup.titulo}"?\n\nSe notificará a todos los jugadores convocados por email y chat.`)) return;
+    // Bloquear publicación si no hay jugadores convocados — abrir formulario para que los añada
+    const numConvocados = callup.jugadores_convocados?.length || 0;
+    if (numConvocados === 0) {
+      toast.warning("Este borrador no tiene jugadores convocados. Pulsa Editar para añadirlos antes de publicar.", { duration: 5000 });
+      handleEdit(callup);
+      return;
+    }
+    
+    if (!window.confirm(`¿Publicar y enviar la convocatoria "${callup.titulo}"?\n\nSe notificará a ${numConvocados} jugador(es) convocado(s) por email y chat.`)) return;
     
     const updatedData = { ...callup, publicada: true, fecha_publicacion: new Date().toISOString(), publicada_por: user.email, publicada_por_nombre: user.full_name || user.email };
     updateCallupMutation.mutate({ id: callup.id, callupData: updatedData });
