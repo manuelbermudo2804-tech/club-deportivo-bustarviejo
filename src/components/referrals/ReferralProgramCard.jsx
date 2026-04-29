@@ -172,28 +172,28 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
   const programaActivo = seasonConfig?.programa_referidos_activo;
 
   return (
-    <Card className={`shadow-sm overflow-hidden relative ${
+    <Card className={`shadow-lg overflow-hidden relative border-none text-white ${
       programaActivo
-        ? "border-none bg-gradient-to-br from-orange-600 to-orange-700 text-white"
-        : "border border-slate-200 bg-white text-slate-900"
+        ? "bg-gradient-to-br from-orange-600 to-orange-700"
+        : "bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600"
     }`}>
-      {programaActivo && <div className="absolute top-0 right-0 w-40 h-40 bg-white/5 rounded-full -mr-20 -mt-20"></div>}
-      {programaActivo && <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16"></div>}
+      <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full -mr-20 -mt-20"></div>
+      <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/10 rounded-full -ml-16 -mb-16"></div>
 
       <CardHeader className="relative pb-2">
         <div className="flex items-center gap-3">
-          <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${programaActivo ? 'bg-white/20 backdrop-blur-sm' : 'bg-orange-100'}`}>
-            {programaActivo ? <PartyPopper className="w-7 h-7 text-white" /> : <Heart className="w-6 h-6 text-orange-600" />}
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/20 backdrop-blur-sm">
+            {programaActivo ? <PartyPopper className="w-7 h-7 text-white" /> : <Heart className="w-6 h-6 text-white" />}
           </div>
           <div>
-            <CardTitle className={`text-xl font-bold flex items-center gap-2 ${programaActivo ? 'text-white' : 'text-slate-900'}`}>
+            <CardTitle className="text-xl font-bold flex items-center gap-2 text-white">
               {programaActivo ? "¡Trae un socio amigo!" : "Haz crecer tu club"}
-              {programaActivo && <Sparkles className="w-5 h-5 text-yellow-300" />}
+              <Sparkles className="w-5 h-5 text-yellow-300" />
             </CardTitle>
-            <p className={`text-sm ${programaActivo ? 'text-white/80' : 'text-slate-600'}`}>
+            <p className="text-sm text-white/90">
               {programaActivo
                 ? "Invita amigos y familiares, ¡y gana premios!"
-                : "Cada socio suma. Cada amigo que traes hace al club más fuerte."}
+                : "Cada amigo que traes hace al club más fuerte 💪"}
             </p>
           </div>
         </div>
@@ -206,38 +206,38 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
             <p className="text-sm text-white/90">Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!</p>
           </div>
         ) : (
-          <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+          <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
             <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="bg-white rounded-lg p-2 border border-slate-200">
-                <div className="text-xl mb-1">💪</div>
-                <p className="text-[11px] text-slate-700 leading-tight">Más fuerza<br/>al club</p>
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 border border-white/20">
+                <div className="text-2xl mb-1">💪</div>
+                <p className="text-[11px] text-white leading-tight font-medium">Más fuerza<br/>al club</p>
               </div>
-              <div className="bg-white rounded-lg p-2 border border-slate-200">
-                <div className="text-xl mb-1">⚽</div>
-                <p className="text-[11px] text-slate-700 leading-tight">Más medios<br/>para los equipos</p>
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 border border-white/20">
+                <div className="text-2xl mb-1">⚽</div>
+                <p className="text-[11px] text-white leading-tight font-medium">Más medios<br/>para los equipos</p>
               </div>
-              <div className="bg-white rounded-lg p-2 border border-slate-200">
-                <div className="text-xl mb-1">🏡</div>
-                <p className="text-[11px] text-slate-700 leading-tight">Más ambiente<br/>en el pueblo</p>
+              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-2 border border-white/20">
+                <div className="text-2xl mb-1">🏡</div>
+                <p className="text-[11px] text-white leading-tight font-medium">Más ambiente<br/>en el pueblo</p>
               </div>
             </div>
-            <p className="text-center text-sm text-slate-600 mt-3">
-              Comparte el alta de socio con quien creas que pueda sumar.
+            <p className="text-center text-sm text-white/95 mt-3 font-medium">
+              ✨ Comparte el alta con quien creas que pueda sumar
             </p>
           </div>
         )}
 
         {/* BOTONES PRINCIPALES (GENÉRICOS) - VISIBLES SIEMPRE */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className={`rounded-xl p-4 flex flex-col justify-center ${programaActivo ? 'bg-white/10 border border-white/20' : 'bg-slate-50 border border-slate-200'}`}>
-            <h4 className={`font-bold mb-2 flex items-center gap-2 ${programaActivo ? 'text-white' : 'text-slate-900'}`}>
-              <Share2 className={`w-5 h-5 ${programaActivo ? 'text-green-300' : 'text-green-600'}`} />
+          <div className="rounded-xl p-4 flex flex-col justify-center bg-white/15 backdrop-blur-sm border border-white/20">
+            <h4 className="font-bold mb-2 flex items-center gap-2 text-white">
+              <Share2 className="w-5 h-5 text-green-300" />
               Invitación Rápida
             </h4>
             <div className="flex gap-2">
               <Button
                 onClick={shareWhatsAppGeneric}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold shadow-sm"
+                className="flex-1 bg-green-500 hover:bg-green-600 text-white font-bold shadow-md"
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
                 WhatsApp
@@ -245,7 +245,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
               <Button
                 onClick={() => copyLink(referralLink)}
                 variant="outline"
-                className={programaActivo ? "bg-white/20 hover:bg-white/30 text-white border-white/30 px-3" : "bg-white hover:bg-slate-100 text-slate-700 border-slate-300 px-3"}
+                className="bg-white/20 hover:bg-white/30 text-white border-white/30 px-3"
               >
                 <Copy className="w-5 h-5" />
               </Button>
@@ -253,17 +253,17 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
           </div>
 
           {/* ASISTENTE IA */}
-          <div className={`rounded-xl p-4 ${programaActivo ? 'bg-white/10 border border-white/20' : 'bg-slate-50 border border-slate-200'}`}>
-              <h4 className={`font-bold mb-2 flex items-center gap-2 ${programaActivo ? 'text-white' : 'text-slate-900'}`}>
-                  <Brain className={`w-5 h-5 ${programaActivo ? 'text-purple-200' : 'text-orange-600'}`} />
+          <div className="rounded-xl p-4 bg-white/15 backdrop-blur-sm border border-white/20">
+              <h4 className="font-bold mb-2 flex items-center gap-2 text-white">
+                  <Brain className="w-5 h-5 text-yellow-300" />
                   Asistente IA
               </h4>
-              <p className={`text-xs mb-3 ${programaActivo ? 'text-white/80' : 'text-slate-600'}`}>
+              <p className="text-xs mb-3 text-white/85">
                   Crea mensajes personalizados para cada tipo de amigo.
               </p>
               <Button 
                   onClick={() => setShowAiModal(true)}
-                  className={programaActivo ? "w-full bg-white text-orange-700 hover:bg-orange-50 font-bold shadow-sm" : "w-full bg-orange-600 hover:bg-orange-700 text-white font-bold shadow-sm"}
+                  className={programaActivo ? "w-full bg-white text-orange-700 hover:bg-orange-50 font-bold shadow-md" : "w-full bg-white text-purple-700 hover:bg-purple-50 font-bold shadow-md"}
                   size="sm"
               >
                   <Sparkles className="w-4 h-4 mr-2" />
