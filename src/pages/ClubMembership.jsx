@@ -38,7 +38,7 @@ export default function ClubMembership() {
     direccion: "",
     municipio: "",
     fecha_nacimiento: "",
-    metodo_pago: "Tarjeta",
+    metodo_pago: "Transferencia",
     justificante_url: "",
     es_segundo_progenitor: false,
     referido_por: ""

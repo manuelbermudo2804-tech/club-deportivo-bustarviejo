@@ -21,22 +21,27 @@ export default function RenewalReminderDialog({
   const [results, setResults] = useState(null);
 
   // Filtrar socios pendientes de renovación
+  const normalizeEmail = (e) => (e || "").toLowerCase().trim();
   const pendingMembers = members.filter(m => {
     // Socios de temporadas anteriores que pagaron y no están en la temporada actual
-    const currentSeasonMembers = members.filter(mem => mem.temporada === seasonConfig?.temporada);
-    const currentEmails = currentSeasonMembers.map(mem => mem.email);
-    
-    return m.temporada !== seasonConfig?.temporada && 
+    const currentSeasonEmails = new Set(
+      members
+        .filter(mem => mem.temporada === seasonConfig?.temporada)
+        .map(mem => normalizeEmail(mem.email))
+    );
+
+    return m.temporada !== seasonConfig?.temporada &&
            m.estado_pago === "Pagado" &&
-           !currentEmails.includes(m.email);
+           !currentSeasonEmails.has(normalizeEmail(m.email));
   });
 
-  // Eliminar duplicados por email
+  // Eliminar duplicados por email (normalizado)
   const uniqueMembers = [];
   const seenEmails = new Set();
   for (const member of pendingMembers) {
-    if (!seenEmails.has(member.email)) {
-      seenEmails.add(member.email);
+    const key = normalizeEmail(member.email);
+    if (key && !seenEmails.has(key)) {
+      seenEmails.add(key);
       uniqueMembers.push(member);
     }
   }

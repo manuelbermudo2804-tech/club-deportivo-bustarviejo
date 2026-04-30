@@ -172,6 +172,7 @@ export default function MemberEditForm({ member, open, onClose, onSave, isLoadin
                   <SelectItem value="Pendiente">Pendiente</SelectItem>
                   <SelectItem value="En revisión">En revisión</SelectItem>
                   <SelectItem value="Pagado">Pagado</SelectItem>
+                  <SelectItem value="Fallido">Fallido</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -186,6 +187,7 @@ export default function MemberEditForm({ member, open, onClose, onSave, isLoadin
                 <SelectContent>
                   <SelectItem value="Transferencia">Transferencia</SelectItem>
                   <SelectItem value="Bizum">Bizum</SelectItem>
+                  <SelectItem value="Tarjeta">Tarjeta</SelectItem>
                 </SelectContent>
               </Select>
             </div>
