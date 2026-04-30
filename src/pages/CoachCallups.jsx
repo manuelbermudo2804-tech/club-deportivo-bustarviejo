@@ -122,6 +122,8 @@ export default function CoachCallups() {
     queryKey: ['convocatorias'],
     queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
     initialData: [],
+    refetchInterval: 120000,
+    refetchIntervalInBackground: false,
   });
 
   // Hook unificado: garantiza que cualquier staff (admin/entrenador/coordinador)
@@ -208,11 +210,8 @@ export default function CoachCallups() {
 
   const sendCallupNotifications = async (callup) => {
     try {
-      // Load player data to get minor emails
-      let allPlayers = [];
-      try {
-        allPlayers = await base44.entities.Player.list();
-      } catch (e) { console.log('⚠️ Could not load players for minor emails'); }
+      // Reusar allPlayers ya cargado en el componente (evita doble Player.list())
+      const playersForEmails = allPlayers || [];
 
       // Send emails to parents, second tutors, AND minors with juvenile access
       const emailPromises = callup.jugadores_convocados.flatMap(async (jugador) => {
@@ -222,7 +221,7 @@ export default function CoachCallups() {
         if (!jugador.email_padre && jugador.email_jugador) emails.push(jugador.email_jugador);
         
         // Also send to minor (juvenile access) if authorized
-        const playerData = allPlayers.find(p => p.id === jugador.jugador_id);
+        const playerData = playersForEmails.find(p => p.id === jugador.jugador_id);
         if (playerData?.acceso_menor_email && playerData?.acceso_menor_autorizado && !playerData?.acceso_menor_revocado) {
           if (!emails.includes(playerData.acceso_menor_email)) {
             emails.push(playerData.acceso_menor_email);
@@ -383,7 +382,7 @@ export default function CoachCallups() {
       if (!jugador.email_padre && jugador.email_jugador) emails.push(jugador.email_jugador);
       const playerData = allPlayersData.find(p => p.id === jugador.jugador_id);
       if (playerData?.email_tutor_2) emails.push(playerData.email_tutor_2);
-      if (playerData?.acceso_menor_email && playerData?.acceso_menor_autorizado) {
+      if (playerData?.acceso_menor_email && playerData?.acceso_menor_autorizado && !playerData?.acceso_menor_revocado) {
         emails.push(playerData.acceso_menor_email);
       }
 
@@ -453,7 +452,8 @@ export default function CoachCallups() {
   const getSeasonRange = (s) => {
     if (!s || !s.includes('/')) return { start: new Date(2000,0,1), end: new Date(2999,11,31) };
     const [y1,y2] = s.split('/').map(n=>parseInt(n,10));
-    return { start: new Date(y1, 8, 1), end: new Date(y2, 7, 31) };
+    // Hasta el 31 ago a las 23:59 para evitar zona ambigua del último día
+    return { start: new Date(y1, 8, 1, 0, 0, 0), end: new Date(y2, 7, 31, 23, 59, 59) };
   };
   const { start: seasonStart, end: seasonEnd } = getSeasonRange(activeSeasonStr);
   const seasonCallups = callups.filter(c => {

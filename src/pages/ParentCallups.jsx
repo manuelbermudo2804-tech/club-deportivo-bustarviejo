@@ -83,6 +83,7 @@ export default function ParentCallups() {
     queryFn: () => base44.entities.Convocatoria.list('-fecha_partido'),
     initialData: [],
     refetchInterval: 120000, // Cada 2 min en vez de 30s — suficiente para convocatorias
+    refetchIntervalInBackground: false,
   });
 
   const updateCallupMutation = useMutation({
@@ -99,7 +100,7 @@ export default function ParentCallups() {
       setShowSuccess(true);
       setSelectedCallup(null);
       setSelectedPlayer(null);
-      setConfirmationData({ confirmacion: "asistire", comentario: "" });
+      setConfirmationData({ confirmacion: "", comentario: "" });
     },
   });
 
@@ -178,7 +179,8 @@ export default function ParentCallups() {
   const getSeasonRange = (s) => {
     if (!s || !s.includes('/')) return { start: new Date(2000,0,1), end: new Date(2999,11,31) };
     const [y1,y2] = s.split('/').map(n=>parseInt(n,10));
-    return { start: new Date(y1, 8, 1), end: new Date(y2, 7, 31) };
+    // Hasta el 31 ago a las 23:59 para evitar zona ambigua del último día
+    return { start: new Date(y1, 8, 1, 0, 0, 0), end: new Date(y2, 7, 31, 23, 59, 59) };
   };
   const { start: seasonStart, end: seasonEnd } = getSeasonRange(activeSeasonStr);
   const seasonCallups = callups.filter(c => {
