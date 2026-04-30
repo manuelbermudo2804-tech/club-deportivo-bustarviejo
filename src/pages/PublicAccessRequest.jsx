@@ -238,6 +238,15 @@ export default function PublicAccessRequest() {
             </div>
           </div>
 
+          {/* Aviso importante */}
+          <div className="px-6 pb-2">
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3">
+              <p className="text-xs text-amber-900 leading-relaxed">
+                <strong>ℹ️ Importante:</strong> Solo debe registrarse <strong>un progenitor</strong> por familia. Al inscribir a los jugadores podrás añadir al segundo progenitor. Los <strong>juveniles (+13)</strong> y <strong>jugadores +18</strong> tienen su propio acceso independiente.
+              </p>
+            </div>
+          </div>
+
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {/* Honeypot - invisible para humanos, los bots lo rellenan */}
