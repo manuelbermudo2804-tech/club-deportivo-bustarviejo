@@ -277,7 +277,9 @@ export default function Gallery() {
             <TabsTrigger value="all" className="text-xs px-2 py-1">Todas</TabsTrigger>
             {filterCategories.map(cat => (
               <TabsTrigger key={cat} value={cat} className="text-[10px] px-2 py-1">
-                {cat.includes("Baloncesto") ? "🏀" : "⚽"} {cat.split(" ")[1] || cat}
+                {cat.includes("Baloncesto")
+                  ? "🏀 Baloncesto"
+                  : `⚽ ${cat.replace(/^Fútbol\s+/, '').replace(/\s*\(Mixto\)$/, '')}`}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -331,7 +333,6 @@ export default function Gallery() {
                     }
                   } : undefined}
                   isAdmin={canEditThisAlbum}
-                  isReadOnly={userRole === "player"}
                   onQuickUpload={canEditThisAlbum ? handleQuickUpload : undefined}
                 />
               );

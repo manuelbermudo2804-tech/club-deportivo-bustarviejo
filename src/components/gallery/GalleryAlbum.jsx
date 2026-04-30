@@ -94,12 +94,14 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
     );
   };
 
-  const handleDeleteSelectedPhotos = () => {
+  const handleDeleteSelectedPhotos = async () => {
     if (selectedPhotos.length === 0) return;
-    
+
     if (confirm(`¿Eliminar ${selectedPhotos.length} foto(s) seleccionada(s)?`)) {
       const newPhotos = album.fotos.filter((_, index) => !selectedPhotos.includes(index));
-      onEdit({ ...album, fotos: newPhotos });
+      if (onQuickUpload) {
+        await onQuickUpload(album.id, newPhotos);
+      }
       setSelectedPhotos([]);
       setSelectionMode(false);
     }
@@ -219,6 +221,7 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
               <img
                 src={album.fotos[0].url}
                 alt={album.titulo}
+                loading="lazy"
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
               />
             ) : (
@@ -508,6 +511,7 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
                       <img
                         src={foto.url}
                         alt={`Foto ${index + 1}`}
+                        loading="lazy"
                         className={`w-full h-full object-cover rounded-lg transition-all ${
                           isSelected
                             ? (shareMode ? 'ring-4 ring-green-500 opacity-80' : 'ring-4 ring-orange-500 opacity-75')
