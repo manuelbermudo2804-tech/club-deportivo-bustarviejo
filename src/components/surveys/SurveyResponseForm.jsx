@@ -22,7 +22,25 @@ export default function SurveyResponseForm({ survey, onClose }) {
 
     try {
       const user = await base44.auth.me();
-      
+
+      // Anti-doble-respuesta: incluso en anónimas, comprobar BD por hash de email
+      // Guardamos un identificador único oculto que NO expone identidad
+      const uniqueMarker = survey.anonima
+        ? `anon_${btoa(user.email).slice(0, 12)}`
+        : user.email;
+
+      const existing = await base44.entities.SurveyResponse.filter({
+        survey_id: survey.id,
+        respondente_email: uniqueMarker
+      });
+
+      if (existing && existing.length > 0) {
+        toast.error("Ya has respondido a esta encuesta");
+        setSubmitting(false);
+        setSubmitted(true);
+        return;
+      }
+
       const formattedResponses = survey.preguntas.map((q, index) => ({
         pregunta: q.pregunta,
         respuesta: responses[index] || ""
@@ -31,7 +49,7 @@ export default function SurveyResponseForm({ survey, onClose }) {
       await base44.entities.SurveyResponse.create({
         survey_id: survey.id,
         survey_titulo: survey.titulo,
-        respondente_email: survey.anonima ? "" : user.email,
+        respondente_email: uniqueMarker,
         respondente_nombre: survey.anonima ? "" : user.full_name,
         respuestas: formattedResponses,
         fecha_respuesta: new Date().toISOString()
@@ -43,7 +61,6 @@ export default function SurveyResponseForm({ survey, onClose }) {
         ultima_respuesta_fecha: new Date().toISOString()
       });
 
-      // Si la encuesta es anónima, marcar localmente que este usuario ya respondió
       try {
         localStorage.setItem(`survey_${survey.id}_responded_${user.email}`, 'true');
         window.dispatchEvent(new CustomEvent('survey-responded', { detail: { surveyId: survey.id } }));

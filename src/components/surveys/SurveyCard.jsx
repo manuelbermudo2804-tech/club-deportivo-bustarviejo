@@ -15,18 +15,21 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
   const daysLeft = Math.ceil((new Date(survey.fecha_fin) - new Date()) / (1000 * 60 * 60 * 24));
   const isActive = survey.activa && daysLeft > 0;
 
+  // Filtrar por survey_id directamente en BD (mucho más eficiente)
   const { data: responses } = useQuery({
-    queryKey: ['surveyResponses', survey.id],
-    queryFn: () => base44.entities.SurveyResponse.list(),
+    queryKey: ['surveyResponses', survey.id, userEmail],
+    queryFn: () => {
+      const marker = survey.anonima ? `anon_${btoa(userEmail).slice(0, 12)}` : userEmail;
+      return base44.entities.SurveyResponse.filter({ survey_id: survey.id, respondente_email: marker });
+    },
     initialData: [],
     enabled: !isAdmin && !!userEmail,
+    staleTime: 60000,
   });
 
   useEffect(() => {
-    if (!isAdmin && userEmail && responses) {
-      const userResponse = (responses || []).find(r => 
-        r.survey_id === survey.id && r.respondente_email === userEmail
-      );
+    if (!isAdmin && userEmail) {
+      const userResponse = (responses || []).find(r => r.survey_id === survey.id);
       let anonResponded = false;
       try {
         if (survey.anonima) {

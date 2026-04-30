@@ -46,12 +46,13 @@ export default function SurveyResults({ survey, onBack }) {
     }
   }, [survey.id, user]);
 
-  // Lista de usuarios únicos que respondieron
+  // Lista de usuarios únicos que respondieron (NUNCA si es anónima)
   const uniqueUsers = useMemo(() => {
     if (survey.anonima) return [];
     const users = {};
     responses.forEach(r => {
-      if (r.respondente_email && !users[r.respondente_email]) {
+      // Excluir marcadores anónimos por seguridad
+      if (r.respondente_email && !r.respondente_email.startsWith('anon_') && !users[r.respondente_email]) {
         users[r.respondente_email] = {
           email: r.respondente_email,
           nombre: r.respondente_nombre,

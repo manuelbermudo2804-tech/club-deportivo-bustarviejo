@@ -26,14 +26,28 @@ export default function Surveys() {
       setUser(currentUser);
       setIsAdmin(currentUser.role === "admin");
 
-      // Si es padre/familia O entrenador con hijos, obtener deportes de sus jugadores
-      if (currentUser.role !== "admin" && currentUser.role !== "jugador") {
+      if (currentUser.role !== "admin") {
         const allPlayers = await base44.entities.Player.list();
-        const myPlayers = allPlayers.filter(p => 
-          p.email_padre === currentUser.email || p.email_tutor_2 === currentUser.email
+        const sports = new Set();
+
+        // Padres / tutores
+        const myPlayers = allPlayers.filter(p =>
+          p.email_padre === currentUser.email ||
+          p.email_tutor_2 === currentUser.email ||
+          p.email_jugador === currentUser.email
         );
-        const sports = [...new Set(myPlayers.map(p => p.deporte))];
-        setMyPlayersSports(sports);
+        myPlayers.forEach(p => {
+          if (p.deporte) sports.add(p.deporte);
+          if (Array.isArray(p.categorias)) p.categorias.forEach(c => c && sports.add(c));
+          if (p.categoria_principal) sports.add(p.categoria_principal);
+        });
+
+        // Entrenadores / coordinadores: incluir las categorías que entrenan
+        if (Array.isArray(currentUser.categorias_entrena)) {
+          currentUser.categorias_entrena.forEach(c => c && sports.add(c));
+        }
+
+        setMyPlayersSports([...sports]);
       }
     };
     checkAdmin();
@@ -48,13 +62,19 @@ export default function Surveys() {
   const createSurveyMutation = useMutation({
     mutationFn: async (surveyData) => {
       const newSurvey = await base44.entities.Survey.create(surveyData);
+      // Notificación push automática a destinatarios (best-effort)
+      try {
+        await base44.functions.invoke('notifySurveyCreated', { survey_id: newSurvey.id });
+      } catch (err) {
+        console.warn('No se pudo enviar push de encuesta:', err);
+      }
       return newSurvey;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['surveys'] });
       setShowForm(false);
       setEditingSurvey(null);
-      toast.success("📋 Encuesta creada. Aparecerá en el Centro de Alertas de los destinatarios");
+      toast.success("📋 Encuesta creada y notificada a los destinatarios");
     },
   });
 

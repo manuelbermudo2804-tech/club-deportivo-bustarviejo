@@ -339,6 +339,12 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
               </div>
             </div>
 
+            {currentSurvey.preguntas.length === 0 && (
+              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+                <p className="text-sm text-red-700 font-medium">⚠️ Añade al menos una pregunta antes de crear la encuesta</p>
+              </div>
+            )}
+
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button type="button" variant="outline" onClick={onCancel}>
                 Cancelar
@@ -355,9 +361,6 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
                   </>
                 ) : survey ? "Actualizar" : "Crear Encuesta"}
               </Button>
-              {currentSurvey.preguntas.length === 0 && (
-                <p className="text-xs text-red-500 self-center">Añade al menos una pregunta</p>
-              )}
             </div>
           </form>
         </CardContent>
