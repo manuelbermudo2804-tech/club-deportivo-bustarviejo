@@ -12,6 +12,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Faltan campos obligatorios' }, { status: 400 });
     }
 
+    // Validar plazas disponibles por modalidad
+    const LIMITS = {
+      "Fútbol Chapa - Niños/Jóvenes": 16,
+      "Fútbol Chapa - Adultos": 16,
+      "3 para 3 (7-10 años)": 8,
+      "3 para 3 (11-15 años)": 8,
+    };
+    const limit = LIMITS[modalidad];
+    if (limit) {
+      const existing = await base44.asServiceRole.entities.SanIsidroRegistration.filter({ modalidad });
+      if (existing.length >= limit) {
+        return Response.json({ error: `Lo sentimos, ya no quedan plazas en "${modalidad}". Se han ocupado las ${limit} disponibles.` }, { status: 400 });
+      }
+    }
+
     const data = {
       modalidad,
       nombre_responsable,

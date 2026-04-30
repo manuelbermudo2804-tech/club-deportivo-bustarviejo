@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import VolunteerModal from "../components/sanisidro/VolunteerModal";
 import EventInfoBanner from "../components/sanisidro/EventInfoBanner";
 import SuccessCelebration from "../components/sanisidro/SuccessCelebration";
+import PlazasBadge from "../components/sanisidro/PlazasBadge";
 
 const FECHA_INICIO = new Date("2026-04-19T00:00:00");
 const FECHA_FIN = new Date("2026-05-15T23:59:59");
@@ -15,10 +16,10 @@ const FECHA_FIN = new Date("2026-05-15T23:59:59");
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
 const MODALIDADES = [
-  { id: "chapa_ninos", label: "Fútbol Chapa - Niños/Jóvenes", tipo: "chapa", icon: "🏆", color: "orange" },
-  { id: "chapa_adultos", label: "Fútbol Chapa - Adultos", tipo: "chapa", icon: "🏆", color: "orange" },
-  { id: "3para3_7_10", label: "3 para 3 (7-10 años)", tipo: "3para3", icon: "⚽", color: "green" },
-  { id: "3para3_11_15", label: "3 para 3 (11-15 años)", tipo: "3para3", icon: "⚽", color: "green" },
+  { id: "chapa_ninos", label: "Fútbol Chapa - Niños/Jóvenes", tipo: "chapa", icon: "🏆", color: "orange", capacidad: 16 },
+  { id: "chapa_adultos", label: "Fútbol Chapa - Adultos", tipo: "chapa", icon: "🏆", color: "orange", capacidad: 16 },
+  { id: "3para3_7_10", label: "3 para 3 (7-10 años)", tipo: "3para3", icon: "⚽", color: "green", capacidad: 8 },
+  { id: "3para3_11_15", label: "3 para 3 (11-15 años)", tipo: "3para3", icon: "⚽", color: "green", capacidad: 8 },
 ];
 
 const WEB_CLUB = "https://www.cdbustarviejo.com";
@@ -64,6 +65,7 @@ export default function SanIsidroInscripcion() {
   const [selectedMod, setSelectedMod] = useState(null);
   const [saving, setSaving] = useState(false);
   const [volunteerOpen, setVolunteerOpen] = useState(false);
+  const [counts, setCounts] = useState({});
   const [form, setForm] = useState({
     nombre: "",
     telefono: "",
@@ -73,6 +75,26 @@ export default function SanIsidroInscripcion() {
     jugador_2: "",
     jugador_3: "",
   });
+
+  // Cargar conteo de inscripciones por modalidad (suscripción real-time)
+  useEffect(() => {
+    let cancelled = false;
+    const refresh = async () => {
+      try {
+        const all = await base44.entities.SanIsidroRegistration.list();
+        if (cancelled) return;
+        const map = {};
+        all.forEach(r => { map[r.modalidad] = (map[r.modalidad] || 0) + 1; });
+        setCounts(map);
+      } catch {}
+    };
+    refresh();
+    const unsub = base44.entities.SanIsidroRegistration.subscribe(() => refresh());
+    return () => { cancelled = true; if (unsub) unsub(); };
+  }, []);
+
+  const getOcupadas = (label) => counts[label] || 0;
+  const isModalidadCompleta = (m) => getOcupadas(m.label) >= m.capacidad;
 
   const now = new Date();
   const isOpen = now >= FECHA_INICIO && now <= FECHA_FIN;
@@ -115,8 +137,12 @@ export default function SanIsidroInscripcion() {
       data.jugador_3 = form.jugador_3;
     }
 
-    await base44.functions.invoke("sanIsidroRegister", data);
+    const res = await base44.functions.invoke("sanIsidroRegister", data);
     setSaving(false);
+    if (res?.data?.error) {
+      toast.error(res.data.error);
+      return;
+    }
     setStep("success");
   };
 
@@ -172,36 +198,54 @@ export default function SanIsidroInscripcion() {
 
             <div className="space-y-2">
               <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide">🏆 Fútbol Chapa (Individual)</p>
-              {MODALIDADES.filter(m => m.tipo === "chapa").map(m => (
-                <button
-                  key={m.id}
-                  onClick={() => { setSelectedMod(m.id); setStep("form"); }}
-                  className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-orange-200 hover:border-orange-400 hover:bg-orange-50 transition-all text-left active:scale-95"
-                >
-                  <span className="text-3xl">{m.icon}</span>
-                  <div>
-                    <p className="font-bold text-slate-800">{m.label}</p>
-                    <p className="text-xs text-slate-500">1 jugador por inscripción</p>
-                  </div>
-                </button>
-              ))}
+              {MODALIDADES.filter(m => m.tipo === "chapa").map(m => {
+                const completo = isModalidadCompleta(m);
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => { if (!completo) { setSelectedMod(m.id); setStep("form"); } }}
+                    disabled={completo}
+                    className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
+                      completo
+                        ? "border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed"
+                        : "border-orange-200 hover:border-orange-400 hover:bg-orange-50 active:scale-95"
+                    }`}
+                  >
+                    <span className="text-3xl">{m.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-800">{m.label}</p>
+                      <p className="text-xs text-slate-500">1 jugador por inscripción</p>
+                    </div>
+                    <PlazasBadge ocupadas={getOcupadas(m.label)} capacidad={m.capacidad} />
+                  </button>
+                );
+              })}
             </div>
 
             <div className="space-y-2 pt-1">
               <p className="text-xs text-slate-500 font-semibold uppercase tracking-wide">⚽ 3 para 3 (Equipos de 3)</p>
-              {MODALIDADES.filter(m => m.tipo === "3para3").map(m => (
-                <button
-                  key={m.id}
-                  onClick={() => { setSelectedMod(m.id); setStep("form"); }}
-                  className="w-full flex items-center gap-3 p-4 rounded-xl border-2 border-green-200 hover:border-green-400 hover:bg-green-50 transition-all text-left active:scale-95"
-                >
-                  <span className="text-3xl">{m.icon}</span>
-                  <div>
-                    <p className="font-bold text-slate-800">{m.label}</p>
-                    <p className="text-xs text-slate-500">Equipo de 3 jugadores</p>
-                  </div>
-                </button>
-              ))}
+              {MODALIDADES.filter(m => m.tipo === "3para3").map(m => {
+                const completo = isModalidadCompleta(m);
+                return (
+                  <button
+                    key={m.id}
+                    onClick={() => { if (!completo) { setSelectedMod(m.id); setStep("form"); } }}
+                    disabled={completo}
+                    className={`w-full flex items-center gap-3 p-4 rounded-xl border-2 transition-all text-left ${
+                      completo
+                        ? "border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed"
+                        : "border-green-200 hover:border-green-400 hover:bg-green-50 active:scale-95"
+                    }`}
+                  >
+                    <span className="text-3xl">{m.icon}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-slate-800">{m.label}</p>
+                      <p className="text-xs text-slate-500">Equipo de 3 jugadores</p>
+                    </div>
+                    <PlazasBadge ocupadas={getOcupadas(m.label)} capacidad={m.capacidad} />
+                  </button>
+                );
+              })}
             </div>
 
             {/* Voluntariado */}
