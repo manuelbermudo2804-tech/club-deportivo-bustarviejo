@@ -10,15 +10,25 @@
       "type": "string",
       "description": "Tel\u00e9fono de contacto"
     },
+    "turno": {
+      "type": "string",
+      "enum": [
+        "turno_1",
+        "turno_2",
+        "turno_3",
+        "turno_4"
+      ],
+      "description": "Turno asignado: 1 (11-13h), 2 (13-16h), 3 (16-19h, completo manual), 4 (19-cierre)"
+    },
     "disponibilidad_manana": {
       "type": "boolean",
       "default": false,
-      "description": "Disponible por la ma\u00f1ana"
+      "description": "[LEGACY] Disponible por la ma\u00f1ana"
     },
     "disponibilidad_tarde": {
       "type": "boolean",
       "default": false,
-      "description": "Disponible por la tarde"
+      "description": "[LEGACY] Disponible por la tarde"
     },
     "notas": {
       "type": "string",
