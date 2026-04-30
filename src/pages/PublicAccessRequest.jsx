@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
-import { CheckCircle2, Loader2, Mail, Send, Calendar, MessageCircle, CreditCard, Camera, Bell, Trophy, Shield, Sparkles } from "lucide-react";
+import { CheckCircle2, Loader2, Mail, Send, Calendar, MessageCircle, CreditCard, Camera, Bell, Trophy, Shield, Sparkles, ChevronDown, ChevronUp, Lock } from "lucide-react";
 import BackToAppButton from "../components/public/BackToAppButton";
 import { getDeviceFingerprint } from "../components/sanisidro/deviceFingerprint";
 
@@ -66,6 +66,8 @@ export default function PublicAccessRequest() {
   const [nombre, setNombre] = useState("");
   const [categoria, setCategoria] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
+  const [aceptaGdpr, setAceptaGdpr] = useState(false);
+  const [showGdprDetails, setShowGdprDetails] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
@@ -96,6 +98,11 @@ export default function PublicAccessRequest() {
 
     if (!emailsMatch) {
       setError("Los emails no coinciden. Revísalos por favor.");
+      return;
+    }
+
+    if (!aceptaGdpr) {
+      setError("Debes aceptar la política de protección de datos para continuar.");
       return;
     }
 
@@ -324,6 +331,45 @@ export default function PublicAccessRequest() {
               </select>
             </div>
 
+            {/* Aviso de protección de datos (GDPR) */}
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={aceptaGdpr}
+                  onChange={(e) => setAceptaGdpr(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 accent-orange-600 flex-shrink-0"
+                  required
+                />
+                <span className="text-xs text-slate-700 leading-relaxed">
+                  He leído y acepto la <strong>política de protección de datos</strong> del CD Bustarviejo. *
+                </span>
+              </label>
+              <button
+                type="button"
+                onClick={() => setShowGdprDetails(!showGdprDetails)}
+                className="mt-2 text-xs text-orange-600 font-semibold flex items-center gap-1 hover:underline"
+              >
+                <Lock className="w-3 h-3" />
+                {showGdprDetails ? "Ocultar información legal" : "Ver información legal"}
+                {showGdprDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+              </button>
+              {showGdprDetails && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  className="mt-3 pt-3 border-t border-slate-200 text-[11px] text-slate-600 leading-relaxed space-y-2"
+                >
+                  <p><strong>Responsable:</strong> CD Bustarviejo (info@cdbustarviejo.com).</p>
+                  <p><strong>Finalidad:</strong> Gestionar tu solicitud de acceso a la app del club y enviarte el código por email.</p>
+                  <p><strong>Legitimación:</strong> Tu consentimiento al marcar esta casilla.</p>
+                  <p><strong>Conservación:</strong> Los datos se conservarán mientras gestionamos tu solicitud y, una vez procesada, se eliminan en un máximo de 30 días.</p>
+                  <p><strong>Destinatarios:</strong> No se cederán datos a terceros salvo obligación legal.</p>
+                  <p><strong>Tus derechos:</strong> Puedes acceder, rectificar, suprimir tus datos u oponerte a su tratamiento escribiendo a <a href="mailto:info@cdbustarviejo.com" className="text-orange-600 underline">info@cdbustarviejo.com</a>.</p>
+                </motion.div>
+              )}
+            </div>
+
             {error && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -336,7 +382,7 @@ export default function PublicAccessRequest() {
 
             <button
               type="submit"
-              disabled={sending}
+              disabled={sending || !aceptaGdpr}
               className="w-full bg-gradient-to-r from-orange-600 to-orange-700 text-white font-bold py-3.5 rounded-xl hover:from-orange-700 hover:to-orange-800 transition-all disabled:opacity-60 flex items-center justify-center gap-2 text-sm shadow-lg"
             >
               {sending ? (
