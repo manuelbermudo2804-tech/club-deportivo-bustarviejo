@@ -41,6 +41,7 @@ export default function useNavigation({
   marketNewCount,
   unresolvedAdminChats,
   paymentsInReview,
+  pendingFeedback,
 }) {
   const navCtx = {
     playersNeedingReview, pendingSignaturesAdmin, pendingInvitations,
@@ -48,12 +49,13 @@ export default function useNavigation({
     pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible,
     pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders,
     marketNewCount, unresolvedAdminChats, paymentsInReview,
+    pendingFeedback,
     programaSociosActivo, isMemberPaid, isPlayer, user, onlyComplementary,
   };
 
   // Each role builds its own menu — memoized with relevant deps
   const adminNav = useMemo(() => buildAdminNavigation(navCtx),
-    [playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses, chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible, pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount, unresolvedAdminChats, paymentsInReview]);
+    [playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses, chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible, pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount, unresolvedAdminChats, paymentsInReview, pendingFeedback]);
 
   const coachNav = useMemo(() => buildCoachNavigation(navCtx),
     [programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts, isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount, hasPlayers, loteriaVisible, marketNewCount, user?.puede_gestionar_firmas]);

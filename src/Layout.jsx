@@ -162,6 +162,22 @@ export default function Layout({ children, currentPageName }) {
   const pendingLotteryOrders = notifications.pendingLotteryOrders || 0;
   const pendingMemberRequests = notifications.pendingMemberRequests || 0;
 
+  // Feedback pendiente (sólo admin)
+  const [pendingFeedback, setPendingFeedback] = useState(0);
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const items = await base44.entities.Feedback.filter({ estado: 'nuevo' });
+        if (!cancelled) setPendingFeedback(items.length);
+      } catch {}
+    };
+    load();
+    const interval = setInterval(load, 60000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [isAdmin]);
+
   // Chat counters eliminados - se recrearán desde cero
   // Propagar rol al PendingTasksBar para mantener visible cuando contadores están a 0
   const enrichedNotifications = {
@@ -314,7 +330,7 @@ export default function Layout({ children, currentPageName }) {
     playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses,
     chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount,
     pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount,
-    unresolvedAdminChats, paymentsInReview,
+    unresolvedAdminChats, paymentsInReview, pendingFeedback,
   });
 
 

@@ -58,7 +58,7 @@ export function buildAdminNavigation(ctx) {
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
-    { title: "💬 Feedback Usuarios", url: createPageUrl("FeedbackManagement"), icon: MessageCircle },
+    { title: "💬 Feedback Usuarios", url: createPageUrl("FeedbackManagement"), icon: MessageCircle, badge: ctx.pendingFeedback > 0 ? ctx.pendingFeedback : null },
     { title: "✉️ Buzón Juvenil", url: createPageUrl("JuniorMailboxAdmin"), icon: MessageCircle },
 
     { title: "─ TIENDA Y SERVICIOS ─", section: true },
@@ -153,6 +153,7 @@ export function buildCoachNavigation(ctx) {
     { title: "🛍️ Tienda", url: createPageUrl("Tienda"), icon: ShoppingBag },
     ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+    { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
   ];
@@ -215,6 +216,7 @@ export function buildCoordinatorNavigation(ctx) {
     { title: "🛍️ Tienda", url: createPageUrl("Tienda"), icon: ShoppingBag },
     ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+    { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
   ];
@@ -250,6 +252,7 @@ export function buildParentNavigation(ctx) {
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+    { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
   ];
   return items;
@@ -284,6 +287,7 @@ export function buildPlayerNavigation(ctx) {
     { title: "🛍️ Tienda", url: createPageUrl("Tienda"), icon: ShoppingBag },
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+    { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
   ];
 }
@@ -321,6 +325,7 @@ export function buildTreasurerNavigation(ctx) {
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
+    { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
   ];
 }

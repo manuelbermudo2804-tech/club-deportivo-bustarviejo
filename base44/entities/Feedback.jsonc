@@ -1,0 +1,67 @@
+{
+  "name": "Feedback",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "bug",
+        "sugerencia",
+        "comentario"
+      ],
+      "description": "Tipo de feedback"
+    },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo o resumen del feedback"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n detallada del feedback"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email de quien env\u00eda el feedback"
+    },
+    "nombre": {
+      "type": "string",
+      "description": "Nombre de quien env\u00eda el feedback"
+    },
+    "pagina": {
+      "type": "string",
+      "description": "P\u00e1gina donde se origin\u00f3 el feedback"
+    },
+    "prioridad": {
+      "type": "string",
+      "enum": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "default": "media",
+      "description": "Prioridad del feedback"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "nuevo",
+        "revisado",
+        "en_progreso",
+        "resuelto"
+      ],
+      "default": "nuevo",
+      "description": "Estado del feedback"
+    },
+    "notas_admin": {
+      "type": "string",
+      "description": "Notas internas del admin (incluye contexto t\u00e9cnico auto-capturado)"
+    }
+  },
+  "required": [
+    "tipo",
+    "titulo",
+    "descripcion",
+    "email",
+    "nombre"
+  ]
+}

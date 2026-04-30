@@ -244,7 +244,7 @@ Proporciona un análisis estructurado, accionable y práctico. NO SUGIERAS nada 
   // Top problemas
   const topProblemas = [...feedbacks]
     .filter((f) => f.tipo === "bug")
-    .sort((a, b) => b.created_date - a.created_date)
+    .sort((a, b) => new Date(b.created_date).getTime() - new Date(a.created_date).getTime())
     .slice(0, 5);
 
   return (
@@ -285,7 +285,7 @@ Proporciona un análisis estructurado, accionable y práctico. NO SUGIERAS nada 
         <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
           <CardContent className="pt-4 text-center">
             <p className="text-3xl font-bold text-purple-700">{stats.tasa_resolucion}%</p>
-            <p className="text-xs text-purple-600 mt-1">Resueltos</p>
+            <p className="text-xs text-purple-600 mt-1">% Resolución</p>
           </CardContent>
         </Card>
       </div>

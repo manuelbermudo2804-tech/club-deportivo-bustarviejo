@@ -20,19 +20,35 @@ export default function FeedbackModal({ open, onOpenChange, user, currentPage })
     nombre: user?.full_name || "",
     pagina: currentPage || "",
   });
-  const isValid = formData.titulo.trim() && formData.descripcion.trim();
+  const isValid = formData.titulo.trim().length >= 3 && formData.descripcion.trim().length >= 10;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!formData.titulo.trim() || !formData.descripcion.trim()) {
-      toast.error("Por favor rellena título y descripción");
+    if (formData.titulo.trim().length < 3) {
+      toast.error("El título debe tener al menos 3 caracteres");
+      return;
+    }
+    if (formData.descripcion.trim().length < 10) {
+      toast.error("Describe el problema con más detalle (mínimo 10 caracteres)");
       return;
     }
 
     setLoading(true);
     try {
-      await base44.entities.Feedback.create(formData);
+      // Capturar contexto técnico para facilitar debug
+      const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+      const rolUsuario = user?.role || (user?.es_entrenador ? 'coach' : user?.es_coordinador ? 'coordinator' : user?.tipo_panel || 'usuario');
+      const contextoTecnico = `[${rolUsuario}] ${userAgent.slice(0, 200)}`;
+
+      // Auto-prioridad: bugs = media, resto = baja
+      const prioridadAuto = formData.tipo === 'bug' ? 'media' : 'baja';
+
+      await base44.entities.Feedback.create({
+        ...formData,
+        prioridad: prioridadAuto,
+        notas_admin: contextoTecnico,
+      });
       setShowSuccess(true);
       setFormData({
         tipo: "sugerencia",
@@ -55,7 +71,7 @@ export default function FeedbackModal({ open, onOpenChange, user, currentPage })
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            💬 Suggerencias y Bugs
+            💬 Sugerencias y Bugs
           </DialogTitle>
         </DialogHeader>
 
@@ -102,7 +118,7 @@ export default function FeedbackModal({ open, onOpenChange, user, currentPage })
 
           {/* Descripción */}
           <div className="space-y-2">
-            <Label htmlFor="descripcion" className="font-semibold">Detalles *</Label>
+            <Label htmlFor="descripcion" className="font-semibold">Detalles * <span className="text-xs font-normal text-slate-500">(mínimo 10 caracteres)</span></Label>
             <Textarea
               id="descripcion"
               value={formData.descripcion}
