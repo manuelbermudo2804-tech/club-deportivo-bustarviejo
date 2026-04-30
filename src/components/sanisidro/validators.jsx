@@ -90,3 +90,40 @@ export const findSimilarTeamName = (existing, newTeamName) => {
   if (!norm) return null;
   return existing.find(r => normalizeName(r.nombre_equipo) === norm);
 };
+
+// Filtro de nombres de coña / falsos
+const FAKE_NAME_PATTERNS = [
+  /^(.)\1{2,}$/,                         // aaa, bbbb, xxxx
+  /^(asdf|qwer|qwerty|zxcv|hjkl|wasd)/i,
+  /^(test|prueba|pepito|fulano|mengano|nadie|nombre|apellido|aaaa|xxxx|jaja|jeje|lol|lmao|owo)$/i,
+  /^[0-9]+$/,                            // solo números
+  /[a-zA-Z]{15,}/,                       // 15+ letras seguidas sin espacio (palabras random largas)
+  /<|>|@|#|\$|\{|\}|\[|\]/,              // caracteres raros
+];
+
+export const validatePersonName = (name) => {
+  if (!name) return { valid: false, error: "El nombre es obligatorio" };
+  const trimmed = name.trim();
+  if (trimmed.length < 4) return { valid: false, error: "El nombre debe tener al menos 4 caracteres" };
+  if (!trimmed.includes(" ")) return { valid: false, error: "Indica nombre y apellido (ej: Pedro García)" };
+  for (const pattern of FAKE_NAME_PATTERNS) {
+    if (pattern.test(trimmed)) {
+      return { valid: false, error: "Por favor, introduce un nombre real" };
+    }
+  }
+  // Debe contener mayoritariamente letras
+  const letters = (trimmed.match(/[a-záéíóúñü]/gi) || []).length;
+  if (letters < trimmed.length * 0.7) {
+    return { valid: false, error: "Por favor, introduce un nombre real" };
+  }
+  return { valid: true };
+};
+
+export const validateTeamName = (name) => {
+  if (!name) return { valid: false, error: "El nombre del equipo es obligatorio" };
+  const trimmed = name.trim();
+  if (trimmed.length < 3) return { valid: false, error: "El nombre del equipo es muy corto" };
+  if (/^(.)\1{2,}$/.test(trimmed)) return { valid: false, error: "Pon un nombre real para tu equipo" };
+  if (/^(test|prueba|asdf|aaaa|xxxx)$/i.test(trimmed)) return { valid: false, error: "Pon un nombre real para tu equipo" };
+  return { valid: true };
+};

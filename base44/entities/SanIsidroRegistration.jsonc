@@ -48,6 +48,14 @@
     "notas": {
       "type": "string",
       "description": "Observaciones adicionales"
+    },
+    "device_fingerprint": {
+      "type": "string",
+      "description": "Huella \u00fanica del dispositivo que hizo la inscripci\u00f3n (anti-spam)"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Navegador/dispositivo desde el que se inscribi\u00f3"
     }
   },
   "required": [

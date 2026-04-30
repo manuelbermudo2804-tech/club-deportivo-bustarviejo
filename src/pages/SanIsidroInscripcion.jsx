@@ -10,7 +10,8 @@ import EventInfoBanner from "../components/sanisidro/EventInfoBanner";
 import SuccessCelebration from "../components/sanisidro/SuccessCelebration";
 import PlazasBadge from "../components/sanisidro/PlazasBadge";
 import DuplicateWarning from "../components/sanisidro/DuplicateWarning";
-import { validateEmail, validatePhone, findDuplicatePlayers, findSimilarTeamName, normalizeName } from "../components/sanisidro/validators";
+import { validateEmail, validatePhone, validatePersonName, validateTeamName, findDuplicatePlayers, findSimilarTeamName, normalizeName } from "../components/sanisidro/validators";
+import { getDeviceFingerprint, getUserAgentSummary } from "../components/sanisidro/deviceFingerprint";
 
 const FECHA_INICIO = new Date("2026-04-19T00:00:00");
 const FECHA_FIN = new Date("2026-05-15T23:59:59");
@@ -76,6 +77,7 @@ export default function SanIsidroInscripcion() {
     jugador_1: "",
     jugador_2: "",
     jugador_3: "",
+    _hp: "", // honeypot anti-bots
   });
 
   // Cargar conteo de inscripciones por modalidad (suscripción real-time)
@@ -124,6 +126,23 @@ export default function SanIsidroInscripcion() {
       return;
     }
 
+    // Validar nombres reales
+    const namesToValidate = isChapa ? [form.nombre] : [form.jugador_1, form.jugador_2, form.jugador_3];
+    for (const n of namesToValidate) {
+      const check = validatePersonName(n);
+      if (!check.valid) {
+        toast.error(check.error);
+        return;
+      }
+    }
+    if (is3para3) {
+      const teamCheck = validateTeamName(form.nombre_equipo);
+      if (!teamCheck.valid) {
+        toast.error(teamCheck.error);
+        return;
+      }
+    }
+
     // Validar teléfono
     const phoneCheck = validatePhone(form.telefono);
     if (!phoneCheck.valid) {
@@ -170,6 +189,9 @@ export default function SanIsidroInscripcion() {
       modalidad: mod.label,
       nombre_responsable: isChapa ? form.nombre : form.jugador_1,
       telefono_responsable: form.telefono,
+      device_fingerprint: getDeviceFingerprint(),
+      user_agent: getUserAgentSummary(),
+      _hp: form._hp,
     };
     if (form.email) data.email_responsable = form.email;
     if (isChapa) data.jugador_nombre = form.nombre;
@@ -386,6 +408,18 @@ export default function SanIsidroInscripcion() {
                 </div>
               </div>
             )}
+
+            {/* Honeypot anti-bots — invisible para humanos */}
+            <input
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={form._hp}
+              onChange={e => updateField("_hp", e.target.value)}
+              style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+              aria-hidden="true"
+            />
 
             <Button type="submit" disabled={saving} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 text-base">
               {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</> : "✅ Enviar Inscripción"}

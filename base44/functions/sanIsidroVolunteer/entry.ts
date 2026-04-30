@@ -13,7 +13,12 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
 
-    const { nombre, telefono, turno, notas } = body;
+    const { nombre, telefono, turno, notas, device_fingerprint, user_agent, _hp } = body;
+
+    // Honeypot anti-bots
+    if (_hp && _hp.length > 0) {
+      return Response.json({ error: 'Inscripción bloqueada' }, { status: 400 });
+    }
 
     if (!nombre || !telefono) {
       return Response.json({ error: 'Nombre y teléfono son obligatorios' }, { status: 400 });
@@ -22,12 +27,36 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Debes seleccionar un turno válido' }, { status: 400 });
     }
 
+    // Validar dispositivo bloqueado
+    if (device_fingerprint) {
+      const blocked = await base44.asServiceRole.entities.SanIsidroBlockedDevice.filter({ device_fingerprint });
+      if (blocked.length > 0) {
+        return Response.json({ error: 'No puedes apuntarte como voluntario desde este dispositivo. Contacta con el club si crees que es un error.' }, { status: 403 });
+      }
+    }
+
+    // Filtro nombres falsos
+    const t = nombre.trim();
+    const FAKE_NAME = [/^(.)\1{2,}$/, /^(asdf|qwer|test|prueba|aaaa|xxxx|jaja|lol)/i, /^[0-9]+$/, /[a-zA-Z]{15,}/];
+    if (t.length < 4 || !t.includes(' ') || FAKE_NAME.some(p => p.test(t))) {
+      return Response.json({ error: 'Por favor, introduce tu nombre y apellidos reales.' }, { status: 400 });
+    }
+
     // Validar teléfono español
     const cleanPhone = (p) => (p || '').replace(/[\s\-().+]/g, '').replace(/^34/, '');
     const phone = cleanPhone(telefono);
     const FAKE = [/^(\d)\1{8}$/, /^123456789$/, /^987654321$/, /^000000000$/];
     if (phone.length !== 9 || !/^[679]/.test(phone) || FAKE.some(p => p.test(phone))) {
       return Response.json({ error: 'El teléfono no es válido. Introduce un número español real.' }, { status: 400 });
+    }
+
+    // Límite por dispositivo: máximo 2 voluntarios desde el mismo móvil
+    if (device_fingerprint) {
+      const sameDevice = (await base44.asServiceRole.entities.SanIsidroVoluntario.list('-created_date', 100))
+        .filter(v => v.device_fingerprint === device_fingerprint);
+      if (sameDevice.length >= 2) {
+        return Response.json({ error: 'Has alcanzado el máximo de inscripciones de voluntario desde este dispositivo (2). Contacta con el club si necesitas más.' }, { status: 429 });
+      }
     }
 
     const config = TURNOS[turno];
@@ -48,7 +77,9 @@ Deno.serve(async (req) => {
       telefono,
       turno,
       notas: notas || '',
-      estado: 'pendiente'
+      estado: 'pendiente',
+      device_fingerprint: device_fingerprint || '',
+      user_agent: user_agent || ''
     });
 
     return Response.json({ success: true, id: record.id });

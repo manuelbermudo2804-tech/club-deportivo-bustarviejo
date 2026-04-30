@@ -44,6 +44,14 @@
       ],
       "default": "pendiente",
       "description": "Estado de gesti\u00f3n del voluntario"
+    },
+    "device_fingerprint": {
+      "type": "string",
+      "description": "Huella \u00fanica del dispositivo (anti-spam)"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Navegador/dispositivo usado"
     }
   },
   "required": [

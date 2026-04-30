@@ -1,0 +1,21 @@
+{
+  "name": "SanIsidroBlockedDevice",
+  "type": "object",
+  "properties": {
+    "device_fingerprint": {
+      "type": "string",
+      "description": "Huella del dispositivo bloqueado"
+    },
+    "motivo": {
+      "type": "string",
+      "description": "Por qu\u00e9 se bloque\u00f3 este dispositivo"
+    },
+    "bloqueado_por": {
+      "type": "string",
+      "description": "Email del admin que lo bloque\u00f3"
+    }
+  },
+  "required": [
+    "device_fingerprint"
+  ]
+}

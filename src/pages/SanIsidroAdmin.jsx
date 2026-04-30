@@ -12,6 +12,7 @@ import VolunteersList from "../components/sanisidro/VolunteersList.jsx";
 import RegistrationCard from "../components/sanisidro/RegistrationCard.jsx";
 import ShareWhatsAppButton from "../components/sanisidro/ShareWhatsAppButton.jsx";
 import DuplicatesAlert from "../components/sanisidro/DuplicatesAlert.jsx";
+import SuspiciousDevicesPanel from "../components/sanisidro/SuspiciousDevicesPanel.jsx";
 import { buildInscripcionesText } from "../components/sanisidro/sanIsidroShareText";
 
 const MODALIDADES = [
@@ -159,6 +160,8 @@ export default function SanIsidroAdmin() {
           </Card>
 
           <DuplicatesAlert registrations={registrations} voluntarios={voluntarios} />
+
+          <SuspiciousDevicesPanel registrations={registrations} voluntarios={voluntarios} />
 
           {/* Buscador */}
           <div className="relative">

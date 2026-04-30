@@ -8,11 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Heart, Loader2, CheckCircle2, Clock, Users, Lock, Sparkles, Calendar, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { TURNOS, countByTurno, isTurnoCompleto, getTurno } from "./turnosConfig";
-import { validatePhone } from "./validators";
+import { validatePhone, validatePersonName } from "./validators";
+import { getDeviceFingerprint, getUserAgentSummary } from "./deviceFingerprint";
 import confetti from "canvas-confetti";
 
 export default function VolunteerModal({ open, onOpenChange }) {
-  const [form, setForm] = useState({ nombre: "", telefono: "", turno: "", notas: "" });
+  const [form, setForm] = useState({ nombre: "", telefono: "", turno: "", notas: "", _hp: "" });
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
   const [counts, setCounts] = useState({});
@@ -31,7 +32,7 @@ export default function VolunteerModal({ open, onOpenChange }) {
   }, [open]);
 
   const reset = () => {
-    setForm({ nombre: "", telefono: "", turno: "", notas: "" });
+    setForm({ nombre: "", telefono: "", turno: "", notas: "", _hp: "" });
     setDone(false);
   };
 
@@ -55,10 +56,20 @@ export default function VolunteerModal({ open, onOpenChange }) {
       toast.error(phoneCheck.error);
       return;
     }
+    const nameCheck = validatePersonName(form.nombre);
+    if (!nameCheck.valid) {
+      toast.error(nameCheck.error);
+      return;
+    }
 
     setSaving(true);
     try {
-      const res = await base44.functions.invoke("sanIsidroVolunteer", form);
+      const payload = {
+        ...form,
+        device_fingerprint: getDeviceFingerprint(),
+        user_agent: getUserAgentSummary(),
+      };
+      const res = await base44.functions.invoke("sanIsidroVolunteer", payload);
       const data = res?.data || {};
       if (data.error) {
         toast.error(data.error);
@@ -264,6 +275,18 @@ export default function VolunteerModal({ open, onOpenChange }) {
                 rows={2}
               />
             </div>
+
+            {/* Honeypot anti-bots */}
+            <input
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              value={form._hp}
+              onChange={e => setForm(p => ({ ...p, _hp: e.target.value }))}
+              style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+              aria-hidden="true"
+            />
 
             <Button
               type="submit"
