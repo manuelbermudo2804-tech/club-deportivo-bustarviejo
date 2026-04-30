@@ -13,24 +13,27 @@ import { es } from "date-fns/locale";
 import PlayerEvaluationsSection from "../evaluations/PlayerEvaluationsSection";
 
 export default function PlayerDetailDialog({ player, open, onOpenChange }) {
-  const [coach, setCoach] = useState(null);
+  const [coaches, setCoaches] = useState([]);
   const [evaluations, setEvaluations] = useState([]);
 
   useEffect(() => {
-    const fetchCoach = async () => {
+    const fetchCoaches = async () => {
       if (!player?.deporte || !open) return;
       try {
         const users = await base44.entities.User.list();
-        const coachUser = users.find(u => 
-          u.es_entrenador && 
+        // Filtrar TODOS los entrenadores asignados a esta categoría
+        // EXCLUIR coordinadores (suelen tener todas las categorías asignadas y no son el entrenador real del equipo)
+        const matchingCoaches = users.filter(u =>
+          u.es_entrenador &&
+          !u.es_coordinador &&
           u.categorias_entrena?.includes(player.deporte)
         );
-        setCoach(coachUser || null);
+        setCoaches(matchingCoaches);
       } catch (error) {
-        console.error("Error fetching coach:", error);
+        console.error("Error fetching coaches:", error);
       }
     };
-    fetchCoach();
+    fetchCoaches();
   }, [player?.deporte, open]);
 
   useEffect(() => {
@@ -267,63 +270,57 @@ export default function PlayerDetailDialog({ player, open, onOpenChange }) {
           {/* Evaluaciones del Entrenador */}
           <PlayerEvaluationsSection evaluations={evaluations} />
 
-          {/* Entrenador */}
-          {coach && (
+          {/* Entrenador(es) */}
+          {coaches.length > 0 && (
             <div className="bg-green-50 rounded-lg p-4 space-y-3 border border-green-200">
               <h3 className="font-bold text-green-900 flex items-center gap-2">
-                🏃 Entrenador
+                🏃 {coaches.length === 1 ? 'Entrenador' : 'Entrenadores'}
               </h3>
-              <div className="flex items-center gap-3">
-                {coach.foto_perfil_url ? (
-                  <img
-                    src={coach.foto_perfil_url}
-                    alt={coach.full_name}
-                    className="w-14 h-14 rounded-full object-cover border-2 border-green-300"
-                  />
-                ) : (
-                  <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white text-lg font-bold">
-                    {coach.full_name?.charAt(0).toUpperCase()}
+              {coaches.map(coach => (
+                <div key={coach.id} className="space-y-2 pb-2 border-b border-green-200 last:border-b-0 last:pb-0">
+                  <div className="flex items-center gap-3">
+                    {coach.foto_perfil_url ? (
+                      <img
+                        src={coach.foto_perfil_url}
+                        alt={coach.full_name}
+                        className="w-14 h-14 rounded-full object-cover border-2 border-green-300"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center text-white text-lg font-bold">
+                        {coach.full_name?.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="flex-1">
+                      <p className="font-semibold text-green-900">{coach.full_name}</p>
+                      {coach.bio_entrenador && (
+                        <p className="text-xs text-green-700 italic mt-0.5">"{coach.bio_entrenador}"</p>
+                      )}
+                    </div>
                   </div>
-                )}
-                <div className="flex-1">
-                  <p className="font-semibold text-green-900">{coach.full_name}</p>
-                  {coach.bio_entrenador && (
-                    <p className="text-xs text-green-700 italic mt-0.5">"{coach.bio_entrenador}"</p>
-                  )}
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {coach.categorias_entrena?.map(cat => (
-                      <Badge key={cat} className="bg-green-100 text-green-700 text-[10px]">
-                        {cat}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              
-              {/* Contacto del entrenador - solo si lo permite */}
-              {(coach.mostrar_email_publico || coach.mostrar_telefono_publico) && (
-                <div className="pt-2 border-t border-green-200 space-y-1">
-                  <p className="text-xs font-semibold text-green-800">Contacto:</p>
-                  {coach.mostrar_email_publico && coach.email && (
-                    <a href={`mailto:${coach.email}`} className="flex items-center gap-2 text-sm text-green-700 hover:text-green-900">
-                      <Mail className="w-4 h-4" />
-                      {coach.email}
-                    </a>
-                  )}
-                  {coach.mostrar_telefono_publico && coach.telefono_contacto && (
-                    <a href={`tel:${coach.telefono_contacto}`} className="flex items-center gap-2 text-sm text-green-700 hover:text-green-900">
-                      <Phone className="w-4 h-4" />
-                      {coach.telefono_contacto}
-                    </a>
+
+                  {/* Contacto del entrenador - solo si lo permite */}
+                  {(coach.mostrar_email_publico || coach.mostrar_telefono_publico) ? (
+                    <div className="pt-2 space-y-1">
+                      {coach.mostrar_email_publico && coach.email && (
+                        <a href={`mailto:${coach.email}`} className="flex items-center gap-2 text-sm text-green-700 hover:text-green-900">
+                          <Mail className="w-4 h-4" />
+                          {coach.email}
+                        </a>
+                      )}
+                      {coach.mostrar_telefono_publico && coach.telefono_contacto && (
+                        <a href={`tel:${coach.telefono_contacto}`} className="flex items-center gap-2 text-sm text-green-700 hover:text-green-900">
+                          <Phone className="w-4 h-4" />
+                          {coach.telefono_contacto}
+                        </a>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-green-600 italic">
+                      💬 Contacta a través del chat de la app
+                    </p>
                   )}
                 </div>
-              )}
-              
-              {!coach.mostrar_email_publico && !coach.mostrar_telefono_publico && (
-                <p className="text-xs text-green-600 italic">
-                  💬 Contacta a través del chat de la app
-                </p>
-              )}
+              ))}
             </div>
           )}
 
