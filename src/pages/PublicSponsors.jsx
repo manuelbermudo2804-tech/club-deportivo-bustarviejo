@@ -15,8 +15,10 @@ import SponsorPackages from "../components/sponsors-public/SponsorPackages";
 import ContactCTA from "../components/sponsors-public/ContactCTA";
 import SponsorFooter from "../components/sponsors-public/SponsorFooter";
 import BackToAppButton from "../components/public/BackToAppButton";
+import usePublicPageTracker from "../components/public/usePublicPageTracker";
 
 export default function PublicSponsors() {
+  usePublicPageTracker("PublicSponsors");
   return (
     <div className="min-h-screen bg-white">
       <BackToAppButton />

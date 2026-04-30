@@ -63,7 +63,10 @@ function SuccessScreen({ modLabel, onReset }) {
   );
 }
 
+import usePublicPageTracker from "../components/public/usePublicPageTracker";
+
 export default function SanIsidroInscripcion() {
+  usePublicPageTracker("SanIsidroInscripcion");
   const [step, setStep] = useState("select");
   const [selectedMod, setSelectedMod] = useState(null);
   const [saving, setSaving] = useState(false);

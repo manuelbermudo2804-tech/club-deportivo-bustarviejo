@@ -9,6 +9,7 @@ import DiagnosticHealthBar from "../components/diagnostic/DiagnosticHealthBar";
 import DiagnosticSummary from "../components/diagnostic/DiagnosticSummary";
 import DiagnosticFindings from "../components/diagnostic/DiagnosticFindings";
 import DiagnosticStats from "../components/diagnostic/DiagnosticStats";
+import PublicPageStats from "../components/admin/PublicPageStats";
 
 export default function AppAnalytics() {
   const [isRunning, setIsRunning] = useState(false);
@@ -148,6 +149,9 @@ export default function AppAnalytics() {
           <Button onClick={runDiagnostic} className="mt-3" variant="outline">Reintentar</Button>
         </div>
       )}
+
+      {/* Visitas a páginas públicas — siempre visible */}
+      <PublicPageStats />
 
       {/* No result yet */}
       {!result && !isRunning && !error && (

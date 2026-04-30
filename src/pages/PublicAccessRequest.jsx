@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { CheckCircle2, Loader2, Mail, Send, Calendar, MessageCircle, CreditCard, Camera, Bell, Trophy, Shield, Sparkles, ChevronDown, ChevronUp, Lock } from "lucide-react";
 import BackToAppButton from "../components/public/BackToAppButton";
 import { getDeviceFingerprint } from "../components/sanisidro/deviceFingerprint";
+import usePublicPageTracker from "../components/public/usePublicPageTracker";
 
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
@@ -61,6 +62,7 @@ const STEPS = [
 ];
 
 export default function PublicAccessRequest() {
+  usePublicPageTracker("PublicAccessRequest");
   const [email, setEmail] = useState("");
   const [emailConfirm, setEmailConfirm] = useState("");
   const [nombre, setNombre] = useState("");
