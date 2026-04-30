@@ -54,8 +54,8 @@ Deno.serve(async (req) => {
     if (device_fingerprint) {
       const sameDevice = (await base44.asServiceRole.entities.SanIsidroVoluntario.list('-created_date', 100))
         .filter(v => v.device_fingerprint === device_fingerprint);
-      if (sameDevice.length >= 2) {
-        return Response.json({ error: 'Has alcanzado el máximo de inscripciones de voluntario desde este dispositivo (2). Contacta con el club si necesitas más.' }, { status: 429 });
+      if (sameDevice.length >= 3) {
+        return Response.json({ error: 'Has alcanzado el máximo de inscripciones de voluntario desde este dispositivo (3). Contacta con el club si necesitas más.' }, { status: 429 });
       }
     }
 

@@ -93,8 +93,8 @@ Deno.serve(async (req) => {
     // Límite por dispositivo: máximo 3 inscripciones por móvil
     if (device_fingerprint) {
       const sameDevice = allRecent.filter(r => r.device_fingerprint === device_fingerprint);
-      if (sameDevice.length >= 3) {
-        return Response.json({ error: 'Has alcanzado el máximo de inscripciones desde este dispositivo (3). Si necesitas inscribir más, contacta directamente con el club.' }, { status: 429 });
+      if (sameDevice.length >= 5) {
+        return Response.json({ error: 'Has alcanzado el máximo de inscripciones desde este dispositivo (5). Si necesitas inscribir más, contacta directamente con el club.' }, { status: 429 });
       }
     }
 
