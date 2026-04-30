@@ -7,6 +7,7 @@ import { ArrowLeft, Check, Trophy, Users, Loader2, PartyPopper, Clock, Heart } f
 import { toast } from "sonner";
 import VolunteerModal from "../components/sanisidro/VolunteerModal";
 import EventInfoBanner from "../components/sanisidro/EventInfoBanner";
+import SuccessCelebration from "../components/sanisidro/SuccessCelebration";
 
 const FECHA_INICIO = new Date("2026-04-19T00:00:00");
 const FECHA_FIN = new Date("2026-05-15T23:59:59");
@@ -23,7 +24,7 @@ const MODALIDADES = [
 const WEB_CLUB = "https://www.cdbustarviejo.com";
 
 function SuccessScreen({ modLabel, onReset }) {
-  const [countdown, setCountdown] = useState(8);
+  const [countdown, setCountdown] = useState(10);
 
   useEffect(() => {
     if (countdown <= 0) {
@@ -35,27 +36,26 @@ function SuccessScreen({ modLabel, onReset }) {
   }, [countdown]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-600 via-yellow-500 to-green-600 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center space-y-5">
-        <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-          <PartyPopper className="w-10 h-10 text-green-600" />
-        </div>
-        <h2 className="text-2xl font-black text-slate-900">¡Inscripción Enviada!</h2>
-        <p className="text-slate-600">Tu inscripción en <strong>{modLabel}</strong> se ha registrado correctamente.</p>
-        <p className="text-lg font-bold text-green-700">🎉 ¡Te esperamos el 15 de Mayo!</p>
-        <p className="text-slate-400 text-sm">Volverás a la web del club en {countdown} segundos…</p>
-        <div className="flex gap-2 justify-center pt-2">
-          <Button variant="outline" onClick={onReset}>
-            Otra inscripción
+    <SuccessCelebration
+      type="torneo"
+      title={`¡Inscrito en ${modLabel}!`}
+      subtitle="Tu participación está registrada correctamente."
+      onClose={onReset}
+    >
+      <div className="flex flex-col gap-2 pt-1">
+        <Button onClick={onReset} variant="outline" className="w-full font-bold">
+          🔁 Apuntar a otra persona
+        </Button>
+        <a href={WEB_CLUB} className="w-full">
+          <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold">
+            🏠 Ir a la web del club
           </Button>
-          <a href={WEB_CLUB}>
-            <Button className="bg-red-600 hover:bg-red-700 text-white">
-              Ir a la web
-            </Button>
-          </a>
-        </div>
+        </a>
+        <p className="text-center text-slate-400 text-xs pt-1">
+          Volverás a la web automáticamente en {countdown}s
+        </p>
       </div>
-    </div>
+    </SuccessCelebration>
   );
 }
 

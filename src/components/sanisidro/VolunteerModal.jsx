@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Heart, Loader2, CheckCircle2, Clock, Users, Lock } from "lucide-react";
+import { Heart, Loader2, CheckCircle2, Clock, Users, Lock, Sparkles, Calendar, MapPin } from "lucide-react";
 import { toast } from "sonner";
-import { TURNOS, countByTurno, isTurnoCompleto } from "./turnosConfig";
+import { TURNOS, countByTurno, isTurnoCompleto, getTurno } from "./turnosConfig";
+import confetti from "canvas-confetti";
 
 export default function VolunteerModal({ open, onOpenChange }) {
   const [form, setForm] = useState({ nombre: "", telefono: "", turno: "", notas: "" });
@@ -59,6 +60,11 @@ export default function VolunteerModal({ open, onOpenChange }) {
         return;
       }
       setDone(true);
+      // Confetti party 🎉
+      const colors = ["#ec4899", "#ef4444", "#f97316", "#fbbf24"];
+      confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 }, colors });
+      setTimeout(() => confetti({ particleCount: 60, angle: 60, spread: 55, origin: { x: 0, y: 0.7 }, colors }), 250);
+      setTimeout(() => confetti({ particleCount: 60, angle: 120, spread: 55, origin: { x: 1, y: 0.7 }, colors }), 250);
     } catch (err) {
       const msg = err?.response?.data?.error || "Error al enviar. Inténtalo de nuevo.";
       toast.error(msg);
@@ -78,14 +84,63 @@ export default function VolunteerModal({ open, onOpenChange }) {
         </div>
 
         {done ? (
-          <div className="p-6 text-center space-y-4">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle2 className="w-8 h-8 text-green-600" />
+          <div className="p-6 text-center space-y-4 animate-fade-in-scale">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center justify-around text-3xl opacity-50">
+                <span className="animate-bounce" style={{ animationDelay: "0s" }}>🎉</span>
+                <span className="animate-bounce" style={{ animationDelay: "0.2s" }}>💖</span>
+                <span className="animate-bounce" style={{ animationDelay: "0.4s" }}>🎊</span>
+              </div>
+              <div className="relative w-20 h-20 bg-gradient-to-br from-pink-100 to-red-100 rounded-full flex items-center justify-center mx-auto ring-4 ring-pink-200">
+                <CheckCircle2 className="w-12 h-12 text-green-500" />
+              </div>
             </div>
-            <h3 className="text-xl font-black text-slate-900">¡Gracias por ofrecerte!</h3>
-            <p className="text-slate-600 text-sm">El coordinador del club se pondrá en contacto contigo pronto.</p>
-            <Button onClick={() => handleClose(false)} className="bg-red-600 hover:bg-red-700 text-white">
-              Cerrar
+
+            <div>
+              <h3 className="text-2xl font-black text-slate-900 flex items-center justify-center gap-2">
+                <Heart className="w-6 h-6 text-pink-500 fill-pink-500" />
+                ¡QUÉ GRANDE!
+                <Heart className="w-6 h-6 text-pink-500 fill-pink-500" />
+              </h3>
+              <p className="text-slate-600 text-sm mt-1 font-semibold">{form.nombre}, eres parte de la familia 💪</p>
+            </div>
+
+            {form.turno && (
+              <div className="bg-gradient-to-r from-pink-50 to-red-50 border-2 border-pink-200 rounded-xl p-3">
+                <p className="text-xs font-bold text-pink-700 uppercase">Tu turno</p>
+                <p className="text-base font-black text-slate-900 flex items-center justify-center gap-2 mt-1">
+                  <span className="text-2xl">{getTurno(form.turno)?.emoji}</span>
+                  {getTurno(form.turno)?.label} · {getTurno(form.turno)?.horario}
+                </p>
+              </div>
+            )}
+
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 text-left space-y-1.5">
+              <p className="text-xs font-bold text-amber-700 uppercase">📅 No te lo pierdas</p>
+              <div className="flex items-center gap-2 text-sm text-slate-700">
+                <Calendar className="w-4 h-4 text-amber-600" />
+                <span className="font-bold">15 de Mayo 2026</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-slate-700">
+                <MapPin className="w-4 h-4 text-amber-600" />
+                <span>Bustarviejo · Campo de fútbol</span>
+              </div>
+            </div>
+
+            <div className="bg-gradient-to-r from-pink-500 to-red-500 text-white rounded-xl p-3">
+              <p className="text-sm font-bold leading-relaxed flex items-center justify-center gap-2">
+                <Sparkles className="w-4 h-4" />
+                Sin gente como tú, San Isidro no sería lo mismo
+                <Sparkles className="w-4 h-4" />
+              </p>
+              <p className="text-xs text-white/90 mt-1">Te contactaremos pronto para confirmar 📞</p>
+            </div>
+
+            <Button
+              onClick={() => handleClose(false)}
+              className="w-full bg-gradient-to-r from-pink-600 to-red-600 hover:from-pink-700 hover:to-red-700 text-white font-bold py-3"
+            >
+              ¡Genial, hasta pronto! 👋
             </Button>
           </div>
         ) : (
