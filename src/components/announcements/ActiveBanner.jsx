@@ -70,6 +70,16 @@ function BannerList({ items, onDismiss }) {
 
 export default function ActiveBanner({ user, position = "top" }) {
   const { data = [] } = useActiveBanners(user);
+  const [dismissedIds, setDismissedIds] = React.useState(() => {
+    // Inicializar con los ya descartados en localStorage
+    const set = new Set();
+    try {
+      Object.keys(localStorage).forEach((k) => {
+        if (k.startsWith("announcement_dismissed_")) set.add(k.replace("announcement_dismissed_", ""));
+      });
+    } catch {}
+    return set;
+  });
 
   const email = user?.email?.toLowerCase();
   const filtered = (data || [])
@@ -81,19 +91,19 @@ export default function ActiveBanner({ user, position = "top" }) {
       if (!email) return false;
       return list.includes(email);
     })
-    .filter((a) => (position === "top" ? a.banner_posicion !== "bottom" : a.banner_posicion === "bottom"));
-
-  // Ocultar si el usuario ya lo cerró
-  const visible = filtered.filter((a) => !localStorage.getItem(`announcement_dismissed_${a.id}`));
+    .filter((a) => (position === "top" ? a.banner_posicion !== "bottom" : a.banner_posicion === "bottom"))
+    .filter((a) => !dismissedIds.has(a.id));
 
   const handleDismiss = (a) => {
     try { localStorage.setItem(`announcement_dismissed_${a.id}`, "1"); } catch {}
-    // Forzar re-render eliminando en memoria
-    const idx = visible.findIndex((x) => x.id === a.id);
-    if (idx > -1) visible.splice(idx, 1);
+    setDismissedIds((prev) => {
+      const next = new Set(prev);
+      next.add(a.id);
+      return next;
+    });
   };
 
-  if (!visible.length) return null;
+  if (!filtered.length) return null;
 
-  return <BannerList items={visible} onDismiss={handleDismiss} />;
+  return <BannerList items={filtered} onDismiss={handleDismiss} />;
 }

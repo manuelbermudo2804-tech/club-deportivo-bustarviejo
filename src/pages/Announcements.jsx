@@ -11,6 +11,7 @@ import AnnouncementForm from "../components/announcements/AnnouncementForm";
 import AnnouncementCard from "../components/announcements/AnnouncementCard";
 import AIGenerator from "../components/announcements/AIGenerator";
 import TemplateManager from "../components/announcements/TemplateManager";
+import { playerInCategory, playerAllCategories } from "../components/utils/playerCategoryFilter";
 
 export default function Announcements() {
   const [showForm, setShowForm] = useState(false);
@@ -43,7 +44,8 @@ export default function Announcements() {
           );
           
           if (myPlayers.length > 0) {
-            const sports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
+            // Reunir TODAS las categorías del jugador (categoria_principal + deporte legacy + categorias[])
+            const sports = [...new Set(myPlayers.flatMap(p => playerAllCategories(p)))];
             setUserSports(sports);
           }
         }
@@ -67,11 +69,15 @@ export default function Announcements() {
         const myPlayers = allPlayers.filter(p => 
           p.email_padre === currentUser.email || p.email === currentUser.email
         );
-        const sports = [...new Set(myPlayers.map(p => p.deporte).filter(Boolean))];
+        const sports = [...new Set(myPlayers.flatMap(p => playerAllCategories(p)))];
         
         let marked = 0;
         for (const announcement of allAnnouncements) {
           if (!announcement.publicado) continue;
+          
+          // Comprobar segmentación por email específico
+          const targetedEmails = Array.isArray(announcement.destinatarios_emails) ? announcement.destinatarios_emails : [];
+          if (targetedEmails.length > 0 && !targetedEmails.includes(currentUser.email)) continue;
           
           const isRelevant = announcement.destinatarios_tipo === "Todos" || sports.includes(announcement.destinatarios_tipo);
           if (!isRelevant) continue;
@@ -207,7 +213,7 @@ export default function Announcements() {
           if (p.email_tutor_2) recipients.push(p.email_tutor_2);
         });
       } else {
-        players.filter(p => p.deporte === data.destinatarios_tipo).forEach(p => {
+        players.filter(p => playerInCategory(p, data.destinatarios_tipo)).forEach(p => {
           if (p.email_padre) recipients.push(p.email_padre);
           if (p.email_tutor_2) recipients.push(p.email_tutor_2);
         });
@@ -286,7 +292,6 @@ Ubicación: Bustarviejo, Madrid
       }
 
       await base44.entities.Announcement.update(announcement.id, {
-        ...announcement,
         email_enviado: true
       });
 
@@ -305,19 +310,22 @@ Ubicación: Bustarviejo, Madrid
     try {
       const scopePlayers = data.destinatarios_tipo === "Todos"
         ? players
-        : players.filter(p => p.deporte === data.destinatarios_tipo);
+        : players.filter(p => playerInCategory(p, data.destinatarios_tipo));
       const familiesMap = {};
       scopePlayers.forEach(p => {
-        if (p.email_padre) {
-          if (!familiesMap[p.email_padre]) {
-            familiesMap[p.email_padre] = {
-              email: p.email_padre,
+        // Incluir email_padre, email_tutor_2 y email_jugador (si no hay padre) — coherencia con email
+        const familyEmails = [p.email_padre, p.email_tutor_2];
+        if (!p.email_padre && p.email_jugador) familyEmails.push(p.email_jugador);
+        familyEmails.filter(Boolean).forEach(email => {
+          if (!familiesMap[email]) {
+            familiesMap[email] = {
+              email,
               nombre_tutor: p.nombre_tutor_legal || "Familia",
               jugadores: []
             };
           }
-          familiesMap[p.email_padre].jugadores.push({ id: p.id, nombre: p.nombre });
-        }
+          familiesMap[email].jugadores.push({ id: p.id, nombre: p.nombre });
+        });
       });
       const families = Object.values(familiesMap);
       if (families.length === 0) return;
@@ -426,6 +434,12 @@ Ubicación: Bustarviejo, Madrid
           if (now > new Date(announcement.fecha_caducidad_calculada)) return false;
         } else if (announcement.fecha_expiracion) {
           if (now > new Date(announcement.fecha_expiracion)) return false;
+        }
+        
+        // Si hay segmentación por email específico, solo verlo quien esté en la lista
+        const targetedEmails = Array.isArray(announcement.destinatarios_emails) ? announcement.destinatarios_emails : [];
+        if (targetedEmails.length > 0) {
+          return targetedEmails.includes(user?.email);
         }
         
         // Check if announcement is relevant to user
