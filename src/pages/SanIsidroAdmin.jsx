@@ -10,6 +10,8 @@ import { Trophy, Download, Heart, Search } from "lucide-react";
 import { toast } from "sonner";
 import VolunteersList from "../components/sanisidro/VolunteersList.jsx";
 import RegistrationCard from "../components/sanisidro/RegistrationCard.jsx";
+import ShareWhatsAppButton from "../components/sanisidro/ShareWhatsAppButton.jsx";
+import { buildInscripcionesText } from "../components/sanisidro/sanIsidroShareText";
 
 const MODALIDADES = [
   "Fútbol Chapa - Niños/Jóvenes",
@@ -102,9 +104,16 @@ export default function SanIsidroAdmin() {
           <p className="text-slate-500 text-sm">Inscripciones a los torneos deportivos</p>
         </div>
         {section === "inscripciones" && (
-          <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1">
-            <Download className="w-4 h-4" /> Exportar CSV
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <ShareWhatsAppButton
+              label="Enviar por WhatsApp"
+              count={(filtered.length > 0 ? filtered : registrations).length}
+              buildText={() => buildInscripcionesText(filtered.length > 0 ? filtered : registrations)}
+            />
+            <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1">
+              <Download className="w-4 h-4" /> CSV
+            </Button>
+          </div>
         )}
       </div>
 

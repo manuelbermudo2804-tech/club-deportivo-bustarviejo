@@ -10,6 +10,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Heart, Phone, Clock, Download, Search, MessageCircle, Trash2, Lock, Users } from "lucide-react";
 import { toast } from "sonner";
 import { TURNOS, countByTurno, isTurnoCompleto, getTurno } from "./turnosConfig";
+import ShareWhatsAppButton from "./ShareWhatsAppButton.jsx";
+import { buildVoluntariosText } from "./sanIsidroShareText";
 
 const ESTADO_COLORS = {
   pendiente: "bg-orange-100 text-orange-800 border border-orange-300",
@@ -119,9 +121,16 @@ export default function VolunteersList() {
           <Badge className="bg-pink-600 text-white">{voluntarios.length}</Badge>
         </div>
         {voluntarios.length > 0 && (
-          <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1">
-            <Download className="w-4 h-4" /> Exportar CSV
-          </Button>
+          <div className="flex items-center gap-2 flex-wrap">
+            <ShareWhatsAppButton
+              label="Enviar por WhatsApp"
+              count={(filtered.length > 0 ? filtered : voluntarios).length}
+              buildText={() => buildVoluntariosText(filtered.length > 0 ? filtered : voluntarios)}
+            />
+            <Button variant="outline" size="sm" onClick={exportCSV} className="gap-1">
+              <Download className="w-4 h-4" /> CSV
+            </Button>
+          </div>
         )}
       </div>
 
