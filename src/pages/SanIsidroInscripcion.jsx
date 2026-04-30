@@ -9,6 +9,7 @@ import VolunteerModal from "../components/sanisidro/VolunteerModal";
 import EventInfoBanner from "../components/sanisidro/EventInfoBanner";
 import SuccessCelebration from "../components/sanisidro/SuccessCelebration";
 import PlazasBadge from "../components/sanisidro/PlazasBadge";
+import DuplicateWarning from "../components/sanisidro/DuplicateWarning";
 import { validateEmail, validatePhone, findDuplicatePlayers, findSimilarTeamName, normalizeName } from "../components/sanisidro/validators";
 
 const FECHA_INICIO = new Date("2026-04-19T00:00:00");
@@ -349,6 +350,9 @@ export default function SanIsidroInscripcion() {
             {/* 3 para 3 - equipo + jugadores + contacto */}
             {is3para3 && (
               <div className="bg-green-50 rounded-xl p-4 space-y-3 border border-green-200">
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-xs text-amber-800">
+                  ⚠️ <strong>Importante:</strong> cada jugador solo puede estar en <strong>un equipo</strong> de este torneo. Si ya está apuntado en otro, te avisaremos.
+                </div>
                 <div>
                   <Label className="text-xs text-green-700">Nombre del equipo *</Label>
                   <Input value={form.nombre_equipo} onChange={e => updateField("nombre_equipo", e.target.value)} placeholder="Ej: Los Tigres" />
@@ -365,6 +369,13 @@ export default function SanIsidroInscripcion() {
                   <Label className="text-xs text-green-700">Jugador 3 *</Label>
                   <Input value={form.jugador_3} onChange={e => updateField("jugador_3", e.target.value)} placeholder="Nombre y apellidos" />
                 </div>
+
+                <DuplicateWarning
+                  modalidad={mod?.label}
+                  teamName={form.nombre_equipo}
+                  players={[form.jugador_1, form.jugador_2, form.jugador_3]}
+                />
+
                 <div>
                   <Label className="text-xs text-green-700">Teléfono de contacto *</Label>
                   <Input value={form.telefono} onChange={e => updateField("telefono", e.target.value)} placeholder="Ej: 600 123 456" type="tel" />
