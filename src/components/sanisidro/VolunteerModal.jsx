@@ -126,35 +126,65 @@ export default function VolunteerModal({ open, onOpenChange }) {
                   const completo = isTurnoCompleto(t, ocupadas);
                   const restantes = Math.max(0, t.plazas - ocupadas);
                   const selected = form.turno === t.id;
+                  const porcentaje = Math.min(100, (ocupadas / t.plazas) * 100);
+                  // Color del badge de plazas según escasez
+                  let badgeColor = "bg-green-500";
+                  let mensaje = "¡Plazas libres!";
+                  if (restantes <= 2 && restantes > 0) { badgeColor = "bg-orange-500"; mensaje = "¡Últimas plazas!"; }
+                  else if (restantes <= 4 && restantes > 0) { badgeColor = "bg-yellow-500"; mensaje = "¡Quedan pocas!"; }
+
                   return (
                     <button
                       type="button"
                       key={t.id}
                       disabled={completo}
                       onClick={() => setForm(p => ({ ...p, turno: t.id }))}
-                      className={`w-full flex items-center gap-3 p-3 rounded-lg border-2 text-left transition-all ${
+                      className={`w-full p-3 rounded-xl border-2 text-left transition-all ${
                         completo
-                          ? "border-slate-200 bg-slate-50 opacity-60 cursor-not-allowed"
+                          ? "border-slate-200 bg-slate-50 opacity-70 cursor-not-allowed"
                           : selected
-                          ? "border-red-500 bg-red-50 shadow-sm"
-                          : "border-slate-200 bg-white hover:border-red-300 hover:bg-red-50/30 active:scale-[0.99]"
+                          ? "border-red-500 bg-red-50 shadow-md scale-[1.01]"
+                          : "border-slate-200 bg-white hover:border-red-300 hover:shadow-sm active:scale-[0.99]"
                       }`}
                     >
-                      <span className="text-2xl">{t.emoji}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-bold text-slate-800 text-sm">{t.label}</p>
-                          {completo && (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold bg-slate-200 text-slate-700 rounded-full px-2 py-0.5">
-                              <Lock className="w-2.5 h-2.5" /> COMPLETO
-                            </span>
-                          )}
+                      <div className="flex items-center gap-3">
+                        <span className="text-3xl">{t.emoji}</span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-slate-800 text-base">{t.label}</p>
+                          <p className="text-xs text-slate-500">{t.horario}</p>
                         </div>
-                        <p className="text-xs text-slate-500">{t.horario}</p>
+                        {completo ? (
+                          <div className="flex flex-col items-center bg-slate-200 text-slate-700 rounded-lg px-3 py-1.5 shrink-0">
+                            <Lock className="w-4 h-4" />
+                            <span className="text-[10px] font-black mt-0.5">COMPLETO</span>
+                          </div>
+                        ) : (
+                          <div className={`flex flex-col items-center ${badgeColor} text-white rounded-lg px-3 py-1.5 shrink-0 shadow-sm`}>
+                            <span className="text-2xl font-black leading-none">{restantes}</span>
+                            <span className="text-[9px] font-bold uppercase tracking-wide mt-0.5">
+                              {restantes === 1 ? "plaza" : "plazas"}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {/* Barra de progreso */}
+                      <div className="mt-2 w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+                        <div
+                          className={`h-full transition-all ${
+                            completo ? "bg-slate-400" : restantes <= 2 ? "bg-orange-500" : restantes <= 4 ? "bg-yellow-500" : "bg-green-500"
+                          }`}
+                          style={{ width: `${porcentaje}%` }}
+                        />
+                      </div>
+                      <div className="flex items-center justify-between mt-1.5">
+                        <p className="text-[11px] text-slate-500 flex items-center gap-1">
+                          <Users className="w-3 h-3" /> {ocupadas} / {t.plazas} apuntados
+                        </p>
                         {!completo && (
-                          <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                            <Users className="w-3 h-3" />
-                            {restantes} {restantes === 1 ? "plaza disponible" : "plazas disponibles"} de {t.plazas}
+                          <p className={`text-[11px] font-bold ${
+                            restantes <= 2 ? "text-orange-600" : restantes <= 4 ? "text-yellow-700" : "text-green-600"
+                          }`}>
+                            {mensaje}
                           </p>
                         )}
                       </div>
