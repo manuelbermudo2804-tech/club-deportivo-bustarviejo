@@ -6,10 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Mail, SendHorizonal, CheckCircle2, Clock, Inbox, Copy, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import AccessRequestSendDialog from "./AccessRequestSendDialog";
 
 export default function AccessRequestsPanel() {
   const queryClient = useQueryClient();
   const [sendingId, setSendingId] = useState(null);
+  const [dialogRequest, setDialogRequest] = useState(null);
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['accessRequests'],
@@ -19,33 +21,18 @@ export default function AccessRequestsPanel() {
   const pendingRequests = requests.filter(r => r.estado === 'pendiente');
   const processedRequests = requests.filter(r => r.estado !== 'pendiente');
 
-  const sendCodeMutation = useMutation({
-    mutationFn: async (request) => {
-      setSendingId(request.id);
-      // Generate access code for this email
-      const { data: result } = await base44.functions.invoke('generateAccessCode', {
-        email: request.email,
-        nombre_destino: request.nombre_progenitor,
-        tipo: 'padre_nuevo',
-      });
-      // Mark request as processed
+  const handleSent = async (result, request) => {
+    // Marcar la solicitud como procesada
+    try {
       await base44.entities.AccessRequest.update(request.id, {
         estado: 'codigo_enviado',
-        codigo_enviado_id: result.id || '',
+        codigo_enviado_id: result?.id || '',
       });
-      return result;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['accessRequests'] });
-      queryClient.invalidateQueries({ queryKey: ['accessCodes'] });
-      toast.success(`Código ${data.codigo} enviado`);
-      setSendingId(null);
-    },
-    onError: (err) => {
-      toast.error(err?.response?.data?.error || 'Error al enviar código');
-      setSendingId(null);
-    },
-  });
+    } catch {}
+    queryClient.invalidateQueries({ queryKey: ['accessRequests'] });
+    queryClient.invalidateQueries({ queryKey: ['accessCodes'] });
+    setDialogRequest(null);
+  };
 
   const publicUrl = `${window.location.origin}/SolicitarAcceso`;
 
@@ -118,14 +105,9 @@ export default function AccessRequestsPanel() {
                     <Button
                       size="sm"
                       className="bg-orange-600 hover:bg-orange-700 whitespace-nowrap"
-                      onClick={() => sendCodeMutation.mutate(req)}
-                      disabled={sendingId === req.id}
+                      onClick={() => setDialogRequest(req)}
                     >
-                      {sendingId === req.id ? (
-                        <Loader2 className="w-3 h-3 animate-spin mr-1" />
-                      ) : (
-                        <SendHorizonal className="w-3 h-3 mr-1" />
-                      )}
+                      <SendHorizonal className="w-3 h-3 mr-1" />
                       Enviar Código
                     </Button>
                     <Button
@@ -196,6 +178,13 @@ export default function AccessRequestsPanel() {
           </div>
         </div>
       )}
+
+      <AccessRequestSendDialog
+        request={dialogRequest}
+        open={!!dialogRequest}
+        onOpenChange={(open) => { if (!open) setDialogRequest(null); }}
+        onSent={handleSent}
+      />
     </div>
   );
 }
