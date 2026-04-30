@@ -22,6 +22,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Debes seleccionar un turno válido' }, { status: 400 });
     }
 
+    // Validar teléfono español
+    const cleanPhone = (p) => (p || '').replace(/[\s\-().+]/g, '').replace(/^34/, '');
+    const phone = cleanPhone(telefono);
+    const FAKE = [/^(\d)\1{8}$/, /^123456789$/, /^987654321$/, /^000000000$/];
+    if (phone.length !== 9 || !/^[679]/.test(phone) || FAKE.some(p => p.test(phone))) {
+      return Response.json({ error: 'El teléfono no es válido. Introduce un número español real.' }, { status: 400 });
+    }
+
     const config = TURNOS[turno];
 
     // Validar cupo del turno

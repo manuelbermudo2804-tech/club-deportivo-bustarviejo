@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Heart, Loader2, CheckCircle2, Clock, Users, Lock, Sparkles, Calendar, MapPin } from "lucide-react";
 import { toast } from "sonner";
 import { TURNOS, countByTurno, isTurnoCompleto, getTurno } from "./turnosConfig";
+import { validatePhone } from "./validators";
 import confetti from "canvas-confetti";
 
 export default function VolunteerModal({ open, onOpenChange }) {
@@ -47,6 +48,11 @@ export default function VolunteerModal({ open, onOpenChange }) {
     }
     if (!form.turno) {
       toast.error("Elige un turno");
+      return;
+    }
+    const phoneCheck = validatePhone(form.telefono);
+    if (!phoneCheck.valid) {
+      toast.error(phoneCheck.error);
       return;
     }
 

@@ -9,6 +9,7 @@ import VolunteerModal from "../components/sanisidro/VolunteerModal";
 import EventInfoBanner from "../components/sanisidro/EventInfoBanner";
 import SuccessCelebration from "../components/sanisidro/SuccessCelebration";
 import PlazasBadge from "../components/sanisidro/PlazasBadge";
+import { validateEmail, validatePhone, findDuplicatePlayers, findSimilarTeamName, normalizeName } from "../components/sanisidro/validators";
 
 const FECHA_INICIO = new Date("2026-04-19T00:00:00");
 const FECHA_FIN = new Date("2026-05-15T23:59:59");
@@ -120,6 +121,47 @@ export default function SanIsidroInscripcion() {
     if (is3para3 && (!form.nombre_equipo || !form.jugador_1 || !form.jugador_2 || !form.jugador_3 || !form.telefono)) {
       toast.error("Por favor, rellena todos los campos obligatorios");
       return;
+    }
+
+    // Validar teléfono
+    const phoneCheck = validatePhone(form.telefono);
+    if (!phoneCheck.valid) {
+      toast.error(phoneCheck.error);
+      return;
+    }
+
+    // Validar email (si lo escribió)
+    if (form.email) {
+      const emailCheck = validateEmail(form.email);
+      if (!emailCheck.valid) {
+        toast.error(emailCheck.error);
+        return;
+      }
+      if (emailCheck.suggestion) {
+        const ok = window.confirm(`${emailCheck.warning}\n\nPulsa OK para corregirlo automáticamente, o Cancelar para enviarlo tal cual.`);
+        if (ok) {
+          setForm(p => ({ ...p, email: emailCheck.suggestion }));
+          return;
+        }
+      }
+    }
+
+    // Validar duplicados en 3x3 (cliente — UX rápida; el backend re-valida)
+    if (is3para3) {
+      try {
+        const existing = await base44.entities.SanIsidroRegistration.filter({ modalidad: mod.label });
+        const newPlayers = [form.jugador_1, form.jugador_2, form.jugador_3];
+        const dupes = findDuplicatePlayers(existing, newPlayers);
+        if (dupes.length > 0) {
+          toast.error(`❌ ${dupes.join(', ')} ya está apuntado en otro equipo de este torneo.`);
+          return;
+        }
+        const sameTeam = findSimilarTeamName(existing, form.nombre_equipo);
+        if (sameTeam) {
+          toast.error(`Ya existe un equipo llamado "${form.nombre_equipo}". Elige otro nombre.`);
+          return;
+        }
+      } catch {}
     }
 
     setSaving(true);
