@@ -44,6 +44,14 @@
     "codigo_enviado_id": {
       "type": "string",
       "description": "ID del AccessCode generado para esta solicitud"
+    },
+    "device_fingerprint": {
+      "type": "string",
+      "description": "Huella \u00fanica del dispositivo (anti-spam)"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Navegador/dispositivo usado"
     }
   },
   "required": [
