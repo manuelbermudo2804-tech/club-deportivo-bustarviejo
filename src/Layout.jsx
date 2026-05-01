@@ -309,9 +309,10 @@ export default function Layout({ children, currentPageName }) {
   }, [isAdmin, location.pathname, navigate]);
 
   const shouldShowRestricted = !showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "restricted";
-  const shouldShowClosed = !showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "closed";
-  const shouldShowInscriptions = !showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "inscriptions";
-  const shouldShowVacation = !showInstallInstructions && !showInstallSuccess && !showFirstLaunchInvite && showSpecialScreen === "vacation";
+  // Bloqueos de temporada DESACTIVADOS — nunca se muestran las pantallas de cierre/inscripciones/vacaciones
+  const shouldShowClosed = false;
+  const shouldShowInscriptions = false;
+  const shouldShowVacation = false;
 
 
 
