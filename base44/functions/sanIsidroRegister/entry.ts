@@ -32,17 +32,17 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Filtro nombres falsos
-    const FAKE_NAME = [/^(.)\1{2,}$/, /^(asdf|qwer|test|prueba|aaaa|xxxx|jaja|lol)/i, /^[0-9]+$/, /[a-zA-Z]{15,}/, /<|>|@|#|\$/];
+    // Filtro nombres claramente falsos (muy permisivo: solo bloquea casos obvios)
+    const FAKE_NAME = [/^(asdf|qwer|test|prueba|aaaa|xxxx|jaja|lol|bot)$/i, /^[0-9]+$/, /<|>|@|#|\$/];
     const isNameFake = (n) => {
       if (!n) return false;
       const t = n.trim();
-      if (t.length < 4 || !t.includes(' ')) return true;
+      if (t.length < 2) return true;
       return FAKE_NAME.some(p => p.test(t));
     };
     const allNames = [nombre_responsable, jugador_nombre, jugador_1, jugador_2, jugador_3].filter(Boolean);
     if (allNames.some(isNameFake)) {
-      return Response.json({ error: 'Por favor, introduce nombres reales (nombre y apellidos).' }, { status: 400 });
+      return Response.json({ error: 'Por favor, introduce nombres reales.' }, { status: 400 });
     }
     if (nombre_equipo && /^(test|prueba|asdf|aaaa|xxxx)$/i.test(nombre_equipo.trim())) {
       return Response.json({ error: 'Por favor, pon un nombre real al equipo.' }, { status: 400 });
@@ -79,22 +79,22 @@ Deno.serve(async (req) => {
       return Response.json({ error: `Lo sentimos, ya no quedan plazas en "${modalidad}". Se han ocupado las ${limit} disponibles.` }, { status: 400 });
     }
 
-    // Rate limit: máximo 3 inscripciones desde el mismo teléfono en 10 minutos
-    const allRecent = await base44.asServiceRole.entities.SanIsidroRegistration.list('-created_date', 100);
+    // Rate limit anti-flood: máximo 10 inscripciones desde el mismo teléfono en 10 min
+    const allRecent = await base44.asServiceRole.entities.SanIsidroRegistration.list('-created_date', 200);
     const tenMinAgo = Date.now() - 10 * 60 * 1000;
     const samePhoneRecent = allRecent.filter(r =>
       cleanPhone(r.telefono_responsable) === phone &&
       new Date(r.created_date).getTime() > tenMinAgo
     );
-    if (samePhoneRecent.length >= 3) {
-      return Response.json({ error: 'Has hecho demasiadas inscripciones seguidas. Espera unos minutos antes de intentarlo de nuevo.' }, { status: 429 });
+    if (samePhoneRecent.length >= 10) {
+      return Response.json({ error: 'Has hecho muchas inscripciones seguidas. Espera unos minutos antes de continuar.' }, { status: 429 });
     }
 
-    // Límite por dispositivo: máximo 3 inscripciones por móvil
+    // Límite por dispositivo: solo bloquea abusos claros (>15)
     if (device_fingerprint) {
       const sameDevice = allRecent.filter(r => r.device_fingerprint === device_fingerprint);
-      if (sameDevice.length >= 5) {
-        return Response.json({ error: 'Has alcanzado el máximo de inscripciones desde este dispositivo (5). Si necesitas inscribir más, contacta directamente con el club.' }, { status: 429 });
+      if (sameDevice.length >= 15) {
+        return Response.json({ error: 'Has alcanzado el máximo de inscripciones desde este dispositivo. Contacta directamente con el club para más inscripciones.' }, { status: 429 });
       }
     }
 
