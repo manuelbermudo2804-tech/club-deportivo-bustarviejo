@@ -33,6 +33,13 @@ export default function PwaEntry() {
   const [installed, setInstalled] = useState(isStandalone());
   const [showFinalStep, setShowFinalStep] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Si ya está instalada (standalone), redirigir a la app inmediatamente
+  useEffect(() => {
+    if (isStandalone()) {
+      window.location.replace('/');
+    }
+  }, []);
   
   const iosWebView = isIOS() && !isSafari() && !isStandalone();
   const iosSafari = isIOS() && isSafari() && !isStandalone();

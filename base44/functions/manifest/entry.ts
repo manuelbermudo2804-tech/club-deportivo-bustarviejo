@@ -4,8 +4,8 @@ Deno.serve(async (_req) => {
   const manifest = {
     name: "CD Bustarviejo",
     short_name: "CD Bustarviejo",
-    id: "/PwaEntry",
-    start_url: "/PwaEntry",
+    id: "/",
+    start_url: "/",
     scope: "/",
     display: "standalone",
     orientation: "portrait",
