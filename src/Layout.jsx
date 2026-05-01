@@ -77,16 +77,7 @@ const getCurrentSeason = () => {
 };
 
 const getPeriodType = () => {
-  const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  
-  if (currentMonth === 5) {
-    return "closed";
-  } else if (currentMonth === 6 || currentMonth === 7) {
-    return "inscriptions";
-  } else if (currentMonth === 8) {
-    return "vacation";
-  }
+  // Bloqueos de temporada desactivados — todos los usuarios acceden normal
   return "active";
 };
 
