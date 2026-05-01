@@ -118,7 +118,7 @@ export default function SuccessCelebration({ type = "torneo", title, subtitle, o
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-700">
                 <MapPin className={`w-4 h-4 ${isVol ? "text-pink-600" : "text-amber-600"}`} />
-                <span>Bustarviejo · Campo de fútbol</span>
+                <span>Plaza de Bustarviejo</span>
               </div>
             </div>
           </div>
