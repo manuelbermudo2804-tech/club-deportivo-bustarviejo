@@ -34,12 +34,26 @@ export default function PwaEntry() {
   const [showFinalStep, setShowFinalStep] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  // Si ya está instalada (standalone), redirigir a la app inmediatamente
+  // PROTECCIÓN 1: Si ya está instalada (standalone), redirigir a la app inmediatamente
   useEffect(() => {
     if (isStandalone()) {
+      // Limpiar cualquier caché que pueda interferir
+      try {
+        if ('caches' in window) {
+          caches.keys().then(keys => keys.forEach(k => caches.delete(k)));
+        }
+      } catch {}
       window.location.replace('/');
     }
   }, []);
+
+  // PROTECCIÓN 2: Watchdog — si después de 4s seguimos en /PwaEntry sin promp, mostrar escape manual
+  const [showEscapeButton, setShowEscapeButton] = useState(false);
+  useEffect(() => {
+    if (installed || showFinalStep) return;
+    const timer = setTimeout(() => setShowEscapeButton(true), 4000);
+    return () => clearTimeout(timer);
+  }, [installed, showFinalStep]);
   
   const iosWebView = isIOS() && !isSafari() && !isStandalone();
   const iosSafari = isIOS() && isSafari() && !isStandalone();
@@ -288,6 +302,14 @@ export default function PwaEntry() {
                   </div>
                 </div>
                 <p className="text-xs text-slate-400 animate-pulse">Cargando instalador…</p>
+                {showEscapeButton && (
+                  <button
+                    onClick={() => window.location.replace('/')}
+                    className="mt-3 w-full px-4 py-3 rounded-xl bg-slate-800 text-white font-semibold text-sm hover:bg-slate-900"
+                  >
+                    Abrir la app sin instalar →
+                  </button>
+                )}
               </div>
             )}
           </>
