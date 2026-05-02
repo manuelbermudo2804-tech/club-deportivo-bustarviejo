@@ -16,7 +16,7 @@ function baseLayout(headerBg, headerTitle, headerEmoji, contentHtml) {
 <div style="background:#333333;padding:24px;text-align:center">
 <div style="margin-bottom:12px;"><a href="https://www.cdbustarviejo.com" style="display:inline-block;background:#ea580c;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:10px 24px;border-radius:8px;">🌐 www.cdbustarviejo.com</a></div>
 <div style="margin-bottom:14px;"><a href="https://www.facebook.com/cdbustarviejo" style="display:inline-block;margin:0 6px;text-decoration:none;font-size:22px;" title="Facebook">📘</a><a href="https://www.instagram.com/cdbustarviejo" style="display:inline-block;margin:0 6px;text-decoration:none;font-size:22px;" title="Instagram">📸</a></div>
-<p style="margin:4px 0;font-size:12px;color:#cccccc">📧 <a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none">info@cdbustarviejo.com</a> · <a href="mailto:C.D.BUSTARVIEJO@HOTMAIL.ES" style="color:#fb923c;text-decoration:none">C.D.BUSTARVIEJO@HOTMAIL.ES</a></p>
+<p style="margin:4px 0;font-size:12px;color:#cccccc">📧 <a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none">info@cdbustarviejo.com</a></p>
 <p style="margin:10px 0 4px;font-size:12px;color:#cccccc">© ${new Date().getFullYear()} CD Bustarviejo · Todos los derechos reservados</p>
 </div>
 </div></body></html>`;
