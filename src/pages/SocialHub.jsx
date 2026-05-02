@@ -284,11 +284,37 @@ export default function SocialHub() {
         
         {/* Header */}
         <div className="text-center">
-          <div className="w-16 h-16 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-xl mx-auto mb-3">
-            <MessageCircle className="w-8 h-8 text-white" />
+          {/* Iconos duales WhatsApp + Telegram */}
+          <div className="flex items-center justify-center gap-3 mb-3">
+            <div className="w-14 h-14 bg-gradient-to-br from-green-400 to-green-600 rounded-2xl flex items-center justify-center shadow-xl ring-2 ring-green-400/30">
+              <MessageCircle className="w-7 h-7 text-white" />
+            </div>
+            <div className="text-slate-500 text-2xl font-light">+</div>
+            <div className="w-14 h-14 bg-gradient-to-br from-sky-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl ring-2 ring-sky-400/30">
+              <Send className="w-7 h-7 text-white" />
+            </div>
           </div>
-          <h1 className="text-2xl font-black text-white">Canal de WhatsApp</h1>
-          <p className="text-slate-400 text-sm mt-1">Genera → Copia → Pega en tu Canal</p>
+
+          <h1 className="text-2xl lg:text-3xl font-black text-white tracking-tight">
+            Centro de Difusión Social
+          </h1>
+          <p className="text-slate-400 text-sm mt-1.5">
+            Crea contenido con IA y publícalo en <span className="text-green-400 font-semibold">WhatsApp</span> y <span className="text-sky-400 font-semibold">Telegram</span>
+          </p>
+
+          {/* Stats rápidos */}
+          <div className="flex items-center justify-center gap-2 mt-3">
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+              2 canales activos
+            </span>
+            {history.length > 0 && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
+                <Clock className="w-3 h-3" />
+                {history.length} publicaciones
+              </span>
+            )}
+          </div>
         </div>
 
         {/* ========== MENÚ PRINCIPAL ========== */}
