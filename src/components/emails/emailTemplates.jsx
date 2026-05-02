@@ -5,19 +5,23 @@
 
 const FOOTER = `
 <tr><td style="background:#1e293b;padding:24px;text-align:center;">
-  <div style="margin-bottom:12px;">
-    <a href="https://www.cdbustarviejo.com" style="display:inline-block;background:#ea580c;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:10px 24px;border-radius:8px;">🌐 www.cdbustarviejo.com</a>
-  </div>
-  <div style="background:#0f172a;border-radius:10px;padding:14px;margin:0 auto 14px;max-width:340px;border:1px solid #1e40af;">
-    <div style="color:#93c5fd;font-size:12px;font-weight:700;margin-bottom:6px;">📲 ÚNETE A NUESTRO CANAL</div>
-    <div style="color:#cbd5e1;font-size:12px;margin-bottom:10px;">Resultados, partidos, fotos y avisos importantes en directo</div>
-    <a href="https://t.me/cdbustarviejo" style="display:inline-block;background:#229ED9;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:8px 18px;border-radius:8px;">✈️ Únete en Telegram</a>
-  </div>
-  <div style="margin-bottom:14px;">
-    <a href="https://www.facebook.com/cdbustarviejo" style="display:inline-block;margin:0 6px;text-decoration:none;font-size:22px;" title="Facebook">📘</a>
-    <a href="https://www.instagram.com/cdbustarviejo" style="display:inline-block;margin:0 6px;text-decoration:none;font-size:22px;" title="Instagram">📸</a>
-    <a href="https://t.me/cdbustarviejo" style="display:inline-block;margin:0 6px;text-decoration:none;font-size:22px;" title="Telegram">✈️</a>
-  </div>
+  <div style="color:#cbd5e1;font-size:13px;font-weight:600;margin-bottom:14px;">Síguenos en nuestras redes</div>
+  <table cellpadding="0" cellspacing="0" style="margin:0 auto 18px;">
+    <tr>
+      <td style="padding:0 4px;">
+        <a href="https://www.cdbustarviejo.com" style="display:inline-block;background:#ea580c;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:9px 14px;border-radius:8px;">🌐 Web</a>
+      </td>
+      <td style="padding:0 4px;">
+        <a href="https://www.instagram.com/cdbustarviejo" style="display:inline-block;background:#E1306C;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:9px 14px;border-radius:8px;">📸 Instagram</a>
+      </td>
+      <td style="padding:0 4px;">
+        <a href="https://www.facebook.com/cdbustarviejo" style="display:inline-block;background:#1877F2;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:9px 14px;border-radius:8px;">📘 Facebook</a>
+      </td>
+      <td style="padding:0 4px;">
+        <a href="https://t.me/cdbustarviejo" style="display:inline-block;background:#229ED9;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:9px 14px;border-radius:8px;">✈️ Telegram</a>
+      </td>
+    </tr>
+  </table>
   <div style="color:#94a3b8;font-size:12px;line-height:1.6;">
     <strong style="color:#f8fafc;">CD Bustarviejo</strong><br>
     <a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none;">info@cdbustarviejo.com</a>
