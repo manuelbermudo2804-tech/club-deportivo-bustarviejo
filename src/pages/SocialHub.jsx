@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Loader2, Wand2, Copy, Check, ArrowLeft, MessageCircle, RefreshCw,
-  Clock, Send, CalendarClock, Trash2,
+  Clock, Send,
 } from "lucide-react";
 import { toast } from "sonner";
 import moment from "moment";
@@ -13,7 +13,6 @@ import SocialOpportunitiesBanner from "@/components/social/SocialOpportunitiesBa
 import ContentTypeGrid from "@/components/social/ContentTypeGrid";
 import ToneSelector from "@/components/social/ToneSelector";
 import ImageGenerator from "@/components/social/ImageGenerator";
-import ScheduleSelector from "@/components/social/ScheduleSelector";
 import MessagePreview from "@/components/social/MessagePreview";
 import { CONTENT_TYPES, getContentTypeById, getTonoById } from "@/components/social/contentTypes";
 import { fetchDataForType } from "@/components/social/fetchContentData";
@@ -57,7 +56,6 @@ export default function SocialHub() {
   const [text, setText] = useState("");
   const [tono, setTono] = useState("cercano");
   const [imageUrl, setImageUrl] = useState(null);
-  const [scheduledAt, setScheduledAt] = useState(null);
   const [editing, setEditing] = useState(false);
 
   const [publishing, setPublishing] = useState(false);
@@ -69,15 +67,10 @@ export default function SocialHub() {
     staleTime: 60000,
   });
 
-  const scheduledPending = useMemo(
-    () => history.filter(p => p.programado && p.estado_programacion === 'pendiente'),
-    [history]
-  );
-
   const typeConfig = getContentTypeById(selectedType);
 
   const resetEditor = () => {
-    setText(""); setDatos(""); setImageUrl(null); setScheduledAt(null);
+    setText(""); setDatos(""); setImageUrl(null);
     setTono("cercano"); setEditing(false);
   };
 
@@ -119,54 +112,35 @@ export default function SocialHub() {
     setGenerating(false);
   };
 
-  const publishOrSchedule = async () => {
+  const publishNow = async () => {
     if (!text.trim()) { toast.error("No hay texto para publicar"); return; }
     setPublishing(true);
     try {
       const user = await base44.auth.me();
       const titulo = typeConfig?.title || selectedType;
-
-      if (scheduledAt) {
+      const htmlMessage = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+      const { data } = await base44.functions.invoke("publishToTelegramAdvanced", {
+        message: htmlMessage,
+        image_url: imageUrl,
+        parse_mode: "HTML",
+      });
+      if (data?.success) {
+        toast.success("✈️ ¡Publicado en Telegram!");
         await base44.entities.SocialPost.create({
           tipo: selectedType,
           titulo,
           contenido_whatsapp: text,
           tono,
           imagen_url: imageUrl,
-          programado: true,
-          fecha_programada: scheduledAt,
-          estado_programacion: 'pendiente',
+          enviado_telegram: true,
+          telegram_message_id: String(data.message_id || ''),
           datos_origen: datos.substring(0, 2000),
           creado_por: user.email,
         });
-        toast.success(`📅 Programado para ${moment(scheduledAt).format('dddd D [de] MMMM, HH:mm')}`);
         queryClient.invalidateQueries({ queryKey: ["socialPosts"] });
         goBackToMenu();
       } else {
-        const htmlMessage = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const { data } = await base44.functions.invoke("publishToTelegramAdvanced", {
-          message: htmlMessage,
-          image_url: imageUrl,
-          parse_mode: "HTML",
-        });
-        if (data?.success) {
-          toast.success("✈️ ¡Publicado en Telegram!");
-          await base44.entities.SocialPost.create({
-            tipo: selectedType,
-            titulo,
-            contenido_whatsapp: text,
-            tono,
-            imagen_url: imageUrl,
-            enviado_telegram: true,
-            telegram_message_id: String(data.message_id || ''),
-            datos_origen: datos.substring(0, 2000),
-            creado_por: user.email,
-          });
-          queryClient.invalidateQueries({ queryKey: ["socialPosts"] });
-          goBackToMenu();
-        } else {
-          toast.error(data?.error || "Error al publicar");
-        }
+        toast.error(data?.error || "Error al publicar");
       }
     } catch (e) {
       toast.error("Error: " + (e?.message || ""));
@@ -198,17 +172,6 @@ export default function SocialHub() {
     }
   };
 
-  const cancelScheduled = async (id) => {
-    if (!confirm("¿Cancelar esta publicación programada?")) return;
-    try {
-      await base44.entities.SocialPost.update(id, { estado_programacion: 'cancelado', programado: false });
-      toast.success("Programación cancelada");
-      queryClient.invalidateQueries({ queryKey: ["socialPosts"] });
-    } catch {
-      toast.error("Error al cancelar");
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       <div className="px-4 lg:px-8 py-6 space-y-5 max-w-2xl mx-auto">
@@ -228,7 +191,7 @@ export default function SocialHub() {
             Centro de Difusión Social
           </h1>
           <p className="text-slate-400 text-sm mt-1.5">
-            <span className="text-sky-400 font-semibold">Telegram</span> automático con IA + foto + programación
+            <span className="text-sky-400 font-semibold">Telegram</span> automático con IA + foto
           </p>
 
           <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
@@ -241,15 +204,6 @@ export default function SocialHub() {
                 <Clock className="w-3 h-3" />
                 {history.length} publicaciones
               </span>
-            )}
-            {scheduledPending.length > 0 && (
-              <button
-                onClick={() => setView(view === 'scheduled' ? 'menu' : 'scheduled')}
-                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-600/20 border border-amber-500/40 text-xs text-amber-300 hover:bg-amber-600/30"
-              >
-                <CalendarClock className="w-3 h-3" />
-                {scheduledPending.length} programadas
-              </button>
             )}
           </div>
         </div>
@@ -265,7 +219,7 @@ export default function SocialHub() {
                 <p className="text-slate-300 text-xs font-bold flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5" /> Últimas publicaciones
                 </p>
-                {history.filter(p => !p.programado || p.estado_programacion !== 'pendiente').slice(0, 5).map((post) => (
+                {history.slice(0, 5).map((post) => (
                   <div key={post.id} className="flex items-center gap-2 text-sm">
                     <span className="text-green-400">✓</span>
                     <span className="text-slate-300 truncate flex-1">{post.titulo}</span>
@@ -273,44 +227,6 @@ export default function SocialHub() {
                   </div>
                 ))}
               </div>
-            )}
-          </div>
-        )}
-
-        {view === 'scheduled' && (
-          <div className="space-y-3">
-            <button onClick={goBackToMenu} className="text-slate-400 text-sm flex items-center gap-1 hover:text-white">
-              <ArrowLeft className="w-4 h-4" /> Volver
-            </button>
-            <h2 className="text-white font-bold text-xl flex items-center gap-2">
-              <CalendarClock className="w-5 h-5 text-amber-400" /> Publicaciones programadas
-            </h2>
-            {scheduledPending.length === 0 ? (
-              <p className="text-slate-400 text-center py-8">No hay publicaciones programadas</p>
-            ) : (
-              scheduledPending.map(post => (
-                <div key={post.id} className="bg-slate-800/80 rounded-2xl p-4 border border-amber-500/20">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-white text-sm">{post.titulo}</p>
-                      <p className="text-amber-300 text-xs flex items-center gap-1 mt-0.5">
-                        <Clock className="w-3 h-3" /> {moment(post.fecha_programada).format("dddd D MMM, HH:mm")}
-                      </p>
-                    </div>
-                    <button
-                      onClick={() => cancelScheduled(post.id)}
-                      className="text-red-400 hover:text-red-300 p-1.5 rounded-lg hover:bg-red-500/10"
-                      title="Cancelar"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                  {post.imagen_url && (
-                    <img src={post.imagen_url} alt="" className="w-full max-h-32 object-cover rounded-lg mb-2" />
-                  )}
-                  <p className="text-slate-300 text-xs whitespace-pre-wrap line-clamp-3">{post.contenido_whatsapp}</p>
-                </div>
-              ))
             )}
           </div>
         )}
@@ -377,16 +293,12 @@ export default function SocialHub() {
 
                     <ImageGenerator value={imageUrl} onChange={setImageUrl} suggestedPrompt={typeConfig?.title} />
 
-                    <ScheduleSelector value={scheduledAt} onChange={setScheduledAt} />
-
                     <button
-                      onClick={publishOrSchedule}
+                      onClick={publishNow}
                       disabled={publishing}
-                      className={`w-full bg-gradient-to-r ${scheduledAt ? 'from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700' : 'from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700'} disabled:opacity-60 text-white font-black text-lg py-5 rounded-2xl shadow-2xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3`}
+                      className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 disabled:opacity-60 text-white font-black text-lg py-5 rounded-2xl shadow-2xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
                     >
-                      {publishing ? <><Loader2 className="w-6 h-6 animate-spin" /> {scheduledAt ? 'Programando...' : 'Publicando...'}</> : (
-                        scheduledAt ? <><CalendarClock className="w-6 h-6" /> 📅 Programar publicación</> : <><Send className="w-6 h-6" /> ✈️ Publicar AHORA en Telegram</>
-                      )}
+                      {publishing ? <><Loader2 className="w-6 h-6 animate-spin" /> Publicando...</> : <><Send className="w-6 h-6" /> ✈️ Publicar AHORA en Telegram</>}
                     </button>
 
                     <div className="flex items-center gap-2 py-1">
