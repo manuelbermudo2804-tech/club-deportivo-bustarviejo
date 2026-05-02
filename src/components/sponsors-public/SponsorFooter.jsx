@@ -11,6 +11,14 @@ export default function SponsorFooter() {
           <p className="text-slate-500 text-sm text-center">
             CD Bustarviejo · Sierra Norte de Madrid
           </p>
+          <a
+            href="https://t.me/cdbustarviejo"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-[#229ED9] hover:bg-[#1b87b8] text-white text-sm font-bold px-5 py-2.5 rounded-xl shadow-lg transition-all hover:scale-105"
+          >
+            ✈️ Únete a nuestro Canal de Telegram
+          </a>
           <div className="flex gap-4 text-slate-600 text-xs">
             <a href="https://www.cdbustarviejo.com" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors">
               Web
@@ -22,6 +30,10 @@ export default function SponsorFooter() {
             <span>·</span>
             <a href="https://www.facebook.com/cdbustarviejo" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors">
               Facebook
+            </a>
+            <span>·</span>
+            <a href="https://t.me/cdbustarviejo" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition-colors">
+              Telegram
             </a>
           </div>
           <p className="text-slate-700 text-xs mt-2">

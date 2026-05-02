@@ -22,6 +22,7 @@ import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHead
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
 import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
+import TelegramChannelBanner from "../components/social/TelegramChannelBanner";
 
 
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
@@ -534,6 +535,9 @@ export default function ParentDashboard() {
             userEmail={user?.email}
             userSports={myPlayersSports}
           />
+
+        {/* CANAL DE TELEGRAM - banner compacto cerrable */}
+        <TelegramChannelBanner />
 
         {/* HAZTE SOCIO BANNER - COMPACTO */}
         <Link to={createPageUrl("ClubMembership")}>
