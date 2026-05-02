@@ -18,6 +18,8 @@ Deno.serve(async (req) => {
     // ─── Añadir patrocinador aleatorio (Principal/Oro/Plata) al final ───
     let finalMessage = message;
     let sponsorUsed = null;
+    const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
     try {
       const allSponsors = await base44.asServiceRole.entities.Sponsor.filter({ activo: true });
       const eligible = (allSponsors || []).filter(s =>
@@ -32,7 +34,6 @@ Deno.serve(async (req) => {
           ? 'Patrocinador Principal' : `Patrocinador ${sponsor.nivel_patrocinio}`;
 
         if (parse_mode === 'HTML') {
-          const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
           const nameSafe = escapeHtml(sponsor.nombre);
           const sponsorBlock = sponsor.website_url
             ? `\n\n━━━━━━━━━━━━━━\n${tierEmoji} <b>${tierLabel}</b>\n<a href="${escapeHtml(sponsor.website_url)}">${nameSafe}</a> 🤝`
@@ -44,6 +45,13 @@ Deno.serve(async (req) => {
       }
     } catch (sponsorErr) {
       console.warn('No se pudo añadir patrocinador:', sponsorErr.message);
+    }
+
+    // ─── Añadir iconos de redes sociales al final ───
+    if (parse_mode === 'HTML') {
+      finalMessage += `\n\n<a href="https://www.cdbustarviejo.com">🌐 Web</a> · <a href="https://www.instagram.com/cdbustarviejo">📸 Instagram</a> · <a href="https://www.facebook.com/cdbustarviejo">👍 Facebook</a>`;
+    } else {
+      finalMessage += `\n\n🌐 cdbustarviejo.com · 📸 @cdbustarviejo · 👍 fb.com/cdbustarviejo`;
     }
 
     const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
