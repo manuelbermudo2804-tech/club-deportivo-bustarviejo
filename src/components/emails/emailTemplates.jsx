@@ -4,25 +4,15 @@
  */
 
 const FOOTER = `
-<tr><td style="background:#1e293b;padding:24px;text-align:center;">
-  <div style="color:#cbd5e1;font-size:13px;font-weight:600;margin-bottom:14px;">Síguenos en nuestras redes</div>
-  <table cellpadding="0" cellspacing="0" style="margin:0 auto 18px;">
-    <tr>
-      <td style="padding:0 4px;">
-        <a href="https://www.cdbustarviejo.com" style="display:inline-block;background:#ea580c;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:9px 14px;border-radius:8px;">🌐 Web</a>
-      </td>
-      <td style="padding:0 4px;">
-        <a href="https://www.instagram.com/cdbustarviejo" style="display:inline-block;background:#E1306C;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:9px 14px;border-radius:8px;">📸 Instagram</a>
-      </td>
-      <td style="padding:0 4px;">
-        <a href="https://www.facebook.com/cdbustarviejo" style="display:inline-block;background:#1877F2;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:9px 14px;border-radius:8px;">📘 Facebook</a>
-      </td>
-      <td style="padding:0 4px;">
-        <a href="https://t.me/cdbustarviejo" style="display:inline-block;background:#229ED9;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:9px 14px;border-radius:8px;">✈️ Telegram</a>
-      </td>
-    </tr>
-  </table>
-  <div style="color:#94a3b8;font-size:12px;line-height:1.6;">
+<tr><td style="background:#1e293b;padding:24px 16px;text-align:center;">
+  <div style="color:#cbd5e1;font-size:13px;font-weight:600;margin-bottom:16px;">Síguenos en nuestras redes</div>
+  <div style="font-size:0;line-height:0;">
+    <a href="https://www.cdbustarviejo.com" style="display:inline-block;margin:4px;text-decoration:none;"><img src="https://cdn.jsdelivr.net/gh/CLorant/readme-social-icons/medium/filled/website.svg" alt="Web" width="44" height="44" style="display:block;border:0;border-radius:50%;" /></a>
+    <a href="https://www.instagram.com/cdbustarviejo" style="display:inline-block;margin:4px;text-decoration:none;"><img src="https://cdn.jsdelivr.net/gh/CLorant/readme-social-icons/medium/filled/instagram.svg" alt="Instagram" width="44" height="44" style="display:block;border:0;border-radius:50%;" /></a>
+    <a href="https://www.facebook.com/cdbustarviejo" style="display:inline-block;margin:4px;text-decoration:none;"><img src="https://cdn.jsdelivr.net/gh/CLorant/readme-social-icons/medium/filled/facebook.svg" alt="Facebook" width="44" height="44" style="display:block;border:0;border-radius:50%;" /></a>
+    <a href="https://t.me/cdbustarviejo" style="display:inline-block;margin:4px;text-decoration:none;"><img src="https://cdn.jsdelivr.net/gh/CLorant/readme-social-icons/medium/filled/telegram.svg" alt="Telegram" width="44" height="44" style="display:block;border:0;border-radius:50%;" /></a>
+  </div>
+  <div style="color:#94a3b8;font-size:12px;line-height:1.6;margin-top:16px;">
     <strong style="color:#f8fafc;">CD Bustarviejo</strong><br>
     <a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none;">info@cdbustarviejo.com</a>
   </div>
