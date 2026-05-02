@@ -1,18 +1,27 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Share2, Calendar, Trophy, Megaphone, Heart, Users, PenLine, Loader2, Wand2, Copy, Check, ArrowLeft, MessageCircle, RefreshCw, Clock, Send } from "lucide-react";
+import { Share2, Calendar, Trophy, Megaphone, Heart, Users, PenLine, Loader2, Wand2, Copy, Check, ArrowLeft, MessageCircle, RefreshCw, Clock, Send, Ticket, Handshake, Shirt, Image as ImageIcon, RefreshCcw, Cake, Star, HandHeart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import moment from "moment";
+import SocialOpportunitiesBanner from "@/components/social/SocialOpportunitiesBanner";
 
 const CONTENT_TYPES = [
   { id: "partidos_finde", title: "⚽ Partidos del Finde", emoji: "⚽", icon: Calendar, gradient: "from-orange-500 to-orange-600" },
   { id: "resultados", title: "📊 Resultados", emoji: "📊", icon: Trophy, gradient: "from-blue-500 to-blue-600" },
+  { id: "sanisidro", title: "🎯 San Isidro", emoji: "🎯", icon: Star, gradient: "from-amber-500 to-orange-600" },
+  { id: "loteria", title: "🎟️ Lotería", emoji: "🎟️", icon: Ticket, gradient: "from-red-500 to-rose-600" },
+  { id: "patrocinadores", title: "🤝 Patrocinadores", emoji: "🤝", icon: Handshake, gradient: "from-yellow-500 to-amber-600" },
+  { id: "tienda", title: "👕 Tienda Ropa", emoji: "👕", icon: Shirt, gradient: "from-cyan-500 to-blue-600" },
+  { id: "evento", title: "🎉 Evento", emoji: "🎉", icon: Calendar, gradient: "from-green-500 to-green-600" },
   { id: "anuncio", title: "📢 Anuncio", emoji: "📢", icon: Megaphone, gradient: "from-pink-500 to-pink-600" },
   { id: "hazte_socio", title: "❤️ Hazte Socio", emoji: "❤️", icon: Heart, gradient: "from-purple-500 to-purple-600" },
   { id: "femenino", title: "⚽👧 Femenino", emoji: "⚽", icon: Users, gradient: "from-fuchsia-500 to-fuchsia-600" },
-  { id: "evento", title: "🎉 Evento", emoji: "🎉", icon: Calendar, gradient: "from-green-500 to-green-600" },
+  { id: "renovaciones", title: "🔄 Renovaciones", emoji: "🔄", icon: RefreshCcw, gradient: "from-teal-500 to-emerald-600" },
+  { id: "galeria", title: "📸 Galería", emoji: "📸", icon: ImageIcon, gradient: "from-violet-500 to-purple-600" },
+  { id: "cumple", title: "🎂 Cumpleaños", emoji: "🎂", icon: Cake, gradient: "from-pink-400 to-pink-500" },
+  { id: "voluntarios", title: "🙋 Voluntarios", emoji: "🙋", icon: HandHeart, gradient: "from-lime-500 to-green-600" },
   { id: "personalizado", title: "✏️ Libre", emoji: "✏️", icon: PenLine, gradient: "from-slate-500 to-slate-600" },
 ];
 
@@ -63,6 +72,73 @@ async function fetchDataForType(type) {
     if (!fut.length) return "No hay eventos próximos. Escribe los datos del evento.";
     return fut.slice(0,5).map(e => `${e.titulo} | ${moment(e.fecha).format("DD/MM/YYYY")} ${e.hora||""} | ${e.ubicacion||""}\n${e.descripcion?.substring(0,150)||""}`).join("\n\n");
   }
+  if (type === "sanisidro") {
+    const regs = await base44.entities.SanIsidroRegistration.list("-created_date", 500).catch(() => []);
+    const vols = await base44.entities.SanIsidroVoluntario.list("-created_date", 200).catch(() => []);
+    const PLAZAS = { 'Fútbol Chapa - Niños/Jóvenes': 32, 'Fútbol Chapa - Adultos': 16, '3 para 3 (7-10 años)': 16, '3 para 3 (11-15 años)': 12 };
+    const ocup = {};
+    regs.forEach(r => { ocup[r.modalidad] = (ocup[r.modalidad] || 0) + 1; });
+    let d = `Torneo San Isidro CD Bustarviejo\n\nPlazas:\n`;
+    Object.entries(PLAZAS).forEach(([m, max]) => {
+      const o = ocup[m] || 0;
+      d += `• ${m}: ${o}/${max} (quedan ${max-o})\n`;
+    });
+    d += `\nVoluntarios apuntados: ${vols.length}\n`;
+    d += `\nInscripciones: ${window.location.origin}/SanIsidro`;
+    return d;
+  }
+  if (type === "loteria") {
+    const sc = await base44.entities.SeasonConfig.filter({ activa: true }).catch(() => []);
+    const config = sc[0] || {};
+    const orders = await base44.entities.LotteryOrder.list("-created_date", 500).catch(() => []);
+    const vendidos = orders.reduce((s, o) => s + (o.cantidad_decimos || 0), 0);
+    const max = config.loteria_max_decimos || 770;
+    return `Lotería de Navidad CD Bustarviejo\nPrecio: ${config.precio_decimo_loteria || 22}€/décimo\nDécimos vendidos: ${vendidos}/${max}\nQuedan: ${max-vendidos} décimos\n${config.loteria_navidad_abierta ? '✅ Pedidos abiertos' : '⛔ Pedidos cerrados'}\nReserva en la app del club`;
+  }
+  if (type === "patrocinadores") {
+    const sc = await base44.entities.SeasonConfig.filter({ activa: true }).catch(() => []);
+    const config = sc[0] || {};
+    const limite = config.fecha_limite_patrocinios;
+    let dias = "";
+    if (limite) {
+      const dl = Math.ceil((new Date(limite) - new Date()) / (1000*60*60*24));
+      dias = ` (${dl} días)`;
+    }
+    return `Captación de Patrocinadores CD Bustarviejo\n${limite ? `Fecha límite: ${limite}${dias}` : 'Plazo abierto'}\nPaquetes: Bronce, Plata, Oro y Principal\nApoya al fútbol base de la Sierra Norte\nMás info: ${window.location.origin}/Patrocinadores`;
+  }
+  if (type === "tienda") {
+    const sc = await base44.entities.SeasonConfig.filter({ activa: true }).catch(() => []);
+    const config = sc[0] || {};
+    const url = config.tienda_ropa_url || `${window.location.origin}/Tienda`;
+    const merch = config.tienda_merch_url;
+    return `Tienda de Ropa CD Bustarviejo abierta\nEquipación oficial, chándales, sudaderas\n${config.tienda_ropa_abierta ? '✅ Abierta para pedidos' : ''}\nEnlace equipación: ${url}${merch ? `\nMerch del club: ${merch}` : ''}`;
+  }
+  if (type === "renovaciones") {
+    const sc = await base44.entities.SeasonConfig.filter({ activa: true }).catch(() => []);
+    const config = sc[0] || {};
+    return `Renovaciones temporada ${config.temporada || ''} CD Bustarviejo\n${config.fecha_limite_renovaciones ? `Fecha límite: ${config.fecha_limite_renovaciones}` : 'Plazo abierto'}\nCuota única: ${config.cuota_unica || '?'}€ | Fraccionada: 3x ${config.cuota_tres_meses || '?'}€\nRenueva desde la app del club`;
+  }
+  if (type === "galeria") {
+    const fotos = await base44.entities.PhotoGallery.list("-created_date", 5).catch(() => []);
+    if (!fotos.length) return "No hay fotos recientes. Escribe el texto.";
+    return `Galería actualizada CD Bustarviejo\n${fotos.length} nuevas fotos disponibles\n${fotos.slice(0,3).map(f => `• ${f.titulo || f.descripcion || 'Foto'}`).join('\n')}\nVer todas: app.cdbustarviejo.com/Gallery`;
+  }
+  if (type === "cumple") {
+    const today = new Date();
+    const mm = String(today.getMonth()+1).padStart(2,'0');
+    const dd = String(today.getDate()).padStart(2,'0');
+    const players = await base44.entities.Player.filter({ activo: true }).catch(() => []);
+    const cumples = players.filter(p => {
+      if (!p.fecha_nacimiento) return false;
+      return p.fecha_nacimiento.endsWith(`-${mm}-${dd}`);
+    });
+    if (!cumples.length) return `Hoy no hay cumpleaños registrados. Escribe el cumpleaños manualmente.`;
+    return `🎂 ¡Felicitamos hoy a:\n${cumples.map(c => `• ${c.nombre} (${c.categoria_principal || c.deporte || ''})`).join('\n')}\n\n¡Felicidades de toda la familia del CD Bustarviejo!`;
+  }
+  if (type === "voluntarios") {
+    const vols = await base44.entities.SanIsidroVoluntario.list("-created_date", 100).catch(() => []);
+    return `Buscamos VOLUNTARIOS CD Bustarviejo\nApúntate para echar una mano en eventos del club\nTurnos flexibles, gran ambiente\nApuntados actualmente: ${vols.length}\nApúntate en: ${window.location.origin}/SanIsidro`;
+  }
   return "";
 }
 
@@ -110,6 +186,15 @@ export default function SocialHub() {
     const d = await fetchDataForType(type);
     setDatos(d);
     setLoading(false);
+  };
+
+  const selectOpportunity = (opp) => {
+    setSelectedType(opp.socialType || opp.type);
+    setWhatsappText("");
+    setEditing(false);
+    setLoading(false);
+    // Usamos los datos pre-cargados de la oportunidad (ya vienen contextualizados)
+    setDatos(opp.datos || "");
   };
 
   const generate = async () => {
@@ -208,7 +293,11 @@ export default function SocialHub() {
 
         {/* ========== MENÚ PRINCIPAL ========== */}
         {!selectedType && (
-          <div className="space-y-4">
+          <div className="space-y-5">
+            
+            {/* 🌟 BANNER DE OPORTUNIDADES INTELIGENTES */}
+            <SocialOpportunitiesBanner onSelect={selectOpportunity} />
+
             <p className="text-slate-300 text-sm font-medium text-center">¿Qué quieres publicar?</p>
             <div className="grid grid-cols-2 gap-3">
               {CONTENT_TYPES.map((type) => (
