@@ -125,7 +125,7 @@ const FOOTER = `
   <table align="center" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;"><tr>
     <td style="padding:4px;"><a href="https://www.cdbustarviejo.com" style="text-decoration:none;"><img src="https://img.icons8.com/color/96/000000/domain.png" alt="Web" width="44" height="44" style="display:block;border:0;" /></a></td>
     <td style="padding:4px;"><a href="https://www.instagram.com/cdbustarviejo" style="text-decoration:none;"><img src="https://img.icons8.com/color/96/000000/instagram-new.png" alt="Instagram" width="44" height="44" style="display:block;border:0;" /></a></td>
-    <td style="padding:4px;"><a href="https://www.facebook.com/cdbustarviejo" style="text-decoration:none;"><img src="https://img.icons8.com/color/96/000000/facebook-new.png" alt="Facebook" width="44" height="44" style="display:block;border:0;" /></a></td>
+    <td style="padding:4px;"><a href="https://es-es.facebook.com/ilustrisimo.deportivobustarviejo" style="text-decoration:none;"><img src="https://img.icons8.com/color/96/000000/facebook-new.png" alt="Facebook" width="44" height="44" style="display:block;border:0;" /></a></td>
     <td style="padding:4px;"><a href="https://t.me/cdbustarviejo" style="text-decoration:none;"><img src="https://img.icons8.com/color/96/000000/telegram-app.png" alt="Telegram" width="44" height="44" style="display:block;border:0;" /></a></td>
   </tr></table>
   <div style="color:#94a3b8;font-size:12px;line-height:1.6;margin-top:16px;">

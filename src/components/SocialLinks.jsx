@@ -11,7 +11,7 @@ const TelegramIcon = ({ className }) => (
 export default function SocialLinks() {
   const links = [
     { name: "Web", url: "https://www.cdbustarviejo.com", icon: Globe, color: "text-orange-600 hover:text-orange-700" },
-    { name: "Facebook", url: "https://www.facebook.com/cdbustarviejo", icon: Facebook, color: "text-blue-600 hover:text-blue-700" },
+    { name: "Facebook", url: "https://es-es.facebook.com/ilustrisimo.deportivobustarviejo", icon: Facebook, color: "text-blue-600 hover:text-blue-700" },
     { name: "Instagram", url: "https://www.instagram.com/cdbustarviejo", icon: Instagram, color: "text-pink-600 hover:text-pink-700" },
     { name: "Telegram", url: "https://t.me/cdbustarviejo", icon: TelegramIcon, color: "text-sky-500 hover:text-sky-600" }
   ];
