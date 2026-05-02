@@ -4,17 +4,6 @@
   "properties": {
     "tipo": {
       "type": "string",
-      "enum": [
-        "partidos_finde",
-        "resultados",
-        "anuncio",
-        "hazte_socio",
-        "tienda",
-        "loteria",
-        "evento",
-        "femenino",
-        "personalizado"
-      ],
       "description": "Tipo de contenido generado"
     },
     "titulo": {
@@ -23,7 +12,7 @@
     },
     "contenido_whatsapp": {
       "type": "string",
-      "description": "Texto generado para WhatsApp"
+      "description": "Texto generado para WhatsApp/Telegram"
     },
     "contenido_instagram": {
       "type": "string",
@@ -33,10 +22,58 @@
       "type": "string",
       "description": "Texto generado para Twitter/X"
     },
+    "tono": {
+      "type": "string",
+      "enum": [
+        "cercano",
+        "epico",
+        "corto",
+        "pro"
+      ],
+      "default": "cercano",
+      "description": "Tono usado para generar el texto"
+    },
+    "imagen_url": {
+      "type": "string",
+      "description": "URL de la imagen asociada al post (generada o subida)"
+    },
+    "imagen_prompt": {
+      "type": "string",
+      "description": "Prompt usado para generar la imagen con IA"
+    },
+    "programado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la publicaci\u00f3n est\u00e1 programada para m\u00e1s tarde"
+    },
+    "fecha_programada": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora en que debe publicarse autom\u00e1ticamente"
+    },
+    "estado_programacion": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "publicado",
+        "fallido",
+        "cancelado"
+      ],
+      "description": "Estado de una publicaci\u00f3n programada"
+    },
+    "telegram_message_id": {
+      "type": "string",
+      "description": "ID del mensaje en Telegram una vez publicado"
+    },
     "enviado_whatsapp": {
       "type": "boolean",
       "default": false,
-      "description": "Si se envi\u00f3 al canal de WhatsApp"
+      "description": "Si se copi\u00f3/envi\u00f3 al canal de WhatsApp"
+    },
+    "enviado_telegram": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se public\u00f3 en Telegram"
     },
     "enviado_instagram": {
       "type": "boolean",
@@ -50,7 +87,7 @@
     },
     "datos_origen": {
       "type": "string",
-      "description": "JSON con los datos usados para generar (IDs de convocatorias, resultados, etc.)"
+      "description": "JSON con los datos usados para generar"
     },
     "creado_por": {
       "type": "string",
