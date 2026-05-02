@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Share2, Calendar, Trophy, Megaphone, Heart, Users, PenLine, Loader2, Wand2, Copy, Check, ArrowLeft, MessageCircle, RefreshCw, Clock } from "lucide-react";
+import { Share2, Calendar, Trophy, Megaphone, Heart, Users, PenLine, Loader2, Wand2, Copy, Check, ArrowLeft, MessageCircle, RefreshCw, Clock, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import moment from "moment";
@@ -93,6 +93,8 @@ export default function SocialHub() {
   const [whatsappText, setWhatsappText] = useState("");
   const [copied, setCopied] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [publishingTg, setPublishingTg] = useState(false);
+  const [publishedTg, setPublishedTg] = useState(false);
 
   const { data: history = [] } = useQuery({
     queryKey: ["socialPosts"],
@@ -123,6 +125,46 @@ export default function SocialHub() {
       toast.error("Error al generar");
     }
     setGenerating(false);
+  };
+
+  const publishToTelegram = async () => {
+    if (!whatsappText.trim()) { toast.error("No hay texto para publicar"); return; }
+    setPublishingTg(true);
+    try {
+      // Convertir texto plano a HTML básico para Telegram (los emojis pasan tal cual)
+      const htmlMessage = whatsappText
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+      const { data } = await base44.functions.invoke("publishToTelegram", {
+        message: htmlMessage,
+        parse_mode: "HTML"
+      });
+
+      if (data?.success) {
+        setPublishedTg(true);
+        setTimeout(() => setPublishedTg(false), 4000);
+        toast.success(`✈️ ¡Publicado en Telegram!`);
+
+        // Guardar en historial
+        const user = await base44.auth.me();
+        await base44.entities.SocialPost.create({
+          tipo: selectedType,
+          titulo: CONTENT_TYPES.find(t => t.id === selectedType)?.title || selectedType,
+          contenido_whatsapp: whatsappText,
+          enviado_whatsapp: false,
+          datos_origen: datos.substring(0, 2000),
+          creado_por: user.email,
+        }).catch(() => {});
+        queryClient.invalidateQueries({ queryKey: ["socialPosts"] });
+      } else {
+        toast.error(data?.error || "Error al publicar en Telegram");
+      }
+    } catch (e) {
+      toast.error("Error: " + (e?.message || "no se pudo publicar"));
+    }
+    setPublishingTg(false);
   };
 
   const copyAndOpen = async () => {
@@ -298,6 +340,31 @@ export default function SocialHub() {
                     </button>
                     <p className="text-slate-500 text-xs text-center">
                       Se copia al portapapeles → se abre WhatsApp → pegas en tu Canal
+                    </p>
+
+                    {/* Separador */}
+                    <div className="flex items-center gap-2 py-1">
+                      <div className="flex-1 h-px bg-slate-700" />
+                      <span className="text-slate-500 text-xs">O TAMBIÉN</span>
+                      <div className="flex-1 h-px bg-slate-700" />
+                    </div>
+
+                    {/* BOTÓN TELEGRAM */}
+                    <button
+                      onClick={publishToTelegram}
+                      disabled={publishingTg}
+                      className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 disabled:opacity-60 text-white font-black text-lg py-5 rounded-2xl shadow-2xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
+                    >
+                      {publishingTg ? (
+                        <><Loader2 className="w-6 h-6 animate-spin" /> Publicando...</>
+                      ) : publishedTg ? (
+                        <><Check className="w-6 h-6" /> ¡Publicado en Telegram!</>
+                      ) : (
+                        <><Send className="w-6 h-6" /> ✈️ Publicar en Telegram (automático)</>
+                      )}
+                    </button>
+                    <p className="text-slate-500 text-xs text-center">
+                      Se publica directo en el canal de Telegram del club, sin copiar nada
                     </p>
                   </div>
                 )}
