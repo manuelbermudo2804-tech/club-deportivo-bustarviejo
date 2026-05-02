@@ -15,6 +15,37 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Falta el mensaje' }, { status: 400 });
     }
 
+    // ─── Añadir patrocinador aleatorio (Principal/Oro/Plata) al final ───
+    let finalMessage = message;
+    let sponsorUsed = null;
+    try {
+      const allSponsors = await base44.asServiceRole.entities.Sponsor.filter({ activo: true });
+      const eligible = (allSponsors || []).filter(s =>
+        ['Principal', 'Oro', 'Plata'].includes(s.nivel_patrocinio)
+      );
+      if (eligible.length > 0) {
+        const sponsor = eligible[Math.floor(Math.random() * eligible.length)];
+        sponsorUsed = sponsor.nombre;
+        const tierEmoji = sponsor.nivel_patrocinio === 'Principal' ? '👑'
+          : sponsor.nivel_patrocinio === 'Oro' ? '🥇' : '🥈';
+        const tierLabel = sponsor.nivel_patrocinio === 'Principal'
+          ? 'Patrocinador Principal' : `Patrocinador ${sponsor.nivel_patrocinio}`;
+
+        if (parse_mode === 'HTML') {
+          const escapeHtml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+          const nameSafe = escapeHtml(sponsor.nombre);
+          const sponsorBlock = sponsor.website_url
+            ? `\n\n━━━━━━━━━━━━━━\n${tierEmoji} <b>${tierLabel}</b>\n<a href="${escapeHtml(sponsor.website_url)}">${nameSafe}</a> 🤝`
+            : `\n\n━━━━━━━━━━━━━━\n${tierEmoji} <b>${tierLabel}</b>\n${nameSafe} 🤝`;
+          finalMessage = message + sponsorBlock;
+        } else {
+          finalMessage = `${message}\n\n━━━━━━━━━━━━━━\n${tierEmoji} ${tierLabel}\n${sponsor.nombre} 🤝`;
+        }
+      }
+    } catch (sponsorErr) {
+      console.warn('No se pudo añadir patrocinador:', sponsorErr.message);
+    }
+
     const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
     const rawChannelId = Deno.env.get('TELEGRAM_CHANNEL_ID');
 
@@ -44,7 +75,7 @@ Deno.serve(async (req) => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           chat_id: candidate,
-          text: message,
+          text: finalMessage,
           parse_mode,
           disable_web_page_preview: false
         })
@@ -70,7 +101,8 @@ Deno.serve(async (req) => {
       success: true,
       message_id: tgData.result?.message_id,
       channel: tgData.result?.chat?.title,
-      usedChatId
+      usedChatId,
+      sponsorUsed
     });
   } catch (error) {
     console.error('publishToTelegram error:', error);
