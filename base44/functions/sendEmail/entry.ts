@@ -26,8 +26,13 @@ Deno.serve(async (req) => {
 
     // Inyectar footer con web + redes sociales si no lo tiene ya
     const SOCIAL_FOOTER = `<div style="background:#1e293b;padding:24px;text-align:center;border-radius:0 0 12px 12px;margin-top:24px;">
-<div style="margin-bottom:12px;"><a href="https://www.cdbustarviejo.com" style="display:inline-block;background:#ea580c;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:10px 24px;border-radius:8px;">🌐 www.cdbustarviejo.com</a></div>
-<div style="margin-bottom:14px;"><a href="https://www.facebook.com/cdbustarviejo" style="display:inline-block;margin:0 6px;text-decoration:none;font-size:22px;" title="Facebook">📘</a><a href="https://www.instagram.com/cdbustarviejo" style="display:inline-block;margin:0 6px;text-decoration:none;font-size:22px;" title="Instagram">📸</a></div>
+<div style="color:#cbd5e1;font-size:13px;font-weight:600;margin-bottom:14px;">Síguenos en nuestras redes</div>
+<table cellpadding="0" cellspacing="0" style="margin:0 auto 16px;"><tr>
+<td style="padding:0 4px;"><a href="https://www.cdbustarviejo.com" style="display:inline-block;background:#ea580c;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:9px 14px;border-radius:8px;">🌐 Web</a></td>
+<td style="padding:0 4px;"><a href="https://www.instagram.com/cdbustarviejo" style="display:inline-block;background:#E1306C;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:9px 14px;border-radius:8px;">📸 Instagram</a></td>
+<td style="padding:0 4px;"><a href="https://www.facebook.com/cdbustarviejo" style="display:inline-block;background:#1877F2;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:9px 14px;border-radius:8px;">📘 Facebook</a></td>
+<td style="padding:0 4px;"><a href="https://t.me/cdbustarviejo" style="display:inline-block;background:#229ED9;color:#ffffff;font-size:12px;font-weight:700;text-decoration:none;padding:9px 14px;border-radius:8px;">✈️ Telegram</a></td>
+</tr></table>
 <div style="color:#94a3b8;font-size:12px;line-height:1.6;"><strong style="color:#f8fafc;">CD Bustarviejo</strong><br><a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none;">info@cdbustarviejo.com</a></div>
 </div>`;
 
