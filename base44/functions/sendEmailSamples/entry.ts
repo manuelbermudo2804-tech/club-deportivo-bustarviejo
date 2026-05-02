@@ -123,7 +123,7 @@ const FOOTER = `
 <tr><td style="background:#1e293b;padding:24px 16px;text-align:center;">
   <div style="color:#cbd5e1;font-size:13px;font-weight:600;margin-bottom:16px;">Síguenos en nuestras redes</div>
   <div style="font-size:0;line-height:0;">
-    <a href="https://www.cdbustarviejo.com" style="display:inline-block;margin:4px;text-decoration:none;"><img src="https://cdn.jsdelivr.net/gh/CLorant/readme-social-icons/medium/filled/website.svg" alt="Web" width="44" height="44" style="display:block;border:0;border-radius:50%;" /></a>
+    <a href="https://www.cdbustarviejo.com" style="display:inline-block;width:44px;height:44px;background:#ea580c;border-radius:50%;margin:4px;text-decoration:none;text-align:center;line-height:44px;font-size:22px;color:#ffffff;vertical-align:middle;">🌐</a>
     <a href="https://www.instagram.com/cdbustarviejo" style="display:inline-block;margin:4px;text-decoration:none;"><img src="https://cdn.jsdelivr.net/gh/CLorant/readme-social-icons/medium/filled/instagram.svg" alt="Instagram" width="44" height="44" style="display:block;border:0;border-radius:50%;" /></a>
     <a href="https://www.facebook.com/cdbustarviejo" style="display:inline-block;margin:4px;text-decoration:none;"><img src="https://cdn.jsdelivr.net/gh/CLorant/readme-social-icons/medium/filled/facebook.svg" alt="Facebook" width="44" height="44" style="display:block;border:0;border-radius:50%;" /></a>
     <a href="https://t.me/cdbustarviejo" style="display:inline-block;margin:4px;text-decoration:none;"><img src="https://cdn.jsdelivr.net/gh/CLorant/readme-social-icons/medium/filled/telegram.svg" alt="Telegram" width="44" height="44" style="display:block;border:0;border-radius:50%;" /></a>
