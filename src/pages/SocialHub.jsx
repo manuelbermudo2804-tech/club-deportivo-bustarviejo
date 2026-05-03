@@ -13,6 +13,7 @@ import SocialOpportunitiesBanner from "@/components/social/SocialOpportunitiesBa
 import ContentTypeGrid from "@/components/social/ContentTypeGrid";
 import ToneSelector from "@/components/social/ToneSelector";
 import ImageGenerator from "@/components/social/ImageGenerator";
+import PosterDesigner from "@/components/social/PosterDesigner";
 import MessagePreview from "@/components/social/MessagePreview";
 import { CONTENT_TYPES, getContentTypeById, getTonoById } from "@/components/social/contentTypes";
 import { fetchDataForType } from "@/components/social/fetchContentData";
@@ -56,6 +57,7 @@ export default function SocialHub() {
   const [text, setText] = useState("");
   const [tono, setTono] = useState("cercano");
   const [imageUrl, setImageUrl] = useState(null);
+  const [imageMode, setImageMode] = useState("poster"); // "poster" | "simple"
   const [editing, setEditing] = useState(false);
 
   const [publishing, setPublishing] = useState(false);
@@ -291,7 +293,29 @@ export default function SocialHub() {
                       {generating ? "Regenerando..." : `Regenerar (${getTonoById(tono).label})`}
                     </button>
 
-                    <ImageGenerator value={imageUrl} onChange={setImageUrl} suggestedPrompt={typeConfig?.title} />
+                    {/* Selector modo imagen: Póster (wow) vs Simple */}
+                    <div className="bg-slate-800/80 rounded-2xl p-2 grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setImageMode("poster")}
+                        className={`text-sm font-bold py-2 rounded-xl transition-all ${imageMode === "poster" ? "bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg" : "bg-slate-900/50 text-slate-300 hover:bg-slate-700"}`}
+                      >
+                        ✨ Póster diseñado
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setImageMode("simple")}
+                        className={`text-sm font-bold py-2 rounded-xl transition-all ${imageMode === "simple" ? "bg-gradient-to-r from-orange-600 to-red-600 text-white shadow-lg" : "bg-slate-900/50 text-slate-300 hover:bg-slate-700"}`}
+                      >
+                        📷 Foto simple
+                      </button>
+                    </div>
+
+                    {imageMode === "poster" ? (
+                      <PosterDesigner value={imageUrl} onChange={setImageUrl} contentType={selectedType} />
+                    ) : (
+                      <ImageGenerator value={imageUrl} onChange={setImageUrl} suggestedPrompt={typeConfig?.title} />
+                    )}
 
                     <button
                       onClick={publishNow}
