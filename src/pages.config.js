@@ -146,7 +146,6 @@ import PlayerEvaluations from './pages/PlayerEvaluations';
 import PlayerProfile from './pages/PlayerProfile';
 import PlayerRenewal from './pages/PlayerRenewal';
 import PlayerStatsPreview from './pages/PlayerStatsPreview';
-import PosterGenerator from './pages/PosterGenerator';
 import PwaEntry from './pages/PwaEntry';
 import ReferralManagement from './pages/ReferralManagement';
 import Reminders from './pages/Reminders';
@@ -271,7 +270,6 @@ export const PAGES = {
     "PlayerProfile": PlayerProfile,
     "PlayerRenewal": PlayerRenewal,
     "PlayerStatsPreview": PlayerStatsPreview,
-    "PosterGenerator": PosterGenerator,
     "PwaEntry": PwaEntry,
     "ReferralManagement": ReferralManagement,
     "Reminders": Reminders,

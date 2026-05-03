@@ -12,7 +12,6 @@ import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import MinorPreview from '@/pages/MinorPreview';
-import PosterGenerator from '@/pages/PosterGenerator';
 import CreditUsage from '@/pages/CreditUsage';
 import PushBadgeTest from '@/pages/PushBadgeTest';
 import PushStats from '@/pages/PushStats';
@@ -125,7 +124,6 @@ const AuthenticatedApp = () => {
         />
       ))}
       <Route path="/MinorPreview" element={<LayoutWrapper currentPageName="MinorPreview"><MinorPreview /></LayoutWrapper>} />
-      <Route path="/PosterGenerator" element={<LayoutWrapper currentPageName="PosterGenerator"><PosterGenerator /></LayoutWrapper>} />
       <Route path="/CreditUsage" element={<LayoutWrapper currentPageName="CreditUsage"><CreditUsage /></LayoutWrapper>} />
       <Route path="/PushBadgeTest" element={<LayoutWrapper currentPageName="PushBadgeTest"><PushBadgeTest /></LayoutWrapper>} />
       <Route path="/PushStats" element={<LayoutWrapper currentPageName="PushStats"><PushStats /></LayoutWrapper>} />

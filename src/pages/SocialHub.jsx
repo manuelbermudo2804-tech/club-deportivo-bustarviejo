@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Loader2, Wand2, Copy, Check, ArrowLeft, MessageCircle, RefreshCw,
-  Clock, Send, Sparkles,
+  Loader2, Copy, Check, ArrowLeft, RefreshCw,
+  Clock, Send, Sparkles, Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
 import moment from "moment";
@@ -13,77 +13,36 @@ import SocialOpportunitiesBanner from "@/components/social/SocialOpportunitiesBa
 import ContentTypeGrid from "@/components/social/ContentTypeGrid";
 import ToneSelector from "@/components/social/ToneSelector";
 import MessagePreview from "@/components/social/MessagePreview";
-import AutoPosterRenderer from "@/components/social/AutoPosterRenderer";
-import { CONTENT_TYPES, getContentTypeById, getTonoById } from "@/components/social/contentTypes";
+import ImageGenerator from "@/components/social/ImageGenerator";
+import { getContentTypeById, getTonoById } from "@/components/social/contentTypes";
 import { fetchDataForType } from "@/components/social/fetchContentData";
-import { suggestTemplate, getPosterTemplate } from "@/components/social/posterTemplates";
 
 moment.locale('es');
 
-// ─── Prompt unificado: pide al LLM texto + campos del póster en JSON ───
-const buildUnifiedPrompt = (typeLabel, datos, tonoId, templateId) => {
+const buildPrompt = (typeLabel, datos, tonoId) => {
   const tono = getTonoById(tonoId);
-  const template = getPosterTemplate(templateId);
-  const fieldsList = template.fields.join(", ");
   return `Eres el community manager del CD Bustarviejo (fútbol base, Sierra Norte de Madrid).
 
 ${tono.promptHint}
 
-Tu tarea: generar 2 cosas a partir de los DATOS:
-
-1) "mensaje" (string): Texto para Telegram/WhatsApp.
-   - Menciona "CD Bustarviejo" al menos una vez
-   - Saltos de línea claros, fácil de leer
-   - ${tonoId === 'corto' ? 'MÁX 200 caracteres' : tonoId === 'epico' ? 'MÁX 700 caracteres' : 'MÁX 600 caracteres'}
-   - ${tonoId !== 'pro' ? 'Emojis con criterio' : 'Emojis mínimos, estilo prensa'}
-   - NO hashtags, NO inventes datos
-   - Si hay victoria → celebra; si hay derrota → anima
-   - Primera línea: emoji + título en mayúsculas (excepto tono pro)
-
-2) "poster" (object): Campos para diseñar un póster visual con plantilla "${template.label}".
-   Campos a rellenar (en MAYÚSCULAS, MUY CORTOS, impactantes):
-   ${fieldsList}
-   Reglas:
-   - Textos cortos y contundentes, en MAYÚSCULAS, sin emojis dentro
-   - "title": máximo 4 palabras
-   - "subtitle": máximo 8 palabras
-   - "badge": 1-2 palabras (ej: "RESULTADO", "URGENTE", "FINDE")
-   - "body": frase corta (máximo 12 palabras)
-   - "cta": 2-4 palabras (ej: "APÚNTATE YA", "VEN AL CAMPO")
-   - "team1"/"team2": nombre del equipo en MAYÚSCULAS, corto
-   - "score1"/"score2": solo el número
-   - "date": formato corto (ej: "SÁB 10 MAY")
-   - "time": formato 24h (ej: "11:00")
-   - "venue": nombre del campo, MUY corto
-   - "category": categoría en MAYÚSCULAS, corta (ej: "ALEVÍN A")
-   - "quote": frase potente, máximo 12 palabras
-   - "author": nombre o "CD BUSTARVIEJO"
-   - "day"/"month": día y mes en MAYÚSCULAS
-   - "description": 1 frase corta
-
-3) "fondo" (string): Descripción CORTA en español del fondo ideal para este póster (atmósfera, no objetos concretos). Ej: "Campo de fútbol al atardecer con luz cálida, montañas al fondo".
+Genera un mensaje BONITO para Telegram/WhatsApp del CD Bustarviejo con estos datos:
 
 TIPO: ${typeLabel}
 
 DATOS:
 ${datos}
 
-Responde SOLO con un JSON válido con esta estructura:
-{
-  "mensaje": "...",
-  "poster": { "title": "...", ... },
-  "fondo": "..."
-}`;
-};
+REGLAS:
+- Menciona "CD Bustarviejo" al menos una vez
+- Usa EMOJIS con criterio para hacerlo visual y atractivo (al inicio, separadores, listas)
+- Saltos de línea claros, fácil de leer
+- ${tonoId === 'corto' ? 'MÁX 200 caracteres' : tonoId === 'epico' ? 'MÁX 700 caracteres' : 'MÁX 600 caracteres'}
+- Primera línea: emoji llamativo + título en mayúsculas (excepto tono pro)
+- NO hashtags, NO inventes datos
+- Si hay victoria → celebra; si hay derrota → anima
+- Cierra con una frase corta de cierre o llamada a la acción
 
-const responseSchema = {
-  type: "object",
-  properties: {
-    mensaje: { type: "string" },
-    poster: { type: "object" },
-    fondo: { type: "string" },
-  },
-  required: ["mensaje", "poster"],
+Devuelve SOLO el texto del mensaje, sin comillas, sin explicaciones.`;
 };
 
 export default function SocialHub() {
@@ -94,18 +53,13 @@ export default function SocialHub() {
 
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [generatingBg, setGeneratingBg] = useState(false);
   const [datos, setDatos] = useState("");
   const [text, setText] = useState("");
   const [tono, setTono] = useState("cercano");
   const [editing, setEditing] = useState(false);
   const [showDatos, setShowDatos] = useState(false);
 
-  // Póster automático
-  const [templateId, setTemplateId] = useState(null);
-  const [posterFields, setPosterFields] = useState({});
-  const [bgImage, setBgImage] = useState(null);
-  const [posterUrl, setPosterUrl] = useState(null);
+  const [imageUrl, setImageUrl] = useState(null);
 
   const [publishing, setPublishing] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -120,8 +74,7 @@ export default function SocialHub() {
 
   const resetEditor = () => {
     setText(""); setDatos(""); setTono("cercano"); setEditing(false);
-    setTemplateId(null); setPosterFields({}); setBgImage(null); setPosterUrl(null);
-    setShowDatos(false);
+    setImageUrl(null); setShowDatos(false);
   };
 
   const selectType = async (type) => {
@@ -132,8 +85,7 @@ export default function SocialHub() {
     const d = await fetchDataForType(type);
     setDatos(d);
     setLoading(false);
-    // Auto-generar todo al entrar
-    setTimeout(() => generateAll(d, type), 100);
+    setTimeout(() => generateText(d, type), 100);
   };
 
   const selectOpportunity = (opp) => {
@@ -142,7 +94,7 @@ export default function SocialHub() {
     resetEditor();
     setView('editor');
     setDatos(opp.datos || "");
-    setTimeout(() => generateAll(opp.datos || "", type), 100);
+    setTimeout(() => generateText(opp.datos || "", type), 100);
   };
 
   const goBackToMenu = () => {
@@ -151,57 +103,23 @@ export default function SocialHub() {
     resetEditor();
   };
 
-  // Genera fondo IA en paralelo
-  const generateBackground = async (description) => {
-    setGeneratingBg(true);
-    try {
-      const result = await base44.integrations.Core.GenerateImage({
-        prompt: `${description}. Estilo cinematográfico, atmosférico, alta calidad, sin texto, sin logos, sin caras. Para usar como fondo de póster deportivo del CD Bustarviejo.`,
-      });
-      if (result?.url) setBgImage(result.url);
-    } catch (e) {
-      console.error("Error generando fondo:", e);
-    }
-    setGeneratingBg(false);
-  };
-
-  // Genera TODO automáticamente: texto + campos del póster + fondo
-  const generateAll = async (datosToUse, typeToUse, customTemplateId = null) => {
+  const generateText = async (datosToUse, typeToUse) => {
     const finalDatos = datosToUse || datos;
     const finalType = typeToUse || selectedType;
     if (!finalDatos.trim()) return;
 
-    const tplId = customTemplateId || suggestTemplate(finalType);
-    setTemplateId(tplId);
-    setPosterUrl(null);
     setGenerating(true);
-
     try {
       const typeLabel = getContentTypeById(finalType)?.title || finalType;
       const result = await base44.integrations.Core.InvokeLLM({
-        prompt: buildUnifiedPrompt(typeLabel, finalDatos, tono, tplId),
-        response_json_schema: responseSchema,
+        prompt: buildPrompt(typeLabel, finalDatos, tono),
       });
-
-      if (result?.mensaje) setText(result.mensaje);
-      if (result?.poster) setPosterFields(result.poster);
-      if (result?.fondo) {
-        // Generar fondo en paralelo (no bloquea el render del póster)
-        generateBackground(result.fondo);
-      }
+      if (typeof result === "string") setText(result.trim());
     } catch (e) {
-      toast.error("Error al generar");
+      toast.error("Error al generar el mensaje");
       console.error(e);
     }
     setGenerating(false);
-  };
-
-  // Cambiar plantilla (regenera con otra)
-  const cycleTemplate = () => {
-    const order = ["hero", "result", "match", "announcement", "quote", "event"];
-    const current = order.indexOf(templateId);
-    const next = order[(current + 1) % order.length];
-    generateAll(null, null, next);
   };
 
   const publishNow = async () => {
@@ -213,7 +131,7 @@ export default function SocialHub() {
       const htmlMessage = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
       const { data } = await base44.functions.invoke("publishToTelegramAdvanced", {
         message: htmlMessage,
-        image_url: posterUrl,
+        image_url: imageUrl,
         parse_mode: "HTML",
       });
       if (data?.success) {
@@ -221,7 +139,7 @@ export default function SocialHub() {
         await base44.entities.SocialPost.create({
           tipo: selectedType, titulo,
           contenido_whatsapp: text, tono,
-          imagen_url: posterUrl,
+          imagen_url: imageUrl,
           enviado_telegram: true,
           telegram_message_id: String(data.message_id || ''),
           datos_origen: datos.substring(0, 2000),
@@ -249,7 +167,7 @@ export default function SocialHub() {
         tipo: selectedType,
         titulo: typeConfig?.title || selectedType,
         contenido_whatsapp: text, tono,
-        imagen_url: posterUrl,
+        imagen_url: imageUrl,
         enviado_whatsapp: true,
         datos_origen: datos.substring(0, 2000),
         creado_por: user.email,
@@ -280,21 +198,17 @@ export default function SocialHub() {
             Centro de Difusión Social
           </h1>
           <p className="text-slate-400 text-sm mt-1.5">
-            <span className="text-orange-400 font-semibold">100% automático</span> · IA + póster + Telegram
+            <span className="text-orange-400 font-semibold">IA</span> + Telegram + WhatsApp
           </p>
 
-          <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-sky-400 animate-pulse" />
-              Telegram + WhatsApp
-            </span>
-            {history.length > 0 && (
+          {history.length > 0 && (
+            <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
                 <Clock className="w-3 h-3" />
                 {history.length} publicaciones
               </span>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {view === 'menu' && (
@@ -330,13 +244,11 @@ export default function SocialHub() {
               <div className="flex flex-col items-center py-16">
                 <Loader2 className="w-12 h-12 animate-spin text-orange-400" />
                 <p className="text-slate-300 mt-4 text-sm font-bold">
-                  {loading ? "Cargando datos del club..." : "✨ Generando texto y póster..."}
+                  {loading ? "Cargando datos del club..." : "✨ Generando mensaje..."}
                 </p>
-                <p className="text-slate-500 mt-1 text-xs">Esto suele tardar 5-10 segundos</p>
               </div>
             ) : (
               <>
-                {/* Tipo seleccionado */}
                 <div className="flex items-center justify-between">
                   <span className={`text-xs px-3 py-1 rounded-full bg-gradient-to-r ${typeConfig?.gradient} text-white font-bold`}>
                     {typeConfig?.title}
@@ -349,7 +261,6 @@ export default function SocialHub() {
                   </button>
                 </div>
 
-                {/* Datos (oculto por defecto) */}
                 {showDatos && (
                   <div className="bg-slate-800/80 rounded-2xl p-3">
                     <p className="text-slate-400 text-xs font-bold mb-2">📝 Datos usados por la IA</p>
@@ -359,7 +270,7 @@ export default function SocialHub() {
                       className="w-full min-h-[80px] p-2 bg-slate-900/50 border border-slate-700 rounded-lg text-xs text-slate-200 resize-y focus:ring-2 focus:ring-orange-500"
                     />
                     <button
-                      onClick={() => generateAll(datos, selectedType)}
+                      onClick={() => generateText(datos, selectedType)}
                       disabled={generating}
                       className="w-full mt-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white font-bold text-xs py-2 rounded-lg flex items-center justify-center gap-1"
                     >
@@ -369,49 +280,37 @@ export default function SocialHub() {
                   </div>
                 )}
 
-                {/* Selector de tono */}
-                <ToneSelector value={tono} onChange={(v) => { setTono(v); generateAll(datos, selectedType); }} />
+                <ToneSelector value={tono} onChange={(v) => { setTono(v); generateText(datos, selectedType); }} />
 
                 {text && (
                   <div className="space-y-3 animate-fade-in">
-                    {/* Preview del mensaje (texto) */}
                     <MessagePreview
                       text={text}
-                      imageUrl={posterUrl}
+                      imageUrl={imageUrl}
                       editing={editing}
                       onChange={setText}
                       onStartEdit={() => setEditing(true)}
                       onStopEdit={() => setEditing(false)}
                     />
 
-                    {/* Póster automático */}
-                    {templateId && Object.keys(posterFields).length > 0 && (
-                      <AutoPosterRenderer
-                        templateId={templateId}
-                        fields={posterFields}
-                        bgImage={bgImage}
-                        onRendered={setPosterUrl}
-                        onRegenerate={cycleTemplate}
-                        regenerating={generating}
-                      />
-                    )}
+                    <button
+                      onClick={() => generateText(datos, selectedType)}
+                      disabled={generating}
+                      className="w-full bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${generating ? "animate-spin" : ""}`} />
+                      Regenerar mensaje
+                    </button>
 
-                    {generatingBg && (
-                      <p className="text-xs text-slate-400 text-center flex items-center justify-center gap-1.5">
-                        <Loader2 className="w-3 h-3 animate-spin" /> Generando fondo IA en paralelo...
-                      </p>
-                    )}
+                    <ImageGenerator value={imageUrl} onChange={setImageUrl} />
 
-                    {/* Botón publicar */}
                     <button
                       onClick={publishNow}
-                      disabled={publishing || !posterUrl}
+                      disabled={publishing}
                       className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 disabled:opacity-60 text-white font-black text-lg py-5 rounded-2xl shadow-2xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
                     >
                       {publishing ? (
                         <><Loader2 className="w-6 h-6 animate-spin" /> Publicando...</>
-                      ) : !posterUrl ? (
-                        <><Loader2 className="w-5 h-5 animate-spin" /> Esperando póster...</>
                       ) : (
                         <><Send className="w-6 h-6" /> ✈️ Publicar AHORA en Telegram</>
                       )}
