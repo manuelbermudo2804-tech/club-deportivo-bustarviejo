@@ -1,7 +1,8 @@
 import { base44 } from "@/api/base44Client";
 import moment from "moment";
 
-const ORIGIN = typeof window !== "undefined" ? window.location.origin : "https://app.cdbustarviejo.com";
+// URL pública oficial del club — usada en mensajes de Telegram/WhatsApp
+const ORIGIN = "https://app.cdbustarviejo.com";
 
 export async function fetchDataForType(type) {
   // ─── Existentes (heredado de SocialHub original) ───
