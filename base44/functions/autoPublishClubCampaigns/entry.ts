@@ -49,16 +49,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    // 3. San Isidro (si hay registros recientes en SeasonConfig o si lo activamos manual)
-    // Buscamos si existen inscripciones del año actual = campaña activa
-    const yearStart = new Date(); yearStart.setMonth(0); yearStart.setDate(1);
-    const sanIsidroRegs = await base44.asServiceRole.entities.SanIsidroRegistration.filter({}, '-created_date', 5).catch(() => []);
-    const recientes = sanIsidroRegs.filter(r => new Date(r.created_date) >= yearStart);
-    if (recientes.length > 0) {
+    // 3. San Isidro (deadline fijo: 15 de mayo del año en curso)
+    const año = new Date().getFullYear();
+    const sanIsidroDeadline = new Date(`${año}-05-15T23:59:59`);
+    const diasSanIsidro = Math.ceil((sanIsidroDeadline - new Date()) / (1000 * 60 * 60 * 24));
+    if (diasSanIsidro >= 0 && diasSanIsidro <= 30) {
+      const urgencia = diasSanIsidro <= 3 ? '🚨 ÚLTIMOS DÍAS' : diasSanIsidro <= 7 ? '⏰ Recta final' : '🎯 Apúntate ya';
       campañas.push({
         tipo: 'sanisidro',
         titulo: '🎯 Torneo San Isidro CD Bustarviejo',
-        datos: `Torneo San Isidro abierto\nApúntate o apunta a tu peque\nInscripciones: ${ORIGIN}/SanIsidro`,
+        datos: `${urgencia} — Torneo San Isidro CD Bustarviejo\nFecha límite inscripción: 15 de mayo (${diasSanIsidro} días)\nVen al campo a animar y participar\nFútbol Chapa + 3vs3 (niños y jóvenes)\nInscripciones: ${ORIGIN}/SanIsidro`,
       });
     }
 
@@ -76,31 +76,20 @@ Deno.serve(async (req) => {
     });
     const message = typeof aiResult === 'string' ? aiResult : JSON.stringify(aiResult);
 
-    const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
-    const rawChannelId = Deno.env.get('TELEGRAM_CHANNEL_ID');
-    const cleaned = String(rawChannelId).trim().replace(/^-/, '');
-    const candidates = cleaned.startsWith('100')
-      ? [`-${cleaned}`, `-${cleaned.substring(3)}`]
-      : [`-100${cleaned}`, `-${cleaned}`];
-
+    // Publicar vía publishToTelegramAdvanced (patrocinador + redes)
     const safeMsg = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    let tgOk = false;
-    for (const candidate of candidates) {
-      const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: candidate, text: safeMsg, parse_mode: 'HTML', disable_web_page_preview: false })
-      });
-      const d = await r.json();
-      if (d.ok) { tgOk = true; break; }
-      console.log(`Telegram failed for ${candidate}: ${d.description}`);
-    }
+    const tgRes = await base44.asServiceRole.functions.invoke('publishToTelegramAdvanced', {
+      message: safeMsg,
+      parse_mode: 'HTML',
+    }).catch(err => ({ data: { success: false, error: err.message } }));
+    const tgOk = tgRes?.data?.success === true;
 
     await base44.asServiceRole.entities.SocialPost.create({
-      tipo: elegida.tipo,
+      tipo: `${elegida.tipo}_auto`,
       titulo: `${elegida.titulo} (auto)`,
       contenido_whatsapp: message,
       enviado_telegram: tgOk,
+      telegram_message_id: String(tgRes?.data?.message_id || ''),
       datos_origen: elegida.datos.substring(0, 2000),
       creado_por: 'automation@cdbustarviejo.com',
     }).catch(() => {});

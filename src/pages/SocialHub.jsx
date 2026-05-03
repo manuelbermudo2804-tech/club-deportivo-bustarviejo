@@ -66,7 +66,11 @@ export default function SocialHub() {
 
   const { data: history = [] } = useQuery({
     queryKey: ["socialPosts"],
-    queryFn: () => base44.entities.SocialPost.list("-created_date", 30),
+    queryFn: async () => {
+      const all = await base44.entities.SocialPost.list("-created_date", 50);
+      // Filtrar solo manuales (los automáticos llevan sufijo _auto)
+      return (all || []).filter(p => !String(p.tipo || '').endsWith('_auto')).slice(0, 30);
+    },
     staleTime: 60000,
   });
 

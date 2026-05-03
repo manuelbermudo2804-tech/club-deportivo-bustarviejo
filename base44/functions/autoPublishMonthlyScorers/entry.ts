@@ -6,7 +6,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 const PROMPT = `Eres el community manager del CD Bustarviejo, club de fútbol base de la Sierra Norte de Madrid.
 Estilo: ENERGÉTICO, CERCANO, DE PUEBLO. Emojis con criterio. Formato perfecto para Telegram.
 - Máximo 700 caracteres
-- Primera línea: emoji + título en mayúsculas (GOLEADORES DEL MES / DEL CLUB)
+- Primera línea: emoji + título en mayúsculas (GOLEADORES DEL CLUB)
 - Datos organizados por categoría con TOP 3 de cada una
 - Reconocer el esfuerzo de los goleadores
 - NO uses hashtags
@@ -51,31 +51,20 @@ Deno.serve(async (req) => {
     });
     const message = typeof aiResult === 'string' ? aiResult : JSON.stringify(aiResult);
 
-    const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
-    const rawChannelId = Deno.env.get('TELEGRAM_CHANNEL_ID');
-    const cleaned = String(rawChannelId).trim().replace(/^-/, '');
-    const candidates = cleaned.startsWith('100')
-      ? [`-${cleaned}`, `-${cleaned.substring(3)}`]
-      : [`-100${cleaned}`, `-${cleaned}`];
-
+    // Publicar vía publishToTelegramAdvanced (patrocinador + redes)
     const safeMsg = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    let tgOk = false;
-    for (const candidate of candidates) {
-      const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: candidate, text: safeMsg, parse_mode: 'HTML', disable_web_page_preview: false })
-      });
-      const d = await r.json();
-      if (d.ok) { tgOk = true; break; }
-      console.log(`Telegram failed for ${candidate}: ${d.description}`);
-    }
+    const tgRes = await base44.asServiceRole.functions.invoke('publishToTelegramAdvanced', {
+      message: safeMsg,
+      parse_mode: 'HTML',
+    }).catch(err => ({ data: { success: false, error: err.message } }));
+    const tgOk = tgRes?.data?.success === true;
 
     await base44.asServiceRole.entities.SocialPost.create({
-      tipo: 'goleadores',
-      titulo: '⚡ Goleadores del mes (auto)',
+      tipo: 'goleadores_auto',
+      titulo: '⚡ Goleadores del club (auto)',
       contenido_whatsapp: message,
       enviado_telegram: tgOk,
+      telegram_message_id: String(tgRes?.data?.message_id || ''),
       datos_origen: datos.substring(0, 2000),
       creado_por: 'automation@cdbustarviejo.com',
     }).catch(() => {});

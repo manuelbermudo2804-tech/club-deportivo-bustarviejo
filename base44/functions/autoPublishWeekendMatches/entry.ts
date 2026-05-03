@@ -54,34 +54,21 @@ Deno.serve(async (req) => {
     });
     const message = typeof aiResult === 'string' ? aiResult : JSON.stringify(aiResult);
 
-    // Publicar en Telegram (directo, sin pasar por publishToTelegram que requiere user admin)
-    const botToken = Deno.env.get('TELEGRAM_BOT_TOKEN');
-    const rawChannelId = Deno.env.get('TELEGRAM_CHANNEL_ID');
-    const cleaned = String(rawChannelId).trim().replace(/^-/, '');
-    const candidates = cleaned.startsWith('100')
-      ? [`-${cleaned}`, `-${cleaned.substring(3)}`]
-      : [`-100${cleaned}`, `-${cleaned}`];
-
+    // Publicar vía publishToTelegramAdvanced (añade patrocinador rotativo + redes sociales)
     const safeMsg = message.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    let tgOk = false;
-    for (const candidate of candidates) {
-      const r = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ chat_id: candidate, text: safeMsg, parse_mode: 'HTML', disable_web_page_preview: false })
-      });
-      const d = await r.json();
-      if (d.ok) { tgOk = true; break; }
-      console.log(`Telegram failed for ${candidate}: ${d.description}`);
-    }
-    const tgRes = { data: { success: tgOk } };
+    const tgRes = await base44.asServiceRole.functions.invoke('publishToTelegramAdvanced', {
+      message: safeMsg,
+      parse_mode: 'HTML',
+    }).catch(err => ({ data: { success: false, error: err.message } }));
+    const tgOk = tgRes?.data?.success === true;
 
-    // Guardar en historial
+    // Guardar en historial (marcado como auto)
     await base44.asServiceRole.entities.SocialPost.create({
-      tipo: 'partidos_finde',
+      tipo: 'partidos_finde_auto',
       titulo: '⚽ Partidos del Finde (auto)',
       contenido_whatsapp: message,
-      enviado_whatsapp: false,
+      enviado_telegram: tgOk,
+      telegram_message_id: String(tgRes?.data?.message_id || ''),
       datos_origen: datos.substring(0, 2000),
       creado_por: 'automation@cdbustarviejo.com',
     }).catch(() => {});
@@ -89,7 +76,7 @@ Deno.serve(async (req) => {
     return Response.json({
       success: true,
       partidos: pf.length + cf.length,
-      telegram: tgRes?.data?.success || false
+      telegram: tgOk
     });
   } catch (error) {
     console.error('autoPublishWeekendMatches error:', error);
