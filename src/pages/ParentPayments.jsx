@@ -21,6 +21,7 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { createPageUrl } from "@/utils";
 
+import EmptyState from "../components/common/EmptyState";
 import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
 import PaymentCard from "../components/payments/PaymentCard";
@@ -824,11 +825,11 @@ export default function ParentPayments() {
             ))}
           </div>
         ) : players.length === 0 ? (
-          <Card className="border-none shadow-lg bg-white">
-            <CardContent className="py-12 text-center">
-              <p className="text-slate-500">No tienes jugadores registrados</p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            emoji="👤"
+            title="Aún no tienes jugadores"
+            message="Cuando registres a tu hijo/a o se vincule tu ficha, aquí podrás ver y gestionar sus cuotas. Si crees que es un error, contacta con el club."
+          />
         ) : (
           players
             .filter(player => 
@@ -1061,8 +1062,9 @@ export default function ParentPayments() {
                     )}
 
                     {displayPayments.filter(p => !p.isVirtual).length === 0 ? (
-                      <div className="text-center py-8 text-slate-500">
-                        <p>No hay pagos registrados para este jugador</p>
+                      <div className="text-center py-8 text-slate-500 text-sm">
+                        <p className="mb-1">💰 Aún no hay cuotas registradas</p>
+                        <p className="text-xs">Las cuotas aparecerán aquí cuando se generen para la temporada</p>
                       </div>
                     ) : (
                       <div className="space-y-3">

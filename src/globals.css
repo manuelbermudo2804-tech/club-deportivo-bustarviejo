@@ -684,6 +684,46 @@ body.theme-dark .skeleton-shimmer {
   }
 }
 
+/* ============================
+   MICROANIMACIONES (sutiles)
+   Efecto "premium" sin alterar layout
+   ============================ */
+
+/* Botones: sutil escala al pulsar también en desktop */
+button:not(:disabled):active,
+[role="button"]:not(:disabled):active {
+  transform: scale(0.97);
+  transition: transform 80ms ease-out;
+}
+
+/* Cards interactivas (con hover) — efecto lift */
+.hover\:shadow-lg:hover,
+.hover\:shadow-xl:hover {
+  transform: translateY(-2px);
+  transition: transform 200ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 200ms ease;
+}
+
+/* Reducir si el usuario prefiere menos animación */
+@media (prefers-reduced-motion: reduce) {
+  button:not(:disabled):active,
+  [role="button"]:not(:disabled):active,
+  .hover\:shadow-lg:hover,
+  .hover\:shadow-xl:hover {
+    transform: none;
+  }
+}
+
+/* Pop suave al aparecer un elemento marcado como completado */
+@keyframes successPop {
+  0% { transform: scale(0.8); opacity: 0; }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.animate-success-pop {
+  animation: successPop 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
 /* Prevent zoom on input focus (iOS) */
 @media screen and (max-width: 768px) {
   input[type="text"],

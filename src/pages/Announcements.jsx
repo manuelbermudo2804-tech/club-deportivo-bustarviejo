@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import AnnouncementForm from "../components/announcements/AnnouncementForm";
 import AnnouncementCard from "../components/announcements/AnnouncementCard";
 import AIGenerator from "../components/announcements/AIGenerator";
+import EmptyState from "../components/common/EmptyState";
 import TemplateManager from "../components/announcements/TemplateManager";
 import { playerInCategory, playerAllCategories } from "../components/utils/playerCategoryFilter";
 
@@ -529,10 +530,11 @@ Ubicación: Bustarviejo, Madrid
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
         </div>
       ) : sortedAnnouncements.length === 0 ? (
-        <div className="text-center py-8 bg-white rounded-xl shadow-md">
-          <div className="text-4xl mb-2">📢</div>
-          <p className="text-slate-500 text-sm">No hay anuncios</p>
-        </div>
+        <EmptyState
+          emoji="📢"
+          title="Aún no hay anuncios"
+          message="Aquí verás los comunicados oficiales del club: avisos importantes, novedades de la temporada y recordatorios. Te llegarán como notificación."
+        />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <AnimatePresence mode="popLayout">

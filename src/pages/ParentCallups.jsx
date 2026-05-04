@@ -27,6 +27,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
 
+import EmptyState from "../components/common/EmptyState";
 import WeatherWidget from "../components/callups/WeatherWidget";
 import CallupCountdown from "../components/callups/CallupCountdown";
 import CallupMap from "../components/callups/CallupMap";
@@ -483,17 +484,11 @@ export default function ParentCallups() {
           })}
         </div>
       ) : (
-        <Card className="border-none shadow-lg bg-white">
-          <CardContent className="p-12 text-center">
-            <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-orange-100 to-amber-100 rounded-full flex items-center justify-center">
-              <Trophy className="w-10 h-10 text-orange-400" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-900 mb-2">No hay convocatorias próximas</h3>
-            <p className="text-slate-500 text-sm">
-              Cuando tus jugadores sean convocados, aparecerán aquí automáticamente
-            </p>
-          </CardContent>
-        </Card>
+        <EmptyState
+          icon={Trophy}
+          title="Aún no hay convocatorias"
+          message="Cuando tu entrenador convoque a tu jugador para un partido o entrenamiento, aparecerá aquí 📋. Te avisaremos por notificación cuando llegue una nueva."
+        />
       )}
 
       <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>

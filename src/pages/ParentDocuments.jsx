@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Download, Book, ScrollText, Info, FileCheck } from "lucide-react";
+import EmptyState from "../components/common/EmptyState";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -113,15 +114,13 @@ export default function ParentDocuments() {
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
         </div>
       ) : filteredDocuments.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-lg">
-          <FileText className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-slate-700 mb-2">No hay documentos disponibles</h3>
-          <p className="text-slate-500">
-            {filterType === "all" 
-              ? "Aún no se han publicado documentos del club."
-              : `No hay documentos de tipo "${filterType}".`}
-          </p>
-        </div>
+        <EmptyState
+          icon={FileText}
+          title="Aún no hay documentos"
+          message={filterType === "all" 
+            ? "El club irá publicando aquí estatutos, normativas e información útil. Vuelve pronto 📄"
+            : `No hay documentos de tipo "${filterType}" por ahora. Prueba con otra categoría.`}
+        />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredDocuments.map((document) => (
