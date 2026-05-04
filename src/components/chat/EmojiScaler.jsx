@@ -31,10 +31,12 @@ export default function EmojiScaler({ content, reactions }) {
   if (!content) return null;
   
   const trimmed = content.trim();
-  // Ensure it is only emoji and DOES NOT contain letters/numbers
-  const isOnlyEmoji = trimmed.length <= 3 && 
-    /^[\p{Extended_Pictographic}\p{Emoji_Presentation}\s]+$/u.test(trimmed) && 
-    !/[a-zA-Z0-9]/.test(trimmed);
+  // Solo escalar si SON únicamente emojis (sin letras, números ni puntuación de ningún idioma)
+  const hasLetterNumberOrPunct = /[\p{Letter}\p{Number}\p{Punctuation}]/u.test(trimmed);
+  const isOnlyEmoji = trimmed.length > 0 &&
+    trimmed.length <= 8 &&
+    !hasLetterNumberOrPunct &&
+    /\p{Extended_Pictographic}/u.test(trimmed);
   
   if (isOnlyEmoji) {
     return <span style={{ fontSize: '3rem' }}>{content}</span>;
