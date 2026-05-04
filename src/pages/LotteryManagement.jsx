@@ -59,7 +59,12 @@ export default function LotteryManagement() {
     return allOrders.filter(o => (o.temporada || '').replace(/-/g,'/') === activeSeasonName);
   }, [allOrders, activeSeasonName]);
 
-  const totalDecimosVendidos = allOrders.reduce((sum, o) => sum + (o.numero_decimos || 0), 0);
+  // Solo cuentan como "vendidos" los pedidos pagados o ya entregados, y solo de la temporada activa
+  // (mismo criterio que ParentLottery para que admin y familia vean el mismo número)
+  const totalDecimosVendidos = allOrdersSeason.reduce((sum, o) => {
+    const countable = o?.pagado === true || o?.estado === 'Entregado';
+    return sum + (countable ? (o.numero_decimos || 0) : 0);
+  }, 0);
   const maxDecimos = seasonConfig?.loteria_max_decimos;
   const decimosDisponibles = maxDecimos ? maxDecimos - totalDecimosVendidos : null;
   const agotado = maxDecimos && totalDecimosVendidos >= maxDecimos;

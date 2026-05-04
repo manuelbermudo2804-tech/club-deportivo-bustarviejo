@@ -310,6 +310,12 @@ export default function ParentLottery() {
       return;
     }
     
+    // Bloqueo de seguridad: no permitir pedir más décimos de los disponibles
+    if (decimosDisponibles !== null && numDecimos > decimosDisponibles) {
+      toast.error(`Solo quedan ${decimosDisponibles} décimo${decimosDisponibles === 1 ? '' : 's'} disponibles`);
+      return;
+    }
+    
     const total = numDecimos * precioDecimo;
 
     // Pago con TARJETA (Stripe)
@@ -664,37 +670,52 @@ export default function ParentLottery() {
 
                 <div className="space-y-2">
                   <Label className="text-lg font-bold text-slate-900">🎟️ Número de Décimos</Label>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      onClick={() => setNumDecimos(Math.max(1, numDecimos - 1))}
-                      disabled={numDecimos <= 1}
-                      className="h-16 w-16 bg-red-600 hover:bg-red-700 text-white font-bold text-2xl p-0 rounded-xl border-2 border-yellow-400 shadow-lg disabled:opacity-30"
-                    >
-                      <ChevronDown className="w-8 h-8" />
-                    </Button>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="10"
-                      value={numDecimos}
-                      onChange={(e) => setNumDecimos(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
-                      className="border-2 border-green-300 h-16 text-3xl text-center font-black flex-1"
-                    />
-                    <Button
-                      type="button"
-                      onClick={() => setNumDecimos(Math.min(10, numDecimos + 1))}
-                      disabled={numDecimos >= 10}
-                      className="h-16 w-16 bg-green-600 hover:bg-green-700 text-white font-bold text-2xl p-0 rounded-xl border-2 border-yellow-400 shadow-lg disabled:opacity-30"
-                    >
-                      <ChevronUp className="w-8 h-8" />
-                    </Button>
-                  </div>
-                  <div className="bg-gradient-to-r from-yellow-400 to-yellow-300 p-4 rounded-xl border-2 border-yellow-500 text-center">
-                    <p className="text-2xl font-black text-red-900">
-                      Total: {numDecimos * precioDecimo}€
-                    </p>
-                  </div>
+                  {(() => {
+                    // Tope real: el menor entre 10 (límite por pedido) y los décimos que aún quedan disponibles
+                    const maxPermitido = decimosDisponibles !== null
+                      ? Math.max(1, Math.min(10, decimosDisponibles))
+                      : 10;
+                    return (
+                      <>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            onClick={() => setNumDecimos(Math.max(1, numDecimos - 1))}
+                            disabled={numDecimos <= 1}
+                            className="h-16 w-16 bg-red-600 hover:bg-red-700 text-white font-bold text-2xl p-0 rounded-xl border-2 border-yellow-400 shadow-lg disabled:opacity-30"
+                          >
+                            <ChevronDown className="w-8 h-8" />
+                          </Button>
+                          <Input
+                            type="number"
+                            min="1"
+                            max={maxPermitido}
+                            value={numDecimos}
+                            onChange={(e) => setNumDecimos(Math.max(1, Math.min(maxPermitido, parseInt(e.target.value) || 1)))}
+                            className="border-2 border-green-300 h-16 text-3xl text-center font-black flex-1"
+                          />
+                          <Button
+                            type="button"
+                            onClick={() => setNumDecimos(Math.min(maxPermitido, numDecimos + 1))}
+                            disabled={numDecimos >= maxPermitido}
+                            className="h-16 w-16 bg-green-600 hover:bg-green-700 text-white font-bold text-2xl p-0 rounded-xl border-2 border-yellow-400 shadow-lg disabled:opacity-30"
+                          >
+                            <ChevronUp className="w-8 h-8" />
+                          </Button>
+                        </div>
+                        {decimosDisponibles !== null && decimosDisponibles <= 5 && decimosDisponibles > 0 && (
+                          <p className="text-sm text-orange-700 font-semibold mt-1">
+                            ⚠️ ¡Quedan solo {decimosDisponibles} décimo{decimosDisponibles > 1 ? 's' : ''} disponibles!
+                          </p>
+                        )}
+                        <div className="bg-gradient-to-r from-yellow-400 to-yellow-300 p-4 rounded-xl border-2 border-yellow-500 text-center">
+                          <p className="text-2xl font-black text-red-900">
+                            Total: {numDecimos * precioDecimo}€
+                          </p>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
 
 {/* Sección de Pago */}
