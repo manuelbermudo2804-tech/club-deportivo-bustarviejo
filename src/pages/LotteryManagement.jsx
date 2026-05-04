@@ -235,7 +235,11 @@ export default function LotteryManagement() {
     decimosPorCategoria[cat].jugadores.add(order.jugador_nombre);
   });
 
-  const totalDecimos = orders.reduce((sum, o) => sum + (o.numero_decimos || 0), 0);
+  // Solo cuentan como "vendidos" los pagados o entregados (mismo criterio que en el indicador de disponibilidad)
+  const totalDecimos = orders.reduce((sum, o) => {
+    const countable = o?.pagado === true || o?.estado === 'Entregado';
+    return sum + (countable ? (o.numero_decimos || 0) : 0);
+  }, 0);
   const margenPorDecimo = Math.max(((seasonConfig?.precio_decimo_loteria || 22) - 20), 0);
   const gananciasClub = totalDecimos * margenPorDecimo;
   const pendingPaymentCount = orders.filter(o => !o.pagado).length;

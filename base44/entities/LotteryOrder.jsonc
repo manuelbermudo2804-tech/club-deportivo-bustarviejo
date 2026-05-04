@@ -1,0 +1,94 @@
+{
+  "name": "LotteryOrder",
+  "type": "object",
+  "properties": {
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "jugador_categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del jugador"
+    },
+    "email_padre": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del padre/tutor"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto"
+    },
+    "numero_decimos": {
+      "type": "number",
+      "description": "Cantidad de d\u00e9cimos solicitados",
+      "default": 1
+    },
+    "precio_por_decimo": {
+      "type": "number",
+      "description": "Precio por d\u00e9cimo en euros",
+      "default": 20
+    },
+    "total": {
+      "type": "number",
+      "description": "Total a pagar en euros"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "Solicitado",
+        "Entregado",
+        "Cancelado"
+      ],
+      "default": "Solicitado",
+      "description": "Estado del pedido"
+    },
+    "pagado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya pag\u00f3 (verificado por admin)"
+    },
+    "metodo_pago": {
+      "type": "string",
+      "enum": [
+        "Bizum",
+        "Transferencia",
+        "Tarjeta"
+      ],
+      "description": "M\u00e9todo de pago usado"
+    },
+    "justificante_url": {
+      "type": "string",
+      "description": "URL del justificante de pago"
+    },
+    "entregado_por": {
+      "type": "string",
+      "description": "Email del entrenador que entreg\u00f3"
+    },
+    "fecha_entrega": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de entrega"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas adicionales"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada (a\u00f1o) ej: 2024"
+    }
+  },
+  "required": [
+    "jugador_id",
+    "jugador_nombre",
+    "email_padre",
+    "numero_decimos",
+    "total",
+    "temporada"
+  ]
+}

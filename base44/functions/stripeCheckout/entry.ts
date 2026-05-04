@@ -42,6 +42,39 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Customer email required' }, { status: 400 });
     }
 
+    // Validación de stock para lotería: evitar overselling justo antes de cobrar
+    if (metadata.tipo === 'loteria') {
+      try {
+        const numDecimosSolicitados = Number(metadata.numero_decimos || 0);
+        if (numDecimosSolicitados <= 0) {
+          return Response.json({ error: 'Número de décimos inválido' }, { status: 400 });
+        }
+        const configs = await base44.asServiceRole.entities.SeasonConfig.list();
+        const activeConfig = configs.find(c => c.activa === true);
+        const maxDecimos = activeConfig?.loteria_max_decimos;
+        if (maxDecimos) {
+          const allOrders = await base44.asServiceRole.entities.LotteryOrder.list();
+          const seasonNorm = (activeConfig?.temporada || '').replace(/-/g, '/');
+          const vendidos = allOrders.reduce((sum, o) => {
+            const sameSeason = (o.temporada || '').replace(/-/g, '/') === seasonNorm;
+            const countable = o?.pagado === true || o?.estado === 'Entregado';
+            return sum + (sameSeason && countable ? (o.numero_decimos || 0) : 0);
+          }, 0);
+          const disponibles = maxDecimos - vendidos;
+          if (numDecimosSolicitados > disponibles) {
+            return Response.json({
+              error: 'Stock insuficiente',
+              details: `Solo quedan ${Math.max(0, disponibles)} décimos disponibles`,
+              disponibles: Math.max(0, disponibles)
+            }, { status: 409 });
+          }
+        }
+      } catch (stockErr) {
+        console.error('[stripeCheckout] Error validando stock lotería:', stockErr?.message || stockErr);
+        // No bloqueamos por error interno: dejamos continuar y que el webhook maneje el resto
+      }
+    }
+
     const sessionParams = {
       mode: 'payment',
       customer_email: customerEmail,

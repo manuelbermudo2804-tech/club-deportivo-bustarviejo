@@ -348,30 +348,44 @@ export default function ParentLottery() {
       setOpeningStripe(true);
       const successUrl = `${window.location.origin}${createPageUrl('ParentLottery')}?paid=lottery`;
       const cancelUrl = `${window.location.origin}${createPageUrl('ParentLottery')}?canceled=lottery`;
-      const { data } = await base44.functions.invoke('stripeCheckout', {
-        amount: total,
-        name: `Lotería de Navidad - ${numDecimos} décimos`,
-        currency: 'eur',
-        successUrl,
-        cancelUrl,
-        metadata: {
-          tipo: 'loteria',
-          temporada: seasonConfig?.temporada || getCurrentSeasonName(),
-          user_email: user.email,
-          jugador_id,
-          jugador_nombre,
-          jugador_categoria,
-          telefono: user.telefono || '',
-          numero_decimos: String(numDecimos),
-          precio_por_decimo: String(precioDecimo),
-          total: String(total),
-          notas: notas || ''
+      try {
+        const { data } = await base44.functions.invoke('stripeCheckout', {
+          amount: total,
+          name: `Lotería de Navidad - ${numDecimos} décimos`,
+          currency: 'eur',
+          successUrl,
+          cancelUrl,
+          metadata: {
+            tipo: 'loteria',
+            temporada: seasonConfig?.temporada || getCurrentSeasonName(),
+            user_email: user.email,
+            jugador_id,
+            jugador_nombre,
+            jugador_categoria,
+            telefono: user.telefono || '',
+            numero_decimos: String(numDecimos),
+            precio_por_decimo: String(precioDecimo),
+            total: String(total),
+            notas: notas || ''
+          }
+        });
+        if (data?.url) {
+          window.location.href = data.url;
+        } else {
+          toast.error('No se pudo iniciar el pago con Stripe');
+          setOpeningStripe(false);
         }
-      });
-      if (data?.url) {
-        window.location.href = data.url;
-      } else {
-        toast.error('No se pudo iniciar el pago con Stripe');
+      } catch (err) {
+        // Detectar error de stock insuficiente (409)
+        const status = err?.response?.status || err?.status;
+        const apiData = err?.response?.data || err?.data;
+        if (status === 409 && apiData?.error === 'Stock insuficiente') {
+          toast.error(apiData.details || 'Ya no quedan décimos suficientes');
+          // Forzar refresco para que el usuario vea el stock actualizado
+          queryClient.invalidateQueries({ queryKey: ['allLotteryOrders'] });
+        } else {
+          toast.error('No se pudo iniciar el pago con Stripe');
+        }
         setOpeningStripe(false);
       }
       return;
