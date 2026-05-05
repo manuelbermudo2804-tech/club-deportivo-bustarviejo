@@ -23,10 +23,19 @@ export default function NextMatchFromDB({ category, standings }) {
     gcTime: 30 * 60_000,
   });
 
-  // Pick the earliest future match
+  // Pick all future matches within the next 7 days (handles weeks with multiple matches, e.g. midweek + weekend)
   const today = new Date().toISOString().split('T')[0];
-  const match = (matches || []).find(m => m.fecha_iso >= today);
-  if (!match) return null;
+  const in7Days = (() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    return d.toISOString().split('T')[0];
+  })();
+  const upcomingMatches = (matches || [])
+    .filter(m => m.fecha_iso >= today && m.fecha_iso <= in7Days)
+    .sort((a, b) => (a.fecha_iso || '').localeCompare(b.fecha_iso || '') || (a.hora || '').localeCompare(b.hora || ''));
+  if (upcomingMatches.length === 0) return null;
+  const match = upcomingMatches[0];
+  const extraMatches = upcomingMatches.slice(1);
 
   const isLocal = match.local?.toUpperCase().includes("BUSTARVIEJO");
   const rival = isLocal ? match.visitante : match.local;
@@ -41,10 +50,13 @@ export default function NextMatchFromDB({ category, standings }) {
 
   return (
     <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-4 text-white shadow-lg border-2 border-green-500/50 mb-4">
-      <div className="flex items-center gap-2 mb-3">
+      <div className="flex items-center gap-2 mb-3 flex-wrap">
         <Trophy className="w-5 h-5 text-green-400" />
         <h3 className="font-bold text-lg">⚽ Próximo Partido</h3>
         {match.jornada && <Badge className="bg-green-600 text-white">Jornada {match.jornada}</Badge>}
+        {extraMatches.length > 0 && (
+          <Badge className="bg-orange-500 text-white">+{extraMatches.length} esta semana</Badge>
+        )}
       </div>
 
       <div className="grid grid-cols-3 gap-2 items-center mb-3">
@@ -118,6 +130,30 @@ export default function NextMatchFromDB({ category, standings }) {
               <p className="text-slate-300 font-bold">{rivalStats.posicion}º</p>
               <p className="text-slate-400">Rival</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {extraMatches.length > 0 && (
+        <div className="mt-3 pt-3 border-t border-white/10">
+          <p className="text-xs text-green-300 font-semibold mb-2">📅 Más partidos esta semana:</p>
+          <div className="space-y-1.5">
+            {extraMatches.map((m, idx) => {
+              const mIsLocal = m.local?.toUpperCase().includes("BUSTARVIEJO");
+              const mRival = mIsLocal ? m.visitante : m.local;
+              return (
+                <div key={idx} className="flex items-center justify-between bg-white/5 rounded-lg px-2.5 py-1.5 text-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="text-green-400 flex-shrink-0">{mIsLocal ? '🏠' : '✈️'}</span>
+                    <span className="text-slate-200 truncate">{mRival}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-300 flex-shrink-0">
+                    {m.fecha && <span className="capitalize">{formatDate(m.fecha)?.split(',')[0]}</span>}
+                    {m.hora && <span className="text-green-400">{m.hora}</span>}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}
