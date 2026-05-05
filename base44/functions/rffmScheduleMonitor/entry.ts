@@ -138,9 +138,9 @@ function parseJornadaMatches(html) {
 async function findNextMatch(url, cookies, lastKnownJornada) {
   const p = extractParams(url);
   const startFrom = Math.max(1, (lastKnownJornada || 1) - 1);
-  
+
   let currentCookies = cookies;
-  
+
   // Helper: fetch with session-expiry detection
   async function safeFetch(fetchUrl) {
     let html = await fetchPage(fetchUrl, currentCookies);
@@ -152,10 +152,12 @@ async function findNextMatch(url, cookies, lastKnownJornada) {
     }
     return html;
   }
-  
+
   const firstHtml = await safeFetch(buildJornadaUrl(p, startFrom));
   const total = detectTotalJornadas(firstHtml);
-  
+
+  // Collect ALL upcoming Bustarviejo matches (handles weeks with 2+ matches: aplazados, intersemanales, etc.)
+  const upcomingMatches = [];
   const maxScan = Math.min(total, startFrom + 8);
   for (let j = startFrom; j <= maxScan; j++) {
     const html = j === startFrom ? firstHtml : await safeFetch(buildJornadaUrl(p, j));
@@ -166,11 +168,16 @@ async function findNextMatch(url, cookies, lastKnownJornada) {
       !m.local?.toUpperCase().includes('DESCANSA') &&
       !m.visitante?.toUpperCase().includes('DESCANSA')
     );
-    if (bust) return { jornada: j, match: bust };
+    if (bust) upcomingMatches.push({ jornada: j, match: bust });
+    // Stop scanning once we've found 2 future matches (covers same-week double headers)
+    if (upcomingMatches.length >= 2) break;
     // Small pause between jornada fetches
     if (j < maxScan) await new Promise(r => setTimeout(r, 800));
   }
-  return { match: null };
+
+  // Backwards-compat: return primary "next match" plus the full list
+  if (upcomingMatches.length === 0) return { match: null, allMatches: [] };
+  return { jornada: upcomingMatches[0].jornada, match: upcomingMatches[0].match, allMatches: upcomingMatches };
 }
 
 function detectTotalJornadas(html) {
@@ -332,6 +339,7 @@ Deno.serve(async (req) => {
         if (!match) return null;
 
         const jornada = result?.jornada;
+        const allUpcoming = result?.allMatches || [{ jornada, match }];
 
         // Parse RFFM date (dd/mm/yyyy) to ISO (yyyy-mm-dd)
         let matchDate = null;
@@ -345,33 +353,44 @@ Deno.serve(async (req) => {
         const isLocal = match.local?.toUpperCase().includes('BUSTARVIEJO');
         const rival = isLocal ? match.visitante : match.local;
 
-        // --- SYNC ProximoPartido: create or update ---
-        const existingProximo = allProximos.find(p => 
-          p.categoria === config.categoria && p.jornada === jornada
-        );
-        const proximoData = {
-          categoria: config.categoria,
-          jornada,
-          local: match.local || '',
-          visitante: match.visitante || '',
-          fecha: match.fecha || '',
-          hora: match.hora || '',
-          campo: match.campo || '',
-          fecha_iso: matchDate || '',
-          jugado: false,
-        };
-        if (existingProximo) {
-          // Update if date/time/venue changed
-          const changed = existingProximo.fecha !== proximoData.fecha ||
-            existingProximo.hora !== proximoData.hora ||
-            existingProximo.campo !== proximoData.campo;
-          if (changed && !existingProximo.jugado) {
-            await base44.asServiceRole.entities.ProximoPartido.update(existingProximo.id, proximoData);
-            console.log(`[rffmScheduleMonitor] ProximoPartido updated: ${config.categoria} J${jornada}`);
+        // --- SYNC ProximoPartido: create or update for ALL upcoming matches ---
+        // (handles weeks with 2+ matches: aplazados, intersemanales, etc.)
+        for (const um of allUpcoming) {
+          const umMatch = um.match;
+          const umJornada = um.jornada;
+          let umMatchDate = null;
+          if (umMatch.fecha) {
+            const parts = umMatch.fecha.split('/');
+            if (parts.length === 3) {
+              umMatchDate = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+            }
           }
-        } else {
-          await base44.asServiceRole.entities.ProximoPartido.create(proximoData);
-          console.log(`[rffmScheduleMonitor] ProximoPartido created: ${config.categoria} J${jornada}`);
+          const existingProximo = allProximos.find(p =>
+            p.categoria === config.categoria && p.jornada === umJornada
+          );
+          const proximoData = {
+            categoria: config.categoria,
+            jornada: umJornada,
+            local: umMatch.local || '',
+            visitante: umMatch.visitante || '',
+            fecha: umMatch.fecha || '',
+            hora: umMatch.hora || '',
+            campo: umMatch.campo || '',
+            fecha_iso: umMatchDate || '',
+            jugado: false,
+          };
+          if (existingProximo) {
+            const changed = existingProximo.fecha !== proximoData.fecha ||
+              existingProximo.hora !== proximoData.hora ||
+              existingProximo.campo !== proximoData.campo;
+            if (changed && !existingProximo.jugado) {
+              await base44.asServiceRole.entities.ProximoPartido.update(existingProximo.id, proximoData);
+              console.log(`[rffmScheduleMonitor] ProximoPartido updated: ${config.categoria} J${umJornada}`);
+            }
+          } else {
+            await base44.asServiceRole.entities.ProximoPartido.create(proximoData);
+            console.log(`[rffmScheduleMonitor] ProximoPartido created: ${config.categoria} J${umJornada}`);
+          }
         }
 
         // Find matching convocatoria for this category AND jornada to prevent duplicates
