@@ -455,48 +455,6 @@ Deno.serve(async (req) => {
           }
         }
 
-        // ============ FANTASY MUNDIAL ============
-        if (metadata.tipo === 'fantasy_mundial' && metadata.fantasy_entry_id) {
-          try {
-            await base44.asServiceRole.entities.StripePaymentLog.create({
-              section: 'fantasy_mundial',
-              amount: Number(session.amount_total || 0) / 100,
-              currency: session.currency || 'eur',
-              status: 'succeeded',
-              session_id: session.id,
-              payment_intent_id: session.payment_intent || null,
-              email: session.customer_details?.email || session.customer_email || metadata.email,
-              related_entity: 'FantasyMundial',
-              related_id: metadata.fantasy_entry_id,
-              metadata,
-              created_at: new Date().toISOString()
-            });
-
-            await base44.asServiceRole.entities.FantasyMundial.update(metadata.fantasy_entry_id, {
-              estado_pago: 'pagado',
-              fecha_pago_verificado: new Date().toISOString(),
-              verificado_por: 'stripe_webhook',
-            });
-            console.log('[stripe-webhook] FantasyMundial marcada pagada', { id: metadata.fantasy_entry_id });
-
-            // Email de confirmación al participante
-            try {
-              const email = session.customer_details?.email || session.customer_email || metadata.email;
-              if (email) {
-                await base44.asServiceRole.integrations.Core.SendEmail({
-                  to: email,
-                  subject: `🏆 ¡Inscripción Fantasy Mundial confirmada!`,
-                  body: `¡Hola ${metadata.nickname || ''}!\n\nHemos recibido tu pago para el Fantasy Mundial CDB. Tu inscripción ya está oficialmente registrada.\n\n¡Mucha suerte con tus predicciones! 🍀\n\nCD Bustarviejo`
-                });
-              }
-            } catch (emailErr) {
-              console.error('[stripe-webhook] Error email Fantasy:', emailErr?.message);
-            }
-          } catch (e) {
-            console.error('[stripe-webhook] Error procesando fantasy_mundial:', e?.message || e);
-          }
-        }
-
         // ============ PAYMENT LINK SIN METADATA ============
         // Socios que pagan desde Payment Links directos de Stripe (sin metadata.tipo)
         // El pre-registro se hizo via publicMemberRegister con el email

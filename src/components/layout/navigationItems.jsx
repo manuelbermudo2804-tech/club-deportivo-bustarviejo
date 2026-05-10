@@ -86,9 +86,8 @@ export function buildAdminNavigation(ctx) {
     { title: "⚡ Monitor de Créditos", url: createPageUrl("CreditUsage"), icon: BarChart3 },
     { title: "🌐 Páginas Externas", url: "/ExternalLinks", icon: ExternalLink },
 
-    { title: "─ EVENTOS ESPECIALES ─", section: true },
+    { title: "─ SAN ISIDRO ─", section: true },
     { title: "🎉 Inscripciones San Isidro", url: createPageUrl("SanIsidroAdmin"), icon: Calendar },
-    { title: "⚽ Fantasy Mundial", url: createPageUrl("FantasyAdmin"), icon: Trophy },
 
     { title: "─ DESARROLLO ─", section: true },
     { title: "📲 Check-in Tablet", url: createPageUrl("CheckinTablet"), icon: Smartphone },
