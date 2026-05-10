@@ -52,6 +52,15 @@ const EXTERNAL_PAGES = [
     color: "bg-red-500",
     nota: "Abierta del 19 abril al 15 mayo 2026",
   },
+  {
+    id: "fantasy-mundial",
+    nombre: "Fantasy Mundial CDB",
+    descripcion: "Concurso público de predicciones del Mundial. Cualquier persona puede inscribirse y pagar 10€ con tarjeta.",
+    path: "/Fantasy",
+    icon: Trophy,
+    color: "bg-indigo-500",
+    nota: "Comparte por WhatsApp para recaudar fondos para el club",
+  },
 ];
 
 function LinkCard({ page }) {
