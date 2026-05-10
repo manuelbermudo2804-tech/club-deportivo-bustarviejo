@@ -82,8 +82,8 @@ export default function PlanPaymentReminders({ user }) {
             mensaje += `Pagos pendientes:\n\n`;
             mensaje += `👤 ${player.nombre} (${player.deporte}): ${cantidad}€ (Cuota ${cuota.numero})\n\n`;
             mensaje += `📧 DATOS BANCARIOS:\n`;
-            mensaje += `IBAN: ES82 0049 4447 38 2010604048\n`;
-            mensaje += `Banco: Santander\n`;
+            mensaje += `IBAN: ES05 0049 6802 1021 1001 1001\n`;
+            mensaje += `Banco: BANCO SANTANDER\n`;
             mensaje += `Beneficiario: CD Bustarviejo\n`;
             mensaje += `Concepto: ${player.nombre} + Cuota ${cuota.numero}\n\n`;
             mensaje += `Por favor, accede a la app (sección Pagos) para registrar el pago y subir el justificante.\n\n`;
