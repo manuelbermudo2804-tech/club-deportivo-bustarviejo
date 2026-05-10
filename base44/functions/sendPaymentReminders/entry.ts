@@ -30,8 +30,8 @@ Deno.serve(async (req) => {
     }
 
     // Cargar IBAN/Banco desde la configuración de temporada activa (con fallback)
-    let CLUB_IBAN = 'ES82 0049 4447 38 2010004048';
-    let CLUB_BANK = 'Santander';
+    let CLUB_IBAN = 'ES05 0049 6802 1021 1001 1001';
+    let CLUB_BANK = 'Banco Santander';
     try {
       const activeSeasons = await base44.asServiceRole.entities.SeasonConfig.filter({ activa: true });
       const cfg = activeSeasons?.[0];

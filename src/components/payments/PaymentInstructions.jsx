@@ -6,7 +6,7 @@ import { Copy, CheckCircle2, QrCode, CreditCard, Info } from "lucide-react";
 import CopyButton from "./CopyButton";
 import { useActiveSeason } from "@/components/season/SeasonProvider";
 
-const DEFAULT_CLUB_IBAN = "ES8200494447382010004048";
+const DEFAULT_CLUB_IBAN = "ES0500496802102110011001";
 const DEFAULT_CLUB_BANK = "Banco Santander";
 
 export default function PaymentInstructions({ playerName, playerCategory, amount, paymentType, paymentMonth }) {

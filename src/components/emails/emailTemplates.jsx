@@ -61,8 +61,8 @@ function dataRow(label, value) {
 }
 
 // IBAN/Banco por defecto (se sobrescriben desde SeasonConfig en las funciones que los reciben)
-const DEFAULT_IBAN = 'ES82 0049 4447 38 2010004048';
-const DEFAULT_BANK = 'Santander';
+const DEFAULT_IBAN = 'ES05 0049 6802 1021 1001 1001';
+const DEFAULT_BANK = 'Banco Santander';
 
 // ─── 1. Recordatorio pagos morosos (+30 días) ───
 export function overduePaymentReminderHtml(paymentLines, bankInfo = {}) {

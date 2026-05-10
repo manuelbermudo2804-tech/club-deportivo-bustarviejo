@@ -225,9 +225,9 @@ export default function AutomaticPaymentReminders({ user }) {
             mensaje += `\nTotal a pagar: ${totalFamilia}€\n`;
             mensaje += mensajeTipo.urgencia;
             // Leer IBAN/Banco desde la configuración de temporada (con fallback)
-            const rawIban = (seasonConfig?.club_iban || 'ES8200494447382010004048').replace(/\s+/g, '');
+            const rawIban = (seasonConfig?.club_iban || 'ES0500496802102110011001').replace(/\s+/g, '');
             const clubIban = rawIban.replace(/(.{4})/g, '$1 ').trim();
-            const clubBank = seasonConfig?.club_bank?.trim() || 'Santander';
+            const clubBank = seasonConfig?.club_bank?.trim() || 'Banco Santander';
 
             mensaje += `\n📧 DATOS BANCARIOS:\n`;
             mensaje += `IBAN: ${clubIban}\n`;
