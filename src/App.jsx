@@ -26,6 +26,8 @@ import SanIsidroInscripcion from '@/pages/SanIsidroInscripcion';
 import ExternalLinks from '@/pages/ExternalLinks';
 import ReciboGenerator from '@/pages/ReciboGenerator';
 import MyFeedback from '@/pages/MyFeedback';
+import Fantasy from '@/pages/Fantasy';
+import FantasyAdmin from '@/pages/FantasyAdmin';
 import SponsorSplash from '@/components/sponsors/SponsorSplash';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -41,7 +43,7 @@ const AppRouter = () => {
   
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').toLowerCase();
-  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro'];
+  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/fantasy'];
   if (publicPaths.includes(cleanPath)) {
     return (
       <Routes>
@@ -57,6 +59,9 @@ const AppRouter = () => {
         <Route path="/sanisidro" element={<SanIsidroInscripcion />} />
         <Route path="/Sanisidro" element={<SanIsidroInscripcion />} />
         <Route path="/SANISIDRO" element={<SanIsidroInscripcion />} />
+        <Route path="/Fantasy" element={<Fantasy />} />
+        <Route path="/fantasy" element={<Fantasy />} />
+        <Route path="/FANTASY" element={<Fantasy />} />
       </Routes>
     );
   }
@@ -133,6 +138,7 @@ const AuthenticatedApp = () => {
       <Route path="/ExternalLinks" element={<LayoutWrapper currentPageName="ExternalLinks"><ExternalLinks /></LayoutWrapper>} />
       <Route path="/ReciboGenerator" element={<LayoutWrapper currentPageName="ReciboGenerator"><ReciboGenerator /></LayoutWrapper>} />
       <Route path="/MyFeedback" element={<LayoutWrapper currentPageName="MyFeedback"><MyFeedback /></LayoutWrapper>} />
+      <Route path="/FantasyAdmin" element={<LayoutWrapper currentPageName="FantasyAdmin"><FantasyAdmin /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </>

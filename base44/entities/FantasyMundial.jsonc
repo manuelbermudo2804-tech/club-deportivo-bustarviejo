@@ -1,0 +1,110 @@
+{
+  "name": "FantasyMundial",
+  "type": "object",
+  "properties": {
+    "nickname": {
+      "type": "string",
+      "description": "Nickname \u00fanico del participante (se usa para el Bizum)"
+    },
+    "nombre": {
+      "type": "string",
+      "description": "Nombre y apellidos del participante"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email de contacto"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto"
+    },
+    "campeon": {
+      "type": "string",
+      "description": "Selecci\u00f3n que predice como campeona del Mundial"
+    },
+    "subcampeon": {
+      "type": "string",
+      "description": "Selecci\u00f3n que predice como subcampeona"
+    },
+    "semifinalistas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Las 4 selecciones que llegan a semifinales (incluye campe\u00f3n y subcampe\u00f3n)"
+    },
+    "maximo_goleador": {
+      "type": "string",
+      "description": "Jugador que predice como m\u00e1ximo goleador del Mundial"
+    },
+    "seleccion_sorpresa": {
+      "type": "string",
+      "description": "Selecci\u00f3n sorpresa que llegar\u00e1 lejos"
+    },
+    "resultado_final_local": {
+      "type": "number",
+      "description": "Goles del campe\u00f3n en la final"
+    },
+    "resultado_final_visitante": {
+      "type": "number",
+      "description": "Goles del subcampe\u00f3n en la final"
+    },
+    "estado_pago": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "pagado",
+        "rechazado"
+      ],
+      "default": "pendiente",
+      "description": "Estado del pago v\u00eda Bizum"
+    },
+    "fecha_pago_verificado": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en la que el admin verific\u00f3 el pago"
+    },
+    "verificado_por": {
+      "type": "string",
+      "description": "Email del admin que verific\u00f3 el pago"
+    },
+    "puntos_total": {
+      "type": "number",
+      "default": 0,
+      "description": "Puntos totales acumulados seg\u00fan predicciones acertadas"
+    },
+    "desglose_puntos": {
+      "type": "object",
+      "description": "Desglose de puntos por categor\u00eda (campeon, subcampeon, semis, goleador, sorpresa, final_exacta)"
+    },
+    "predicciones_acertadas": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero total de predicciones acertadas (para desempate)"
+    },
+    "device_fingerprint": {
+      "type": "string",
+      "description": "Huella del dispositivo (anti-spam)"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Navegador/dispositivo usado"
+    },
+    "acepta_bases": {
+      "type": "boolean",
+      "default": false,
+      "description": "Aceptaci\u00f3n de las bases del concurso"
+    }
+  },
+  "required": [
+    "nickname",
+    "nombre",
+    "email",
+    "telefono",
+    "campeon",
+    "subcampeon",
+    "maximo_goleador",
+    "seleccion_sorpresa"
+  ]
+}
