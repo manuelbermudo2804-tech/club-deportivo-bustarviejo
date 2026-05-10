@@ -19,8 +19,10 @@ const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const user = await base44.auth.me();
-    if (user?.role !== 'admin') {
+    // Permitir invocaciones internas (service-role desde scheduled automations) o admins
+    const user = await base44.auth.me().catch(() => null);
+    const isInternalInvocation = !user;
+    if (!isInternalInvocation && user?.role !== 'admin') {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
