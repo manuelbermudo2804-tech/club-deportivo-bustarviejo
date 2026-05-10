@@ -119,7 +119,7 @@ export default function FantasyForm({ config, onSuccess }) {
 
           <label className="flex items-start gap-3 cursor-pointer">
             <Checkbox checked={data.acepta_bases} onCheckedChange={(v) => update("acepta_bases", !!v)} className="mt-0.5" />
-            <span className="text-sm text-slate-700">Acepto las bases del Fantasy Mundial CDB y entiendo que debo abonar 10€ por Bizum con el concepto <strong>"Fantasy {data.nickname || "Nickname"}"</strong> para validar mi inscripción.</span>
+            <span className="text-sm text-slate-700">Acepto las bases del Fantasy Mundial CDB y entiendo que tras enviar el formulario debo completar el pago con tarjeta para validar mi inscripción.</span>
           </label>
 
           <Button type="submit" disabled={loading} className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-base font-bold">

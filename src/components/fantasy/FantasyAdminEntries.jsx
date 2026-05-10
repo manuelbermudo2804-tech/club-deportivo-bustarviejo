@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, XCircle, Search, Trash2, Calculator, Loader2 } from "lucide-react";
+import { CheckCircle2, XCircle, Search, Trash2, Calculator, Loader2, Link2 } from "lucide-react";
 import { toast } from "sonner";
 import { calculateFantasyPoints } from "./calculateFantasyPoints";
 
@@ -29,6 +29,31 @@ export default function FantasyAdminEntries({ entries, config, onRefresh }) {
       onRefresh?.();
     } catch (e) {
       toast.error(e?.message || "Error");
+    }
+  };
+
+  const copyPaymentLink = async (entry) => {
+    try {
+      const origin = window.location.origin;
+      const res = await base44.functions.invoke("stripeCheckout", {
+        amount: config?.precio_inscripcion ?? 10,
+        name: `Fantasy Mundial CDB - ${entry.nickname}`,
+        currency: "eur",
+        successUrl: `${origin}/Fantasy?payment=success&entry_id=${entry.id}`,
+        cancelUrl: `${origin}/Fantasy?payment=cancel&entry_id=${entry.id}`,
+        metadata: {
+          tipo: "fantasy_mundial",
+          fantasy_entry_id: entry.id,
+          nickname: entry.nickname,
+          email: entry.email,
+        },
+      });
+      const url = res?.data?.url;
+      if (!url) return toast.error("No se pudo generar el link");
+      await navigator.clipboard.writeText(url);
+      toast.success("Link de pago copiado al portapapeles");
+    } catch (e) {
+      toast.error(e?.message || "Error generando link");
     }
   };
 
@@ -110,16 +135,21 @@ export default function FantasyAdminEntries({ entries, config, onRefresh }) {
               </div>
               <div className="flex gap-1">
                 {e.estado_pago !== 'pagado' && (
-                  <Button size="sm" variant="outline" className="text-emerald-700 border-emerald-300 hover:bg-emerald-50" onClick={() => setPaymentStatus(e, 'pagado')}>
+                  <Button size="sm" variant="outline" className="text-indigo-700 border-indigo-300 hover:bg-indigo-50" onClick={() => copyPaymentLink(e)} title="Copiar link de pago">
+                    <Link2 className="w-4 h-4" />
+                  </Button>
+                )}
+                {e.estado_pago !== 'pagado' && (
+                  <Button size="sm" variant="outline" className="text-emerald-700 border-emerald-300 hover:bg-emerald-50" onClick={() => setPaymentStatus(e, 'pagado')} title="Marcar como pagado">
                     <CheckCircle2 className="w-4 h-4" />
                   </Button>
                 )}
                 {e.estado_pago !== 'rechazado' && (
-                  <Button size="sm" variant="outline" className="text-red-700 border-red-300 hover:bg-red-50" onClick={() => setPaymentStatus(e, 'rechazado')}>
+                  <Button size="sm" variant="outline" className="text-red-700 border-red-300 hover:bg-red-50" onClick={() => setPaymentStatus(e, 'rechazado')} title="Rechazar">
                     <XCircle className="w-4 h-4" />
                   </Button>
                 )}
-                <Button size="sm" variant="outline" className="text-slate-700" onClick={() => remove(e)}>
+                <Button size="sm" variant="outline" className="text-slate-700" onClick={() => remove(e)} title="Eliminar">
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>

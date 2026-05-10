@@ -6,7 +6,7 @@ import FantasyForm from "@/components/fantasy/FantasyForm";
 import FantasySuccess from "@/components/fantasy/FantasySuccess";
 import FantasyLeaderboard from "@/components/fantasy/FantasyLeaderboard";
 import SponsorFooter from "@/components/sponsors-public/SponsorFooter";
-import { Loader2, Lock } from "lucide-react";
+import { Loader2, Lock, CheckCircle2, AlertCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function Fantasy() {
@@ -14,9 +14,14 @@ export default function Fantasy() {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [registered, setRegistered] = useState(null);
+  const [paymentStatus, setPaymentStatus] = useState(null); // 'success' | 'cancel' | null
 
   useEffect(() => {
     document.title = "Fantasy Mundial CDB";
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get('payment');
+    if (payment === 'success' || payment === 'cancel') setPaymentStatus(payment);
+
     (async () => {
       try {
         const [configs, allEntries] = await Promise.all([
@@ -52,6 +57,29 @@ export default function Fantasy() {
       />
 
       <div className="max-w-5xl mx-auto px-4 py-8 space-y-6">
+        {paymentStatus === 'success' && (
+          <Card className="border-2 border-emerald-300 bg-emerald-50">
+            <CardContent className="p-5 flex items-center gap-3">
+              <CheckCircle2 className="w-8 h-8 text-emerald-600 shrink-0" />
+              <div>
+                <h3 className="font-black text-emerald-900">¡Pago confirmado!</h3>
+                <p className="text-sm text-emerald-800">Tu inscripción ya está oficialmente registrada. ¡Mucha suerte! 🍀</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        {paymentStatus === 'cancel' && (
+          <Card className="border-2 border-orange-300 bg-orange-50">
+            <CardContent className="p-5 flex items-center gap-3">
+              <AlertCircle className="w-8 h-8 text-orange-600 shrink-0" />
+              <div>
+                <h3 className="font-black text-orange-900">Pago cancelado</h3>
+                <p className="text-sm text-orange-800">Tu inscripción quedó como <strong>pendiente</strong>. Te enviaremos un email con un enlace para completar el pago cuando quieras.</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         <FantasyRules
           porcentajePremios={config?.porcentaje_premios ?? 70}
           porcentajeClub={config?.porcentaje_club ?? 30}

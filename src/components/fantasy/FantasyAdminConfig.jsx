@@ -14,7 +14,6 @@ export default function FantasyAdminConfig({ config, onSaved }) {
     abierto: true,
     fecha_limite: "",
     precio_inscripcion: 10,
-    bizum_telefono: "",
     porcentaje_premios: 70,
     porcentaje_club: 30,
     selecciones_disponibles: "",
@@ -36,7 +35,6 @@ export default function FantasyAdminConfig({ config, onSaved }) {
         abierto: config.abierto ?? true,
         fecha_limite: config.fecha_limite ? config.fecha_limite.slice(0, 16) : "",
         precio_inscripcion: config.precio_inscripcion ?? 10,
-        bizum_telefono: config.bizum_telefono || "",
         porcentaje_premios: config.porcentaje_premios ?? 70,
         porcentaje_club: config.porcentaje_club ?? 30,
         selecciones_disponibles: (config.selecciones_disponibles || []).join("\n"),
@@ -62,7 +60,6 @@ export default function FantasyAdminConfig({ config, onSaved }) {
         abierto: !!data.abierto,
         fecha_limite: data.fecha_limite ? new Date(data.fecha_limite).toISOString() : null,
         precio_inscripcion: Number(data.precio_inscripcion) || 10,
-        bizum_telefono: data.bizum_telefono.trim(),
         porcentaje_premios: Number(data.porcentaje_premios) || 70,
         porcentaje_club: Number(data.porcentaje_club) || 30,
         selecciones_disponibles: data.selecciones_disponibles.split("\n").map((s) => s.trim()).filter(Boolean),
@@ -111,10 +108,6 @@ export default function FantasyAdminConfig({ config, onSaved }) {
           <div>
             <Label>Precio inscripción (€)</Label>
             <Input type="number" value={data.precio_inscripcion} onChange={(e) => update("precio_inscripcion", e.target.value)} />
-          </div>
-          <div>
-            <Label>Teléfono Bizum</Label>
-            <Input value={data.bizum_telefono} onChange={(e) => update("bizum_telefono", e.target.value)} placeholder="+34 600 000 000" />
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div>

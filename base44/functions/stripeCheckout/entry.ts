@@ -14,8 +14,8 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { lineItems, amount, name, currency = 'eur', successUrl, cancelUrl, metadata = {} } = body || {};
 
-    // Permitir acceso público SOLO para tipos específicos (ej: alta nuevo socio)
-    const isPublicTransaction = metadata.tipo === 'alta_socio_referido';
+    // Permitir acceso público SOLO para tipos específicos (ej: alta nuevo socio, fantasy mundial)
+    const isPublicTransaction = metadata.tipo === 'alta_socio_referido' || metadata.tipo === 'fantasy_mundial';
 
     if (!user && !isPublicTransaction) {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
