@@ -4,12 +4,19 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { CreditCard, Banknote, Shield, Gift, Loader2 } from "lucide-react";
 import CopyButton from "./CopyButton";
+import { useActiveSeason } from "@/components/season/SeasonProvider";
+
+const DEFAULT_CLUB_IBAN = "ES0500496802102110011001";
+const DEFAULT_CLUB_BANK = "Banco Santander";
 
 export default function PayModal({ open, onClose, player, payment, onPayCard, onPaySubscription, onChooseTransfer, onUploadTransfer }) {
   const [openingStripe, setOpeningStripe] = useState(false);
   const [file, setFile] = useState(null);
+  const { seasonConfig } = useActiveSeason();
   if (!payment || !player) return null;
   const isPlanMensual = payment.tipo_pago === "Plan Mensual";
+  const clubIban = (seasonConfig?.club_iban?.trim() || DEFAULT_CLUB_IBAN).replace(/\s+/g, '');
+  const clubBank = seasonConfig?.club_bank?.trim() || DEFAULT_CLUB_BANK;
   return (
     <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : null)}>
       <DialogContent className="w-[92vw] max-w-md p-0 overflow-hidden rounded-2xl max-h-[85vh] sm:mt-8">
@@ -70,11 +77,11 @@ export default function PayModal({ open, onClose, player, payment, onPayCard, on
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-slate-600">IBAN</p>
-                      <p className="font-mono font-bold tracking-wider">ES8200494447382010004048</p>
+                      <p className="font-mono font-bold tracking-wider">{clubIban}</p>
                     </div>
-                    <CopyButton text="ES8200494447382010004048" />
+                    <CopyButton text={clubIban} />
                   </div>
-                  <p className="text-xs text-slate-600"><strong>Banco:</strong> Banco Santander</p>
+                  <p className="text-xs text-slate-600"><strong>Banco:</strong> {clubBank}</p>
                   <p className="text-xs text-slate-600"><strong>Beneficiario:</strong> CD Bustarviejo</p>
                 </div>
                 <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-3">
