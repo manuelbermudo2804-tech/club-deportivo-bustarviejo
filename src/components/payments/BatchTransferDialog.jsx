@@ -3,11 +3,18 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Loader2, Copy, CheckCircle2 } from "lucide-react";
 import CopyButton from "./CopyButton";
+import { useActiveSeason } from "@/components/season/SeasonProvider";
+
+const DEFAULT_CLUB_IBAN = "ES0500496802102110011001";
+const DEFAULT_CLUB_BANK = "Banco Santander";
 
 export default function BatchTransferDialog({ open, onClose, concept, total, onConfirm }) {
   const [file, setFile] = useState(null);
   const [isSending, setIsSending] = useState(false);
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`IBAN: ES8200494447382010004048\nConcepto: ${concept}\nImporte: ${Number(total).toFixed(2)}€`)}`;
+  const { seasonConfig } = useActiveSeason();
+  const clubIban = (seasonConfig?.club_iban?.trim() || DEFAULT_CLUB_IBAN).replace(/\s+/g, '');
+  const clubBank = seasonConfig?.club_bank?.trim() || DEFAULT_CLUB_BANK;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(`IBAN: ${clubIban}\nConcepto: ${concept}\nImporte: ${Number(total).toFixed(2)}€`)}`;
   return (
     <Dialog open={open} onOpenChange={(v)=>{ if(!v) onClose(); }}>
       <DialogContent className="w-[92vw] max-w-sm p-0 overflow-hidden rounded-2xl max-h-[85vh] sm:mt-8">
@@ -23,11 +30,11 @@ export default function BatchTransferDialog({ open, onClose, concept, total, onC
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs text-slate-600">IBAN</p>
-                  <p className="font-mono font-bold tracking-wider">ES8200494447382010004048</p>
+                  <p className="font-mono font-bold tracking-wider">{clubIban}</p>
                 </div>
-                <CopyButton text="ES8200494447382010004048" />
+                <CopyButton text={clubIban} />
               </div>
-              <p className="text-xs text-slate-600"><strong>Banco:</strong> Banco Santander</p>
+              <p className="text-xs text-slate-600"><strong>Banco:</strong> {clubBank}</p>
               <p className="text-xs text-slate-600"><strong>Beneficiario:</strong> CD Bustarviejo</p>
             </div>
             <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-3">
@@ -39,7 +46,7 @@ export default function BatchTransferDialog({ open, onClose, concept, total, onC
             </div>
             <div>
               <CopyButton
-                text={`DATOS PARA TRANSFERENCIA\nIBAN: ES8200494447382010004048\nBanco: Banco Santander\nBeneficiario: CD Bustarviejo\nConcepto: ${concept}\nImporte: ${total.toFixed(2)}€`}
+                text={`DATOS PARA TRANSFERENCIA\nIBAN: ${clubIban}\nBanco: ${clubBank}\nBeneficiario: CD Bustarviejo\nConcepto: ${concept}\nImporte: ${total.toFixed(2)}€`}
                 label="Copiar todos los datos"
                 className="w-full"
                 size="default"
