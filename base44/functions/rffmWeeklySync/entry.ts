@@ -75,6 +75,18 @@ function extractParams(url) {
 function buildJornadaUrl(p, j) { return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornada?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}&cod_agrupacion=1&Sch_Tipo_Juego=`; }
 function buildClassUrl(p, j) { let u = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&codcompeticion=${p.CodCompeticion}&codgrupo=${p.CodGrupo}&codtemporada=${p.CodTemporada}`; if (j) u += `&codjornada=${j}`; return u; }
 
+// Detecta si un nombre de "equipo" es en realidad un placeholder de descanso o vacío
+function isDescansaOrEmpty(name) {
+  if (!name) return true;
+  const n = name.trim().toUpperCase();
+  if (n.length < 2) return true;
+  if (/^DESCANSA$/i.test(n)) return true;
+  if (/^DESCANSO$/i.test(n)) return true;
+  if (/DESCANSA\s*-/i.test(n)) return true;
+  if (/^-+$/.test(n)) return true;
+  return false;
+}
+
 function parseMatches(html) {
   const $ = load(html); const matches = []; const tables = $('table').toArray(); let campo = null;
   for (let i = 3; i < tables.length; i++) {
@@ -83,6 +95,8 @@ function parseMatches(html) {
     const tds = $(t).find('td').toArray(); if (tds.length < 3) continue;
     const loc = $(tds[0]).find('span').first().text().trim() || $(tds[0]).text().replace(/\s+/g,' ').trim();
     const vis = $(tds[2]).find('span').first().text().trim() || $(tds[2]).text().replace(/\s+/g,' ').trim();
+    // FIX: ignorar partidos donde uno de los equipos es "Descansa" (no es un partido real)
+    if (isDescansaOrEmpty(loc) || isDescansaOrEmpty(vis)) continue;
     if (!loc || !vis) continue;
     const ct = $(tds[1]).text().replace(/\s+/g,' ').trim();
     let gl = null, gv = null, jug = false, fecha = null, hora = null;
