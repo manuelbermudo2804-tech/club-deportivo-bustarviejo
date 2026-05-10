@@ -26,11 +26,18 @@ export default function PlanPaymentReminders({ user }) {
         const todayStr = nowDate.toDateString();
 
         // Reducir llamadas con filtros específicos y límites
-        const [players, plans, reminders] = await Promise.all([
+        const [players, plans, reminders, seasonConfigs] = await Promise.all([
           base44.entities.Player.filter({ activo: true }, '-updated_date', 300),
           base44.entities.CustomPaymentPlan.filter({ estado: 'Activo' }, '-updated_date', 100),
-          base44.entities.AutomaticReminder.list('-created_date', 200)
+          base44.entities.AutomaticReminder.list('-created_date', 200),
+          base44.entities.SeasonConfig.filter({ activa: true }, '-updated_date', 1)
         ]);
+
+        // Leer IBAN/Banco desde la configuración de temporada (con fallback)
+        const seasonConfig = seasonConfigs?.[0];
+        const rawIban = (seasonConfig?.club_iban || 'ES0500496802102110011001').replace(/\s+/g, '');
+        const clubIban = rawIban.replace(/(.{4})/g, '$1 ').trim();
+        const clubBank = seasonConfig?.club_bank?.trim() || 'Banco Santander';
 
         const playerById = Object.fromEntries(players.map(p => [p.id, p]));
 
@@ -82,8 +89,8 @@ export default function PlanPaymentReminders({ user }) {
             mensaje += `Pagos pendientes:\n\n`;
             mensaje += `👤 ${player.nombre} (${player.deporte}): ${cantidad}€ (Cuota ${cuota.numero})\n\n`;
             mensaje += `📧 DATOS BANCARIOS:\n`;
-            mensaje += `IBAN: ES05 0049 6802 1021 1001 1001\n`;
-            mensaje += `Banco: BANCO SANTANDER\n`;
+            mensaje += `IBAN: ${clubIban}\n`;
+            mensaje += `Banco: ${clubBank}\n`;
             mensaje += `Beneficiario: CD Bustarviejo\n`;
             mensaje += `Concepto: ${player.nombre} + Cuota ${cuota.numero}\n\n`;
             mensaje += `Por favor, accede a la app (sección Pagos) para registrar el pago y subir el justificante.\n\n`;
