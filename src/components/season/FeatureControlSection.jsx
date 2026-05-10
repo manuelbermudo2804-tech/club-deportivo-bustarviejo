@@ -72,21 +72,29 @@ export default function FeatureControlSection({
             <div>
               <Label className="text-sm font-medium">IBAN</Label>
               <Input
-                value={activeSeason.club_iban || ""}
-                onChange={(e) => update({ club_iban: e.target.value })}
+                key={`iban-${activeSeason.id}`}
+                defaultValue={activeSeason.club_iban || ""}
+                onBlur={(e) => {
+                  const val = e.target.value.replace(/\s+/g, '');
+                  if (val !== (activeSeason.club_iban || "")) update({ club_iban: val });
+                }}
                 placeholder="ES8200494447382010004048"
                 className="mt-1 font-mono"
               />
-              <p className="text-xs text-slate-500 mt-1">Sin espacios. Se formatean automáticamente al mostrarlo.</p>
+              <p className="text-xs text-slate-500 mt-1">Sin espacios. Se guarda al salir del campo.</p>
             </div>
             <div>
               <Label className="text-sm font-medium">Banco</Label>
               <Input
-                value={activeSeason.club_bank || ""}
-                onChange={(e) => update({ club_bank: e.target.value })}
+                key={`bank-${activeSeason.id}`}
+                defaultValue={activeSeason.club_bank || ""}
+                onBlur={(e) => {
+                  if (e.target.value !== (activeSeason.club_bank || "")) update({ club_bank: e.target.value });
+                }}
                 placeholder="Banco Santander"
                 className="mt-1"
               />
+              <p className="text-xs text-slate-500 mt-1">Se guarda al salir del campo.</p>
             </div>
           </div>
 
