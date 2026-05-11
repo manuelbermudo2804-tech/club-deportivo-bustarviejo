@@ -65,6 +65,36 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpda
     return map;
   }, [elimi]);
 
+  // Equipos disponibles para elegir en cada fase eliminatoria
+  // - 16avos: TODOS los equipos del Mundial (el admin sabe qué primeros, segundos y terceros pasaron)
+  // - 8vos en adelante: solo los GANADORES de la fase anterior (partidos finalizados con ganador_codigo)
+  const ORDEN_FASES = ['16avos', '8vos', '4tos', 'semis', 'tercer_puesto', 'final'];
+  const equiposDisponiblesPorFase = useMemo(() => {
+    const map = {};
+    map['16avos'] = null; // null = todos los equipos
+    // 8vos = ganadores de 16avos
+    const ganadores16 = elimi.filter(p => p.fase === '16avos' && p.ganador_codigo).map(p => p.ganador_codigo);
+    map['8vos'] = new Set(ganadores16);
+    // 4tos = ganadores de 8vos
+    const ganadores8 = elimi.filter(p => p.fase === '8vos' && p.ganador_codigo).map(p => p.ganador_codigo);
+    map['4tos'] = new Set(ganadores8);
+    // semis = ganadores de 4tos
+    const ganadores4 = elimi.filter(p => p.fase === '4tos' && p.ganador_codigo).map(p => p.ganador_codigo);
+    map['semis'] = new Set(ganadores4);
+    // tercer_puesto = perdedores de semis (los que no ganaron)
+    const semisPartidos = elimi.filter(p => p.fase === 'semis' && p.ganador_codigo);
+    const perdedoresSemis = semisPartidos.map(p => {
+      if (p.ganador_codigo === p.equipo_local_codigo) return p.equipo_visitante_codigo;
+      if (p.ganador_codigo === p.equipo_visitante_codigo) return p.equipo_local_codigo;
+      return null;
+    }).filter(Boolean);
+    map['tercer_puesto'] = new Set(perdedoresSemis);
+    // final = ganadores de semis
+    const ganadoresSemis = semisPartidos.map(p => p.ganador_codigo);
+    map['final'] = new Set(ganadoresSemis);
+    return map;
+  }, [elimi]);
+
   const handleLocalChange = (nuevoPartido) => {
     setElimiLocal(prev => prev.map(p => p.id === nuevoPartido.id ? nuevoPartido : p));
   };
@@ -182,15 +212,22 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpda
                       {titulos[fase]} ({ps.length})
                     </div>
                     <div>
-                      {ps.map(p => (
-                        <EliminatoriaPartidoRow
-                          key={p.id}
-                          partido={p}
-                          equipos={equipos}
-                          equiposUsadosEnFase={equiposUsadosPorFase[fase] || new Set()}
-                          onLocalChange={handleLocalChange}
-                        />
-                      ))}
+                      {ps.map(p => {
+                        const disponibles = equiposDisponiblesPorFase[fase];
+                        // Si disponibles es null (16avos) → todos los equipos; si no → filtrar
+                        const equiposFase = disponibles === null
+                          ? equipos
+                          : equipos.filter(eq => disponibles.has(eq.codigo) || eq.codigo === p.equipo_local_codigo || eq.codigo === p.equipo_visitante_codigo);
+                        return (
+                          <EliminatoriaPartidoRow
+                            key={p.id}
+                            partido={p}
+                            equipos={equiposFase}
+                            equiposUsadosEnFase={equiposUsadosPorFase[fase] || new Set()}
+                            onLocalChange={handleLocalChange}
+                          />
+                        );
+                      })}
                     </div>
                   </div>
                 );
