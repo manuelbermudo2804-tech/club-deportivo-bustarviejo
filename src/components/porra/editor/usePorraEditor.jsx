@@ -65,23 +65,26 @@ export default function usePorraEditor(token) {
     const totalEliminatorias = 32; // 16+8+4+2+1+1 = 32
     const totalEspeciales = 4;
     const totalGruposClasif = 12;
+    const totalTerceros = 8;
 
     const predGrupos = Object.keys(p.predicciones_grupos || {}).length;
     const clasifGrupos = Object.keys(p.clasificacion_grupos || {}).length;
     const predElim = Object.keys(p.predicciones_eliminatorias || {}).length;
+    const terceros = (p.mejores_terceros || []).length;
     const especiales = p.predicciones_especiales || {};
     const numEspeciales = ['mejor_jugador', 'maximo_goleador', 'mejor_portero', 'mejor_joven']
       .filter(k => especiales[k]).length;
 
     const completado_grupos = predGrupos >= totalGrupos && clasifGrupos >= totalGruposClasif;
+    const completado_terceros = terceros === totalTerceros;
     const completado_bracket = predElim >= totalEliminatorias;
     const completado_especiales = numEspeciales >= totalEspeciales;
 
-    const total = totalGrupos + totalGruposClasif + totalEliminatorias + totalEspeciales;
-    const hecho = predGrupos + clasifGrupos + predElim + numEspeciales;
+    const total = totalGrupos + totalGruposClasif + totalTerceros + totalEliminatorias + totalEspeciales;
+    const hecho = predGrupos + clasifGrupos + terceros + predElim + numEspeciales;
     const porcentaje_completado = Math.round((hecho / total) * 100);
 
-    return { completado_grupos, completado_bracket, completado_especiales, porcentaje_completado };
+    return { completado_grupos, completado_terceros, completado_bracket, completado_especiales, porcentaje_completado };
   };
 
   // Guardado con debounce 700ms
@@ -129,11 +132,15 @@ export default function usePorraEditor(token) {
     guardarDebounced({ prediccion_tercer_puesto: data });
   };
 
+  const setMejoresTerceros = (lista) => {
+    guardarDebounced({ mejores_terceros: lista });
+  };
+
   return {
     participante, config, equipos, partidos,
     loading, saving, error, isBlocked,
     setResultadoGrupo, setClasificacionGrupo,
-    setEliminatoriaGanador, setEspecial, setTercerPuesto,
+    setEliminatoriaGanador, setEspecial, setTercerPuesto, setMejoresTerceros,
     refrescar: cargar,
   };
 }

@@ -7,6 +7,7 @@ import { Trophy, Loader2, Lock, AlertCircle, CheckCircle2, Save, Clock, Home } f
 import { useNavigate } from "react-router-dom";
 import usePorraEditor from "@/components/porra/editor/usePorraEditor";
 import EditorGrupos from "@/components/porra/editor/EditorGrupos";
+import EditorMejoresTerceros from "@/components/porra/editor/EditorMejoresTerceros";
 import EditorBracket from "@/components/porra/editor/EditorBracket";
 import EditorEspeciales from "@/components/porra/editor/EditorEspeciales";
 import MiniLigasManager from "@/components/porra/ligas/MiniLigasManager";
@@ -22,7 +23,7 @@ export default function PorraMiPorra() {
     participante, config, equipos, partidos,
     loading, saving, error, isBlocked,
     setResultadoGrupo, setClasificacionGrupo,
-    setEliminatoriaGanador, setEspecial,
+    setEliminatoriaGanador, setEspecial, setMejoresTerceros,
     refrescar,
   } = usePorraEditor(token);
 
@@ -126,8 +127,9 @@ export default function PorraMiPorra() {
         )}
 
         {/* Estado mini-resumen */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-4 gap-2">
           <StatusCard ok={participante.completado_grupos} label="Grupos" icon="⚽" />
+          <StatusCard ok={participante.completado_terceros} label="Terceros" icon="🥉" />
           <StatusCard ok={participante.completado_bracket} label="Bracket" icon="🏆" />
           <StatusCard ok={participante.completado_especiales} label="Especiales" icon="⭐" />
         </div>
@@ -152,11 +154,12 @@ export default function PorraMiPorra() {
 
         {/* Tabs editor */}
         <Tabs defaultValue="grupos">
-          <TabsList className="grid w-full grid-cols-4 h-auto p-1 bg-slate-200">
-            <TabsTrigger value="grupos" className="py-2 text-[11px] md:text-sm font-bold">⚽ Grupos</TabsTrigger>
-            <TabsTrigger value="bracket" className="py-2 text-[11px] md:text-sm font-bold">🏆 Bracket</TabsTrigger>
-            <TabsTrigger value="especiales" className="py-2 text-[11px] md:text-sm font-bold">⭐ Especiales</TabsTrigger>
-            <TabsTrigger value="ligas" className="py-2 text-[11px] md:text-sm font-bold">👥 Ligas</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-slate-200">
+            <TabsTrigger value="grupos" className="py-2 text-[10px] md:text-sm font-bold">⚽ Grupos</TabsTrigger>
+            <TabsTrigger value="terceros" className="py-2 text-[10px] md:text-sm font-bold">🥉 Terceros</TabsTrigger>
+            <TabsTrigger value="bracket" className="py-2 text-[10px] md:text-sm font-bold">🏆 Bracket</TabsTrigger>
+            <TabsTrigger value="especiales" className="py-2 text-[10px] md:text-sm font-bold">⭐ Especiales</TabsTrigger>
+            <TabsTrigger value="ligas" className="py-2 text-[10px] md:text-sm font-bold">👥 Ligas</TabsTrigger>
           </TabsList>
 
           <TabsContent value="grupos" className="mt-4">
@@ -167,6 +170,14 @@ export default function PorraMiPorra() {
               isBlocked={isBlocked}
               onSetResultado={setResultadoGrupo}
               onSetClasificacion={setClasificacionGrupo}
+            />
+          </TabsContent>
+          <TabsContent value="terceros" className="mt-4">
+            <EditorMejoresTerceros
+              participante={participante}
+              equipos={equipos}
+              isBlocked={isBlocked}
+              onToggleTercero={setMejoresTerceros}
             />
           </TabsContent>
           <TabsContent value="bracket" className="mt-4">

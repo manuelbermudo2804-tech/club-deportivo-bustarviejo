@@ -13,6 +13,7 @@ import PorraAdminEquipos from "@/components/porra/admin/PorraAdminEquipos";
 import PorraAdminPartidos from "@/components/porra/admin/PorraAdminPartidos";
 import PorraAdminParticipantes from "@/components/porra/admin/PorraAdminParticipantes";
 import PorraAdminRecalcular from "@/components/porra/admin/PorraAdminRecalcular";
+import PorraAdminMejoresTercerosReales from "@/components/porra/admin/PorraAdminMejoresTercerosReales";
 
 // Panel admin para gestionar la Porra Mundial 2026
 export default function PorraAdmin() {
@@ -158,7 +159,8 @@ export default function PorraAdmin() {
           <TabsContent value="equipos">
             <PorraAdminEquipos equipos={equipos} onUpdate={cargarTodo} />
           </TabsContent>
-          <TabsContent value="partidos">
+          <TabsContent value="partidos" className="space-y-4">
+            <PorraAdminMejoresTercerosReales config={config} partidos={partidos} equipos={equipos} onUpdate={cargarTodo} />
             <PorraAdminPartidos partidos={partidos} equipos={equipos} onUpdate={cargarTodo} />
           </TabsContent>
           <TabsContent value="participantes" className="space-y-4">

@@ -104,6 +104,11 @@
       "type": "number",
       "default": 3
     },
+    "puntos_mejor_tercero": {
+      "type": "number",
+      "default": 8,
+      "description": "Puntos por cada equipo acertado entre los 8 mejores terceros"
+    },
     "puntos_16avos": {
       "type": "number",
       "default": 4
@@ -167,6 +172,13 @@
         }
       },
       "description": "Resultados reales de las predicciones especiales (al final del torneo)"
+    },
+    "mejores_terceros_reales": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de los 8 mejores terceros REALES que pasan a 16avos (lo marca el admin al acabar la fase de grupos)"
     },
     "campeon_real": {
       "type": "string",
