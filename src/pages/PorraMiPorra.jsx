@@ -35,7 +35,12 @@ export default function PorraMiPorra() {
   const ultimoPorcentajeRef = useRef(null);
 
   useEffect(() => {
-    const pct = participante?.porcentaje_completado || 0;
+    // No hacer nada hasta que tengamos un participante REAL cargado.
+    // Sin esta guarda, la primera pasada (participante=null → pct=0) inicializaba
+    // ultimoPorcentajeRef a 0 y, al llegar el participante ya completado (100%),
+    // disparaba el modal de "porra completada" indebidamente al abrir.
+    if (!participante) return;
+    const pct = participante.porcentaje_completado || 0;
     const prev = ultimoPorcentajeRef.current;
     // Detectar transición a 100% (no mostrar si ya entró completada)
     if (pct === 100 && prev !== null && prev < 100 && !completadaMostradaRef.current) {
@@ -43,7 +48,7 @@ export default function PorraMiPorra() {
       completadaMostradaRef.current = true;
     }
     ultimoPorcentajeRef.current = pct;
-  }, [participante?.porcentaje_completado]);
+  }, [participante]);
 
   if (loading) {
     return (
