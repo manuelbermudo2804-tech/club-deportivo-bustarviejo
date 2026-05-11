@@ -33,7 +33,6 @@ export default function CreditUsage() {
         { name: "🏆 Porra: bloqueo automático", group: "Porra", freq: "cada hora", runsPerDay: 24, emailsInside: false },
         { name: "🏆 Porra: recordatorios diarios", group: "Porra", freq: "diario 8:00", runsPerDay: 1, emailsInside: true },
         // Telegram (publicaciones automáticas)
-        { name: "📢 Publicador Telegram programado", group: "Telegram", freq: "cada 5 min", runsPerDay: 288, emailsInside: false },
         { name: "📊 Auto-publicar Clasificaciones", group: "Telegram", freq: "lunes 10:00", runsPerDay: 1/7, emailsInside: false },
         { name: "📣 Partidos del Finde", group: "Telegram", freq: "viernes 18:00", runsPerDay: 1/7, emailsInside: false },
         { name: "📊 Resultados del Finde", group: "Telegram", freq: "domingo 21:30", runsPerDay: 1/7, emailsInside: false },
