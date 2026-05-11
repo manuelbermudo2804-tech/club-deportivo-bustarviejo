@@ -37,13 +37,20 @@ export default function PorraMiPorra() {
   useEffect(() => {
     if (!participante) return;
     const pct = participante.porcentaje_completado || 0;
+    const storageKey = token ? `porra_completada_vista_${token}` : null;
 
-    // PRIMERA vez que recibimos al participante: solo registrar el porcentaje inicial.
-    // Si ya viene al 100%, marcar como "ya mostrada" para que nunca se dispare al abrir
-    // una porra que ya estaba completada en sesiones anteriores.
+    // PRIMERA vez que recibimos al participante en esta sesión: solo registrar.
     if (ultimoPorcentajeRef.current === null) {
       ultimoPorcentajeRef.current = pct;
-      if (pct === 100) completadaMostradaRef.current = true;
+      // Si ya viene al 100% o ya se mostró antes (localStorage), marcar como vista
+      // para que nunca se dispare al abrir una porra ya completada.
+      const yaVistoAntes = storageKey && localStorage.getItem(storageKey) === '1';
+      if (pct === 100 || yaVistoAntes) {
+        completadaMostradaRef.current = true;
+        if (pct === 100 && storageKey) {
+          try { localStorage.setItem(storageKey, '1'); } catch {}
+        }
+      }
       return;
     }
 
@@ -52,9 +59,12 @@ export default function PorraMiPorra() {
     if (pct === 100 && prev < 100 && !completadaMostradaRef.current) {
       setShowCompletada(true);
       completadaMostradaRef.current = true;
+      if (storageKey) {
+        try { localStorage.setItem(storageKey, '1'); } catch {}
+      }
     }
     ultimoPorcentajeRef.current = pct;
-  }, [participante]);
+  }, [participante, token]);
 
   if (loading) {
     return (
