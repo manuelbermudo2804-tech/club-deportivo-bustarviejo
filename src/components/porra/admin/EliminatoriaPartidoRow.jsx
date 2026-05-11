@@ -13,10 +13,13 @@ export default function EliminatoriaPartidoRow({ partido, equipos, equiposUsados
 
   const equiposOrdenados = [...equipos].sort((a, b) => a.nombre.localeCompare(b.nombre));
 
-  // Filtrar equipos ya usados en otros partidos de la misma fase (excepto los del partido actual)
+  // Filtrar equipos ya usados en OTROS partidos de la misma fase
+  // (siempre permitir los dos equipos del partido actual)
   const getOpciones = (codigoActual) => {
+    const codigosPartidoActual = new Set([local.equipo_local_codigo, local.equipo_visitante_codigo].filter(Boolean));
     return equiposOrdenados.filter(eq => {
-      if (eq.codigo === codigoActual) return true; // siempre permitir el que ya está seleccionado
+      if (eq.codigo === codigoActual) return true;
+      if (codigosPartidoActual.has(eq.codigo)) return false; // el otro equipo del mismo partido
       return !equiposUsadosEnFase.has(eq.codigo);
     });
   };
