@@ -19,9 +19,9 @@ export default function PorraExito() {
     cargarParticipante();
   }, []);
 
-  // Poll suave por si el webhook tarda
+  // Poll suave por si el webhook tarda — hasta 15 intentos (30s)
   useEffect(() => {
-    if (!loading && participante?.estado_pago !== 'pagado' && intentos < 5) {
+    if (!loading && participante?.estado_pago !== 'pagado' && intentos < 15) {
       const t = setTimeout(() => {
         setIntentos(i => i + 1);
         cargarParticipante();
@@ -108,12 +108,27 @@ export default function PorraExito() {
           </div>
 
           <CardContent className="p-6 md:p-8 space-y-5">
-            {!isPagado && (
+            {!isPagado && intentos < 15 && (
               <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 text-center">
                 <Loader2 className="w-6 h-6 mx-auto animate-spin text-yellow-600 mb-2" />
                 <p className="text-sm text-yellow-900 font-medium">
                   El pago se está procesando. Esto puede tardar unos segundos. Si pagaste correctamente, recibirás un email en breve.
                 </p>
+                <p className="text-xs text-yellow-700 mt-1">Intento {intentos + 1}/15...</p>
+              </div>
+            )}
+            {!isPagado && intentos >= 15 && (
+              <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4 text-center">
+                <p className="text-sm text-orange-900 font-bold mb-2">⏳ Confirmación pendiente</p>
+                <p className="text-sm text-orange-800">
+                  El pago tarda más de lo normal en confirmarse. <strong>Revisa tu email en unos minutos</strong>: cuando se procese, recibirás un enlace mágico para acceder a tu porra.
+                </p>
+                <p className="text-xs text-orange-700 mt-2">
+                  Si en 10 minutos no recibes el email, escribe a <a href="mailto:info@cdbustarviejo.com" className="underline font-bold">info@cdbustarviejo.com</a>
+                </p>
+                <Button onClick={() => { setIntentos(0); cargarParticipante(); }} variant="outline" size="sm" className="mt-3">
+                  Reintentar comprobación
+                </Button>
               </div>
             )}
 

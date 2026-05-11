@@ -16,13 +16,21 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Faltan datos obligatorios' }, { status: 400 });
     }
 
-    const codigoLimpio = codigo.trim().toUpperCase();
+    const codigoLimpio = String(codigo).trim().toUpperCase();
+    // Validar formato del código (6 chars alfanum, sin ambiguos) — previene queries con basura
+    if (!/^[A-Z0-9]{6}$/.test(codigoLimpio)) {
+      return Response.json({ error: 'Código de liga inválido (deben ser 6 caracteres)' }, { status: 400 });
+    }
 
     // Verificar participante
     const participantes = await base44.asServiceRole.entities.PorraParticipante.filter({ token_acceso });
     const participante = participantes[0];
     if (!participante) {
       return Response.json({ error: 'Participante no encontrado' }, { status: 404 });
+    }
+    // CRÍTICO: solo participantes con pago confirmado pueden unirse a ligas
+    if (participante.estado_pago !== 'pagado') {
+      return Response.json({ error: 'Debes completar el pago antes de unirte a una liga' }, { status: 403 });
     }
 
     // Buscar la liga

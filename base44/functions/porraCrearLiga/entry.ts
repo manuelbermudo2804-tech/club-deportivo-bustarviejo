@@ -25,9 +25,15 @@ Deno.serve(async (req) => {
     if (!token_acceso || !nombre) {
       return Response.json({ error: 'Faltan datos obligatorios' }, { status: 400 });
     }
-    if (nombre.length < 3 || nombre.length > 40) {
+    const nombreLimpio = String(nombre).trim();
+    if (nombreLimpio.length < 3 || nombreLimpio.length > 40) {
       return Response.json({ error: 'El nombre debe tener entre 3 y 40 caracteres' }, { status: 400 });
     }
+    if (/[<>"`]/.test(nombreLimpio)) {
+      return Response.json({ error: 'El nombre contiene caracteres no permitidos' }, { status: 400 });
+    }
+    // Límite: máximo 5 ligas creadas por participante (anti-spam)
+    const MAX_LIGAS_CREADAS = 5;
 
     // Verificar participante
     const participantes = await base44.asServiceRole.entities.PorraParticipante.filter({ token_acceso });
@@ -37,6 +43,12 @@ Deno.serve(async (req) => {
     }
     if (participante.estado_pago !== 'pagado') {
       return Response.json({ error: 'Debes completar el pago primero' }, { status: 403 });
+    }
+
+    // Anti-spam: comprobar cuántas ligas ha creado ya este email
+    const ligasCreadas = await base44.asServiceRole.entities.PorraLiga.filter({ creador_email: participante.email });
+    if (ligasCreadas.length >= MAX_LIGAS_CREADAS) {
+      return Response.json({ error: `Has alcanzado el máximo de ${MAX_LIGAS_CREADAS} ligas creadas.` }, { status: 429 });
     }
 
     // Generar código único (reintenta hasta 5 veces si colisiona)
@@ -52,9 +64,9 @@ Deno.serve(async (req) => {
 
     // Crear liga
     const liga = await base44.asServiceRole.entities.PorraLiga.create({
-      nombre: nombre.trim(),
+      nombre: nombreLimpio,
       codigo,
-      descripcion: descripcion?.trim() || '',
+      descripcion: (descripcion ? String(descripcion).trim().slice(0, 200) : ''),
       creador_email: participante.email,
       creador_nombre: participante.nombre,
       participantes_emails: [participante.email],

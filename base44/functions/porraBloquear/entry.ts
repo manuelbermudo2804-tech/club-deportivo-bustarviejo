@@ -25,28 +25,35 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.PorraConfig.update(config.id, { estado: 'cerrada' });
     }
 
-    // Bloquear todas las porras pagadas que aún no estén bloqueadas
+    // Bloquear TODAS las porras pagadas (no solo las "bloqueada=false")
+    // Esto cubre el caso de que un cron previo fallara y dejó algunas sin bloquear.
     const participantes = await base44.asServiceRole.entities.PorraParticipante.filter({
       estado_pago: 'pagado',
-      bloqueada: false,
     });
 
     const fechaBloqueo = new Date().toISOString();
     let bloqueados = 0;
+    const errores = [];
 
-    for (const p of participantes) {
-      try {
-        await base44.asServiceRole.entities.PorraParticipante.update(p.id, {
-          bloqueada: true,
-          fecha_bloqueo: fechaBloqueo,
-        });
-        bloqueados++;
-      } catch (e) {
-        console.error('Error bloqueando', p.id, e.message);
-      }
+    // Procesar en paralelo en lotes de 10 (más rápido que secuencial)
+    const BATCH = 10;
+    for (let i = 0; i < participantes.length; i += BATCH) {
+      const slice = participantes.slice(i, i + BATCH);
+      await Promise.all(slice.map(async (p) => {
+        if (p.bloqueada) return; // ya bloqueado, saltar
+        try {
+          await base44.asServiceRole.entities.PorraParticipante.update(p.id, {
+            bloqueada: true,
+            fecha_bloqueo: fechaBloqueo,
+          });
+          bloqueados++;
+        } catch (e) {
+          errores.push({ id: p.id, error: e.message });
+        }
+      }));
     }
 
-    return Response.json({ success: true, bloqueados, total: participantes.length });
+    return Response.json({ success: true, bloqueados, total: participantes.length, errores: errores.length });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

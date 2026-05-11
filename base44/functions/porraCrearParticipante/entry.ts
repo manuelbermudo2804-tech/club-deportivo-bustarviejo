@@ -54,10 +54,16 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Validar alias único (entre los pagados o pendientes)
-    const existingAlias = await base44.asServiceRole.entities.PorraParticipante.filter({ alias_equipo });
-    if (existingAlias.length > 0) {
+    // Validar alias único — case-insensitive (España == españa == ESPAÑA)
+    const aliasNormalizado = alias_equipo.trim().toLowerCase();
+    const allParts = await base44.asServiceRole.entities.PorraParticipante.list('', 5000);
+    const aliasColisiona = allParts.some(p => (p.alias_equipo || '').trim().toLowerCase() === aliasNormalizado);
+    if (aliasColisiona) {
       return Response.json({ error: 'Ese alias ya está cogido. Elige otro.' }, { status: 409 });
+    }
+    // Bloquear caracteres raros / inyección visual
+    if (/[<>"`]/.test(alias_equipo)) {
+      return Response.json({ error: 'El alias contiene caracteres no permitidos' }, { status: 400 });
     }
 
     // Límite de porras por email
