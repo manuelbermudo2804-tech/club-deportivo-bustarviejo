@@ -20,39 +20,56 @@ const ALLOWED_FIELDS = new Set([
   'porcentaje_completado',
 ]);
 
-// Email premium "¡Porra completada al 100%!"
+// Email premium "¡Porra completada al 100%!" — botones bulletproof (tabla) compatibles con Outlook/Gmail/Apple Mail
 function emailCompletadaHtml({ nombre, alias, enlace, enlaceRanking }) {
   const aliasSafe = String(alias || 'tu equipo').replace(/[<>]/g, '');
   const nombreSafe = String(nombre || 'Participante').replace(/[<>]/g, '');
-  return `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:0;background:#f1f5f9">
-<div style="max-width:600px;margin:0 auto;background:#ffffff">
-<div style="background:linear-gradient(135deg,#16a34a,#15803d);padding:40px 24px;text-align:center">
-<div style="font-size:64px;margin-bottom:8px">🎉</div>
-<h1 style="color:#ffffff;margin:0;font-size:26px;font-weight:900">¡Porra completada al 100%!</h1>
-<p style="color:rgba(255,255,255,0.95);margin:8px 0 0;font-size:14px">Mundial 2026 · CD Bustarviejo</p>
-</div>
-<div style="padding:28px 24px">
+  // Botones tipo "bulletproof button" (tablas con bgcolor) — el estándar que SÍ se ve en todos los clientes
+  const btn = (href, bg, label) => `
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:8px auto">
+  <tr>
+    <td align="center" bgcolor="${bg}" style="border-radius:10px;background-color:${bg}">
+      <a href="${href}" target="_blank" style="display:inline-block;padding:14px 30px;font-family:Arial,sans-serif;font-size:15px;font-weight:bold;color:#ffffff;text-decoration:none;border-radius:10px;background-color:${bg};mso-padding-alt:0">
+        ${label}
+      </a>
+    </td>
+  </tr>
+</table>`;
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="font-family:Arial,'Segoe UI',sans-serif;margin:0;padding:0;background:#f1f5f9">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#f1f5f9">
+<tr><td align="center" style="padding:20px 10px">
+<table role="presentation" width="600" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background:#ffffff;border-radius:12px;overflow:hidden">
+<tr><td style="background:#16a34a;padding:40px 24px;text-align:center">
+<div style="font-size:56px;margin-bottom:8px;line-height:1">🎉</div>
+<h1 style="color:#ffffff;margin:0;font-size:24px;font-weight:900">¡Porra completada al 100%!</h1>
+<p style="color:#dcfce7;margin:8px 0 0;font-size:14px">Mundial 2026 · CD Bustarviejo</p>
+</td></tr>
+<tr><td style="padding:28px 24px">
 <p style="margin:0 0 16px;font-size:16px;color:#1e293b">¡Enhorabuena <strong>${nombreSafe}</strong>! 🏆</p>
 <p style="margin:0 0 16px;font-size:15px;color:#475569;line-height:1.6">Has rellenado todas las predicciones de tu equipo <strong style="color:#16a34a">${aliasSafe}</strong>. Ya solo queda esperar a que ruede el balón.</p>
-<div style="background:linear-gradient(135deg,#dcfce7,#bbf7d0);border:2px solid #22c55e;border-radius:12px;padding:18px;margin:20px 0;text-align:center">
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#dcfce7;border:2px solid #22c55e;border-radius:12px;margin:20px 0">
+<tr><td style="padding:16px;text-align:center">
 <p style="margin:0;font-size:14px;color:#14532d;font-weight:700">✅ Todas las predicciones guardadas</p>
 <p style="margin:6px 0 0;font-size:12px;color:#166534">Puedes seguir editándolas hasta el cierre del plazo</p>
-</div>
-<div style="text-align:center;margin:24px 0">
-<a href="${enlace}" style="display:inline-block;background:linear-gradient(135deg,#16a34a,#15803d);color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:900;font-size:15px;margin:4px">
-🔧 Revisar mi porra
-</a>
-<a href="${enlaceRanking}" style="display:inline-block;background:linear-gradient(135deg,#ea580c,#dc2626);color:#ffffff;text-decoration:none;padding:14px 28px;border-radius:10px;font-weight:900;font-size:15px;margin:4px">
-🏆 Ver ranking
-</a>
-</div>
+</td></tr></table>
+<p style="margin:24px 0 8px;font-size:14px;color:#1e293b;text-align:center;font-weight:bold">Tus accesos rápidos:</p>
+${btn(enlace, '#16a34a', '🔧 Revisar mi porra')}
+${btn(enlaceRanking, '#ea580c', '🏆 Ver ranking')}
+<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;margin:20px 0 0">
+<tr><td style="padding:12px">
+<p style="margin:0;font-size:12px;color:#1e3a8a;line-height:1.5">
+<strong>💡 Consejo:</strong> guarda este email o añade <strong>"Mi porra"</strong> a los favoritos / pantalla de inicio de tu móvil. Así podrás volver fácilmente durante todo el Mundial.
+</p>
+</td></tr></table>
 <p style="margin:20px 0 0;font-size:13px;color:#64748b">¡Mucha suerte! 🍀</p>
-<p style="margin:8px 0 0;font-size:13px;color:#64748b"><strong>CD Bustarviejo</strong></p>
-</div>
-<div style="background:#1e293b;padding:18px;text-align:center;color:#94a3b8;font-size:11px">
+<p style="margin:4px 0 0;font-size:13px;color:#64748b"><strong>CD Bustarviejo</strong></p>
+</td></tr>
+<tr><td style="background:#1e293b;padding:16px;text-align:center;color:#94a3b8;font-size:11px">
 <p style="margin:0">© ${new Date().getFullYear()} CD Bustarviejo · Porra Mundial 2026</p>
-</div>
-</div></body></html>`;
+</td></tr>
+</table>
+</td></tr></table>
+</body></html>`;
 }
 
 Deno.serve(async (req) => {

@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Trophy, ArrowLeft, Loader2, ShieldCheck, Heart, Mail } from "lucide-react";
 import { toast } from "sonner";
+import PorraMiniLigaInfo from "@/components/porra/PorraMiniLigaInfo";
 
 // Página pública para crear una porra: formulario + pago Stripe
 export default function PorraCrear() {
@@ -201,7 +202,8 @@ export default function PorraCrear() {
                     maxLength={6}
                     className="mt-1 font-mono uppercase"
                   />
-                  <p className="text-xs text-slate-500 mt-1">¿Tienes un código de una peña? Únete</p>
+                  <p className="text-xs text-slate-500 mt-1">¿Tienes un código de una peña? Pégalo aquí. Si no, déjalo vacío.</p>
+                  <PorraMiniLigaInfo />
                 </div>
               )}
 

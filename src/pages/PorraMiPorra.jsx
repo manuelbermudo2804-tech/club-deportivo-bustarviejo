@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Trophy, Loader2, Lock, AlertCircle, CheckCircle2, Save, Clock, Home } from "lucide-react";
+import { Trophy, Loader2, Lock, AlertCircle, CheckCircle2, Save, Clock, Home, Pencil } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import usePorraEditor from "@/components/porra/editor/usePorraEditor";
 import EditorGrupos from "@/components/porra/editor/EditorGrupos";
@@ -11,6 +11,7 @@ import EditorMejoresTerceros from "@/components/porra/editor/EditorMejoresTercer
 import EditorBracket from "@/components/porra/editor/EditorBracket";
 import EditorEspeciales from "@/components/porra/editor/EditorEspeciales";
 import MiniLigasManager from "@/components/porra/ligas/MiniLigasManager";
+import PorraCompletadaModal from "@/components/porra/PorraCompletadaModal";
 
 // Hub principal del editor de porra
 // Lee ?token=XXX de la URL y muestra los 3 editores (grupos, bracket, especiales)
@@ -26,6 +27,23 @@ export default function PorraMiPorra() {
     setEliminatoriaGanador, setEspecial, setMejoresTerceros,
     refrescar, flushGuardado,
   } = usePorraEditor(token);
+
+  // Pantalla de éxito al llegar al 100% por primera vez (en esta sesión)
+  const [showCompletada, setShowCompletada] = useState(false);
+  const [tabActiva, setTabActiva] = useState('grupos');
+  const completadaMostradaRef = useRef(false);
+  const ultimoPorcentajeRef = useRef(null);
+
+  useEffect(() => {
+    const pct = participante?.porcentaje_completado || 0;
+    const prev = ultimoPorcentajeRef.current;
+    // Detectar transición a 100% (no mostrar si ya entró completada)
+    if (pct === 100 && prev !== null && prev < 100 && !completadaMostradaRef.current) {
+      setShowCompletada(true);
+      completadaMostradaRef.current = true;
+    }
+    ultimoPorcentajeRef.current = pct;
+  }, [participante?.porcentaje_completado]);
 
   if (loading) {
     return (
@@ -126,12 +144,15 @@ export default function PorraMiPorra() {
           </Card>
         )}
 
-        {/* Estado mini-resumen */}
-        <div className="grid grid-cols-4 gap-2">
-          <StatusCard ok={participante.completado_grupos} label="Grupos" icon="⚽" />
-          <StatusCard ok={participante.completado_terceros} label="Terceros" icon="🥉" />
-          <StatusCard ok={participante.completado_bracket} label="Bracket" icon="🏆" />
-          <StatusCard ok={participante.completado_especiales} label="Especiales" icon="⭐" />
+        {/* Estado mini-resumen — SOLO INFORMATIVO (no clickable) */}
+        <div>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 text-center">Estado de tu porra</p>
+          <div className="grid grid-cols-4 gap-2">
+            <StatusCard ok={participante.completado_grupos} label="Grupos" icon="⚽" />
+            <StatusCard ok={participante.completado_terceros} label="Terceros" icon="🥉" />
+            <StatusCard ok={participante.completado_bracket} label="Bracket" icon="🏆" />
+            <StatusCard ok={participante.completado_especiales} label="Especiales" icon="⭐" />
+          </div>
         </div>
 
         {/* Acceso rápido al ranking */}
@@ -152,14 +173,20 @@ export default function PorraMiPorra() {
           </Button>
         </div>
 
-        {/* Tabs editor */}
-        <Tabs defaultValue="grupos" onValueChange={() => { flushGuardado && flushGuardado(); }}>
-          <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-slate-200">
-            <TabsTrigger value="grupos" className="py-2 text-[10px] md:text-sm font-bold">⚽ Grupos</TabsTrigger>
-            <TabsTrigger value="terceros" className="py-2 text-[10px] md:text-sm font-bold">🥉 Terceros</TabsTrigger>
-            <TabsTrigger value="bracket" className="py-2 text-[10px] md:text-sm font-bold">🏆 Bracket</TabsTrigger>
-            <TabsTrigger value="especiales" className="py-2 text-[10px] md:text-sm font-bold">⭐ Especiales</TabsTrigger>
-            <TabsTrigger value="ligas" className="py-2 text-[10px] md:text-sm font-bold">👥 Ligas</TabsTrigger>
+        {/* Indicador visual de dónde se edita */}
+        <div className="bg-gradient-to-r from-orange-100 to-red-100 border-2 border-orange-300 rounded-xl px-3 py-2 flex items-center gap-2 text-sm font-bold text-orange-900 shadow-sm">
+          <Pencil className="w-4 h-4 text-orange-600" />
+          <span>👇 Pulsa una pestaña para editar tus predicciones</span>
+        </div>
+
+        {/* Tabs editor — visualmente destacadas y diferenciadas de las StatusCards de arriba */}
+        <Tabs value={tabActiva} onValueChange={(v) => { flushGuardado && flushGuardado(); setTabActiva(v); }}>
+          <TabsList className="grid w-full grid-cols-5 h-auto p-1.5 bg-gradient-to-r from-slate-800 to-slate-900 shadow-lg rounded-xl">
+            <TabsTrigger value="grupos" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">⚽ Grupos</TabsTrigger>
+            <TabsTrigger value="terceros" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">🥉 Terceros</TabsTrigger>
+            <TabsTrigger value="bracket" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">🏆 Bracket</TabsTrigger>
+            <TabsTrigger value="especiales" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">⭐ Especiales</TabsTrigger>
+            <TabsTrigger value="ligas" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">👥 Ligas</TabsTrigger>
           </TabsList>
 
           <TabsContent value="grupos" className="mt-4">
@@ -215,6 +242,15 @@ export default function PorraMiPorra() {
           💾 <strong>Auto-guardado activado.</strong> Tus cambios se guardan solos cada pocos segundos.
         </div>
       </div>
+
+      {/* Modal de éxito al completar el 100% */}
+      <PorraCompletadaModal
+        open={showCompletada}
+        onOpenChange={setShowCompletada}
+        participante={participante}
+        token={token}
+        onIrAMiniLigas={() => setTabActiva('ligas')}
+      />
     </div>
   );
 }

@@ -7,6 +7,7 @@ import PorraHeroLanding from "@/components/porra/PorraHeroLanding";
 import PorraComoFunciona from "@/components/porra/PorraComoFunciona";
 import PorraGruposPreview from "@/components/porra/PorraGruposPreview";
 import PorraVolverAppButton from "@/components/porra/PorraVolverAppButton";
+import PorraEmailMagicoInfo from "@/components/porra/PorraEmailMagicoInfo";
 
 // Landing pública de la Porra Mundial 2026
 // Accesible vía /Porra sin login
@@ -95,6 +96,7 @@ export default function Porra() {
         totalParticipantes={stats.participantes}
         bote={stats.bote}
       />
+      <PorraEmailMagicoInfo />
       <PorraComoFunciona config={config} />
       <PorraGruposPreview equipos={equipos} />
 

@@ -134,23 +134,30 @@ export default function usePorraEditor(token) {
   }, [flushGuardado]);
 
   // Helpers de modificación
+  // ⚠️ IMPORTANTE: usar participanteRef.current (no participante) para evitar STALE CLOSURES.
+  // Sin esto, toques rápidos en móvil pueden hacer que una predicción pise a otra
+  // → causa el bug del "95%" (faltan predicciones sin que el usuario lo sepa).
   const setResultadoGrupo = (partidoId, resultado) => {
-    const nuevo = { ...(participante.predicciones_grupos || {}), [partidoId]: resultado };
+    const actual = participanteRef.current?.predicciones_grupos || {};
+    const nuevo = { ...actual, [partidoId]: resultado };
     guardarDebounced({ predicciones_grupos: nuevo });
   };
 
   const setClasificacionGrupo = (grupo, ordenCodigos) => {
-    const nuevo = { ...(participante.clasificacion_grupos || {}), [grupo]: ordenCodigos };
+    const actual = participanteRef.current?.clasificacion_grupos || {};
+    const nuevo = { ...actual, [grupo]: ordenCodigos };
     guardarDebounced({ clasificacion_grupos: nuevo });
   };
 
   const setEliminatoriaGanador = (partidoId, codigoGanador) => {
-    const nuevo = { ...(participante.predicciones_eliminatorias || {}), [partidoId]: codigoGanador };
+    const actual = participanteRef.current?.predicciones_eliminatorias || {};
+    const nuevo = { ...actual, [partidoId]: codigoGanador };
     guardarDebounced({ predicciones_eliminatorias: nuevo });
   };
 
   const setEspecial = (tipo, codigoEquipo) => {
-    const nuevo = { ...(participante.predicciones_especiales || {}), [tipo]: codigoEquipo };
+    const actual = participanteRef.current?.predicciones_especiales || {};
+    const nuevo = { ...actual, [tipo]: codigoEquipo };
     guardarDebounced({ predicciones_especiales: nuevo });
   };
 
