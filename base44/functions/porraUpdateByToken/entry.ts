@@ -111,6 +111,7 @@ Deno.serve(async (req) => {
 
     // Si la porra acaba de llegar al 100% por primera vez → enviar email de celebración
     // ⚠️ Saltar envío de email si la porra está en MODO TEST (ahorra créditos durante pruebas)
+    // ✉️ Enviamos vía Resend directo (no consume créditos de integración Base44)
     const llegaA100 = safeUpdates.porcentaje_completado === 100 && (participante.porcentaje_completado || 0) < 100;
     if (llegaA100 && !participante.email_completado_enviado) {
       try {
@@ -118,23 +119,37 @@ Deno.serve(async (req) => {
         const modoTest = !!configs[0]?.modo_test;
         if (modoTest) {
           console.log('[porraUpdateByToken] MODO TEST: email 100% omitido para ahorrar créditos.');
-          // Marcamos igualmente para que no vuelva a intentar enviarlo
           await base44.asServiceRole.entities.PorraParticipante.update(participante.id, { email_completado_enviado: true });
         } else {
           const baseUrl = req.headers.get('origin') || 'https://app.cdbustarviejo.com';
           const enlace = `${baseUrl}/PorraMiPorra?token=${participante.token_acceso}`;
           const enlaceRanking = `${baseUrl}/PorraRanking?token=${participante.token_acceso}`;
-          await base44.asServiceRole.integrations.Core.SendEmail({
-            to: participante.email,
-            subject: `🎉 ¡Tu porra "${participante.alias_equipo}" está al 100%! — Mundial 2026`,
-            body: emailCompletadaHtml({
+          const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+          if (RESEND_API_KEY) {
+            const html = emailCompletadaHtml({
               nombre: participante.nombre,
               alias: participante.alias_equipo,
               enlace,
               enlaceRanking,
-            }),
-          });
-          await base44.asServiceRole.entities.PorraParticipante.update(participante.id, { email_completado_enviado: true });
+            });
+            const resp = await fetch('https://api.resend.com/emails', {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                from: 'CD Bustarviejo <noreply@cdbustarviejo.com>',
+                to: [participante.email],
+                subject: `🎉 ¡Tu porra "${participante.alias_equipo}" está al 100%! — Mundial 2026`,
+                html,
+              }),
+            });
+            if (resp.ok) {
+              await base44.asServiceRole.entities.PorraParticipante.update(participante.id, { email_completado_enviado: true });
+            } else {
+              console.error('[porraUpdateByToken] Resend error:', resp.status, await resp.text());
+            }
+          } else {
+            console.warn('[porraUpdateByToken] RESEND_API_KEY no configurada — no se envía email 100%');
+          }
         }
       } catch (emailErr) {
         console.error('[porraUpdateByToken] Error enviando email 100%:', emailErr?.message || emailErr);

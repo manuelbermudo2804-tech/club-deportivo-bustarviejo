@@ -691,25 +691,45 @@ Deno.serve(async (req) => {
 </div>
 </div></body></html>`;
 
-            try {
-              await base44.asServiceRole.integrations.Core.SendEmail({
-                to: payerEmail,
-                subject: `🏆 ¡Estás en la Porra del Mundial 2026! Tu enlace mágico dentro`,
-                body: emailHtml,
-              });
-              console.log('[stripe-webhook] Porra: email mágico enviado a', payerEmail);
-            } catch (emailErr) {
-              console.error('[stripe-webhook] Error email porra:', emailErr?.message || emailErr);
-            }
+            // ✉️ Resend directo (NO consume créditos de integración Base44)
+            const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+            if (RESEND_API_KEY) {
+              try {
+                const r1 = await fetch('https://api.resend.com/emails', {
+                  method: 'POST',
+                  headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    from: 'CD Bustarviejo <noreply@cdbustarviejo.com>',
+                    to: [payerEmail],
+                    subject: `🏆 ¡Estás en la Porra del Mundial 2026! Tu enlace mágico dentro`,
+                    html: emailHtml,
+                  }),
+                });
+                if (r1.ok) {
+                  console.log('[stripe-webhook] Porra: email mágico enviado vía Resend a', payerEmail);
+                } else {
+                  console.error('[stripe-webhook] Resend error porra:', r1.status, await r1.text());
+                }
+              } catch (emailErr) {
+                console.error('[stripe-webhook] Error email porra:', emailErr?.message || emailErr);
+              }
 
-            // Notificar al admin
-            try {
-              await base44.asServiceRole.integrations.Core.SendEmail({
-                to: 'info@cdbustarviejo.com',
-                subject: `🏆 Nueva porra: ${aliasSafe} (${amountPaid}€)`,
-                body: `Nueva participante en la Porra Mundial 2026:\n\nNombre: ${nombreSafe}\nAlias: ${aliasSafe}\nEmail: ${payerEmail}\nImporte: ${amountPaid}€\nID: ${metadata.participante_id}`,
-              });
-            } catch {}
+              // Notificar al admin (también vía Resend)
+              try {
+                await fetch('https://api.resend.com/emails', {
+                  method: 'POST',
+                  headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    from: 'CD Bustarviejo <noreply@cdbustarviejo.com>',
+                    to: ['info@cdbustarviejo.com'],
+                    subject: `🏆 Nueva porra: ${aliasSafe} (${amountPaid}€)`,
+                    html: `<p>Nueva participante en la Porra Mundial 2026:</p><ul><li><strong>Nombre:</strong> ${nombreSafe}</li><li><strong>Alias:</strong> ${aliasSafe}</li><li><strong>Email:</strong> ${payerEmail}</li><li><strong>Importe:</strong> ${amountPaid}€</li><li><strong>ID:</strong> ${metadata.participante_id}</li></ul>`,
+                  }),
+                });
+              } catch {}
+            } else {
+              console.warn('[stripe-webhook] Porra: RESEND_API_KEY no configurada');
+            }
           } catch (e) {
             console.error('[stripe-webhook] Error procesando Porra:', e?.message || e);
           }

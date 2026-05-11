@@ -70,13 +70,23 @@ Deno.serve(async (req) => {
       return Response.json({ skip: true, reason: `No es día de recordatorio (faltan ${diasRestantes})` });
     }
 
+    // En modo test no enviamos recordatorios (ahorra créditos)
+    if (config.modo_test) {
+      return Response.json({ skip: true, reason: 'Modo test activo: no se envían recordatorios' });
+    }
+
     const participantes = await base44.asServiceRole.entities.PorraParticipante.filter({ estado_pago: 'pagado' });
     const incompletos = participantes.filter(p => (p.porcentaje_completado || 0) < 100);
 
     const baseUrl = 'https://app.cdbustarviejo.com';
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+    if (!RESEND_API_KEY) {
+      return Response.json({ error: 'RESEND_API_KEY no configurada' }, { status: 500 });
+    }
     let enviados = 0;
     const errores = [];
 
+    // ✉️ Resend directo: NO consume créditos de integración Base44
     for (const p of incompletos) {
       try {
         const enlace = `${baseUrl}/PorraMiPorra?token=${p.token_acceso}`;
@@ -87,12 +97,21 @@ Deno.serve(async (req) => {
           diasRestantes,
           enlace,
         });
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: p.email,
-          subject: `⏰ Tu porra está al ${p.porcentaje_completado || 0}% — ${diasRestantes === 1 ? '¡ÚLTIMO DÍA!' : `quedan ${diasRestantes} días`}`,
-          body: html,
+        const resp = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            from: 'CD Bustarviejo <noreply@cdbustarviejo.com>',
+            to: [p.email],
+            subject: `⏰ Tu porra está al ${p.porcentaje_completado || 0}% — ${diasRestantes === 1 ? '¡ÚLTIMO DÍA!' : `quedan ${diasRestantes} días`}`,
+            html,
+          }),
         });
-        enviados++;
+        if (resp.ok) {
+          enviados++;
+        } else {
+          errores.push({ id: p.id, error: `Resend ${resp.status}` });
+        }
       } catch (e) {
         errores.push({ id: p.id, error: e.message });
       }
