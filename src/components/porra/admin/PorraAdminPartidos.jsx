@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { RefreshCw, Save } from "lucide-react";
 import { toast } from "sonner";
+import EliminatoriaPartidoRow from "@/components/porra/admin/EliminatoriaPartidoRow";
 
 const GRUPOS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
@@ -134,18 +135,34 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpda
           </TabsContent>
 
           <TabsContent value="elimi" className="mt-4">
+            <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 mb-4 text-sm">
+              <p className="font-bold text-blue-900 mb-1">📋 Cómo rellenar las eliminatorias</p>
+              <p className="text-blue-800 text-xs leading-relaxed">
+                1️⃣ Al acabar la fase de grupos, asigna en cada partido de <strong>16avos</strong> los dos equipos clasificados (usa los desplegables).<br/>
+                2️⃣ Tras cada partido eliminatorio, pulsa <strong>1</strong> (gana local), <strong>X</strong> (penaltis/empate) o <strong>2</strong> (gana visitante). El ganador se guarda automáticamente.<br/>
+                3️⃣ Repite el paso 1 con los ganadores en <strong>8vos</strong>, <strong>cuartos</strong>, <strong>semis</strong>, <strong>tercer puesto</strong> y <strong>final</strong>.
+              </p>
+            </div>
             <div className="space-y-4">
               {['16avos', '8vos', '4tos', 'semis', 'tercer_puesto', 'final'].map(fase => {
                 const ps = elimi.filter(p => p.fase === fase).sort((a, b) => a.numero_partido - b.numero_partido);
                 if (ps.length === 0) return null;
+                const titulos = {
+                  '16avos': '16avos de final',
+                  '8vos': 'Octavos de final',
+                  '4tos': 'Cuartos de final',
+                  'semis': 'Semifinales',
+                  'tercer_puesto': '🥉 Tercer puesto',
+                  'final': '🏆 Final',
+                };
                 return (
-                  <div key={fase} className="border rounded-xl overflow-hidden">
-                    <div className="bg-slate-800 text-white px-3 py-2 font-bold uppercase">
-                      {fase} ({ps.length})
+                  <div key={fase} className="border-2 rounded-xl overflow-hidden">
+                    <div className="bg-slate-800 text-white px-3 py-2 font-bold">
+                      {titulos[fase]} ({ps.length})
                     </div>
-                    <div className="divide-y">
+                    <div>
                       {ps.map(p => (
-                        <ResultadoBotones key={p.id} partido={p} equipos={equipos} onChange={handleResultado} />
+                        <EliminatoriaPartidoRow key={p.id} partido={p} equipos={equipos} onUpdate={onUpdate} />
                       ))}
                     </div>
                   </div>
