@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,20 @@ const GRUPOS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 export default function EditorGrupos({ participante, partidos, equipos, isBlocked, onSetResultado, onSetClasificacion }) {
   const [expandido, setExpandido] = useState(GRUPOS[0]);
   const [stats, setStats] = useState(null);
+  const grupoRefs = useRef({});
+
+  // Al cambiar de grupo expandido, hacer scroll suave a la cabecera del nuevo grupo
+  // para que los partidos se vean desde el principio (no desde el final)
+  useEffect(() => {
+    if (!expandido) return;
+    const el = grupoRefs.current[expandido];
+    if (el) {
+      // Pequeño retardo para esperar a que el contenido se renderice
+      setTimeout(() => {
+        el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
+  }, [expandido]);
 
   // Cargar stats globales una vez al abrir el editor (cacheado 5 min)
   useEffect(() => {
@@ -87,7 +101,11 @@ export default function EditorGrupos({ participante, partidos, equipos, isBlocke
         const isOpen = expandido === g;
 
         return (
-          <Card key={g} className={`border-2 transition-all ${grupoCompleto ? 'border-green-400' : 'border-slate-200'}`}>
+          <Card
+            key={g}
+            ref={(el) => { grupoRefs.current[g] = el; }}
+            className={`border-2 transition-all scroll-mt-20 ${grupoCompleto ? 'border-green-400' : 'border-slate-200'}`}
+          >
             <button
               onClick={() => setExpandido(isOpen ? null : g)}
               className="w-full p-4 flex items-center justify-between hover:bg-slate-50 rounded-t-lg"
