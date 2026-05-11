@@ -45,11 +45,15 @@ function ResultadoBotones({ partido, equipos, onChange }) {
 export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpdate }) {
   const [regenerando, setRegenerando] = useState(false);
   // Estado local de eliminatorias para no recargar todo el panel admin al editar
+  // Solo sincronizar cuando cambia el NÚMERO de partidos (nuevos creados/borrados),
+  // no cada vez que llega un partidos array nuevo (eso pisaría los cambios del usuario)
   const [elimiLocal, setElimiLocal] = useState([]);
+  const elimiCount = partidos.filter(p => p.fase !== 'grupos').length;
 
   useEffect(() => {
     setElimiLocal(partidos.filter(p => p.fase !== 'grupos'));
-  }, [partidos]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [elimiCount]);
 
   const grupos = partidos.filter(p => p.fase === 'grupos');
   const elimi = elimiLocal;

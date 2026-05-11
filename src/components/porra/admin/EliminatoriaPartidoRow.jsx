@@ -33,6 +33,7 @@ export default function EliminatoriaPartidoRow({ partido, equipos, equiposUsados
     onLocalChange?.(nuevoPartido);
     try {
       await base44.entities.PorraPartido.update(partido.id, { [campo]: codigo || "" });
+      toast.success("Equipo asignado");
     } catch (e) {
       // Revertir si falla
       setLocal({ ...local, [campo]: previo });
@@ -63,6 +64,7 @@ export default function EliminatoriaPartidoRow({ partido, equipos, equiposUsados
         ganador_codigo: ganador,
         finalizado: true,
       });
+      toast.success(`Ganador: ${ganador}`);
     } catch (e) {
       setLocal(previo);
       onLocalChange?.(previo);
