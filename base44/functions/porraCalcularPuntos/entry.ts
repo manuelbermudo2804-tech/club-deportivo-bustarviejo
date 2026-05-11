@@ -145,13 +145,18 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Recalcular posiciones globales
+    // Recalcular posiciones globales — guardamos posicion_anterior para mostrar ▲▼ en el ranking
     const recargados = await base44.asServiceRole.entities.PorraParticipante.filter({ estado_pago: 'pagado' });
     const ordenados = recargados.sort((a, b) => (b.puntos_total || 0) - (a.puntos_total || 0));
     for (let i = 0; i < ordenados.length; i++) {
-      if (ordenados[i].posicion_ranking !== i + 1) {
+      const nuevaPos = i + 1;
+      const posActual = ordenados[i].posicion_ranking;
+      if (posActual !== nuevaPos) {
         try {
-          await base44.asServiceRole.entities.PorraParticipante.update(ordenados[i].id, { posicion_ranking: i + 1 });
+          await base44.asServiceRole.entities.PorraParticipante.update(ordenados[i].id, {
+            posicion_anterior: posActual || nuevaPos, // si nunca tuvo posición, no se mueve
+            posicion_ranking: nuevaPos,
+          });
         } catch {}
       }
     }

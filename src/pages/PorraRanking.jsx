@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,9 @@ import { Trophy, Loader2, Users, Search, Home, LogIn, Info } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import RankingTable from "@/components/porra/ranking/RankingTable";
 import ReglasDesempate from "@/components/porra/ranking/ReglasDesempate";
+import LiveIndicator from "@/components/porra/ranking/LiveIndicator";
+
+const AUTO_REFRESH_MS = 30000; // 30 segundos
 
 // Página pública del ranking: ?liga=XXXXXX para mini-liga, sin param para global
 export default function PorraRanking() {
@@ -20,14 +23,17 @@ export default function PorraRanking() {
   const [rankingLiga, setRankingLiga] = useState([]);
   const [liga, setLiga] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdate, setLastUpdate] = useState(null);
   const [busqueda, setBusqueda] = useState('');
   const [codigoInput, setCodigoInput] = useState(codigoLigaUrl || '');
   const [miAlias, setMiAlias] = useState(null);
   const [ocultoPorAdmin, setOcultoPorAdmin] = useState(false);
+  const intervalRef = useRef(null);
 
   useEffect(() => {
     document.title = "Ranking — Porra Mundial 2026";
-    cargar();
+    cargar(true);
   }, [codigoLigaUrl]);
 
   useEffect(() => {
@@ -38,8 +44,27 @@ export default function PorraRanking() {
     }
   }, [tokenUrl]);
 
-  const cargar = async () => {
-    setLoading(true);
+  // Auto-refresh cada 30s — solo si la pestaña está visible (ahorra recursos)
+  useEffect(() => {
+    const tick = () => {
+      if (document.visibilityState === 'visible') {
+        cargar(false);
+      }
+    };
+    intervalRef.current = setInterval(tick, AUTO_REFRESH_MS);
+    // Refrescar inmediatamente al volver a la pestaña
+    const onVisibility = () => { if (document.visibilityState === 'visible') cargar(false); };
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      clearInterval(intervalRef.current);
+      document.removeEventListener('visibilitychange', onVisibility);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [codigoLigaUrl]);
+
+  const cargar = async (esInicial = false) => {
+    if (esInicial) setLoading(true);
+    else setRefreshing(true);
     try {
       // Cargar ranking global siempre
       const resGlobal = await base44.functions.invoke('porraRanking', {});
@@ -54,10 +79,12 @@ export default function PorraRanking() {
           setLiga(resLiga.data.liga);
         }
       }
+      setLastUpdate(Date.now());
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
@@ -98,6 +125,12 @@ export default function PorraRanking() {
               <Home className="w-4 h-4 mr-1" /> <span className="hidden sm:inline">Inicio</span>
             </Button>
           </div>
+          {/* Indicador EN VIVO bajo el header */}
+          {!loading && (
+            <div className="mt-2 flex justify-end">
+              <LiveIndicator lastUpdate={lastUpdate} onRefresh={() => cargar(false)} refreshing={refreshing} />
+            </div>
+          )}
         </div>
       </div>
 

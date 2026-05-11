@@ -105,8 +105,12 @@ Deno.serve(async (req) => {
     const ranking = ordenados.map((p, idx) => {
       const anterior = idx > 0 ? ordenados[idx - 1] : null;
       const empateConAnterior = anterior && (p.puntos_total || 0) === (anterior.puntos_total || 0);
+      // Cálculo de movimiento respecto al ranking anterior
+      const posActual = idx + 1;
+      const posAnt = p.posicion_anterior || null;
+      const movimiento = posAnt && posAnt !== posActual ? (posAnt - posActual) : 0; // positivo = subió
       return {
-        posicion: idx + 1,
+        posicion: posActual,
         alias_equipo: p.alias_equipo,
         nombre: p.nombre,
         puntos_total: p.puntos_total || 0,
@@ -120,6 +124,8 @@ Deno.serve(async (req) => {
         completado: p.completado_grupos && p.completado_bracket && p.completado_especiales,
         empate_con_anterior: !!empateConAnterior,
         motivo_desempate: empateConAnterior ? motivoDesempate(p, anterior) : null,
+        movimiento, // >0 subió, <0 bajó, 0 igual, null nuevo
+        posicion_anterior: posAnt,
       };
     });
 

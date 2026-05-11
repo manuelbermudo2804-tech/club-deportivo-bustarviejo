@@ -24,14 +24,19 @@ Deno.serve(async (req) => {
     const { nombre, email, alias_equipo, telefono, mini_liga_codigo, return_url } = body || {};
 
     // Validaciones básicas
-    if (!nombre || !email || !alias_equipo) {
-      return Response.json({ error: 'Faltan campos obligatorios (nombre, email, alias_equipo)' }, { status: 400 });
+    if (!nombre || !email || !alias_equipo || !telefono) {
+      return Response.json({ error: 'Faltan campos obligatorios (nombre, email, alias_equipo, telefono)' }, { status: 400 });
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return Response.json({ error: 'Email inválido' }, { status: 400 });
     }
     if (alias_equipo.length < 2 || alias_equipo.length > 40) {
       return Response.json({ error: 'El alias debe tener entre 2 y 40 caracteres' }, { status: 400 });
+    }
+    // Validar teléfono español (9 dígitos, opcionalmente con prefijo +34 y espacios)
+    const telefonoLimpio = String(telefono).replace(/[\s\-+]/g, '').replace(/^34/, '');
+    if (!/^[6789]\d{8}$/.test(telefonoLimpio)) {
+      return Response.json({ error: 'Teléfono inválido. Debe ser un número español de 9 dígitos.' }, { status: 400 });
     }
 
     // Cargar configuración
@@ -55,11 +60,20 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Ese alias ya está cogido. Elige otro.' }, { status: 409 });
     }
 
-    // Si permite múltiples porras → permitimos varios registros con el mismo email
+    // Límite de porras por email
+    const emailLimpio = email.toLowerCase().trim();
+    const existing = await base44.asServiceRole.entities.PorraParticipante.filter({ email: emailLimpio });
+    const pagadas = existing.filter(e => e.estado_pago === 'pagado');
     if (!config.permitir_multiples_porras) {
-      const existing = await base44.asServiceRole.entities.PorraParticipante.filter({ email });
-      if (existing.some(e => e.estado_pago === 'pagado')) {
+      // Solo 1 porra por email
+      if (pagadas.length > 0) {
         return Response.json({ error: 'Ya tienes una porra creada con este email' }, { status: 409 });
+      }
+    } else {
+      // Máximo 3 porras por email
+      const MAX_PORRAS_POR_EMAIL = 3;
+      if (pagadas.length >= MAX_PORRAS_POR_EMAIL) {
+        return Response.json({ error: `Has alcanzado el máximo de ${MAX_PORRAS_POR_EMAIL} porras por email. Si quieres meter más, usa otro email.` }, { status: 409 });
       }
     }
 

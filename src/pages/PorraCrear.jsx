@@ -44,8 +44,14 @@ export default function PorraCrear() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!form.nombre.trim() || !form.email.trim() || !form.alias_equipo.trim()) {
+    if (!form.nombre.trim() || !form.email.trim() || !form.alias_equipo.trim() || !form.telefono.trim()) {
       toast.error('Completa todos los campos obligatorios');
+      return;
+    }
+    // Validar teléfono español (9 dígitos)
+    const telLimpio = form.telefono.replace(/[\s\-+]/g, '').replace(/^34/, '');
+    if (!/^[6789]\d{8}$/.test(telLimpio)) {
+      toast.error('El teléfono debe ser un número español de 9 dígitos (ej: 612 345 678)');
       return;
     }
     if (!form.acepta_terminos) {
@@ -171,16 +177,17 @@ export default function PorraCrear() {
               </div>
 
               <div>
-                <Label htmlFor="telefono" className="font-bold text-slate-900">Teléfono <span className="text-slate-400 font-normal">(opcional)</span></Label>
+                <Label htmlFor="telefono" className="font-bold text-slate-900">Teléfono *</Label>
                 <Input
                   id="telefono"
                   type="tel"
                   value={form.telefono}
                   onChange={e => update('telefono', e.target.value)}
-                  placeholder="600 123 456"
+                  placeholder="612 345 678"
+                  required
                   className="mt-1"
                 />
-                <p className="text-xs text-slate-500 mt-1">Solo para contactarte si ganas un premio</p>
+                <p className="text-xs text-slate-500 mt-1">📞 Imprescindible para contactarte si ganas un premio</p>
               </div>
 
               {config.permitir_mini_ligas && (

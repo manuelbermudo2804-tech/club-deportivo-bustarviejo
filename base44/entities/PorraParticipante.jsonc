@@ -139,6 +139,10 @@
     "posicion_ranking": {
       "type": "number"
     },
+    "posicion_anterior": {
+      "type": "number",
+      "description": "Posici\u00f3n que ten\u00eda antes del \u00faltimo rec\u00e1lculo (para mostrar movimiento \u25b2\u25bc)"
+    },
     "completado_grupos": {
       "type": "boolean",
       "default": false
@@ -159,6 +163,11 @@
     "porcentaje_completado": {
       "type": "number",
       "default": 0
+    },
+    "email_completado_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya se envi\u00f3 el email autom\u00e1tico de porra completada al 100%"
     },
     "bloqueada": {
       "type": "boolean",

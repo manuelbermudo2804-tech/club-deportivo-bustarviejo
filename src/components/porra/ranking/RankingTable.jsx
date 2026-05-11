@@ -1,6 +1,25 @@
 import React from "react";
-import { Trophy, Medal, Award } from "lucide-react";
+import { Trophy, Medal, Award, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { getMotivoDesempateTexto } from "./ReglasDesempate";
+
+// Indicador visual de movimiento del ranking (subió/bajó/igual)
+function Movimiento({ mov }) {
+  if (mov === 0 || mov === null || mov === undefined) {
+    return <span className="inline-flex items-center text-slate-400 text-[10px] font-bold" title="Sin cambios"><Minus className="w-3 h-3" /></span>;
+  }
+  if (mov > 0) {
+    return (
+      <span className="inline-flex items-center gap-0.5 text-green-600 text-[11px] font-black" title={`Subió ${mov} ${mov === 1 ? 'puesto' : 'puestos'}`}>
+        <TrendingUp className="w-3 h-3" />+{mov}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-0.5 text-red-500 text-[11px] font-black" title={`Bajó ${Math.abs(mov)} ${Math.abs(mov) === 1 ? 'puesto' : 'puestos'}`}>
+      <TrendingDown className="w-3 h-3" />{mov}
+    </span>
+  );
+}
 
 // Tabla de ranking con podio y filas
 // Muestra el motivo de desempate cuando dos participantes tienen los mismos puntos totales
@@ -40,6 +59,11 @@ export default function RankingTable({ ranking, miAlias }) {
                   <p className="font-black text-sm truncate mt-1">{p.alias_equipo}</p>
                   <p className="text-xs opacity-80 truncate">{p.nombre}</p>
                   <p className="text-lg font-black mt-1">{p.puntos_total} pts</p>
+                  {!!p.movimiento && (
+                    <div className="mt-1 inline-block bg-black/30 rounded px-1.5 py-0.5">
+                      <Movimiento mov={p.movimiento} />
+                    </div>
+                  )}
                   {motivoTxt && (
                     <p className="text-[9px] mt-1 bg-black/20 rounded px-1.5 py-0.5 font-bold leading-tight" title="Desempate frente al puesto anterior">
                       {motivoTxt}
@@ -67,6 +91,9 @@ export default function RankingTable({ ranking, miAlias }) {
                   esMio ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700'
                 }`}>
                   {p.posicion}
+                </div>
+                <div className="w-10 flex-shrink-0 flex justify-center">
+                  <Movimiento mov={p.movimiento} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-bold text-sm text-slate-900 truncate">
