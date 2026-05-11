@@ -24,7 +24,7 @@ export default function PorraMiPorra() {
     loading, saving, error, isBlocked,
     setResultadoGrupo, setClasificacionGrupo,
     setEliminatoriaGanador, setEspecial, setMejoresTerceros,
-    refrescar,
+    refrescar, flushGuardado,
   } = usePorraEditor(token);
 
   if (loading) {
@@ -153,7 +153,7 @@ export default function PorraMiPorra() {
         </div>
 
         {/* Tabs editor */}
-        <Tabs defaultValue="grupos">
+        <Tabs defaultValue="grupos" onValueChange={() => { flushGuardado && flushGuardado(); }}>
           <TabsList className="grid w-full grid-cols-5 h-auto p-1 bg-slate-200">
             <TabsTrigger value="grupos" className="py-2 text-[10px] md:text-sm font-bold">⚽ Grupos</TabsTrigger>
             <TabsTrigger value="terceros" className="py-2 text-[10px] md:text-sm font-bold">🥉 Terceros</TabsTrigger>

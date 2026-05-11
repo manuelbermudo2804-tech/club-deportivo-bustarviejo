@@ -15,6 +15,10 @@ export default function usePorraEditor(token) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const saveTimerRef = useRef(null);
+  // Ref para evitar stale closures: siempre lee el participante más reciente
+  const participanteRef = useRef(null);
+  const pendingUpdatesRef = useRef({});
+  useEffect(() => { participanteRef.current = participante; }, [participante]);
 
   const isBlocked = (() => {
     if (!participante) return true;
@@ -83,28 +87,51 @@ export default function usePorraEditor(token) {
     return { completado_grupos, completado_terceros, completado_bracket, completado_especiales, porcentaje_completado };
   };
 
-  // Guardado con debounce 700ms
+  // Flush inmediato: guarda lo pendiente ya (sin esperar al debounce)
+  const flushGuardado = useCallback(async () => {
+    if (saveTimerRef.current) {
+      clearTimeout(saveTimerRef.current);
+      saveTimerRef.current = null;
+    }
+    const pending = pendingUpdatesRef.current;
+    if (!pending || Object.keys(pending).length === 0) return;
+    if (!participanteRef.current || isBlocked) return;
+    pendingUpdatesRef.current = {};
+    try {
+      setSaving(true);
+      const flags = computeCompletados(participanteRef.current);
+      await base44.functions.invoke('porraUpdateByToken', {
+        token,
+        updates: { ...pending, ...flags },
+      });
+      setParticipante(prev => ({ ...prev, ...flags }));
+    } catch (e) {
+      toast.error('Error al guardar');
+    } finally {
+      setSaving(false);
+    }
+  }, [isBlocked, token]);
+
+  // Guardado con debounce 700ms — acumula updates pendientes para no perderlos
   const guardarDebounced = useCallback((updates) => {
-    if (!participante || isBlocked) return;
+    if (!participanteRef.current || isBlocked) return;
+    // Acumular updates pendientes (no sobrescribir si llegan varios antes del flush)
+    pendingUpdatesRef.current = { ...pendingUpdatesRef.current, ...updates };
+    // Actualizar UI optimista usando siempre la referencia más reciente
+    setParticipante(prev => ({ ...prev, ...updates }));
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    const merged = { ...participante, ...updates };
-    setParticipante(merged); // optimista
-    saveTimerRef.current = setTimeout(async () => {
-      try {
-        setSaving(true);
-        const flags = computeCompletados(merged);
-        await base44.functions.invoke('porraUpdateByToken', {
-          token,
-          updates: { ...updates, ...flags },
-        });
-        setParticipante(prev => ({ ...prev, ...flags }));
-      } catch (e) {
-        toast.error('Error al guardar');
-      } finally {
-        setSaving(false);
-      }
-    }, 700);
-  }, [participante, isBlocked, token]);
+    saveTimerRef.current = setTimeout(() => { flushGuardado(); }, 700);
+  }, [isBlocked, flushGuardado]);
+
+  // Si el usuario cierra/recarga la pestaña: intentar flush antes de salir
+  useEffect(() => {
+    const onBeforeUnload = () => { flushGuardado(); };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', onBeforeUnload);
+      flushGuardado(); // al desmontar también
+    };
+  }, [flushGuardado]);
 
   // Helpers de modificación
   const setResultadoGrupo = (partidoId, resultado) => {
@@ -141,5 +168,6 @@ export default function usePorraEditor(token) {
     setResultadoGrupo, setClasificacionGrupo,
     setEliminatoriaGanador, setEspecial, setTercerPuesto, setMejoresTerceros,
     refrescar: cargar,
+    flushGuardado,
   };
 }
