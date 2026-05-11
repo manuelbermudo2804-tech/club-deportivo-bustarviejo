@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import PorraHeroLanding from "@/components/porra/PorraHeroLanding";
 import PorraComoFunciona from "@/components/porra/PorraComoFunciona";
 import PorraGruposPreview from "@/components/porra/PorraGruposPreview";
+import PorraVolverAppButton from "@/components/porra/PorraVolverAppButton";
 
 // Landing pública de la Porra Mundial 2026
 // Accesible vía /Porra sin login
@@ -86,6 +87,7 @@ export default function Porra() {
 
   return (
     <div className="min-h-screen bg-white">
+      <PorraVolverAppButton />
       <PorraHeroLanding 
         config={config}
         onCrearPorra={handleCrearPorra}
@@ -125,7 +127,7 @@ export default function Porra() {
       {/* Footer simple */}
       <div className="bg-slate-900 text-white/70 py-6 text-center text-sm">
         <p>© {new Date().getFullYear()} CD Bustarviejo · Porra Mundial 2026</p>
-        <p className="mt-1 text-xs">El {config?.comision_club_porcentaje || 10}% de cada entrada va destinado a {config?.destino_comision_club || 'el club'} 💚</p>
+        <p className="mt-1 text-xs">El {config?.comision_club_porcentaje || 10}% de cada entrada va para apoyar a los equipos del CD Bustarviejo 💚</p>
       </div>
     </div>
   );

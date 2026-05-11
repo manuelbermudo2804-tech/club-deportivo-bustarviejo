@@ -231,7 +231,7 @@ export default function PorraComoFunciona({ config }) {
             <Heart className="w-12 h-12 mx-auto text-green-600 mb-3" />
             <h3 className="font-black text-lg mb-2">Apoyas al club</h3>
             <p className="text-sm text-slate-700">
-              El <strong>{config?.comision_club_porcentaje || 10}%</strong> de cada entrada va destinado a <strong>{config?.destino_comision_club || 'el club'}</strong>. Juegas y ayudas.
+              El <strong>{config?.comision_club_porcentaje || 10}%</strong> de cada entrada va para <strong>apoyar a los equipos del CD Bustarviejo</strong>. Juegas, te diviertes y ayudas al pueblo. 💚
             </p>
           </CardContent>
         </Card>

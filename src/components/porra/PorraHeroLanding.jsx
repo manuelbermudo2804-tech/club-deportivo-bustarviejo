@@ -146,7 +146,7 @@ export default function PorraHeroLanding({ config, onCrearPorra, totalParticipan
         </Button>
 
         <p className="mt-4 text-xs md:text-sm text-white/90 drop-shadow-lg font-medium">
-          ⚡ Solo {config?.precio_entrada || 15}€ · 🥇🥈🥉 Premios al 1º, 2º y 3º · 💚 El {config?.comision_club_porcentaje || 10}% va a {config?.destino_comision_club || 'el club'}
+          ⚡ Solo {config?.precio_entrada || 15}€ · 🥇🥈🥉 Premios al 1º, 2º y 3º · 💚 El {config?.comision_club_porcentaje || 10}% va para apoyar a los equipos del CD Bustarviejo
         </p>
       </div>
 
