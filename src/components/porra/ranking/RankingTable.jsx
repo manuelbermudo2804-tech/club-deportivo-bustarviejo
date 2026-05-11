@@ -1,7 +1,9 @@
 import React from "react";
 import { Trophy, Medal, Award } from "lucide-react";
+import { getMotivoDesempateTexto } from "./ReglasDesempate";
 
 // Tabla de ranking con podio y filas
+// Muestra el motivo de desempate cuando dos participantes tienen los mismos puntos totales
 export default function RankingTable({ ranking, miAlias }) {
   if (!ranking || ranking.length === 0) {
     return (
@@ -29,6 +31,7 @@ export default function RankingTable({ ranking, miAlias }) {
             const heights = ['pt-2', 'pt-6', 'pt-8'];
             const realPos = idx + 1;
             const esMio = miAlias && p.alias_equipo === miAlias;
+            const motivoTxt = p.empate_con_anterior ? getMotivoDesempateTexto(p.motivo_desempate) : null;
             return (
               <div key={idx} className={heights[idx]}>
                 <div className={`bg-gradient-to-br ${colores[idx]} text-white rounded-xl p-3 text-center shadow-lg ${esMio ? 'ring-4 ring-blue-400' : ''}`}>
@@ -37,6 +40,11 @@ export default function RankingTable({ ranking, miAlias }) {
                   <p className="font-black text-sm truncate mt-1">{p.alias_equipo}</p>
                   <p className="text-xs opacity-80 truncate">{p.nombre}</p>
                   <p className="text-lg font-black mt-1">{p.puntos_total} pts</p>
+                  {motivoTxt && (
+                    <p className="text-[9px] mt-1 bg-black/20 rounded px-1.5 py-0.5 font-bold leading-tight" title="Desempate frente al puesto anterior">
+                      {motivoTxt}
+                    </p>
+                  )}
                 </div>
               </div>
             );
@@ -49,6 +57,7 @@ export default function RankingTable({ ranking, miAlias }) {
         <div className="bg-white rounded-xl border-2 border-slate-200 overflow-hidden">
           {resto.map(p => {
             const esMio = miAlias && p.alias_equipo === miAlias;
+            const motivoTxt = p.empate_con_anterior ? getMotivoDesempateTexto(p.motivo_desempate) : null;
             return (
               <div
                 key={p.posicion}
@@ -64,6 +73,11 @@ export default function RankingTable({ ranking, miAlias }) {
                     {p.alias_equipo} {esMio && <span className="text-blue-600 text-xs">(tú)</span>}
                   </p>
                   <p className="text-xs text-slate-500 truncate">{p.nombre}</p>
+                  {motivoTxt && (
+                    <p className="text-[10px] mt-0.5 inline-block bg-orange-100 text-orange-700 rounded px-1.5 py-0.5 font-bold" title="Desempate frente al puesto anterior">
+                      {motivoTxt}
+                    </p>
+                  )}
                 </div>
                 <div className="text-right">
                   <p className="font-black text-orange-600">{p.puntos_total}</p>

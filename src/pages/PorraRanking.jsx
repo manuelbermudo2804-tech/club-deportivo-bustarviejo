@@ -4,9 +4,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Trophy, Loader2, Users, Search, Home, LogIn } from "lucide-react";
+import { Trophy, Loader2, Users, Search, Home, LogIn, Info } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import RankingTable from "@/components/porra/ranking/RankingTable";
+import ReglasDesempate from "@/components/porra/ranking/ReglasDesempate";
 
 // Página pública del ranking: ?liga=XXXXXX para mini-liga, sin param para global
 export default function PorraRanking() {
@@ -180,13 +181,20 @@ export default function PorraRanking() {
                 {/* Ranking global */}
                 <Card className="bg-white">
                   <CardContent className="p-3 md:p-4">
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between mb-3 flex-wrap gap-2">
                       <p className="font-black text-slate-900 flex items-center gap-2">
                         🌍 Ranking Global
                       </p>
-                      <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-bold">
-                        {rankingGlobal.length} participantes
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <ReglasDesempate trigger={
+                          <button className="text-xs text-orange-700 hover:text-orange-900 font-bold flex items-center gap-1 underline">
+                            <Info className="w-3 h-3" /> Reglas de desempate
+                          </button>
+                        } />
+                        <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-bold">
+                          {rankingGlobal.length} participantes
+                        </span>
+                      </div>
                     </div>
                     {ocultoPorAdmin ? (
                       <p className="text-center py-8 text-slate-500 text-sm">El ranking global está oculto temporalmente</p>
@@ -211,6 +219,13 @@ function BuscadorYTabla({ ranking, busqueda, setBusqueda, miAlias }) {
   return (
     <Card className="bg-white">
       <CardContent className="p-3 md:p-4">
+        <div className="flex justify-end mb-2">
+          <ReglasDesempate trigger={
+            <button className="text-xs text-orange-700 hover:text-orange-900 font-bold flex items-center gap-1 underline">
+              <Info className="w-3 h-3" /> Reglas de desempate
+            </button>
+          } />
+        </div>
         <BuscadorInline busqueda={busqueda} setBusqueda={setBusqueda} />
         <RankingTable ranking={ranking} miAlias={miAlias} />
       </CardContent>
