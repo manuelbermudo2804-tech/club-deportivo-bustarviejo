@@ -26,6 +26,8 @@ import SanIsidroInscripcion from '@/pages/SanIsidroInscripcion';
 import ExternalLinks from '@/pages/ExternalLinks';
 import ReciboGenerator from '@/pages/ReciboGenerator';
 import MyFeedback from '@/pages/MyFeedback';
+import Porra from '@/pages/Porra';
+import PorraAdmin from '@/pages/PorraAdmin';
 import SponsorSplash from '@/components/sponsors/SponsorSplash';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -41,7 +43,7 @@ const AppRouter = () => {
   
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').toLowerCase();
-  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro'];
+  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra'];
   if (publicPaths.includes(cleanPath)) {
     return (
       <Routes>
@@ -57,6 +59,9 @@ const AppRouter = () => {
         <Route path="/sanisidro" element={<SanIsidroInscripcion />} />
         <Route path="/Sanisidro" element={<SanIsidroInscripcion />} />
         <Route path="/SANISIDRO" element={<SanIsidroInscripcion />} />
+        <Route path="/Porra" element={<Porra />} />
+        <Route path="/porra" element={<Porra />} />
+        <Route path="/PORRA" element={<Porra />} />
       </Routes>
     );
   }
@@ -133,6 +138,7 @@ const AuthenticatedApp = () => {
       <Route path="/ExternalLinks" element={<LayoutWrapper currentPageName="ExternalLinks"><ExternalLinks /></LayoutWrapper>} />
       <Route path="/ReciboGenerator" element={<LayoutWrapper currentPageName="ReciboGenerator"><ReciboGenerator /></LayoutWrapper>} />
       <Route path="/MyFeedback" element={<LayoutWrapper currentPageName="MyFeedback"><MyFeedback /></LayoutWrapper>} />
+      <Route path="/PorraAdmin" element={<LayoutWrapper currentPageName="PorraAdmin"><PorraAdmin /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </>

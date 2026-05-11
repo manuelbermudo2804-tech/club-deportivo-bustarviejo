@@ -1,0 +1,105 @@
+{
+  "name": "PorraPartido",
+  "type": "object",
+  "properties": {
+    "fase": {
+      "type": "string",
+      "enum": [
+        "grupos",
+        "16avos",
+        "8vos",
+        "4tos",
+        "semis",
+        "tercer_puesto",
+        "final"
+      ],
+      "description": "Fase del torneo"
+    },
+    "grupo": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "L"
+      ],
+      "description": "Solo para fase de grupos"
+    },
+    "numero_partido": {
+      "type": "number",
+      "description": "N\u00famero de orden del partido en su fase (1-72 grupos, 1-32 16avos, etc.)"
+    },
+    "equipo_local_codigo": {
+      "type": "string",
+      "description": "C\u00f3digo del equipo local (vac\u00edo en eliminatorias hasta que se decida)"
+    },
+    "equipo_visitante_codigo": {
+      "type": "string",
+      "description": "C\u00f3digo del equipo visitante"
+    },
+    "equipo_local_placeholder": {
+      "type": "string",
+      "description": "Texto placeholder para eliminatorias (ej: 'Ganador A1', 'Ganador OCT1')"
+    },
+    "equipo_visitante_placeholder": {
+      "type": "string",
+      "description": "Texto placeholder para eliminatorias"
+    },
+    "fecha_partido": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora del partido"
+    },
+    "estadio": {
+      "type": "string",
+      "description": "Estadio donde se juega"
+    },
+    "ciudad": {
+      "type": "string",
+      "description": "Ciudad y pa\u00eds"
+    },
+    "resultado_real": {
+      "type": "string",
+      "enum": [
+        "1",
+        "X",
+        "2",
+        ""
+      ],
+      "description": "Resultado real (1=local, X=empate, 2=visitante) \u2014 lo mete el admin"
+    },
+    "goles_local": {
+      "type": "number",
+      "description": "Goles del equipo local (real, opcional)"
+    },
+    "goles_visitante": {
+      "type": "number",
+      "description": "Goles del equipo visitante (real, opcional)"
+    },
+    "ganador_codigo": {
+      "type": "string",
+      "description": "C\u00f3digo del equipo ganador (relevante en eliminatorias)"
+    },
+    "partido_siguiente_id": {
+      "type": "string",
+      "description": "ID del partido al que avanza el ganador (eliminatorias)"
+    },
+    "finalizado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el partido ya ha terminado"
+    }
+  },
+  "required": [
+    "fase",
+    "numero_partido"
+  ]
+}

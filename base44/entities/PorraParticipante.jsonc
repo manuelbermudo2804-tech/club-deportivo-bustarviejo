@@ -1,0 +1,174 @@
+{
+  "name": "PorraParticipante",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre real del participante"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del participante"
+    },
+    "alias_equipo": {
+      "type": "string",
+      "description": "Nombre del equipo/alias p\u00fablico que aparece en el ranking"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono (opcional, para contactar al ganador)"
+    },
+    "token_acceso": {
+      "type": "string",
+      "description": "Token \u00fanico para acceder/editar la porra desde el link m\u00e1gico"
+    },
+    "estado_pago": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "pagado",
+        "reembolsado",
+        "fallido"
+      ],
+      "default": "pendiente",
+      "description": "Estado del pago"
+    },
+    "stripe_session_id": {
+      "type": "string",
+      "description": "ID de la sesi\u00f3n de Stripe Checkout"
+    },
+    "stripe_payment_intent": {
+      "type": "string",
+      "description": "ID del payment intent de Stripe"
+    },
+    "cantidad_pagada": {
+      "type": "number",
+      "description": "Cantidad pagada en euros"
+    },
+    "fecha_pago": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se complet\u00f3 el pago"
+    },
+    "predicciones_grupos": {
+      "type": "object",
+      "description": "Map { partido_id: '1'|'X'|'2' }"
+    },
+    "clasificacion_grupos": {
+      "type": "object",
+      "description": "Map { 'A': [codigo1, codigo2, codigo3, codigo4], ... } orden 1\u00ba a 4\u00ba del grupo"
+    },
+    "desempates_resueltos": {
+      "type": "object",
+      "description": "Map { 'A': true/false } indicando si el usuario ya resolvi\u00f3 los desempates de cada grupo"
+    },
+    "predicciones_eliminatorias": {
+      "type": "object",
+      "description": "Map { 'partido_id': 'codigo_ganador' } para cada eliminatoria"
+    },
+    "prediccion_tercer_puesto": {
+      "type": "object",
+      "properties": {
+        "equipo1": {
+          "type": "string"
+        },
+        "equipo2": {
+          "type": "string"
+        },
+        "ganador": {
+          "type": "string"
+        }
+      },
+      "description": "Predicci\u00f3n del partido de 3er puesto"
+    },
+    "predicciones_especiales": {
+      "type": "object",
+      "properties": {
+        "mejor_jugador": {
+          "type": "string"
+        },
+        "maximo_goleador": {
+          "type": "string"
+        },
+        "mejor_portero": {
+          "type": "string"
+        },
+        "mejor_joven": {
+          "type": "string"
+        }
+      },
+      "description": "Equipos seleccionados para cada predicci\u00f3n especial"
+    },
+    "puntos_grupos": {
+      "type": "number",
+      "default": 0
+    },
+    "puntos_eliminatorias": {
+      "type": "number",
+      "default": 0
+    },
+    "puntos_tercer_puesto": {
+      "type": "number",
+      "default": 0
+    },
+    "puntos_campeon": {
+      "type": "number",
+      "default": 0
+    },
+    "puntos_especiales": {
+      "type": "number",
+      "default": 0
+    },
+    "puntos_total": {
+      "type": "number",
+      "default": 0
+    },
+    "posicion_ranking": {
+      "type": "number"
+    },
+    "completado_grupos": {
+      "type": "boolean",
+      "default": false
+    },
+    "completado_bracket": {
+      "type": "boolean",
+      "default": false
+    },
+    "completado_especiales": {
+      "type": "boolean",
+      "default": false
+    },
+    "porcentaje_completado": {
+      "type": "number",
+      "default": 0
+    },
+    "bloqueada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la porra est\u00e1 bloqueada (pas\u00f3 la fecha l\u00edmite)"
+    },
+    "fecha_bloqueo": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "mini_liga_codigos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de c\u00f3digos de mini-ligas a las que pertenece"
+    },
+    "ip_creacion": {
+      "type": "string"
+    },
+    "user_agent": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "nombre",
+    "email",
+    "alias_equipo"
+  ]
+}

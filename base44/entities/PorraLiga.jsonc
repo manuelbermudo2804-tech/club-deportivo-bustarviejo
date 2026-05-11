@@ -1,0 +1,47 @@
+{
+  "name": "PorraLiga",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre de la mini-liga privada"
+    },
+    "codigo": {
+      "type": "string",
+      "description": "C\u00f3digo \u00fanico para unirse a la liga (6 caracteres)"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n opcional de la liga"
+    },
+    "creador_email": {
+      "type": "string",
+      "description": "Email del creador de la liga"
+    },
+    "creador_nombre": {
+      "type": "string",
+      "description": "Nombre del creador"
+    },
+    "participantes_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails de los participantes en la liga"
+    },
+    "max_participantes": {
+      "type": "number",
+      "description": "M\u00e1ximo de participantes (opcional)"
+    },
+    "publica": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la liga es p\u00fablica (cualquiera puede unirse con el c\u00f3digo) o invitaci\u00f3n"
+    }
+  },
+  "required": [
+    "nombre",
+    "codigo",
+    "creador_email"
+  ]
+}

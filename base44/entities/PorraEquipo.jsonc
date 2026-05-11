@@ -1,0 +1,66 @@
+{
+  "name": "PorraEquipo",
+  "type": "object",
+  "properties": {
+    "codigo": {
+      "type": "string",
+      "description": "C\u00f3digo ISO 3 letras (ESP, ARG, BRA...)"
+    },
+    "nombre": {
+      "type": "string",
+      "description": "Nombre completo de la selecci\u00f3n"
+    },
+    "bandera_emoji": {
+      "type": "string",
+      "description": "Emoji de la bandera"
+    },
+    "bandera_url": {
+      "type": "string",
+      "description": "URL de la imagen de la bandera (opcional, fallback al emoji)"
+    },
+    "grupo": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F",
+        "G",
+        "H",
+        "I",
+        "J",
+        "K",
+        "L"
+      ],
+      "description": "Grupo asignado en el Mundial"
+    },
+    "confederacion": {
+      "type": "string",
+      "enum": [
+        "UEFA",
+        "CONMEBOL",
+        "CONCACAF",
+        "AFC",
+        "CAF",
+        "OFC"
+      ],
+      "description": "Confederaci\u00f3n"
+    },
+    "es_anfitrion": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es uno de los pa\u00edses anfitriones (USA, MEX, CAN)"
+    },
+    "orden_grupo": {
+      "type": "number",
+      "description": "Orden dentro del grupo (1-4)"
+    }
+  },
+  "required": [
+    "codigo",
+    "nombre",
+    "grupo"
+  ]
+}
