@@ -125,7 +125,7 @@ export default function EliminatoriaPartidoRow({ partido, equipos, equiposUsados
         </div>
 
         <div className="flex gap-1 justify-end">
-          {["1", "X", "2"].map(r => (
+          {["1", "2"].map(r => (
             <button
               key={r}
               onClick={() => handleResultado(r)}

@@ -229,7 +229,7 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpda
               <p className="font-bold text-blue-900 mb-1">📋 Cómo rellenar las eliminatorias</p>
               <p className="text-blue-800 text-xs leading-relaxed">
                 1️⃣ Al acabar la fase de grupos, asigna en cada partido de <strong>16avos</strong> los dos equipos clasificados (usa los desplegables).<br/>
-                2️⃣ Tras cada partido eliminatorio, pulsa <strong>1</strong> (gana local), <strong>X</strong> (penaltis/empate) o <strong>2</strong> (gana visitante). El ganador se guarda automáticamente.<br/>
+                2️⃣ Tras cada partido eliminatorio, pulsa <strong>1</strong> (gana local) o <strong>2</strong> (gana visitante). En eliminatorias no hay empate (si hay penaltis, marca quién ganó). El ganador se guarda automáticamente.<br/>
                 3️⃣ Repite el paso 1 con los ganadores en <strong>8vos</strong>, <strong>cuartos</strong>, <strong>semis</strong>, <strong>tercer puesto</strong> y <strong>final</strong>.
               </p>
             </div>
