@@ -4,13 +4,13 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 // Se puede invocar manualmente desde el admin o automáticamente al actualizar un PorraPartido
 // Body opcional: { participante_id?: 'xxx' } para recalcular solo uno
 
-// Lógica de puntos:
-// - Grupos: 3 pts por cada acierto 1/X/2
-// - Mejores terceros: 8 pts por cada equipo acertado (máx 64)
-// - 16avos: 4 pts, 8vos: 6, 4tos: 10, semis: 14, final: 20
-// - Campeón: 25 pts extra
-// - Tercer puesto: 10 pts por equipo + 14 pts si acierta ganador
-// - Especiales (4): 10 pts cada uno
+// Lógica de puntos (simplificada y balanceada):
+// - Grupos: 1 pt por cada acierto 1/X/2 (máx 72)
+// - Mejores terceros: 3 pts por cada equipo acertado (máx 24)
+// - 16avos: 2 pts, 8vos: 3, 4tos: 5, semis: 7, final: 10
+// - Campeón: 15 pts extra
+// - Tercer puesto: 5 pts por equipo + 7 pts si acierta ganador
+// - Especiales (4): 5 pts cada uno
 
 function calcularPuntosParticipante(participante, partidos, config) {
   const pts = {
@@ -25,7 +25,7 @@ function calcularPuntosParticipante(participante, partidos, config) {
   const partidosFinalizados = partidos.filter(p => p.finalizado);
 
   // 1) Puntos de grupos (1/X/2)
-  const ptsGrupo = config?.puntos_resultado_grupo ?? 3;
+  const ptsGrupo = config?.puntos_resultado_grupo ?? 1;
   const predGrupos = participante.predicciones_grupos || {};
   partidosFinalizados.forEach(p => {
     if (p.fase === 'grupos' && p.resultado_real && predGrupos[p.id] === p.resultado_real) {
@@ -33,8 +33,8 @@ function calcularPuntosParticipante(participante, partidos, config) {
     }
   });
 
-  // 2) Mejores terceros (8 pts por cada acierto)
-  const ptsTercero = config?.puntos_mejor_tercero ?? 8;
+  // 2) Mejores terceros (3 pts por cada acierto)
+  const ptsTercero = config?.puntos_mejor_tercero ?? 3;
   const tercerosReales = config?.mejores_terceros_reales || [];
   const tercerosPredichos = participante.mejores_terceros || [];
   if (tercerosReales.length > 0 && tercerosPredichos.length > 0) {
@@ -48,11 +48,11 @@ function calcularPuntosParticipante(participante, partidos, config) {
   // 3) Puntos de eliminatorias (acertar ganador real de cada partido)
   const predElim = participante.predicciones_eliminatorias || {};
   const puntosPorFase = {
-    '16avos': config?.puntos_16avos ?? 4,
-    '8vos': config?.puntos_8vos ?? 6,
-    '4tos': config?.puntos_4tos ?? 10,
-    'semis': config?.puntos_semis ?? 14,
-    'final': config?.puntos_final ?? 20,
+    '16avos': config?.puntos_16avos ?? 2,
+    '8vos': config?.puntos_8vos ?? 3,
+    '4tos': config?.puntos_4tos ?? 5,
+    'semis': config?.puntos_semis ?? 7,
+    'final': config?.puntos_final ?? 10,
   };
   partidosFinalizados.forEach(p => {
     if (puntosPorFase[p.fase] && p.ganador_codigo && predElim[p.id] === p.ganador_codigo) {
@@ -64,7 +64,7 @@ function calcularPuntosParticipante(participante, partidos, config) {
   const partidoFinal = partidosFinalizados.find(p => p.fase === 'final');
   if (partidoFinal?.ganador_codigo && config?.campeon_real === partidoFinal.ganador_codigo) {
     if (predElim[partidoFinal.id] === config.campeon_real) {
-      pts.campeon = config?.puntos_campeon ?? 25;
+      pts.campeon = config?.puntos_campeon ?? 15;
     }
   }
 
@@ -72,8 +72,8 @@ function calcularPuntosParticipante(participante, partidos, config) {
   const partidoTercero = partidosFinalizados.find(p => p.fase === 'tercer_puesto');
   if (partidoTercero?.ganador_codigo) {
     const predTercero = participante.prediccion_tercer_puesto || {};
-    const ptsEquipo = config?.puntos_tercer_puesto_equipo ?? 10;
-    const ptsGanador = config?.puntos_tercer_puesto_ganador ?? 14;
+    const ptsEquipo = config?.puntos_tercer_puesto_equipo ?? 5;
+    const ptsGanador = config?.puntos_tercer_puesto_ganador ?? 7;
     [predTercero.equipo1, predTercero.equipo2].forEach(e => {
       if (e && (e === partidoTercero.equipo_local_codigo || e === partidoTercero.equipo_visitante_codigo)) {
         pts.tercer_puesto += ptsEquipo;
@@ -85,7 +85,7 @@ function calcularPuntosParticipante(participante, partidos, config) {
   }
 
   // 6) Especiales
-  const ptsEsp = config?.puntos_prediccion_especial ?? 10;
+  const ptsEsp = config?.puntos_prediccion_especial ?? 5;
   const predEsp = participante.predicciones_especiales || {};
   const realEsp = config?.resultados_especiales_reales || {};
   ['mejor_jugador', 'maximo_goleador', 'mejor_portero', 'mejor_joven'].forEach(k => {

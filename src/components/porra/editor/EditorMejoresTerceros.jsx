@@ -66,7 +66,7 @@ export default function EditorMejoresTerceros({ participante, equipos, isBlocked
         <p className="text-purple-800 text-xs leading-relaxed">
           En el Mundial 2026 además de los 24 primeros y segundos, pasan a 16avos <strong>los 8 mejores terceros</strong>.<br/>
           Aquí ves los <strong>12 equipos</strong> que tú mismo predijiste como 3º en cada grupo. <strong>Marca los 8</strong> que crees que pasarán a 16avos.<br/>
-          🎯 Cada acierto vale <strong>8 puntos</strong> (máx 64 pts).
+          🎯 Cada acierto vale <strong>3 puntos</strong> (máx 24 pts).
         </p>
       </div>
 

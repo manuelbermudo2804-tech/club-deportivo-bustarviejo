@@ -4,13 +4,11 @@
   "properties": {
     "nombre_torneo": {
       "type": "string",
-      "default": "Porra Mundial 2026 \u2014 by CD Bustarviejo",
-      "description": "Nombre del torneo que se muestra en la web"
+      "default": "Porra Mundial 2026 \u2014 by CD Bustarviejo"
     },
     "activa": {
       "type": "boolean",
-      "default": false,
-      "description": "Si la porra est\u00e1 activa y visible p\u00fablicamente"
+      "default": false
     },
     "estado": {
       "type": "string",
@@ -21,48 +19,39 @@
         "en_curso",
         "finalizada"
       ],
-      "default": "preparacion",
-      "description": "Estado actual del torneo"
+      "default": "preparacion"
     },
     "precio_entrada": {
       "type": "number",
-      "default": 15,
-      "description": "Precio de la entrada en euros (configurable)"
+      "default": 15
     },
     "comision_club_porcentaje": {
       "type": "number",
-      "default": 10,
-      "description": "Porcentaje que se queda el club del bote total"
+      "default": 10
     },
     "fecha_limite_predicciones": {
       "type": "string",
-      "format": "date-time",
-      "description": "Fecha y hora l\u00edmite para hacer predicciones (antes del primer partido)"
+      "format": "date-time"
     },
     "fecha_inicio_mundial": {
       "type": "string",
-      "format": "date-time",
-      "description": "Fecha del primer partido del Mundial"
+      "format": "date-time"
     },
     "fecha_fin_mundial": {
       "type": "string",
-      "format": "date",
-      "description": "Fecha de la final"
+      "format": "date"
     },
     "permitir_multiples_porras": {
       "type": "boolean",
-      "default": true,
-      "description": "Si los usuarios pueden hacer varias porras"
+      "default": true
     },
     "mostrar_ranking_publico": {
       "type": "boolean",
-      "default": true,
-      "description": "Mostrar el ranking p\u00fablico"
+      "default": true
     },
     "permitir_mini_ligas": {
       "type": "boolean",
-      "default": true,
-      "description": "Permitir crear mini-ligas privadas con c\u00f3digo"
+      "default": true
     },
     "reparto_premios": {
       "type": "object",
@@ -79,13 +68,11 @@
           "type": "number",
           "default": 15
         }
-      },
-      "description": "Reparto del bote en porcentajes"
+      }
     },
     "destino_comision_club": {
       "type": "string",
-      "default": "Equipaci\u00f3n cantera CD Bustarviejo",
-      "description": "Texto que indica a qu\u00e9 se destina la comisi\u00f3n del club"
+      "default": "Equipaci\u00f3n cantera CD Bustarviejo"
     },
     "predicciones_especiales_activas": {
       "type": "array",
@@ -97,63 +84,61 @@
         "maximo_goleador",
         "mejor_portero",
         "mejor_joven"
-      ],
-      "description": "Lista de predicciones especiales activas"
+      ]
     },
     "puntos_resultado_grupo": {
       "type": "number",
-      "default": 3
+      "default": 1,
+      "description": "Puntos por acertar 1/X/2 en un partido de grupos"
     },
     "puntos_mejor_tercero": {
       "type": "number",
-      "default": 8,
+      "default": 3,
       "description": "Puntos por cada equipo acertado entre los 8 mejores terceros"
     },
     "puntos_16avos": {
       "type": "number",
-      "default": 4
+      "default": 2
     },
     "puntos_8vos": {
       "type": "number",
-      "default": 6
+      "default": 3
     },
     "puntos_4tos": {
       "type": "number",
-      "default": 10
+      "default": 5
     },
     "puntos_semis": {
       "type": "number",
-      "default": 14
+      "default": 7
     },
     "puntos_final": {
       "type": "number",
-      "default": 20
+      "default": 10
     },
     "puntos_campeon": {
       "type": "number",
-      "default": 25
+      "default": 15
     },
     "puntos_tercer_puesto_equipo": {
       "type": "number",
-      "default": 10
+      "default": 5
     },
     "puntos_tercer_puesto_ganador": {
       "type": "number",
-      "default": 14
+      "default": 7
     },
     "puntos_prediccion_especial": {
       "type": "number",
-      "default": 10
+      "default": 5
     },
     "banner_promocional_activo": {
       "type": "boolean",
-      "default": false,
-      "description": "Mostrar banner promocional en la app"
+      "default": false
     },
     "banner_texto": {
       "type": "string",
-      "default": "\ud83c\udfc6 \u00a1La Porra del Mundial 2026 ya est\u00e1 aqu\u00ed! Apunta tu equipo y gana premios",
-      "description": "Texto del banner promocional"
+      "default": "\ud83c\udfc6 \u00a1La Porra del Mundial 2026 ya est\u00e1 aqu\u00ed! Apunta tu equipo y gana premios"
     },
     "resultados_especiales_reales": {
       "type": "object",
@@ -170,27 +155,22 @@
         "mejor_joven": {
           "type": "string"
         }
-      },
-      "description": "Resultados reales de las predicciones especiales (al final del torneo)"
+      }
     },
     "mejores_terceros_reales": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Lista de los 8 mejores terceros REALES que pasan a 16avos (lo marca el admin al acabar la fase de grupos)"
+      }
     },
     "campeon_real": {
-      "type": "string",
-      "description": "Equipo campe\u00f3n real"
+      "type": "string"
     },
     "subcampeon_real": {
-      "type": "string",
-      "description": "Equipo subcampe\u00f3n real"
+      "type": "string"
     },
     "tercer_puesto_real": {
-      "type": "string",
-      "description": "Equipo tercer puesto real"
+      "type": "string"
     }
   },
   "required": [
