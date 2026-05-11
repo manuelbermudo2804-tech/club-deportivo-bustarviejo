@@ -117,7 +117,12 @@ export default function PorraRanking() {
               </div>
             </div>
             <Button
-              onClick={() => navigate('/Porra')}
+              onClick={() => {
+                // Si el usuario está logueado en la app → volver a "Mi Porra" (interno)
+                // Si no → ir a la landing pública de la porra
+                const enApp = !!localStorage.getItem('base44_access_token');
+                navigate(enApp ? '/MiPorra' : '/Porra');
+              }}
               size="sm"
               variant="outline"
               className="bg-white/10 border-white/30 text-white hover:bg-white/20"
