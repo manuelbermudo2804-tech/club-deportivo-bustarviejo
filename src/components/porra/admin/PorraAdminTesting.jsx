@@ -45,14 +45,17 @@ export default function PorraAdminTesting({ participantes = [], partidos = [], e
           if (ord.length === 4) clasifGrupos[g] = ord;
         });
 
-        // 8 mejores terceros aleatorios
-        const codigos = equipos.map(e => e.codigo);
-        const tercerosShuffled = [...codigos].sort(() => Math.random() - 0.5).slice(0, 8);
+        // 8 mejores terceros: elegir SOLO entre los 12 terceros predichos (no entre todos)
+        const candidatosTerceros = GRUPOS_LETRAS
+          .map(g => clasifGrupos[g]?.[2])
+          .filter(Boolean);
+        const tercerosShuffled = [...candidatosTerceros].sort(() => Math.random() - 0.5).slice(0, 8);
 
-        // Predicciones eliminatorias aleatorias
+        // Predicciones eliminatorias aleatorias (entre todos los equipos)
+        const todosCodigos = equipos.map(e => e.codigo);
         const predElim = {};
         partidos.filter(p => p.fase !== 'grupos' && p.fase !== 'tercer_puesto').forEach(p => {
-          predElim[p.id] = codigos[Math.floor(Math.random() * codigos.length)];
+          predElim[p.id] = todosCodigos[Math.floor(Math.random() * todosCodigos.length)];
         });
 
         const token = `test_${Date.now()}_${i}_${Math.random().toString(36).slice(2, 8)}`;

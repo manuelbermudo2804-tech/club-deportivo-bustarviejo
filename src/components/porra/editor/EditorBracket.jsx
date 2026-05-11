@@ -40,13 +40,23 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
     return Array.from(codigos);
   }, [participante]);
 
+  // Emparejamientos fijos de 16avos: 16 duelos de 2 equipos cada uno
+  // (cruzamos pares consecutivos del array de 32 clasificados)
+  const cruces16avos = useMemo(() => {
+    const lista = [...equiposEn16avos].slice(0, 32);
+    const pares = [];
+    for (let i = 0; i < lista.length; i += 2) {
+      if (lista[i + 1]) pares.push([lista[i], lista[i + 1]]);
+    }
+    return pares;
+  }, [equiposEn16avos]);
+
   // Devuelve los DOS contendientes de un partido eliminatoria:
-  // - 16avos: cualquiera de los 32 equipos clasificados (mostramos máx 16 más relevantes)
+  // - 16avos: 2 equipos según el cruce fijo determinista
   // - 8vos+: ganadores de los partidos anteriores que predijo el usuario
   const getContendientes = (partido, idxPartido, partidosFase, faseActual) => {
     if (faseActual === '16avos') {
-      // En 16avos no sabemos el cruce real → mostramos los 32 clasificados como pool
-      return equiposEn16avos;
+      return cruces16avos[idxPartido] || [];
     }
     if (faseActual === 'tercer_puesto') {
       // Tercer puesto = perdedores de semifinales → mostramos pool de semifinalistas - finalistas
