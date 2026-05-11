@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
-import { Trophy, ExternalLink } from "lucide-react";
+import { Trophy, ExternalLink, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PorraHeroLanding from "@/components/porra/PorraHeroLanding";
 import PorraComoFunciona from "@/components/porra/PorraComoFunciona";
 import PorraGruposPreview from "@/components/porra/PorraGruposPreview";
 import PorraVolverAppButton from "@/components/porra/PorraVolverAppButton";
 import PorraEmailMagicoInfo from "@/components/porra/PorraEmailMagicoInfo";
+import PorraRecuperarAccesosModal from "@/components/porra/PorraRecuperarAccesosModal";
 
 // Landing pública de la Porra Mundial 2026
 // Accesible vía /Porra sin login
@@ -17,6 +18,7 @@ export default function Porra() {
   const [equipos, setEquipos] = useState([]);
   const [stats, setStats] = useState({ participantes: 0, bote: 0 });
   const [loading, setLoading] = useState(true);
+  const [showRecuperar, setShowRecuperar] = useState(false);
 
   useEffect(() => {
     document.title = "Porra Mundial 2026 — by CD Bustarviejo";
@@ -125,7 +127,16 @@ export default function Porra() {
             🏆 Ver ranking
           </Button>
         </div>
+        <button
+          onClick={() => setShowRecuperar(true)}
+          className="mt-6 inline-flex items-center gap-2 text-white/90 hover:text-white underline text-sm font-medium"
+        >
+          <Mail className="w-4 h-4" />
+          ¿Ya juegas? Recupera tus porras por email
+        </button>
       </div>
+
+      <PorraRecuperarAccesosModal open={showRecuperar} onOpenChange={setShowRecuperar} />
 
       {/* Footer simple */}
       <div className="bg-slate-900 text-white/70 py-6 text-center text-sm">
