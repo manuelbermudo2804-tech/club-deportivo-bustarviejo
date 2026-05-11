@@ -1,22 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
 // Fila de partido eliminatorio con selectores de equipos + botones 1/X/2
-export default function EliminatoriaPartidoRow({ partido, equipos, onUpdate }) {
+// Mantiene estado local para no recargar todo el panel admin al guardar
+export default function EliminatoriaPartidoRow({ partido, equipos, equiposUsadosEnFase = new Set(), onLocalChange }) {
   const [saving, setSaving] = useState(false);
+  const [local, setLocal] = useState(partido);
+
+  // Sincronizar si la prop cambia externamente
+  useEffect(() => { setLocal(partido); }, [partido.id, partido.updated_date]);
 
   const equiposOrdenados = [...equipos].sort((a, b) => a.nombre.localeCompare(b.nombre));
 
+  // Filtrar equipos ya usados en otros partidos de la misma fase (excepto los del partido actual)
+  const getOpciones = (codigoActual) => {
+    return equiposOrdenados.filter(eq => {
+      if (eq.codigo === codigoActual) return true; // siempre permitir el que ya está seleccionado
+      return !equiposUsadosEnFase.has(eq.codigo);
+    });
+  };
+
   const handleSetEquipo = async (campo, codigo) => {
     setSaving(true);
+    const previo = local[campo];
+    // Actualizar estado local INMEDIATAMENTE (optimista)
+    const nuevoPartido = { ...local, [campo]: codigo || "" };
+    setLocal(nuevoPartido);
+    onLocalChange?.(nuevoPartido);
     try {
-      await base44.entities.PorraPartido.update(partido.id, {
-        [campo]: codigo || "",
-      });
-      toast.success("Equipo asignado");
-      onUpdate?.();
+      await base44.entities.PorraPartido.update(partido.id, { [campo]: codigo || "" });
     } catch (e) {
+      // Revertir si falla
+      setLocal({ ...local, [campo]: previo });
+      onLocalChange?.({ ...local, [campo]: previo });
       toast.error("Error: " + e.message);
     } finally {
       setSaving(false);
@@ -24,54 +41,60 @@ export default function EliminatoriaPartidoRow({ partido, equipos, onUpdate }) {
   };
 
   const handleResultado = async (resultado) => {
-    if (!partido.equipo_local_codigo || !partido.equipo_visitante_codigo) {
+    if (!local.equipo_local_codigo || !local.equipo_visitante_codigo) {
       toast.error("Asigna primero los dos equipos");
       return;
     }
     setSaving(true);
+    let ganador = "";
+    if (resultado === "1") ganador = local.equipo_local_codigo;
+    else if (resultado === "2") ganador = local.equipo_visitante_codigo;
+
+    const previo = { ...local };
+    const nuevoPartido = { ...local, resultado_real: resultado, ganador_codigo: ganador, finalizado: true };
+    setLocal(nuevoPartido);
+    onLocalChange?.(nuevoPartido);
     try {
-      let ganador = "";
-      if (resultado === "1") ganador = partido.equipo_local_codigo;
-      else if (resultado === "2") ganador = partido.equipo_visitante_codigo;
       await base44.entities.PorraPartido.update(partido.id, {
         resultado_real: resultado,
         ganador_codigo: ganador,
         finalizado: true,
       });
-      toast.success(`Resultado: ${resultado}`);
-      onUpdate?.();
     } catch (e) {
+      setLocal(previo);
+      onLocalChange?.(previo);
       toast.error("Error: " + e.message);
     } finally {
       setSaving(false);
     }
   };
 
-  const local = equipos.find(e => e.codigo === partido.equipo_local_codigo);
-  const visit = equipos.find(e => e.codigo === partido.equipo_visitante_codigo);
+  const localEq = equipos.find(e => e.codigo === local.equipo_local_codigo);
+  const visitEq = equipos.find(e => e.codigo === local.equipo_visitante_codigo);
 
   return (
     <div className="p-3 hover:bg-slate-50 border-b last:border-b-0">
       <div className="flex items-center gap-2 mb-2">
-        <span className="text-xs font-bold text-slate-500 w-20">Partido {partido.numero_partido}</span>
-        {partido.finalizado && (
+        <span className="text-xs font-bold text-slate-500 w-20">Partido {local.numero_partido}</span>
+        {local.finalizado && (
           <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">
             ✓ Finalizado
           </span>
         )}
+        {saving && <span className="text-xs text-slate-400">Guardando…</span>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto] gap-2 items-center">
         <div className="flex items-center gap-2">
-          <span className="text-xl">{local?.bandera_emoji || "🏳️"}</span>
+          <span className="text-xl">{localEq?.bandera_emoji || "🏳️"}</span>
           <select
-            value={partido.equipo_local_codigo || ""}
+            value={local.equipo_local_codigo || ""}
             onChange={(e) => handleSetEquipo("equipo_local_codigo", e.target.value)}
             disabled={saving}
             className="flex-1 px-2 py-1.5 border rounded text-sm bg-white"
           >
-            <option value="">— {partido.equipo_local_placeholder || "Local"} —</option>
-            {equiposOrdenados.map(eq => (
+            <option value="">— {local.equipo_local_placeholder || "Local"} —</option>
+            {getOpciones(local.equipo_local_codigo).map(eq => (
               <option key={eq.codigo} value={eq.codigo}>
                 {eq.bandera_emoji} {eq.nombre}
               </option>
@@ -82,15 +105,15 @@ export default function EliminatoriaPartidoRow({ partido, equipos, onUpdate }) {
         <span className="text-xs text-slate-400 font-bold text-center px-1">VS</span>
 
         <div className="flex items-center gap-2">
-          <span className="text-xl">{visit?.bandera_emoji || "🏳️"}</span>
+          <span className="text-xl">{visitEq?.bandera_emoji || "🏳️"}</span>
           <select
-            value={partido.equipo_visitante_codigo || ""}
+            value={local.equipo_visitante_codigo || ""}
             onChange={(e) => handleSetEquipo("equipo_visitante_codigo", e.target.value)}
             disabled={saving}
             className="flex-1 px-2 py-1.5 border rounded text-sm bg-white"
           >
-            <option value="">— {partido.equipo_visitante_placeholder || "Visitante"} —</option>
-            {equiposOrdenados.map(eq => (
+            <option value="">— {local.equipo_visitante_placeholder || "Visitante"} —</option>
+            {getOpciones(local.equipo_visitante_codigo).map(eq => (
               <option key={eq.codigo} value={eq.codigo}>
                 {eq.bandera_emoji} {eq.nombre}
               </option>
@@ -105,7 +128,7 @@ export default function EliminatoriaPartidoRow({ partido, equipos, onUpdate }) {
               onClick={() => handleResultado(r)}
               disabled={saving}
               className={`w-9 h-9 rounded text-xs font-bold transition-all disabled:opacity-50 ${
-                partido.resultado_real === r
+                local.resultado_real === r
                   ? "bg-green-600 text-white shadow scale-110"
                   : "bg-slate-200 hover:bg-slate-300 text-slate-700"
               }`}

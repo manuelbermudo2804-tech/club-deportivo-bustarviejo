@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -44,9 +44,30 @@ function ResultadoBotones({ partido, equipos, onChange }) {
 
 export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpdate }) {
   const [regenerando, setRegenerando] = useState(false);
+  // Estado local de eliminatorias para no recargar todo el panel admin al editar
+  const [elimiLocal, setElimiLocal] = useState([]);
+
+  useEffect(() => {
+    setElimiLocal(partidos.filter(p => p.fase !== 'grupos'));
+  }, [partidos]);
 
   const grupos = partidos.filter(p => p.fase === 'grupos');
-  const elimi = partidos.filter(p => p.fase !== 'grupos');
+  const elimi = elimiLocal;
+
+  // Para cada fase, set de equipos ya usados en partidos de esa fase
+  const equiposUsadosPorFase = useMemo(() => {
+    const map = {};
+    elimi.forEach(p => {
+      if (!map[p.fase]) map[p.fase] = new Set();
+      if (p.equipo_local_codigo) map[p.fase].add(p.equipo_local_codigo);
+      if (p.equipo_visitante_codigo) map[p.fase].add(p.equipo_visitante_codigo);
+    });
+    return map;
+  }, [elimi]);
+
+  const handleLocalChange = (nuevoPartido) => {
+    setElimiLocal(prev => prev.map(p => p.id === nuevoPartido.id ? nuevoPartido : p));
+  };
 
   const handleResultado = async (partidoId, resultado) => {
     try {
@@ -162,7 +183,13 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpda
                     </div>
                     <div>
                       {ps.map(p => (
-                        <EliminatoriaPartidoRow key={p.id} partido={p} equipos={equipos} onUpdate={onUpdate} />
+                        <EliminatoriaPartidoRow
+                          key={p.id}
+                          partido={p}
+                          equipos={equipos}
+                          equiposUsadosEnFase={equiposUsadosPorFase[fase] || new Set()}
+                          onLocalChange={handleLocalChange}
+                        />
                       ))}
                     </div>
                   </div>
