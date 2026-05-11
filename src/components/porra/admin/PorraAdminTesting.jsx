@@ -329,16 +329,16 @@ export default function PorraAdminTesting({ participantes = [], partidos = [], e
             </p>
             <div className="space-y-1 max-h-80 overflow-y-auto">
               {participantesTest.slice(0, 30).map(p => (
-                <div key={p.id} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg text-sm">
-                  <span className="flex-1 font-medium truncate">{p.alias_equipo}</span>
+                <div key={p.id} className="flex flex-wrap items-center gap-2 p-3 bg-white border border-slate-200 rounded-lg text-sm hover:border-purple-300 hover:bg-purple-50/30">
+                  <span className="flex-1 min-w-[120px] font-bold text-slate-800 truncate">{p.alias_equipo}</span>
                   <Badge variant="outline" className="text-xs">{p.porcentaje_completado || 0}%</Badge>
                   <Badge className="bg-purple-600 text-xs">{p.puntos_total || 0} pts</Badge>
-                  {p.bloqueada && <Lock className="w-3 h-3 text-red-500" />}
-                  <Button size="sm" variant="ghost" onClick={() => copiarEnlace(p.token_acceso)}>
-                    <Copy className="w-3 h-3" />
+                  {p.bloqueada && <Badge variant="destructive" className="text-xs"><Lock className="w-3 h-3 mr-1" />Bloqueada</Badge>}
+                  <Button size="sm" variant="outline" onClick={() => copiarEnlace(p.token_acceso)} className="h-8">
+                    <Copy className="w-3.5 h-3.5 mr-1" /> Copiar enlace
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => abrirComoUsuario(p.token_acceso)}>
-                    <ExternalLink className="w-3 h-3" />
+                  <Button size="sm" onClick={() => abrirComoUsuario(p.token_acceso)} className="h-8 bg-purple-600 hover:bg-purple-700">
+                    <ExternalLink className="w-3.5 h-3.5 mr-1" /> Abrir porra
                   </Button>
                 </div>
               ))}
