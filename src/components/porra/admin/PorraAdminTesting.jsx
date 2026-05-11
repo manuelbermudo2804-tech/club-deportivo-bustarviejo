@@ -141,11 +141,22 @@ export default function PorraAdminTesting({ participantes = [], partidos = [], e
       for (const p of grupales) {
         const r = opciones[Math.floor(Math.random() * 3)];
         const gl = Math.floor(Math.random() * 4);
-        const gv = r === '1' ? gl + 1 + Math.floor(Math.random() * 2) : r === '2' ? Math.max(0, gl - 1 - Math.floor(Math.random() * 2)) : gl;
+        // FIX: r='1' gana local → goles_local > goles_visitante; r='2' gana visitante → al revés
+        let gLocal, gVisit;
+        if (r === '1') {
+          gVisit = Math.floor(Math.random() * 3); // 0-2
+          gLocal = gVisit + 1 + Math.floor(Math.random() * 2); // gVisit+1 o gVisit+2
+        } else if (r === '2') {
+          gLocal = Math.floor(Math.random() * 3);
+          gVisit = gLocal + 1 + Math.floor(Math.random() * 2);
+        } else { // X
+          gLocal = Math.floor(Math.random() * 4);
+          gVisit = gLocal;
+        }
         await base44.entities.PorraPartido.update(p.id, {
           resultado_real: r,
-          goles_local: gl,
-          goles_visitante: gv,
+          goles_local: gLocal,
+          goles_visitante: gVisit,
           finalizado: true,
         });
       }
@@ -211,6 +222,27 @@ export default function PorraAdminTesting({ participantes = [], partidos = [], e
       const { data } = await base44.functions.invoke('porraBloquear', {});
       if (data.skip) toast.info(`No se bloqueó: ${data.reason}`);
       else toast.success(`🔒 ${data.bloqueados} porras bloqueadas`);
+      onUpdate?.();
+    } catch (e) {
+      toast.error(`Error: ${e.message}`);
+    } finally { clearBusy(); }
+  };
+
+  // 7b) RESET TOTAL: borra participantes test + regenera partidos desde cero
+  // Útil cuando las predicciones quedaron huérfanas tras regenerar partidos
+  const resetTotal = async () => {
+    if (!confirm('⚠️ RESET TOTAL DE PRUEBAS:\n\n1) Borra TODOS los participantes de test (@test.cdbustarviejo.com)\n2) Regenera todos los partidos desde cero\n3) Limpia resultados\n\nNO afecta a participantes reales. ¿Continuar?')) return;
+    setBusyOp('reset_total');
+    try {
+      // 1) Borrar participantes test
+      const tests = participantes.filter(p => (p.email || '').includes('@test.cdbustarviejo.com'));
+      for (const p of tests) {
+        await base44.entities.PorraParticipante.delete(p.id);
+      }
+      // 2) Regenerar partidos (esto recrea IDs nuevos, pero ya no hay predicciones que se rompan)
+      await base44.functions.invoke('porraGenerarPartidos', {});
+      await base44.functions.invoke('porraGenerarEliminatorias', {});
+      toast.success(`🔄 Reset completo: ${tests.length} test borrados + partidos regenerados`);
       onUpdate?.();
     } catch (e) {
       toast.error(`Error: ${e.message}`);
@@ -359,6 +391,13 @@ export default function PorraAdminTesting({ participantes = [], partidos = [], e
           <Button onClick={desbloquearTodas} disabled={busy === 'desbloquear'} variant="ghost" size="sm" className="text-purple-700">
             <RefreshCw className="w-4 h-4 mr-1" /> Desbloquear todas (para seguir testeando)
           </Button>
+          <div className="pt-3 mt-2 border-t border-red-200">
+            <Button onClick={resetTotal} disabled={busy === 'reset_total'} variant="destructive" size="sm" className="w-full">
+              {busy === 'reset_total' ? <RefreshCw className="w-4 h-4 mr-1 animate-spin" /> : <AlertTriangle className="w-4 h-4 mr-1" />}
+              🔄 RESET TOTAL (borrar tests + regenerar partidos)
+            </Button>
+            <p className="text-xs text-slate-500 mt-1">Útil si las predicciones quedaron huérfanas tras regenerar partidos. Borra solo los test, no los reales.</p>
+          </div>
         </CardContent>
       </Card>
 

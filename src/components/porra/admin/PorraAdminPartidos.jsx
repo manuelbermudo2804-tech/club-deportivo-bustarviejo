@@ -61,7 +61,24 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpda
   };
 
   const regenerarPartidos = async () => {
-    if (!confirm('¿Regenerar TODOS los partidos? Se perderán los resultados ya introducidos.')) return;
+    // ⚠️ Aviso reforzado: si hay predicciones, se quedan huérfanas al regenerar (cambian los IDs)
+    try {
+      const conPredicciones = await base44.entities.PorraParticipante.filter({});
+      const conPreds = conPredicciones.filter(p => p.predicciones_grupos && Object.keys(p.predicciones_grupos).length > 0);
+      if (conPreds.length > 0) {
+        const ok = confirm(
+          `⚠️ ATENCIÓN: Hay ${conPreds.length} participantes con predicciones guardadas.\n\n` +
+          `Si regeneras los partidos, los IDs cambiarán y TODAS las predicciones quedarán huérfanas (apuntando a partidos que ya no existen). Sus puntos serán 0.\n\n` +
+          `Solo debes regenerar si vas a borrar también todos los participantes.\n\n` +
+          `¿Continuar de todas formas?`
+        );
+        if (!ok) return;
+      } else if (!confirm('¿Regenerar TODOS los partidos? Se perderán los resultados ya introducidos.')) {
+        return;
+      }
+    } catch {
+      if (!confirm('¿Regenerar TODOS los partidos? Se perderán los resultados ya introducidos.')) return;
+    }
     setRegenerando(true);
     try {
       await base44.functions.invoke('porraGenerarPartidos', {});
