@@ -110,24 +110,32 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.PorraParticipante.update(participante.id, safeUpdates);
 
     // Si la porra acaba de llegar al 100% por primera vez → enviar email de celebración
+    // ⚠️ Saltar envío de email si la porra está en MODO TEST (ahorra créditos durante pruebas)
     const llegaA100 = safeUpdates.porcentaje_completado === 100 && (participante.porcentaje_completado || 0) < 100;
     if (llegaA100 && !participante.email_completado_enviado) {
       try {
-        const baseUrl = req.headers.get('origin') || 'https://app.cdbustarviejo.com';
-        const enlace = `${baseUrl}/PorraMiPorra?token=${participante.token_acceso}`;
-        const enlaceRanking = `${baseUrl}/PorraRanking?token=${participante.token_acceso}`;
-        await base44.asServiceRole.integrations.Core.SendEmail({
-          to: participante.email,
-          subject: `🎉 ¡Tu porra "${participante.alias_equipo}" está al 100%! — Mundial 2026`,
-          body: emailCompletadaHtml({
-            nombre: participante.nombre,
-            alias: participante.alias_equipo,
-            enlace,
-            enlaceRanking,
-          }),
-        });
-        // Marcar para no volver a enviar
-        await base44.asServiceRole.entities.PorraParticipante.update(participante.id, { email_completado_enviado: true });
+        const configs = await base44.asServiceRole.entities.PorraConfig.list();
+        const modoTest = !!configs[0]?.modo_test;
+        if (modoTest) {
+          console.log('[porraUpdateByToken] MODO TEST: email 100% omitido para ahorrar créditos.');
+          // Marcamos igualmente para que no vuelva a intentar enviarlo
+          await base44.asServiceRole.entities.PorraParticipante.update(participante.id, { email_completado_enviado: true });
+        } else {
+          const baseUrl = req.headers.get('origin') || 'https://app.cdbustarviejo.com';
+          const enlace = `${baseUrl}/PorraMiPorra?token=${participante.token_acceso}`;
+          const enlaceRanking = `${baseUrl}/PorraRanking?token=${participante.token_acceso}`;
+          await base44.asServiceRole.integrations.Core.SendEmail({
+            to: participante.email,
+            subject: `🎉 ¡Tu porra "${participante.alias_equipo}" está al 100%! — Mundial 2026`,
+            body: emailCompletadaHtml({
+              nombre: participante.nombre,
+              alias: participante.alias_equipo,
+              enlace,
+              enlaceRanking,
+            }),
+          });
+          await base44.asServiceRole.entities.PorraParticipante.update(participante.id, { email_completado_enviado: true });
+        }
       } catch (emailErr) {
         console.error('[porraUpdateByToken] Error enviando email 100%:', emailErr?.message || emailErr);
       }
