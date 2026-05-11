@@ -610,6 +610,111 @@ Deno.serve(async (req) => {
           }
         }
 
+        // ============ PORRA MUNDIAL 2026 ============
+        if (metadata.tipo === 'porra' && metadata.participante_id) {
+          try {
+            const amountPaid = Number(session.amount_total || 0) / 100;
+            const payerEmail = session.customer_details?.email || session.customer_email || metadata.user_email;
+            const token = metadata.token_acceso;
+
+            // Log
+            try {
+              await base44.asServiceRole.entities.StripePaymentLog.create({
+                section: 'porra',
+                amount: amountPaid,
+                currency: session.currency || 'eur',
+                status: 'succeeded',
+                session_id: session.id,
+                payment_intent_id: session.payment_intent || null,
+                email: payerEmail,
+                related_entity: 'PorraParticipante',
+                related_id: metadata.participante_id,
+                metadata,
+                created_at: new Date().toISOString()
+              });
+            } catch (logErr) {
+              console.error('[stripe-webhook] Error log porra:', logErr?.message);
+            }
+
+            // Marcar participante como pagado
+            await base44.asServiceRole.entities.PorraParticipante.update(metadata.participante_id, {
+              estado_pago: 'pagado',
+              cantidad_pagada: amountPaid,
+              fecha_pago: new Date().toISOString(),
+              stripe_payment_intent: session.payment_intent || null,
+            });
+            console.log('[stripe-webhook] Porra: participante marcado pagado', metadata.participante_id);
+
+            // Email con enlace mágico
+            const baseUrl = 'https://app.cdbustarviejo.com';
+            const enlaceMagico = `${baseUrl}/PorraMiPorra?token=${token}`;
+            const aliasSafe = (metadata.alias_equipo || 'Tu equipo').replace(/[<>]/g, '');
+            const nombreSafe = (metadata.nombre || '').replace(/[<>]/g, '');
+
+            const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:0;background:#f1f5f9">
+<div style="max-width:600px;margin:0 auto;background:#ffffff">
+<div style="background:linear-gradient(135deg,#dc2626,#ea580c,#f59e0b);padding:40px 24px;text-align:center">
+<div style="font-size:64px;margin-bottom:8px">🏆</div>
+<h1 style="color:#ffffff;margin:0;font-size:28px;font-weight:900;letter-spacing:-0.5px">¡Estás dentro!</h1>
+<p style="color:rgba(255,255,255,0.95);margin:8px 0 0;font-size:16px;font-weight:600">Porra Mundial 2026 · CD Bustarviejo</p>
+</div>
+<div style="padding:32px 24px">
+<p style="margin:0 0 16px;font-size:16px;color:#1e293b">Hola <strong>${nombreSafe}</strong>,</p>
+<p style="margin:0 0 16px;font-size:15px;color:#475569;line-height:1.6">¡Hemos recibido tu pago de <strong>${amountPaid.toFixed(2)}€</strong> para participar en la <strong style="color:#ea580c">Porra del Mundial 2026</strong>! 🎉</p>
+<div style="background:linear-gradient(135deg,#fff7ed,#fed7aa);border:2px solid #fb923c;border-radius:12px;padding:20px;margin:20px 0;text-align:center">
+<p style="margin:0 0 4px;font-size:12px;color:#9a3412;text-transform:uppercase;letter-spacing:1px;font-weight:700">Tu equipo</p>
+<p style="margin:0;font-size:22px;font-weight:900;color:#7c2d12">${aliasSafe}</p>
+</div>
+<div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:16px;border-radius:8px;margin:20px 0">
+<p style="margin:0 0 6px;font-size:13px;color:#78350f;font-weight:700">🔐 IMPORTANTE: tu enlace mágico</p>
+<p style="margin:0;font-size:13px;color:#92400e;line-height:1.5">Este es tu único acceso a tu porra (no usamos contraseñas). <strong>Guarda este email</strong> y añade el enlace a favoritos.</p>
+</div>
+<div style="text-align:center;margin:28px 0">
+<a href="${enlaceMagico}" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#ea580c);color:#ffffff;text-decoration:none;padding:16px 36px;border-radius:12px;font-weight:900;font-size:16px;box-shadow:0 8px 20px rgba(220,38,38,0.3);letter-spacing:0.3px">
+🏆 EMPEZAR A PREDECIR
+</a>
+</div>
+<p style="margin:8px 0;font-size:11px;color:#94a3b8;text-align:center;word-break:break-all">Si el botón no funciona, copia este enlace:<br/><a href="${enlaceMagico}" style="color:#ea580c">${enlaceMagico}</a></p>
+<div style="background:#f1f5f9;border-radius:8px;padding:16px;margin:24px 0;font-size:13px;color:#475569;line-height:1.6">
+<p style="margin:0 0 8px;font-weight:700;color:#1e293b">📋 ¿Qué tienes que hacer?</p>
+<p style="margin:4px 0">✅ Predecir los 72 partidos de la fase de grupos (1/X/2)</p>
+<p style="margin:4px 0">✅ Montar tu bracket: 16avos, 8vos, cuartos, semis y final</p>
+<p style="margin:4px 0">✅ Elegir 3er puesto y predicciones especiales (mejor jugador, goleador...)</p>
+<p style="margin:8px 0 0;font-size:12px;color:#94a3b8">⏰ Tienes hasta el inicio del Mundial para completar tu porra</p>
+</div>
+<p style="margin:20px 0 0;font-size:14px;color:#475569">¡Mucha suerte! Que gane el mejor profeta. 🍀</p>
+<p style="margin:8px 0 0;font-size:13px;color:#64748b"><strong>CD Bustarviejo</strong> · Tu club de siempre 💚</p>
+</div>
+<div style="background:#1e293b;padding:20px;text-align:center;color:#94a3b8;font-size:11px">
+<p style="margin:0">© ${new Date().getFullYear()} CD Bustarviejo · Porra Mundial 2026</p>
+<p style="margin:6px 0 0">El ${metadata.comision_club || '10'}% del bote va destinado al club</p>
+</div>
+</div></body></html>`;
+
+            try {
+              await base44.asServiceRole.integrations.Core.SendEmail({
+                to: payerEmail,
+                subject: `🏆 ¡Estás en la Porra del Mundial 2026! Tu enlace mágico dentro`,
+                body: emailHtml,
+              });
+              console.log('[stripe-webhook] Porra: email mágico enviado a', payerEmail);
+            } catch (emailErr) {
+              console.error('[stripe-webhook] Error email porra:', emailErr?.message || emailErr);
+            }
+
+            // Notificar al admin
+            try {
+              await base44.asServiceRole.integrations.Core.SendEmail({
+                to: 'info@cdbustarviejo.com',
+                subject: `🏆 Nueva porra: ${aliasSafe} (${amountPaid}€)`,
+                body: `Nueva participante en la Porra Mundial 2026:\n\nNombre: ${nombreSafe}\nAlias: ${aliasSafe}\nEmail: ${payerEmail}\nImporte: ${amountPaid}€\nID: ${metadata.participante_id}`,
+              });
+            } catch {}
+          } catch (e) {
+            console.error('[stripe-webhook] Error procesando Porra:', e?.message || e);
+          }
+        }
+
         // NUEVO: Lotería de Navidad
         if (metadata.tipo === 'loteria') {
           try {

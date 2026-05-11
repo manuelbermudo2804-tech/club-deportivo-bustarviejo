@@ -28,6 +28,9 @@ import ReciboGenerator from '@/pages/ReciboGenerator';
 import MyFeedback from '@/pages/MyFeedback';
 import Porra from '@/pages/Porra';
 import PorraAdmin from '@/pages/PorraAdmin';
+import PorraCrear from '@/pages/PorraCrear';
+import PorraExito from '@/pages/PorraExito';
+import PorraMiPorra from '@/pages/PorraMiPorra';
 import SponsorSplash from '@/components/sponsors/SponsorSplash';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -43,7 +46,7 @@ const AppRouter = () => {
   
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').toLowerCase();
-  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra'];
+  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra'];
   if (publicPaths.includes(cleanPath)) {
     return (
       <Routes>
@@ -62,6 +65,12 @@ const AppRouter = () => {
         <Route path="/Porra" element={<Porra />} />
         <Route path="/porra" element={<Porra />} />
         <Route path="/PORRA" element={<Porra />} />
+        <Route path="/PorraCrear" element={<PorraCrear />} />
+        <Route path="/porracrear" element={<PorraCrear />} />
+        <Route path="/PorraExito" element={<PorraExito />} />
+        <Route path="/porraexito" element={<PorraExito />} />
+        <Route path="/PorraMiPorra" element={<PorraMiPorra />} />
+        <Route path="/porramiporra" element={<PorraMiPorra />} />
       </Routes>
     );
   }
