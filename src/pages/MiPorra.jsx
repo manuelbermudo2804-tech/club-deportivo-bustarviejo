@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import PorraHeroLanding from "@/components/porra/PorraHeroLanding";
 import PorraComoFunciona from "@/components/porra/PorraComoFunciona";
 import PorraGruposPreview from "@/components/porra/PorraGruposPreview";
-import PorraEmailMagicoInfo from "@/components/porra/PorraEmailMagicoInfo";
+import MisPorrasUsuario from "@/components/porra/MisPorrasUsuario";
 
 // Versión INTERNA de la Porra (dentro de la app autenticada, con layout y menú lateral)
 // La versión pública sigue en /Porra para embeber en la web externa del club.
@@ -79,7 +79,7 @@ export default function MiPorra() {
         totalParticipantes={stats.participantes}
         bote={stats.bote}
       />
-      <PorraEmailMagicoInfo />
+      <MisPorrasUsuario onCrearNueva={handleCrearPorra} />
       <PorraComoFunciona config={config} />
       <PorraGruposPreview equipos={equipos} />
 
