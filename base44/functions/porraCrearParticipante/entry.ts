@@ -122,7 +122,7 @@ Deno.serve(async (req) => {
 <p style="margin:0;font-size:22px;font-weight:900;color:#7c2d12">${aliasSafe}</p>
 </div>
 <div style="text-align:center;margin:28px 0">
-<a href="${enlaceMagico}" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#ea580c);color:#ffffff;text-decoration:none;padding:16px 36px;border-radius:12px;font-weight:900;font-size:16px;box-shadow:0 8px 20px rgba(220,38,38,0.3)">
+<a href="${enlaceMagico}" style="display:inline-block;background-color:#dc2626;color:#ffffff;text-decoration:none;padding:16px 36px;border-radius:12px;font-weight:900;font-size:16px;box-shadow:0 8px 20px rgba(220,38,38,0.3)">
 🏆 EMPEZAR A PREDECIR
 </a>
 </div>

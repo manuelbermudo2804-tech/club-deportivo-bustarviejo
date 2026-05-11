@@ -121,21 +121,27 @@ export default function EditorGrupos({ participante, partidos, equipos, isBlocke
                       const showStats = !!partidoStats && partidoStats.total >= 5;
                       return (
                         <div key={p.id} className="p-2 rounded-lg hover:bg-slate-50">
-                          <div className="flex items-center gap-2">
-                            <div className="flex-1 min-w-0 flex items-center gap-1.5 text-sm">
-                              <span className="text-xl flex-shrink-0">{local?.bandera_emoji || '🏳️'}</span>
-                              <span className="font-medium truncate">{local?.nombre}</span>
-                              <span className="text-slate-300 mx-0.5 flex-shrink-0">vs</span>
-                              <span className="text-xl flex-shrink-0">{visit?.bandera_emoji || '🏳️'}</span>
-                              <span className="font-medium truncate">{visit?.nombre}</span>
+                          {/* Móvil: equipos arriba en 2 filas, botones debajo. Desktop: todo en una fila */}
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                            <div className="flex-1 min-w-0 grid grid-cols-[auto_1fr] sm:flex sm:items-center gap-x-2 gap-y-1 text-sm">
+                              <div className="flex items-center gap-1.5 min-w-0">
+                                <span className="text-xl flex-shrink-0">{local?.bandera_emoji || '🏳️'}</span>
+                                <span className="font-medium truncate">{local?.nombre}</span>
+                              </div>
+                              <span className="hidden sm:inline text-slate-300 mx-0.5 flex-shrink-0">vs</span>
+                              <span className="sm:hidden text-[10px] text-slate-400 col-start-2 -my-1">vs</span>
+                              <div className="flex items-center gap-1.5 min-w-0 col-start-1 col-span-2 sm:col-auto">
+                                <span className="text-xl flex-shrink-0">{visit?.bandera_emoji || '🏳️'}</span>
+                                <span className="font-medium truncate">{visit?.nombre}</span>
+                              </div>
                             </div>
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 justify-end sm:justify-start flex-shrink-0">
                               {['1', 'X', '2'].map(r => (
                                 <button
                                   key={r}
                                   disabled={isBlocked}
                                   onClick={() => onSetResultado(p.id, r)}
-                                  className={`w-9 h-9 rounded-lg font-black text-sm transition-all disabled:opacity-50 ${
+                                  className={`w-10 h-10 sm:w-9 sm:h-9 rounded-lg font-black text-sm transition-all disabled:opacity-50 ${
                                     pred === r
                                       ? 'bg-gradient-to-br from-red-600 to-orange-600 text-white shadow-lg scale-105'
                                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
