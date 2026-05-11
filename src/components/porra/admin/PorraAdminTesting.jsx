@@ -10,6 +10,9 @@ import {
   TestTube2, UserPlus, Zap, Trash2, ExternalLink, Copy, Mail, Lock,
   Calculator, Dice5, AlertTriangle, CheckCircle2, RefreshCw, FlaskConical, PlayCircle
 } from "lucide-react";
+import { calcularClasificacionGrupo } from "@/components/porra/editor/calcularClasificacion";
+
+const GRUPOS_LETRAS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
 // Panel completo de TESTING de la Porra Mundial
 // Permite a un admin probar todo el flujo sin moverse de aquí
@@ -35,6 +38,13 @@ export default function PorraAdminTesting({ participantes = [], partidos = [], e
           predGrupos[p.id] = opciones[Math.floor(Math.random() * 3)];
         });
 
+        // 🔥 Calcular clasificación automática de cada grupo (igual que hace el editor)
+        const clasifGrupos = {};
+        GRUPOS_LETRAS.forEach(g => {
+          const ord = calcularClasificacionGrupo(g, partidos, equipos, predGrupos);
+          if (ord.length === 4) clasifGrupos[g] = ord;
+        });
+
         // 8 mejores terceros aleatorios
         const codigos = equipos.map(e => e.codigo);
         const tercerosShuffled = [...codigos].sort(() => Math.random() - 0.5).slice(0, 8);
@@ -57,6 +67,7 @@ export default function PorraAdminTesting({ participantes = [], partidos = [], e
           cantidad_pagada: config?.precio_entrada || 15,
           fecha_pago: new Date().toISOString(),
           predicciones_grupos: predGrupos,
+          clasificacion_grupos: clasifGrupos,
           mejores_terceros: tercerosShuffled,
           predicciones_eliminatorias: predElim,
           completado_grupos: true,
@@ -71,6 +82,31 @@ export default function PorraAdminTesting({ participantes = [], partidos = [], e
       onUpdate?.();
     } catch (e) {
       console.error(e);
+      toast.error(`Error: ${e.message}`);
+    } finally { clearBusy(); }
+  };
+
+  // 1b) Recalcular la clasificación automática de los test ya existentes (parche para los antiguos)
+  const recalcularClasifTest = async () => {
+    const tests = participantes.filter(p => (p.email || '').includes('@test.cdbustarviejo.com'));
+    if (tests.length === 0) return toast.info('No hay participantes de prueba');
+    setBusyOp('recalcular_clasif');
+    try {
+      let arregladas = 0;
+      for (const p of tests) {
+        const clasifGrupos = {};
+        GRUPOS_LETRAS.forEach(g => {
+          const ord = calcularClasificacionGrupo(g, partidos, equipos, p.predicciones_grupos || {});
+          if (ord.length === 4) clasifGrupos[g] = ord;
+        });
+        if (Object.keys(clasifGrupos).length > 0) {
+          await base44.entities.PorraParticipante.update(p.id, { clasificacion_grupos: clasifGrupos });
+          arregladas++;
+        }
+      }
+      toast.success(`✅ ${arregladas} porras con clasificación recalculada`);
+      onUpdate?.();
+    } catch (e) {
       toast.error(`Error: ${e.message}`);
     } finally { clearBusy(); }
   };
@@ -259,6 +295,14 @@ export default function PorraAdminTesting({ participantes = [], partidos = [], e
               <Trash2 className="w-4 h-4 mr-1" /> Borrar todos los de prueba ({participantesTest.length})
             </Button>
           </div>
+          {participantesTest.length > 0 && (
+            <div className="pt-2 border-t">
+              <Button onClick={recalcularClasifTest} disabled={busy === 'recalcular_clasif'} variant="outline" size="sm" className="text-purple-700 border-purple-300">
+                <RefreshCw className="w-4 h-4 mr-1" /> Arreglar clasificación de los test existentes
+              </Button>
+              <p className="text-xs text-slate-500 mt-1">Si ya creaste participantes test antes y les falta la clasificación automática de algún grupo, pulsa aquí.</p>
+            </div>
+          )}
         </CardContent>
       </Card>
 
