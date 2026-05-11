@@ -140,8 +140,8 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
                         ) : `Partido ${idx + 1}`}
                       </p>
                       {ganadorActual && (
-                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-                          {esFinal ? '🏆' : '✓'} {equiposPorCodigo[ganadorActual]?.bandera_emoji} {equiposPorCodigo[ganadorActual]?.codigo}
+                        <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold flex items-center gap-1 max-w-[60%] truncate">
+                          {esFinal ? '🏆' : '✓'} {equiposPorCodigo[ganadorActual]?.bandera_emoji} <span className="truncate">{equiposPorCodigo[ganadorActual]?.nombre}</span>
                         </span>
                       )}
                     </div>
@@ -162,7 +162,7 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
                               key={codigo}
                               disabled={isBlocked}
                               onClick={() => onSetGanador(p.id, codigo)}
-                              className={`p-3 rounded-lg font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-50 ${
+                              className={`p-3 rounded-lg font-bold text-sm flex flex-col items-center justify-center gap-1 transition-all disabled:opacity-50 min-h-[80px] ${
                                 sel
                                   ? esFinal
                                     ? 'bg-gradient-to-br from-yellow-400 to-orange-500 text-white shadow-lg scale-105'
@@ -170,15 +170,15 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
                                   : 'bg-white border-2 border-slate-200 hover:border-orange-400 hover:bg-orange-50'
                               }`}
                             >
-                              <span className="text-2xl">{eq.bandera_emoji}</span>
-                              <span>{eq.codigo}</span>
+                              <span className="text-3xl">{eq.bandera_emoji}</span>
+                              <span className="text-center leading-tight">{eq.nombre}</span>
                             </button>
                           );
                         })}
                       </div>
                     ) : (
-                      // 16avos: pool de equipos clasificados (grid)
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                      // Fallback (pool de equipos)
+                      <div className="grid grid-cols-2 gap-2">
                         {candidatos.map(codigo => {
                           const eq = equiposPorCodigo[codigo];
                           if (!eq) return null;
@@ -188,14 +188,14 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
                               key={codigo}
                               disabled={isBlocked}
                               onClick={() => onSetGanador(p.id, codigo)}
-                              className={`p-2 rounded-lg text-xs font-medium flex items-center gap-1 transition-all disabled:opacity-50 ${
+                              className={`p-3 rounded-lg text-sm font-bold flex flex-col items-center justify-center gap-1 transition-all disabled:opacity-50 min-h-[70px] ${
                                 sel
                                   ? 'bg-gradient-to-br from-red-600 to-orange-600 text-white shadow-lg scale-105'
                                   : 'bg-white border-2 border-slate-200 hover:border-orange-400 hover:bg-orange-50'
                               }`}
                             >
-                              <span className="text-base">{eq.bandera_emoji}</span>
-                              <span className="truncate">{eq.codigo}</span>
+                              <span className="text-2xl">{eq.bandera_emoji}</span>
+                              <span className="text-center leading-tight">{eq.nombre}</span>
                             </button>
                           );
                         })}

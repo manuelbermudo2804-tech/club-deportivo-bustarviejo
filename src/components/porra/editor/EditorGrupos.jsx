@@ -122,14 +122,12 @@ export default function EditorGrupos({ participante, partidos, equipos, isBlocke
                       return (
                         <div key={p.id} className="p-2 rounded-lg hover:bg-slate-50">
                           <div className="flex items-center gap-2">
-                            <div className="flex-1 min-w-0 flex items-center gap-2 text-sm">
-                              <span className="text-xl">{local?.bandera_emoji || '🏳️'}</span>
-                              <span className="font-medium truncate hidden sm:inline">{local?.nombre}</span>
-                              <span className="font-mono text-xs text-slate-500 sm:hidden">{local?.codigo}</span>
-                              <span className="text-slate-300 mx-1">vs</span>
-                              <span className="text-xl">{visit?.bandera_emoji || '🏳️'}</span>
-                              <span className="font-medium truncate hidden sm:inline">{visit?.nombre}</span>
-                              <span className="font-mono text-xs text-slate-500 sm:hidden">{visit?.codigo}</span>
+                            <div className="flex-1 min-w-0 flex items-center gap-1.5 text-sm">
+                              <span className="text-xl flex-shrink-0">{local?.bandera_emoji || '🏳️'}</span>
+                              <span className="font-medium truncate">{local?.nombre}</span>
+                              <span className="text-slate-300 mx-0.5 flex-shrink-0">vs</span>
+                              <span className="text-xl flex-shrink-0">{visit?.bandera_emoji || '🏳️'}</span>
+                              <span className="font-medium truncate">{visit?.nombre}</span>
                             </div>
                             <div className="flex gap-1">
                               {['1', 'X', '2'].map(r => (
