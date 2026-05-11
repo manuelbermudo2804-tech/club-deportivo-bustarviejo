@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Trophy, Settings, Users, Save, RefreshCw, Eye, AlertCircle, Copy } from "lucide-react";
+import { Trophy, Settings, Users, Save, RefreshCw, Eye, AlertCircle, Copy, FlaskConical } from "lucide-react";
 import { toast } from "sonner";
 import PorraAdminConfig from "@/components/porra/admin/PorraAdminConfig";
 import PorraAdminEquipos from "@/components/porra/admin/PorraAdminEquipos";
@@ -14,6 +14,7 @@ import PorraAdminPartidos from "@/components/porra/admin/PorraAdminPartidos";
 import PorraAdminParticipantes from "@/components/porra/admin/PorraAdminParticipantes";
 import PorraAdminRecalcular from "@/components/porra/admin/PorraAdminRecalcular";
 import PorraAdminMejoresTercerosReales from "@/components/porra/admin/PorraAdminMejoresTercerosReales";
+import PorraAdminTesting from "@/components/porra/admin/PorraAdminTesting";
 
 // Panel admin para gestionar la Porra Mundial 2026
 export default function PorraAdmin() {
@@ -146,11 +147,12 @@ export default function PorraAdmin() {
 
         {/* Tabs */}
         <Tabs defaultValue="config">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="config"><Settings className="w-4 h-4 mr-1" />Configuración</TabsTrigger>
             <TabsTrigger value="equipos">🏳️ Equipos ({equipos.length})</TabsTrigger>
             <TabsTrigger value="partidos">⚽ Partidos ({partidos.length})</TabsTrigger>
             <TabsTrigger value="participantes"><Users className="w-4 h-4 mr-1" />Participantes ({participantes.length})</TabsTrigger>
+            <TabsTrigger value="testing" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-900"><FlaskConical className="w-4 h-4 mr-1" />🧪 Pruebas</TabsTrigger>
           </TabsList>
 
           <TabsContent value="config">
@@ -166,6 +168,15 @@ export default function PorraAdmin() {
           <TabsContent value="participantes" className="space-y-4">
             <PorraAdminRecalcular totalParticipantes={totalPagados} />
             <PorraAdminParticipantes participantes={participantes} config={config} onUpdate={cargarTodo} />
+          </TabsContent>
+          <TabsContent value="testing">
+            <PorraAdminTesting
+              participantes={participantes}
+              partidos={partidos}
+              equipos={equipos}
+              config={config}
+              onUpdate={cargarTodo}
+            />
           </TabsContent>
         </Tabs>
       </div>
