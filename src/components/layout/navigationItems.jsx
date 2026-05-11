@@ -142,6 +142,7 @@ export function buildCoachNavigation(ctx) {
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
+    { title: "🏆 Porra Mundial 2026", url: "/Porra", icon: Trophy, highlight: true },
 
     ...(hasPlayers ? [
       { title: "─ MIS HIJOS ─", section: true },
@@ -191,6 +192,7 @@ export function buildCoordinatorNavigation(ctx) {
     { title: "📋 Contactos Web", url: createPageUrl("WebContacts"), icon: Users },
     { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
     { title: "🎉 San Isidro 2026", url: createPageUrl("SanIsidroAdmin"), icon: Calendar },
+    { title: "🏆 Porra Mundial 2026", url: "/Porra", icon: Trophy, highlight: true },
 
     ...(isPlayer ? [
       { title: "─ MI PERFIL JUGADOR ─", section: true },
@@ -245,6 +247,7 @@ export function buildParentNavigation(ctx) {
     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
+    { title: "🏆 Porra Mundial 2026", url: "/Porra", icon: Trophy, highlight: true },
     ...(!onlyComplementary ? [{ title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy }] : []),
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText },
@@ -280,6 +283,7 @@ export function buildPlayerNavigation(ctx) {
     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
+    { title: "🏆 Porra Mundial 2026", url: "/Porra", icon: Trophy, highlight: true },
     ...(!onlyComplementary ? [{ title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy }] : []),
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos", url: createPageUrl("ParentDocuments"), icon: FileText },
@@ -315,6 +319,7 @@ export function buildTreasurerNavigation(ctx) {
     { title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
+    { title: "🏆 Porra Mundial 2026", url: "/Porra", icon: Trophy, highlight: true },
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone, badge: unreadAnnouncementsCount > 0 ? unreadAnnouncementsCount : null },
     ...(hasPlayers ? [{ title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users }] : []),
