@@ -9,6 +9,7 @@ import usePorraEditor from "@/components/porra/editor/usePorraEditor";
 import EditorGrupos from "@/components/porra/editor/EditorGrupos";
 import EditorBracket from "@/components/porra/editor/EditorBracket";
 import EditorEspeciales from "@/components/porra/editor/EditorEspeciales";
+import MiniLigasManager from "@/components/porra/ligas/MiniLigasManager";
 
 // Hub principal del editor de porra
 // Lee ?token=XXX de la URL y muestra los 3 editores (grupos, bracket, especiales)
@@ -22,6 +23,7 @@ export default function PorraMiPorra() {
     loading, saving, error, isBlocked,
     setResultadoGrupo, setClasificacionGrupo,
     setEliminatoriaGanador, setEspecial,
+    refrescar,
   } = usePorraEditor(token);
 
   if (loading) {
@@ -130,12 +132,31 @@ export default function PorraMiPorra() {
           <StatusCard ok={participante.completado_especiales} label="Especiales" icon="⭐" />
         </div>
 
+        {/* Acceso rápido al ranking */}
+        <div className="grid grid-cols-2 gap-2">
+          <Button
+            onClick={() => window.open(`/PorraRanking?token=${token}`, '_blank')}
+            variant="outline"
+            className="border-2 border-orange-300 bg-white hover:bg-orange-50"
+          >
+            <Trophy className="w-4 h-4 mr-1 text-orange-600" /> Ranking global
+          </Button>
+          <Button
+            onClick={() => window.open(`/Porra`, '_blank')}
+            variant="outline"
+            className="border-2 border-slate-300 bg-white hover:bg-slate-50"
+          >
+            <Home className="w-4 h-4 mr-1" /> Inicio
+          </Button>
+        </div>
+
         {/* Tabs editor */}
         <Tabs defaultValue="grupos">
-          <TabsList className="grid w-full grid-cols-3 h-auto p-1 bg-slate-200">
-            <TabsTrigger value="grupos" className="py-2 text-xs md:text-sm font-bold">⚽ Grupos</TabsTrigger>
-            <TabsTrigger value="bracket" className="py-2 text-xs md:text-sm font-bold">🏆 Bracket</TabsTrigger>
-            <TabsTrigger value="especiales" className="py-2 text-xs md:text-sm font-bold">⭐ Especiales</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-4 h-auto p-1 bg-slate-200">
+            <TabsTrigger value="grupos" className="py-2 text-[11px] md:text-sm font-bold">⚽ Grupos</TabsTrigger>
+            <TabsTrigger value="bracket" className="py-2 text-[11px] md:text-sm font-bold">🏆 Bracket</TabsTrigger>
+            <TabsTrigger value="especiales" className="py-2 text-[11px] md:text-sm font-bold">⭐ Especiales</TabsTrigger>
+            <TabsTrigger value="ligas" className="py-2 text-[11px] md:text-sm font-bold">👥 Ligas</TabsTrigger>
           </TabsList>
 
           <TabsContent value="grupos" className="mt-4">
@@ -164,6 +185,15 @@ export default function PorraMiPorra() {
               isBlocked={isBlocked}
               onSetEspecial={setEspecial}
             />
+          </TabsContent>
+          <TabsContent value="ligas" className="mt-4">
+            <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4 text-sm mb-3">
+              <p className="font-bold text-orange-900 mb-1">👥 Compite con tus amigos</p>
+              <p className="text-orange-800 text-xs">
+                Crea una mini-liga privada y comparte el código por WhatsApp. Tendréis vuestro propio ranking aparte del global.
+              </p>
+            </div>
+            <MiniLigasManager participante={participante} onUpdate={refrescar} />
           </TabsContent>
         </Tabs>
 

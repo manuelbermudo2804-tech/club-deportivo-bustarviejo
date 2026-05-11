@@ -104,13 +104,22 @@ export default function Porra() {
             ? `Ya hay ${stats.participantes} valientes apuntados. ¿Y tú?`
             : '¡Sé el primero en apuntarte!'}
         </p>
-        <Button 
-          onClick={handleCrearPorra}
-          className="bg-white text-red-700 hover:bg-yellow-100 font-black text-xl px-12 py-7 rounded-2xl shadow-2xl hover:scale-105 transition-all"
-        >
-          <Trophy className="w-6 h-6 mr-2" />
-          APUNTAR MI PORRA
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+          <Button 
+            onClick={handleCrearPorra}
+            className="bg-white text-red-700 hover:bg-yellow-100 font-black text-xl px-12 py-7 rounded-2xl shadow-2xl hover:scale-105 transition-all"
+          >
+            <Trophy className="w-6 h-6 mr-2" />
+            APUNTAR MI PORRA
+          </Button>
+          <Button 
+            onClick={() => navigate('/PorraRanking')}
+            variant="outline"
+            className="bg-white/10 border-2 border-white/40 text-white hover:bg-white/20 font-bold text-lg px-8 py-7 rounded-2xl backdrop-blur"
+          >
+            🏆 Ver ranking
+          </Button>
+        </div>
       </div>
 
       {/* Footer simple */}
