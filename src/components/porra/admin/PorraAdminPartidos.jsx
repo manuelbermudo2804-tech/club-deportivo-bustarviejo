@@ -65,13 +65,52 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpda
     return map;
   }, [elimi]);
 
+  // Calcular los 32 clasificados a 16avos según resultados reales de grupos:
+  // - 12 primeros + 12 segundos de cada grupo
+  // - 8 mejores terceros (ordenados por puntos > victorias)
+  const clasificadosA16avos = useMemo(() => {
+    const tablas = {}; // { grupo: [{codigo, pts, victorias}] }
+    GRUPOS.forEach(g => {
+      const equiposGrupo = equipos.filter(e => e.grupo === g);
+      const tabla = {};
+      equiposGrupo.forEach(e => {
+        tabla[e.codigo] = { codigo: e.codigo, pts: 0, victorias: 0 };
+      });
+      const partidosGrupo = grupos.filter(p => p.grupo === g && p.resultado_real);
+      partidosGrupo.forEach(p => {
+        const local = tabla[p.equipo_local_codigo];
+        const visit = tabla[p.equipo_visitante_codigo];
+        if (!local || !visit) return;
+        if (p.resultado_real === '1') { local.pts += 3; local.victorias += 1; }
+        else if (p.resultado_real === '2') { visit.pts += 3; visit.victorias += 1; }
+        else if (p.resultado_real === 'X') { local.pts += 1; visit.pts += 1; }
+      });
+      tablas[g] = Object.values(tabla).sort((a, b) => {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        if (b.victorias !== a.victorias) return b.victorias - a.victorias;
+        return a.codigo.localeCompare(b.codigo);
+      });
+    });
+    const primeros = GRUPOS.map(g => tablas[g][0]?.codigo).filter(Boolean);
+    const segundos = GRUPOS.map(g => tablas[g][1]?.codigo).filter(Boolean);
+    const tercerosOrdenados = GRUPOS.map(g => tablas[g][2]).filter(Boolean)
+      .sort((a, b) => {
+        if (b.pts !== a.pts) return b.pts - a.pts;
+        if (b.victorias !== a.victorias) return b.victorias - a.victorias;
+        return a.codigo.localeCompare(b.codigo);
+      });
+    const mejoresTerceros = tercerosOrdenados.slice(0, 8).map(t => t.codigo);
+    return new Set([...primeros, ...segundos, ...mejoresTerceros]);
+  }, [grupos, equipos]);
+
   // Equipos disponibles para elegir en cada fase eliminatoria
-  // - 16avos: TODOS los equipos del Mundial (el admin sabe qué primeros, segundos y terceros pasaron)
-  // - 8vos en adelante: solo los GANADORES de la fase anterior (partidos finalizados con ganador_codigo)
+  // - 16avos: los 32 clasificados según resultados reales de grupos (si hay resultados); si no, todos
+  // - 8vos en adelante: solo los GANADORES de la fase anterior
   const ORDEN_FASES = ['16avos', '8vos', '4tos', 'semis', 'tercer_puesto', 'final'];
   const equiposDisponiblesPorFase = useMemo(() => {
     const map = {};
-    map['16avos'] = null; // null = todos los equipos
+    // 16avos: si hay al menos 32 equipos clasificados calculados, filtrar; si no, dejar todos (null)
+    map['16avos'] = clasificadosA16avos.size >= 32 ? clasificadosA16avos : null;
     // 8vos = ganadores de 16avos
     const ganadores16 = elimi.filter(p => p.fase === '16avos' && p.ganador_codigo).map(p => p.ganador_codigo);
     map['8vos'] = new Set(ganadores16);
