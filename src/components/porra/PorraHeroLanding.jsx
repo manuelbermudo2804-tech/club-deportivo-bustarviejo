@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Trophy, Calendar, Users, Euro, Sparkles, Flame } from "lucide-react";
+import { Trophy, Users, Euro, Sparkles, Flame } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-// Hero espectacular con countdown al primer partido del Mundial
+// URL de la imagen hero generada (Copa del Mundo + colores del club)
+const HERO_BG_URL = "https://media.base44.com/images/public/6992c6be619d2da592897991/03f55d3ee_generated_image.png";
+const ESCUDO_CLUB = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
+
+// Hero espectacular con imagen de fondo de la Copa + countdown al primer partido del Mundial
 export default function PorraHeroLanding({ config, onCrearPorra, totalParticipantes = 0, bote = 0 }) {
   const [tiempo, setTiempo] = useState({ dias: 0, horas: 0, min: 0, seg: 0 });
 
@@ -25,79 +29,88 @@ export default function PorraHeroLanding({ config, onCrearPorra, totalParticipan
 
   return (
     <div className="relative overflow-hidden">
-      {/* Fondo con gradiente animado */}
-      <div className="absolute inset-0 bg-gradient-to-br from-red-700 via-orange-600 to-yellow-500"></div>
+      {/* Imagen de fondo espectacular */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ 
+          backgroundImage: `url('${HERO_BG_URL}')`,
+          backgroundPosition: 'center center',
+        }}
+      />
       
-      {/* Patrón de balones de fútbol decorativos */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-10 left-10 text-9xl rotate-12">⚽</div>
-        <div className="absolute top-32 right-20 text-7xl -rotate-12">⚽</div>
-        <div className="absolute bottom-20 left-1/4 text-8xl rotate-45">⚽</div>
-        <div className="absolute bottom-40 right-1/3 text-6xl">⚽</div>
-      </div>
+      {/* Overlay para mejorar legibilidad y reforzar colores del club */}
+      <div className="absolute inset-0 bg-gradient-to-b from-red-900/40 via-red-800/30 to-orange-900/70" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
 
       {/* Banderas flotantes decorativas */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none">
-        <div className="absolute top-20 left-1/4 text-5xl animate-bounce" style={{animationDelay: '0s'}}>🇪🇸</div>
-        <div className="absolute top-40 right-1/4 text-5xl animate-bounce" style={{animationDelay: '0.3s'}}>🇦🇷</div>
-        <div className="absolute top-60 left-1/3 text-5xl animate-bounce" style={{animationDelay: '0.6s'}}>🇧🇷</div>
-        <div className="absolute bottom-32 right-1/4 text-5xl animate-bounce" style={{animationDelay: '0.9s'}}>🇫🇷</div>
-        <div className="absolute bottom-20 left-1/2 text-5xl animate-bounce" style={{animationDelay: '1.2s'}}>🏴󠁧󠁢󠁥󠁮󠁧󠁿</div>
+      <div className="absolute inset-0 opacity-30 pointer-events-none hidden md:block">
+        <div className="absolute top-20 left-[10%] text-4xl animate-bounce" style={{animationDelay: '0s', animationDuration: '3s'}}>🇪🇸</div>
+        <div className="absolute top-40 right-[12%] text-4xl animate-bounce" style={{animationDelay: '0.4s', animationDuration: '3.5s'}}>🇦🇷</div>
+        <div className="absolute bottom-32 left-[8%] text-4xl animate-bounce" style={{animationDelay: '0.8s', animationDuration: '4s'}}>🇧🇷</div>
+        <div className="absolute bottom-20 right-[10%] text-4xl animate-bounce" style={{animationDelay: '1.2s', animationDuration: '3.2s'}}>🇫🇷</div>
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-4 py-12 md:py-20 text-white text-center">
-        {/* Logo CDB */}
-        <div className="mb-6 flex justify-center">
-          <div className="bg-white/20 backdrop-blur-sm rounded-full p-3 shadow-2xl border-4 border-white/30">
-            <img 
-              src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" 
-              alt="CD Bustarviejo"
-              className="w-20 h-20 rounded-full"
-            />
+      <div className="relative max-w-6xl mx-auto px-4 py-10 md:py-16 text-white text-center">
+        {/* Escudo CDB con anillo dorado */}
+        <div className="mb-5 flex justify-center">
+          <div className="relative">
+            <div className="absolute inset-0 bg-yellow-400 rounded-full blur-xl opacity-60 animate-pulse"></div>
+            <div className="relative bg-white rounded-full p-2 shadow-2xl border-4 border-yellow-400">
+              <img 
+                src={ESCUDO_CLUB} 
+                alt="CD Bustarviejo"
+                className="w-24 h-24 md:w-28 md:h-28 rounded-full object-cover"
+              />
+            </div>
+            <div className="absolute -top-2 -right-2">
+              <Sparkles className="w-7 h-7 text-yellow-300 animate-spin" style={{animationDuration: '3s'}} />
+            </div>
           </div>
         </div>
 
-        {/* Trofeo gigante animado */}
-        <div className="mb-6 flex justify-center">
-          <div className="relative">
-            <Trophy className="w-32 h-32 md:w-40 md:h-40 text-yellow-300 drop-shadow-2xl animate-pulse" strokeWidth={1.5} />
-            <Sparkles className="absolute -top-2 -right-2 w-10 h-10 text-yellow-200 animate-spin" style={{animationDuration: '3s'}} />
-            <Sparkles className="absolute -bottom-2 -left-2 w-8 h-8 text-yellow-200 animate-spin" style={{animationDuration: '4s'}} />
-          </div>
+        {/* Badge superior */}
+        <div className="mb-3">
+          <span className="inline-block bg-yellow-400 text-red-900 font-black px-4 py-1.5 rounded-full text-xs md:text-sm tracking-wider uppercase shadow-2xl border-2 border-white/40">
+            🌎 MUNDIAL FIFA 2026 · USA · CANADÁ · MÉXICO
+          </span>
         </div>
 
         {/* Título épico */}
-        <div className="mb-2">
-          <span className="inline-block bg-yellow-400 text-red-900 font-black px-4 py-1 rounded-full text-sm tracking-wider uppercase shadow-lg">
-            🌎 MUNDIAL FIFA 2026
-          </span>
-        </div>
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-black tracking-tight mb-3 drop-shadow-2xl">
-          PORRA MUNDIAL
+        <h1 
+          className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-2 drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
+          style={{ textShadow: '0 0 20px rgba(255, 200, 0, 0.5), 0 4px 8px rgba(0,0,0,0.8)' }}
+        >
+          LA PORRA
         </h1>
-        <p className="text-2xl md:text-3xl font-bold mb-2 text-yellow-200 drop-shadow-lg">
-          by CD Bustarviejo
+        <p className="text-xl md:text-3xl font-black mb-1 text-yellow-300 drop-shadow-lg uppercase tracking-wide">
+          del Mundial 2026
         </p>
-        <p className="text-base md:text-lg mb-8 text-white/90 max-w-2xl mx-auto">
-          🏆 Acierta los resultados, gana premios y ayuda al club. <strong>48 selecciones, 104 partidos, un campeón.</strong>
+        <p className="text-sm md:text-lg font-bold mb-6 text-white/95 drop-shadow-lg">
+          by <span className="text-yellow-200">CD Bustarviejo</span>
+        </p>
+
+        {/* Frase impactante */}
+        <p className="text-sm md:text-base mb-6 text-white/90 max-w-2xl mx-auto drop-shadow-lg font-medium">
+          🏆 <strong>48 selecciones · 104 partidos · 1 campeón.</strong>
+          <br />¿Te atreves a predecirlo todo?
         </p>
 
         {/* Countdown */}
         {config?.fecha_limite_predicciones && (
-          <div className="mb-8">
-            <p className="text-sm uppercase tracking-widest mb-3 text-yellow-200 font-bold flex items-center justify-center gap-2">
-              <Flame className="w-4 h-4" /> Cierre de predicciones en
+          <div className="mb-7">
+            <p className="text-xs md:text-sm uppercase tracking-widest mb-3 text-yellow-200 font-black flex items-center justify-center gap-2 drop-shadow-lg">
+              <Flame className="w-4 h-4" /> Cierre de predicciones en <Flame className="w-4 h-4" />
             </p>
-            <div className="flex justify-center gap-2 md:gap-4">
+            <div className="flex justify-center gap-2 md:gap-3">
               {[
                 { v: tiempo.dias, l: 'Días' },
                 { v: tiempo.horas, l: 'Horas' },
                 { v: tiempo.min, l: 'Min' },
                 { v: tiempo.seg, l: 'Seg' },
               ].map((b, i) => (
-                <div key={i} className="bg-white/15 backdrop-blur-md rounded-2xl px-3 py-3 md:px-5 md:py-4 min-w-[70px] md:min-w-[90px] border border-white/30 shadow-xl">
-                  <div className="text-3xl md:text-5xl font-black tabular-nums">{String(b.v).padStart(2, '0')}</div>
-                  <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-80 font-bold">{b.l}</div>
+                <div key={i} className="bg-black/50 backdrop-blur-md rounded-2xl px-3 py-3 md:px-5 md:py-4 min-w-[68px] md:min-w-[90px] border-2 border-yellow-400/60 shadow-2xl">
+                  <div className="text-3xl md:text-5xl font-black tabular-nums text-yellow-300 drop-shadow-lg">{String(b.v).padStart(2, '0')}</div>
+                  <div className="text-[10px] md:text-xs uppercase tracking-wider text-white/80 font-bold">{b.l}</div>
                 </div>
               ))}
             </div>
@@ -105,41 +118,41 @@ export default function PorraHeroLanding({ config, onCrearPorra, totalParticipan
         )}
 
         {/* Stats destacadas */}
-        <div className="grid grid-cols-3 gap-3 md:gap-6 max-w-2xl mx-auto mb-8">
-          <div className="bg-white/15 backdrop-blur-md rounded-2xl p-3 md:p-5 border border-white/30 shadow-lg">
-            <Users className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1 text-yellow-200" />
-            <div className="text-2xl md:text-3xl font-black">{totalParticipantes}</div>
-            <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-80 font-bold">Participantes</div>
+        <div className="grid grid-cols-3 gap-2 md:gap-4 max-w-2xl mx-auto mb-7">
+          <div className="bg-black/40 backdrop-blur-md rounded-2xl p-3 md:p-4 border-2 border-yellow-400/40 shadow-xl">
+            <Users className="w-5 h-5 md:w-7 md:h-7 mx-auto mb-1 text-yellow-300" />
+            <div className="text-xl md:text-3xl font-black text-white">{totalParticipantes}</div>
+            <div className="text-[9px] md:text-xs uppercase tracking-wider text-white/80 font-bold">Participantes</div>
           </div>
-          <div className="bg-white/15 backdrop-blur-md rounded-2xl p-3 md:p-5 border border-white/30 shadow-lg">
-            <Euro className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1 text-yellow-200" />
-            <div className="text-2xl md:text-3xl font-black">{bote.toFixed(0)}€</div>
-            <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-80 font-bold">Bote total</div>
+          <div className="bg-black/40 backdrop-blur-md rounded-2xl p-3 md:p-4 border-2 border-yellow-400/40 shadow-xl">
+            <Euro className="w-5 h-5 md:w-7 md:h-7 mx-auto mb-1 text-yellow-300" />
+            <div className="text-xl md:text-3xl font-black text-white">{bote.toFixed(0)}€</div>
+            <div className="text-[9px] md:text-xs uppercase tracking-wider text-white/80 font-bold">Bote total</div>
           </div>
-          <div className="bg-white/15 backdrop-blur-md rounded-2xl p-3 md:p-5 border border-white/30 shadow-lg">
-            <Trophy className="w-6 h-6 md:w-8 md:h-8 mx-auto mb-1 text-yellow-200" />
-            <div className="text-2xl md:text-3xl font-black">{config?.precio_entrada || 15}€</div>
-            <div className="text-[10px] md:text-xs uppercase tracking-wider opacity-80 font-bold">Entrada</div>
+          <div className="bg-black/40 backdrop-blur-md rounded-2xl p-3 md:p-4 border-2 border-yellow-400/40 shadow-xl">
+            <Trophy className="w-5 h-5 md:w-7 md:h-7 mx-auto mb-1 text-yellow-300" />
+            <div className="text-xl md:text-3xl font-black text-white">{config?.precio_entrada || 15}€</div>
+            <div className="text-[9px] md:text-xs uppercase tracking-wider text-white/80 font-bold">Entrada</div>
           </div>
         </div>
 
         {/* CTA principal */}
         <Button 
           onClick={onCrearPorra}
-          className="bg-yellow-400 hover:bg-yellow-300 text-red-900 font-black text-lg md:text-xl px-8 md:px-12 py-6 md:py-7 rounded-2xl shadow-2xl hover:scale-105 transition-all border-4 border-white/40"
+          className="bg-yellow-400 hover:bg-yellow-300 text-red-900 font-black text-lg md:text-2xl px-8 md:px-14 py-6 md:py-8 rounded-2xl shadow-[0_0_40px_rgba(255,200,0,0.6)] hover:scale-105 transition-all border-4 border-white/60"
         >
-          <Trophy className="w-6 h-6 mr-2" />
+          <Trophy className="w-6 h-6 md:w-7 md:h-7 mr-2" />
           ¡APUNTAR MI PORRA YA!
         </Button>
 
-        <p className="mt-4 text-sm text-white/80">
-          ⚡ Solo {config?.precio_entrada || 15}€ · Premios al 1º, 2º y 3º · El {config?.comision_club_porcentaje || 10}% va a {config?.destino_comision_club || 'el club'}
+        <p className="mt-4 text-xs md:text-sm text-white/90 drop-shadow-lg font-medium">
+          ⚡ Solo {config?.precio_entrada || 15}€ · 🥇🥈🥉 Premios al 1º, 2º y 3º · 💚 El {config?.comision_club_porcentaje || 10}% va a {config?.destino_comision_club || 'el club'}
         </p>
       </div>
 
       {/* Onda decorativa inferior */}
       <div className="relative">
-        <svg className="w-full h-12 md:h-20" viewBox="0 0 1440 80" preserveAspectRatio="none">
+        <svg className="w-full h-12 md:h-20 block" viewBox="0 0 1440 80" preserveAspectRatio="none">
           <path d="M0,40 C480,80 960,0 1440,40 L1440,80 L0,80 Z" fill="white"></path>
         </svg>
       </div>
