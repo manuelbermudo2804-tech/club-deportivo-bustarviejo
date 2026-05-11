@@ -25,7 +25,7 @@ export default function PorraPromoBanner() {
   const texto = config.banner_texto || "🏆 ¡La Porra del Mundial 2026 ya está aquí!";
 
   return (
-    <Link to="/Porra" className="block group">
+    <Link to="/MiPorra" className="block group">
       <div className="relative overflow-hidden bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 rounded-2xl p-4 lg:p-5 shadow-2xl border-4 border-yellow-400 hover:scale-[1.02] active:scale-[0.98] transition-all">
         {/* Banderas decorativas flotantes */}
         <div className="absolute inset-0 opacity-25 pointer-events-none">
