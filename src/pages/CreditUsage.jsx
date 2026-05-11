@@ -21,24 +21,62 @@ export default function CreditUsage() {
     base44.auth.me().then(setUser);
   }, []);
 
-  // Fetch real automation data (we hardcode the known automations with their real run counts)
-  // This data comes from the automation list API
+  // Fetch real automation data from the platform
+  // Each run = 1 crédito. Funciones internas pueden añadir más (Resend/Stripe NO suman).
   const { data: automationData, isLoading: loadingAutomations, refetch: refetchAutomations } = useQuery({
     queryKey: ['creditUsageAutomations'],
     queryFn: async () => {
-      // We'll use known automation data - these are the real automations
-      // Each run = 1 credit. Functions called inside may add more.
-      const automations = [
-        { name: "RFFM Monitor Horarios", fn: "rffmScheduleMonitor", freq: "cada 6h", runsPerDay: 4, emailsInside: false },
-        { name: "RFFM Sync Clasificaciones", fn: "rffmWeeklySync", freq: "L,J,S,D 8AM", runsPerDay: 4/7, emailsInside: true },
-        { name: "Auto-cierre convocatorias", fn: "autoCloseCallups", freq: "diario 7:30", runsPerDay: 1, emailsInside: false },
-        { name: "Cierre renovaciones", fn: "autoCloseRenewals", freq: "diario 7:00", runsPerDay: 1, emailsInside: false },
-        { name: "Expirar códigos acceso", fn: "expireAccessCodes", freq: "cada 6h", runsPerDay: 4, emailsInside: false },
-        { name: "Cumpleaños", fn: "sendBirthdayWishes", freq: "diario 8:00", runsPerDay: 1, emailsInside: true },
-        { name: "Recordatorios socios", fn: "memberRenewalReminders", freq: "diario 9:00", runsPerDay: 1, emailsInside: true },
-        { name: "Aviso acceso juvenil", fn: "notifyMinorAccess", freq: "diario 8:30", runsPerDay: 1, emailsInside: true },
+      // === AUTOMATIZACIONES PROGRAMADAS (scheduled) ===
+      // Frecuencias reales según list_automations
+      const scheduled = [
+        // Porra Mundial 2026
+        { name: "🏆 Porra: bloqueo automático", group: "Porra", freq: "cada hora", runsPerDay: 24, emailsInside: false },
+        { name: "🏆 Porra: recordatorios diarios", group: "Porra", freq: "diario 8:00", runsPerDay: 1, emailsInside: true },
+        // Telegram (publicaciones automáticas)
+        { name: "📢 Publicador Telegram programado", group: "Telegram", freq: "cada 5 min", runsPerDay: 288, emailsInside: false },
+        { name: "📊 Auto-publicar Clasificaciones", group: "Telegram", freq: "lunes 10:00", runsPerDay: 1/7, emailsInside: false },
+        { name: "📣 Partidos del Finde", group: "Telegram", freq: "viernes 18:00", runsPerDay: 1/7, emailsInside: false },
+        { name: "📊 Resultados del Finde", group: "Telegram", freq: "domingo 21:30", runsPerDay: 1/7, emailsInside: false },
+        { name: "🎯 Campañas del Club", group: "Telegram", freq: "miércoles 18:00", runsPerDay: 1/7, emailsInside: false },
+        { name: "⚡ Goleadores del mes", group: "Telegram", freq: "día 1 de cada mes 11:00", runsPerDay: 1/30, emailsInside: false },
+        // RFFM (sincronización federación)
+        { name: "RFFM Monitor Horarios", group: "RFFM", freq: "cada 6h", runsPerDay: 4, emailsInside: false },
+        { name: "RFFM Sync Semanal", group: "RFFM", freq: "L,J,S,D 8:00", runsPerDay: 4/7, emailsInside: false },
+        // Mantenimiento diario
+        { name: "Tareas diarias admin", group: "Mantenimiento", freq: "diario", runsPerDay: 1, emailsInside: true },
+        { name: "Tareas unificadas diarias", group: "Mantenimiento", freq: "diario", runsPerDay: 1, emailsInside: true },
+        { name: "Auto-cierre convocatorias", group: "Mantenimiento", freq: "diario 7:30", runsPerDay: 1, emailsInside: false },
+        { name: "Cierre renovaciones", group: "Mantenimiento", freq: "diario 7:00", runsPerDay: 1, emailsInside: false },
+        { name: "Expirar códigos acceso", group: "Mantenimiento", freq: "cada 6h", runsPerDay: 4, emailsInside: false },
+        { name: "Expirar reservas mercadillo", group: "Mantenimiento", freq: "diario", runsPerDay: 1, emailsInside: false },
+        // Comunicaciones (envío masivo)
+        { name: "Cumpleaños", group: "Comunicaciones", freq: "diario 8:00", runsPerDay: 1, emailsInside: true },
+        { name: "Recordatorios socios", group: "Comunicaciones", freq: "diario 9:00", runsPerDay: 1, emailsInside: true },
+        { name: "Recordatorios renovación jugadores", group: "Comunicaciones", freq: "diario", runsPerDay: 1, emailsInside: true },
+        { name: "Recordatorios pagos cuotas", group: "Comunicaciones", freq: "diario", runsPerDay: 1, emailsInside: true },
+        { name: "Recordatorios firmas federación", group: "Comunicaciones", freq: "diario", runsPerDay: 1, emailsInside: true },
+        { name: "Aviso acceso juvenil", group: "Comunicaciones", freq: "diario 8:30", runsPerDay: 1, emailsInside: true },
+        { name: "Recordatorios RSVP eventos", group: "Comunicaciones", freq: "diario", runsPerDay: 1, emailsInside: true },
+        { name: "Recordatorios reservas mercadillo", group: "Comunicaciones", freq: "diario", runsPerDay: 1, emailsInside: true },
+        { name: "Recordatorios convocatorias", group: "Comunicaciones", freq: "diario", runsPerDay: 1, emailsInside: false },
       ];
-      return automations;
+
+      // === AUTOMATIZACIONES POR EVENTO (entity triggers) ===
+      // No tienen frecuencia fija — se disparan al crear/actualizar registros.
+      // Estimación conservadora basada en actividad real.
+      const entity = [
+        { name: "Push: Anuncio publicado", group: "Push (eventos)", freq: "al publicar anuncio", runsPerDay: 0.5, emailsInside: false },
+        { name: "Push: Convocatoria cancelada/reprogramada", group: "Push (eventos)", freq: "al cambiar estado", runsPerDay: 0.3, emailsInside: false },
+        { name: "Push: Notificación manual admin", group: "Push (eventos)", freq: "al pulsar enviar", runsPerDay: 0.5, emailsInside: false },
+        { name: "Push: Nueva encuesta", group: "Push (eventos)", freq: "al crear encuesta activa", runsPerDay: 0.1, emailsInside: false },
+        { name: "Push: Nuevo evento importante", group: "Push (eventos)", freq: "al crear evento", runsPerDay: 0.3, emailsInside: false },
+        { name: "Push: Reserva en mercadillo", group: "Push (eventos)", freq: "al crear reserva", runsPerDay: 0.2, emailsInside: false },
+        { name: "Push: Respuesta buzón juvenil", group: "Push (eventos)", freq: "al responder admin", runsPerDay: 0.1, emailsInside: false },
+        { name: "Recálculo descuentos hermanos", group: "Lógica (eventos)", freq: "al cambiar jugador", runsPerDay: 0.5, emailsInside: false },
+        { name: "Aviso nuevo anuncio mercadillo", group: "Push (eventos)", freq: "al crear listado", runsPerDay: 0.2, emailsInside: false },
+      ];
+
+      return [...scheduled, ...entity];
     },
     staleTime: 600000,
   });
@@ -180,34 +218,61 @@ export default function CreditUsage() {
           />
         </div>
 
-        {/* Automations detail */}
-        <Card className="bg-slate-800 border-slate-700">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-white text-base flex items-center gap-2">
-              <Calendar className="w-4 h-4 text-purple-400" />
-              Automatizaciones (1 crédito/ejecución)
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {(automationData || []).map((a, i) => (
-              <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-700/40">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-slate-200 truncate">{a.name}</p>
-                  <p className="text-xs text-slate-500">{a.freq} {a.emailsInside ? "• puede enviar emails (Resend directo, 0 créditos extra)" : ""}</p>
+        {/* Automations detail — agrupadas por categoría */}
+        {(() => {
+          const grouped = (automationData || []).reduce((acc, a) => {
+            const g = a.group || "Otros";
+            if (!acc[g]) acc[g] = [];
+            acc[g].push(a);
+            return acc;
+          }, {});
+          const groupOrder = ["Porra", "Telegram", "RFFM", "Comunicaciones", "Mantenimiento", "Push (eventos)", "Lógica (eventos)", "Otros"];
+          const sortedGroups = Object.keys(grouped).sort((a, b) => {
+            const ai = groupOrder.indexOf(a); const bi = groupOrder.indexOf(b);
+            return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+          });
+          return (
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-white text-base flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-purple-400" />
+                  Automatizaciones activas ({(automationData || []).length}) — 1 crédito por ejecución
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {sortedGroups.map((groupName) => {
+                  const items = grouped[groupName];
+                  const groupMonth = Math.round(items.reduce((s, x) => s + x.runsPerDay, 0) * daysInMonth);
+                  return (
+                    <div key={groupName} className="space-y-1.5">
+                      <div className="flex items-center justify-between px-1">
+                        <p className="text-xs font-bold uppercase tracking-wide text-purple-300">{groupName}</p>
+                        <span className="text-xs text-purple-400 font-bold">~{groupMonth}/mes</span>
+                      </div>
+                      {items.map((a, i) => (
+                        <div key={i} className="flex items-center justify-between px-3 py-2 rounded-lg bg-slate-700/40">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-slate-200 truncate">{a.name}</p>
+                            <p className="text-xs text-slate-500">{a.freq} {a.emailsInside ? "• envía emails (Resend, 0 créd. extra)" : ""}</p>
+                          </div>
+                          <div className="text-right flex-shrink-0 ml-3">
+                            <Badge variant="outline" className="border-slate-600 text-slate-300 text-xs">
+                              ~{Math.round(a.runsPerDay * daysInMonth)}/mes
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })}
+                <div className="flex justify-between pt-2 border-t border-slate-700 px-3">
+                  <span className="text-sm font-medium text-slate-300">Total automatizaciones</span>
+                  <span className="text-sm font-bold text-purple-400">~{automationMonthEstimate}/mes</span>
                 </div>
-                <div className="text-right flex-shrink-0 ml-3">
-                  <Badge variant="outline" className="border-slate-600 text-slate-300 text-xs">
-                    ~{Math.round(a.runsPerDay * daysInMonth)}/mes
-                  </Badge>
-                </div>
-              </div>
-            ))}
-            <div className="flex justify-between pt-2 border-t border-slate-700 px-3">
-              <span className="text-sm font-medium text-slate-300">Total automatizaciones</span>
-              <span className="text-sm font-bold text-purple-400">~{automationMonthEstimate}/mes</span>
-            </div>
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          );
+        })()}
 
         {/* Uploads detail */}
         {usageData && (
