@@ -34,6 +34,20 @@ export default function PorraCrear() {
     try {
       const configs = await base44.entities.PorraConfig.list();
       setConfig(configs[0] || null);
+      // Pre-rellenar email y nombre si el usuario llega logueado desde la app interna
+      try {
+        const authed = await base44.auth.isAuthenticated();
+        if (authed) {
+          const me = await base44.auth.me();
+          if (me?.email) {
+            setForm(p => ({
+              ...p,
+              email: p.email || me.email,
+              nombre: p.nombre || me.full_name || '',
+            }));
+          }
+        }
+      } catch { /* usuario no logueado: dejar campos vacíos */ }
     } catch (e) {
       console.error(e);
     } finally {
