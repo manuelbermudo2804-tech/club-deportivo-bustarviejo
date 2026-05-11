@@ -14,6 +14,10 @@ Deno.serve(async (req) => {
     if (!token || typeof token !== 'string') {
       return Response.json({ error: 'Token no válido' }, { status: 400 });
     }
+    // Validar formato del token (32 chars alfanuméricos) para prevenir fuerza bruta con tokens cortos
+    if (!/^[A-Za-z0-9]{32}$/.test(token)) {
+      return Response.json({ error: 'Token no válido' }, { status: 400 });
+    }
 
     const [parts, configs, equipos, partidos] = await Promise.all([
       base44.asServiceRole.entities.PorraParticipante.filter({ token_acceso: token }),

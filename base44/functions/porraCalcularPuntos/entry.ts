@@ -60,10 +60,11 @@ function calcularPuntosParticipante(participante, partidos, config) {
     }
   });
 
-  // 4) Campeón
-  const partidoFinal = partidosFinalizados.find(p => p.fase === 'final');
-  if (partidoFinal?.ganador_codigo && config?.campeon_real === partidoFinal.ganador_codigo) {
-    if (predElim[partidoFinal.id] === config.campeon_real) {
+  // 4) Campeón — puntúa contra config.campeon_real (no depende de que el partido final esté marcado finalizado)
+  // Esto evita el bug de que si el admin pone el campeón en config pero olvida finalizar el partido final, nadie reciba puntos.
+  if (config?.campeon_real) {
+    const partidoFinal = partidos.find(p => p.fase === 'final');
+    if (partidoFinal && predElim[partidoFinal.id] === config.campeon_real) {
       pts.campeon = config?.puntos_campeon ?? 15;
     }
   }
@@ -111,6 +112,12 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
+
+    // Solo admin puede recalcular puntos (evita DoS y manipulación)
+    const user = await base44.auth.me();
+    if (!user || user.role !== 'admin') {
+      return Response.json({ error: 'Solo admin' }, { status: 403 });
+    }
 
     const [configs, partidos, todos] = await Promise.all([
       base44.asServiceRole.entities.PorraConfig.list(),

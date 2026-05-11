@@ -29,6 +29,9 @@ Deno.serve(async (req) => {
     if (!token || typeof token !== 'string') {
       return Response.json({ error: 'Token no válido' }, { status: 400 });
     }
+    if (!/^[A-Za-z0-9]{32}$/.test(token)) {
+      return Response.json({ error: 'Token no válido' }, { status: 400 });
+    }
     if (!updates || typeof updates !== 'object') {
       return Response.json({ error: 'Sin cambios' }, { status: 400 });
     }
