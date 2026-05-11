@@ -67,6 +67,20 @@ export default function PorraAdminConfig({ config, onUpdate }) {
             </div>
             <Switch checked={!!form.banner_promocional_activo} onCheckedChange={v => update('banner_promocional_activo', v)} />
           </div>
+          <div className={`flex items-center justify-between p-3 rounded-lg border-2 ${form.modo_test ? 'bg-yellow-50 border-yellow-400' : 'bg-white border-slate-200'}`}>
+            <div className="flex-1 pr-3">
+              <Label className="font-bold flex items-center gap-2">
+                🧪 Modo TEST (sin cobro Stripe)
+                {form.modo_test && <span className="text-[10px] bg-yellow-500 text-white px-2 py-0.5 rounded-full font-black">ACTIVO</span>}
+              </Label>
+              <p className="text-xs text-slate-600 mt-1">
+                Cuando está activo, las porras se crean <strong>directamente como pagadas (0€)</strong> sin pasar por Stripe.
+                Útil para hacer pruebas (te llega el email, rellenas la porra, etc.).
+                <strong className="text-red-700"> ¡DESACTIVA esto antes del lanzamiento oficial!</strong>
+              </p>
+            </div>
+            <Switch checked={!!form.modo_test} onCheckedChange={v => update('modo_test', v)} />
+          </div>
           <div>
             <Label>Texto del banner</Label>
             <Textarea

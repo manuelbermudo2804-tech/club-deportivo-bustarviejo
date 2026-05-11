@@ -76,6 +76,7 @@ Deno.serve(async (req) => {
     // Crear participante provisional
     const token = generarToken();
     const precio = Number(config.precio_entrada || 15);
+    const modoTest = !!config.modo_test;
 
     const participante = await base44.asServiceRole.entities.PorraParticipante.create({
       nombre: nombre.trim(),
@@ -83,8 +84,9 @@ Deno.serve(async (req) => {
       alias_equipo: alias_equipo.trim(),
       telefono: telefono?.trim() || '',
       token_acceso: token,
-      estado_pago: 'pendiente',
-      cantidad_pagada: 0,
+      estado_pago: modoTest ? 'pagado' : 'pendiente',
+      cantidad_pagada: modoTest ? 0 : 0,
+      fecha_pago: modoTest ? new Date().toISOString() : null,
       predicciones_grupos: {},
       clasificacion_grupos: {},
       desempates_resueltos: {},
@@ -94,6 +96,59 @@ Deno.serve(async (req) => {
       ip_creacion: req.headers.get('x-forwarded-for') || '',
       user_agent: req.headers.get('user-agent') || '',
     });
+
+    // ============ MODO TEST: saltar Stripe y mandar email mágico directamente ============
+    if (modoTest) {
+      try {
+        const baseUrlT = return_url || req.headers.get('origin') || 'https://app.cdbustarviejo.com';
+        const enlaceMagico = `${baseUrlT}/PorraMiPorra?token=${token}`;
+        const aliasSafe = alias_equipo.trim().replace(/[<>]/g, '');
+        const nombreSafe = nombre.trim().replace(/[<>]/g, '');
+
+        const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body style="font-family:'Segoe UI',Arial,sans-serif;margin:0;padding:0;background:#f1f5f9">
+<div style="max-width:600px;margin:0 auto;background:#ffffff">
+<div style="background:linear-gradient(135deg,#dc2626,#ea580c,#f59e0b);padding:40px 24px;text-align:center">
+<div style="font-size:64px;margin-bottom:8px">🏆</div>
+<h1 style="color:#ffffff;margin:0;font-size:28px;font-weight:900">¡Estás dentro! <span style="font-size:14px;background:#fbbf24;color:#78350f;padding:4px 10px;border-radius:6px;vertical-align:middle">MODO TEST</span></h1>
+<p style="color:rgba(255,255,255,0.95);margin:8px 0 0;font-size:16px;font-weight:600">Porra Mundial 2026 · CD Bustarviejo</p>
+</div>
+<div style="padding:32px 24px">
+<p style="margin:0 0 16px;font-size:16px;color:#1e293b">Hola <strong>${nombreSafe}</strong>,</p>
+<div style="background:#fef3c7;border:2px solid #f59e0b;padding:14px;border-radius:8px;margin:0 0 18px">
+<p style="margin:0;font-size:13px;color:#78350f;font-weight:700">🧪 Esta porra se ha creado en <strong>MODO TEST</strong> (sin cobro). Es solo para pruebas.</p>
+</div>
+<div style="background:linear-gradient(135deg,#fff7ed,#fed7aa);border:2px solid #fb923c;border-radius:12px;padding:20px;margin:20px 0;text-align:center">
+<p style="margin:0 0 4px;font-size:12px;color:#9a3412;text-transform:uppercase;letter-spacing:1px;font-weight:700">Tu equipo</p>
+<p style="margin:0;font-size:22px;font-weight:900;color:#7c2d12">${aliasSafe}</p>
+</div>
+<div style="text-align:center;margin:28px 0">
+<a href="${enlaceMagico}" style="display:inline-block;background:linear-gradient(135deg,#dc2626,#ea580c);color:#ffffff;text-decoration:none;padding:16px 36px;border-radius:12px;font-weight:900;font-size:16px;box-shadow:0 8px 20px rgba(220,38,38,0.3)">
+🏆 EMPEZAR A PREDECIR
+</a>
+</div>
+<p style="margin:8px 0;font-size:11px;color:#94a3b8;text-align:center;word-break:break-all">Si el botón no funciona, copia este enlace:<br/><a href="${enlaceMagico}" style="color:#ea580c">${enlaceMagico}</a></p>
+<p style="margin:20px 0 0;font-size:13px;color:#64748b"><strong>CD Bustarviejo</strong></p>
+</div>
+</div></body></html>`;
+
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: email.toLowerCase().trim(),
+          subject: `🧪 [TEST] Tu porra de prueba está lista — ${aliasSafe}`,
+          body: emailHtml,
+        });
+        console.log('[porraCrearParticipante] MODO TEST: email mágico enviado a', email);
+      } catch (emailErr) {
+        console.error('[porraCrearParticipante] MODO TEST email error:', emailErr?.message || emailErr);
+      }
+
+      return Response.json({
+        ok: true,
+        modo_test: true,
+        participante_id: participante.id,
+        token,
+        redirect_url: `/PorraExito?token=${token}&test=1`,
+      });
+    }
 
     // Stripe Checkout
     const stripeSecret = Deno.env.get('STRIPE_SECRET_KEY');

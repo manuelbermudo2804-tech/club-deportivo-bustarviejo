@@ -62,7 +62,11 @@ export default function PorraCrear() {
         mini_liga_codigo: form.mini_liga_codigo || null,
         return_url: window.location.origin,
       });
-      if (res.data?.ok && res.data?.checkout_url) {
+      if (res.data?.ok && res.data?.modo_test && res.data?.redirect_url) {
+        // MODO TEST: saltar Stripe y abrir pantalla de éxito directa
+        toast.success('🧪 Modo test activo — porra creada sin cobro');
+        window.location.href = res.data.redirect_url;
+      } else if (res.data?.ok && res.data?.checkout_url) {
         // Redirigir a Stripe Checkout
         window.location.href = res.data.checkout_url;
       } else {

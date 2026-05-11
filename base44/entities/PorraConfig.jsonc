@@ -10,6 +10,11 @@
       "type": "boolean",
       "default": false
     },
+    "modo_test": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si est\u00e1 activo, los participantes se crean directamente como pagados (sin pasar por Stripe). Para hacer pruebas internas. \u00a1DESACTIVAR ANTES DEL LANZAMIENTO!"
+    },
     "estado": {
       "type": "string",
       "enum": [
@@ -93,13 +98,11 @@
     },
     "puntos_resultado_grupo": {
       "type": "number",
-      "default": 1,
-      "description": "Puntos por acertar 1/X/2 en un partido de grupos"
+      "default": 1
     },
     "puntos_mejor_tercero": {
       "type": "number",
-      "default": 3,
-      "description": "Puntos por cada equipo acertado entre los 8 mejores terceros"
+      "default": 3
     },
     "puntos_16avos": {
       "type": "number",
