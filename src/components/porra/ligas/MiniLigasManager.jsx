@@ -26,8 +26,16 @@ export default function MiniLigasManager({ participante, onUpdate }) {
     const codigos = participante?.mini_liga_codigos || [];
     if (codigos.length === 0) { setLigas([]); setLoading(false); return; }
     try {
-      const todas = await base44.entities.PorraLiga.list('', 200);
-      setLigas(todas.filter(l => codigos.includes(l.codigo)));
+      // Eficiente: una query por código (paralelo) en vez de listar todas las ligas
+      const resultados = await Promise.all(
+        codigos.map(c => base44.entities.PorraLiga.filter({ codigo: c }).catch(() => []))
+      );
+      const planas = resultados.flat().filter(Boolean);
+      // Deduplicar por id
+      const vistos = new Set();
+      const unicas = [];
+      planas.forEach(l => { if (l?.id && !vistos.has(l.id)) { vistos.add(l.id); unicas.push(l); } });
+      setLigas(unicas);
     } catch (e) {
       console.error(e);
     } finally {
@@ -36,6 +44,11 @@ export default function MiniLigasManager({ participante, onUpdate }) {
   };
 
   useEffect(() => { cargarLigas(); }, [participante?.mini_liga_codigos?.length]);
+
+  // Extrae el mensaje de error real del backend (axios) en lugar del genérico
+  const extractError = (err, fallback) => {
+    return err?.response?.data?.error || err?.data?.error || err?.message || fallback;
+  };
 
   const handleCrear = async () => {
     if (!nuevoNombre.trim() || nuevoNombre.trim().length < 3) {
@@ -59,7 +72,7 @@ export default function MiniLigasManager({ participante, onUpdate }) {
         toast.error(res.data?.error || 'Error al crear liga');
       }
     } catch (e) {
-      toast.error('Error al crear liga');
+      toast.error(extractError(e, 'Error al crear liga'));
     } finally {
       setSubmitting(false);
     }
@@ -86,7 +99,7 @@ export default function MiniLigasManager({ participante, onUpdate }) {
         toast.error(res.data?.error || 'Error al unirse');
       }
     } catch (e) {
-      toast.error('Error al unirse');
+      toast.error(extractError(e, 'Error al unirse'));
     } finally {
       setSubmitting(false);
     }

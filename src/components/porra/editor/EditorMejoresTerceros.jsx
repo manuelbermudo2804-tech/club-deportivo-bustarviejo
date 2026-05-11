@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle2, AlertCircle, Trophy } from "lucide-react";
 
@@ -28,6 +28,18 @@ export default function EditorMejoresTerceros({ participante, equipos, isBlocked
   const seleccionados = participante.mejores_terceros || [];
   const numSeleccionados = seleccionados.length;
   const completo = numSeleccionados === 8;
+
+  // Auto-limpieza: si el usuario cambia un grupo y ya no es 3º un equipo que tenía marcado,
+  // lo eliminamos automáticamente de la lista para evitar terceros "fantasma".
+  useEffect(() => {
+    if (isBlocked) return;
+    const codigosValidos = new Set(candidatos.map(c => c.codigo));
+    const filtrados = seleccionados.filter(c => codigosValidos.has(c));
+    if (filtrados.length !== seleccionados.length) {
+      onToggleTercero(filtrados);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [candidatos.map(c => c.codigo).join(',')]);
 
   const toggle = (codigo) => {
     if (isBlocked) return;

@@ -60,13 +60,18 @@ function calcularPuntosParticipante(participante, partidos, config) {
     }
   });
 
-  // 4) Campeón — puntúa contra config.campeon_real (no depende de que el partido final esté marcado finalizado)
-  // Esto evita el bug de que si el admin pone el campeón en config pero olvida finalizar el partido final, nadie reciba puntos.
+  // 4) Campeón — puntúa contra config.campeon_real
+  // ROBUSTO: busca el partido final aunque no esté finalizado; si la predicción del usuario
+  // para ese partido coincide con el campeón real configurado por el admin → puntos.
   if (config?.campeon_real) {
     const partidoFinal = partidos.find(p => p.fase === 'final');
     if (partidoFinal && predElim[partidoFinal.id] === config.campeon_real) {
       pts.campeon = config?.puntos_campeon ?? 15;
     }
+    // Fallback: si por alguna razón no hay partido final en BD pero el usuario sí
+    // tiene una predicción guardada con la clave "final" o similar, no asignamos puntos
+    // (no podemos asociarla de forma segura). Esto es defensivo, no debería ocurrir
+    // si el admin generó los partidos correctamente.
   }
 
   // 5) Tercer puesto

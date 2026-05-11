@@ -9,50 +9,68 @@ import { Crown, Lock, Sparkles } from "lucide-react";
 // y el ganador del partido N de la fase X "alimenta" al partido floor(N/2) de la fase X+1
 const FASES_ORDEN = ['16avos', '8vos', '4tos', 'semis', 'final'];
 
-const FASES_META = {
-  '16avos': { titulo: '16avos de final', color: 'from-blue-500 to-blue-600', pts: 2 },
-  '8vos': { titulo: 'Octavos de final', color: 'from-indigo-500 to-indigo-600', pts: 3 },
-  '4tos': { titulo: 'Cuartos de final', color: 'from-purple-500 to-purple-600', pts: 5 },
-  'semis': { titulo: 'Semifinales', color: 'from-pink-500 to-pink-600', pts: 7 },
-  'tercer_puesto': { titulo: '🥉 Tercer puesto', color: 'from-amber-500 to-amber-600', pts: 5 },
-  'final': { titulo: '🏆 GRAN FINAL', color: 'from-red-600 to-orange-600', pts: 10 },
+// Los puntos se sobreescriben dinámicamente desde la config
+const FASES_META_BASE = {
+  '16avos': { titulo: '16avos de final', color: 'from-blue-500 to-blue-600', ptsKey: 'puntos_16avos', defaultPts: 2 },
+  '8vos': { titulo: 'Octavos de final', color: 'from-indigo-500 to-indigo-600', ptsKey: 'puntos_8vos', defaultPts: 3 },
+  '4tos': { titulo: 'Cuartos de final', color: 'from-purple-500 to-purple-600', ptsKey: 'puntos_4tos', defaultPts: 5 },
+  'semis': { titulo: 'Semifinales', color: 'from-pink-500 to-pink-600', ptsKey: 'puntos_semis', defaultPts: 7 },
+  'tercer_puesto': { titulo: '🥉 Tercer puesto', color: 'from-amber-500 to-amber-600', ptsKey: 'puntos_tercer_puesto_equipo', defaultPts: 5 },
+  'final': { titulo: '🏆 GRAN FINAL', color: 'from-red-600 to-orange-600', ptsKey: 'puntos_final', defaultPts: 10 },
 };
 
-export default function EditorBracket({ participante, partidos, equipos, isBlocked, onSetGanador }) {
+export default function EditorBracket({ participante, partidos, equipos, isBlocked, onSetGanador, config }) {
   const equiposPorCodigo = useMemo(() => {
     const m = {};
     equipos.forEach(e => { m[e.codigo] = e; });
     return m;
   }, [equipos]);
 
-  // Equipos clasificados a 16avos:
-  // - 24 primeros y segundos de la clasificación del usuario (12 grupos × 2)
-  // - 8 mejores terceros que eligió el usuario
+  // Equipos clasificados a 16avos según el usuario (24 1º/2º + 8 terceros)
+  // Usamos array ordenado en vez de Set para garantizar consistencia
   const equiposEn16avos = useMemo(() => {
-    const codigos = new Set();
-    Object.values(participante?.clasificacion_grupos || {}).forEach(arr => {
-      if (Array.isArray(arr) && arr.length >= 2) {
-        if (arr[0]) codigos.add(arr[0]);
-        if (arr[1]) codigos.add(arr[1]);
+    const codigos = [];
+    const vistos = new Set();
+    const grupos = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
+    grupos.forEach(g => {
+      const arr = participante?.clasificacion_grupos?.[g];
+      if (Array.isArray(arr)) {
+        [arr[0], arr[1]].forEach(c => {
+          if (c && !vistos.has(c)) { vistos.add(c); codigos.push(c); }
+        });
       }
     });
-    (participante?.mejores_terceros || []).forEach(c => codigos.add(c));
-    return Array.from(codigos);
+    (participante?.mejores_terceros || []).forEach(c => {
+      if (c && !vistos.has(c)) { vistos.add(c); codigos.push(c); }
+    });
+    return codigos;
   }, [participante]);
 
-  // Emparejamientos fijos de 16avos: 16 duelos de 2 equipos cada uno
-  // (cruzamos pares consecutivos del array de 32 clasificados)
+  // CRÍTICO: los cruces de 16avos vienen del bracket OFICIAL del Mundial 2026
+  // que el admin define en los partidos de BD (equipo_local_codigo / equipo_visitante_codigo
+  // o placeholders como "1ºA", "2ºB", "3ºC/D/E/F").
+  // Si el admin ya configuró los partidos, usamos sus emparejamientos.
+  // Si no, fallback: pares secuenciales (modo provisional).
   const cruces16avos = useMemo(() => {
+    const partidos16 = partidos.filter(p => p.fase === '16avos').sort((a, b) => a.numero_partido - b.numero_partido);
+
+    // Si los partidos de BD ya tienen códigos directos → usar esos
+    const tienenCodigosReales = partidos16.length > 0 && partidos16.every(p => p.equipo_local_codigo && p.equipo_visitante_codigo);
+    if (tienenCodigosReales) {
+      return partidos16.map(p => [p.equipo_local_codigo, p.equipo_visitante_codigo]);
+    }
+
+    // Fallback: pares secuenciales del orden del usuario
     const lista = [...equiposEn16avos].slice(0, 32);
     const pares = [];
     for (let i = 0; i < lista.length; i += 2) {
       if (lista[i + 1]) pares.push([lista[i], lista[i + 1]]);
     }
     return pares;
-  }, [equiposEn16avos]);
+  }, [equiposEn16avos, partidos]);
 
   // Devuelve los DOS contendientes de un partido eliminatoria:
-  // - 16avos: 2 equipos según el cruce fijo determinista
+  // - 16avos: 2 equipos según el bracket real o secuencial (ver arriba)
   // - 8vos+: ganadores de los partidos anteriores que predijo el usuario
   const getContendientes = (partido, idxPartido, partidosFase, faseActual) => {
     if (faseActual === '16avos') {
@@ -108,12 +126,13 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
         </p>
         <p className="text-purple-800 text-xs leading-relaxed">
           Elige al ganador de cada eliminatoria. <strong>El ganador avanza automáticamente</strong> al siguiente partido. 🤖<br/>
-          Puntos: <strong>2</strong> 16avos · <strong>3</strong> 8vos · <strong>5</strong> 4tos · <strong>7</strong> semis · <strong>10</strong> final · <strong>+15</strong> si aciertas el campeón.
+          Puntos: <strong>{config?.puntos_16avos ?? 2}</strong> 16avos · <strong>{config?.puntos_8vos ?? 3}</strong> 8vos · <strong>{config?.puntos_4tos ?? 5}</strong> 4tos · <strong>{config?.puntos_semis ?? 7}</strong> semis · <strong>{config?.puntos_final ?? 10}</strong> final · <strong>+{config?.puntos_campeon ?? 15}</strong> si aciertas el campeón.
         </p>
       </div>
 
       {FASES_RENDER.map(faseKey => {
-        const meta = FASES_META[faseKey];
+        const metaBase = FASES_META_BASE[faseKey];
+        const meta = { ...metaBase, pts: config?.[metaBase.ptsKey] ?? metaBase.defaultPts };
         const ps = partidos.filter(p => p.fase === faseKey).sort((a, b) => a.numero_partido - b.numero_partido);
         if (ps.length === 0) return null;
 
@@ -211,7 +230,7 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
 
       <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 text-sm">
         <p className="text-yellow-900 text-xs">
-          💡 <strong>Tip pro:</strong> acertar al campeón te da <strong>15 puntos extra</strong>. ¡Piénsalo bien!
+          💡 <strong>Tip pro:</strong> acertar al campeón te da <strong>{config?.puntos_campeon ?? 15} puntos extra</strong>. ¡Piénsalo bien!
         </p>
       </div>
     </div>

@@ -34,8 +34,10 @@ const ESPECIALES = [
   },
 ];
 
-// Editor de predicciones especiales: 4 categorías, cada una recibe 10 puntos
-export default function EditorEspeciales({ participante, equipos, isBlocked, onSetEspecial }) {
+// Editor de predicciones especiales: 4 categorías. Los puntos se leen de la config.
+export default function EditorEspeciales({ participante, equipos, isBlocked, onSetEspecial, config }) {
+  const ptsPorAcierto = config?.puntos_prediccion_especial ?? 5;
+  const ptsTotal = ptsPorAcierto * 4;
   const [busqueda, setBusqueda] = useState('');
   const [abierto, setAbierto] = useState(null);
 
@@ -51,7 +53,7 @@ export default function EditorEspeciales({ participante, equipos, isBlocked, onS
         <p className="font-bold text-pink-900 mb-1">⭐ Predicciones especiales</p>
         <p className="text-pink-800 text-xs">
           Elige la <strong>selección</strong> a la que pertenecerá el jugador ganador de cada premio individual. 
-          Cada acierto te da <strong>10 puntos</strong>. Total: <strong>40 puntos extra</strong>.
+          Cada acierto te da <strong>{ptsPorAcierto} puntos</strong>. Total: <strong>{ptsTotal} puntos extra</strong>.
         </p>
       </div>
 

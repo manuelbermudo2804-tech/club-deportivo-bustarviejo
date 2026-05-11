@@ -187,6 +187,7 @@ export default function PorraMiPorra() {
               equipos={equipos}
               isBlocked={isBlocked}
               onSetGanador={setEliminatoriaGanador}
+              config={config}
             />
           </TabsContent>
           <TabsContent value="especiales" className="mt-4">
@@ -195,6 +196,7 @@ export default function PorraMiPorra() {
               equipos={equipos}
               isBlocked={isBlocked}
               onSetEspecial={setEspecial}
+              config={config}
             />
           </TabsContent>
           <TabsContent value="ligas" className="mt-4">
