@@ -67,19 +67,23 @@ Deno.serve(async (req) => {
     }
 
     // Límite de porras por email
+    // En MODO TEST no aplicamos límite, para poder hacer pruebas sin chocar con porras anteriores.
     const emailLimpio = email.toLowerCase().trim();
-    const existing = await base44.asServiceRole.entities.PorraParticipante.filter({ email: emailLimpio });
-    const pagadas = existing.filter(e => e.estado_pago === 'pagado');
-    if (!config.permitir_multiples_porras) {
-      // Solo 1 porra por email
-      if (pagadas.length > 0) {
-        return Response.json({ error: 'Ya tienes una porra creada con este email' }, { status: 409 });
-      }
-    } else {
-      // Máximo 3 porras por email
-      const MAX_PORRAS_POR_EMAIL = 3;
-      if (pagadas.length >= MAX_PORRAS_POR_EMAIL) {
-        return Response.json({ error: `Has alcanzado el máximo de ${MAX_PORRAS_POR_EMAIL} porras por email. Si quieres meter más, usa otro email.` }, { status: 409 });
+    const modoTestEarly = !!config.modo_test;
+    if (!modoTestEarly) {
+      const existing = await base44.asServiceRole.entities.PorraParticipante.filter({ email: emailLimpio });
+      const pagadas = existing.filter(e => e.estado_pago === 'pagado');
+      if (!config.permitir_multiples_porras) {
+        // Solo 1 porra por email
+        if (pagadas.length > 0) {
+          return Response.json({ error: 'Ya tienes una porra creada con este email' }, { status: 409 });
+        }
+      } else {
+        // Máximo 3 porras por email
+        const MAX_PORRAS_POR_EMAIL = 3;
+        if (pagadas.length >= MAX_PORRAS_POR_EMAIL) {
+          return Response.json({ error: `Has alcanzado el máximo de ${MAX_PORRAS_POR_EMAIL} porras por email. Si quieres meter más, usa otro email.` }, { status: 409 });
+        }
       }
     }
 
