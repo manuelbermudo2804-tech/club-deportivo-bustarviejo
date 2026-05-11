@@ -33,25 +33,21 @@ export default function usePorraEditor(token) {
       return;
     }
     try {
-      const [parts, configs, eqs, pts] = await Promise.all([
-        base44.entities.PorraParticipante.filter({ token_acceso: token }),
-        base44.entities.PorraConfig.list(),
-        base44.entities.PorraEquipo.list('grupo', 100),
-        base44.entities.PorraPartido.list('numero_partido', 200),
-      ]);
-      const p = parts[0];
-      if (!p) {
-        setError('Porra no encontrada');
-      } else if (p.estado_pago !== 'pagado') {
-        setError('Pago pendiente');
+      const { data } = await base44.functions.invoke('porraGetByToken', { token });
+      if (data?.error) {
+        setError(data.error);
+      } else if (data?.participante) {
+        setParticipante(data.participante);
+        setConfig(data.config || null);
+        setEquipos(data.equipos || []);
+        setPartidos(data.partidos || []);
       } else {
-        setParticipante(p);
-        setConfig(configs[0] || null);
-        setEquipos(eqs);
-        setPartidos(pts);
+        setError('Porra no encontrada');
       }
     } catch (e) {
-      setError('Error al cargar');
+      // Si el endpoint backend devuelve 4xx, axios lanza error con response.data
+      const msg = e?.response?.data?.error || 'Error al cargar';
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -97,7 +93,10 @@ export default function usePorraEditor(token) {
       try {
         setSaving(true);
         const flags = computeCompletados(merged);
-        await base44.entities.PorraParticipante.update(participante.id, { ...updates, ...flags });
+        await base44.functions.invoke('porraUpdateByToken', {
+          token,
+          updates: { ...updates, ...flags },
+        });
         setParticipante(prev => ({ ...prev, ...flags }));
       } catch (e) {
         toast.error('Error al guardar');
@@ -105,7 +104,7 @@ export default function usePorraEditor(token) {
         setSaving(false);
       }
     }, 700);
-  }, [participante, isBlocked]);
+  }, [participante, isBlocked, token]);
 
   // Helpers de modificación
   const setResultadoGrupo = (partidoId, resultado) => {
