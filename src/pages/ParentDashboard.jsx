@@ -22,6 +22,7 @@ import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHead
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
 import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
+import PorraPromoBanner from "../components/porra/PorraPromoBanner";
 
 
 
@@ -535,6 +536,9 @@ export default function ParentDashboard() {
             userEmail={user?.email}
             userSports={myPlayersSports}
           />
+
+        {/* Banner promocional Porra Mundial 2026 */}
+        <PorraPromoBanner />
 
         {/* HAZTE SOCIO BANNER - COMPACTO */}
         <Link to={createPageUrl("ClubMembership")}>

@@ -102,6 +102,20 @@ export default function PorraAdminConfig({ config, onUpdate }) {
             </div>
           </div>
           <div>
+            <Label>💰 Aporte inicial del club al bote (€)</Label>
+            <Input
+              type="number"
+              min="0"
+              value={form.aporte_inicial_club || 0}
+              onChange={e => update('aporte_inicial_club', Number(e.target.value))}
+              placeholder="Ej: 100"
+            />
+            <p className="text-xs text-slate-500 mt-1">
+              💡 Cantidad que el club pone "de propina" al bote para generar interés desde el día 1.
+              Se suma al bote total mostrado en la landing y ranking.
+            </p>
+          </div>
+          <div>
             <Label>Destino de la comisión</Label>
             <Input value={form.destino_comision_club || ''} onChange={e => update('destino_comision_club', e.target.value)} placeholder="Ej: Equipación cantera CD Bustarviejo" />
           </div>

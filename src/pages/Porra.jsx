@@ -33,9 +33,10 @@ export default function Porra() {
       setConfig(cfg);
       setEquipos(eqs);
       const precio = cfg?.precio_entrada || 15;
+      const aporteClub = Number(cfg?.aporte_inicial_club) || 0;
       setStats({
         participantes: participantes.length,
-        bote: participantes.length * precio,
+        bote: participantes.length * precio + aporteClub,
       });
     } catch (e) {
       console.error('Error cargando porra:', e);

@@ -29,6 +29,11 @@
       "type": "number",
       "default": 10
     },
+    "aporte_inicial_club": {
+      "type": "number",
+      "default": 0,
+      "description": "Cantidad inicial en euros que el club aporta al bote para generar inter\u00e9s (se suma al bote total mostrado en la landing y ranking)"
+    },
     "fecha_limite_predicciones": {
       "type": "string",
       "format": "date-time"

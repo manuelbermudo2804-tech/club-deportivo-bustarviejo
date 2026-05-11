@@ -18,6 +18,7 @@ import DuplicatePlayersAlert from "../components/admin/DuplicatePlayersAlert";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
+import PorraPromoBanner from "../components/porra/PorraPromoBanner";
 
 
 export default function Home() {
@@ -711,6 +712,9 @@ export default function Home() {
 
         {/* Alerta de Jugadores Duplicados - Solo Admin */}
         {isAdmin && <DuplicatePlayersAlert />}
+
+        {/* Banner promocional Porra Mundial 2026 */}
+        <PorraPromoBanner />
 
         {/* Banner de Lotería de Navidad */}
         {loteriaVisible && (
