@@ -6,9 +6,18 @@ const GVC_LOGO = "https://media.base44.com/images/public/6992c6be619d2da59289799
 
 export default function PropuestaHero() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-slate-800 to-[#0a4a55] text-white">
-      <div className="absolute inset-0 opacity-10" style={{
-        backgroundImage: 'radial-gradient(circle at 20% 30%, rgba(14,122,140,0.4) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(249,115,22,0.3) 0%, transparent 50%)'
+    <section className="relative overflow-hidden text-white">
+      {/* Foto real del campo de Bustarviejo */}
+      <div className="absolute inset-0">
+        <img
+          src="https://media.base44.com/images/public/6992c6be619d2da592897991/948117dc5_image.png"
+          alt="Campo de CD Bustarviejo"
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-900/90 via-slate-900/80 to-[#0a4a55]/85" />
+      </div>
+      <div className="absolute inset-0 opacity-20" style={{
+        backgroundImage: 'radial-gradient(circle at 20% 30%, rgba(14,122,140,0.5) 0%, transparent 50%), radial-gradient(circle at 80% 70%, rgba(249,115,22,0.4) 0%, transparent 50%)'
       }} />
 
       <div className="relative max-w-6xl mx-auto px-6 py-16 lg:py-24">
