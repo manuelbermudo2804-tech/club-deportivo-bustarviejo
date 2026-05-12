@@ -10,7 +10,7 @@ const SOCIAL = [
   { icon: Send, label: "Telegram", url: "https://t.me/cdbustarviejo", handle: "@cdbustarviejo", color: "hover:bg-[#229ED9]" },
 ];
 
-export default function PropuestaFooter() {
+export default function PropuestaFooter({ empresa = "GVC Gaesco" }) {
   return (
     <footer className="bg-slate-950 text-white pt-16 pb-8">
       <div className="max-w-6xl mx-auto px-6">
@@ -82,7 +82,7 @@ export default function PropuestaFooter() {
         {/* Línea final */}
         <div className="pt-6 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-3">
           <p className="text-xs text-slate-500">
-            © {new Date().getFullYear()} CD Bustarviejo · Propuesta confidencial para GVC Gaesco
+            © {new Date().getFullYear()} CD Bustarviejo · Propuesta confidencial para {empresa}
           </p>
           <p className="text-xs text-slate-600">
             Temporada 2026/27 · Documento orientativo

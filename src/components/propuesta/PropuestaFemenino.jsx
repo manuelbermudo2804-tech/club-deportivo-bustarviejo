@@ -2,7 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Sparkles, Target, Users2 } from "lucide-react";
 
-export default function PropuestaFemenino() {
+export default function PropuestaFemenino({ empresa = "GVC Gaesco" }) {
   return (
     <section className="relative py-16 lg:py-24 bg-gradient-to-br from-rose-50 via-pink-50 to-purple-50 overflow-hidden">
       <div className="absolute inset-0 opacity-20" style={{
@@ -76,7 +76,7 @@ export default function PropuestaFemenino() {
           className="bg-white rounded-2xl p-6 lg:p-8 shadow-lg border-l-4 border-rose-500"
         >
           <p className="text-slate-700 italic leading-relaxed text-center text-lg">
-            "Vincular a <strong className="text-rose-600">GVC Gaesco</strong> al fútbol femenino del CDB no es solo poner un logo: es construir juntos un proyecto con propósito, que inspire a niñas, familias y a toda la comarca."
+            "Vincular a <strong className="text-rose-600">{empresa}</strong> al fútbol femenino del CDB no es solo poner un logo: es construir juntos un proyecto con propósito, que inspire a niñas, familias y a toda la comarca."
           </p>
           <p className="text-center mt-3 text-sm text-slate-500 font-semibold">— Junta Directiva CD Bustarviejo</p>
         </motion.div>

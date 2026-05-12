@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 const CDB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 const GVC_LOGO = "https://media.base44.com/images/public/6992c6be619d2da592897991/8e8967490_logo_hori_rgb.gif";
 
-export default function PropuestaHero() {
+export default function PropuestaHero({ empresa = "GVC Gaesco", logoEmpresa = GVC_LOGO }) {
   return (
     <section className="relative overflow-hidden text-white">
       {/* Foto real del campo de Bustarviejo */}
@@ -37,7 +37,7 @@ export default function PropuestaHero() {
             para vuestra marca
           </h1>
           <p className="text-lg lg:text-xl text-white/80 max-w-3xl mx-auto leading-relaxed">
-            CD Bustarviejo y <strong className="text-white">GVC Gaesco</strong> comparten un mismo ADN: rigor, cercanía y compromiso con las nuevas generaciones. Os presentamos una propuesta hecha a vuestra medida.
+            CD Bustarviejo y <strong className="text-white">{empresa}</strong> comparten un mismo ADN: rigor, cercanía y compromiso con las nuevas generaciones. Os presentamos una propuesta hecha a vuestra medida.
           </p>
         </motion.div>
 
@@ -58,8 +58,8 @@ export default function PropuestaHero() {
           </div>
 
           <div className="text-center">
-            <img src={GVC_LOGO} alt="GVC Gaesco" className="h-16 lg:h-20 mx-auto mb-3 object-contain" />
-            <div className="text-xs font-bold text-slate-600 tracking-widest uppercase">GVC Gaesco</div>
+            <img src={logoEmpresa} alt={empresa} className="h-16 lg:h-20 mx-auto mb-3 object-contain" />
+            <div className="text-xs font-bold text-slate-600 tracking-widest uppercase">{empresa}</div>
           </div>
         </motion.div>
       </div>

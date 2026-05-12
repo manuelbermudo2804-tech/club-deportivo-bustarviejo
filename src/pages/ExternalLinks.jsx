@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { ExternalLink, Copy, Check, Globe, Users, CreditCard, Trophy, Megaphone, QrCode } from "lucide-react";
+import { ExternalLink, Copy, Check, Globe, Users, CreditCard, Trophy, Megaphone, QrCode, Target, Handshake } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import PropuestaGenerator from "@/components/external-links/PropuestaGenerator";
 
 const getBaseUrl = () => {
   const url = window.location.origin;
@@ -51,6 +52,23 @@ const EXTERNAL_PAGES = [
     icon: Trophy,
     color: "bg-red-500",
     nota: "Abierta del 19 abril al 15 mayo 2026",
+  },
+  {
+    id: "porra",
+    nombre: "Porra Mundial 2026",
+    descripcion: "Landing pública de la Porra del Mundial 2026. Apunta tu equipo, paga la inscripción y compite por el bote.",
+    path: "/Porra",
+    icon: Target,
+    color: "bg-yellow-500",
+  },
+  {
+    id: "propuesta-gvc",
+    nombre: "Propuesta GVC Gaesco",
+    descripcion: "Propuesta de patrocinio personalizable. Por defecto se renderiza para GVC Gaesco — usa el generador de abajo para crear versiones para otras empresas.",
+    path: "/PropuestaGVCGaesco",
+    icon: Handshake,
+    color: "bg-rose-500",
+    nota: "Personalizable con ?empresa=X&logo=URL",
   },
 ];
 
@@ -117,6 +135,10 @@ export default function ExternalLinks() {
         {EXTERNAL_PAGES.map((page) => (
           <LinkCard key={page.id} page={page} />
         ))}
+      </div>
+
+      <div className="mt-8">
+        <PropuestaGenerator />
       </div>
 
       <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
