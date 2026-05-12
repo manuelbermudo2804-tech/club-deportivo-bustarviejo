@@ -4,6 +4,7 @@ import PropuestaImpacto from "@/components/propuesta/PropuestaImpacto";
 import PropuestaFemenino from "@/components/propuesta/PropuestaFemenino";
 import PropuestaPaquetes from "@/components/propuesta/PropuestaPaquetes";
 import PropuestaResumenForm from "@/components/propuesta/PropuestaResumenForm";
+import PropuestaFooter from "@/components/propuesta/PropuestaFooter";
 
 export default function PropuestaGVCGaesco() {
   const [seleccionados, setSeleccionados] = useState([]);
@@ -27,9 +28,7 @@ export default function PropuestaGVCGaesco() {
       <PropuestaFemenino />
       <PropuestaPaquetes seleccionados={seleccionados} onToggle={toggle} />
       <PropuestaResumenForm seleccionados={seleccionados} empresa="GVC Gaesco" origen="gvcgaesco" />
-      <footer className="bg-slate-900 text-white/50 py-6 text-center text-xs">
-        © CD Bustarviejo · Propuesta confidencial preparada para GVC Gaesco · Temporada 2026/27
-      </footer>
+      <PropuestaFooter />
     </div>
   );
 }
