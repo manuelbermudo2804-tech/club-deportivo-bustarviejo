@@ -12,6 +12,7 @@ import EditorBracket from "@/components/porra/editor/EditorBracket";
 import EditorEspeciales from "@/components/porra/editor/EditorEspeciales";
 import MiniLigasManager from "@/components/porra/ligas/MiniLigasManager";
 import PorraCompletadaModal from "@/components/porra/PorraCompletadaModal";
+import MiDesglosePuntos from "@/components/porra/desglose/MiDesglosePuntos";
 
 // Hub principal del editor de porra
 // Lee ?token=XXX de la URL y muestra los 3 editores (grupos, bracket, especiales)
@@ -208,11 +209,12 @@ export default function PorraMiPorra() {
 
         {/* Tabs editor — visualmente destacadas y diferenciadas de las StatusCards de arriba */}
         <Tabs value={tabActiva} onValueChange={(v) => { flushGuardado && flushGuardado(); setTabActiva(v); }}>
-          <TabsList className="grid w-full grid-cols-5 h-auto p-1.5 bg-gradient-to-r from-slate-800 to-slate-900 shadow-lg rounded-xl">
+          <TabsList className="grid w-full grid-cols-6 h-auto p-1.5 bg-gradient-to-r from-slate-800 to-slate-900 shadow-lg rounded-xl">
             <TabsTrigger value="grupos" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">⚽ Grupos</TabsTrigger>
             <TabsTrigger value="terceros" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">🥉 Terceros</TabsTrigger>
             <TabsTrigger value="bracket" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">🏆 Bracket</TabsTrigger>
             <TabsTrigger value="especiales" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">⭐ Especiales</TabsTrigger>
+            <TabsTrigger value="desglose" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md">📊 Desglose</TabsTrigger>
             <TabsTrigger value="ligas" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">👥 Ligas</TabsTrigger>
           </TabsList>
 
@@ -252,6 +254,9 @@ export default function PorraMiPorra() {
               onSetEspecial={setEspecial}
               config={config}
             />
+          </TabsContent>
+          <TabsContent value="desglose" className="mt-4">
+            <MiDesglosePuntos token={token} />
           </TabsContent>
           <TabsContent value="ligas" className="mt-4">
             <div className="bg-orange-50 border-2 border-orange-200 rounded-xl p-4 text-sm mb-3">
