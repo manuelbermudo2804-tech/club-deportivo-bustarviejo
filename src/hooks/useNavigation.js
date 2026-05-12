@@ -26,6 +26,7 @@ export default function useNavigation({
   isMemberPaid,
   programaSociosActivo,
   onlyComplementary,
+  porraActiva,
   // Notification counts
   playersNeedingReview,
   pendingSignaturesAdmin,
@@ -51,6 +52,7 @@ export default function useNavigation({
     marketNewCount, unresolvedAdminChats, paymentsInReview,
     pendingFeedback,
     programaSociosActivo, isMemberPaid, isPlayer, user, onlyComplementary,
+    porraActiva,
   };
 
   // Each role builds its own menu — memoized with relevant deps
@@ -58,19 +60,19 @@ export default function useNavigation({
     [playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses, chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible, pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount, unresolvedAdminChats, paymentsInReview, pendingFeedback]);
 
   const coachNav = useMemo(() => buildCoachNavigation(navCtx),
-    [programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts, isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount, hasPlayers, loteriaVisible, marketNewCount, user?.puede_gestionar_firmas]);
+    [programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts, isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount, hasPlayers, loteriaVisible, marketNewCount, user?.puede_gestionar_firmas, porraActiva]);
 
   const coordinatorNav = useMemo(() => buildCoordinatorNavigation(navCtx),
-    [programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts, isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount, hasPlayers, loteriaVisible, marketNewCount, user?.puede_gestionar_firmas, user?.es_entrenador]);
+    [programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts, isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount, hasPlayers, loteriaVisible, marketNewCount, user?.puede_gestionar_firmas, user?.es_entrenador, porraActiva]);
 
   const parentNav = useMemo(() => buildParentNavigation(navCtx),
-    [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, marketNewCount, onlyComplementary]);
+    [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, marketNewCount, onlyComplementary, porraActiva]);
 
   const playerNav = useMemo(() => buildPlayerNavigation(navCtx),
-    [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, loteriaVisible, marketNewCount, onlyComplementary]);
+    [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, loteriaVisible, marketNewCount, onlyComplementary, porraActiva]);
 
   const treasurerNav = useMemo(() => buildTreasurerNavigation(navCtx),
-    [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, unreadAnnouncementsCount, marketNewCount]);
+    [programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, unreadAnnouncementsCount, marketNewCount, porraActiva]);
 
   const minorNav = useMemo(() => buildMinorNavigation(navCtx),
     [pendingCallupsCount]);

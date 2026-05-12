@@ -21,6 +21,7 @@ export function useFetchUser(location) {
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const [sponsorBannerVisible, setSponsorBannerVisible] = useState(false);
   const [onlyComplementary, setOnlyComplementary] = useState(false);
+  const [porraActiva, setPorraActiva] = useState(false);
   const [authChecked, setAuthChecked] = useState(false);
   const fetchUserOnceRef = useRef(false);
   // Detectar inmediatamente si es página pública (antes de cualquier async)
@@ -245,13 +246,14 @@ export function useFetchUser(location) {
       };
 
       try {
-        // Lanzar las 3 consultas base en paralelo
-        const [configs, membersList, allMyPlayers] = await Promise.all([
+        // Lanzar las consultas base en paralelo (incluye PorraConfig para saber si está activa)
+        const [configs, membersList, allMyPlayers, porraConfigs] = await Promise.all([
           base44.entities.SeasonConfig.filter({ activa: true }).catch(() => []),
           base44.entities.ClubMember.filter({ email: currentUser.email, estado_pago: "Pagado" }).catch(() => []),
           (currentUser.role !== "admin" && !currentUser.es_entrenador && !currentUser.es_coordinador && !currentUser.es_tesorero)
             ? fetchMyPlayers()
             : Promise.resolve([]),
+          base44.entities.PorraConfig.list().catch(() => []),
         ]);
 
         const activeConfig = configs[0];
@@ -259,6 +261,7 @@ export function useFetchUser(location) {
         setLoteriaVisible(activeConfig?.loteria_navidad_abierta === true);
         setSponsorBannerVisible(activeConfig?.mostrar_patrocinadores === true);
         setIsMemberPaid(membersList.length > 0);
+        setPorraActiva(porraConfigs?.[0]?.activa === true);
 
       } catch (error) {}
 
@@ -328,7 +331,7 @@ export function useFetchUser(location) {
   return {
     user, isAdmin, isCoach, isCoordinator, isTreasurer, isJunta, isPlayer, isMinor, minorPlayerData,
     hasPlayers, playerName, isLoading, showSpecialScreen, activeSeasonConfig, isMemberPaid,
-    loteriaVisible, sponsorBannerVisible, onlyComplementary, authChecked, isPublicPageRef,
+    loteriaVisible, sponsorBannerVisible, onlyComplementary, porraActiva, authChecked, isPublicPageRef,
     executeFetch
   };
 }
