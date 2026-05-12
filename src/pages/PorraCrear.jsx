@@ -261,6 +261,9 @@ export default function PorraCrear() {
                 />
                 <label htmlFor="terms" className="text-sm text-slate-700 cursor-pointer">
                   Acepto participar en la Porra del Mundial 2026 del CD Bustarviejo. Entiendo que el pago no es reembolsable una vez empiece el torneo y que mis predicciones se bloquearán al cierre del plazo. El club destinará el {config.comision_club_porcentaje || 10}% del bote a {config.destino_comision_club || 'el club'}.
+                  <span className="block mt-2 text-xs text-slate-500">
+                    🔒 <strong>Protección de datos:</strong> tus datos (nombre, email, teléfono) los trata el <strong>CD Bustarviejo</strong> con la única finalidad de gestionar tu participación y contactarte si ganas un premio. No se ceden a terceros (salvo Stripe para procesar el pago). Se conservarán hasta el cierre de la porra + 1 año. Puedes ejercer tus derechos RGPD escribiendo a <a href="mailto:info@cdbustarviejo.com" className="underline text-orange-700">info@cdbustarviejo.com</a>.
+                  </span>
                 </label>
               </div>
 
