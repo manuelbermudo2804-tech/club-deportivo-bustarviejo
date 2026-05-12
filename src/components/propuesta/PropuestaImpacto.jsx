@@ -52,8 +52,8 @@ export default function PropuestaImpacto() {
             <div className="absolute -inset-4 bg-gradient-to-br from-orange-200 to-green-200 rounded-3xl blur-2xl opacity-40" />
             <div className="relative rounded-3xl shadow-2xl w-full aspect-[4/3] overflow-hidden">
               <img
-                src="https://media.base44.com/images/public/6992c6be619d2da592897991/eb2439635_fondo_optimizado.jpg"
-                alt="CD Bustarviejo"
+                src="https://media.base44.com/images/public/6992c6be619d2da592897991/948117dc5_image.png"
+                alt="Campo de CD Bustarviejo"
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
