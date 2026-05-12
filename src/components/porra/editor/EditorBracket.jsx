@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Crown, Lock, Sparkles } from "lucide-react";
+import { resolverCruces16avos } from "@/lib/porraBracket";
 
 // Bracket auto-completable: el ganador de cada partido aparece como candidato en el siguiente
 // El usuario NO arrastra equipos: solo elige ganador entre los DOS contendientes ya definidos
@@ -46,11 +47,10 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
     return codigos;
   }, [participante]);
 
-  // CRÍTICO: los cruces de 16avos vienen del bracket OFICIAL del Mundial 2026
-  // que el admin define en los partidos de BD (equipo_local_codigo / equipo_visitante_codigo
-  // o placeholders como "1ºA", "2ºB", "3ºC/D/E/F").
-  // Si el admin ya configuró los partidos, usamos sus emparejamientos.
-  // Si no, fallback: pares secuenciales (modo provisional).
+  // Cruces de 16avos según el BRACKET OFICIAL FIFA Mundial 2026 (Match 73-88).
+  // Si el admin ya fijó equipos reales en BD (equipo_local_codigo/visitante_codigo)
+  // los usamos. Si no, resolvemos los cruces a partir de las predicciones del
+  // usuario (clasificación de grupos + 8 mejores terceros) aplicando el Anexo C.
   const cruces16avos = useMemo(() => {
     const partidos16 = partidos.filter(p => p.fase === '16avos').sort((a, b) => a.numero_partido - b.numero_partido);
 
@@ -60,14 +60,9 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
       return partidos16.map(p => [p.equipo_local_codigo, p.equipo_visitante_codigo]);
     }
 
-    // Fallback: pares secuenciales del orden del usuario
-    const lista = [...equiposEn16avos].slice(0, 32);
-    const pares = [];
-    for (let i = 0; i < lista.length; i += 2) {
-      if (lista[i + 1]) pares.push([lista[i], lista[i + 1]]);
-    }
-    return pares;
-  }, [equiposEn16avos, partidos]);
+    // Resolución según bracket oficial FIFA + Anexo C
+    return resolverCruces16avos(participante);
+  }, [participante, partidos]);
 
   // Devuelve los DOS contendientes de un partido eliminatoria:
   // - 16avos: 2 equipos según el bracket real o secuencial (ver arriba)
