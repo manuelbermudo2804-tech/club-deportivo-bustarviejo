@@ -12,6 +12,7 @@ import SponsorForm from "../components/sponsors/SponsorForm";
 import SponsorCard from "../components/sponsors/SponsorCard";
 import SponsorDashboard from "../components/sponsors/SponsorDashboard";
 import SponsorInterestPanel from "../components/sponsors/SponsorInterestPanel";
+import PropuestasPatrocinioPanel from "../components/sponsors/PropuestasPatrocinioPanel";
 
 export default function Sponsorships() {
   const [showForm, setShowForm] = useState(false);
@@ -158,6 +159,9 @@ export default function Sponsorships() {
           />
         )}
       </AnimatePresence>
+
+      {/* Propuestas premium (GVC Gaesco y otras empresas) */}
+      <PropuestasPatrocinioPanel />
 
       {/* Solicitudes de patrocinio en camiseta */}
       <SponsorInterestPanel />
