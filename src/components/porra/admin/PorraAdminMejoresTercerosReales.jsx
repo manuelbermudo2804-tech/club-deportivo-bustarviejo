@@ -134,12 +134,39 @@ export default function PorraAdminMejoresTercerosReales({ config, partidos, equi
           </div>
         ) : (
           <>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
               <p className="font-bold text-slate-900">Selecciona los 8 que pasan:</p>
-              <span className={`text-lg font-black ${numSeleccionados === 8 ? 'text-green-600' : 'text-purple-600'}`}>
-                {numSeleccionados}/8
-              </span>
+              <div className="flex items-center gap-2">
+                {numSeleccionados > 0 && (
+                  <Button
+                    onClick={() => setSeleccionados([])}
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs border-red-300 text-red-700 hover:bg-red-50"
+                  >
+                    Limpiar selección
+                  </Button>
+                )}
+                <span className={`text-lg font-black ${numSeleccionados === 8 ? 'text-green-600' : 'text-purple-600'}`}>
+                  {numSeleccionados}/8
+                </span>
+              </div>
             </div>
+
+            {/* Aviso si hay selecciones "huérfanas" (códigos en seleccionados que ya no son 3º real) */}
+            {(() => {
+              const codigosTerceros = new Set(tercerosReales.filter(t => t.codigo).map(t => t.codigo));
+              const huerfanos = seleccionados.filter(c => !codigosTerceros.has(c));
+              if (huerfanos.length === 0) return null;
+              return (
+                <div className="bg-red-50 border-2 border-red-300 rounded-lg p-3 text-sm">
+                  <p className="font-bold text-red-900">⚠️ Hay {huerfanos.length} equipo(s) seleccionado(s) que ya no son 3º de grupo</p>
+                  <p className="text-red-700 text-xs mt-1">
+                    Probablemente cambiaste resultados de partidos. Pulsa "Limpiar selección" y vuelve a marcar los 8.
+                  </p>
+                </div>
+              );
+            })()}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {tercerosReales.filter(t => t.codigo).map(({ grupo, codigo, pts, dg, gf }) => {
