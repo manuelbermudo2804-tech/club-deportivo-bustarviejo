@@ -44,16 +44,25 @@ function ResultadoBotones({ partido, equipos, onChange }) {
 
 export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpdate }) {
   const [regenerando, setRegenerando] = useState(false);
-  // Estado local de eliminatorias para no recargar todo el panel admin al editar
-  // Solo sincronizar cuando cambia el NÚMERO de partidos (nuevos creados/borrados),
-  // no cada vez que llega un partidos array nuevo (eso pisaría los cambios del usuario)
+  // Estado local de eliminatorias para no recargar todo el panel admin al editar.
+  // Sincronizamos con la prop cada vez que cambia "de verdad" el contenido:
+  // - número de partidos
+  // - IDs (para evitar quedarnos con datos antiguos tras regenerar)
+  // - equipos/resultados asignados (firma de contenido)
+  // De este modo, si el padre recarga al cambiar de sección, los datos frescos
+  // de la BD se reflejan aquí en vez de quedarse con el estado local vacío inicial.
   const [elimiLocal, setElimiLocal] = useState([]);
-  const elimiCount = partidos.filter(p => p.fase !== 'grupos').length;
+  const elimiFromProps = useMemo(() => partidos.filter(p => p.fase !== 'grupos'), [partidos]);
+  const elimiSignature = useMemo(() => {
+    return elimiFromProps
+      .map(p => `${p.id}:${p.equipo_local_codigo || ''}|${p.equipo_visitante_codigo || ''}|${p.resultado_real || ''}|${p.ganador_codigo || ''}`)
+      .join(';');
+  }, [elimiFromProps]);
 
   useEffect(() => {
-    setElimiLocal(partidos.filter(p => p.fase !== 'grupos'));
+    setElimiLocal(elimiFromProps);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [elimiCount]);
+  }, [elimiSignature]);
 
   const grupos = partidos.filter(p => p.fase === 'grupos');
   const elimi = elimiLocal;
