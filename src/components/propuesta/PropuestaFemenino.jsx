@@ -30,11 +30,24 @@ export default function PropuestaFemenino() {
           </p>
         </motion.div>
 
+        <div className="relative mb-10 rounded-3xl overflow-hidden shadow-2xl aspect-[16/9] max-w-3xl mx-auto">
+          <img
+            src="https://media.base44.com/images/public/6992c6be619d2da592897991/eb2439635_fondo_optimizado.jpg"
+            alt="Fútbol femenino CD Bustarviejo"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-rose-900/80 via-rose-900/30 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8 text-white">
+            <p className="font-black text-2xl lg:text-3xl">Nuestro equipo femenino</p>
+            <p className="text-sm lg:text-base opacity-90 mt-1">Niñas y mujeres con las mismas oportunidades sobre el terreno de juego</p>
+          </div>
+        </div>
+
         <div className="grid md:grid-cols-3 gap-6 mb-10">
           {[
-            { icon: Users2, title: "30 jugadoras", text: "Niñas y jóvenes comprometidas con el deporte y los valores del equipo." },
-            { icon: Target, title: "Categorías mixtas y propias", text: "Apostamos por categorías femeninas propias desde la base hasta senior." },
-            { icon: Sparkles, title: "Modelo de referencia", text: "Únete a un proyecto pionero en la comarca, con repercusión y visibilidad real." },
+            { icon: Users2, title: "Equipo femenino", text: "Niñas y jóvenes comprometidas con el deporte y los valores del equipo." },
+            { icon: Target, title: "Igualdad de oportunidades", text: "Apostamos por que cada niña tenga su espacio, sus referentes y sus mismas oportunidades." },
+            { icon: Sparkles, title: "Referente comarcal", text: "Únete a un proyecto pionero en la Sierra Norte, con repercusión y visibilidad real." },
           ].map((item, i) => {
             const Icon = item.icon;
             return (
