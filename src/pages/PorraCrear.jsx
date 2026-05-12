@@ -23,7 +23,6 @@ export default function PorraCrear() {
     telefono: '',
     mini_liga_codigo: '',
     acepta_terminos: false,
-    acepta_privacidad: false,
   });
   const [loading, setLoading] = useState(false);
   const [loadingConfig, setLoadingConfig] = useState(true);
@@ -76,10 +75,6 @@ export default function PorraCrear() {
     }
     if (!form.acepta_terminos) {
       toast.error('Debes aceptar los términos para continuar');
-      return;
-    }
-    if (!form.acepta_privacidad) {
-      toast.error('Debes aceptar la política de privacidad para continuar');
       return;
     }
     setLoading(true);
@@ -269,33 +264,10 @@ export default function PorraCrear() {
                 </label>
               </div>
 
-              {/* Privacidad */}
-              <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 p-3 rounded-lg">
-                <Checkbox
-                  id="privacy"
-                  checked={form.acepta_privacidad}
-                  onCheckedChange={v => update('acepta_privacidad', !!v)}
-                  className="mt-0.5"
-                />
-                <label htmlFor="privacy" className="text-sm text-slate-700 cursor-pointer">
-                  He leído y acepto la{' '}
-                  <a
-                    href="/PorraPrivacidad"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-700 underline font-medium"
-                    onClick={e => e.stopPropagation()}
-                  >
-                    política de privacidad
-                  </a>
-                  . Mis datos se usarán solo para gestionar mi porra y contactarme si gano un premio.
-                </label>
-              </div>
-
               {/* CTA */}
               <Button
                 type="submit"
-                disabled={loading || !form.acepta_terminos || !form.acepta_privacidad}
+                disabled={loading || !form.acepta_terminos}
                 className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-black text-lg py-7 rounded-xl shadow-xl disabled:opacity-50"
               >
                 {loading ? (
