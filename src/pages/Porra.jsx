@@ -35,11 +35,10 @@ export default function Porra() {
 
   const cargarDatos = async () => {
     try {
-      // Pasamos el preview como query string al backend
-      const res = await base44.functions.invoke(
-        'porraPublicLanding' + (previewCodigo ? `?preview=${encodeURIComponent(previewCodigo)}` : ''),
-        {}
-      );
+      // Pasamos el preview en el body al backend
+      const res = await base44.functions.invoke('porraPublicLanding', {
+        preview_codigo: previewCodigo || undefined,
+      });
       const d = res.data || {};
       setConfig(d.config);
       setEquipos(d.equipos || []);

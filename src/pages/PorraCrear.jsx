@@ -34,10 +34,9 @@ export default function PorraCrear() {
 
   const cargar = async () => {
     try {
-      const res = await base44.functions.invoke(
-        'porraPublicLanding' + (previewCodigo ? `?preview=${encodeURIComponent(previewCodigo)}` : ''),
-        {}
-      );
+      const res = await base44.functions.invoke('porraPublicLanding', {
+        preview_codigo: previewCodigo || undefined,
+      });
       setConfig(res.data?.config || null);
       // Pre-rellenar email y nombre si el usuario llega logueado desde la app interna
       try {

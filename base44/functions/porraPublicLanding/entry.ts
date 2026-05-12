@@ -11,8 +11,17 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
+    // El código de preview puede venir por query string O por body
     const url = new URL(req.url);
-    const previewCodigo = url.searchParams.get('preview') || '';
+    let previewCodigo = url.searchParams.get('preview') || '';
+    if (!previewCodigo && req.method === 'POST') {
+      try {
+        const body = await req.json();
+        previewCodigo = body?.preview_codigo || body?.preview || '';
+      } catch {
+        // body vacío, ignorar
+      }
+    }
 
     const [configs, equipos, participantesPagados] = await Promise.all([
       base44.asServiceRole.entities.PorraConfig.list(),
