@@ -13,16 +13,18 @@ export default function PorraAdminParticipantes({ participantes = [] }) {
 
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
-    return participantes.filter(p => {
-      if (filtroEstado !== 'todos' && p.estado_pago !== filtroEstado) return false;
-      if (!q) return true;
-      return (
-        (p.nombre || '').toLowerCase().includes(q) ||
-        (p.alias_equipo || '').toLowerCase().includes(q) ||
-        (p.email || '').toLowerCase().includes(q) ||
-        (p.telefono || '').includes(q)
-      );
-    });
+    return participantes
+      .filter(p => {
+        if (filtroEstado !== 'todos' && p.estado_pago !== filtroEstado) return false;
+        if (!q) return true;
+        return (
+          (p.nombre || '').toLowerCase().includes(q) ||
+          (p.alias_equipo || '').toLowerCase().includes(q) ||
+          (p.email || '').toLowerCase().includes(q) ||
+          (p.telefono || '').includes(q)
+        );
+      })
+      .sort((a, b) => (b.puntos_total || 0) - (a.puntos_total || 0));
   }, [participantes, busqueda, filtroEstado]);
 
   const pagados = participantes.filter(p => p.estado_pago === 'pagado');
