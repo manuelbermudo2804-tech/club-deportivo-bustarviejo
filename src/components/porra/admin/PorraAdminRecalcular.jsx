@@ -38,8 +38,8 @@ export default function PorraAdminRecalcular({ totalParticipantes }) {
           <div className="flex-1">
             <p className="font-black text-slate-900">Cálculo de puntos</p>
             <p className="text-xs text-slate-600 mt-0.5">
-              Los puntos se recalculan automáticamente cuando marcas un partido como finalizado.
-              Si necesitas forzarlo manualmente (ej: cambias el campeón en config), pulsa el botón.
+              ✅ <strong>Automático:</strong> los puntos se recalculan solos cuando marcas un partido como finalizado o actualizas el campeón / mejores terceros / especiales en config.
+              Pulsa este botón solo si necesitas forzar un recálculo manual (ej: tras un cambio que no haya disparado el automatismo).
             </p>
             <Button
               onClick={handleRecalcular}

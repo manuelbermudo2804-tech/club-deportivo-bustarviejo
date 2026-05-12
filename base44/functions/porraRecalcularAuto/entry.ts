@@ -1,45 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
-// Recalcula los puntos de TODOS los participantes según los resultados reales
-// Se puede invocar manualmente desde el admin o automáticamente al actualizar un PorraPartido
-// Body opcional: { participante_id?: 'xxx' } para recalcular solo uno
-
-// Lógica de puntos (modelo "equipo que llega a esa fase"):
-// - Grupos: 3 pts por cada acierto 1/X/2
-// - Mejores terceros: 10 pts por cada equipo acertado de los 8
-// - Eliminatorias: por CADA equipo que el usuario predijo en una fase y que realmente
-//   llegó a esa fase (independientemente del rival concreto):
-//   · 16avos: 4 pts por equipo  (32 equipos posibles)
-//   · 8vos:   6 pts por equipo  (16 equipos posibles)
-//   · 4tos:  10 pts por equipo  ( 8 equipos posibles)
-//   · semis: 14 pts por equipo  ( 4 equipos posibles)
-//   · final: 20 pts por equipo  ( 2 equipos posibles)
-// - Campeón: 25 pts extra si acertaste quién gana la final
-// - Tercer puesto: 10 pts por equipo + 14 pts si acierta ganador
-// - Especiales (4): 10 pts cada uno
-//
-// Los equipos predichos en cada fase eliminatoria se DERIVAN de
-// participante.predicciones_eliminatorias siguiendo el bracket: para cada partido
-// eliminatorio que aparece en BD, el "ganador predicho" es el equipo que el usuario
-// hace avanzar a la siguiente ronda. Se considera "equipo predicho en fase X" al
-// conjunto de ganadores predichos de los partidos de la fase ANTERIOR (porque ganar
-// en la fase anterior == llegar a esta fase). Para 16avos, los equipos predichos
-// son la clasificación de grupos del usuario (1º, 2º de cada grupo + sus 8 mejores
-// terceros).
+// Endpoint disparado por automation de entidad cuando se actualiza un PorraPartido
+// o PorraConfig (resultados/campeón). Recalcula puntos de todos los pagados.
+// NO requiere auth admin porque lo dispara el sistema, no un usuario.
+// Replica la lógica de porraCalcularPuntos pero sin la guardia de admin.
 
 function calcularPuntosParticipante(participante, partidos, config) {
-  const pts = {
-    grupos: 0,
-    terceros: 0,
-    eliminatorias: 0,
-    tercer_puesto: 0,
-    campeon: 0,
-    especiales: 0,
-  };
-
+  const pts = { grupos: 0, terceros: 0, eliminatorias: 0, tercer_puesto: 0, campeon: 0, especiales: 0 };
   const partidosFinalizados = partidos.filter(p => p.finalizado);
 
-  // 1) Puntos de grupos (1/X/2) — default debe coincidir con el schema (1 pt)
   const ptsGrupo = config?.puntos_resultado_grupo ?? 1;
   const predGrupos = participante.predicciones_grupos || {};
   partidosFinalizados.forEach(p => {
@@ -48,22 +17,13 @@ function calcularPuntosParticipante(participante, partidos, config) {
     }
   });
 
-  // 2) Mejores terceros (pts por cada acierto entre los 8 elegidos)
   const ptsTercero = config?.puntos_mejor_tercero ?? 10;
   const tercerosReales = config?.mejores_terceros_reales || [];
   const tercerosPredichos = participante.mejores_terceros || [];
   if (tercerosReales.length > 0 && tercerosPredichos.length > 0) {
-    tercerosPredichos.forEach(codigo => {
-      if (tercerosReales.includes(codigo)) {
-        pts.terceros += ptsTercero;
-      }
-    });
+    tercerosPredichos.forEach(c => { if (tercerosReales.includes(c)) pts.terceros += ptsTercero; });
   }
 
-  // 3) Puntos de eliminatorias — MODELO "EQUIPO QUE LLEGA A LA FASE"
-  // Para cada fase eliminatoria sumamos puntos por cada equipo que el usuario
-  // tenía clasificado a esa fase y que realmente llegó a esa fase, sin importar
-  // contra quién jugara su cruce.
   const predElim = participante.predicciones_eliminatorias || {};
   const puntosPorFase = {
     '16avos': config?.puntos_16avos ?? 4,
@@ -73,8 +33,6 @@ function calcularPuntosParticipante(participante, partidos, config) {
     'final':  config?.puntos_final  ?? 20,
   };
 
-  // Helper: equipos que aparecen REALMENTE en una fase eliminatoria
-  // (vienen como local/visitante en los partidos de esa fase en BD)
   const equiposRealesPorFase = (fase) => {
     const set = new Set();
     partidos.forEach(p => {
@@ -85,11 +43,6 @@ function calcularPuntosParticipante(participante, partidos, config) {
     return set;
   };
 
-  // Helper: equipos que el USUARIO predijo en una fase eliminatoria.
-  // En 16avos = todos los equipos que el usuario clasifica desde la fase de grupos
-  //   (1º y 2º de cada grupo + sus 8 mejores terceros).
-  // En 8vos / 4tos / semis / final = los ganadores que el usuario marcó en los
-  //   partidos de la fase ANTERIOR (porque ganar en la fase anterior == llegar a esta).
   const equiposPredichosPorFase = (fase) => {
     const set = new Set();
     if (fase === '16avos') {
@@ -115,18 +68,11 @@ function calcularPuntosParticipante(participante, partidos, config) {
 
   ['16avos', '8vos', '4tos', 'semis', 'final'].forEach(fase => {
     const reales = equiposRealesPorFase(fase);
-    if (reales.size === 0) return; // todavía no hay datos reales de esta fase
+    if (reales.size === 0) return;
     const predichos = equiposPredichosPorFase(fase);
-    predichos.forEach(codigo => {
-      if (reales.has(codigo)) {
-        pts.eliminatorias += puntosPorFase[fase];
-      }
-    });
+    predichos.forEach(c => { if (reales.has(c)) pts.eliminatorias += puntosPorFase[fase]; });
   });
 
-  // 4) Campeón — puntúa contra config.campeon_real
-  // Si la predicción del usuario para el partido de la final coincide con el
-  // campeón real configurado por el admin → puntos extra.
   if (config?.campeon_real) {
     const partidoFinal = partidos.find(p => p.fase === 'final');
     if (partidoFinal && predElim[partidoFinal.id] === config.campeon_real) {
@@ -134,7 +80,6 @@ function calcularPuntosParticipante(participante, partidos, config) {
     }
   }
 
-  // 5) Tercer puesto
   const partidoTercero = partidosFinalizados.find(p => p.fase === 'tercer_puesto');
   if (partidoTercero?.ganador_codigo) {
     const predTercero = participante.prediccion_tercer_puesto || {};
@@ -150,18 +95,14 @@ function calcularPuntosParticipante(participante, partidos, config) {
     }
   }
 
-  // 6) Especiales
   const ptsEsp = config?.puntos_prediccion_especial ?? 10;
   const predEsp = participante.predicciones_especiales || {};
   const realEsp = config?.resultados_especiales_reales || {};
   ['mejor_jugador', 'maximo_goleador', 'mejor_portero', 'mejor_joven'].forEach(k => {
-    if (predEsp[k] && realEsp[k] && predEsp[k] === realEsp[k]) {
-      pts.especiales += ptsEsp;
-    }
+    if (predEsp[k] && realEsp[k] && predEsp[k] === realEsp[k]) pts.especiales += ptsEsp;
   });
 
   const total = pts.grupos + pts.terceros + pts.eliminatorias + pts.tercer_puesto + pts.campeon + pts.especiales;
-
   return {
     puntos_grupos: pts.grupos,
     puntos_terceros: pts.terceros,
@@ -176,41 +117,28 @@ function calcularPuntosParticipante(participante, partidos, config) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const body = await req.json().catch(() => ({}));
 
-    // Solo admin puede recalcular puntos (evita DoS y manipulación)
-    const user = await base44.auth.me();
-    if (!user || user.role !== 'admin') {
-      return Response.json({ error: 'Solo admin' }, { status: 403 });
-    }
-
-    const [configs, partidos, todos] = await Promise.all([
+    const [configs, partidos, pagados] = await Promise.all([
       base44.asServiceRole.entities.PorraConfig.list(),
       base44.asServiceRole.entities.PorraPartido.list('', 200),
-      body.participante_id
-        ? base44.asServiceRole.entities.PorraParticipante.filter({ id: body.participante_id })
-        : base44.asServiceRole.entities.PorraParticipante.filter({ estado_pago: 'pagado' }),
+      base44.asServiceRole.entities.PorraParticipante.filter({ estado_pago: 'pagado' }),
     ]);
 
     const config = configs[0];
-    if (!config) {
-      return Response.json({ error: 'Configuración no encontrada' }, { status: 404 });
-    }
+    if (!config) return Response.json({ skip: true, reason: 'sin config' });
 
     let actualizados = 0;
-    const errores = [];
-
-    for (const p of todos) {
+    for (const p of pagados) {
       try {
         const nuevos = calcularPuntosParticipante(p, partidos, config);
         await base44.asServiceRole.entities.PorraParticipante.update(p.id, nuevos);
         actualizados++;
       } catch (e) {
-        errores.push({ id: p.id, error: e.message });
+        console.error('[porraRecalcularAuto] error participante', p.id, e?.message);
       }
     }
 
-    // Recalcular posiciones globales — guardamos posicion_anterior para mostrar ▲▼ en el ranking
+    // Actualizar posiciones globales preservando posicion_anterior para mostrar ▲▼
     const recargados = await base44.asServiceRole.entities.PorraParticipante.filter({ estado_pago: 'pagado' });
     const ordenados = recargados.sort((a, b) => (b.puntos_total || 0) - (a.puntos_total || 0));
     for (let i = 0; i < ordenados.length; i++) {
@@ -219,20 +147,16 @@ Deno.serve(async (req) => {
       if (posActual !== nuevaPos) {
         try {
           await base44.asServiceRole.entities.PorraParticipante.update(ordenados[i].id, {
-            posicion_anterior: posActual || nuevaPos, // si nunca tuvo posición, no se mueve
+            posicion_anterior: posActual || nuevaPos,
             posicion_ranking: nuevaPos,
           });
         } catch {}
       }
     }
 
-    return Response.json({
-      success: true,
-      total_participantes: todos.length,
-      actualizados,
-      errores: errores.length,
-    });
+    return Response.json({ success: true, actualizados, total: pagados.length });
   } catch (error) {
+    console.error('[porraRecalcularAuto] error:', error?.message);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
