@@ -128,6 +128,17 @@ export default function PorraHeroLanding({ config, onCrearPorra, totalParticipan
             <Euro className="w-5 h-5 md:w-7 md:h-7 mx-auto mb-1 text-yellow-300" />
             <div className="text-xl md:text-3xl font-black text-white">{bote.toFixed(0)}€</div>
             <div className="text-[9px] md:text-xs uppercase tracking-wider text-white/80 font-bold">Bote total</div>
+            {bote > 0 && (() => {
+              const pctClub = Number(config?.comision_club_porcentaje) || 10;
+              const premios = bote * (1 - pctClub / 100);
+              const club = bote * (pctClub / 100);
+              return (
+                <div className="mt-1.5 pt-1.5 border-t border-yellow-400/20 text-[8px] md:text-[10px] text-white/70 leading-tight">
+                  <div>🏆 {premios.toFixed(0)}€ premios</div>
+                  <div>💚 {club.toFixed(0)}€ club ({pctClub}%)</div>
+                </div>
+              );
+            })()}
           </div>
           <div className="bg-black/40 backdrop-blur-md rounded-2xl p-3 md:p-4 border-2 border-yellow-400/40 shadow-xl">
             <Trophy className="w-5 h-5 md:w-7 md:h-7 mx-auto mb-1 text-yellow-300" />

@@ -13,6 +13,8 @@ import EditorEspeciales from "@/components/porra/editor/EditorEspeciales";
 import MiniLigasManager from "@/components/porra/ligas/MiniLigasManager";
 import PorraCompletadaModal from "@/components/porra/PorraCompletadaModal";
 import MiDesglosePuntos from "@/components/porra/desglose/MiDesglosePuntos";
+import CompartirPorraButton from "@/components/porra/CompartirPorraButton";
+import { base44 } from "@/api/base44Client";
 
 // Hub principal del editor de porra
 // Lee ?token=XXX de la URL y muestra los 3 editores (grupos, bracket, especiales)
@@ -40,6 +42,20 @@ export default function PorraMiPorra() {
   const [tabActiva, setTabActiva] = useState('grupos');
   const completadaMostradaRef = useRef(false);
   const ultimoPorcentajeRef = useRef(null);
+  const [misLigas, setMisLigas] = useState([]);
+
+  // Cargar mis mini-ligas para que el botón de compartir incluya el código si las hay
+  useEffect(() => {
+    if (!token) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await base44.functions.invoke('porraGetLigasByToken', { token });
+        if (!cancelled && res?.data?.ligas) setMisLigas(res.data.ligas);
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [token]);
 
   useEffect(() => {
     if (!participante) return;
@@ -200,6 +216,9 @@ export default function PorraMiPorra() {
             <Home className="w-4 h-4 mr-1" /> Inicio
           </Button>
         </div>
+
+        {/* Compartir por WhatsApp — retar a amigos */}
+        <CompartirPorraButton participante={participante} miniLigas={misLigas} />
 
         {/* Indicador visual de dónde se edita */}
         <div className="bg-gradient-to-r from-orange-100 to-red-100 border-2 border-orange-300 rounded-xl px-3 py-2 flex items-center gap-2 text-sm font-bold text-orange-900 shadow-sm">
