@@ -26,16 +26,9 @@ export default function MiniLigasManager({ participante, onUpdate }) {
     const codigos = participante?.mini_liga_codigos || [];
     if (codigos.length === 0) { setLigas([]); setLoading(false); return; }
     try {
-      // Eficiente: una query por código (paralelo) en vez de listar todas las ligas
-      const resultados = await Promise.all(
-        codigos.map(c => base44.entities.PorraLiga.filter({ codigo: c }).catch(() => []))
-      );
-      const planas = resultados.flat().filter(Boolean);
-      // Deduplicar por id
-      const vistos = new Set();
-      const unicas = [];
-      planas.forEach(l => { if (l?.id && !vistos.has(l.id)) { vistos.add(l.id); unicas.push(l); } });
-      setLigas(unicas);
+      // Endpoint público — funciona sin auth para usuarios web
+      const res = await base44.functions.invoke('porraGetLigasByToken', { token: participante.token_acceso });
+      setLigas(res.data?.ligas || []);
     } catch (e) {
       console.error(e);
     } finally {

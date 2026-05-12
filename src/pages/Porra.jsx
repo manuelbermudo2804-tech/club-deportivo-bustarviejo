@@ -27,19 +27,13 @@ export default function Porra() {
 
   const cargarDatos = async () => {
     try {
-      const [configs, eqs, participantes] = await Promise.all([
-        base44.entities.PorraConfig.list().catch(() => []),
-        base44.entities.PorraEquipo.list().catch(() => []),
-        base44.entities.PorraParticipante.filter({ estado_pago: 'pagado' }).catch(() => []),
-      ]);
-      const cfg = configs[0] || null;
-      setConfig(cfg);
-      setEquipos(eqs);
-      const precio = cfg?.precio_entrada || 15;
-      const aporteClub = Number(cfg?.aporte_inicial_club) || 0;
+      const res = await base44.functions.invoke('porraPublicLanding', {});
+      const d = res.data || {};
+      setConfig(d.config);
+      setEquipos(d.equipos || []);
       setStats({
-        participantes: participantes.length,
-        bote: participantes.length * precio + aporteClub,
+        participantes: d.stats?.total_participantes || 0,
+        bote: d.stats?.bote || 0,
       });
     } catch (e) {
       console.error('Error cargando porra:', e);

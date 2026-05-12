@@ -38,10 +38,25 @@ export default function PorraExito() {
       return;
     }
     try {
-      const list = await base44.entities.PorraParticipante.filter({ token_acceso: token });
-      setParticipante(list[0] || null);
+      // Endpoint público — funciona sin auth para usuarios web
+      const res = await base44.functions.invoke('porraGetByToken', { token });
+      // porraGetByToken devuelve 402 si pago pendiente — todavía nos sirve para mostrar el estado
+      if (res.data?.participante) {
+        setParticipante(res.data.participante);
+      } else if (res.data?.error === 'Pago pendiente') {
+        // Construir un participante mínimo para que el polling siga funcionando
+        setParticipante({ token_acceso: token, estado_pago: 'pendiente', email: '', nombre: '', alias_equipo: '' });
+      } else {
+        setParticipante(null);
+      }
     } catch (e) {
-      console.error(e);
+      // Si es 402 (pago pendiente), tratar como participante pendiente
+      const errData = e?.response?.data;
+      if (errData?.error === 'Pago pendiente') {
+        setParticipante({ token_acceso: token, estado_pago: 'pendiente', email: '', nombre: '', alias_equipo: '' });
+      } else {
+        console.error(e);
+      }
     } finally {
       setLoading(false);
     }

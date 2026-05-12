@@ -32,8 +32,8 @@ export default function PorraCrear() {
 
   const cargar = async () => {
     try {
-      const configs = await base44.entities.PorraConfig.list();
-      setConfig(configs[0] || null);
+      const res = await base44.functions.invoke('porraPublicLanding', {});
+      setConfig(res.data?.config || null);
       // Pre-rellenar email y nombre si el usuario llega logueado desde la app interna
       try {
         const authed = await base44.auth.isAuthenticated();

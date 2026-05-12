@@ -40,8 +40,9 @@ export default function PorraRanking() {
 
   useEffect(() => {
     if (tokenUrl) {
-      base44.entities.PorraParticipante.filter({ token_acceso: tokenUrl })
-        .then(parts => { if (parts[0]) setMiAlias(parts[0].alias_equipo); })
+      // Usar endpoint público (funciona sin auth para usuarios web)
+      base44.functions.invoke('porraGetByToken', { token: tokenUrl })
+        .then(res => { if (res.data?.participante?.alias_equipo) setMiAlias(res.data.participante.alias_equipo); })
         .catch(() => {});
     }
   }, [tokenUrl]);
