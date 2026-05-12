@@ -4,13 +4,28 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 // Se puede invocar manualmente desde el admin o automáticamente al actualizar un PorraPartido
 // Body opcional: { participante_id?: 'xxx' } para recalcular solo uno
 
-// Lógica de puntos (simplificada y balanceada):
-// - Grupos: 1 pt por cada acierto 1/X/2 (máx 72)
-// - Mejores terceros: 3 pts por cada equipo acertado (máx 24)
-// - 16avos: 2 pts, 8vos: 3, 4tos: 5, semis: 7, final: 10
-// - Campeón: 15 pts extra
-// - Tercer puesto: 5 pts por equipo + 7 pts si acierta ganador
-// - Especiales (4): 5 pts cada uno
+// Lógica de puntos (modelo "equipo que llega a esa fase"):
+// - Grupos: 3 pts por cada acierto 1/X/2
+// - Mejores terceros: 10 pts por cada equipo acertado de los 8
+// - Eliminatorias: por CADA equipo que el usuario predijo en una fase y que realmente
+//   llegó a esa fase (independientemente del rival concreto):
+//   · 16avos: 4 pts por equipo  (32 equipos posibles)
+//   · 8vos:   6 pts por equipo  (16 equipos posibles)
+//   · 4tos:  10 pts por equipo  ( 8 equipos posibles)
+//   · semis: 14 pts por equipo  ( 4 equipos posibles)
+//   · final: 20 pts por equipo  ( 2 equipos posibles)
+// - Campeón: 25 pts extra si acertaste quién gana la final
+// - Tercer puesto: 10 pts por equipo + 14 pts si acierta ganador
+// - Especiales (4): 10 pts cada uno
+//
+// Los equipos predichos en cada fase eliminatoria se DERIVAN de
+// participante.predicciones_eliminatorias siguiendo el bracket: para cada partido
+// eliminatorio que aparece en BD, el "ganador predicho" es el equipo que el usuario
+// hace avanzar a la siguiente ronda. Se considera "equipo predicho en fase X" al
+// conjunto de ganadores predichos de los partidos de la fase ANTERIOR (porque ganar
+// en la fase anterior == llegar a esta fase). Para 16avos, los equipos predichos
+// son la clasificación de grupos del usuario (1º, 2º de cada grupo + sus 8 mejores
+// terceros).
 
 function calcularPuntosParticipante(participante, partidos, config) {
   const pts = {
@@ -25,7 +40,7 @@ function calcularPuntosParticipante(participante, partidos, config) {
   const partidosFinalizados = partidos.filter(p => p.finalizado);
 
   // 1) Puntos de grupos (1/X/2)
-  const ptsGrupo = config?.puntos_resultado_grupo ?? 1;
+  const ptsGrupo = config?.puntos_resultado_grupo ?? 3;
   const predGrupos = participante.predicciones_grupos || {};
   partidosFinalizados.forEach(p => {
     if (p.fase === 'grupos' && p.resultado_real && predGrupos[p.id] === p.resultado_real) {
@@ -33,8 +48,8 @@ function calcularPuntosParticipante(participante, partidos, config) {
     }
   });
 
-  // 2) Mejores terceros (3 pts por cada acierto)
-  const ptsTercero = config?.puntos_mejor_tercero ?? 3;
+  // 2) Mejores terceros (pts por cada acierto entre los 8 elegidos)
+  const ptsTercero = config?.puntos_mejor_tercero ?? 10;
   const tercerosReales = config?.mejores_terceros_reales || [];
   const tercerosPredichos = participante.mejores_terceros || [];
   if (tercerosReales.length > 0 && tercerosPredichos.length > 0) {
@@ -45,41 +60,86 @@ function calcularPuntosParticipante(participante, partidos, config) {
     });
   }
 
-  // 3) Puntos de eliminatorias (acertar ganador real de cada partido)
+  // 3) Puntos de eliminatorias — MODELO "EQUIPO QUE LLEGA A LA FASE"
+  // Para cada fase eliminatoria sumamos puntos por cada equipo que el usuario
+  // tenía clasificado a esa fase y que realmente llegó a esa fase, sin importar
+  // contra quién jugara su cruce.
   const predElim = participante.predicciones_eliminatorias || {};
   const puntosPorFase = {
-    '16avos': config?.puntos_16avos ?? 2,
-    '8vos': config?.puntos_8vos ?? 3,
-    '4tos': config?.puntos_4tos ?? 5,
-    'semis': config?.puntos_semis ?? 7,
-    'final': config?.puntos_final ?? 10,
+    '16avos': config?.puntos_16avos ?? 4,
+    '8vos':   config?.puntos_8vos   ?? 6,
+    '4tos':   config?.puntos_4tos   ?? 10,
+    'semis':  config?.puntos_semis  ?? 14,
+    'final':  config?.puntos_final  ?? 20,
   };
-  partidosFinalizados.forEach(p => {
-    if (puntosPorFase[p.fase] && p.ganador_codigo && predElim[p.id] === p.ganador_codigo) {
-      pts.eliminatorias += puntosPorFase[p.fase];
+
+  // Helper: equipos que aparecen REALMENTE en una fase eliminatoria
+  // (vienen como local/visitante en los partidos de esa fase en BD)
+  const equiposRealesPorFase = (fase) => {
+    const set = new Set();
+    partidos.forEach(p => {
+      if (p.fase !== fase) return;
+      if (p.equipo_local_codigo) set.add(p.equipo_local_codigo);
+      if (p.equipo_visitante_codigo) set.add(p.equipo_visitante_codigo);
+    });
+    return set;
+  };
+
+  // Helper: equipos que el USUARIO predijo en una fase eliminatoria.
+  // En 16avos = todos los equipos que el usuario clasifica desde la fase de grupos
+  //   (1º y 2º de cada grupo + sus 8 mejores terceros).
+  // En 8vos / 4tos / semis / final = los ganadores que el usuario marcó en los
+  //   partidos de la fase ANTERIOR (porque ganar en la fase anterior == llegar a esta).
+  const equiposPredichosPorFase = (fase) => {
+    const set = new Set();
+    if (fase === '16avos') {
+      const clasif = participante.clasificacion_grupos || {};
+      Object.values(clasif).forEach(arr => {
+        if (Array.isArray(arr)) {
+          if (arr[0]) set.add(arr[0]);
+          if (arr[1]) set.add(arr[1]);
+        }
+      });
+      (participante.mejores_terceros || []).forEach(c => { if (c) set.add(c); });
+      return set;
     }
+    const faseAnterior = { '8vos': '16avos', '4tos': '8vos', 'semis': '4tos', 'final': 'semis' }[fase];
+    if (!faseAnterior) return set;
+    partidos.forEach(p => {
+      if (p.fase !== faseAnterior) return;
+      const ganadorPredicho = predElim[p.id];
+      if (ganadorPredicho) set.add(ganadorPredicho);
+    });
+    return set;
+  };
+
+  ['16avos', '8vos', '4tos', 'semis', 'final'].forEach(fase => {
+    const reales = equiposRealesPorFase(fase);
+    if (reales.size === 0) return; // todavía no hay datos reales de esta fase
+    const predichos = equiposPredichosPorFase(fase);
+    predichos.forEach(codigo => {
+      if (reales.has(codigo)) {
+        pts.eliminatorias += puntosPorFase[fase];
+      }
+    });
   });
 
   // 4) Campeón — puntúa contra config.campeon_real
-  // ROBUSTO: busca el partido final aunque no esté finalizado; si la predicción del usuario
-  // para ese partido coincide con el campeón real configurado por el admin → puntos.
+  // Si la predicción del usuario para el partido de la final coincide con el
+  // campeón real configurado por el admin → puntos extra.
   if (config?.campeon_real) {
     const partidoFinal = partidos.find(p => p.fase === 'final');
     if (partidoFinal && predElim[partidoFinal.id] === config.campeon_real) {
-      pts.campeon = config?.puntos_campeon ?? 15;
+      pts.campeon = config?.puntos_campeon ?? 25;
     }
-    // Fallback: si por alguna razón no hay partido final en BD pero el usuario sí
-    // tiene una predicción guardada con la clave "final" o similar, no asignamos puntos
-    // (no podemos asociarla de forma segura). Esto es defensivo, no debería ocurrir
-    // si el admin generó los partidos correctamente.
   }
 
   // 5) Tercer puesto
   const partidoTercero = partidosFinalizados.find(p => p.fase === 'tercer_puesto');
   if (partidoTercero?.ganador_codigo) {
     const predTercero = participante.prediccion_tercer_puesto || {};
-    const ptsEquipo = config?.puntos_tercer_puesto_equipo ?? 5;
-    const ptsGanador = config?.puntos_tercer_puesto_ganador ?? 7;
+    const ptsEquipo = config?.puntos_tercer_puesto_equipo ?? 10;
+    const ptsGanador = config?.puntos_tercer_puesto_ganador ?? 14;
     [predTercero.equipo1, predTercero.equipo2].forEach(e => {
       if (e && (e === partidoTercero.equipo_local_codigo || e === partidoTercero.equipo_visitante_codigo)) {
         pts.tercer_puesto += ptsEquipo;
@@ -91,7 +151,7 @@ function calcularPuntosParticipante(participante, partidos, config) {
   }
 
   // 6) Especiales
-  const ptsEsp = config?.puntos_prediccion_especial ?? 5;
+  const ptsEsp = config?.puntos_prediccion_especial ?? 10;
   const predEsp = participante.predicciones_especiales || {};
   const realEsp = config?.resultados_especiales_reales || {};
   ['mejor_jugador', 'maximo_goleador', 'mejor_portero', 'mejor_joven'].forEach(k => {
