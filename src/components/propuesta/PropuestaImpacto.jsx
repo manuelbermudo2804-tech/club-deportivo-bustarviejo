@@ -3,10 +3,10 @@ import { motion } from "framer-motion";
 import { Users, Trophy, Shield, Star, Target, Mountain } from "lucide-react";
 
 const STATS = [
-  { icon: Users, value: "+130", label: "Deportistas activos", color: "from-blue-500 to-cyan-500" },
-  { icon: Trophy, value: "6", label: "Categorías deportivas", color: "from-orange-500 to-red-500" },
-  { icon: Shield, value: "~20", label: "Entrenadores y equipo técnico", color: "from-green-500 to-emerald-500" },
-  { icon: Star, value: "100+", label: "Familias en el club", color: "from-purple-500 to-pink-500" },
+  { icon: Users, value: "+170", label: "Deportistas activos", color: "from-blue-500 to-cyan-500" },
+  { icon: Trophy, value: "8", label: "Categorías deportivas", color: "from-orange-500 to-red-500" },
+  { icon: Shield, value: "+25", label: "Entrenadores y equipo técnico", color: "from-green-500 to-emerald-500" },
+  { icon: Star, value: "+200", label: "Familias vinculadas al club", color: "from-purple-500 to-pink-500" },
   { icon: Target, value: "4", label: "Fútbol, Basket, Pádel, F. Sala", color: "from-yellow-500 to-orange-500" },
   { icon: Mountain, value: "365", label: "Días de actividad en temporada", color: "from-slate-500 to-slate-700" },
 ];
@@ -37,7 +37,7 @@ export default function PropuestaImpacto() {
               Ofrecemos a niños, niñas y jóvenes un espacio seguro donde <strong>crecer, aprender valores y desarrollarse</strong> como personas: fútbol, baloncesto, pádel y fútbol sala. Desde Pre-Benjamín hasta el equipo Aficionado.
             </p>
             <p className="text-slate-700 leading-relaxed">
-              Apostamos firmemente por la <strong>inclusión, la igualdad y el deporte femenino</strong>. Cada temporada, más de 130 deportistas y sus familias forman parte del club. Y seguimos creciendo.
+              Apostamos firmemente por la <strong>inclusión, la igualdad y el deporte femenino</strong>. Cada temporada, más de 170 deportistas y más de 200 familias forman parte del club. Y seguimos creciendo.
             </p>
           </motion.div>
 
@@ -58,8 +58,8 @@ export default function PropuestaImpacto() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                <p className="font-black text-2xl lg:text-3xl">+130 deportistas</p>
-                <p className="text-sm opacity-90 mt-1">y sus familias, unidos por el deporte</p>
+                <p className="font-black text-2xl lg:text-3xl">+170 deportistas</p>
+                <p className="text-sm opacity-90 mt-1">y más de 200 familias, unidas por el deporte</p>
               </div>
             </div>
           </motion.div>
