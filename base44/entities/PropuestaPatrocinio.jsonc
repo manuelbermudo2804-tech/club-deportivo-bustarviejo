@@ -1,0 +1,66 @@
+{
+  "name": "PropuestaPatrocinio",
+  "type": "object",
+  "properties": {
+    "empresa": {
+      "type": "string",
+      "description": "Nombre de la empresa interesada"
+    },
+    "contacto_nombre": {
+      "type": "string"
+    },
+    "contacto_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "contacto_telefono": {
+      "type": "string"
+    },
+    "paquetes_seleccionados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "total_estimado": {
+      "type": "number",
+      "description": "Importe total estimado en euros"
+    },
+    "mensaje": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "nueva",
+        "en_conversacion",
+        "aceptada",
+        "descartada"
+      ],
+      "default": "nueva"
+    },
+    "origen": {
+      "type": "string",
+      "description": "Slug de la propuesta (ej: gvcgaesco)"
+    },
+    "notas_internas": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "contacto_nombre",
+    "contacto_email",
+    "paquetes_seleccionados"
+  ]
+}
