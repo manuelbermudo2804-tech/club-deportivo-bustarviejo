@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { Save, Megaphone, Trophy } from "lucide-react";
+import { Save, Megaphone, Trophy, Eye, Copy } from "lucide-react";
 import { toast } from "sonner";
 
 export default function PorraAdminConfig({ config, onUpdate }) {
@@ -80,6 +80,66 @@ export default function PorraAdminConfig({ config, onUpdate }) {
               </p>
             </div>
             <Switch checked={!!form.modo_test} onCheckedChange={v => update('modo_test', v)} />
+          </div>
+
+          {/* MODO PREVIEW: permite que 3-4 beta-testers prueben con la porra inactiva */}
+          <div className={`p-3 rounded-lg border-2 ${form.modo_preview ? 'bg-purple-50 border-purple-400' : 'bg-white border-slate-200'}`}>
+            <div className="flex items-center justify-between">
+              <div className="flex-1 pr-3">
+                <Label className="font-bold flex items-center gap-2">
+                  <Eye className="w-4 h-4 text-purple-600" />
+                  Modo PREVIEW (compartir con beta-testers)
+                  {form.modo_preview && <span className="text-[10px] bg-purple-500 text-white px-2 py-0.5 rounded-full font-black">ACTIVO</span>}
+                </Label>
+                <p className="text-xs text-slate-600 mt-1">
+                  Permite que personas concretas <strong>vean y prueben la porra aunque NO esté activa todavía</strong>.
+                  Comparte el enlace de preview con ellos. El resto del mundo seguirá viendo "porra cerrada".
+                </p>
+              </div>
+              <Switch checked={!!form.modo_preview} onCheckedChange={v => update('modo_preview', v)} />
+            </div>
+
+            {form.modo_preview && (
+              <div className="mt-3 space-y-2 bg-white rounded-lg p-3 border border-purple-200">
+                <div>
+                  <Label className="text-xs font-bold">Código secreto del preview</Label>
+                  <Input
+                    value={form.codigo_preview || ''}
+                    onChange={e => update('codigo_preview', e.target.value.trim())}
+                    placeholder="Ej: cdb2026"
+                    className="h-9 text-sm"
+                  />
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    Sin código, nadie podrá entrar en preview. Solo quienes tengan la URL exacta.
+                  </p>
+                </div>
+
+                {form.codigo_preview && (
+                  <div>
+                    <Label className="text-xs font-bold">URL para compartir</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        readOnly
+                        value={`https://app.cdbustarviejo.com/Porra?preview=${form.codigo_preview}`}
+                        className="h-9 text-xs font-mono bg-slate-50"
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          const url = `https://app.cdbustarviejo.com/Porra?preview=${form.codigo_preview}`;
+                          navigator.clipboard.writeText(url);
+                          toast.success('URL copiada al portapapeles');
+                        }}
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
           <div>
             <Label>Texto del banner</Label>

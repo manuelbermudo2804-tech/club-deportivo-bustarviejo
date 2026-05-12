@@ -3,9 +3,16 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 // Endpoint PÚBLICO (sin auth) para la landing web.
 // Devuelve: config, equipos y stats agregadas (participantes pagados + bote).
 // Diseñado para que los visitantes anónimos NO necesiten saltarse RLS.
+//
+// MODO PREVIEW: si la query incluye ?preview=CODIGO y la config tiene
+// modo_preview=true + codigo_preview=CODIGO, se devuelve la porra aunque
+// 'activa' sea false. Sirve para que admins compartan la URL con beta-testers.
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+
+    const url = new URL(req.url);
+    const previewCodigo = url.searchParams.get('preview') || '';
 
     const [configs, equipos, participantesPagados] = await Promise.all([
       base44.asServiceRole.entities.PorraConfig.list(),
@@ -18,10 +25,22 @@ Deno.serve(async (req) => {
     const aporteClub = Number(config?.aporte_inicial_club) || 0;
     const totalParticipantes = participantesPagados.length;
 
-    // No exponer datos sensibles (emails, tokens, predicciones) — solo lo necesario para la landing
+    // ¿El visitante tiene acceso de preview válido?
+    const previewValido = !!(
+      config?.modo_preview &&
+      config?.codigo_preview &&
+      previewCodigo &&
+      previewCodigo === config.codigo_preview
+    );
+
+    // Si la porra NO está activa y NO hay preview válido → devolver activa:false como hasta ahora.
+    // Si hay preview válido → forzar activa:true para que la landing se renderice.
+    const activaParaCliente = !!config?.activa || previewValido;
+
     return Response.json({
+      preview_mode: previewValido,
       config: config ? {
-        activa: !!config.activa,
+        activa: activaParaCliente,
         estado: config.estado,
         nombre_torneo: config.nombre_torneo,
         precio_entrada: precio,

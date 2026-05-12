@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
-    const { nombre, email, alias_equipo, telefono, mini_liga_codigo, return_url } = body || {};
+    const { nombre, email, alias_equipo, telefono, mini_liga_codigo, return_url, preview_codigo } = body || {};
 
     // Validaciones básicas
     if (!nombre || !email || !alias_equipo || !telefono) {
@@ -42,7 +42,16 @@ Deno.serve(async (req) => {
     // Cargar configuración
     const configs = await base44.asServiceRole.entities.PorraConfig.list();
     const config = configs[0];
-    if (!config || !config.activa) {
+
+    // ¿Acceso por modo preview?
+    const previewValido = !!(
+      config?.modo_preview &&
+      config?.codigo_preview &&
+      preview_codigo &&
+      preview_codigo === config.codigo_preview
+    );
+
+    if (!config || (!config.activa && !previewValido)) {
       return Response.json({ error: 'La porra no está activa' }, { status: 403 });
     }
 

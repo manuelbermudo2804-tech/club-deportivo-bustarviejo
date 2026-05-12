@@ -15,6 +15,15 @@
       "default": false,
       "description": "Si est\u00e1 activo, los participantes se crean directamente como pagados (sin pasar por Stripe). Para hacer pruebas internas. \u00a1DESACTIVAR ANTES DEL LANZAMIENTO!"
     },
+    "modo_preview": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si est\u00e1 activo, la URL /Porra?preview=CODIGO permite ver y crear porras aunque 'activa' sea false. \u00datil para que 3-4 personas prueben antes del lanzamiento oficial."
+    },
+    "codigo_preview": {
+      "type": "string",
+      "description": "C\u00f3digo secreto que hay que pasar en la URL ?preview=XXX para acceder en modo preview. Ej: 'cdb2026'"
+    },
     "estado": {
       "type": "string",
       "enum": [

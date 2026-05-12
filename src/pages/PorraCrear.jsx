@@ -13,6 +13,8 @@ import PorraMiniLigaInfo from "@/components/porra/PorraMiniLigaInfo";
 // Página pública para crear una porra: formulario + pago Stripe
 export default function PorraCrear() {
   const navigate = useNavigate();
+  // Leer ?preview=XXX de la URL para propagarlo al backend
+  const previewCodigo = new URLSearchParams(window.location.search).get('preview') || '';
   const [config, setConfig] = useState(null);
   const [form, setForm] = useState({
     nombre: '',
@@ -32,7 +34,10 @@ export default function PorraCrear() {
 
   const cargar = async () => {
     try {
-      const res = await base44.functions.invoke('porraPublicLanding', {});
+      const res = await base44.functions.invoke(
+        'porraPublicLanding' + (previewCodigo ? `?preview=${encodeURIComponent(previewCodigo)}` : ''),
+        {}
+      );
       setConfig(res.data?.config || null);
       // Pre-rellenar email y nombre si el usuario llega logueado desde la app interna
       try {
@@ -82,6 +87,7 @@ export default function PorraCrear() {
         telefono: form.telefono,
         mini_liga_codigo: form.mini_liga_codigo || null,
         return_url: window.location.origin,
+        preview_codigo: previewCodigo || undefined,
       });
       if (res.data?.ok && res.data?.modo_test && res.data?.redirect_url) {
         // MODO TEST: saltar Stripe y abrir pantalla de éxito directa

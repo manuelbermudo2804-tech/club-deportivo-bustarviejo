@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
-import { Trophy, ExternalLink, Mail } from "lucide-react";
+import { Trophy, ExternalLink, Mail, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PorraHeroLanding from "@/components/porra/PorraHeroLanding";
 import PorraComoFunciona from "@/components/porra/PorraComoFunciona";
@@ -12,25 +12,38 @@ import PorraRecuperarAccesosModal from "@/components/porra/PorraRecuperarAccesos
 
 // Landing pública de la Porra Mundial 2026
 // Accesible vía /Porra sin login
+// Si se accede con ?preview=CODIGO y el admin ha configurado modo_preview,
+// se muestra la porra aunque esté inactiva (para que beta-testers la prueben)
 export default function Porra() {
   const navigate = useNavigate();
   const [config, setConfig] = useState(null);
   const [equipos, setEquipos] = useState([]);
   const [stats, setStats] = useState({ participantes: 0, bote: 0 });
+  const [previewMode, setPreviewMode] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showRecuperar, setShowRecuperar] = useState(false);
+
+  // Leer ?preview=XXX de la URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const previewCodigo = urlParams.get('preview') || '';
 
   useEffect(() => {
     document.title = "Porra Mundial 2026 — by CD Bustarviejo";
     cargarDatos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const cargarDatos = async () => {
     try {
-      const res = await base44.functions.invoke('porraPublicLanding', {});
+      // Pasamos el preview como query string al backend
+      const res = await base44.functions.invoke(
+        'porraPublicLanding' + (previewCodigo ? `?preview=${encodeURIComponent(previewCodigo)}` : ''),
+        {}
+      );
       const d = res.data || {};
       setConfig(d.config);
       setEquipos(d.equipos || []);
+      setPreviewMode(!!d.preview_mode);
       setStats({
         participantes: d.stats?.total_participantes || 0,
         bote: d.stats?.bote || 0,
@@ -43,7 +56,8 @@ export default function Porra() {
   };
 
   const handleCrearPorra = () => {
-    navigate('/PorraCrear');
+    // Propagar el código de preview a la página de crear
+    navigate(previewCodigo ? `/PorraCrear?preview=${encodeURIComponent(previewCodigo)}` : '/PorraCrear');
   };
 
   if (loading) {
@@ -57,7 +71,7 @@ export default function Porra() {
     );
   }
 
-  // Si la porra no está activa
+  // Si la porra no está activa Y no hay preview válido
   if (!config?.activa) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-red-900 to-orange-900 flex items-center justify-center p-4">
@@ -86,6 +100,15 @@ export default function Porra() {
   return (
     <div className="min-h-screen bg-white">
       <PorraVolverAppButton />
+
+      {/* Banner de aviso si estamos en modo preview (solo lo ven los beta-testers) */}
+      {previewMode && (
+        <div className="bg-yellow-400 text-yellow-900 px-4 py-2 text-center text-sm font-bold flex items-center justify-center gap-2 sticky top-0 z-30 shadow-md">
+          <Eye className="w-4 h-4" />
+          MODO PREVIEW · Estás viendo la porra antes del lanzamiento oficial. Tu opinión cuenta 🙏
+        </div>
+      )}
+
       <PorraHeroLanding 
         config={config}
         onCrearPorra={handleCrearPorra}
