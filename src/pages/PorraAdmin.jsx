@@ -16,6 +16,7 @@ import PorraAdminRecalcular from "@/components/porra/admin/PorraAdminRecalcular"
 import PorraAdminMejoresTercerosReales from "@/components/porra/admin/PorraAdminMejoresTercerosReales";
 import PorraAdminResultadosFinales from "@/components/porra/admin/PorraAdminResultadosFinales";
 import PorraAdminTesting from "@/components/porra/admin/PorraAdminTesting";
+import PorraAdminCierre from "@/components/porra/admin/PorraAdminCierre";
 
 // Panel admin para gestionar la Porra Mundial 2026
 export default function PorraAdmin() {
@@ -148,12 +149,13 @@ export default function PorraAdmin() {
 
         {/* Tabs */}
         <Tabs defaultValue="config">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-7">
             <TabsTrigger value="config"><Settings className="w-4 h-4 mr-1" />Configuración</TabsTrigger>
             <TabsTrigger value="equipos">🏳️ Equipos ({equipos.length})</TabsTrigger>
             <TabsTrigger value="partidos">⚽ Partidos ({partidos.length})</TabsTrigger>
             <TabsTrigger value="resultados" className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-900"><Trophy className="w-4 h-4 mr-1" />🏆 Resultados</TabsTrigger>
             <TabsTrigger value="participantes"><Users className="w-4 h-4 mr-1" />Participantes ({participantes.length})</TabsTrigger>
+            <TabsTrigger value="cierre" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-900">🏁 Cierre</TabsTrigger>
             <TabsTrigger value="testing" className="data-[state=active]:bg-purple-100 data-[state=active]:text-purple-900"><FlaskConical className="w-4 h-4 mr-1" />🧪 Pruebas</TabsTrigger>
           </TabsList>
 
@@ -173,6 +175,9 @@ export default function PorraAdmin() {
           <TabsContent value="participantes" className="space-y-4">
             <PorraAdminRecalcular totalParticipantes={totalPagados} />
             <PorraAdminParticipantes participantes={participantes} config={config} onUpdate={cargarTodo} />
+          </TabsContent>
+          <TabsContent value="cierre">
+            <PorraAdminCierre config={config} participantes={participantes} onUpdate={cargarTodo} />
           </TabsContent>
           <TabsContent value="testing">
             <PorraAdminTesting
