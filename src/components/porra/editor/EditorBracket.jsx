@@ -118,6 +118,23 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
 
   const FASES_RENDER = ['16avos', '8vos', '4tos', 'semis', 'tercer_puesto', 'final'];
 
+  // Si el admin no ha generado los partidos eliminatorios todavía, avisar al usuario
+  const hayPartidosEliminatorias = FASES_RENDER.some(f => partidos.some(p => p.fase === f));
+  if (!hayPartidosEliminatorias) {
+    return (
+      <Card className="border-2 border-amber-300 bg-amber-50">
+        <CardContent className="p-6 text-center">
+          <Lock className="w-12 h-12 mx-auto text-amber-600 mb-2" />
+          <p className="font-bold text-amber-900">El bracket aún no está disponible</p>
+          <p className="text-sm text-amber-800 mt-2 leading-relaxed">
+            El cuadro de eliminatorias se publicará cuando la organización lo active.
+            Mientras tanto, completa tus predicciones de <strong>Grupos</strong>, <strong>Terceros</strong> y <strong>Especiales</strong>.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 text-sm">
