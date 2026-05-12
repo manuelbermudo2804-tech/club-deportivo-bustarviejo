@@ -49,7 +49,12 @@ const AppRouter = () => {
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').toLowerCase();
   const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking'];
-  if (publicPaths.includes(cleanPath)) {
+  // Si la URL incluye ?from=app, el usuario viene de la app interna autenticada:
+  // queremos renderizar con el layout normal (menú lateral, etc.) en vez de tratar
+  // /PorraMiPorra y /PorraRanking como páginas 100% públicas sin entorno.
+  const urlParams = new URLSearchParams(location.search);
+  const fromApp = urlParams.get('from') === 'app';
+  if (publicPaths.includes(cleanPath) && !fromApp) {
     return (
       <Routes>
         <Route path="/PublicMemberCard" element={<PublicMemberCard />} />
@@ -153,6 +158,11 @@ const AuthenticatedApp = () => {
       <Route path="/MyFeedback" element={<LayoutWrapper currentPageName="MyFeedback"><MyFeedback /></LayoutWrapper>} />
       <Route path="/PorraAdmin" element={<LayoutWrapper currentPageName="PorraAdmin"><PorraAdmin /></LayoutWrapper>} />
       <Route path="/MiPorra" element={<LayoutWrapper currentPageName="MiPorra"><MiPorra /></LayoutWrapper>} />
+      {/* Versiones INTERNAS (con layout/menú) de PorraMiPorra y PorraRanking — activadas
+          cuando se llega con ?from=app desde la app autenticada. Las versiones públicas
+          siguen siendo accesibles sin auth en el bloque público de AppRouter. */}
+      <Route path="/PorraMiPorra" element={<LayoutWrapper currentPageName="PorraMiPorra"><PorraMiPorra /></LayoutWrapper>} />
+      <Route path="/PorraRanking" element={<LayoutWrapper currentPageName="PorraRanking"><PorraRanking /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </>

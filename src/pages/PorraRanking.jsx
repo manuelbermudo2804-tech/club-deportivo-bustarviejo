@@ -18,6 +18,8 @@ export default function PorraRanking() {
   const params = new URLSearchParams(window.location.search);
   const codigoLigaUrl = params.get('liga');
   const tokenUrl = params.get('token'); // Para resaltar al usuario si viene de su porra
+  // Detectar si venimos de la app interna autenticada para no salir del entorno
+  const fromApp = params.get('from') === 'app' || !!localStorage.getItem('base44_access_token');
 
   const [rankingGlobal, setRankingGlobal] = useState([]);
   const [rankingLiga, setRankingLiga] = useState([]);
@@ -90,7 +92,8 @@ export default function PorraRanking() {
 
   const buscarLiga = () => {
     if (codigoInput.trim()) {
-      navigate(`/PorraRanking?liga=${codigoInput.trim().toUpperCase()}`);
+      const suffix = fromApp ? '&from=app' : '';
+      navigate(`/PorraRanking?liga=${codigoInput.trim().toUpperCase()}${suffix}`);
     }
   };
 
@@ -117,12 +120,7 @@ export default function PorraRanking() {
               </div>
             </div>
             <Button
-              onClick={() => {
-                // Si el usuario está logueado en la app → volver a "Mi Porra" (interno)
-                // Si no → ir a la landing pública de la porra
-                const enApp = !!localStorage.getItem('base44_access_token');
-                navigate(enApp ? '/MiPorra' : '/Porra');
-              }}
+              onClick={() => navigate(fromApp ? '/MiPorra' : '/Porra')}
               size="sm"
               variant="outline"
               className="bg-white/10 border-white/30 text-white hover:bg-white/20"

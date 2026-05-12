@@ -100,7 +100,7 @@ export default function MiPorra() {
             APUNTAR MI PORRA
           </Button>
           <Button
-            onClick={() => navigate('/PorraRanking')}
+            onClick={() => navigate('/PorraRanking?from=app')}
             variant="outline"
             className="bg-white/10 border-2 border-white/40 text-white hover:bg-white/20 font-bold text-base px-8 py-6 rounded-2xl backdrop-blur"
           >

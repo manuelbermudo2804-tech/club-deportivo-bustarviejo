@@ -19,6 +19,12 @@ export default function PorraMiPorra() {
   const navigate = useNavigate();
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token');
+  // Si llegamos desde la app interna autenticada, los botones de navegación
+  // (Inicio, Ranking) se quedan dentro del entorno con layout en vez de salir
+  // a la web pública.
+  const fromApp = params.get('from') === 'app';
+  const inicioUrl = fromApp ? '/MiPorra' : '/Porra';
+  const rankingUrl = fromApp ? `/PorraRanking?token=${token}&from=app` : `/PorraRanking?token=${token}`;
 
   const {
     participante, config, equipos, partidos,
@@ -90,7 +96,7 @@ export default function PorraMiPorra() {
               <Button onClick={() => window.location.reload()} variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
                 Recargar
               </Button>
-              <Button onClick={() => navigate('/Porra')} variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
+              <Button onClick={() => navigate(inicioUrl)} variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
                 <Home className="w-4 h-4 mr-1" /> Inicio
               </Button>
             </div>
@@ -179,14 +185,14 @@ export default function PorraMiPorra() {
         {/* Acceso rápido al ranking */}
         <div className="grid grid-cols-2 gap-2">
           <Button
-            onClick={() => window.open(`/PorraRanking?token=${token}`, '_blank')}
+            onClick={() => fromApp ? navigate(rankingUrl) : window.open(rankingUrl, '_blank')}
             variant="outline"
             className="border-2 border-orange-300 bg-white hover:bg-orange-50"
           >
             <Trophy className="w-4 h-4 mr-1 text-orange-600" /> Ranking global
           </Button>
           <Button
-            onClick={() => window.open(`/Porra`, '_blank')}
+            onClick={() => fromApp ? navigate(inicioUrl) : window.open(inicioUrl, '_blank')}
             variant="outline"
             className="border-2 border-slate-300 bg-white hover:bg-slate-50"
           >

@@ -53,7 +53,7 @@ export default function MisPorrasUsuario({ onCrearNueva }) {
                 <Button onClick={onCrearNueva} className="bg-orange-600 hover:bg-orange-700 text-white font-bold">
                   <Plus className="w-4 h-4 mr-1" /> Crear mi porra
                 </Button>
-                <Button onClick={() => navigate('/PorraRanking')} variant="outline" className="font-bold">
+                <Button onClick={() => navigate('/PorraRanking?from=app')} variant="outline" className="font-bold">
                   <BarChart3 className="w-4 h-4 mr-1" /> Ver ranking
                 </Button>
               </div>
@@ -65,8 +65,9 @@ export default function MisPorrasUsuario({ onCrearNueva }) {
   }
 
   const abrirMiPorra = (token) => {
-    // Abrir la página interna de gestión de la porra en pestaña nueva con el token
-    window.open(`/PorraMiPorra?token=${token}`, '_blank');
+    // Navegación INTERNA: mismo entorno autenticado, con marcador from=app
+    // para que la página sepa que debe volver a /MiPorra (no a la web pública)
+    navigate(`/PorraMiPorra?token=${token}&from=app`);
   };
 
   return (
@@ -81,7 +82,7 @@ export default function MisPorrasUsuario({ onCrearNueva }) {
             <p className="text-xs text-slate-500">Detectadas por tu email: {user.email}</p>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => navigate('/PorraRanking')} variant="outline" size="sm" className="font-bold">
+            <Button onClick={() => navigate('/PorraRanking?from=app')} variant="outline" size="sm" className="font-bold">
               <BarChart3 className="w-4 h-4 mr-1" /> Ranking
             </Button>
             <Button onClick={onCrearNueva} size="sm" className="bg-orange-600 hover:bg-orange-700 text-white font-bold">
