@@ -158,6 +158,15 @@ export default function Porra() {
       <div className="bg-slate-900 text-white/70 py-6 text-center text-sm">
         <p>© {new Date().getFullYear()} CD Bustarviejo · Porra Mundial 2026</p>
         <p className="mt-1 text-xs">El {config?.comision_club_porcentaje || 10}% de cada entrada va para apoyar a los equipos del CD Bustarviejo 💚</p>
+        <p className="mt-3 text-xs">
+          <a href="/PorraPrivacidad" className="text-white/80 hover:text-white underline">
+            Política de privacidad
+          </a>
+          {' · '}
+          <a href="mailto:info@cdbustarviejo.com" className="text-white/80 hover:text-white underline">
+            info@cdbustarviejo.com
+          </a>
+        </p>
       </div>
     </div>
   );

@@ -33,6 +33,7 @@ import PorraCrear from '@/pages/PorraCrear';
 import PorraExito from '@/pages/PorraExito';
 import PorraMiPorra from '@/pages/PorraMiPorra';
 import PorraRanking from '@/pages/PorraRanking';
+import PorraPrivacidad from '@/pages/PorraPrivacidad';
 import SponsorSplash from '@/components/sponsors/SponsorSplash';
 
 const { Pages, Layout, mainPage } = pagesConfig;
@@ -48,7 +49,7 @@ const AppRouter = () => {
   
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').toLowerCase();
-  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking'];
+  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/porraprivacidad'];
   // Si la URL incluye ?from=app, el usuario viene de la app interna autenticada:
   // queremos renderizar con el layout normal (menú lateral, etc.) en vez de tratar
   // /PorraMiPorra y /PorraRanking como páginas 100% públicas sin entorno.
@@ -80,6 +81,8 @@ const AppRouter = () => {
         <Route path="/porramiporra" element={<PorraMiPorra />} />
         <Route path="/PorraRanking" element={<PorraRanking />} />
         <Route path="/porraranking" element={<PorraRanking />} />
+        <Route path="/PorraPrivacidad" element={<PorraPrivacidad />} />
+        <Route path="/porraprivacidad" element={<PorraPrivacidad />} />
       </Routes>
     );
   }
@@ -163,6 +166,7 @@ const AuthenticatedApp = () => {
           siguen siendo accesibles sin auth en el bloque público de AppRouter. */}
       <Route path="/PorraMiPorra" element={<LayoutWrapper currentPageName="PorraMiPorra"><PorraMiPorra /></LayoutWrapper>} />
       <Route path="/PorraRanking" element={<LayoutWrapper currentPageName="PorraRanking"><PorraRanking /></LayoutWrapper>} />
+      <Route path="/PorraPrivacidad" element={<LayoutWrapper currentPageName="PorraPrivacidad"><PorraPrivacidad /></LayoutWrapper>} />
       <Route path="*" element={<PageNotFound />} />
     </Routes>
     </>
