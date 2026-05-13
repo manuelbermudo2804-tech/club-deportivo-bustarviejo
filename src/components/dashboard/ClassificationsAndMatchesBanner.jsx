@@ -117,6 +117,11 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
   const nextMatch = sortedCallups[0];
   const additionalMatches = sortedCallups.length - 1;
 
+  // Si el jugador no tiene NI clasificación NI convocatorias (ej. baloncesto sin liga),
+  // ocultamos el banner entero para no mostrar widgets vacíos.
+  const hasAnyData = !!bestStanding || !!nextMatch;
+  if (!hasAnyData) return null;
+
   const openGoogleMaps = (callup) => {
     if (callup.enlace_ubicacion) {
       window.open(callup.enlace_ubicacion, '_blank');

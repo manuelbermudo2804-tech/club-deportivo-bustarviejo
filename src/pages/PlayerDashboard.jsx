@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
-import { ALL_PLAYER_BUTTONS, DEFAULT_PLAYER_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/PlayerDashboardButtons";
+import { ALL_PLAYER_BUTTONS, DEFAULT_PLAYER_BUTTONS, DEFAULT_BASKETBALL_PLAYER_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/PlayerDashboardButtons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -330,6 +330,9 @@ export default function PlayerDashboard() {
     return myConfirm?.confirmacion === "pendiente";
   });
 
+  // Detectar si el jugador es de baloncesto (no tiene liga federada actualmente)
+  const isBasketballPlayer = (player?.deporte || '').toLowerCase().includes('baloncesto');
+
   // Calcular firmas pendientes
   const calcularEdad = (fechaNac) => {
     if (!fechaNac) return null;
@@ -502,7 +505,7 @@ export default function PlayerDashboard() {
         <DesktopDashboardHeader
           user={user}
           roleName="Panel Jugador"
-          roleEmoji="⚽"
+          roleEmoji={isBasketballPlayer ? "🏀" : "⚽"}
           subtitle={player?.categoria_principal || player?.deporte}
           kpis={[
             { icon: CheckCircle2, label: "Pagos OK", value: paymentStats.pagados, color: "from-green-600 to-green-700" },
@@ -592,18 +595,18 @@ export default function PlayerDashboard() {
         <div className="flex justify-end">
           <DashboardButtonSelector
             allButtons={ALL_PLAYER_BUTTONS}
-            selectedButtonIds={userButtonConfig?.selected_buttons || DEFAULT_PLAYER_BUTTONS}
+            selectedButtonIds={userButtonConfig?.selected_buttons || (isBasketballPlayer ? DEFAULT_BASKETBALL_PLAYER_BUTTONS : DEFAULT_PLAYER_BUTTONS)}
             onSave={(newConfig) => saveButtonConfigMutation.mutate(newConfig)}
             minButtons={MIN_BUTTONS}
             maxButtons={MAX_BUTTONS}
-            defaultButtons={DEFAULT_PLAYER_BUTTONS}
+            defaultButtons={isBasketballPlayer ? DEFAULT_BASKETBALL_PLAYER_BUTTONS : DEFAULT_PLAYER_BUTTONS}
             panelName="Panel Jugador"
           />
         </div>
 
         {/* Grid de botones principales */}
         <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4 stagger-animation">
-          {(userButtonConfig?.selected_buttons || DEFAULT_PLAYER_BUTTONS)
+          {(userButtonConfig?.selected_buttons || (isBasketballPlayer ? DEFAULT_BASKETBALL_PLAYER_BUTTONS : DEFAULT_PLAYER_BUTTONS))
             .map(id => ALL_PLAYER_BUTTONS.find(b => b.id === id))
             .filter(Boolean)
             .map((item, index) => {

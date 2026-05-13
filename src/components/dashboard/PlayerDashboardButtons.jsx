@@ -42,5 +42,21 @@ export const DEFAULT_PLAYER_BUTTONS = [
   "encuestas"
 ];
 
+// Botones por defecto para jugadores de baloncesto (sin liga federada actualmente):
+// se ocultan Convocatorias, Firmas RFEF y Competición porque no aplican.
+// Si en el futuro se federa, el admin/jugador puede activarlos manualmente.
+export const DEFAULT_BASKETBALL_PLAYER_BUTTONS = [
+  "pagos",
+  "mensajes_club",
+  "chat_coordinador",
+  "chat_equipo",
+  "calendario",
+  "anuncios",
+  "eventos",
+  "documentos",
+  "galeria",
+  "encuestas"
+];
+
 export const MIN_BUTTONS = 4;
 export const MAX_BUTTONS = 999;
