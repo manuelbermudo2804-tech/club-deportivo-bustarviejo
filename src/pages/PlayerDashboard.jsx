@@ -331,7 +331,9 @@ export default function PlayerDashboard() {
   });
 
   // Detectar si el jugador es de baloncesto (no tiene liga federada actualmente)
-  const isBasketballPlayer = (player?.deporte || '').toLowerCase().includes('baloncesto');
+  const isBasketballPlayer = 
+    (player?.deporte || '').toLowerCase().includes('baloncesto') ||
+    (player?.categoria_principal || '').toLowerCase().includes('baloncesto');
 
   // Calcular firmas pendientes
   const calcularEdad = (fechaNac) => {
