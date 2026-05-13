@@ -492,10 +492,24 @@ export default function ParentDashboard() {
 
 
 
-        {/* Banner dividido: Clasificaciones (izq) + Próximo Partido (der) — solo para categorías competitivas */}
-        {!playersLoading && myPlayers.length > 0 && !onlyComplementary && (
-          <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} />
-        )}
+        {/* Banner dividido: Clasificaciones (izq) + Próximo Partido (der)
+            Solo se muestra si AL MENOS uno de los hijos juega en una categoría
+            que compite en liga (campo compite_en_liga en CategoryConfig).
+            Así un padre con hijos solo en baloncesto (sin liga) no ve este banner,
+            pero un padre mixto (fútbol + basket) sí lo ve. */}
+        {!playersLoading && myPlayers.length > 0 && !onlyComplementary && (() => {
+          const competeCats = new Set(
+            categoryConfigs.filter(c => c.compite_en_liga === true).map(c => c.nombre)
+          );
+          const someCompetes = myPlayers.some(p => 
+            competeCats.has(p.categoria_principal) || 
+            competeCats.has(p.deporte) ||
+            (p.categorias || []).some(cat => competeCats.has(cat))
+          );
+          // Si no hay configuración cargada todavía, mostrarlo (backward compatible)
+          if (categoryConfigs.length === 0) return <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} />;
+          return someCompetes ? <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} /> : null;
+        })()}
 
 
 

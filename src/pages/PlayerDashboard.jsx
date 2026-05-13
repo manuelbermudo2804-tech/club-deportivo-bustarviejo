@@ -216,12 +216,11 @@ export default function PlayerDashboard() {
     initialData: null,
   });
 
-  // Configuración de categorías - solo si se necesita crear perfil
+  // Configuración de categorías (siempre activa, también para detectar si la categoría compite en liga)
   const { data: categoryConfigs = [] } = useQuery({
     queryKey: ['categoryConfigs'],
     queryFn: () => base44.entities.CategoryConfig.list(),
     staleTime: 600000,
-    enabled: showCreateProfile || showPaymentFlow,
   });
 
   // Compañeros de equipo - DESACTIVADO para mejorar rendimiento (no se usa en la UI)
@@ -330,10 +329,12 @@ export default function PlayerDashboard() {
     return myConfirm?.confirmacion === "pendiente";
   });
 
-  // Detectar si el jugador es de baloncesto (no tiene liga federada actualmente)
-  const isBasketballPlayer = 
-    (player?.deporte || '').toLowerCase().includes('baloncesto') ||
-    (player?.categoria_principal || '').toLowerCase().includes('baloncesto');
+  // Detectar si la categoría del jugador NO compite en liga (ej. baloncesto sin liga federada).
+  // Usamos el campo compite_en_liga del CategoryConfig — funciona para cualquier categoría futura.
+  const playerCategoryName = player?.categoria_principal || player?.deporte;
+  const playerCategoryConfig = categoryConfigs.find(c => c.nombre === playerCategoryName);
+  const isNonLeaguePlayer = playerCategoryConfig?.compite_en_liga === false;
+  const isBasketballPlayer = isNonLeaguePlayer; // alias para compatibilidad
 
   // Calcular firmas pendientes
   const calcularEdad = (fechaNac) => {
