@@ -117,10 +117,10 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
   const nextMatch = sortedCallups[0];
   const additionalMatches = sortedCallups.length - 1;
 
-  // Si el jugador no tiene NI clasificación NI convocatorias (ej. baloncesto sin liga),
-  // ocultamos el banner entero para no mostrar widgets vacíos.
-  const hasAnyData = !!bestStanding || !!nextMatch;
-  if (!hasAnyData) return null;
+  // El banner se muestra siempre que el padre/jugador llegue aquí.
+  // El componente padre (ParentDashboard / PlayerDashboard) ya decide si renderizarlo
+  // según el switch compite_en_liga de CategoryConfig. Si compite, se muestra aunque
+  // no haya datos todavía (mensajes "Preparando temporada" / "Sin convocatorias").
 
   const openGoogleMaps = (callup) => {
     if (callup.enlace_ubicacion) {
