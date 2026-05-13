@@ -497,9 +497,7 @@ export default function ParentDashboard() {
             que compite en liga (campo compite_en_liga en CategoryConfig).
             Si aún no se ha cargado la config de categorías, mostrarlo por defecto. */}
         {!playersLoading && myPlayers.length > 0 && !onlyComplementary && (() => {
-          // Si no hay configuración cargada todavía, mostrar (backward compatible)
           if (categoryConfigs.length === 0) {
-            console.log('[Banner] categoryConfigs vacío → mostrando banner por defecto');
             return <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} />;
           }
           const competeCats = new Set(
@@ -510,7 +508,6 @@ export default function ParentDashboard() {
             competeCats.has(p.deporte) ||
             (p.categorias || []).some(cat => competeCats.has(cat))
           );
-          console.log('[Banner] compite_en_liga categorías:', [...competeCats], '| jugadores:', myPlayers.map(p => ({ nombre: p.nombre, deporte: p.deporte, cat: p.categoria_principal })), '| someCompetes:', someCompetes);
           return someCompetes ? <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} /> : null;
         })()}
 
