@@ -372,7 +372,7 @@ export default function ParentPlayers() {
         if (seasonConfig?.notificaciones_admin_email) {
           console.log('📧 [ParentPlayers] Enviando notificación de inscripción a admin');
           await base44.functions.invoke('sendEmail', {
-          to: "cdbustarviejo@gmail.com",
+          to: "info@cdbustarviejo.com",
           subject: `Nueva Inscripción de Jugador - ${playerData.nombre}`,
           html: `
             <h2>Nueva Inscripción Recibida</h2>
@@ -421,7 +421,7 @@ CD Bustarviejo<br>
 Equipo de Administracion<br><br>
 
 Datos de contacto:<br>
-Email: cdbustarviejo@gmail.com
+Email: info@cdbustarviejo.com
           `;
           
           console.log('📤 [ParentPlayers] Enviando a padre:', playerData.email_padre);
