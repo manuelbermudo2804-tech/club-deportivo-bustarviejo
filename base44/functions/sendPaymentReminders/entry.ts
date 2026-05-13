@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
   </div>
 </td></tr>
 <tr><td style="background:#1e293b;padding:20px 24px;text-align:center;">
-  <div style="color:#94a3b8;font-size:12px;"><strong style="color:#f8fafc;">CD Bustarviejo</strong><br><a href="mailto:cdbustarviejo@gmail.com" style="color:#fb923c;text-decoration:none;">cdbustarviejo@gmail.com</a></div>
+  <div style="color:#94a3b8;font-size:12px;"><strong style="color:#f8fafc;">CD Bustarviejo</strong><br><a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none;">info@cdbustarviejo.com</a></div>
 </td></tr>
 </table></td></tr></table></body></html>`;
 

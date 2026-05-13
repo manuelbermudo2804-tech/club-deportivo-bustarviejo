@@ -47,8 +47,8 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Emails a admins + correos del club conocidos
-    const extraClubEmails = ['cdbustarviejo@gmail.com', 'C.D.BUSTARVIEJO@HOTMAIL.ES'];
+    // Emails a admins + correo central del club
+    const extraClubEmails = ['info@cdbustarviejo.com'];
     const targets = Array.from(new Set([...adminEmails, ...extraClubEmails]));
     for (const to of targets) {
       try {

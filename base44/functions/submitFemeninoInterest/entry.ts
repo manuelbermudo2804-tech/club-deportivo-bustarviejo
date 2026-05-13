@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
     try {
       await base44.asServiceRole.integrations.Core.SendEmail({
         from_name: "CD Bustarviejo - Fútbol Femenino",
-        to: "cdbustarviejo@gmail.com",
+        to: "info@cdbustarviejo.com",
         subject: `⚽👧 ¡Nueva interesada en Fútbol Femenino! - ${data.nombre_jugadora}`,
         body: `¡Tenemos una nueva interesada en el equipo de Fútbol Femenino!
 

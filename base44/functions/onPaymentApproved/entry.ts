@@ -4,7 +4,7 @@ import webpush from 'npm:web-push@3.6.7';
 const VAPID_PUBLIC = Deno.env.get('VAPID_PUBLIC_KEY');
 const VAPID_PRIVATE = Deno.env.get('VAPID_PRIVATE_KEY');
 if (VAPID_PUBLIC && VAPID_PRIVATE) {
-  webpush.setVapidDetails('mailto:CDBUSTARVIEJO@GMAIL.COM', VAPID_PUBLIC, VAPID_PRIVATE);
+  webpush.setVapidDetails('mailto:info@cdbustarviejo.com', VAPID_PUBLIC, VAPID_PRIVATE);
 }
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');

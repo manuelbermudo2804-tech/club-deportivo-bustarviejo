@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
 <p style="margin:0;color:#991b1b;font-weight:bold;">📅 Fecha límite: ${fechaStr}</p>
 </div>
 <p>Entra en la app → <strong>Mis Jugadores</strong> → <strong>Renovar</strong>.</p>
-<p style="font-size:13px;color:#64748b;">Si tienes dudas, contacta con cdbustarviejo@gmail.com</p>
+<p style="font-size:13px;color:#64748b;">Si tienes dudas, contacta con info@cdbustarviejo.com</p>
 </div>
 <div style="background:#1e293b;color:#94a3b8;padding:14px;text-align:center;font-size:12px;">CD Bustarviejo • Temporada ${activeConfig.temporada}</div>
 </div>`,
