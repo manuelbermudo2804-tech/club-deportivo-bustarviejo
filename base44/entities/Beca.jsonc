@@ -1,0 +1,93 @@
+{
+  "name": "Beca",
+  "type": "object",
+  "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Temporada en la que se concede la beca (ej: 2025-2026)"
+    },
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador becado"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador becado (snapshot)"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del jugador en el momento de la beca (snapshot)"
+    },
+    "importe": {
+      "type": "number",
+      "description": "Importe de la beca en euros, descontado del Fondo Solidario"
+    },
+    "motivo": {
+      "type": "string",
+      "description": "Motivo o justificaci\u00f3n de la beca (visible solo para admin)"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "activa",
+        "revocada"
+      ],
+      "default": "activa",
+      "description": "Estado de la beca"
+    },
+    "concedida_por": {
+      "type": "string",
+      "description": "Email del admin que concedi\u00f3 la beca"
+    },
+    "fecha_concesion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se concedi\u00f3 la beca"
+    },
+    "revocada_por": {
+      "type": "string",
+      "description": "Email del admin que revoc\u00f3 la beca"
+    },
+    "fecha_revocacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se revoc\u00f3 la beca"
+    },
+    "motivo_revocacion": {
+      "type": "string",
+      "description": "Motivo de la revocaci\u00f3n"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas internas adicionales"
+    }
+  },
+  "required": [
+    "temporada",
+    "jugador_id",
+    "jugador_nombre",
+    "importe"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
