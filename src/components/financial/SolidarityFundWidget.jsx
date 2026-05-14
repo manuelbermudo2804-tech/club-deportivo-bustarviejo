@@ -8,9 +8,6 @@ import { Heart, Users, TrendingUp, PiggyBank } from "lucide-react";
 const normalize = (s) => (s ? String(s).replace(/[^\d]/g, "") : "");
 
 export default function SolidarityFundWidget({ activeSeason, payments = [] }) {
-  // Solo se muestra si el fondo está activo
-  if (!activeSeason?.fondo_solidario_activo) return null;
-
   const stats = useMemo(() => {
     const seasonKey = normalize(activeSeason?.temporada);
     const seasonPayments = payments.filter(
