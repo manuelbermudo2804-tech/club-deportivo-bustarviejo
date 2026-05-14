@@ -11,7 +11,21 @@ const PAGE_LABELS = {
   SanIsidroInscripcion: "San Isidro",
   PublicMemberCard: "Carnet Socio",
   FamilyPresentation: "Presentación Familias",
+  Porra: "Porra Mundial (landing)",
+  PorraCrear: "Porra — Crear",
+  PorraExito: "Porra — Éxito tras pago",
+  PublicData_Competicion: "Competición (web del club)",
 };
+
+// Etiqueta dinámica para propuestas de patrocinio (Propuesta_xxx)
+function getPageLabel(pagina) {
+  if (PAGE_LABELS[pagina]) return PAGE_LABELS[pagina];
+  if (pagina?.startsWith("Propuesta_")) {
+    const empresa = pagina.replace("Propuesta_", "").replace(/-/g, " ");
+    return `Propuesta — ${empresa.charAt(0).toUpperCase()}${empresa.slice(1)}`;
+  }
+  return pagina;
+}
 
 export default function PublicPageStats() {
   const [days, setDays] = useState(30);
@@ -109,7 +123,7 @@ export default function PublicPageStats() {
                   <div key={row.pagina} className="border border-slate-200 rounded-lg p-3 bg-slate-50">
                     <div className="flex items-center justify-between mb-1.5">
                       <p className="text-sm font-bold text-slate-900">
-                        {PAGE_LABELS[row.pagina] || row.pagina}
+                        {getPageLabel(row.pagina)}
                       </p>
                       <div className="flex items-center gap-2 text-xs">
                         <span className="bg-blue-600 text-white px-2 py-0.5 rounded-full font-bold">
