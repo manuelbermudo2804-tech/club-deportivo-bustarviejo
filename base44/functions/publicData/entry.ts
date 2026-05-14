@@ -23,6 +23,27 @@ Deno.serve(async (req) => {
     return new Response(null, { status: 204, headers: corsHeaders });
   }
 
+  // Tracking de visitas (no bloqueante — ignora errores)
+  // Solo trackeamos requests HTML (la página embebida en la web del club), no las llamadas JSON
+  try {
+    const url = new URL(req.url);
+    const isJsonRequest = url.searchParams.get('format') === 'json';
+    if (!isJsonRequest) {
+      const referrer = req.headers.get('referer') || '';
+      const userAgent = req.headers.get('user-agent') || '';
+      // Filtrar bots básicos para no inflar las stats
+      const isBot = /bot|crawler|spider|crawl|slurp|search|preview|prerender|pingdom|monitor/i.test(userAgent);
+      if (!isBot) {
+        const trackBase44 = createClientFromRequest(req);
+        trackBase44.asServiceRole.functions.invoke('trackPublicView', {
+          pagina: 'PublicData_Competicion',
+          referrer,
+          user_agent: userAgent,
+        }).catch(() => {});
+      }
+    }
+  } catch {}
+
   try {
     const now = Date.now();
     let proximosPartidos, resultadosLocal, resultadosVisitante, clasificaciones, goleadoresGlobal, goleadoresBustarviejo;
