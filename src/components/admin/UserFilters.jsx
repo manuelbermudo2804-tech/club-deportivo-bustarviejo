@@ -36,6 +36,12 @@ export default function UserFilters({
     { key: "restricted", label: "🚫 Restrin.", count: filterCounts.restricted },
     { key: "with_app", label: "📲 App", count: filterCounts.with_app },
     { key: "without_app", label: "📵 Sin", count: filterCounts.without_app },
+    {
+      key: "unvalidated",
+      label: "👻 Sin código",
+      count: filterCounts.unvalidated || 0,
+      highlight: (filterCounts.unvalidated || 0) > 0,
+    },
   ];
 
   return (

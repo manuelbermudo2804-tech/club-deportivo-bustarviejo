@@ -591,7 +591,26 @@ export default function UserManagement() {
     return map;
   }, [parentPairs]);
 
-  const activeUsersWithoutDeleted = useMemo(() => users.filter((u) => u.eliminado !== true), [users]);
+  // Usuarios "visitantes" — han iniciado sesión pero no validaron código de acceso
+  // y no tienen rol ni tipo_panel asignado (son curiosos / accesos no autorizados)
+  const isUnvalidatedVisitor = (u) => {
+    if (u.eliminado === true) return false;
+    if (u.role === "admin") return false;
+    if (u.codigo_acceso_validado === true) return false;
+    if (u.tipo_panel) return false;
+    if (u.es_entrenador || u.es_coordinador || u.es_tesorero || u.es_jugador || u.es_menor) return false;
+    return true;
+  };
+  const unvalidatedVisitors = useMemo(() => users.filter(isUnvalidatedVisitor), [users]);
+  const unvalidatedEmails = useMemo(
+    () => new Set(unvalidatedVisitors.map((u) => (u.email || "").toLowerCase())),
+    [unvalidatedVisitors]
+  );
+
+  const activeUsersWithoutDeleted = useMemo(
+    () => users.filter((u) => u.eliminado !== true && !isUnvalidatedVisitor(u)),
+    [users]
+  );
   const activeUsers = activeUsersWithoutDeleted.filter((u) => u.acceso_activo !== false && u.role === "user");
   const restrictedUsers = activeUsersWithoutDeleted.filter((u) => u.acceso_activo === false);
   const admins = activeUsersWithoutDeleted.filter((u) => u.role === "admin");
@@ -610,6 +629,9 @@ export default function UserManagement() {
     return users.filter((user) => {
       if (!showDeleted && user.eliminado === true) return false;
 
+      // Ocultar visitantes sin código validado de TODAS las vistas excepto su filtro propio
+      if (roleFilter !== "unvalidated" && isUnvalidatedVisitor(user)) return false;
+
       if (roleFilter !== "all") {
         if (roleFilter === "admin" && user.role !== "admin") return false;
         if (roleFilter === "parent" && (user.role === "admin" || user.es_jugador || user.es_entrenador || user.es_coordinador || user.es_tesorero)) return false;
@@ -625,6 +647,7 @@ export default function UserManagement() {
         if (roleFilter === "staff" && !(user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero)) return false;
         if (roleFilter === "inactive_parents" && !usersWithoutActivePlayers.some((u) => u.id === user.id)) return false;
         if (roleFilter === "inactive_minors" && !minorsWithoutActivePlayer.some((u) => u.id === user.id)) return false;
+        if (roleFilter === "unvalidated" && !isUnvalidatedVisitor(user)) return false;
       }
 
       if (!searchTerm) return true;
@@ -639,7 +662,8 @@ export default function UserManagement() {
   }, [users, showDeleted, roleFilter, searchTerm, pendingPlayerAccessUsers, usersWithoutActivePlayers, minorsWithoutActivePlayer]);
 
   const filterCounts = {
-    all: users.filter((u) => !u.eliminado).length,
+    all: users.filter((u) => !u.eliminado && !isUnvalidatedVisitor(u)).length,
+    unvalidated: unvalidatedVisitors.length,
     parent: activeUsers.length,
     inactive_parents: usersWithoutActivePlayers.length,
     staff: staffUsers.length,
