@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CreditCard, Gift, Info, Loader2, CheckCircle2 } from "lucide-react";
+import { CreditCard, Gift, Info, Loader2, CheckCircle2, Heart } from "lucide-react";
 
 import { CATEGORY_NAME_MAPPING, getCuotasFromConfig as getCuotasFromConfigShared } from '../../lib/cuotasConfig';
 
@@ -25,6 +25,7 @@ export default function InscriptionPaymentFlow({
   userEmail
 }) {
   const [tipoPago, setTipoPago] = useState("Único");
+  const [aportacionSolidaria, setAportacionSolidaria] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadedConfigs, setLoadedConfigs] = useState(null);
   
@@ -93,42 +94,64 @@ export default function InscriptionPaymentFlow({
     const defaultSeason = `${currentYear}/${currentYear + 1}`;
     const seasonToUse = seasonConfig?.temporada || defaultSeason;
 
+    // Reparto de aportación solidaria entre las cuotas
+    const aportTotal = Number(aportacionSolidaria) || 0;
+
     if (tipoPago === "Único") {
       paymentsToCreate.push({
         tipo_pago: "Único",
         mes: "Junio",
         temporada: seasonToUse,
-        cantidad: importeTotal,
+        cantidad: importeTotal + aportTotal,
         estado: "Pendiente",
         metodo_pago: "Transferencia",
-        notas: descuentoHermano > 0 ? `Descuento hermano: -${descuentoHermano}€` : ""
+        notas: [
+          descuentoHermano > 0 ? `Descuento hermano: -${descuentoHermano}€` : null,
+          aportTotal > 0 ? `Incluye ${aportTotal}€ de aportación al Fondo Solidario` : null
+        ].filter(Boolean).join(' | '),
+        aportacion_solidaria: aportTotal,
+        aportacion_solidaria_total: aportTotal
       });
     } else if (tipoPago === "Tres meses") {
+      // Repartir aportación: tercio en cada cuota (el sobrante va a la primera)
+      const aportPorCuota = Math.floor(aportTotal / 3);
+      const aportPrimera = aportTotal - (aportPorCuota * 2);
       paymentsToCreate.push(
         {
           tipo_pago: "Tres meses",
           mes: "Junio",
           temporada: seasonToUse,
-          cantidad: importeInscripcion,
+          cantidad: importeInscripcion + aportPrimera,
           estado: "Pendiente",
           metodo_pago: "Transferencia",
-          notas: descuentoHermano > 0 ? `Descuento hermano: -${descuentoHermano}€` : ""
+          notas: [
+            descuentoHermano > 0 ? `Descuento hermano: -${descuentoHermano}€` : null,
+            aportPrimera > 0 ? `Incluye ${aportPrimera}€ Fondo Solidario` : null
+          ].filter(Boolean).join(' | '),
+          aportacion_solidaria: aportPrimera,
+          aportacion_solidaria_total: aportTotal
         },
         {
           tipo_pago: "Tres meses",
           mes: "Septiembre",
           temporada: seasonToUse,
-          cantidad: cuotas.segunda,
+          cantidad: cuotas.segunda + aportPorCuota,
           estado: "Pendiente",
-          metodo_pago: "Transferencia"
+          metodo_pago: "Transferencia",
+          notas: aportPorCuota > 0 ? `Incluye ${aportPorCuota}€ Fondo Solidario` : "",
+          aportacion_solidaria: aportPorCuota,
+          aportacion_solidaria_total: aportTotal
         },
         {
           tipo_pago: "Tres meses",
           mes: "Diciembre",
           temporada: seasonToUse,
-          cantidad: cuotas.tercera,
+          cantidad: cuotas.tercera + aportPorCuota,
           estado: "Pendiente",
-          metodo_pago: "Transferencia"
+          metodo_pago: "Transferencia",
+          notas: aportPorCuota > 0 ? `Incluye ${aportPorCuota}€ Fondo Solidario` : "",
+          aportacion_solidaria: aportPorCuota,
+          aportacion_solidaria_total: aportTotal
         }
       );
     } else if (tipoPago === "Plan Mensual") {
@@ -144,10 +167,12 @@ export default function InscriptionPaymentFlow({
         tipo_pago: "Plan Mensual",
         mes: "Junio",
         temporada: seasonToUse,
-        cantidad: pagoInicial,
+        cantidad: pagoInicial + aportTotal,
         estado: "Pendiente",
         metodo_pago: "Transferencia",
-        notas: `Plan Mensual: ${pagoInicial}€ inicial + ${numMeses}x ${mensualidad}€/mes (Sept-${mesFin})${descuentoHermano > 0 ? ` | Descuento hermano: -${descuentoHermano}€` : ''}`
+        notas: `Plan Mensual: ${pagoInicial}€ inicial + ${numMeses}x ${mensualidad}€/mes (Sept-${mesFin})${descuentoHermano > 0 ? ` | Descuento hermano: -${descuentoHermano}€` : ''}${aportTotal > 0 ? ` | Incluye ${aportTotal}€ Fondo Solidario` : ''}`,
+        aportacion_solidaria: aportTotal,
+        aportacion_solidaria_total: aportTotal
       });
     }
 
@@ -274,6 +299,55 @@ export default function InscriptionPaymentFlow({
             </SelectContent>
           </Select>
         </div>
+
+        {seasonConfig?.fondo_solidario_activo && Array.isArray(seasonConfig?.fondo_solidario_importes) && seasonConfig.fondo_solidario_importes.length > 0 && (
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-xl p-4">
+            <div className="flex items-center gap-2 mb-2">
+              <Heart className="w-5 h-5 text-green-600 fill-green-200" />
+              <p className="text-sm font-bold text-green-900">
+                {seasonConfig.fondo_solidario_titulo || "💚 Fondo Solidario de Becas"}
+              </p>
+            </div>
+            <p className="text-xs text-green-800 mb-3 leading-relaxed">
+              {seasonConfig.fondo_solidario_texto || "Aporta voluntariamente para becar a niños y niñas del club que lo necesiten. El 100% del dinero recaudado se destinará a cubrir cuotas de familias sin recursos."}
+            </p>
+            <div className="grid grid-cols-4 gap-2">
+              <button
+                type="button"
+                onClick={() => setAportacionSolidaria(0)}
+                className={`py-2 px-2 rounded-lg text-xs font-bold transition-all border-2 ${
+                  aportacionSolidaria === 0
+                    ? "bg-slate-200 border-slate-400 text-slate-700"
+                    : "bg-white border-slate-200 text-slate-600 hover:border-slate-300"
+                }`}
+              >
+                No, gracias
+              </button>
+              {seasonConfig.fondo_solidario_importes.slice(0, 3).map((imp) => (
+                <button
+                  key={imp}
+                  type="button"
+                  onClick={() => setAportacionSolidaria(imp)}
+                  className={`py-2 px-2 rounded-lg text-sm font-bold transition-all border-2 ${
+                    aportacionSolidaria === imp
+                      ? "bg-green-600 border-green-700 text-white shadow-md scale-105"
+                      : "bg-white border-green-300 text-green-700 hover:border-green-500"
+                  }`}
+                >
+                  +{imp}€
+                </button>
+              ))}
+            </div>
+            {aportacionSolidaria > 0 && (
+              <div className="mt-3 bg-white rounded-lg p-2 border border-green-200">
+                <p className="text-xs text-green-800 text-center">
+                  ❤️ ¡Gracias! Aportarás <strong>{aportacionSolidaria}€</strong> al Fondo Solidario
+                  {tipoPago === "Tres meses" && <span> (repartidos entre las 3 cuotas)</span>}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4">
           <p className="text-sm font-bold text-orange-900 mb-3">💰 Cuotas que se generarán:</p>
