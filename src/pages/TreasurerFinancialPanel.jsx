@@ -37,6 +37,7 @@ import FinancialGoalsTracker from "../components/financial/FinancialGoalsTracker
 import StripePaymentsPanel from "../components/financial/StripePaymentsPanel.jsx";
 import FinancialHealthIndicator from "../components/financial/FinancialHealthIndicator.jsx";
 import AutomaticMorosidadAlert from "../components/financial/AutomaticMorosidadAlert.jsx";
+import SolidarityFundWidget from "../components/financial/SolidarityFundWidget.jsx";
 
 import BankAccountManager from "../components/financial/BankAccountManager.jsx";
 import CategoryProfitability from "../components/financial/CategoryProfitability.jsx";
@@ -715,6 +716,9 @@ export default function TreasurerFinancialPanel() {
             totalEsperado={totalEsperado}
             stats={stats}
           />
+
+          {/* Fondo Solidario de Becas (solo si está activo en la temporada) */}
+          <SolidarityFundWidget activeSeason={activeSeason} payments={payments} />
 
           {/* Resumen Global - Rediseñado */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

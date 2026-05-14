@@ -1,0 +1,154 @@
+{
+  "name": "Payment",
+  "type": "object",
+  "properties": {
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "tipo_pago": {
+      "type": "string",
+      "enum": [
+        "\u00danico",
+        "Tres meses",
+        "Plan Especial",
+        "Plan Mensual"
+      ],
+      "description": "Tipo de pago: \u00fanico, en tres meses, plan personalizado, o plan mensual"
+    },
+    "plan_especial_id": {
+      "type": "string",
+      "description": "ID del plan de pago personalizado (si aplica)"
+    },
+    "mes": {
+      "type": "string",
+      "enum": [
+        "Junio",
+        "Septiembre",
+        "Diciembre"
+      ],
+      "description": "Mes del pago"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del pago (ej: 2024-2025)"
+    },
+    "cantidad": {
+      "type": "number",
+      "description": "Cantidad pagada en euros"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "Pendiente",
+        "En revisi\u00f3n",
+        "Pagado",
+        "Anulado"
+      ],
+      "default": "Pendiente",
+      "description": "Estado del pago"
+    },
+    "metodo_pago": {
+      "type": "string",
+      "enum": [
+        "Transferencia"
+      ],
+      "default": "Transferencia",
+      "description": "M\u00e9todo de pago utilizado"
+    },
+    "justificante_url": {
+      "type": "string",
+      "description": "URL del justificante de pago subido"
+    },
+    "fecha_pago": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha en que se realiz\u00f3 el pago"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas adicionales sobre el pago"
+    },
+    "reconciliado_banco": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el pago fue reconciliado con extracto bancario"
+    },
+    "fecha_reconciliacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de reconciliaci\u00f3n bancaria"
+    },
+    "recibo_url": {
+      "type": "string",
+      "description": "URL del recibo PDF generado autom\u00e1ticamente"
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "ID de la suscripci\u00f3n de Stripe (para Plan Mensual)"
+    },
+    "stripe_subscription_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "past_due",
+        "canceled",
+        "unpaid"
+      ],
+      "description": "Estado de la suscripci\u00f3n de Stripe"
+    },
+    "plan_mensual_mensualidad": {
+      "type": "number",
+      "description": "Importe mensual de la suscripci\u00f3n (para Plan Mensual)"
+    },
+    "plan_mensual_meses": {
+      "type": "number",
+      "description": "N\u00famero de mensualidades (para Plan Mensual)"
+    },
+    "plan_mensual_mes_fin": {
+      "type": "string",
+      "description": "\u00daltimo mes de cobro de la suscripci\u00f3n"
+    },
+    "is_deleted": {
+      "type": "boolean",
+      "default": false,
+      "description": "Soft delete - si el pago fue eliminado manualmente"
+    },
+    "deleted_by": {
+      "type": "string",
+      "description": "Email del admin que elimin\u00f3 el pago"
+    },
+    "deleted_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se elimin\u00f3 el pago"
+    },
+    "deleted_reason": {
+      "type": "string",
+      "description": "Motivo de la eliminaci\u00f3n del pago"
+    },
+    "aportacion_solidaria": {
+      "type": "number",
+      "default": 0,
+      "description": "Importe (\u20ac) que la familia aport\u00f3 voluntariamente al Fondo Solidario de Becas en este pago"
+    },
+    "aportacion_solidaria_total": {
+      "type": "number",
+      "default": 0,
+      "description": "Importe TOTAL (\u20ac) que la familia se comprometi\u00f3 a aportar al Fondo Solidario en esta inscripci\u00f3n (se reparte entre las cuotas si paga fraccionado)"
+    }
+  },
+  "required": [
+    "jugador_id",
+    "jugador_nombre",
+    "tipo_pago",
+    "mes",
+    "temporada",
+    "cantidad",
+    "estado"
+  ]
+}

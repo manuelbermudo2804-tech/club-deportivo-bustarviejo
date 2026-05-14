@@ -10,6 +10,7 @@ import {
   Settings, RefreshCw, Smartphone, CreditCard, Clover, Users, Mail, Image,
   Shield, Lock, Trash2, Info, ChevronDown, ChevronUp
 } from "lucide-react";
+import SolidarityFundConfig from "./SolidarityFundConfig";
 
 export default function FeatureControlSection({
   activeSeason,
@@ -205,6 +206,13 @@ export default function FeatureControlSection({
 
           {/* Notificaciones Email */}
           <FeatureRow icon={<Mail className="w-5 h-5 text-red-600" />} title="Notificaciones por Email" subtitle="Enviar emails automáticos al admin" checked={activeSeason.notificaciones_admin_email || false} onChange={(v) => toggleFeature('notificaciones_admin_email', v)} />
+
+          {/* Fondo Solidario de Becas */}
+          <SolidarityFundConfig
+            activeSeason={activeSeason}
+            toggleFeature={toggleFeature}
+            updateSeasonMutation={updateSeasonMutation}
+          />
 
           {/* Programa de Socios */}
           <FeatureRow icon={<Users className="w-5 h-5 text-green-600" />} title="Programa de Socios" subtitle="Carnets digitales con descuentos en comercios" checked={activeSeason.programa_socios_activo || false} onChange={(v) => toggleFeature('programa_socios_activo', v)} />

@@ -357,6 +357,33 @@
       "type": "string",
       "format": "date",
       "description": "Fecha l\u00edmite para presentar solicitudes de patrocinio (se muestra en la web p\u00fablica)"
+    },
+    "fondo_solidario_activo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Activar el Fondo Solidario de Becas: las familias pueden aportar voluntariamente para becar a ni\u00f1os sin recursos"
+    },
+    "fondo_solidario_importes": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "default": [
+        10,
+        20,
+        50
+      ],
+      "description": "Los 3 importes (\u20ac) que la familia puede elegir para su aportaci\u00f3n solidaria"
+    },
+    "fondo_solidario_texto": {
+      "type": "string",
+      "default": "Aporta voluntariamente para becar a ni\u00f1os y ni\u00f1as del club que lo necesiten. El 100% del dinero recaudado se destinar\u00e1 a cubrir cuotas de familias sin recursos.",
+      "description": "Texto que ver\u00e1n las familias al activar la aportaci\u00f3n solidaria"
+    },
+    "fondo_solidario_titulo": {
+      "type": "string",
+      "default": "\ud83d\udc9a Fondo Solidario de Becas",
+      "description": "T\u00edtulo mostrado a las familias en la opci\u00f3n de aportaci\u00f3n"
     }
   },
   "required": [
