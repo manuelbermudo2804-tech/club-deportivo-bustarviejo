@@ -6,6 +6,7 @@ import PropuestaFemenino from "@/components/propuesta/PropuestaFemenino";
 import PropuestaPaquetes from "@/components/propuesta/PropuestaPaquetes";
 import PropuestaResumenForm from "@/components/propuesta/PropuestaResumenForm";
 import PropuestaFooter from "@/components/propuesta/PropuestaFooter";
+import usePublicPageTracker from "@/components/public/usePublicPageTracker";
 
 const GVC_LOGO_DEFAULT = "https://media.base44.com/images/public/6992c6be619d2da592897991/8e8967490_logo_hori_rgb.gif";
 
@@ -26,6 +27,9 @@ export default function PropuestaGVCGaesco() {
       origen: (empresaParam || "gvcgaesco").toLowerCase().replace(/\s+/g, "-"),
     };
   }, [location.search]);
+
+  // Tracking de visitas — usa el slug de empresa para diferenciar propuestas
+  usePublicPageTracker(`Propuesta_${origen}`);
 
   useEffect(() => {
     document.title = `Propuesta de Patrocinio · ${empresa} × CD Bustarviejo`;

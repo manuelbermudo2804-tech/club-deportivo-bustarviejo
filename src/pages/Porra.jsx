@@ -9,12 +9,14 @@ import PorraGruposPreview from "@/components/porra/PorraGruposPreview";
 import PorraVolverAppButton from "@/components/porra/PorraVolverAppButton";
 import PorraEmailMagicoInfo from "@/components/porra/PorraEmailMagicoInfo";
 import PorraRecuperarAccesosModal from "@/components/porra/PorraRecuperarAccesosModal";
+import usePublicPageTracker from "@/components/public/usePublicPageTracker";
 
 // Landing pública de la Porra Mundial 2026
 // Accesible vía /Porra sin login
 // Si se accede con ?preview=CODIGO y el admin ha configurado modo_preview,
 // se muestra la porra aunque esté inactiva (para que beta-testers la prueben)
 export default function Porra() {
+  usePublicPageTracker("Porra");
   const navigate = useNavigate();
   const [config, setConfig] = useState(null);
   const [equipos, setEquipos] = useState([]);

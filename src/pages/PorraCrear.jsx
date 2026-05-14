@@ -9,9 +9,11 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Trophy, ArrowLeft, Loader2, ShieldCheck, Heart, Mail } from "lucide-react";
 import { toast } from "sonner";
 import PorraMiniLigaInfo from "@/components/porra/PorraMiniLigaInfo";
+import usePublicPageTracker from "@/components/public/usePublicPageTracker";
 
 // Página pública para crear una porra: formulario + pago Stripe
 export default function PorraCrear() {
+  usePublicPageTracker("PorraCrear");
   const navigate = useNavigate();
   // Leer ?preview=XXX de la URL para propagarlo al backend
   const previewCodigo = new URLSearchParams(window.location.search).get('preview') || '';

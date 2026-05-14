@@ -5,10 +5,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CheckCircle2, Trophy, Mail, ArrowRight, Loader2, Copy, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import usePublicPageTracker from "@/components/public/usePublicPageTracker";
 
 // Página de éxito tras pago Stripe
 // Lee ?token=XXXXX de la URL y muestra info + enlace para empezar a predecir
 export default function PorraExito() {
+  usePublicPageTracker("PorraExito");
   const navigate = useNavigate();
   const [participante, setParticipante] = useState(null);
   const [loading, setLoading] = useState(true);
