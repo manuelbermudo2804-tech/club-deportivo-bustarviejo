@@ -210,22 +210,26 @@ export default function ParentPlayers() {
       // ===== INVITACIONES (PRIORIDAD ALTA - ejecutar ANTES de operaciones pesadas) =====
       
       // INVITACIÓN SEGUNDO PROGENITOR
+      // Pasa por inviteSecondParent: si el usuario YA existe (p.ej. ya invitado por otro hijo),
+      // solo lo marca como segundo progenitor — NO envía código ni email.
       if (dataWithParentEmail.email_tutor_2 && dataWithParentEmail.email_tutor_2.trim()) {
         try {
           const email2 = dataWithParentEmail.email_tutor_2.trim().toLowerCase();
-          console.log('📧 [ParentPlayers] Enviando invitación a segundo progenitor:', email2);
-          const { data: codeResult } = await base44.functions.invoke('generateAccessCode', {
+          console.log('📧 [ParentPlayers] Invitando a segundo progenitor (via inviteSecondParent):', email2);
+          const { data: inviteResult } = await base44.functions.invoke('inviteSecondParent', {
             email: email2,
-            tipo: 'segundo_progenitor',
-            nombre_destino: dataWithParentEmail.nombre_tutor_2 || '',
-            jugador_id: newPlayer.id,
-            jugador_nombre: newPlayer.nombre,
-            mensaje_personalizado: `${currentUser?.full_name || 'Tu pareja'} te ha añadido como segundo progenitor de ${newPlayer.nombre}.`
+            playerName: newPlayer.nombre,
+            inviterName: currentUser?.full_name || '',
+            playerId: newPlayer.id
           });
-          if (codeResult?.success) {
-            console.log('✅ Código segundo progenitor enviado:', email2, 'Código:', codeResult.codigo);
+          if (inviteResult?.success) {
+            if (inviteResult.alreadyExists) {
+              console.log('ℹ️ Segundo progenitor ya tenía cuenta, no se envió código:', email2);
+            } else {
+              console.log('✅ Código segundo progenitor enviado:', email2);
+            }
           } else {
-            console.log('⚠️ Error código segundo progenitor:', codeResult?.error);
+            console.log('⚠️ Error invitando segundo progenitor:', inviteResult?.error);
           }
         } catch (e) {
           console.error('Error invitando a segundo progenitor:', e);
@@ -497,18 +501,20 @@ Email: info@cdbustarviejo.com
               const updated = await base44.entities.Player.update(id, safeData);
 
               if (email2Changed) {
-                // Generar código de acceso directo via Resend
+                // Vía inviteSecondParent: si el usuario ya existe, no envía código ni email
                 try {
-                  const { data: codeResult } = await base44.functions.invoke('generateAccessCode', {
+                  const { data: inviteResult } = await base44.functions.invoke('inviteSecondParent', {
                     email: nextEmail2,
-                    tipo: 'segundo_progenitor',
-                    nombre_destino: safeData.nombre_tutor_2 || '',
-                    jugador_id: id,
-                    jugador_nombre: safeData.nombre || editingPlayer?.nombre || '',
-                    mensaje_personalizado: `${user?.full_name || 'Tu pareja'} te ha añadido como segundo progenitor de ${safeData.nombre || editingPlayer?.nombre || ''}.`
+                    playerName: safeData.nombre || editingPlayer?.nombre || '',
+                    inviterName: user?.full_name || '',
+                    playerId: id
                   });
-                  if (codeResult?.success) {
-                    console.log('✅ Código de acceso enviado al segundo progenitor:', nextEmail2);
+                  if (inviteResult?.success) {
+                    if (inviteResult.alreadyExists) {
+                      console.log('ℹ️ Segundo progenitor ya tenía cuenta, no se envió código:', nextEmail2);
+                    } else {
+                      console.log('✅ Código de acceso enviado al segundo progenitor:', nextEmail2);
+                    }
                   }
                 } catch (e) {
                   console.log('Error invitando a segundo progenitor:', e);
