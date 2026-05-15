@@ -21,6 +21,7 @@ export default function SecondParentSection({
   const [existingSecondParent, setExistingSecondParent] = useState(null);
   const [pendingCode, setPendingCode] = useState(null);
   const [isSendingInvitation, setIsSendingInvitation] = useState(false);
+  const [alreadyHasAccount, setAlreadyHasAccount] = useState(false);
   
   const segundoProgenitorEnOtrosHermanos = existingFamilyPlayers?.some(p => 
     p.email_tutor_2 && p.email_tutor_2.trim() !== ""
@@ -85,7 +86,9 @@ export default function SecondParentSection({
     }
   };
 
-  // Enviar invitación directa al segundo progenitor (genera código de acceso)
+  // Enviar invitación al segundo progenitor.
+  // Pasa por inviteSecondParent, que primero comprueba si el usuario YA existe en la app
+  // (caso típico: ya invitado en otro hijo). Si existe, no se manda ni código ni email.
   const sendInvitation = async () => {
     if (!currentPlayer.email_tutor_2?.trim()) {
       toast.error("Introduce el email del segundo progenitor");
@@ -98,19 +101,25 @@ export default function SecondParentSection({
 
     setIsSendingInvitation(true);
     try {
-      const { data } = await base44.functions.invoke("generateAccessCode", {
+      const { data } = await base44.functions.invoke("inviteSecondParent", {
         email: currentPlayer.email_tutor_2.trim().toLowerCase(),
-        tipo: "segundo_progenitor",
-        nombre_destino: currentPlayer.nombre_tutor_2 || "",
-        jugador_id: currentPlayer.id,
-        jugador_nombre: currentPlayer.nombre
+        playerName: currentPlayer.nombre,
+        inviterName: currentUser?.full_name || "",
+        playerId: currentPlayer.id
       });
 
-      if (data.success) {
-        setPendingCode({ codigo: data.codigo, estado: 'pendiente' });
-        toast.success(`✅ Invitación enviada a ${currentPlayer.email_tutor_2}`);
+      if (data?.success) {
+        if (data.alreadyExists) {
+          // El segundo progenitor ya tiene cuenta → no se manda nada
+          setAlreadyHasAccount(true);
+          toast.success("✅ Este segundo progenitor ya tiene cuenta. Verá automáticamente este hijo.");
+        } else {
+          // Nuevo: se ha generado un código de acceso
+          setPendingCode({ codigo: 'enviado', estado: 'pendiente' });
+          toast.success(`✅ Invitación enviada a ${currentPlayer.email_tutor_2}`);
+        }
       } else {
-        toast.error(data.error || "Error al enviar invitación");
+        toast.error(data?.error || "Error al enviar invitación");
       }
     } catch (err) {
       console.error("Error enviando invitación:", err);
@@ -291,11 +300,18 @@ export default function SecondParentSection({
             {/* Botón de enviar invitación + Estado */}
             {isEditing && currentPlayer.email_tutor_2 && (
               <div className="bg-slate-50 rounded-lg p-4 space-y-3">
-                {pendingCode ? (
+                {alreadyHasAccount ? (
+                  <div className="flex items-center gap-2 text-green-700">
+                    <CheckCircle2 className="w-5 h-5" />
+                    <span className="text-sm font-medium">
+                      ✅ Este segundo progenitor ya tiene cuenta en la app. Verá automáticamente este hijo. No hace falta enviar invitación.
+                    </span>
+                  </div>
+                ) : pendingCode ? (
                   <div className="flex items-center gap-2 text-green-700">
                     <KeyRound className="w-5 h-5" />
                     <span className="text-sm font-medium">
-                      ✅ Invitación enviada — código: <strong className="font-mono">{pendingCode.codigo}</strong>
+                      ✅ Invitación enviada por email a {currentPlayer.email_tutor_2}
                     </span>
                   </div>
                 ) : (
@@ -312,9 +328,11 @@ export default function SecondParentSection({
                     )}
                   </Button>
                 )}
-                <p className="text-xs text-slate-500 text-center">
-                  Se enviará un email con un código de acceso. El segundo progenitor podrá registrarse y acceder inmediatamente.
-                </p>
+                {!alreadyHasAccount && !pendingCode && (
+                  <p className="text-xs text-slate-500 text-center">
+                    Si el segundo progenitor ya tiene cuenta en la app (por otro hijo), no se le enviará nada — verá este hijo automáticamente.
+                  </p>
+                )}
               </div>
             )}
           </div>
