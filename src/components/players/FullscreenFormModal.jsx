@@ -4,11 +4,14 @@ import { X, ArrowLeft } from "lucide-react";
 
 export default function FullscreenFormModal({ title, subtitle, onClose, children }) {
   return (
-    <div className="fixed inset-0 z-[100] bg-white lg:bg-black/60 overflow-hidden">
+    <div className="fixed inset-0 z-[100] bg-white lg:bg-black/60 overflow-hidden" style={{ height: '100dvh' }}>
       <div className="h-full lg:flex lg:items-center lg:justify-center lg:p-6">
         <div className="h-full lg:h-auto lg:max-h-[95vh] lg:max-w-4xl lg:w-full lg:bg-white lg:rounded-2xl lg:shadow-2xl flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="flex-shrink-0 bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-3 lg:px-6 lg:py-4 flex items-center gap-3 safe-area-top">
+          <div
+            className="flex-shrink-0 bg-gradient-to-r from-orange-600 to-orange-700 text-white px-4 py-3 lg:px-6 lg:py-4 flex items-center gap-3"
+            style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
+          >
             <Button
               variant="ghost"
               size="icon"
@@ -34,7 +37,10 @@ export default function FullscreenFormModal({ title, subtitle, onClose, children
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+          <div
+            className="flex-1 overflow-y-auto p-4 lg:p-6"
+            style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))', WebkitOverflowScrolling: 'touch' }}
+          >
             {children}
           </div>
         </div>
