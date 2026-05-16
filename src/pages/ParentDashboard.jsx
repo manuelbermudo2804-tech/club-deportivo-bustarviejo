@@ -23,6 +23,7 @@ import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
 import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 import PorraPromoBanner from "../components/porra/PorraPromoBanner";
+import IncompleteDocsBanner from "../components/players/IncompleteDocsBanner";
 
 
 
@@ -513,6 +514,11 @@ export default function ParentDashboard() {
 
 
 
+
+        {/* Banner de documentos incompletos — se oculta solo cuando todo esté subido */}
+        {!playersLoading && myPlayers.length > 0 && (
+          <IncompleteDocsBanner players={myPlayers} />
+        )}
 
         {/* ÚNICO CENTRO DE ALERTAS CONSOLIDADO - SIEMPRE VISIBLE */}
         <AlertCenter 
