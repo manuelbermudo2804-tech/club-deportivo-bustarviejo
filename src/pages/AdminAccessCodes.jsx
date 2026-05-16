@@ -751,16 +751,24 @@ export default function AdminAccessCodes() {
       )}
 
       {/* Banner: usuarios sin código */}
-      {stuckUsersWithStatus.length > 0 && (
+      {stuckUsersWithStatus.length > 0 && (() => {
+        const withCode = stuckUsersWithStatus.filter(u => u.existingCode).length;
+        const withoutCode = stuckUsersWithStatus.length - withCode;
+        return (
         <Card className="mb-6 border-2 border-amber-400 bg-amber-50">
           <CardHeader className="pb-2">
             <CardTitle className="flex items-center gap-2 text-amber-800 text-lg">
               <AlertCircle className="w-5 h-5" />
-              {stuckUsersWithStatus.length} usuario{stuckUsersWithStatus.length !== 1 ? 's' : ''} esperando código de acceso
+              {stuckUsersWithStatus.length} usuario{stuckUsersWithStatus.length !== 1 ? 's' : ''} sin validar código de acceso
             </CardTitle>
-            <p className="text-sm text-amber-700">
-              Estos usuarios se registraron pero no pueden entrar porque no tienen código. Envíales uno para que puedan acceder.
-            </p>
+            <div className="text-sm text-amber-700 space-y-1 mt-1">
+              {withCode > 0 && (
+                <p>⏳ <strong>{withCode}</strong> ya {withCode === 1 ? 'recibió' : 'recibieron'} el código pero aún no lo {withCode === 1 ? 'ha' : 'han'} introducido en la app.</p>
+              )}
+              {withoutCode > 0 && (
+                <p>📤 <strong>{withoutCode}</strong> aún no {withoutCode === 1 ? 'tiene' : 'tienen'} código. Envíaselo para que {withoutCode === 1 ? 'pueda' : 'puedan'} acceder.</p>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="pt-2">
             <div className="space-y-2 max-h-64 overflow-y-auto">
@@ -825,7 +833,8 @@ export default function AdminAccessCodes() {
             </div>
           </CardContent>
         </Card>
-      )}
+        );
+      })()}
 
       {/* 🔍 AUDITORÍA COMPARATIVA (desplegable) */}
       <Card className="mb-6 border-2 border-indigo-300 cursor-pointer" onClick={() => {
