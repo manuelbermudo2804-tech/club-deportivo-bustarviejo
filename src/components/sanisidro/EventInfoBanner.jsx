@@ -25,7 +25,7 @@ export default function EventInfoBanner() {
           <div className="inline-flex items-center gap-1 bg-white/20 backdrop-blur rounded-full px-3 py-1 text-xs font-semibold mb-2">
             <Sparkles className="w-3 h-3" /> JORNADA DEPORTIVA Y FESTIVA
           </div>
-          <h2 className="text-3xl font-black drop-shadow-lg">SAN ISIDRO 2026</h2>
+          <h2 className="text-3xl font-black drop-shadow-lg">SAN ISIDRO 2027</h2>
           <div className="mt-2 inline-block bg-white text-red-700 font-black text-lg px-5 py-1.5 rounded-full shadow-md">
             🗓️ 15 DE MAYO
           </div>

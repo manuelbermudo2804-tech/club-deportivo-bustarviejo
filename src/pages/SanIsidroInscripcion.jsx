@@ -13,8 +13,8 @@ import DuplicateWarning from "../components/sanisidro/DuplicateWarning";
 import { validateEmail, validatePhone, validatePersonName, validateTeamName, findDuplicatePlayers, findSimilarTeamName, normalizeName } from "../components/sanisidro/validators";
 import { getDeviceFingerprint, getUserAgentSummary } from "../components/sanisidro/deviceFingerprint";
 
-const FECHA_INICIO = new Date("2026-04-19T00:00:00");
-const FECHA_FIN = new Date("2026-05-15T23:59:59");
+const FECHA_INICIO = new Date("2027-04-19T00:00:00");
+const FECHA_FIN = new Date("2027-05-15T23:59:59");
 
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
@@ -220,12 +220,12 @@ export default function SanIsidroInscripcion() {
       <div className="min-h-screen bg-gradient-to-br from-red-600 via-yellow-500 to-green-600 flex items-center justify-center p-4">
         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 text-center space-y-4">
           <img src={CLUB_LOGO} alt="CD Bustarviejo" className="w-20 h-20 rounded-full mx-auto object-cover" />
-          <h1 className="text-2xl font-black text-slate-900">San Isidro 2026</h1>
+          <h1 className="text-2xl font-black text-slate-900">San Isidro 2027</h1>
           <div className="flex items-center justify-center gap-2 text-slate-500">
             <Clock className="w-5 h-5" />
             <p>Las inscripciones no están abiertas en este momento.</p>
           </div>
-          <p className="text-sm text-slate-400">Periodo de inscripción: 19 abril - 15 mayo 2026</p>
+          <p className="text-sm text-slate-400">Periodo de inscripción: 19 abril - 15 mayo 2027</p>
         </div>
       </div>
     );
@@ -432,7 +432,7 @@ export default function SanIsidroInscripcion() {
 
         {/* Footer */}
         <div className="bg-slate-50 border-t px-4 py-3 text-center">
-          <p className="text-xs text-slate-400">CD Bustarviejo • Fiestas de San Isidro 2026</p>
+          <p className="text-xs text-slate-400">CD Bustarviejo • Fiestas de San Isidro 2027</p>
         </div>
         </div>
       </div>
