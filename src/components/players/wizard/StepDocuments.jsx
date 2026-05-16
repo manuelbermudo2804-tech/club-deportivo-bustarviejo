@@ -114,10 +114,10 @@ export default function StepDocuments({
         error={fieldErrors.dni_jugador_url}
       />
 
-      {/* Cara trasera (solo DNI) */}
+      {/* Cara trasera (solo DNI) — obligatoria siempre que haya cara delantera */}
       {currentPlayer.tipo_documento === "DNI" && (
         <DocumentUploadCard
-          label={`DNI — Cara trasera ${requiresDNI ? "*" : "(recomendado)"}`}
+          label={`DNI — Cara trasera ${currentPlayer.dni_jugador_url ? "*" : "(recomendado)"}`}
           uploaded={currentPlayer.dni_jugador_trasero_url}
           uploading={uploadingDNITrasero}
           onUpload={onDNITraseroUpload}

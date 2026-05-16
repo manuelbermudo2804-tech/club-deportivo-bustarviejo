@@ -432,8 +432,8 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
         if (!dniCheck.valid) errors.dni_jugador = dniCheck.error;
       }
       if (requiresDNI && !currentPlayer.dni_jugador_url) errors.dni_jugador_url = "Documento escaneado obligatorio";
-      // Cara trasera obligatoria si tiene DNI (no pasaporte)
-      if (requiresDNI && currentPlayer.tipo_documento === "DNI" && !currentPlayer.dni_jugador_trasero_url) {
+      // Cara trasera obligatoria SIEMPRE que el documento sea DNI y ya haya cara delantera (mayores y menores)
+      if (currentPlayer.tipo_documento === "DNI" && currentPlayer.dni_jugador_url && !currentPlayer.dni_jugador_trasero_url) {
         errors.dni_jugador_trasero_url = "La cara trasera del DNI es obligatoria";
       }
       if (!requiresDNI && !isAdultPlayerSelfRegistration && !currentPlayer.dni_jugador_url && !currentPlayer.libro_familia_url)
