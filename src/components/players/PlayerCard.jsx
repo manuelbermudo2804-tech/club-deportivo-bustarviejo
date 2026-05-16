@@ -164,9 +164,15 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
     .sort((a, b) => new Date(a.fecha_partido) - new Date(b.fecha_partido))[0];
 
   // Checklist
+  // DNI del jugador: requiere AMBAS caras (frontal + trasero) o libro de familia (menores)
+  const dniJugadorCompleto = (!!player.dni_jugador_url && !!player.dni_jugador_trasero_url) || !!player.libro_familia_url;
+  // Si es menor y hay tutor con DNI: requiere ambas caras del tutor
+  const dniTutorCompleto = esMayorDeEdad
+    ? true
+    : (!player.dni_tutor_legal_url || (!!player.dni_tutor_legal_url && !!player.dni_tutor_legal_trasero_url));
   const checklistItems = {
     foto: !!player.foto_url,
-    dni: !!(player.dni_jugador_url || player.libro_familia_url),
+    dni: dniJugadorCompleto && dniTutorCompleto,
     firma: firmasStatus === "complete" || firmasStatus === "none",
     pago: allPaid || playerPayments.length === 0
   };
