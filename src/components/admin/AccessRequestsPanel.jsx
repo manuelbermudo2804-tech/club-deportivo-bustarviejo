@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Mail, SendHorizonal, CheckCircle2, Clock, Inbox, Copy, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import AccessRequestSendDialog from "./AccessRequestSendDialog";
+import AccessRequestTrustIndicator from "./AccessRequestTrustIndicator";
 
 export default function AccessRequestsPanel() {
   const queryClient = useQueryClient();
@@ -16,6 +17,18 @@ export default function AccessRequestsPanel() {
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['accessRequests'],
     queryFn: () => base44.entities.AccessRequest.list('-created_date'),
+  });
+
+  // Cargar jugadores y usuarios para analizar la confianza de cada solicitud
+  const { data: players = [] } = useQuery({
+    queryKey: ['playersForTrust'],
+    queryFn: () => base44.entities.Player.list(),
+    staleTime: 300000,
+  });
+  const { data: users = [] } = useQuery({
+    queryKey: ['usersForTrust'],
+    queryFn: () => base44.entities.User.list(),
+    staleTime: 300000,
   });
 
   const pendingRequests = requests.filter(r => r.estado === 'pendiente');
@@ -88,6 +101,7 @@ export default function AccessRequestsPanel() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">
                       <span className="font-bold text-sm text-slate-900">{req.nombre_progenitor}</span>
+                      <AccessRequestTrustIndicator request={req} players={players} users={users} />
                       <Badge className="bg-orange-100 text-orange-700 border-orange-200 text-xs">{req.categoria}</Badge>
                       <Badge variant="outline" className="text-xs">
                         <Clock className="w-3 h-3 mr-1" />
