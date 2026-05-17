@@ -547,7 +547,7 @@ export default function AdminAccessCodes() {
   const seguridadCount = securityAlerts.length + unauthorizedScreenVisits.length;
 
   return (
-    <div className="container mx-auto p-3 lg:p-6 max-w-5xl">
+    <div className="container mx-auto px-3 pt-4 pb-3 lg:p-6 max-w-5xl">
       {/* Header compacto */}
       <div className="mb-4">
         <h1 className="text-xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
