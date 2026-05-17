@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
-import { CheckCircle2, Loader2, Mail, Send, Calendar, MessageCircle, CreditCard, Camera, Bell, Trophy, Shield, Sparkles, ChevronDown, ChevronUp, Lock } from "lucide-react";
+import { CheckCircle2, Loader2, Mail, Send, Calendar, MessageCircle, CreditCard, Camera, Bell, Trophy, Shield, Sparkles, ChevronDown, ChevronUp, Lock, Phone } from "lucide-react";
 import BackToAppButton from "../components/public/BackToAppButton";
 import { getDeviceFingerprint } from "../components/sanisidro/deviceFingerprint";
 import usePublicPageTracker from "../components/public/usePublicPageTracker";
@@ -66,6 +66,7 @@ export default function PublicAccessRequest() {
   const [email, setEmail] = useState("");
   const [emailConfirm, setEmailConfirm] = useState("");
   const [nombre, setNombre] = useState("");
+  const [telefono, setTelefono] = useState("");
   const [categoria, setCategoria] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
   const [aceptaGdpr, setAceptaGdpr] = useState(false);
@@ -114,6 +115,7 @@ export default function PublicAccessRequest() {
       await base44.functions.invoke("submitAccessRequest", {
         email: email.trim().toLowerCase(),
         nombre_progenitor: trimmedName,
+        telefono: telefono.trim(),
         categoria,
         device_fingerprint: fingerprint,
         user_agent: navigator.userAgent,
@@ -323,6 +325,23 @@ export default function PublicAccessRequest() {
               {emailConfirm && !emailsMatch && (
                 <p className="text-xs text-red-500 mt-1">Los emails no coinciden</p>
               )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-bold text-slate-700 mb-1">
+                Teléfono <span className="text-slate-400 font-normal">(opcional)</span>
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="tel"
+                  value={telefono}
+                  onChange={(e) => setTelefono(e.target.value)}
+                  placeholder="Ej: 600 123 456"
+                  className="w-full border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                />
+              </div>
+              <p className="text-xs text-slate-500 mt-1">Por si tenemos que ayudarte si no te llega el código</p>
             </div>
 
             <div>

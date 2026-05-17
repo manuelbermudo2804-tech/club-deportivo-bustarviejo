@@ -11,6 +11,10 @@
       "type": "string",
       "description": "Nombre del primer progenitor/tutor"
     },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto (opcional, para rescate si hay problemas)"
+    },
     "categoria": {
       "type": "string",
       "enum": [

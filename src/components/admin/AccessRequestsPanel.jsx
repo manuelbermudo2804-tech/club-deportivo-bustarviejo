@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Mail, SendHorizonal, CheckCircle2, Clock, Inbox, Copy, ExternalLink, Trash2 } from "lucide-react";
+import { Loader2, Mail, SendHorizonal, CheckCircle2, Clock, Inbox, Copy, ExternalLink, Trash2, Phone, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import AccessRequestSendDialog from "./AccessRequestSendDialog";
 import AccessRequestTrustIndicator from "./AccessRequestTrustIndicator";
@@ -111,6 +111,19 @@ export default function AccessRequestsPanel() {
                     <p className="text-xs text-slate-600 flex items-center gap-1">
                       <Mail className="w-3 h-3" /> {req.email}
                     </p>
+                    {req.telefono && (
+                      <p className="text-xs text-slate-600 mt-0.5 flex items-center gap-1 flex-wrap">
+                        <Phone className="w-3 h-3" /> {req.telefono}
+                        <a
+                          href={`https://wa.me/${req.telefono.replace(/\D/g, '').replace(/^0+/, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 bg-green-100 hover:bg-green-200 text-green-700 px-2 py-0.5 rounded-md text-[11px] font-semibold ml-1"
+                        >
+                          <MessageCircle className="w-3 h-3" /> WhatsApp
+                        </a>
+                      </p>
+                    )}
                     {req.nombre_jugador && (
                       <p className="text-xs text-slate-500 mt-0.5">⚽ Jugador: {req.nombre_jugador}</p>
                     )}

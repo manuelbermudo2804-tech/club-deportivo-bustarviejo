@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
-    const { email, nombre_progenitor, categoria, nombre_jugador, device_fingerprint, user_agent, website } = body;
+    const { email, nombre_progenitor, telefono, categoria, nombre_jugador, device_fingerprint, user_agent, website } = body;
 
     // 1. Honeypot: si el campo "website" está relleno, es un bot
     if (website && website.trim() !== '') {
@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
     await base44.asServiceRole.entities.AccessRequest.create({
       email: emailLower,
       nombre_progenitor: nombre_progenitor.trim(),
+      telefono: (telefono || '').trim(),
       categoria,
       nombre_jugador: nombre_jugador || '',
       estado: 'pendiente',
