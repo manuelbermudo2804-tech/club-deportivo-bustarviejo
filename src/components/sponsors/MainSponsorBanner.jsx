@@ -94,7 +94,11 @@ export default function MainSponsorBanner() {
           <p className="text-white font-black text-lg lg:text-xl truncate">
             {principal.nombre}
           </p>
-          {principal.beneficios_acordados && (
+          {principal.equipos_patrocinados && principal.equipos_patrocinados.length > 0 ? (
+            <p className="text-pink-200 text-xs lg:text-sm font-semibold truncate">
+              💗 Orgullosos del {principal.equipos_patrocinados.join(' y ')}
+            </p>
+          ) : principal.beneficios_acordados && (
             <p className="text-purple-200 text-xs lg:text-sm truncate hidden sm:block">
               {principal.beneficios_acordados}
             </p>
