@@ -30,6 +30,51 @@ function generateCode() {
   return code;
 }
 
+function buildWarningEmail(code, nombreDestino, appUrl, diasRestantes) {
+  const urgencia = diasRestantes === 1 ? '🚨 ¡ÚLTIMO DÍA!' : '⏰ Recordatorio';
+  const colorBanner = diasRestantes === 1 ? '#dc2626' : '#ea580c';
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;">
+<tr><td align="center" style="padding:24px 16px;">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+  <tr><td style="background:${colorBanner};padding:28px 24px;text-align:center;border-radius:16px 16px 0 0;">
+    <img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" alt="CD Bustarviejo" width="64" height="64" style="border:3px solid #fff;border-radius:12px;display:block;margin:0 auto 12px;"/>
+    <div style="font-size:22px;font-weight:bold;color:#fff;">CD BUSTARVIEJO</div>
+    <div style="font-size:13px;color:#fff;margin-top:6px;font-weight:bold;">${urgencia}</div>
+  </td></tr>
+  <tr><td style="background:#fff;padding:28px;">
+    <p style="font-size:17px;color:#1e293b;margin:0 0 12px;">${nombreDestino ? `Hola <strong>${nombreDestino}</strong>,` : 'Hola,'}</p>
+    <p style="font-size:15px;color:#475569;line-height:24px;margin:0 0 20px;">
+      Te recordamos que <strong>tu código de acceso a la app del CD Bustarviejo caduca en ${diasRestantes} día${diasRestantes > 1 ? 's' : ''}</strong>. Si aún no lo has usado, regístrate ahora antes de que expire.
+    </p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-radius:12px;overflow:hidden;margin-bottom:20px;">
+      <tr><td style="background:#1e293b;padding:28px 20px;text-align:center;">
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:3px;margin-bottom:10px;">🔑 Tu código de acceso</div>
+        <div style="font-family:'Courier New',monospace;font-size:40px;font-weight:bold;color:#f97316;letter-spacing:10px;margin-bottom:10px;">${code}</div>
+        <div style="font-size:11px;color:#fbbf24;">⏱️ Caduca en ${diasRestantes} día${diasRestantes > 1 ? 's' : ''}</div>
+      </td></tr>
+    </table>
+    <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
+      <tr><td style="border-radius:10px;background:#16a34a;text-align:center;">
+        <a href="${appUrl}" target="_blank" style="display:inline-block;background:#16a34a;color:#fff;font-size:16px;font-weight:bold;text-decoration:none;padding:16px 40px;border-radius:10px;">
+          Activar mi código ahora →
+        </a>
+      </td></tr>
+    </table>
+    <p style="font-size:12px;color:#94a3b8;text-align:center;margin-top:18px;">
+      Si no usas el código a tiempo, no te preocupes: te enviaremos uno nuevo automáticamente.<br/>
+      ¿Necesitas ayuda? cdbustarviejo@gmail.com
+    </p>
+  </td></tr>
+  <tr><td style="background:#f8fafc;padding:16px;border-radius:0 0 16px 16px;text-align:center;font-size:11px;color:#94a3b8;">
+    CD Bustarviejo &bull; <a href="mailto:cdbustarviejo@gmail.com" style="color:#ea580c;text-decoration:none;">cdbustarviejo@gmail.com</a>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>`;
+}
+
 function buildAutoResendEmail(code, nombreDestino, appUrl, reenvioNum) {
   return `<!DOCTYPE html><html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/></head>
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
@@ -96,10 +141,40 @@ Deno.serve(async (req) => {
     let expiredCount = 0;
     let autoResendCount = 0;
     let maxResendReached = 0;
+    let warningsSent = 0;
     const autoResendDetails = [];
 
     for (const code of pendingCodes) {
-      if (code.fecha_expiracion && new Date(code.fecha_expiracion) < now) {
+      if (!code.fecha_expiracion) continue;
+      const expDate = new Date(code.fecha_expiracion);
+      const msToExpire = expDate.getTime() - now.getTime();
+      const daysToExpire = Math.ceil(msToExpire / (1000 * 60 * 60 * 24));
+
+      // AVISO PREVIO: a 3 días y a 1 día de expirar (solo si aún no se envió ese aviso)
+      if (msToExpire > 0 && (daysToExpire === 3 || daysToExpire === 1)) {
+        const avisosEnviados = code.avisos_expiracion_enviados || [];
+        const avisoKey = `d${daysToExpire}`;
+        if (!avisosEnviados.includes(avisoKey)) {
+          try {
+            const appUrl = 'https://app.cdbustarviejo.com';
+            const warningHTML = buildWarningEmail(code.codigo, code.nombre_destino, appUrl, daysToExpire);
+            await sendWithResend(
+              code.email,
+              `⏰ CD Bustarviejo - Tu código caduca en ${daysToExpire} día${daysToExpire > 1 ? 's' : ''} (${code.codigo})`,
+              warningHTML
+            );
+            await base44.asServiceRole.entities.AccessCode.update(code.id, {
+              avisos_expiracion_enviados: [...avisosEnviados, avisoKey]
+            });
+            warningsSent++;
+            console.log(`[expireAccessCodes] 📨 Aviso enviado a ${code.email} (caduca en ${daysToExpire}d)`);
+          } catch (warnErr) {
+            console.error(`[expireAccessCodes] Error enviando aviso a ${code.email}:`, warnErr);
+          }
+        }
+      }
+
+      if (expDate < now) {
         const currentResends = code.reenvios || 0;
 
         // Si no ha superado el máximo de reenvíos automáticos → reenviar con código nuevo
@@ -184,9 +259,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log(`[expireAccessCodes] Resumen: ${autoResendCount} reenviados, ${expiredCount} expirados definitivamente, ${maxResendReached} máximo alcanzado`);
+    console.log(`[expireAccessCodes] Resumen: ${warningsSent} avisos previos, ${autoResendCount} reenviados, ${expiredCount} expirados definitivamente, ${maxResendReached} máximo alcanzado`);
     return Response.json({ 
       success: true, 
+      warnings_sent: warningsSent,
       auto_resent: autoResendCount, 
       expired: expiredCount, 
       max_resend_reached: maxResendReached,

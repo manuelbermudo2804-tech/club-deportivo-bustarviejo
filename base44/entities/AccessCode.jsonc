@@ -1,0 +1,133 @@
+{
+  "name": "AccessCode",
+  "type": "object",
+  "properties": {
+    "codigo": {
+      "type": "string",
+      "description": "C\u00f3digo de acceso \u00fanico (ej: A7X-K2M)"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email al que est\u00e1 vinculado este c\u00f3digo"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "padre_nuevo",
+        "segundo_progenitor",
+        "juvenil",
+        "jugador_adulto",
+        "entrenador",
+        "coordinador"
+      ],
+      "description": "Tipo de invitaci\u00f3n"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "usado",
+        "expirado",
+        "cancelado"
+      ],
+      "default": "pendiente",
+      "description": "Estado del c\u00f3digo"
+    },
+    "nombre_destino": {
+      "type": "string",
+      "description": "Nombre del destinatario (si se conoce)"
+    },
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador relacionado (para segundo progenitor / juvenil)"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador relacionado"
+    },
+    "categorias_asignadas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Categor\u00edas a asignar al entrenador/coordinador al validar el c\u00f3digo"
+    },
+    "invitado_por_email": {
+      "type": "string",
+      "description": "Email de quien gener\u00f3 la invitaci\u00f3n"
+    },
+    "invitado_por_nombre": {
+      "type": "string",
+      "description": "Nombre de quien gener\u00f3 la invitaci\u00f3n"
+    },
+    "fecha_envio": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de env\u00edo del email"
+    },
+    "fecha_expiracion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de expiraci\u00f3n (7 d\u00edas desde env\u00edo)"
+    },
+    "fecha_uso": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se us\u00f3 el c\u00f3digo"
+    },
+    "email_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el email fue enviado correctamente"
+    },
+    "reenvios": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero de veces que se ha reenviado"
+    },
+    "ultimo_reenvio": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del \u00faltimo reenv\u00edo"
+    },
+    "avisos_expiracion_enviados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Avisos previos de expiraci\u00f3n ya enviados (ej: ['d3','d1']) para no duplicar"
+    },
+    "rol_asignado": {
+      "type": "string",
+      "description": "Rol que se asignar\u00e1 autom\u00e1ticamente al usar el c\u00f3digo (ej: familia, jugador_menor, jugador_adulto, entrenador, coordinador)"
+    },
+    "mensaje_personalizado": {
+      "type": "string",
+      "description": "Mensaje personalizado incluido en el email"
+    }
+  },
+  "required": [
+    "codigo",
+    "email",
+    "tipo",
+    "estado"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "codigo"
+      ]
+    },
+    {
+      "fields": [
+        "email"
+      ]
+    },
+    {
+      "fields": [
+        "estado"
+      ]
+    }
+  ]
+}
