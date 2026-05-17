@@ -547,31 +547,44 @@ export default function AdminAccessCodes() {
   const seguridadCount = securityAlerts.length + unauthorizedScreenVisits.length;
 
   return (
-    <div className="container mx-auto p-4 lg:p-6 max-w-5xl">
-      <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">🔑 Códigos de Acceso</h1>
-          <p className="text-slate-600 mt-1">Genera y gestiona los códigos de invitación al club</p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            variant="outline"
-            onClick={handleBulkResend}
-            disabled={bulkResending || counts.pendiente === 0}
-            size="sm"
-          >
-            {bulkResending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <RefreshCw className="w-4 h-4 mr-1" />}
-            Reenviar todas ({counts.pendiente})
-          </Button>
-          <Button onClick={() => setBulkOpen(true)} className="bg-purple-600 hover:bg-purple-700" size="sm">
-            <Zap className="w-4 h-4 mr-2" />
-            Masiva
-          </Button>
-          <Button onClick={() => setInviteOpen(true)} className="bg-orange-600 hover:bg-orange-700" size="sm">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Nueva Invitación
-          </Button>
-        </div>
+    <div className="container mx-auto p-3 lg:p-6 max-w-5xl">
+      {/* Header compacto */}
+      <div className="mb-4">
+        <h1 className="text-xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
+          <span>🔑</span>
+          <span>Códigos de Acceso</span>
+        </h1>
+        <p className="text-xs lg:text-sm text-slate-500 mt-0.5">Genera y gestiona los códigos de invitación al club</p>
+      </div>
+
+      {/* Acciones — grid responsive */}
+      <div className="grid grid-cols-3 gap-2 mb-5">
+        <Button
+          onClick={() => setInviteOpen(true)}
+          className="bg-orange-600 hover:bg-orange-700 h-auto py-2 flex flex-col items-center gap-0.5 text-[11px] lg:text-sm lg:flex-row lg:gap-2"
+          size="sm"
+        >
+          <UserPlus className="w-4 h-4" />
+          <span className="leading-tight">Nueva</span>
+        </Button>
+        <Button
+          onClick={() => setBulkOpen(true)}
+          className="bg-purple-600 hover:bg-purple-700 h-auto py-2 flex flex-col items-center gap-0.5 text-[11px] lg:text-sm lg:flex-row lg:gap-2"
+          size="sm"
+        >
+          <Zap className="w-4 h-4" />
+          <span className="leading-tight">Masiva</span>
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleBulkResend}
+          disabled={bulkResending || counts.pendiente === 0}
+          className="h-auto py-2 flex flex-col items-center gap-0.5 text-[11px] lg:text-sm lg:flex-row lg:gap-2"
+          size="sm"
+        >
+          {bulkResending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+          <span className="leading-tight">Reenviar ({counts.pendiente})</span>
+        </Button>
       </div>
 
       <Tabs defaultValue="bandeja" className="w-full">
