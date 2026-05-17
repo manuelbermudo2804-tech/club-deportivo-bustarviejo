@@ -16,9 +16,9 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import BulkInviteDialog from "@/components/admin/BulkInviteDialog";
-import AssistedRegistrationPanel from "@/components/admin/AssistedRegistrationPanel.jsx";
-import AccessRequestsPanel from "@/components/admin/AccessRequestsPanel";
-import AccessAuditPanel from "@/components/admin/AccessAuditPanel";
+import BandejaTab from "@/components/admin/access-codes/BandejaTab";
+import CodigosTab from "@/components/admin/access-codes/CodigosTab";
+import SeguridadTab from "@/components/admin/access-codes/SeguridadTab";
 
 function InviteDialog({ open, onOpenChange, onInvite }) {
   const [email, setEmail] = useState("");
@@ -542,14 +542,18 @@ export default function AdminAccessCodes() {
     total: accessCodes.length,
   };
 
+  // Contadores para los badges de las pestañas
+  const bandejaCount = stuckUsersWithStatus.length;
+  const seguridadCount = securityAlerts.length + unauthorizedScreenVisits.length;
+
   return (
     <div className="container mx-auto p-4 lg:p-6 max-w-5xl">
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-3xl font-bold text-slate-900">🔑 Códigos de Acceso</h1>
           <p className="text-slate-600 mt-1">Genera y gestiona los códigos de invitación al club</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button
             variant="outline"
             onClick={handleBulkResend}
@@ -561,7 +565,7 @@ export default function AdminAccessCodes() {
           </Button>
           <Button onClick={() => setBulkOpen(true)} className="bg-purple-600 hover:bg-purple-700" size="sm">
             <Zap className="w-4 h-4 mr-2" />
-            Masiva ({(() => { const s = new Set(); (accessCodes || []).forEach(c => { if (c.estado === 'pendiente' || c.estado === 'usado') s.add(c.email?.toLowerCase()); }); return s; })().size} ya)
+            Masiva
           </Button>
           <Button onClick={() => setInviteOpen(true)} className="bg-orange-600 hover:bg-orange-700" size="sm">
             <UserPlus className="w-4 h-4 mr-2" />
@@ -570,25 +574,78 @@ export default function AdminAccessCodes() {
         </div>
       </div>
 
-      {/* 📬 SOLICITUDES DE CÓDIGO (formulario público) */}
+      <Tabs defaultValue="bandeja" className="w-full">
+        <TabsList className="grid grid-cols-3 w-full mb-6 h-auto">
+          <TabsTrigger value="bandeja" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-3">
+            <span className="flex items-center gap-1.5">📥 <span className="hidden sm:inline">Bandeja</span><span className="sm:hidden">Bandeja</span></span>
+            {bandejaCount > 0 && (
+              <Badge className="bg-amber-500 text-white text-[10px] h-5 px-1.5">{bandejaCount}</Badge>
+            )}
+          </TabsTrigger>
+          <TabsTrigger value="codigos" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-3">
+            <span className="flex items-center gap-1.5">🔑 <span>Códigos</span></span>
+            <Badge variant="outline" className="text-[10px] h-5 px-1.5">{counts.total}</Badge>
+          </TabsTrigger>
+          <TabsTrigger value="seguridad" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-3">
+            <span className="flex items-center gap-1.5">🛡️ <span>Seguridad</span></span>
+            {seguridadCount > 0 && (
+              <Badge className="bg-red-500 text-white text-[10px] h-5 px-1.5">{seguridadCount}</Badge>
+            )}
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="bandeja">
+          <BandejaTab
+            stuckUsersWithStatus={stuckUsersWithStatus}
+            accessCodes={accessCodes}
+            generateMutation={generateMutation}
+            resendMutation={resendMutation}
+          />
+        </TabsContent>
+
+        <TabsContent value="codigos">
+          <CodigosTab
+            counts={counts}
+            filter={filter}
+            setFilter={setFilter}
+            searchTerm={searchTerm}
+            setSearchTerm={setSearchTerm}
+            filtered={filtered}
+            isLoading={isLoading}
+            CodeCard={CodeCard}
+            resendMutation={resendMutation}
+            cancelMutation={cancelMutation}
+            deleteMutation={deleteMutation}
+            resendingId={resendingId}
+          />
+        </TabsContent>
+
+        <TabsContent value="seguridad">
+          <SeguridadTab
+            securityAlerts={securityAlerts}
+            unauthorizedScreenVisits={unauthorizedScreenVisits}
+            accessAttempts={accessAttempts}
+            accessCodes={accessCodes}
+            allUsers={allUsers}
+            generateMutation={generateMutation}
+            resendMutation={resendMutation}
+          />
+        </TabsContent>
+      </Tabs>
+
+      {/* === FRAGMENTO LEGACY ELIMINADO: la lógica vive ahora en las pestañas === */}
+      {false && (<>
       <Card className="mb-6">
-        <CardHeader className="pb-2 cursor-pointer" onClick={() => document.getElementById('requestsPanel')?.classList.toggle('hidden')}>
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Mail className="w-5 h-5 text-orange-600" />
-            📬 Solicitudes de Familias
-            <Badge className="bg-orange-100 text-orange-700 text-xs ml-auto">Formulario público</Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent id="requestsPanel">
-          <AccessRequestsPanel />
+        <CardContent>
+          <p>placeholder</p>
         </CardContent>
       </Card>
 
       {/* 📞 SOLICITUDES DE ALTA ASISTIDA */}
-      <AssistedRegistrationPanel />
+      <div />
 
       {/* 🚨 ALERTAS DE SEGURIDAD */}
-      {(securityAlerts.length > 0 || unauthorizedScreenVisits.length > 0) && (
+      {false && (
         <Card className="mb-6 border-2 border-red-400 bg-red-50">
           <CardHeader className="pb-2">
             <div className="flex items-start justify-between">
@@ -836,29 +893,8 @@ export default function AdminAccessCodes() {
         );
       })()}
 
-      {/* 🔍 AUDITORÍA COMPARATIVA (desplegable) */}
-      <Card className="mb-6 border-2 border-indigo-300 cursor-pointer" onClick={() => {
-        const el = document.getElementById('auditPanelContent');
-        if (el) el.classList.toggle('hidden');
-        const arrow = document.getElementById('auditPanelArrow');
-        if (arrow) arrow.classList.toggle('rotate-180');
-      }}>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <span>🔍</span>
-            Auditoría: Códigos vs Intentos de Acceso
-            <span id="auditPanelArrow" className="ml-auto transition-transform text-slate-400">▼</span>
-          </CardTitle>
-          <p className="text-sm text-slate-500">Pulsa para desplegar la comparativa completa</p>
-        </CardHeader>
-      </Card>
-      <div id="auditPanelContent" className="hidden mb-6" onClick={(e) => e.stopPropagation()}>
-        <AccessAuditPanel 
-          accessCodes={accessCodes} 
-          accessAttempts={accessAttempts} 
-          allUsers={allUsers} 
-        />
-      </div>
+      {/* legacy audit removed */}
+      <div />
 
       {/* Info: sistema de reenvío automático */}
       <Card className="mb-6 border-2 border-blue-200 bg-blue-50">
@@ -968,6 +1004,8 @@ export default function AdminAccessCodes() {
           ))}
         </div>
       )}
+
+      </>)}
 
       <InviteDialog
         open={inviteOpen}
