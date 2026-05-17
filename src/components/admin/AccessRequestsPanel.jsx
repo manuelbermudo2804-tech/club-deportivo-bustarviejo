@@ -67,8 +67,8 @@ export default function AccessRequestsPanel() {
             <div className="flex-1">
               <p className="font-bold text-orange-900 text-sm">📎 Enlace público para familias</p>
               <p className="text-xs text-orange-700 mt-1">Comparte este enlace para que las familias puedan solicitar su código de acceso sin necesidad de WhatsApp ni email.</p>
-              <div className="flex items-center gap-2 mt-2">
-                <code className="text-xs bg-white border border-orange-200 rounded-lg px-3 py-1.5 flex-1 truncate text-orange-800">{publicUrl}</code>
+              <div className="flex items-center gap-2 mt-2 min-w-0">
+                <code className="text-xs bg-white border border-orange-200 rounded-lg px-3 py-1.5 flex-1 min-w-0 truncate text-orange-800 block overflow-hidden">{publicUrl}</code>
                 <Button
                   size="sm"
                   variant="outline"
