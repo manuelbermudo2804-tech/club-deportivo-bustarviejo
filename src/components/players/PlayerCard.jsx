@@ -151,10 +151,15 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
     const hasPagoUnico = playerPayments.some(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
     expectedPayments = hasPagoUnico ? 1 : 3;
     paidCount = playerPayments.filter(p => p.estado === "Pagado").length;
-    pendingCount = getPendingPaymentsCount(player.id, payments, customPlans, normalizedCurrentSeason);
-    allPaid = hasPagoUnico
-      ? playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único")?.estado === "Pagado"
-      : paidCount >= 3;
+    if (hasPagoUnico) {
+      // Pago único: pendingCount se calcula directamente con los pagos ya filtrados (con fallback de temporada)
+      const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
+      pendingCount = pagoUnico?.estado === "Pendiente" ? 1 : 0;
+      allPaid = pagoUnico?.estado === "Pagado";
+    } else {
+      pendingCount = getPendingPaymentsCount(player.id, payments, customPlans, normalizedCurrentSeason);
+      allPaid = paidCount >= 3;
+    }
   }
 
   // Next callup
