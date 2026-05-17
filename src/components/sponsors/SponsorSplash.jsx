@@ -116,9 +116,15 @@ export default function SponsorSplash() {
             <p className="text-white font-black text-2xl lg:text-3xl mb-1">
               {sponsor.nombre}
             </p>
-            <p className="text-purple-200 text-sm">
-              Orgulloso patrocinador de CD Bustarviejo
-            </p>
+            {sponsor.equipos_patrocinados && sponsor.equipos_patrocinados.length > 0 ? (
+              <p className="text-pink-200 text-sm font-semibold">
+                💗 Orgullosos del {sponsor.equipos_patrocinados.join(' y ')}
+              </p>
+            ) : (
+              <p className="text-purple-200 text-sm">
+                Orgulloso patrocinador de CD Bustarviejo
+              </p>
+            )}
           </motion.div>
         </motion.div>
       )}
