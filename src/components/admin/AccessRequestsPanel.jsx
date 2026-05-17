@@ -47,7 +47,7 @@ export default function AccessRequestsPanel() {
     setDialogRequest(null);
   };
 
-  const publicUrl = `${window.location.origin}/SolicitarAcceso`;
+  const publicUrl = `https://app.cdbustarviejo.com/SolicitarAcceso`;
 
   if (isLoading) {
     return (
@@ -67,19 +67,19 @@ export default function AccessRequestsPanel() {
             <div className="flex-1">
               <p className="font-bold text-orange-900 text-sm">📎 Enlace público para familias</p>
               <p className="text-xs text-orange-700 mt-1">Comparte este enlace para que las familias puedan solicitar su código de acceso sin necesidad de WhatsApp ni email.</p>
-              <div className="flex items-center gap-2 mt-2 min-w-0">
-                <code className="text-xs bg-white border border-orange-200 rounded-lg px-3 py-1.5 flex-1 min-w-0 truncate text-orange-800 block overflow-hidden">{publicUrl}</code>
+              <div className="mt-2 space-y-2">
+                <code className="block text-xs bg-white border border-orange-200 rounded-lg px-3 py-2 text-orange-800 break-all">{publicUrl}</code>
                 <Button
                   size="sm"
                   variant="outline"
-                  className="border-orange-300 text-orange-700 hover:bg-orange-100 whitespace-nowrap"
+                  className="border-orange-300 text-orange-700 hover:bg-orange-100 w-full sm:w-auto"
                   onClick={() => {
                     navigator.clipboard.writeText(publicUrl);
                     toast.success('Enlace copiado');
                   }}
                 >
                   <Copy className="w-3 h-3 mr-1" />
-                  Copiar
+                  Copiar enlace
                 </Button>
               </div>
             </div>
