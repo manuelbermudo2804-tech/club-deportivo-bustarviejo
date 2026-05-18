@@ -6,9 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RefreshCw, Search, Trash2, ChevronDown, ChevronUp, Smartphone, Wifi, Clock, User, FileText, AlertCircle, CheckCircle2, MousePointer, ArrowRightLeft } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { RefreshCw, Search, Trash2, ChevronDown, ChevronUp, Smartphone, Wifi, Clock, User, FileText, AlertCircle, CheckCircle2, MousePointer, ArrowRightLeft, Camera, Bug, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import ErrorsTab from "../components/diagnostic/ErrorsTab";
+import WizardTab from "../components/diagnostic/WizardTab";
 
 const EVENT_ICONS = {
   button_click: { icon: MousePointer, color: "text-blue-600", bg: "bg-blue-50", label: "Botón pulsado" },
@@ -93,7 +96,14 @@ export default function UploadDiagnostics() {
 
   const { data: events = [], isLoading, refetch } = useQuery({
     queryKey: ['upload-diagnostics'],
-    queryFn: () => base44.entities.UploadDiagnostic.list('-created_date', 200),
+    queryFn: async () => {
+      // Solo cargar eventos de SUBIDAS (excluye errores y wizard, que tienen sus propios tabs)
+      const types = ['button_click', 'input_change', 'upload_start', 'upload_success', 'upload_error', 'validation_reject', 'diagnostic_report'];
+      const results = await Promise.all(
+        types.map(t => base44.entities.UploadDiagnostic.filter({ event_type: t }, '-created_date', 50))
+      );
+      return results.flat().sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).slice(0, 200);
+    },
     refetchInterval: 15000,
   });
 
@@ -135,17 +145,35 @@ export default function UploadDiagnostics() {
   return (
     <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">📸 Diagnóstico de Subidas</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => refetch()}>
-            <RefreshCw className="w-4 h-4 mr-1" /> Actualizar
+        <h1 className="text-2xl font-bold">🔬 Centro de Diagnóstico</h1>
+      </div>
+
+      <Tabs defaultValue="uploads" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="uploads"><Camera className="w-4 h-4 mr-1.5" /> Subidas</TabsTrigger>
+          <TabsTrigger value="errors"><Bug className="w-4 h-4 mr-1.5" /> Errores</TabsTrigger>
+          <TabsTrigger value="wizard"><TrendingUp className="w-4 h-4 mr-1.5" /> Wizard Alta</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="errors" className="mt-4">
+          <ErrorsTab />
+        </TabsContent>
+
+        <TabsContent value="wizard" className="mt-4">
+          <WizardTab />
+        </TabsContent>
+
+        <TabsContent value="uploads" className="mt-4 space-y-4">
+
+      <div className="flex items-center justify-end gap-2">
+        <Button variant="outline" size="sm" onClick={() => refetch()}>
+          <RefreshCw className="w-4 h-4 mr-1" /> Actualizar
+        </Button>
+        {events.length > 0 && (
+          <Button variant="outline" size="sm" className="text-red-600" onClick={handleClearAll}>
+            <Trash2 className="w-4 h-4 mr-1" /> Limpiar
           </Button>
-          {events.length > 0 && (
-            <Button variant="outline" size="sm" className="text-red-600" onClick={handleClearAll}>
-              <Trash2 className="w-4 h-4 mr-1" /> Limpiar
-            </Button>
-          )}
-        </div>
+        )}
       </div>
 
       {/* Stats */}
@@ -211,6 +239,8 @@ export default function UploadDiagnostics() {
           )}
         </div>
       )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

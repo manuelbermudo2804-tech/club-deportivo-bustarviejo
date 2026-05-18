@@ -1,0 +1,100 @@
+{
+  "name": "UploadDiagnostic",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email del usuario"
+    },
+    "event_type": {
+      "type": "string",
+      "enum": [
+        "button_click",
+        "input_change",
+        "upload_start",
+        "upload_success",
+        "upload_error",
+        "validation_reject",
+        "diagnostic_report",
+        "app_error",
+        "js_error",
+        "wizard_step"
+      ],
+      "description": "Tipo de evento"
+    },
+    "context": {
+      "type": "string",
+      "description": "Contexto (ej: handlePhotoUpload, StepDocuments, PaymentForm)"
+    },
+    "file_name": {
+      "type": "string",
+      "description": "Nombre del archivo"
+    },
+    "file_size": {
+      "type": "number",
+      "description": "Tama\u00f1o en bytes"
+    },
+    "file_type": {
+      "type": "string",
+      "description": "MIME type"
+    },
+    "result_url": {
+      "type": "string",
+      "description": "URL resultante si fue \u00e9xito"
+    },
+    "error_message": {
+      "type": "string",
+      "description": "Mensaje de error si fall\u00f3"
+    },
+    "diagnostic_code": {
+      "type": "string",
+      "description": "C\u00f3digo diagn\u00f3stico (ej: DV-A3XK2P)"
+    },
+    "device": {
+      "type": "string",
+      "description": "Dispositivo (iOS17 PWA, Android Chrome120 Browser, etc.)"
+    },
+    "connection": {
+      "type": "string",
+      "description": "Tipo de conexi\u00f3n (4g/wifi, Mbps)"
+    },
+    "memory_mb": {
+      "type": "number",
+      "description": "Memoria usada en MB"
+    },
+    "is_pwa": {
+      "type": "boolean",
+      "description": "Si la app est\u00e1 instalada como PWA"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "User agent completo"
+    },
+    "extra_data": {
+      "type": "object",
+      "description": "Datos adicionales (input_id, file_count, step_num, duration_ms, etc.)"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "ID de sesi\u00f3n para agrupar eventos del mismo intento"
+    },
+    "page_path": {
+      "type": "string",
+      "description": "Ruta de la p\u00e1gina donde ocurri\u00f3 (window.location.pathname)"
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "error",
+        "critical"
+      ],
+      "description": "Severidad del evento (para errores)"
+    }
+  },
+  "required": [
+    "user_email",
+    "event_type"
+  ]
+}

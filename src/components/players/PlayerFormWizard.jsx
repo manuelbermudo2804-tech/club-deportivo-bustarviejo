@@ -22,6 +22,7 @@ import SecondParentSection from "./SecondParentSection";
 import AdultPlayerInvitationRequest from "./AdultPlayerInvitationRequest";
 import { useImageUpload } from "../utils/useImageUpload";
 import { logUploadError, logUploadButtonClick, logInputChange, generateDiagnosticCode } from "../utils/uploadLogger";
+import { trackWizardStep } from "@/lib/diagnosticLogger";
 // SendDiagnosticButton removed from wizard UI - only used in admin diagnostics page
 import { saveFormDraft, loadFormDraft, clearFormDraft, markCameraOpening, checkCameraReload, clearCameraFlag } from "./wizard/useFormPersistence";
 import HelpRequestBanner from "./wizard/HelpRequestBanner";
@@ -105,6 +106,8 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   const formRef = useRef(null);
   const [step, setStep] = useState(0);
   const [fieldErrors, setFieldErrors] = useState({});
+  const wizardStartRef = useRef(Date.now());
+  const stepStartRef = useRef(Date.now());
 
   // Estado interno: empieza con la prop, pero se puede activar dinámicamente
   // como medida de seguridad si detectamos que el usuario es +18 y se está
@@ -303,6 +306,17 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     } catch {}
   }, []);
 
+  // 📊 Tracking del wizard: registra inicio + cada cambio de paso
+  useEffect(() => {
+    if (isEditing) return; // Solo trackeamos altas nuevas
+    const wizardName = isAdultPlayerSelfRegistration ? "PlayerFormWizard_Adult" : "PlayerFormWizard_Family";
+    trackWizardStep(wizardName, step, stepLabels[step] || `step_${step}`, {
+      action: step === 0 ? "start" : "enter",
+      total_steps: totalSteps,
+    });
+    stepStartRef.current = Date.now();
+  }, [step, isEditing, isAdultPlayerSelfRegistration]);
+
   useEffect(() => {
     if (formRef.current) formRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [step]);
@@ -495,9 +509,25 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       setFieldErrors(errors);
       const firstMsg = Object.values(errors)[0];
       toast.error(firstMsg);
+      // 📊 Track validación fallida
+      if (!isEditing) {
+        const wizardName = isAdultPlayerSelfRegistration ? "PlayerFormWizard_Adult" : "PlayerFormWizard_Family";
+        trackWizardStep(wizardName, step, stepLabels[step] || `step_${step}`, {
+          action: "validation_fail",
+          errors: Object.keys(errors),
+        });
+      }
       return;
     }
     setFieldErrors({});
+    // 📊 Track paso completado con duración
+    if (!isEditing) {
+      const wizardName = isAdultPlayerSelfRegistration ? "PlayerFormWizard_Adult" : "PlayerFormWizard_Family";
+      trackWizardStep(wizardName, step, stepLabels[step] || `step_${step}`, {
+        action: "complete",
+        durationMs: Date.now() - stepStartRef.current,
+      });
+    }
     setStep(s => Math.min(s + 1, totalSteps - 1));
   };
 
@@ -560,6 +590,15 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       finalData.acceso_menor_padre_email = currentPlayer.email_padre;
       finalData.acceso_menor_texto_version = "v1.0";
       finalData.acceso_menor_user_agent = navigator.userAgent;
+    }
+    // 📊 Track wizard completado con duración total
+    if (!isEditing) {
+      const wizardName = isAdultPlayerSelfRegistration ? "PlayerFormWizard_Adult" : "PlayerFormWizard_Family";
+      trackWizardStep(wizardName, totalSteps - 1, "finish", {
+        action: "finish",
+        durationMs: Date.now() - wizardStartRef.current,
+        total_steps: totalSteps,
+      });
     }
     clearFormDraft();
     onSubmit(finalData);

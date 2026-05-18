@@ -5,6 +5,10 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
 import NavigationTracker from '@/lib/NavigationTracker'
+import { installGlobalErrorHandlers } from '@/lib/diagnosticLogger'
+
+// Instalar vigilante global de errores JS una sola vez al arrancar
+installGlobalErrorHandlers();
 
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';

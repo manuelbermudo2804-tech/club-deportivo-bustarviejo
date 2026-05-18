@@ -92,10 +92,7 @@ export function buildAdminNavigation(ctx) {
 
     { title: "─ DESARROLLO ─", section: true },
     { title: "📲 Check-in Tablet", url: createPageUrl("CheckinTablet"), icon: Smartphone },
-    { title: "🧪 Test Chats", url: createPageUrl("ChatTestConsole"), icon: BarChart3 },
-    { title: "📸 Diagnóstico Subidas", url: createPageUrl("UploadDiagnostics"), icon: ShieldAlert },
-    { title: "📊 Estadísticas Push", url: "/PushStats", icon: Bell },
-    { title: "🔔 Test Push/Badge", url: "/PushBadgeTest", icon: Bell },
+    { title: "🔬 Diagnóstico App", url: createPageUrl("UploadDiagnostics"), icon: ShieldAlert },
   ];
 }
 
