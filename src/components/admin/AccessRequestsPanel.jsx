@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Mail, SendHorizonal, CheckCircle2, Clock, Inbox, Copy, ExternalLink, Trash2, Phone, MessageCircle, Zap, UserCheck } from "lucide-react";
+import { Loader2, Mail, SendHorizonal, CheckCircle2, Clock, Inbox, Copy, ExternalLink, Trash2, Phone, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import AccessRequestSendDialog from "./AccessRequestSendDialog";
 import AccessRequestTrustIndicator from "./AccessRequestTrustIndicator";
@@ -34,17 +34,6 @@ export default function AccessRequestsPanel() {
   const pendingRequests = requests.filter(r => r.estado === 'pendiente');
   const processedRequests = requests.filter(r => r.estado !== 'pendiente');
 
-  // Diferenciar enviadas automáticamente (sin intervención del admin)
-  // de las enviadas manualmente. Una solicitud se considera "automática"
-  // cuando su creación y el envío del código sucedieron casi a la vez
-  // (en el mismo flujo del backend submitAccessRequest → generateAccessCode).
-  const autoSentRequests = processedRequests.filter(r => {
-    if (!r.codigo_enviado_id || !r.updated_date || !r.created_date) return false;
-    const diffMs = new Date(r.updated_date).getTime() - new Date(r.created_date).getTime();
-    return diffMs < 60_000; // menos de 60s entre crear y enviar = auto
-  });
-  const manualSentRequests = processedRequests.filter(r => !autoSentRequests.includes(r));
-
   const handleSent = async (result, request) => {
     // Marcar la solicitud como procesada
     try {
@@ -70,72 +59,6 @@ export default function AccessRequestsPanel() {
 
   return (
     <div className="space-y-4">
-      {/* Estadísticas: envíos automáticos vs manuales */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
-        <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-green-600 flex items-center justify-center flex-shrink-0">
-                <Zap className="w-4 h-4 text-white" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold text-green-700 uppercase leading-tight">Auto-enviados</p>
-                <p className="text-xl font-black text-green-900 leading-none">{autoSentRequests.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-cyan-50">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center flex-shrink-0">
-                <UserCheck className="w-4 h-4 text-white" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold text-blue-700 uppercase leading-tight">Manuales</p>
-                <p className="text-xl font-black text-blue-900 leading-none">{manualSentRequests.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-2 border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-orange-600 flex items-center justify-center flex-shrink-0">
-                <Clock className="w-4 h-4 text-white" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold text-orange-700 uppercase leading-tight">Pendientes</p>
-                <p className="text-xl font-black text-orange-900 leading-none">{pendingRequests.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-2 border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100">
-          <CardContent className="p-3">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center flex-shrink-0">
-                <Inbox className="w-4 h-4 text-white" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] font-bold text-slate-700 uppercase leading-tight">Total</p>
-                <p className="text-xl font-black text-slate-900 leading-none">{requests.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Aviso: cómo funciona el auto-envío */}
-      <Card className="border-2 border-green-200 bg-green-50">
-        <CardContent className="p-3">
-          <p className="text-xs text-green-800 leading-relaxed">
-            <Zap className="w-3.5 h-3.5 inline mr-1 text-green-600" />
-            <strong>Envío automático activo:</strong> cuando una familia pide acceso con un email que YA está registrado como tutor de un jugador activo, el código se envía automáticamente sin que tengas que hacer nada. El resto (emails desconocidos, sospechosos o duplicados) quedan aquí pendientes para que los revises tú.
-          </p>
-        </CardContent>
-      </Card>
-
       {/* Link público */}
       <Card className="border-2 border-orange-200 bg-orange-50">
         <CardContent className="p-4">
@@ -269,25 +192,16 @@ export default function AccessRequestsPanel() {
             </Button>
           </div>
           <div className="space-y-1.5 max-h-64 overflow-y-auto">
-            {processedRequests.map((req) => {
-              const wasAuto = autoSentRequests.includes(req);
-              return (
-                <div key={req.id} className={`flex items-center gap-3 rounded-xl px-3 py-2 border ${wasAuto ? 'bg-emerald-50 border-emerald-200' : 'bg-green-50 border-green-200'}`}>
-                  <CheckCircle2 className={`w-4 h-4 flex-shrink-0 ${wasAuto ? 'text-emerald-600' : 'text-green-600'}`} />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium text-slate-800">{req.nombre_progenitor}</span>
-                    <span className="text-xs text-slate-500 ml-2">{req.email}</span>
-                  </div>
-                  {wasAuto && (
-                    <Badge className="bg-emerald-600 text-white text-[10px] font-bold gap-0.5">
-                      <Zap className="w-2.5 h-2.5" />
-                      Auto
-                    </Badge>
-                  )}
-                  <Badge className="bg-green-100 text-green-700 text-xs">{req.categoria}</Badge>
+            {processedRequests.map((req) => (
+              <div key={req.id} className="flex items-center gap-3 bg-green-50 rounded-xl px-3 py-2 border border-green-200">
+                <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <span className="text-sm font-medium text-slate-800">{req.nombre_progenitor}</span>
+                  <span className="text-xs text-slate-500 ml-2">{req.email}</span>
                 </div>
-              );
-            })}
+                <Badge className="bg-green-100 text-green-700 text-xs">{req.categoria}</Badge>
+              </div>
+            ))}
           </div>
         </div>
       )}

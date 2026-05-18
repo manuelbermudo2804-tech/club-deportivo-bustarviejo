@@ -16,36 +16,6 @@ function isFakeName(name) {
   return FAKE_NAME_PATTERNS.some(p => p.test(trimmed));
 }
 
-// ============================================================
-// AUTO-ENVÍO INTELIGENTE
-// Solo se dispara cuando la confianza es "verde": el email
-// coincide EXACTAMENTE con el de un tutor (o jugador) de un
-// jugador ACTIVO en el club. En cualquier otro caso, la
-// solicitud queda pendiente para revisión manual del admin.
-// ============================================================
-function normalize(s) {
-  return String(s || "").trim().toLowerCase();
-}
-
-async function isTrustedRequest(base44, emailLower) {
-  try {
-    // Buscamos jugadores activos cuyo tutor/jugador tenga este email
-    const playersA = await base44.asServiceRole.entities.Player.filter({ email_padre: emailLower, activo: true });
-    if (playersA.length > 0) return { trusted: true, player: playersA[0] };
-
-    const playersB = await base44.asServiceRole.entities.Player.filter({ email_tutor_2: emailLower, activo: true });
-    if (playersB.length > 0) return { trusted: true, player: playersB[0] };
-
-    const playersC = await base44.asServiceRole.entities.Player.filter({ email_jugador: emailLower, activo: true });
-    if (playersC.length > 0) return { trusted: true, player: playersC[0] };
-
-    return { trusted: false };
-  } catch (e) {
-    console.error('[submitAccessRequest] Error evaluando confianza:', e.message);
-    return { trusted: false };
-  }
-}
-
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -67,7 +37,7 @@ Deno.serve(async (req) => {
     }
 
     // 3. Validar email
-    const emailLower = normalize(email);
+    const emailLower = email.toLowerCase().trim();
     const emailDomain = emailLower.split('@')[1];
     if (!emailDomain || DISPOSABLE_DOMAINS.includes(emailDomain)) {
       return Response.json({ error: 'Por favor usa un email válido y permanente.' }, { status: 400 });
@@ -98,7 +68,7 @@ Deno.serve(async (req) => {
     }
 
     // 6. Crear solicitud
-    const created = await base44.asServiceRole.entities.AccessRequest.create({
+    await base44.asServiceRole.entities.AccessRequest.create({
       email: emailLower,
       nombre_progenitor: nombre_progenitor.trim(),
       telefono: (telefono || '').trim(),
@@ -109,33 +79,7 @@ Deno.serve(async (req) => {
       user_agent: user_agent || '',
     });
 
-    // 7. AUTO-ENVÍO si la solicitud es de confianza (email coincide con tutor de jugador activo)
-    let autoSent = false;
-    try {
-      const trust = await isTrustedRequest(base44, emailLower);
-      if (trust.trusted) {
-        console.log('[submitAccessRequest] ✅ Solicitud de confianza, enviando código automáticamente a', emailLower);
-        const { data: result } = await base44.asServiceRole.functions.invoke('generateAccessCode', {
-          email: emailLower,
-          tipo: 'padre_nuevo',
-          nombre_destino: nombre_progenitor.trim(),
-          mensaje_personalizado: '',
-        });
-
-        if (result?.success && result?.id) {
-          await base44.asServiceRole.entities.AccessRequest.update(created.id, {
-            estado: 'codigo_enviado',
-            codigo_enviado_id: result.id,
-          });
-          autoSent = true;
-        }
-      }
-    } catch (autoErr) {
-      // Si falla el auto-envío, la solicitud queda pendiente para revisión manual (comportamiento clásico)
-      console.error('[submitAccessRequest] Auto-envío falló (queda pendiente para revisión manual):', autoErr.message);
-    }
-
-    return Response.json({ success: true, auto_sent: autoSent });
+    return Response.json({ success: true });
   } catch (error) {
     console.error('Error:', error);
     return Response.json({ error: error.message }, { status: 500 });
