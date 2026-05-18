@@ -371,7 +371,7 @@ export default function PublicAccessRequest() {
 
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">
-                Categoría del hijo/a *
+                Categoría *
               </label>
               <select
                 value={categoria}
