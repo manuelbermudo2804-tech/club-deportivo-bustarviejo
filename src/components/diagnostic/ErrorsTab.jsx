@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -66,8 +67,9 @@ function ErrorRow({ evt }) {
 export default function ErrorsTab() {
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const queryClient = useQueryClient();
 
-  const { data: events = [], isLoading, refetch } = useQuery({
+  const { data: events = [], isLoading, isFetching, refetch } = useQuery({
     queryKey: ["app-errors"],
     queryFn: async () => {
       const [appErrors, jsErrors] = await Promise.all([
@@ -77,7 +79,18 @@ export default function ErrorsTab() {
       return [...appErrors, ...jsErrors].sort((a, b) => new Date(b.created_date) - new Date(a.created_date));
     },
     refetchInterval: 20000,
+    staleTime: 0,
   });
+
+  const handleRefresh = async () => {
+    const before = events.length;
+    await queryClient.invalidateQueries({ queryKey: ["app-errors"] });
+    const result = await refetch();
+    const after = (result.data || []).length;
+    const diff = after - before;
+    if (diff > 0) toast.success(`Actualizado · ${diff} nuevo${diff === 1 ? "" : "s"}`);
+    else toast.success("Actualizado · sin novedades");
+  };
 
   const filtered = useMemo(() => {
     let result = events;
@@ -111,8 +124,8 @@ export default function ErrorsTab() {
         <p className="text-sm text-slate-600">
           Errores capturados de la app (try/catch) y errores JavaScript del navegador.
         </p>
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
-          <RefreshCw className="w-4 h-4 mr-1" /> Actualizar
+        <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isFetching}>
+          <RefreshCw className={`w-4 h-4 mr-1 ${isFetching ? "animate-spin" : ""}`} /> {isFetching ? "Actualizando..." : "Actualizar"}
         </Button>
       </div>
 
