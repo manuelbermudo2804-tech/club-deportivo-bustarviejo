@@ -5,11 +5,21 @@
     "email": {
       "type": "string",
       "format": "email",
-      "description": "Email del primer progenitor/tutor"
+      "description": "Email del solicitante"
     },
     "nombre_progenitor": {
       "type": "string",
-      "description": "Nombre del primer progenitor/tutor"
+      "description": "Nombre del solicitante (padre/madre/tutor/jugador +18)"
+    },
+    "tipo_solicitante": {
+      "type": "string",
+      "enum": [
+        "padre",
+        "madre",
+        "tutor",
+        "jugador_adulto"
+      ],
+      "description": "Tipo de persona que solicita el acceso"
     },
     "telefono": {
       "type": "string",

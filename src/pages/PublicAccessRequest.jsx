@@ -67,6 +67,7 @@ export default function PublicAccessRequest() {
   const [email, setEmail] = useState("");
   const [emailConfirm, setEmailConfirm] = useState("");
   const [nombre, setNombre] = useState("");
+  const [tipoSolicitante, setTipoSolicitante] = useState("");
   const [telefono, setTelefono] = useState("");
   const [categoria, setCategoria] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
@@ -84,7 +85,7 @@ export default function PublicAccessRequest() {
     e.preventDefault();
     setError("");
 
-    if (!email.trim() || !nombre.trim() || !categoria) {
+    if (!email.trim() || !nombre.trim() || !categoria || !tipoSolicitante) {
       setError("Por favor, rellena todos los campos obligatorios.");
       return;
     }
@@ -117,6 +118,7 @@ export default function PublicAccessRequest() {
       await base44.functions.invoke("submitAccessRequest", {
         email: email.trim().toLowerCase(),
         nombre_progenitor: trimmedName,
+        tipo_solicitante: tipoSolicitante,
         telefono: telefono.trim(),
         categoria,
         device_fingerprint: fingerprint,
@@ -291,8 +293,35 @@ export default function PublicAccessRequest() {
             </div>
 
             <div>
+              <label className="block text-sm font-bold text-slate-700 mb-2">
+                ¿Quién solicita el acceso? *
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: "padre", label: "👨 Padre" },
+                  { value: "madre", label: "👩 Madre" },
+                  { value: "tutor", label: "🧑‍⚖️ Tutor/a legal" },
+                  { value: "jugador_adulto", label: "⚽ Jugador/a +18" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setTipoSolicitante(opt.value)}
+                    className={`px-3 py-3 rounded-xl text-sm font-bold border-2 transition-all ${
+                      tipoSolicitante === opt.value
+                        ? "border-orange-600 bg-orange-50 text-orange-700"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">
-                Nombre del padre/madre/tutor *
+                {tipoSolicitante === "jugador_adulto" ? "Tu nombre completo *" : "Nombre del padre/madre/tutor *"}
               </label>
               <input
                 type="text"
