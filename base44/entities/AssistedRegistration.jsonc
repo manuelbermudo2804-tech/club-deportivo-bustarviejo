@@ -1,0 +1,104 @@
+{
+  "name": "AssistedRegistration",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "registro",
+        "instalacion"
+      ],
+      "default": "registro",
+      "description": "Tipo de ayuda solicitada: registro de jugador o instalaci\u00f3n de la app"
+    },
+    "nombre_contacto": {
+      "type": "string",
+      "description": "Nombre de la persona que solicita ayuda"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto"
+    },
+    "horario_contacto": {
+      "type": "string",
+      "enum": [
+        "Ma\u00f1anas (9:00-14:00)",
+        "Tardes (15:00-20:00)",
+        "Cualquier hora"
+      ],
+      "default": "Cualquier hora",
+      "description": "Horario preferido para ser contactado"
+    },
+    "notas_horario": {
+      "type": "string",
+      "description": "Notas adicionales sobre disponibilidad horaria"
+    },
+    "email_usuario": {
+      "type": "string",
+      "description": "Email del usuario que pidi\u00f3 ayuda (si est\u00e1 logueado)"
+    },
+    "nombre_jugador": {
+      "type": "string",
+      "description": "Nombre del jugador que intentaban inscribir (si lo rellenaron)"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "contactado",
+        "resuelto"
+      ],
+      "default": "pendiente",
+      "description": "Estado de la solicitud"
+    },
+    "notas_admin": {
+      "type": "string",
+      "description": "Notas del admin sobre la gesti\u00f3n"
+    },
+    "intentos_subida": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero de intentos fallidos de subida que provocaron la solicitud"
+    },
+    "dispositivo": {
+      "type": "string",
+      "description": "User agent del dispositivo"
+    },
+    "resuelto_por": {
+      "type": "string",
+      "description": "Email del admin que resolvi\u00f3 la solicitud"
+    },
+    "fecha_contacto": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se contact\u00f3 a la familia"
+    },
+    "fecha_resolucion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se resolvi\u00f3"
+    }
+  },
+  "required": [
+    "nombre_contacto",
+    "telefono"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

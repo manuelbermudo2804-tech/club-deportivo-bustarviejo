@@ -5,6 +5,7 @@ import { CheckCircle2, Loader2, Mail, Send, Calendar, MessageCircle, CreditCard,
 import BackToAppButton from "../components/public/BackToAppButton";
 import { getDeviceFingerprint } from "../components/sanisidro/deviceFingerprint";
 import usePublicPageTracker from "../components/public/usePublicPageTracker";
+import InstallHelpRequestForm from "../components/public/InstallHelpRequestForm";
 
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
@@ -74,6 +75,7 @@ export default function PublicAccessRequest() {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [showInstallHelp, setShowInstallHelp] = useState(false);
 
   const emailsMatch = email && emailConfirm && email.trim().toLowerCase() === emailConfirm.trim().toLowerCase();
   const emailSuggestion = checkEmailTypo(email);
@@ -172,8 +174,31 @@ export default function PublicAccessRequest() {
             </ol>
           </div>
 
-          <p className="text-xs text-slate-500">
-            ¿No te llega? Escríbenos a <a href="mailto:info@cdbustarviejo.com" className="text-orange-600 font-bold underline">info@cdbustarviejo.com</a>
+          {/* Ayuda para instalar la app */}
+          <div className="mt-5 pt-5 border-t border-slate-200">
+            {!showInstallHelp ? (
+              <>
+                <p className="text-xs font-bold text-slate-700 mb-2">📲 ¿No sabes instalar la app?</p>
+                <button
+                  type="button"
+                  onClick={() => setShowInstallHelp(true)}
+                  className="w-full bg-blue-50 hover:bg-blue-100 border-2 border-blue-300 text-blue-800 font-bold py-3 rounded-xl text-sm flex items-center justify-center gap-2 transition-colors"
+                >
+                  <Phone className="w-4 h-4" /> Que un voluntario me llame y me ayude
+                </button>
+              </>
+            ) : (
+              <InstallHelpRequestForm
+                defaultEmail={email}
+                defaultNombre={nombre}
+                defaultTelefono={telefono}
+                onClose={() => setShowInstallHelp(false)}
+              />
+            )}
+          </div>
+
+          <p className="text-xs text-slate-500 mt-4">
+            ¿No te llega el código? Escríbenos a <a href="mailto:info@cdbustarviejo.com" className="text-orange-600 font-bold underline">info@cdbustarviejo.com</a>
           </p>
         </motion.div>
       </div>

@@ -27,9 +27,14 @@ function RequestCard({ request, onMarkContacted, onMarkResolved, onUpdateNotes }
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap mb-2">
-              <span className="text-xl">📞</span>
+              <span className="text-xl">{request.tipo === 'instalacion' ? '📲' : '📞'}</span>
               <span className="font-bold text-sm">{request.nombre_contacto}</span>
               <Badge className={`${estado.color} border text-xs`}>{estado.label}</Badge>
+              {request.tipo === 'instalacion' && (
+                <Badge className="bg-blue-100 text-blue-800 border border-blue-300 text-xs">
+                  📲 Instalación
+                </Badge>
+              )}
             </div>
             <div className="space-y-1 text-xs text-slate-600">
               <p>📱 <a href={`tel:${request.telefono}`} className="text-blue-600 font-bold hover:underline">{request.telefono}</a>
@@ -79,8 +84,8 @@ function RequestCard({ request, onMarkContacted, onMarkResolved, onUpdateNotes }
           </div>
 
           <div className="flex flex-col gap-1.5">
-            {/* Botón para dar de alta al jugador por la familia */}
-            {request.estado !== 'resuelto' && (
+            {/* Botón para dar de alta al jugador (solo para tipo 'registro') */}
+            {request.estado !== 'resuelto' && request.tipo !== 'instalacion' && (
               <a
                 href={`${createPageUrl("Players")}?assisted=true&email=${encodeURIComponent(request.email_usuario || '')}&nombre_jugador=${encodeURIComponent(request.nombre_jugador || '')}&telefono=${encodeURIComponent(request.telefono || '')}&nombre_contacto=${encodeURIComponent(request.nombre_contacto || '')}&assisted_id=${request.id}`}
                 className="inline-flex"
