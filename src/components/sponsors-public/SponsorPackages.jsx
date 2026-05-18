@@ -301,9 +301,11 @@ export default function SponsorPackages() {
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {addons.map((addon, i) => {
               // Todas las posiciones de camiseta/chándal se marcan como reservadas.
-              // La pancarta del campo siempre permanece disponible.
-              const forzarReservada = addon.name.toLowerCase().includes("camiseta") || addon.name.toLowerCase().includes("chándal") || addon.name.toLowerCase().includes("chandal");
-              const isAdjudicada = forzarReservada || adjudicadas.includes(addon.name);
+              // La pancarta del campo siempre permanece disponible (forzada SIEMPRE libre, sin plazo).
+              const esPancarta = addon.name.toLowerCase().includes("pancarta");
+              const forzarReservada = !esPancarta && (addon.name.toLowerCase().includes("camiseta") || addon.name.toLowerCase().includes("chándal") || addon.name.toLowerCase().includes("chandal"));
+              const isAdjudicada = forzarReservada || (!esPancarta && adjudicadas.includes(addon.name));
+              const ignorarPlazo = esPancarta;
               return (
               <motion.div
                 key={i}
@@ -355,15 +357,15 @@ export default function SponsorPackages() {
                   ) : (
                   <button
                     onClick={() => handleInterest(addon.name)}
-                    disabled={isDeadlinePassed}
+                    disabled={isDeadlinePassed && !ignorarPlazo}
                     className={`w-full flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl transition-all shadow-sm ${
-                      isDeadlinePassed
+                      (isDeadlinePassed && !ignorarPlazo)
                         ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
                         : 'bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white hover:scale-105 active:scale-95'
                     }`}
                   >
                     <Hand className="w-3.5 h-3.5" />
-                    {isDeadlinePassed ? "Plazo cerrado" : "Me interesa"}
+                    {(isDeadlinePassed && !ignorarPlazo) ? "Plazo cerrado" : "Me interesa"}
                   </button>
                   )}
                 </div>

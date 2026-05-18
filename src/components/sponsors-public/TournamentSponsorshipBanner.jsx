@@ -47,6 +47,7 @@ export default function TournamentSponsorshipBanner({
       color: "from-blue-500 to-cyan-600",
       bg: "from-blue-50 to-cyan-50",
       border: "border-blue-300",
+      image: "https://media.base44.com/images/public/6992c6be619d2da592897991/dbef36286_generated_image.png",
     },
     {
       id: "futbol_sala",
@@ -58,6 +59,7 @@ export default function TournamentSponsorshipBanner({
       color: "from-orange-500 to-red-600",
       bg: "from-orange-50 to-red-50",
       border: "border-orange-300",
+      image: "https://media.base44.com/images/public/6992c6be619d2da592897991/e34d5a4d3_generated_image.png",
     },
     {
       id: "pack_ambos",
@@ -72,6 +74,7 @@ export default function TournamentSponsorshipBanner({
       color: "from-purple-600 to-pink-600",
       bg: "from-purple-50 to-pink-50",
       border: "border-purple-300",
+      image: null,
     },
   ];
 
@@ -163,16 +166,41 @@ export default function TournamentSponsorshipBanner({
                   </>
                 )}
 
-                {/* Header coloreado */}
-                <div className={`bg-gradient-to-br ${p.color} p-5 text-center text-white ${p.ocupado ? 'grayscale opacity-60' : ''}`}>
-                  <div className="text-4xl mb-1">{p.icon}</div>
-                  <h3 className="text-lg font-black">{p.titulo}</h3>
-                  {p.subtitulo && <p className="text-xs opacity-90 mt-0.5">{p.subtitulo}</p>}
-                  <div className="inline-flex items-center gap-1 mt-2 text-[11px] font-semibold bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full">
-                    <Calendar className="w-3 h-3" />
-                    {p.fecha}
+                {/* Header con imagen o gradiente */}
+                {p.image ? (
+                  <div className={`relative h-44 overflow-hidden ${p.ocupado ? 'grayscale opacity-60' : ''}`}>
+                    <img
+                      src={p.image}
+                      alt={p.titulo}
+                      className="absolute inset-0 w-full h-full object-cover"
+                      loading="lazy"
+                    />
+                    <div className={`absolute inset-0 bg-gradient-to-t ${p.color} opacity-60 mix-blend-multiply`} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+                    <div className="absolute inset-0 flex flex-col justify-end p-4 text-white">
+                      <div className="text-4xl mb-1 drop-shadow-lg">{p.icon}</div>
+                      <h3 className="text-xl font-black drop-shadow-md leading-tight">{p.titulo}</h3>
+                      {p.subtitulo && <p className="text-xs opacity-90 mt-0.5 drop-shadow">{p.subtitulo}</p>}
+                      <div className="inline-flex items-center gap-1 mt-2 text-[11px] font-semibold bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full self-start border border-white/30">
+                        <Calendar className="w-3 h-3" />
+                        {p.fecha}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className={`relative h-44 bg-gradient-to-br ${p.color} p-5 flex flex-col items-center justify-center text-center text-white ${p.ocupado ? 'grayscale opacity-60' : ''} overflow-hidden`}>
+                    {/* Decoración: trofeo + brillo */}
+                    <div className="absolute -top-4 -right-4 text-white/10 text-9xl rotate-12">🏆</div>
+                    <div className="absolute -bottom-6 -left-6 text-white/10 text-8xl -rotate-12">⭐</div>
+                    <div className="relative text-5xl mb-1 drop-shadow-lg">{p.icon}</div>
+                    <h3 className="relative text-xl font-black">{p.titulo}</h3>
+                    {p.subtitulo && <p className="relative text-xs opacity-90 mt-0.5">{p.subtitulo}</p>}
+                    <div className="relative inline-flex items-center gap-1 mt-2 text-[11px] font-semibold bg-white/25 backdrop-blur-sm px-2.5 py-1 rounded-full border border-white/30">
+                      <Calendar className="w-3 h-3" />
+                      {p.fecha}
+                    </div>
+                  </div>
+                )}
 
                 {/* Precio + CTA */}
                 <div className={`p-5 text-center ${p.ocupado ? 'opacity-60' : ''}`}>
