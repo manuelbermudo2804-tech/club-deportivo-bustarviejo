@@ -24,18 +24,9 @@ export default function DeadlineCountdown({ deadline }) {
     return () => clearInterval(timer);
   }, [deadline]);
 
-  if (!timeLeft) {
-    return (
-      <div className="mt-6 bg-slate-100 border-2 border-slate-300 rounded-2xl p-5 text-center">
-        <p className="text-sm font-bold text-slate-700">
-          🔒 El plazo para presentar solicitudes ha finalizado
-        </p>
-        <p className="text-xs text-slate-500 mt-1">
-          Las posiciones con más de un interesado se resolverán por subasta. El club contactará con los candidatos.
-        </p>
-      </div>
-    );
-  }
+  // Plazo finalizado → ocultamos el aviso para no transmitir que ya no hay opciones de patrocinio.
+  // Las opciones activas (torneos, pancarta del campo) siguen disponibles.
+  if (!timeLeft) return null;
 
   const units = [
     { value: timeLeft.days, label: "días" },

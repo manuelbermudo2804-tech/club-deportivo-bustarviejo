@@ -113,7 +113,7 @@ export default function TournamentSponsorshipBanner({
 
   return (
     <>
-      <section className="relative py-16 px-4 bg-gradient-to-br from-slate-900 via-purple-900 to-orange-900 text-white overflow-hidden">
+      <section id="torneos" className="relative py-16 px-4 bg-gradient-to-br from-slate-900 via-purple-900 to-orange-900 text-white overflow-hidden scroll-mt-4">
         {/* Patrón decorativo */}
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 25% 25%, white 2px, transparent 2px)', backgroundSize: '40px 40px' }} />
 

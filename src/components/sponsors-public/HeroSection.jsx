@@ -9,14 +9,26 @@ const HERO_BG = "https://media.base44.com/images/public/6992c6be619d2da592897991
 
 export default function HeroSection() {
   const [deadline, setDeadline] = useState(null);
+  const [torneosActivos, setTorneosActivos] = useState(false);
 
   useEffect(() => {
     base44.functions.invoke("getSponsorInterestCounts", {})
       .then(res => {
         if (res.data?.fecha_limite) setDeadline(res.data.fecha_limite);
+        if (res.data?.campana_torneos_activa) setTorneosActivos(true);
       })
       .catch(() => {});
   }, []);
+
+  // Si el plazo de patrocinios anuales ha finalizado, redirigimos el CTA principal a lo que SÍ está disponible:
+  // 1º torneos (si la campaña está activa), 2º la pancarta del campo (que siempre está libre).
+  const isDeadlinePassed = deadline ? new Date(deadline + "T23:59:59") < new Date() : false;
+  const ctaHref = isDeadlinePassed
+    ? (torneosActivos ? "#torneos" : "#paquetes")
+    : "#paquetes";
+  const ctaLabel = isDeadlinePassed
+    ? (torneosActivos ? "Ver opciones disponibles" : "Ver opciones disponibles")
+    : "Ver Paquetes de Patrocinio";
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
       {/* Background */}
@@ -77,10 +89,10 @@ export default function HeroSection() {
           className="mt-6 flex flex-col sm:flex-row gap-3 justify-center"
         >
           <a
-            href="#paquetes"
+            href={ctaHref}
             className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold px-8 py-4 rounded-2xl shadow-xl hover:shadow-orange-500/30 transition-all hover:scale-105 active:scale-95 text-lg"
           >
-            Ver Paquetes de Patrocinio
+            {ctaLabel}
           </a>
           <a
             href="#contacto"
