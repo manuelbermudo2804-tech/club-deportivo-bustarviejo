@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import webpush from 'npm:web-push@3.6.7';
 
 // Email del admin que recibe las notificaciones de nuevas solicitudes
-const ADMIN_EMAIL = 'cdbustarviejo@gmail.com';
+const ADMIN_EMAIL = 'manuelbermudo2804@gmail.com';
 
 webpush.setVapidDetails(
   'mailto:CDBUSTARVIEJO@GMAIL.COM',
