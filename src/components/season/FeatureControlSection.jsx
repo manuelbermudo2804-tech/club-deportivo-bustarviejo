@@ -204,6 +204,53 @@ export default function FeatureControlSection({
             <p className="text-xs text-slate-500 hidden sm:block">Se muestra en la web pública de patrocinadores</p>
           </div>
 
+          {/* Campaña Patrocinios de Torneos */}
+          <FeatureRow
+            icon={<span className="text-xl">🏆</span>}
+            title="Campaña Patrocinios de Torneos"
+            subtitle="Muestra una sección destacada en /Patrocinadores ofreciendo el patrocinio exclusivo del Torneo de Pádel y Fútbol Sala (400€ / 400€ / pack 700€)"
+            checked={activeSeason.campana_torneos_activa || false}
+            onChange={(v) => toggleFeature('campana_torneos_activa', v)}
+          />
+          {activeSeason.campana_torneos_activa && (
+            <div className="ml-8 space-y-3 bg-orange-50 rounded-xl p-4 border-2 border-orange-200">
+              <p className="text-xs text-orange-900 font-semibold">📅 Fechas mostradas en la web (texto libre):</p>
+              <div className="grid sm:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-xs">🎾 Fecha torneo Pádel</Label>
+                  <Input
+                    key={`padel-${activeSeason.id}`}
+                    defaultValue={activeSeason.torneo_padel_fecha || ""}
+                    onBlur={(e) => { if (e.target.value !== (activeSeason.torneo_padel_fecha || "")) update({ torneo_padel_fecha: e.target.value }); }}
+                    placeholder="Ej: Sábado 20 Junio 2026"
+                    className="text-sm"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">⚽ Fecha torneo Fútbol Sala</Label>
+                  <Input
+                    key={`futsal-${activeSeason.id}`}
+                    defaultValue={activeSeason.torneo_futsal_fecha || ""}
+                    onBlur={(e) => { if (e.target.value !== (activeSeason.torneo_futsal_fecha || "")) update({ torneo_futsal_fecha: e.target.value }); }}
+                    placeholder="Ej: Sábado 27 Junio 2026"
+                    className="text-sm"
+                  />
+                </div>
+              </div>
+              <div className="border-t border-orange-200 pt-3 space-y-2">
+                <p className="text-xs text-orange-900 font-semibold">🔒 Marcar como YA RESERVADO (se ve como "se ha adelantado otro patrocinador"):</p>
+                <div className="flex items-center justify-between p-2 bg-white rounded-lg">
+                  <span className="text-sm">🎾 Pádel — reservado</span>
+                  <Switch checked={activeSeason.torneo_padel_ocupado || false} onCheckedChange={(v) => toggleFeature('torneo_padel_ocupado', v)} />
+                </div>
+                <div className="flex items-center justify-between p-2 bg-white rounded-lg">
+                  <span className="text-sm">⚽ Fútbol Sala — reservado</span>
+                  <Switch checked={activeSeason.torneo_futsal_ocupado || false} onCheckedChange={(v) => toggleFeature('torneo_futsal_ocupado', v)} />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Notificaciones Email */}
           <FeatureRow icon={<Mail className="w-5 h-5 text-red-600" />} title="Notificaciones por Email" subtitle="Enviar emails automáticos al admin" checked={activeSeason.notificaciones_admin_email || false} onChange={(v) => toggleFeature('notificaciones_admin_email', v)} />
 

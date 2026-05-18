@@ -39,10 +39,11 @@ const EXTERNAL_PAGES = [
   {
     id: "sponsors",
     nombre: "Patrocinadores",
-    descripcion: "Landing page pública con información de patrocinio, paquetes disponibles y formulario de interés.",
+    descripcion: "Landing page pública con información de patrocinio, paquetes disponibles y formulario de interés. Incluye campaña de Torneos (Pádel + Fútbol Sala) que se activa desde Configuración de Temporada.",
     path: "/Patrocinadores",
     icon: Megaphone,
     color: "bg-purple-500",
+    nota: "Activa la campaña de torneos y edita fechas/plazas ocupadas en: Gestión de Temporada → Patrocinios de Torneos",
   },
   {
     id: "san-isidro",

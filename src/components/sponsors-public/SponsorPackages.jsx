@@ -254,9 +254,12 @@ export default function SponsorPackages() {
 
                   {/* CTA */}
                   {isAdjudicadaPrincipal ? (
-                    <div className="w-full flex items-center justify-center gap-2 text-sm font-bold px-4 py-3 rounded-xl bg-red-500/20 text-red-300 border border-red-400/40">
-                      <CheckCircle2 className="w-4 h-4" />
-                      Posición ya ocupada
+                    <div className="w-full text-center px-4 py-3 rounded-xl bg-red-500/20 text-red-200 border border-red-400/40">
+                      <p className="text-sm font-bold flex items-center justify-center gap-2">
+                        <CheckCircle2 className="w-4 h-4" />
+                        Se ha adelantado otro patrocinador
+                      </p>
+                      <p className="text-[11px] text-red-300/80 mt-1">Esta plaza exclusiva ya está reservada · ¡Mala suerte!</p>
                     </div>
                   ) : (
                     <button
@@ -305,14 +308,16 @@ export default function SponsorPackages() {
                 whileInView={{ opacity: 1, scale: 1 }}
                 viewport={{ once: true }}
                 transition={{ delay: i * 0.08 }}
-                className={`relative bg-white rounded-2xl p-5 border-2 shadow-md transition-all ${
+                className={`relative bg-white rounded-2xl p-5 border-2 shadow-md transition-all overflow-hidden ${
                   isAdjudicada ? 'border-red-300 opacity-75' : addon.highlight ? 'border-yellow-400 ring-2 ring-yellow-200 hover:shadow-lg hover:-translate-y-1' : 'border-slate-200 hover:shadow-lg hover:-translate-y-1'
                 }`}
               >
                 {isAdjudicada && (
-                  <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[10px] font-bold px-3 py-0.5 rounded-full shadow z-10">
-                    🔒 ADJUDICADA
-                  </div>
+                  <>
+                    <div className="absolute top-3 right-3 -rotate-12 bg-red-600 text-white text-[10px] font-black px-2.5 py-1 rounded shadow-lg border-2 border-white tracking-widest z-10">
+                      RESERVADO
+                    </div>
+                  </>
                 )}
                 {!isAdjudicada && addon.highlight && (
                   <div className="absolute -top-2.5 left-1/2 -translate-x-1/2 bg-gradient-to-r from-yellow-500 to-amber-500 text-white text-[10px] font-bold px-3 py-0.5 rounded-full shadow">
@@ -337,9 +342,12 @@ export default function SponsorPackages() {
 
                 <div className="mt-3">
                   {isAdjudicada ? (
-                    <div className="w-full flex items-center justify-center gap-1.5 text-xs font-bold px-3 py-2 rounded-xl bg-red-100 text-red-700 border border-red-200">
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      Posición ya ocupada
+                    <div className="w-full text-center px-3 py-2 rounded-xl bg-red-50 text-red-700 border border-red-200">
+                      <p className="text-[11px] font-bold flex items-center justify-center gap-1.5">
+                        <CheckCircle2 className="w-3 h-3" />
+                        Se ha adelantado otro patrocinador
+                      </p>
+                      <p className="text-[9px] text-red-500 mt-0.5">¡Mala suerte!</p>
                     </div>
                   ) : (
                   <button

@@ -1,12 +1,6 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { 
-  Heart, Users, Trophy, MapPin, Shield, Star, 
-  ChevronDown, Mail, Phone, ArrowRight, CheckCircle2,
-  Mountain, Calendar, Target, Handshake
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import React, { useEffect, useState } from "react";
+import { ArrowLeft } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 
 import HeroSection from "../components/sponsors-public/HeroSection";
 import ClubHistorySection from "../components/sponsors-public/ClubHistorySection";
@@ -14,11 +8,29 @@ import ImpactSection from "../components/sponsors-public/ImpactSection";
 import SponsorPackages from "../components/sponsors-public/SponsorPackages";
 import ContactCTA from "../components/sponsors-public/ContactCTA";
 import SponsorFooter from "../components/sponsors-public/SponsorFooter";
+import TournamentSponsorshipBanner from "../components/sponsors-public/TournamentSponsorshipBanner";
 import usePublicPageTracker from "../components/public/usePublicPageTracker";
-import { ArrowLeft } from "lucide-react";
 
 export default function PublicSponsors() {
   usePublicPageTracker("PublicSponsors");
+  const [torneosConfig, setTorneosConfig] = useState(null);
+
+  useEffect(() => {
+    base44.functions
+      .invoke("getSponsorInterestCounts", {})
+      .then((res) => {
+        if (res?.data?.campana_torneos_activa) {
+          setTorneosConfig({
+            padelFecha: res.data.torneo_padel_fecha,
+            futsalFecha: res.data.torneo_futsal_fecha,
+            padelOcupado: res.data.torneo_padel_ocupado,
+            futsalOcupado: res.data.torneo_futsal_ocupado,
+          });
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   return (
     <div className="min-h-screen bg-white">
       <a
@@ -29,6 +41,14 @@ export default function PublicSponsors() {
         Volver a la web
       </a>
       <HeroSection />
+      {torneosConfig && (
+        <TournamentSponsorshipBanner
+          padelFecha={torneosConfig.padelFecha}
+          futsalFecha={torneosConfig.futsalFecha}
+          padelOcupado={torneosConfig.padelOcupado}
+          futsalOcupado={torneosConfig.futsalOcupado}
+        />
+      )}
       <ClubHistorySection />
       <ImpactSection />
       <SponsorPackages />

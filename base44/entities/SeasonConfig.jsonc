@@ -358,6 +358,29 @@
       "format": "date",
       "description": "Fecha l\u00edmite para presentar solicitudes de patrocinio (se muestra en la web p\u00fablica)"
     },
+    "campana_torneos_activa": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mostrar la campa\u00f1a de Patrocinio de Torneos (P\u00e1del + F\u00fatbol Sala) en la p\u00e1gina p\u00fablica /Patrocinadores"
+    },
+    "torneo_padel_fecha": {
+      "type": "string",
+      "description": "Texto libre con la fecha del torneo de p\u00e1del (ej: 'S\u00e1bado 20 Junio 2026' o 'Junio 2026 \u00b7 fecha por confirmar')"
+    },
+    "torneo_futsal_fecha": {
+      "type": "string",
+      "description": "Texto libre con la fecha del torneo de f\u00fatbol sala"
+    },
+    "torneo_padel_ocupado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Marcar como YA RESERVADO el patrocinio del torneo de p\u00e1del"
+    },
+    "torneo_futsal_ocupado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Marcar como YA RESERVADO el patrocinio del torneo de f\u00fatbol sala"
+    },
     "fondo_solidario_activo": {
       "type": "boolean",
       "default": false,
