@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Calendar, CheckCircle2, Lock, Send, Loader2, Sparkles, Megaphone, Image as ImageIcon, Star, Users, Award, X } from "lucide-react";
+import { Trophy, Calendar, CheckCircle2, Lock, Send, Loader2, Sparkles, Megaphone, Star, Award, Camera, Instagram, Smartphone, Gift } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,12 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 
 const BENEFICIOS = [
-  { icon: Trophy, texto: "El torneo lleva tu nombre", detalle: '"Torneo [Tu Marca] 2026"' },
-  { icon: ImageIcon, texto: "Lona física en el recinto", detalle: "Visibilidad durante todo el evento" },
-  { icon: Star, texto: "Logo grande en cartelería", detalle: "Cartel oficial, redes y app del club" },
-  { icon: Megaphone, texto: "Posts dedicados en RRSS", detalle: "Instagram + Telegram" },
-  { icon: Award, texto: "Foto con los ganadores", detalle: "Sosteniendo tu logo/banner" },
-  { icon: Users, texto: "Mención en megafonía", detalle: "Durante el torneo y entrega de trofeos" },
+  { icon: Trophy, texto: "El torneo lleva tu nombre", detalle: '"Torneo [Tu Marca] 2026" — naming oficial en toda la comunicación' },
+  { icon: Star, texto: "Logo principal en cartelería oficial", detalle: "Cartel del torneo, app, web y redes del club" },
+  { icon: Instagram, texto: "Posts dedicados en RRSS", detalle: "Anuncio del torneo, durante el evento y entrega de trofeos" },
+  { icon: Award, texto: "Entrega de trofeos por tu marca", detalle: "Foto oficial con los ganadores sosteniendo tu logo" },
+  { icon: Smartphone, texto: "Banner destacado en la app", detalle: "Visible para todas las familias del club" },
+  { icon: Gift, texto: "Detalle especial para tu negocio", detalle: "Acordamos juntos algún extra que aporte valor real a tu marca" },
 ];
 
 export default function TournamentSponsorshipBanner({
@@ -130,7 +130,7 @@ export default function TournamentSponsorshipBanner({
               🏆 Patrocina nuestros <span className="text-orange-400">torneos</span>
             </h2>
             <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto">
-              Da nombre a un torneo, ponle tu lona y lleva tu marca a +200 participantes
+              Da <strong className="text-white">nombre oficial</strong> a un torneo y lleva tu marca a participantes, familias y vecinos de Bustarviejo
             </p>
           </motion.div>
 
@@ -230,7 +230,7 @@ export default function TournamentSponsorshipBanner({
               })}
             </div>
             <p className="text-center text-[11px] text-slate-400 mt-4 italic">
-              📌 La lona la imprime el patrocinador (le proporcionamos las medidas)
+              ✨ Personalizamos cada patrocinio contigo para que sea único y aporte valor real a tu negocio
             </p>
           </motion.div>
         </div>

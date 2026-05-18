@@ -300,7 +300,10 @@ export default function SponsorPackages() {
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {addons.map((addon, i) => {
-              const isAdjudicada = adjudicadas.includes(addon.name);
+              // Todas las posiciones de camiseta/chándal se marcan como reservadas.
+              // La pancarta del campo siempre permanece disponible.
+              const forzarReservada = addon.name.toLowerCase().includes("camiseta") || addon.name.toLowerCase().includes("chándal") || addon.name.toLowerCase().includes("chandal");
+              const isAdjudicada = forzarReservada || adjudicadas.includes(addon.name);
               return (
               <motion.div
                 key={i}
