@@ -82,7 +82,7 @@ export function buildAdminNavigation(ctx) {
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "📊 Estadísticas Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
-    { title: "🔬 Centro de Diagnóstico", url: createPageUrl("AppAnalytics"), icon: BarChart3 },
+    { title: "🩺 Análisis Inteligente App", url: createPageUrl("AppAnalytics"), icon: BarChart3 },
     { title: "⚡ Monitor de Créditos", url: createPageUrl("CreditUsage"), icon: BarChart3 },
     { title: "🌐 Páginas Externas", url: "/ExternalLinks", icon: ExternalLink },
 
@@ -92,7 +92,7 @@ export function buildAdminNavigation(ctx) {
 
     { title: "─ DESARROLLO ─", section: true },
     { title: "📲 Check-in Tablet", url: createPageUrl("CheckinTablet"), icon: Smartphone },
-    { title: "🔬 Diagnóstico App", url: createPageUrl("UploadDiagnostics"), icon: ShieldAlert },
+    { title: "🔬 Registro de Errores y Eventos", url: createPageUrl("UploadDiagnostics"), icon: ShieldAlert },
   ];
 }
 
