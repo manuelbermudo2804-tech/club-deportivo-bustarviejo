@@ -39,6 +39,7 @@ import PorraMiPorra from '@/pages/PorraMiPorra';
 import PorraRanking from '@/pages/PorraRanking';
 import SponsorSplash from '@/components/sponsors/SponsorSplash';
 import PropuestaGVCGaesco from '@/pages/PropuestaGVCGaesco';
+import PatrocinaTorneos from '@/pages/PatrocinaTorneos';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -53,7 +54,7 @@ const AppRouter = () => {
   
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').toLowerCase();
-  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/propuestagvcgaesco'];
+  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/propuestagvcgaesco', '/patrocinatorneos'];
   // Si la URL incluye ?from=app, el usuario viene de la app interna autenticada:
   // queremos renderizar con el layout normal (menú lateral, etc.) en vez de tratar
   // /PorraMiPorra y /PorraRanking como páginas 100% públicas sin entorno.
@@ -87,6 +88,8 @@ const AppRouter = () => {
         <Route path="/porraranking" element={<PorraRanking />} />
         <Route path="/PropuestaGVCGaesco" element={<PropuestaGVCGaesco />} />
         <Route path="/propuestagvcgaesco" element={<PropuestaGVCGaesco />} />
+        <Route path="/PatrocinaTorneos" element={<PatrocinaTorneos />} />
+        <Route path="/patrocinatorneos" element={<PatrocinaTorneos />} />
       </Routes>
     );
   }

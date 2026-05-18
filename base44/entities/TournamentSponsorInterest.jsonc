@@ -1,0 +1,56 @@
+{
+  "name": "TournamentSponsorInterest",
+  "type": "object",
+  "properties": {
+    "torneo": {
+      "type": "string",
+      "enum": [
+        "padel",
+        "futbol_sala",
+        "pack_ambos"
+      ],
+      "description": "Torneo (o pack) al que se postula como patrocinador oficial"
+    },
+    "nombre_empresa": {
+      "type": "string",
+      "description": "Nombre comercial de la empresa interesada"
+    },
+    "nombre_contacto": {
+      "type": "string",
+      "description": "Nombre de la persona de contacto"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email de contacto"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto"
+    },
+    "mensaje": {
+      "type": "string",
+      "description": "Mensaje libre (opcional)"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "contactado",
+        "cerrado",
+        "descartado"
+      ],
+      "default": "pendiente"
+    },
+    "notas_internas": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "torneo",
+    "nombre_empresa",
+    "nombre_contacto",
+    "email",
+    "telefono"
+  ]
+}
