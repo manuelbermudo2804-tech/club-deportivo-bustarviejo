@@ -5,6 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RefreshCw, TrendingUp, Clock, AlertTriangle, CheckCircle2 } from "lucide-react";
 
+const STEP_LABELS_FAMILY = ["Jugador", "Categoría", "Documentos", "Tutor", "2º Progenitor", "Médica", "Normativa", "Autorizaciones", "Resumen"];
+const STEP_LABELS_ADULT = ["Jugador", "Categoría", "Documentos", "Mis Datos", "Médica", "Normativa", "Autorizaciones", "Resumen"];
+
+function getStepLabel(wizardName, stepNum) {
+  const labels = (wizardName || "").includes("Adult") ? STEP_LABELS_ADULT : STEP_LABELS_FAMILY;
+  return labels[stepNum] ?? `Paso ${stepNum}`;
+}
+
 function formatMs(ms) {
   if (!ms || ms < 0) return "—";
   if (ms < 60000) return `${Math.round(ms / 1000)}s`;
@@ -137,8 +145,8 @@ export default function WizardTab() {
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-orange-600" />
               <div className="flex-1">
-                <p className="font-bold text-orange-900">Paso más problemático: {stats.worstStep.step}</p>
-                <p className="text-sm text-orange-800">{stats.worstStep.count} usuarios abandonaron en ese paso.</p>
+                <p className="font-bold text-orange-900">Paso más problemático: "{getStepLabel("Family", parseInt(stats.worstStep.step))}" (paso {parseInt(stats.worstStep.step) + 1})</p>
+                <p className="text-sm text-orange-800">{stats.worstStep.count} usuarios abandonaron al llegar a este paso.</p>
               </div>
             </div>
           </CardContent>
@@ -177,7 +185,7 @@ export default function WizardTab() {
                       {s.completed ? (
                         <span className="text-green-700">✅ Completado en {formatMs(s.totalDuration)}</span>
                       ) : (
-                        <span className="text-amber-700">⏸ Llegó al paso {s.maxStep} de {s.totalSteps - 1}</span>
+                        <span className="text-amber-700">⏸ Llegó a "<strong>{getStepLabel(s.wizard, s.maxStep)}</strong>" ({s.maxStep + 1}/{s.totalSteps})</span>
                       )}
                       {s.validationFails > 0 && (
                         <span className="ml-2 text-red-600">⚠️ {s.validationFails} errores de validación</span>

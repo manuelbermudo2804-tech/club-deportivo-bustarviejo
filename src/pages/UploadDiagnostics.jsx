@@ -7,11 +7,12 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { RefreshCw, Search, Trash2, ChevronDown, ChevronUp, Smartphone, Wifi, Clock, User, FileText, AlertCircle, CheckCircle2, MousePointer, ArrowRightLeft, Camera, Bug, TrendingUp } from "lucide-react";
+import { RefreshCw, Search, Trash2, ChevronDown, ChevronUp, Smartphone, Wifi, Clock, User, FileText, AlertCircle, CheckCircle2, MousePointer, ArrowRightLeft, Camera, Bug, TrendingUp, UserPlus } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import ErrorsTab from "../components/diagnostic/ErrorsTab";
 import WizardTab from "../components/diagnostic/WizardTab";
+import AltasEnCursoTab from "../components/diagnostic/AltasEnCursoTab";
 
 const EVENT_ICONS = {
   button_click: { icon: MousePointer, color: "text-blue-600", bg: "bg-blue-50", label: "Botón pulsado" },
@@ -148,12 +149,17 @@ export default function UploadDiagnostics() {
         <h1 className="text-2xl font-bold">🔬 Centro de Diagnóstico</h1>
       </div>
 
-      <Tabs defaultValue="uploads" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+      <Tabs defaultValue="altas" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="altas"><UserPlus className="w-4 h-4 mr-1.5" /> Altas en curso</TabsTrigger>
+          <TabsTrigger value="wizard"><TrendingUp className="w-4 h-4 mr-1.5" /> Wizard Alta</TabsTrigger>
           <TabsTrigger value="uploads"><Camera className="w-4 h-4 mr-1.5" /> Subidas</TabsTrigger>
           <TabsTrigger value="errors"><Bug className="w-4 h-4 mr-1.5" /> Errores</TabsTrigger>
-          <TabsTrigger value="wizard"><TrendingUp className="w-4 h-4 mr-1.5" /> Wizard Alta</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="altas" className="mt-4">
+          <AltasEnCursoTab />
+        </TabsContent>
 
         <TabsContent value="errors" className="mt-4">
           <ErrorsTab />
