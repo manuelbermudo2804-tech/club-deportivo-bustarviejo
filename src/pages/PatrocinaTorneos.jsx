@@ -10,11 +10,16 @@ import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import usePublicPageTracker from "../components/public/usePublicPageTracker";
 
+// 📌 EDITAR AQUÍ las fechas cuando se confirmen (formato libre)
+const FECHA_PADEL = "Junio 2026 · fecha por confirmar";
+const FECHA_FUTSAL = "Junio 2026 · fecha por confirmar";
+
 const PAQUETES = [
   {
     id: "padel",
     icon: "🎾",
     titulo: "Torneo de Pádel",
+    fecha: FECHA_PADEL,
     precio: 400,
     color: "from-blue-500 to-cyan-600",
     borderColor: "border-blue-200",
@@ -24,6 +29,7 @@ const PAQUETES = [
     id: "futbol_sala",
     icon: "⚽",
     titulo: "Torneo de Fútbol Sala",
+    fecha: FECHA_FUTSAL,
     precio: 400,
     color: "from-orange-500 to-red-600",
     borderColor: "border-orange-200",
@@ -34,6 +40,7 @@ const PAQUETES = [
     icon: "🔥",
     titulo: "Pack Ambos Torneos",
     subtitulo: "Pádel + Fútbol Sala",
+    fecha: "Ambos torneos · fechas por confirmar",
     precio: 700,
     precioAhorro: 100,
     destacado: true,
@@ -174,6 +181,11 @@ export default function PatrocinaTorneos() {
                   <div className="text-5xl mb-2">{p.icon}</div>
                   <h3 className="text-xl font-bold">{p.titulo}</h3>
                   {p.subtitulo && <p className="text-sm opacity-90 mt-1">{p.subtitulo}</p>}
+                  {p.fecha && (
+                    <p className="text-xs font-semibold mt-2 inline-flex items-center gap-1 bg-white/20 backdrop-blur-sm px-2.5 py-1 rounded-full">
+                      📅 {p.fecha}
+                    </p>
+                  )}
                 </div>
                 <div className="bg-white rounded-b-2xl p-6 text-center">
                   <div className="mb-4">
