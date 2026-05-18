@@ -367,6 +367,13 @@ export default function AdminAccessCodes() {
   const [inviteOpen, setInviteOpen] = useState(false);
   const [bulkOpen, setBulkOpen] = useState(false);
   const [filter, setFilter] = useState("pendiente");
+  // Tab inicial desde la URL (?tab=bandeja|codigos|seguridad) — usado por notificaciones push
+  const initialTab = React.useMemo(() => {
+    try {
+      const t = new URLSearchParams(window.location.search).get('tab');
+      return ['bandeja', 'codigos', 'seguridad'].includes(t) ? t : 'bandeja';
+    } catch { return 'bandeja'; }
+  }, []);
   const [searchTerm, setSearchTerm] = useState("");
   const [resendingId, setResendingId] = useState(null);
   const [bulkResending, setBulkResending] = useState(false);
@@ -587,7 +594,7 @@ export default function AdminAccessCodes() {
         </Button>
       </div>
 
-      <Tabs defaultValue="bandeja" className="w-full">
+      <Tabs defaultValue={initialTab} className="w-full">
         <TabsList className="grid grid-cols-3 w-full mb-6 h-auto">
           <TabsTrigger value="bandeja" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-3">
             <span className="flex items-center gap-1.5">📥 <span className="hidden sm:inline">Bandeja</span><span className="sm:hidden">Bandeja</span></span>

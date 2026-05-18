@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
           body: cuerpo,
           tag: 'access-request',
           requireInteraction: true,
-          data: { url: '/AdminAccessCodes', timestamp: new Date().toISOString() }
+          data: { url: '/AdminAccessCodes?tab=bandeja', timestamp: new Date().toISOString() }
         });
         await webpush.sendNotification(pushSubscription, payload);
         sent++;
