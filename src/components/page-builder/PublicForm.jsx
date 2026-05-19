@@ -18,6 +18,27 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
 
   const validar = () => {
     for (const c of campos) {
+      // Validación especial para lista_jugadores: cada sub-campo requerido debe estar relleno
+      if (c.tipo === "lista_jugadores") {
+        const n = parseInt(values[`${c.id}_count`]) || 0;
+        if (c.requerido && n < 1) {
+          toast.error(`Selecciona un número de jugadores en: ${c.etiqueta}`);
+          return false;
+        }
+        const subs = c.sub_campos || [];
+        for (let i = 0; i < n; i++) {
+          for (const sc of subs) {
+            if (sc.requerido) {
+              const v = values[`${c.id}__${i}__${sc.id}`];
+              if (v === undefined || v === null || v === "") {
+                toast.error(`Jugador ${i + 1}: completa "${sc.etiqueta}"`);
+                return false;
+              }
+            }
+          }
+        }
+        continue;
+      }
       if (c.requerido) {
         const v = values[c.id];
         if (v === undefined || v === null || v === "" || (c.tipo === "aceptacion" && !v)) {
@@ -189,6 +210,56 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
                       </span>
                     </label>
                   )}
+
+                  {c.tipo === "lista_jugadores" && (() => {
+                    const min = c.min ?? 1;
+                    const max = c.max ?? 12;
+                    const count = parseInt(values[`${c.id}_count`]) || 0;
+                    const subs = c.sub_campos || [];
+                    const opciones = [];
+                    for (let i = min; i <= max; i++) opciones.push(i);
+                    return (
+                      <div className="space-y-3">
+                        <select
+                          value={values[`${c.id}_count`] || ""}
+                          onChange={(e) => update(`${c.id}_count`, e.target.value)}
+                          required={c.requerido}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition bg-white"
+                        >
+                          <option value="">Selecciona nº de jugadores…</option>
+                          {opciones.map((n) => <option key={n} value={n}>{n} jugadores</option>)}
+                        </select>
+
+                        {count > 0 && subs.length > 0 && (
+                          <div className="space-y-3">
+                            {Array.from({ length: count }, (_, i) => (
+                              <div key={i} className="p-4 rounded-xl border-2 border-slate-200 bg-slate-50">
+                                <div className="font-bold text-slate-800 mb-3 text-sm" style={{ color }}>
+                                  Jugador {i + 1}
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                  {subs.map((sc) => (
+                                    <div key={sc.id} className="col-span-2 sm:col-span-1">
+                                      <label className="block text-xs font-semibold text-slate-700 mb-1">
+                                        {sc.etiqueta} {sc.requerido && <span style={{ color }}>*</span>}
+                                      </label>
+                                      <input
+                                        type={sc.tipo === "email" ? "email" : sc.tipo === "telefono" ? "tel" : sc.tipo === "numero" ? "number" : sc.tipo === "fecha" ? "date" : "text"}
+                                        value={values[`${c.id}__${i}__${sc.id}`] || ""}
+                                        onChange={(e) => update(`${c.id}__${i}__${sc.id}`, e.target.value)}
+                                        required={sc.requerido}
+                                        className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition bg-white text-sm"
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
 
                   {c.ayuda && (
                     <p className="text-xs text-slate-500 mt-1">{c.ayuda}</p>

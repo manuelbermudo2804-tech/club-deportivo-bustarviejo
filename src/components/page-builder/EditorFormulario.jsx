@@ -6,6 +6,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Plus, Trash2, GripVertical } from "lucide-react";
+import OpcionesEditor from "./OpcionesEditor";
+import SubCamposEditor from "./SubCamposEditor";
 
 const TIPOS_CAMPO = [
   { v: "texto", l: "📝 Texto" },
@@ -19,6 +21,7 @@ const TIPOS_CAMPO = [
   { v: "textarea", l: "📄 Texto largo" },
   { v: "checkbox", l: "☑️ Casilla" },
   { v: "aceptacion", l: "✅ Aceptación legal" },
+  { v: "lista_jugadores", l: "👥 Lista de jugadores (repetidor)" },
 ];
 
 // Editor del formulario de la landing.
@@ -145,14 +148,42 @@ export default function EditorFormulario({ formulario, onChange }) {
               </div>
 
               {(c.tipo === "select" || c.tipo === "radio") && (
-                <div className="mt-2">
-                  <Label className="text-xs">Opciones (una por línea)</Label>
-                  <Textarea
-                    value={(c.opciones || []).join("\n")}
-                    onChange={(e) => updateCampo(idx, "opciones", e.target.value.split("\n").filter(Boolean))}
-                    rows={3}
-                    className="text-sm"
-                    placeholder="Opción 1&#10;Opción 2"
+                <OpcionesEditor
+                  opciones={c.opciones || []}
+                  onChange={(v) => updateCampo(idx, "opciones", v)}
+                />
+              )}
+
+              {c.tipo === "lista_jugadores" && (
+                <div className="mt-2 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">Mínimo</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={c.min ?? 1}
+                        onChange={(e) => updateCampo(idx, "min", parseInt(e.target.value) || 1)}
+                        className="text-sm h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Máximo</Label>
+                      <Input
+                        type="number"
+                        min={1}
+                        value={c.max ?? 12}
+                        onChange={(e) => updateCampo(idx, "max", parseInt(e.target.value) || 12)}
+                        className="text-sm h-8"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    El que rellena verá un selector "Nº de jugadores" entre {c.min ?? 1} y {c.max ?? 12}. Al elegir el número aparecerán esos bloques.
+                  </p>
+                  <SubCamposEditor
+                    subCampos={c.sub_campos || []}
+                    onChange={(v) => updateCampo(idx, "sub_campos", v)}
                   />
                 </div>
               )}
