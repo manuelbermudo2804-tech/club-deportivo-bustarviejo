@@ -209,30 +209,67 @@ export default function ParentPlayers() {
 
       // ===== INVITACIONES (PRIORIDAD ALTA - ejecutar ANTES de operaciones pesadas) =====
       
-      // INVITACIÓN SEGUNDO PROGENITOR
+      // INVITACIÓN SEGUNDO PROGENITOR — CRÍTICO: con reintentos contra rate limit
       // Pasa por inviteSecondParent: si el usuario YA existe (p.ej. ya invitado por otro hijo),
       // solo lo marca como segundo progenitor — NO envía código ni email.
       if (dataWithParentEmail.email_tutor_2 && dataWithParentEmail.email_tutor_2.trim()) {
-        try {
-          const email2 = dataWithParentEmail.email_tutor_2.trim().toLowerCase();
-          console.log('📧 [ParentPlayers] Invitando a segundo progenitor (via inviteSecondParent):', email2);
-          const { data: inviteResult } = await base44.functions.invoke('inviteSecondParent', {
-            email: email2,
-            playerName: newPlayer.nombre,
-            inviterName: currentUser?.full_name || '',
-            playerId: newPlayer.id
-          });
-          if (inviteResult?.success) {
-            if (inviteResult.alreadyExists) {
-              console.log('ℹ️ Segundo progenitor ya tenía cuenta, no se envió código:', email2);
+        const email2 = dataWithParentEmail.email_tutor_2.trim().toLowerCase();
+        console.log('📧 [ParentPlayers] Invitando a segundo progenitor (via inviteSecondParent):', email2);
+        let sp_sent = false;
+        let sp_lastError = null;
+        for (let attempt = 1; attempt <= 4 && !sp_sent; attempt++) {
+          try {
+            const { data: inviteResult } = await base44.functions.invoke('inviteSecondParent', {
+              email: email2,
+              playerName: newPlayer.nombre,
+              inviterName: currentUser?.full_name || '',
+              playerId: newPlayer.id
+            });
+            if (inviteResult?.success) {
+              sp_sent = true;
+              if (inviteResult.alreadyExists) {
+                console.log('ℹ️ Segundo progenitor ya tenía cuenta, no se envió código:', email2);
+              } else {
+                console.log(`✅ Código segundo progenitor enviado (intento ${attempt}):`, email2);
+              }
             } else {
-              console.log('✅ Código segundo progenitor enviado:', email2);
+              sp_lastError = inviteResult?.error || 'Respuesta sin success';
+              console.warn(`⚠️ 2º progenitor intento ${attempt} falló:`, sp_lastError);
             }
-          } else {
-            console.log('⚠️ Error invitando segundo progenitor:', inviteResult?.error);
+          } catch (err) {
+            sp_lastError = err?.message || String(err);
+            const isRate = /rate limit|429|too many/i.test(sp_lastError);
+            console.warn(`⚠️ 2º progenitor intento ${attempt} excepción${isRate ? ' (rate limit)' : ''}:`, sp_lastError);
           }
-        } catch (e) {
-          console.error('Error invitando a segundo progenitor:', e);
+          if (!sp_sent && attempt < 4) {
+            // Backoff exponencial: 1.5s, 3s, 6s
+            await new Promise(r => setTimeout(r, 1500 * Math.pow(2, attempt - 1)));
+          }
+        }
+        if (!sp_sent) {
+          console.error('❌ FALLO ENVÍO CÓDIGO 2º PROGENITOR tras 4 intentos:', email2, sp_lastError);
+          toast.error(
+            `⚠️ No hemos podido invitar al segundo progenitor (${email2}). ` +
+            `El club ha sido avisado y lo enviará manualmente.`,
+            { duration: 10000 }
+          );
+          try {
+            await base44.functions.invoke('sendEmail', {
+              to: 'info@cdbustarviejo.com',
+              subject: `🚨 Fallo invitación 2º progenitor — ${newPlayer.nombre}`,
+              html: `
+                <h2>Fallo automático en invitación segundo progenitor</h2>
+                <p><strong>Jugador/a:</strong> ${newPlayer.nombre} (ID: ${newPlayer.id})</p>
+                <p><strong>Email 2º progenitor:</strong> ${email2}</p>
+                <p><strong>Padre/tutor 1:</strong> ${currentUser?.full_name || ''} (${currentUser?.email || ''})</p>
+                <p><strong>Error:</strong> ${sp_lastError || 'desconocido'}</p>
+                <hr/>
+                <p>👉 Acción requerida: entra en <strong>Admin → Códigos de acceso</strong> y genera manualmente un código tipo <strong>segundo_progenitor</strong> para este email.</p>
+              `
+            });
+          } catch (notifyErr) {
+            console.error('No se pudo avisar al admin del fallo 2º progenitor:', notifyErr);
+          }
         }
       }
 
@@ -255,10 +292,10 @@ export default function ParentPlayers() {
           console.error('⚠️ No se pudo guardar consentimiento juvenil (continúo igualmente):', e);
         }
 
-        // 2. Generar y enviar código — CON REINTENTO si falla
+        // 2. Generar y enviar código — CON 4 REINTENTOS y backoff exponencial (resistente a rate limit)
         let codeSent = false;
         let lastError = null;
-        for (let attempt = 1; attempt <= 2 && !codeSent; attempt++) {
+        for (let attempt = 1; attempt <= 4 && !codeSent; attempt++) {
           try {
             const { data: codeResult } = await base44.functions.invoke('generateAccessCode', {
               email: emailMenor,
@@ -272,20 +309,22 @@ export default function ParentPlayers() {
               codeSent = true;
             } else {
               lastError = codeResult?.error || 'Respuesta sin success';
-              console.warn(`⚠️ Intento ${attempt} falló:`, lastError);
+              console.warn(`⚠️ Juvenil intento ${attempt} falló:`, lastError);
             }
           } catch (err) {
             lastError = err?.message || String(err);
-            console.warn(`⚠️ Intento ${attempt} excepción:`, lastError);
+            const isRate = /rate limit|429|too many/i.test(lastError);
+            console.warn(`⚠️ Juvenil intento ${attempt} excepción${isRate ? ' (rate limit)' : ''}:`, lastError);
           }
-          if (!codeSent && attempt === 1) {
-            await new Promise(r => setTimeout(r, 1500));
+          if (!codeSent && attempt < 4) {
+            // Backoff exponencial: 1.5s, 3s, 6s — supera ventanas de rate limit
+            await new Promise(r => setTimeout(r, 1500 * Math.pow(2, attempt - 1)));
           }
         }
 
-        // 3. Si tras 2 intentos sigue fallando: avisar al usuario y notificar al admin
+        // 3. Si tras 4 intentos sigue fallando: avisar al usuario y notificar al admin
         if (!codeSent) {
-          console.error('❌ FALLO ENVÍO CÓDIGO JUVENIL tras 2 intentos:', emailMenor, lastError);
+          console.error('❌ FALLO ENVÍO CÓDIGO JUVENIL tras 4 intentos:', emailMenor, lastError);
           toast.error(
             `⚠️ No hemos podido enviar el código de acceso a ${emailMenor}. ` +
             `El administrador del club ha sido avisado y lo enviará manualmente.`,
