@@ -103,6 +103,21 @@ export const BLOCK_CATALOG = [
     },
   },
   {
+    tipo: "contacto",
+    nombre: "Contacto",
+    emoji: "📞",
+    descripcion: "Tarjeta con teléfono, email, WhatsApp y dirección",
+    datosDefault: {
+      titulo: "Contáctanos",
+      subtitulo: "Estamos aquí para ayudarte",
+      telefono: "",
+      email: "",
+      whatsapp: "",
+      direccion: "",
+      horario: "",
+    },
+  },
+  {
     tipo: "cta_button",
     nombre: "Botón CTA",
     emoji: "🔘",

@@ -182,6 +182,43 @@ export default function EditorBloqueProps({ bloque, onChange }) {
     );
   }
 
+  // --- CONTACTO ---
+  if (bloque.tipo === "contacto") {
+    return (
+      <div className="space-y-3">
+        <div>
+          <Label>Título</Label>
+          <Input value={datos.titulo || ""} onChange={(e) => update("titulo", e.target.value)} placeholder="Contáctanos" />
+        </div>
+        <div>
+          <Label>Subtítulo</Label>
+          <Input value={datos.subtitulo || ""} onChange={(e) => update("subtitulo", e.target.value)} placeholder="Estamos aquí para ayudarte" />
+        </div>
+        <div>
+          <Label>📞 Teléfono</Label>
+          <Input value={datos.telefono || ""} onChange={(e) => update("telefono", e.target.value)} placeholder="+34 600 000 000" />
+        </div>
+        <div>
+          <Label>📧 Email</Label>
+          <Input value={datos.email || ""} onChange={(e) => update("email", e.target.value)} placeholder="contacto@ejemplo.com" />
+        </div>
+        <div>
+          <Label>💬 WhatsApp (con prefijo, sin espacios)</Label>
+          <Input value={datos.whatsapp || ""} onChange={(e) => update("whatsapp", e.target.value)} placeholder="34600000000" />
+        </div>
+        <div>
+          <Label>📍 Dirección</Label>
+          <Input value={datos.direccion || ""} onChange={(e) => update("direccion", e.target.value)} placeholder="Calle, número, ciudad" />
+        </div>
+        <div>
+          <Label>🕐 Horario (opcional)</Label>
+          <Input value={datos.horario || ""} onChange={(e) => update("horario", e.target.value)} placeholder="L-V 9:00 - 20:00" />
+        </div>
+        <p className="text-xs text-slate-500">Deja en blanco los campos que no quieras mostrar.</p>
+      </div>
+    );
+  }
+
   // --- TESTIMONIOS ---
   if (bloque.tipo === "testimonios") {
     const items = datos.items || [];
