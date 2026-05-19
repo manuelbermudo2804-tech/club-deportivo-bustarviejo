@@ -36,25 +36,51 @@ export default function EditorHero({ hero, onChange }) {
             />
             <p className="text-xs text-slate-500 mt-1">Recomendado: 1600x900px (horizontal). En móvil se recorta automáticamente, ajusta el encuadre abajo.</p>
           </div>
-          <div>
-            <Label>Encuadre en móvil</Label>
-            <Select
-              value={hero?.posicion_imagen_movil || "center"}
-              onValueChange={(v) => update("posicion_imagen_movil", v)}
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="center">🎯 Centro (por defecto)</SelectItem>
-                <SelectItem value="top">⬆️ Arriba (caras / cielo)</SelectItem>
-                <SelectItem value="bottom">⬇️ Abajo (pies / suelo)</SelectItem>
-                <SelectItem value="left">⬅️ Izquierda</SelectItem>
-                <SelectItem value="right">➡️ Derecha</SelectItem>
-                <SelectItem value="top left">↖️ Arriba-Izquierda</SelectItem>
-                <SelectItem value="top right">↗️ Arriba-Derecha</SelectItem>
-              </SelectContent>
-            </Select>
-            <p className="text-xs text-slate-500 mt-1">Si la imagen sale cortada por la parte importante en el móvil, prueba a cambiar el encuadre.</p>
+          <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-xl">
+            <div className="flex-1 mr-3">
+              <Label className="cursor-pointer">📱 Mostrar imagen ENTERA en móvil</Label>
+              <p className="text-xs text-slate-600 mt-0.5">Activa esto si no quieres que se recorte. La imagen aparecerá completa arriba y el texto debajo. (Solo afecta a móvil)</p>
+            </div>
+            <Switch
+              checked={!!hero?.imagen_entera_movil}
+              onCheckedChange={(v) => update("imagen_entera_movil", v)}
+            />
           </div>
+
+          {hero?.imagen_entera_movil && (
+            <div>
+              <Label>Color de fondo (relleno alrededor)</Label>
+              <Input
+                type="color"
+                value={hero?.color_fondo_entera || "#0f172a"}
+                onChange={(e) => update("color_fondo_entera", e.target.value)}
+                className="h-10"
+              />
+              <p className="text-xs text-slate-500 mt-1">Se usa para rellenar el espacio si la imagen no ocupa todo el ancho.</p>
+            </div>
+          )}
+
+          {!hero?.imagen_entera_movil && (
+            <div>
+              <Label>Encuadre en móvil</Label>
+              <Select
+                value={hero?.posicion_imagen_movil || "center"}
+                onValueChange={(v) => update("posicion_imagen_movil", v)}
+              >
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="center">🎯 Centro (por defecto)</SelectItem>
+                  <SelectItem value="top">⬆️ Arriba (caras / cielo)</SelectItem>
+                  <SelectItem value="bottom">⬇️ Abajo (pies / suelo)</SelectItem>
+                  <SelectItem value="left">⬅️ Izquierda</SelectItem>
+                  <SelectItem value="right">➡️ Derecha</SelectItem>
+                  <SelectItem value="top left">↖️ Arriba-Izquierda</SelectItem>
+                  <SelectItem value="top right">↗️ Arriba-Derecha</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500 mt-1">Si la imagen sale cortada por la parte importante, prueba a cambiar el encuadre o activa "Mostrar imagen entera" arriba.</p>
+            </div>
+          )}
         </>
       )}
 

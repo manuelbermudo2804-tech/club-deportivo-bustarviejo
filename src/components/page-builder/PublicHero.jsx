@@ -64,14 +64,17 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
 
   // Posición del objeto en móvil: por defecto "center", configurable desde el editor
   const posicionMovil = hero?.posicion_imagen_movil || "center";
+  // Modo "imagen entera" en móvil: usa object-contain (sin recorte) sobre fondo de color
+  const imagenEnteraMovil = !!hero?.imagen_entera_movil;
+  const colorFondoEntera = hero?.color_fondo_entera || colorPrimario;
 
   return (
     <section
-      className="relative min-h-[70vh] sm:min-h-[85vh] flex items-center justify-center overflow-hidden bg-slate-900"
-      style={fondo}
+      className={`relative ${imagenEnteraMovil && esImagen ? 'min-h-0 sm:min-h-[85vh]' : 'min-h-[70vh] sm:min-h-[85vh]'} flex items-center justify-center overflow-hidden bg-slate-900`}
+      style={imagenEnteraMovil && esImagen ? { ...fondo, background: colorFondoEntera } : fondo}
     >
       {/* Imagen de fondo con <img> para mejor control en móvil */}
-      {esImagen && (
+      {esImagen && !imagenEnteraMovil && (
         <>
           <img
             src={hero.imagen_url}
@@ -88,6 +91,32 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
         </>
       )}
 
+      {/* Modo imagen entera en móvil: imagen completa arriba (sin recorte), contenido debajo. En desktop vuelve a comportarse como fondo. */}
+      {esImagen && imagenEnteraMovil && (
+        <>
+          {/* Móvil: imagen entera como bloque superior */}
+          <img
+            src={hero.imagen_url}
+            alt=""
+            className="sm:hidden block w-full h-auto relative z-0"
+            style={{ background: colorFondoEntera }}
+          />
+          {/* Desktop: misma imagen como fondo cover */}
+          <img
+            src={hero.imagen_url}
+            alt=""
+            className="hidden sm:block absolute inset-0 w-full h-full object-cover"
+            style={{ objectPosition: posicionMovil }}
+          />
+          <div
+            className="hidden sm:block absolute inset-0"
+            style={{
+              background: "linear-gradient(180deg, rgba(15,23,42,0.5) 0%, rgba(15,23,42,0.85) 100%)",
+            }}
+          />
+        </>
+      )}
+
       {/* Grano decorativo */}
       <div
         className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay"
@@ -97,7 +126,7 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
         }}
       />
 
-      <div className="relative z-10 text-center max-w-4xl mx-auto px-6 py-20">
+      <div className={`relative z-10 text-center max-w-4xl mx-auto px-6 ${imagenEnteraMovil && esImagen ? 'py-10 sm:py-20' : 'py-20'}`}>
         {hero?.badge && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
