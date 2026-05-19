@@ -62,19 +62,19 @@ export default function PublicBlockRenderer({ bloque, branding }) {
   if (tipo === "stats") {
     const items = datos.items || [];
     return wrapper(
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-8">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-8 items-stretch">
         {items.map((item, i) => (
           <div
             key={i}
-            className="text-center p-6 lg:p-8 rounded-3xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-sm"
+            className="h-full flex flex-col items-center justify-center text-center p-6 lg:p-8 rounded-3xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-sm"
           >
             <div
-              className="text-4xl lg:text-6xl font-black tracking-tight mb-2"
+              className="text-3xl sm:text-4xl lg:text-6xl font-black tracking-tight mb-2 break-words leading-tight"
               style={{ color }}
             >
               {item.numero}
             </div>
-            <div className="text-sm lg:text-base text-slate-500 font-medium uppercase tracking-wider">
+            <div className="text-xs sm:text-sm lg:text-base text-slate-500 font-medium uppercase tracking-wider leading-snug">
               {item.etiqueta}
             </div>
           </div>
