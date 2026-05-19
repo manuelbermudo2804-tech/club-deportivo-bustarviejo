@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ImageUploadInput from "./ImageUploadInput";
 
 // Editor del bloque Hero (cabecera principal).
 export default function EditorHero({ hero, onChange }) {
@@ -27,11 +28,10 @@ export default function EditorHero({ hero, onChange }) {
 
       {hero?.tipo === "imagen" && (
         <div>
-          <Label>URL de imagen de fondo</Label>
-          <Input
-            value={hero?.imagen_url || ""}
-            onChange={(e) => update("imagen_url", e.target.value)}
-            placeholder="https://..."
+          <Label>Imagen de fondo</Label>
+          <ImageUploadInput
+            value={hero?.imagen_url}
+            onChange={(v) => update("imagen_url", v)}
           />
           <p className="text-xs text-slate-500 mt-1">Recomendado: 1600x900px o superior.</p>
         </div>

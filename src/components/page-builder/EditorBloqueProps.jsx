@@ -5,6 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2 } from "lucide-react";
+import ImageUploadInput from "./ImageUploadInput";
+import GalleryUploader from "./GalleryUploader";
 
 // Editor de propiedades de un bloque concreto, según su tipo.
 export default function EditorBloqueProps({ bloque, onChange }) {
@@ -101,15 +103,8 @@ export default function EditorBloqueProps({ bloque, onChange }) {
           <Label>Título (opcional)</Label>
           <Input value={datos.titulo || ""} onChange={(e) => update("titulo", e.target.value)} />
         </div>
-        <Label>URLs de imágenes (una por línea)</Label>
-        <Textarea
-          value={items.join("\n")}
-          onChange={(e) => updateItems(e.target.value.split("\n").filter(Boolean))}
-          rows={6}
-          placeholder="https://...&#10;https://..."
-          className="font-mono text-xs"
-        />
-        <p className="text-xs text-slate-500">Tip: usa imágenes 1:1 (cuadradas) para mejor resultado.</p>
+        <Label>Imágenes</Label>
+        <GalleryUploader items={items} onChange={updateItems} />
       </div>
     );
   }
@@ -119,8 +114,8 @@ export default function EditorBloqueProps({ bloque, onChange }) {
     return (
       <div className="space-y-3">
         <div>
-          <Label>URL de la imagen</Label>
-          <Input value={datos.url || ""} onChange={(e) => update("url", e.target.value)} placeholder="https://..." />
+          <Label>Imagen</Label>
+          <ImageUploadInput value={datos.url} onChange={(v) => update("url", v)} />
         </div>
         <div>
           <Label>Texto alternativo</Label>

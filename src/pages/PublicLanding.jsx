@@ -31,11 +31,37 @@ export default function PublicLanding() {
           }).catch(() => {});
         }
 
-        // Meta tags básicos
-        if (found?.config?.seo?.meta_titulo) {
-          document.title = found.config.seo.meta_titulo;
-        } else if (found?.nombre) {
-          document.title = found.nombre;
+        // Meta tags completos (title + description + Open Graph + Twitter)
+        if (found) {
+          const seo = found.config?.seo || {};
+          const titulo = seo.meta_titulo || found.config?.hero?.titulo || found.nombre || "CD Bustarviejo";
+          const descripcion = seo.meta_descripcion || found.config?.hero?.subtitulo || "";
+          const imagen = seo.imagen_og || found.config?.hero?.imagen_url || "";
+
+          document.title = titulo;
+
+          const setMeta = (selector, attr, value) => {
+            if (!value) return;
+            let tag = document.querySelector(selector);
+            if (!tag) {
+              tag = document.createElement("meta");
+              const [k, v] = selector.replace("meta[", "").replace("]", "").split("=");
+              tag.setAttribute(k, v.replace(/"/g, ""));
+              document.head.appendChild(tag);
+            }
+            tag.setAttribute(attr, value);
+          };
+
+          setMeta('meta[name="description"]', "content", descripcion);
+          setMeta('meta[property="og:title"]', "content", titulo);
+          setMeta('meta[property="og:description"]', "content", descripcion);
+          setMeta('meta[property="og:image"]', "content", imagen);
+          setMeta('meta[property="og:url"]', "content", window.location.href);
+          setMeta('meta[property="og:type"]', "content", "website");
+          setMeta('meta[name="twitter:card"]', "content", "summary_large_image");
+          setMeta('meta[name="twitter:title"]', "content", titulo);
+          setMeta('meta[name="twitter:description"]', "content", descripcion);
+          setMeta('meta[name="twitter:image"]', "content", imagen);
         }
       } finally {
         if (!cancelled) setLoading(false);

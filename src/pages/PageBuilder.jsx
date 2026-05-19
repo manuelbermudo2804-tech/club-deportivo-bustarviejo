@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   Plus, Search, Edit, Copy, ExternalLink, Trash2, Users,
-  Eye, Globe, Loader2, QrCode, Check
+  Eye, Globe, Loader2, QrCode, Check, Share2
 } from "lucide-react";
+import ShareDialog from "@/components/page-builder/ShareDialog";
 import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -21,6 +22,7 @@ export default function PageBuilder() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [copiedId, setCopiedId] = useState(null);
+  const [sharing, setSharing] = useState(null);
 
   const load = async () => {
     setLoading(true);
@@ -177,12 +179,12 @@ export default function PageBuilder() {
                     <Users className="w-3 h-3" /> Inscritos
                   </Button>
                   {p.estado === "publicada" && p.slug && (
-                    <Button size="sm" variant="outline" onClick={() => handleCopyUrl(p)} className="gap-1">
-                      {copiedId === p.id ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
+                    <Button size="sm" variant="outline" onClick={() => setSharing(p)} className="gap-1" title="Compartir / QR">
+                      <Share2 className="w-3 h-3" />
                     </Button>
                   )}
                   {p.estado === "publicada" && p.slug && (
-                    <Button size="sm" variant="outline" onClick={() => window.open(url, "_blank")} className="gap-1">
+                    <Button size="sm" variant="outline" onClick={() => window.open(url, "_blank")} className="gap-1" title="Abrir">
                       <ExternalLink className="w-3 h-3" />
                     </Button>
                   )}
@@ -216,6 +218,13 @@ export default function PageBuilder() {
           })}
         </div>
       )}
+
+      <ShareDialog
+        open={!!sharing}
+        onClose={() => setSharing(null)}
+        url={sharing ? `${window.location.origin}/l/${sharing.slug}` : ""}
+        title={sharing?.nombre}
+      />
     </div>
   );
 }

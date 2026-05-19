@@ -6,12 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Eye, Globe, Loader2, Copy, Check } from "lucide-react";
+import { ArrowLeft, Save, Eye, Globe, Loader2, Copy, Check, Share2 } from "lucide-react";
 import TemplatePicker from "@/components/page-builder/TemplatePicker";
 import EditorHero from "@/components/page-builder/EditorHero";
 import EditorFormulario from "@/components/page-builder/EditorFormulario";
 import EditorBloques from "@/components/page-builder/EditorBloques";
 import EditorBranding from "@/components/page-builder/EditorBranding";
+import ShareDialog from "@/components/page-builder/ShareDialog";
+import ImageUploadInput from "@/components/page-builder/ImageUploadInput";
 import PublicHero from "@/components/page-builder/PublicHero";
 import PublicBlockRenderer from "@/components/page-builder/PublicBlockRenderer";
 import PublicForm from "@/components/page-builder/PublicForm";
@@ -30,8 +32,9 @@ export default function PageBuilderEditor() {
   const [page, setPage] = useState(null);
   const [showPicker, setShowPicker] = useState(!editId);
   const [saving, setSaving] = useState(false);
-  const [tab, setTab] = useState("hero"); // hero | formulario | ajustes
+  const [tab, setTab] = useState("hero");
   const [copied, setCopied] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
 
   // Cargar página existente
   useEffect(() => {
@@ -102,12 +105,7 @@ export default function PageBuilderEditor() {
 
   const publicUrl = page?.slug ? `${window.location.origin}/l/${page.slug}` : "";
 
-  const handleCopyUrl = () => {
-    navigator.clipboard.writeText(publicUrl);
-    setCopied(true);
-    toast.success("URL copiada");
-    setTimeout(() => setCopied(false), 2000);
-  };
+
 
   if (showPicker) {
     return <TemplatePicker onPick={handlePickTemplate} onCancel={() => navigate("/PageBuilder")} />;
@@ -141,9 +139,8 @@ export default function PageBuilderEditor() {
 
         <div className="flex items-center gap-2 flex-shrink-0">
           {page.id && page.slug && (
-            <Button variant="outline" size="sm" onClick={handleCopyUrl} className="gap-2 hidden sm:flex">
-              {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4" />}
-              {copied ? "Copiada" : "Copiar URL"}
+            <Button variant="outline" size="sm" onClick={() => setShareOpen(true)} className="gap-2">
+              <Share2 className="w-4 h-4" /> <span className="hidden sm:inline">Compartir</span>
             </Button>
           )}
           {page.id && page.slug && page.estado === "publicada" && (
@@ -283,6 +280,16 @@ export default function PageBuilderEditor() {
                     placeholder="Para Google y WhatsApp"
                   />
                 </div>
+                <div>
+                  <Label>Imagen para WhatsApp / redes (Open Graph)</Label>
+                  <ImageUploadInput
+                    value={page.config?.seo?.imagen_og}
+                    onChange={(v) => updateConfig("seo", { ...(page.config?.seo || {}), imagen_og: v })}
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Esta imagen aparece al compartir el enlace en WhatsApp, Facebook, Twitter… Recomendado 1200x630px.
+                  </p>
+                </div>
               </div>
             )}
           </div>
@@ -313,6 +320,13 @@ export default function PageBuilderEditor() {
           </div>
         </div>
       </div>
+
+      <ShareDialog
+        open={shareOpen}
+        onClose={() => setShareOpen(false)}
+        url={publicUrl}
+        title={page.nombre}
+      />
     </div>
   );
 }
