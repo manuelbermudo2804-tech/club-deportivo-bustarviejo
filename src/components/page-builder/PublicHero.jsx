@@ -91,7 +91,7 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
         </>
       )}
 
-      {/* Modo imagen entera en móvil: imagen completa arriba (sin recorte), contenido debajo. En desktop vuelve a comportarse como fondo. */}
+      {/* Modo imagen entera: imagen completa sin recorte. En móvil como bloque superior, en escritorio centrada con object-contain. */}
       {esImagen && imagenEnteraMovil && (
         <>
           {/* Móvil: imagen entera como bloque superior */}
@@ -101,18 +101,11 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
             className="sm:hidden block w-full h-auto relative z-0"
             style={{ background: colorFondoEntera }}
           />
-          {/* Desktop: misma imagen como fondo cover */}
+          {/* Escritorio: imagen entera (object-contain), sin overlay oscuro encima */}
           <img
             src={hero.imagen_url}
             alt=""
-            className="hidden sm:block absolute inset-0 w-full h-full object-cover"
-            style={{ objectPosition: posicionMovil }}
-          />
-          <div
-            className="hidden sm:block absolute inset-0"
-            style={{
-              background: "linear-gradient(180deg, rgba(15,23,42,0.5) 0%, rgba(15,23,42,0.85) 100%)",
-            }}
+            className="hidden sm:block absolute inset-0 w-full h-full object-contain"
           />
         </>
       )}
