@@ -236,35 +236,79 @@ export default function ParentPlayers() {
         }
       }
 
-      // ACCESO JUVENIL
+      // ACCESO JUVENIL - CRÍTICO: debe enviarse SIEMPRE que el padre lo autorice
       if (dataWithParentEmail.acceso_menor_autorizado && dataWithParentEmail.acceso_menor_email) {
+        const emailMenor = dataWithParentEmail.acceso_menor_email.trim().toLowerCase();
+        console.log('📧 [ParentPlayers] Enviando invitación acceso juvenil:', emailMenor);
+
+        // 1. Guardar consentimiento (no bloqueante si falla)
         try {
-          console.log('📧 [ParentPlayers] Enviando invitación acceso juvenil:', dataWithParentEmail.acceso_menor_email);
-          // Guardar consentimiento en el Player
           await base44.entities.Player.update(newPlayer.id, {
-            acceso_menor_email: dataWithParentEmail.acceso_menor_email,
+            acceso_menor_email: emailMenor,
             acceso_menor_autorizado: true,
             acceso_menor_fecha_consentimiento: new Date().toISOString(),
             acceso_menor_padre_email: currentUser?.email || dataWithParentEmail.email_padre,
             acceso_menor_texto_version: "v1.0",
             acceso_menor_user_agent: navigator.userAgent,
           });
+        } catch (e) {
+          console.error('⚠️ No se pudo guardar consentimiento juvenil (continúo igualmente):', e);
+        }
 
-          const { data: codeResult } = await base44.functions.invoke('generateAccessCode', {
-            email: dataWithParentEmail.acceso_menor_email.trim().toLowerCase(),
-            tipo: 'juvenil',
-            nombre_destino: newPlayer.nombre?.split(' ')[0] || '',
-            jugador_id: newPlayer.id,
-            jugador_nombre: newPlayer.nombre
-          });
-
-          if (codeResult?.success) {
-            console.log('✅ Código acceso juvenil enviado:', dataWithParentEmail.acceso_menor_email, 'Código:', codeResult.codigo);
-          } else {
-            console.log('⚠️ Error código juvenil:', codeResult?.error);
+        // 2. Generar y enviar código — CON REINTENTO si falla
+        let codeSent = false;
+        let lastError = null;
+        for (let attempt = 1; attempt <= 2 && !codeSent; attempt++) {
+          try {
+            const { data: codeResult } = await base44.functions.invoke('generateAccessCode', {
+              email: emailMenor,
+              tipo: 'juvenil',
+              nombre_destino: newPlayer.nombre?.split(' ')[0] || '',
+              jugador_id: newPlayer.id,
+              jugador_nombre: newPlayer.nombre
+            });
+            if (codeResult?.success) {
+              console.log(`✅ Código juvenil enviado (intento ${attempt}):`, emailMenor, 'Código:', codeResult.codigo);
+              codeSent = true;
+            } else {
+              lastError = codeResult?.error || 'Respuesta sin success';
+              console.warn(`⚠️ Intento ${attempt} falló:`, lastError);
+            }
+          } catch (err) {
+            lastError = err?.message || String(err);
+            console.warn(`⚠️ Intento ${attempt} excepción:`, lastError);
           }
-        } catch (minorError) {
-          console.error('Error generando acceso juvenil:', minorError);
+          if (!codeSent && attempt === 1) {
+            await new Promise(r => setTimeout(r, 1500));
+          }
+        }
+
+        // 3. Si tras 2 intentos sigue fallando: avisar al usuario y notificar al admin
+        if (!codeSent) {
+          console.error('❌ FALLO ENVÍO CÓDIGO JUVENIL tras 2 intentos:', emailMenor, lastError);
+          toast.error(
+            `⚠️ No hemos podido enviar el código de acceso a ${emailMenor}. ` +
+            `El administrador del club ha sido avisado y lo enviará manualmente.`,
+            { duration: 10000 }
+          );
+          // Notificar al admin para que lo envíe a mano
+          try {
+            await base44.functions.invoke('sendEmail', {
+              to: 'info@cdbustarviejo.com',
+              subject: `🚨 Fallo envío código juvenil — ${newPlayer.nombre}`,
+              html: `
+                <h2>Fallo automático en envío de código juvenil</h2>
+                <p><strong>Jugador/a:</strong> ${newPlayer.nombre} (ID: ${newPlayer.id})</p>
+                <p><strong>Email del menor:</strong> ${emailMenor}</p>
+                <p><strong>Padre/tutor:</strong> ${currentUser?.full_name || ''} (${currentUser?.email || ''})</p>
+                <p><strong>Error:</strong> ${lastError || 'desconocido'}</p>
+                <hr/>
+                <p>👉 Acción requerida: entra en <strong>Admin → Códigos de acceso</strong> y genera manualmente un código tipo <strong>juvenil</strong> para este email.</p>
+              `
+            });
+          } catch (notifyErr) {
+            console.error('No se pudo avisar al admin del fallo juvenil:', notifyErr);
+          }
         }
       }
 
