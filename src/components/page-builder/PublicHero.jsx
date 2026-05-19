@@ -66,7 +66,8 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
   const posicionMovil = hero?.posicion_imagen_movil || "center";
   // Modo "imagen entera" en móvil: usa object-contain (sin recorte) sobre fondo de color
   const imagenEnteraMovil = !!hero?.imagen_entera_movil;
-  const colorFondoEntera = hero?.color_fondo_entera || colorPrimario;
+  // Por defecto NEGRO para máximo contraste con texto blanco
+  const colorFondoEntera = hero?.color_fondo_entera || "#000000";
 
   return (
     <section

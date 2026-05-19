@@ -49,14 +49,14 @@ export default function EditorHero({ hero, onChange }) {
 
           {hero?.imagen_entera_movil && (
             <div>
-              <Label>Color de fondo (relleno alrededor)</Label>
+              <Label>Color de fondo (relleno alrededor de la imagen)</Label>
               <Input
                 type="color"
-                value={hero?.color_fondo_entera || "#0f172a"}
+                value={hero?.color_fondo_entera || "#000000"}
                 onChange={(e) => update("color_fondo_entera", e.target.value)}
                 className="h-10"
               />
-              <p className="text-xs text-slate-500 mt-1">Se usa para rellenar el espacio si la imagen no ocupa todo el ancho.</p>
+              <p className="text-xs text-slate-500 mt-1">Recomendado: NEGRO (#000000) para que el texto blanco (título, subtítulo, fecha) se vea perfecto debajo de la imagen.</p>
             </div>
           )}
 
