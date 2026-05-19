@@ -32,6 +32,8 @@ export default function PageBuilderInscritos() {
   const [filterEstado, setFilterEstado] = useState("todos");
   const [selected, setSelected] = useState(null);
 
+  const [accessDenied, setAccessDenied] = useState(false);
+
   useEffect(() => {
     if (!pageId) {
       navigate("/PageBuilder");
@@ -39,10 +41,22 @@ export default function PageBuilderInscritos() {
     }
     (async () => {
       try {
+        const me = await base44.auth.me();
         const allPages = await base44.entities.LandingPage.list();
         const p = allPages.find((x) => x.id === pageId);
-        setPage(p);
 
+        // Validar acceso: admin O email en panel_gestion.emails_autorizados
+        const isAdmin = me?.role === "admin";
+        const authorized = (p?.panel_gestion?.emails_autorizados || [])
+          .map((e) => (e || "").toLowerCase().trim());
+        const myEmail = (me?.email || "").toLowerCase().trim();
+        if (!isAdmin && !authorized.includes(myEmail)) {
+          setAccessDenied(true);
+          setLoading(false);
+          return;
+        }
+
+        setPage(p);
         const subs = await base44.entities.LandingSubmission.filter(
           { landing_page_id: pageId },
           "-created_date",
@@ -125,6 +139,19 @@ export default function PageBuilderInscritos() {
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="text-center max-w-md">
+          <div className="text-6xl mb-4">🔒</div>
+          <h1 className="text-2xl font-black text-slate-900 mb-2">Sin acceso</h1>
+          <p className="text-slate-500 mb-6">No tienes permiso para gestionar esta página. Pide a un administrador que te añada como gestor.</p>
+          <Button onClick={() => navigate("/")}>Volver al inicio</Button>
+        </div>
+      </div>
+    );
   }
 
   return (

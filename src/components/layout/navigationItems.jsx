@@ -13,12 +13,22 @@ import {
  * This keeps the extraction 100% mechanical — no logic changes.
  */
 
+// Helper: convierte landings autorizadas en items de menú apuntando al panel de inscritos
+function buildLandingItems(landingMenuItems = []) {
+  return (landingMenuItems || []).map((l) => ({
+    title: `${l.panel_gestion?.emoji || "🎉"} ${l.panel_gestion?.nombre_menu || l.nombre}`,
+    url: `/PageBuilderInscritos?id=${l.id}`,
+    icon: Calendar,
+  }));
+}
+
 export function buildAdminNavigation(ctx) {
   const {
     playersNeedingReview, pendingSignaturesAdmin, pendingInvitations,
     pendingCallupResponses, chatMenuCounts, pendingCallupsCount,
     hasPlayers, loteriaVisible, pendingLotteryOrders, pendingMemberRequests,
     marketNewCount, unresolvedAdminChats, paymentsInReview, pendingSignaturesCount,
+    landingMenuItems,
   } = ctx;
 
   return [
@@ -90,6 +100,7 @@ export function buildAdminNavigation(ctx) {
     { title: "─ EVENTOS ESPECIALES ─", section: true },
     { title: "🎉 Inscripciones San Isidro", url: createPageUrl("SanIsidroAdmin"), icon: Calendar },
     { title: "🏆 Porra Mundial 2026", url: createPageUrl("PorraAdmin"), icon: Trophy },
+    ...buildLandingItems(landingMenuItems),
 
     { title: "─ DESARROLLO ─", section: true },
     { title: "📲 Check-in Tablet", url: createPageUrl("CheckinTablet"), icon: Smartphone },
@@ -101,7 +112,7 @@ export function buildCoachNavigation(ctx) {
   const {
     programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts,
     isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount,
-    hasPlayers, loteriaVisible, marketNewCount, user,
+    hasPlayers, loteriaVisible, marketNewCount, user, landingMenuItems,
   } = ctx;
 
   return [
@@ -156,6 +167,10 @@ export function buildCoachNavigation(ctx) {
     { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
+    ...(landingMenuItems?.length ? [
+      { title: "─ EVENTOS ESPECIALES ─", section: true },
+      ...buildLandingItems(landingMenuItems),
+    ] : []),
   ];
 }
 
@@ -163,7 +178,7 @@ export function buildCoordinatorNavigation(ctx) {
   const {
     programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts,
     isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount,
-    hasPlayers, loteriaVisible, marketNewCount, user,
+    hasPlayers, loteriaVisible, marketNewCount, user, landingMenuItems,
   } = ctx;
 
   return [
@@ -220,6 +235,10 @@ export function buildCoordinatorNavigation(ctx) {
     { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
+    ...(landingMenuItems?.length ? [
+      { title: "─ EVENTOS ESPECIALES ─", section: true },
+      ...buildLandingItems(landingMenuItems),
+    ] : []),
   ];
 }
 
@@ -227,7 +246,7 @@ export function buildParentNavigation(ctx) {
   const {
     programaSociosActivo, isMemberPaid, pendingCallupsCount,
     pendingSignaturesCount, chatMenuCounts, hasPlayers, loteriaVisible, marketNewCount,
-    onlyComplementary,
+    onlyComplementary, landingMenuItems,
   } = ctx;
 
   const items = [
@@ -256,6 +275,10 @@ export function buildParentNavigation(ctx) {
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
+    ...(landingMenuItems?.length ? [
+      { title: "─ EVENTOS ESPECIALES ─", section: true },
+      ...buildLandingItems(landingMenuItems),
+    ] : []),
   ];
   return items;
 }
@@ -263,7 +286,7 @@ export function buildParentNavigation(ctx) {
 export function buildPlayerNavigation(ctx) {
   const {
     programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount,
-    chatMenuCounts, loteriaVisible, marketNewCount, onlyComplementary,
+    chatMenuCounts, loteriaVisible, marketNewCount, onlyComplementary, landingMenuItems,
   } = ctx;
 
   return [
@@ -292,6 +315,10 @@ export function buildPlayerNavigation(ctx) {
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
+    ...(landingMenuItems?.length ? [
+      { title: "─ EVENTOS ESPECIALES ─", section: true },
+      ...buildLandingItems(landingMenuItems),
+    ] : []),
   ];
 }
 
@@ -299,6 +326,7 @@ export function buildTreasurerNavigation(ctx) {
   const {
     programaSociosActivo, isMemberPaid, pendingCallupsCount, pendingSignaturesCount,
     chatMenuCounts, hasPlayers, loteriaVisible, unreadAnnouncementsCount, marketNewCount,
+    landingMenuItems,
   } = ctx;
 
   return [
@@ -331,6 +359,10 @@ export function buildTreasurerNavigation(ctx) {
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
+    ...(landingMenuItems?.length ? [
+      { title: "─ EVENTOS ESPECIALES ─", section: true },
+      ...buildLandingItems(landingMenuItems),
+    ] : []),
   ];
 }
 

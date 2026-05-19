@@ -12,6 +12,7 @@ import EditorHero from "@/components/page-builder/EditorHero";
 import EditorFormulario from "@/components/page-builder/EditorFormulario";
 import EditorBloques from "@/components/page-builder/EditorBloques";
 import EditorBranding from "@/components/page-builder/EditorBranding";
+import EditorPanelGestion from "@/components/page-builder/EditorPanelGestion";
 import ShareDialog from "@/components/page-builder/ShareDialog";
 import ImageUploadInput from "@/components/page-builder/ImageUploadInput";
 import PublicHero from "@/components/page-builder/PublicHero";
@@ -176,6 +177,7 @@ export default function PageBuilderEditor() {
               { id: "bloques", label: "🧱", title: "Bloques" },
               { id: "formulario", label: "📋", title: "Form" },
               { id: "branding", label: "🎨", title: "Estilo" },
+              { id: "panel", label: "🎫", title: "Panel app" },
               { id: "ajustes", label: "⚙️", title: "Ajustes" },
             ].map((t) => (
               <button
@@ -216,6 +218,12 @@ export default function PageBuilderEditor() {
               <EditorBranding
                 branding={page.config?.branding || {}}
                 onChange={(v) => updateConfig("branding", v)}
+              />
+            )}
+            {tab === "panel" && (
+              <EditorPanelGestion
+                panel={page.panel_gestion || {}}
+                onChange={(v) => setPage({ ...page, panel_gestion: v })}
               />
             )}
             {tab === "ajustes" && (
