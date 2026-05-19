@@ -43,244 +43,52 @@
       "description": "Configuraci\u00f3n completa: bloques, hero, branding, formulario, etc.",
       "properties": {
         "hero": {
-          "type": "object",
-          "description": "Configuraci\u00f3n de la cabecera/hero",
-          "properties": {
-            "tipo": {
-              "type": "string",
-              "enum": [
-                "imagen",
-                "video",
-                "color",
-                "gradient"
-              ]
-            },
-            "imagen_url": {
-              "type": "string"
-            },
-            "video_url": {
-              "type": "string"
-            },
-            "color_primario": {
-              "type": "string"
-            },
-            "color_secundario": {
-              "type": "string"
-            },
-            "titulo": {
-              "type": "string"
-            },
-            "subtitulo": {
-              "type": "string"
-            },
-            "badge": {
-              "type": "string",
-              "description": "Texto del badge superior (ej: 'TORNEO 2026')"
-            },
-            "cta_texto": {
-              "type": "string"
-            },
-            "mostrar_cuenta_atras": {
-              "type": "boolean",
-              "default": false
-            },
-            "fecha_evento": {
-              "type": "string",
-              "format": "date-time"
-            }
-          }
+          "type": "object"
         },
         "bloques": {
           "type": "array",
-          "description": "Lista ordenada de bloques de contenido",
           "items": {
-            "type": "object",
-            "properties": {
-              "id": {
-                "type": "string"
-              },
-              "tipo": {
-                "type": "string",
-                "enum": [
-                  "texto",
-                  "imagen",
-                  "galeria",
-                  "video",
-                  "faq",
-                  "lista_iconos",
-                  "cta_button",
-                  "divisor",
-                  "tabla_precios",
-                  "testimonios",
-                  "mapa",
-                  "html_embed",
-                  "cuenta_atras",
-                  "stats",
-                  "formulario"
-                ]
-              },
-              "datos": {
-                "type": "object",
-                "description": "Datos espec\u00edficos del bloque"
-              }
-            }
+            "type": "object"
           }
         },
         "formulario": {
-          "type": "object",
-          "description": "Configuraci\u00f3n del formulario de inscripci\u00f3n",
-          "properties": {
-            "titulo": {
-              "type": "string"
-            },
-            "descripcion": {
-              "type": "string"
-            },
-            "cta_envio": {
-              "type": "string",
-              "default": "Inscribirme"
-            },
-            "mensaje_exito": {
-              "type": "string"
-            },
-            "campos": {
-              "type": "array",
-              "items": {
-                "type": "object",
-                "properties": {
-                  "id": {
-                    "type": "string"
-                  },
-                  "tipo": {
-                    "type": "string",
-                    "enum": [
-                      "texto",
-                      "email",
-                      "telefono",
-                      "dni",
-                      "fecha",
-                      "numero",
-                      "select",
-                      "multiselect",
-                      "radio",
-                      "checkbox",
-                      "textarea",
-                      "archivo",
-                      "aceptacion"
-                    ]
-                  },
-                  "etiqueta": {
-                    "type": "string"
-                  },
-                  "placeholder": {
-                    "type": "string"
-                  },
-                  "ayuda": {
-                    "type": "string"
-                  },
-                  "requerido": {
-                    "type": "boolean",
-                    "default": false
-                  },
-                  "opciones": {
-                    "type": "array",
-                    "items": {
-                      "type": "string"
-                    },
-                    "description": "Para select/multiselect/radio"
-                  },
-                  "validacion": {
-                    "type": "string",
-                    "description": "Regex opcional"
-                  },
-                  "ancho": {
-                    "type": "string",
-                    "enum": [
-                      "full",
-                      "half",
-                      "third"
-                    ],
-                    "default": "full"
-                  }
-                }
-              }
-            }
-          }
+          "type": "object"
         },
         "branding": {
-          "type": "object",
-          "properties": {
-            "color_principal": {
-              "type": "string",
-              "default": "#ea580c"
-            },
-            "color_secundario": {
-              "type": "string",
-              "default": "#15803d"
-            },
-            "color_texto": {
-              "type": "string",
-              "default": "#0f172a"
-            },
-            "color_fondo": {
-              "type": "string",
-              "default": "#ffffff"
-            },
-            "fuente_titulares": {
-              "type": "string",
-              "default": "Bricolage Grotesque"
-            },
-            "fuente_cuerpo": {
-              "type": "string",
-              "default": "Inter"
-            },
-            "mostrar_logo_club": {
-              "type": "boolean",
-              "default": true
-            },
-            "mostrar_footer_club": {
-              "type": "boolean",
-              "default": true
-            }
-          }
+          "type": "object"
         },
         "seo": {
-          "type": "object",
-          "properties": {
-            "meta_titulo": {
-              "type": "string"
-            },
-            "meta_descripcion": {
-              "type": "string"
-            },
-            "imagen_og": {
-              "type": "string",
-              "description": "URL de imagen para preview en WhatsApp/redes"
-            }
-          }
+          "type": "object"
         },
         "limites": {
-          "type": "object",
-          "properties": {
-            "plazas_maximas": {
-              "type": "number"
-            },
-            "fecha_apertura": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "fecha_cierre": {
-              "type": "string",
-              "format": "date-time"
-            },
-            "mensaje_cerrado": {
-              "type": "string"
-            },
-            "anti_duplicados_email": {
-              "type": "boolean",
-              "default": true
-            }
-          }
+          "type": "object"
+        }
+      }
+    },
+    "panel_gestion": {
+      "type": "object",
+      "description": "Configuraci\u00f3n del panel de gesti\u00f3n accesible dentro de la app",
+      "properties": {
+        "mostrar_en_menu": {
+          "type": "boolean",
+          "default": false,
+          "description": "Si TRUE, aparece como entrada en el men\u00fa lateral de los usuarios autorizados"
+        },
+        "nombre_menu": {
+          "type": "string",
+          "description": "Nombre visible en el men\u00fa (ej: 'Torneo P\u00e1del 2026')"
+        },
+        "emoji": {
+          "type": "string",
+          "default": "\ud83c\udf89",
+          "description": "Emoji o icono para el men\u00fa"
+        },
+        "emails_autorizados": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Emails de usuarios concretos que pueden ver/gestionar este panel adem\u00e1s de admins"
         }
       }
     },
