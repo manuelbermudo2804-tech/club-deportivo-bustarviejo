@@ -10,6 +10,8 @@ import { ArrowLeft, Save, Eye, Globe, Loader2, Copy, Check } from "lucide-react"
 import TemplatePicker from "@/components/page-builder/TemplatePicker";
 import EditorHero from "@/components/page-builder/EditorHero";
 import EditorFormulario from "@/components/page-builder/EditorFormulario";
+import EditorBloques from "@/components/page-builder/EditorBloques";
+import EditorBranding from "@/components/page-builder/EditorBranding";
 import PublicHero from "@/components/page-builder/PublicHero";
 import PublicBlockRenderer from "@/components/page-builder/PublicBlockRenderer";
 import PublicForm from "@/components/page-builder/PublicForm";
@@ -171,22 +173,25 @@ export default function PageBuilderEditor() {
       <div className="grid lg:grid-cols-[400px_1fr] gap-0 lg:h-[calc(100vh-64px)]">
         {/* Panel izquierdo */}
         <div className="bg-white border-r border-slate-200 overflow-y-auto">
-          <div className="flex border-b border-slate-200 sticky top-0 bg-white z-10">
+          <div className="flex border-b border-slate-200 sticky top-0 bg-white z-10 overflow-x-auto">
             {[
-              { id: "hero", label: "🎬 Hero" },
-              { id: "formulario", label: "📋 Form" },
-              { id: "ajustes", label: "⚙️ Ajustes" },
+              { id: "hero", label: "🎬", title: "Hero" },
+              { id: "bloques", label: "🧱", title: "Bloques" },
+              { id: "formulario", label: "📋", title: "Form" },
+              { id: "branding", label: "🎨", title: "Estilo" },
+              { id: "ajustes", label: "⚙️", title: "Ajustes" },
             ].map((t) => (
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`flex-1 px-3 py-3 text-sm font-semibold transition-colors ${
+                className={`flex-1 px-2 py-3 text-xs font-semibold transition-colors whitespace-nowrap ${
                   tab === t.id
                     ? "text-slate-900 border-b-2 border-slate-900 bg-slate-50"
                     : "text-slate-500 hover:text-slate-700"
                 }`}
+                title={t.title}
               >
-                {t.label}
+                <span className="text-base mr-1">{t.label}</span> {t.title}
               </button>
             ))}
           </div>
@@ -198,10 +203,22 @@ export default function PageBuilderEditor() {
                 onChange={(v) => updateConfig("hero", v)}
               />
             )}
+            {tab === "bloques" && (
+              <EditorBloques
+                bloques={page.config?.bloques || []}
+                onChange={(v) => updateConfig("bloques", v)}
+              />
+            )}
             {tab === "formulario" && (
               <EditorFormulario
                 formulario={page.config?.formulario || { campos: [] }}
                 onChange={(v) => updateConfig("formulario", v)}
+              />
+            )}
+            {tab === "branding" && (
+              <EditorBranding
+                branding={page.config?.branding || {}}
+                onChange={(v) => updateConfig("branding", v)}
               />
             )}
             {tab === "ajustes" && (

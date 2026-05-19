@@ -164,5 +164,147 @@ export default function PublicBlockRenderer({ bloque, branding }) {
     );
   }
 
+  if (tipo === "galeria") {
+    const items = datos.items || [];
+    return wrapper(
+      <div>
+        {datos.titulo && (
+          <h2 className="text-3xl lg:text-4xl font-black text-center mb-10 text-slate-900">
+            {datos.titulo}
+          </h2>
+        )}
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3 lg:gap-4">
+          {items.map((url, i) => (
+            <div key={i} className="aspect-square rounded-2xl overflow-hidden shadow-lg group">
+              <img
+                src={url}
+                alt=""
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (tipo === "mapa") {
+    if (!datos.embed_url) return null;
+    return wrapper(
+      <div className="max-w-4xl mx-auto">
+        {datos.titulo && (
+          <h2 className="text-3xl lg:text-4xl font-black text-center mb-6 text-slate-900">
+            {datos.titulo}
+          </h2>
+        )}
+        {datos.direccion && (
+          <p className="text-center text-slate-600 mb-6">📍 {datos.direccion}</p>
+        )}
+        <div className="aspect-video rounded-3xl overflow-hidden shadow-2xl border border-slate-200">
+          <iframe
+            src={datos.embed_url}
+            className="w-full h-full"
+            allowFullScreen
+            loading="lazy"
+            title="Mapa"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (tipo === "testimonios") {
+    const items = datos.items || [];
+    return wrapper(
+      <div>
+        {datos.titulo && (
+          <h2 className="text-3xl lg:text-4xl font-black text-center mb-10 text-slate-900">
+            {datos.titulo}
+          </h2>
+        )}
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {items.map((t, i) => (
+            <div
+              key={i}
+              className="p-6 rounded-3xl bg-gradient-to-br from-white to-slate-50 border border-slate-200 shadow-sm"
+            >
+              <div className="text-4xl mb-3" style={{ color }}>"</div>
+              <p className="text-slate-700 leading-relaxed mb-4 italic">{t.texto}</p>
+              <div className="flex items-center gap-3 pt-3 border-t border-slate-100">
+                {t.avatar && (
+                  <img src={t.avatar} alt="" className="w-10 h-10 rounded-full object-cover" />
+                )}
+                <div>
+                  <div className="font-bold text-slate-900 text-sm">{t.nombre}</div>
+                  {t.rol && <div className="text-xs text-slate-500">{t.rol}</div>}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (tipo === "tabla_precios") {
+    const items = datos.items || [];
+    return wrapper(
+      <div>
+        {datos.titulo && (
+          <h2 className="text-3xl lg:text-4xl font-black text-center mb-10 text-slate-900">
+            {datos.titulo}
+          </h2>
+        )}
+        <div className="grid md:grid-cols-3 gap-4">
+          {items.map((p, i) => (
+            <div
+              key={i}
+              className={`p-6 lg:p-8 rounded-3xl border-2 transition-all ${
+                p.destacado
+                  ? "border-slate-900 shadow-2xl scale-105 bg-gradient-to-br from-slate-900 to-slate-800 text-white"
+                  : "border-slate-200 bg-white"
+              }`}
+            >
+              {p.destacado && (
+                <div className="inline-block px-3 py-1 rounded-full bg-orange-500 text-white text-xs font-bold mb-3">
+                  POPULAR
+                </div>
+              )}
+              <h3 className={`text-xl font-black mb-2 ${p.destacado ? "text-white" : "text-slate-900"}`}>
+                {p.nombre}
+              </h3>
+              <div className="flex items-baseline gap-1 mb-4">
+                <span className="text-5xl font-black" style={{ color: p.destacado ? "#fb923c" : color }}>
+                  {p.precio}
+                </span>
+                {p.unidad && (
+                  <span className={`text-sm ${p.destacado ? "text-white/60" : "text-slate-500"}`}>
+                    {p.unidad}
+                  </span>
+                )}
+              </div>
+              {p.descripcion && (
+                <p className={`text-sm mb-4 ${p.destacado ? "text-white/70" : "text-slate-600"}`}>
+                  {p.descripcion}
+                </p>
+              )}
+              <ul className="space-y-2">
+                {(p.features || []).map((f, j) => (
+                  <li
+                    key={j}
+                    className={`flex items-start gap-2 text-sm ${p.destacado ? "text-white/90" : "text-slate-700"}`}
+                  >
+                    <span style={{ color: p.destacado ? "#fb923c" : color }}>✓</span>
+                    {f}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return null;
 }
