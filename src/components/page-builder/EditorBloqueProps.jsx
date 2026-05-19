@@ -161,14 +161,21 @@ export default function EditorBloqueProps({ bloque, onChange }) {
           <Input value={datos.direccion || ""} onChange={(e) => update("direccion", e.target.value)} placeholder="Calle..." />
         </div>
         <div>
-          <Label>URL de embed de Google Maps</Label>
-          <Input
+          <Label>URL o iframe completo de Google Maps</Label>
+          <Textarea
             value={datos.embed_url || ""}
-            onChange={(e) => update("embed_url", e.target.value)}
-            placeholder="https://www.google.com/maps/embed?..."
+            onChange={(e) => {
+              const raw = e.target.value;
+              // Si pegan el iframe completo, extraer automáticamente el src
+              const match = raw.match(/src=["']([^"']+)["']/i);
+              update("embed_url", match ? match[1] : raw);
+            }}
+            placeholder='Pega aquí el <iframe src="..."> o solo la URL https://www.google.com/maps/embed?...'
+            rows={3}
+            className="text-sm font-mono"
           />
           <p className="text-xs text-slate-500 mt-1">
-            En Google Maps: Compartir → Insertar mapa → copia el src del iframe.
+            En Google Maps: Compartir → Insertar mapa → pega el código entero o solo el src. Se detecta automáticamente. ✅
           </p>
         </div>
       </div>
