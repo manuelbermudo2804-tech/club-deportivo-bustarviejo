@@ -136,6 +136,36 @@ export async function trackWizardStep(wizardName, stepNum, stepName, extra = {})
 }
 
 /**
+ * Registra una "apertura de app" para medir adopción PWA real.
+ * - Solo usuarios autenticados (ignora anonymous)
+ * - Throttle 24h por usuario+modo (PWA/Browser) vía localStorage
+ *   → así cada usuario genera máximo 2 eventos/día (uno PWA + uno web)
+ */
+export async function trackAppOpen() {
+  try {
+    const email = await getUserEmail();
+    if (!email || email === "anonymous") return;
+    const pwa = isPwa();
+    const mode = pwa ? "pwa" : "web";
+    const key = `appOpenLogged_${mode}_${email}`;
+    const last = Number(localStorage.getItem(key) || 0);
+    const now = Date.now();
+    if (now - last < 24 * 60 * 60 * 1000) return; // ya logueado en últimas 24h
+    localStorage.setItem(key, String(now));
+    await writeEvent({
+      user_email: email,
+      event_type: "diagnostic_report",
+      context: "app_open",
+      device: detectDevice(),
+      is_pwa: pwa,
+      user_agent: navigator?.userAgent?.slice(0, 300) || "",
+      page_path: window?.location?.pathname || "",
+      extra_data: { mode, source: "trackAppOpen" },
+    });
+  } catch {}
+}
+
+/**
  * Instala los vigilantes globales de errores JS.
  * Se debe llamar UNA SOLA VEZ al arrancar la app.
  */

@@ -5,10 +5,14 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import VisualEditAgent from '@/lib/VisualEditAgent'
 import NavigationTracker from '@/lib/NavigationTracker'
-import { installGlobalErrorHandlers } from '@/lib/diagnosticLogger'
+import { installGlobalErrorHandlers, trackAppOpen } from '@/lib/diagnosticLogger'
 
 // Instalar vigilante global de errores JS una sola vez al arrancar
 installGlobalErrorHandlers();
+
+// Registrar apertura de app (con throttle 24h) para medir adopción PWA real
+// Se ejecuta tras un pequeño delay para no bloquear el render inicial
+setTimeout(() => { trackAppOpen(); }, 3000);
 
 import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
