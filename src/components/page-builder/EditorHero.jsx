@@ -111,13 +111,64 @@ export default function EditorHero({ hero, onChange }) {
       </div>
 
       {hero?.mostrar_cuenta_atras && (
-        <div>
-          <Label>Fecha y hora del evento</Label>
-          <Input
-            type="datetime-local"
-            value={hero?.fecha_evento ? hero.fecha_evento.slice(0, 16) : ""}
-            onChange={(e) => update("fecha_evento", e.target.value ? new Date(e.target.value).toISOString() : "")}
-          />
+        <div className="space-y-3 p-3 bg-slate-50 rounded-xl">
+          <div>
+            <Label>Tipo de evento</Label>
+            <Select
+              value={hero?.tipo_fecha || "un_dia"}
+              onValueChange={(v) => update("tipo_fecha", v)}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="un_dia">📅 Un día concreto (con hora)</SelectItem>
+                <SelectItem value="rango">🗓️ Varios días (rango de fechas)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {(!hero?.tipo_fecha || hero?.tipo_fecha === "un_dia") && (
+            <div>
+              <Label>Fecha y hora del evento</Label>
+              <Input
+                type="datetime-local"
+                value={hero?.fecha_evento ? hero.fecha_evento.slice(0, 16) : ""}
+                onChange={(e) => update("fecha_evento", e.target.value ? new Date(e.target.value).toISOString() : "")}
+              />
+              <p className="text-xs text-slate-500 mt-1">La cuenta atrás contará hasta esta fecha y hora.</p>
+            </div>
+          )}
+
+          {hero?.tipo_fecha === "rango" && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Label>Fecha de inicio</Label>
+                <Input
+                  type="date"
+                  value={hero?.fecha_inicio || ""}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    onChange({
+                      ...hero,
+                      fecha_inicio: v,
+                      // mantener fecha_evento sincronizada (inicio a las 00:00) para la cuenta atrás
+                      fecha_evento: v ? new Date(`${v}T00:00:00`).toISOString() : "",
+                    });
+                  }}
+                />
+              </div>
+              <div>
+                <Label>Fecha de fin</Label>
+                <Input
+                  type="date"
+                  value={hero?.fecha_fin || ""}
+                  onChange={(e) => update("fecha_fin", e.target.value)}
+                />
+              </div>
+              <p className="col-span-2 text-xs text-slate-500">
+                Se mostrará la fecha completa (ej: "3, 4 y 5 de Julio de 2026"). La cuenta atrás contará hasta el día de inicio.
+              </p>
+            </div>
+          )}
         </div>
       )}
     </div>

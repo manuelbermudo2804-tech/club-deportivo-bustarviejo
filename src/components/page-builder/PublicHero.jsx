@@ -23,6 +23,31 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
   const colorPrimario = hero?.color_primario || branding?.color_principal || "#ea580c";
   const colorSecundario = branding?.color_secundario || "#15803d";
 
+  // Etiqueta legible con las fechas del evento
+  const fechaLegible = (() => {
+    const MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    if (hero?.tipo_fecha === "rango" && hero?.fecha_inicio && hero?.fecha_fin) {
+      const a = new Date(`${hero.fecha_inicio}T00:00:00`);
+      const b = new Date(`${hero.fecha_fin}T00:00:00`);
+      if (isNaN(a) || isNaN(b)) return null;
+      const mismoMes = a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear();
+      // Lista de días consecutivos si es el mismo mes (ej: 3, 4 y 5 de Julio de 2026)
+      if (mismoMes) {
+        const dias = [];
+        for (let d = new Date(a); d <= b; d.setDate(d.getDate() + 1)) dias.push(d.getDate());
+        const listaDias = dias.length > 1 ? `${dias.slice(0, -1).join(", ")} y ${dias[dias.length - 1]}` : `${dias[0]}`;
+        return `${listaDias} de ${MESES[a.getMonth()]} de ${a.getFullYear()}`;
+      }
+      return `${a.getDate()} ${MESES[a.getMonth()]} – ${b.getDate()} ${MESES[b.getMonth()]} de ${b.getFullYear()}`;
+    }
+    if ((!hero?.tipo_fecha || hero?.tipo_fecha === "un_dia") && hero?.fecha_evento) {
+      const d = new Date(hero.fecha_evento);
+      if (isNaN(d)) return null;
+      return `${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+    }
+    return null;
+  })();
+
   const fondo = (() => {
     if (hero?.tipo === "imagen" && hero?.imagen_url) {
       return {
@@ -83,10 +108,21 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25, duration: 0.7 }}
-            className="text-lg sm:text-xl lg:text-2xl text-white/85 max-w-2xl mx-auto leading-relaxed mb-10"
+            className="text-lg sm:text-xl lg:text-2xl text-white/85 max-w-2xl mx-auto leading-relaxed mb-6"
           >
             {hero.subtitulo}
           </motion.p>
+        )}
+
+        {fechaLegible && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="inline-flex items-center gap-2 mb-10 px-5 py-2.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white font-semibold"
+          >
+            📅 {fechaLegible}
+          </motion.div>
         )}
 
         {countdown && (
