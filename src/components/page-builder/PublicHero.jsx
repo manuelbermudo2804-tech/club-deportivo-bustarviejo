@@ -69,10 +69,14 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
   // Por defecto NEGRO para máximo contraste con texto blanco
   const colorFondoEntera = hero?.color_fondo_entera || "#000000";
 
+  // En modo "imagen entera" en móvil cambiamos a layout APILADO (imagen arriba, texto debajo)
+  // y desactivamos el flex centrado del contenedor para móvil.
+  const layoutApilado = imagenEnteraMovil && esImagen;
+
   return (
     <section
-      className={`relative ${imagenEnteraMovil && esImagen ? 'min-h-0 sm:min-h-[85vh]' : 'min-h-[70vh] sm:min-h-[85vh]'} flex items-center justify-center overflow-hidden bg-slate-900`}
-      style={imagenEnteraMovil && esImagen ? { ...fondo, background: colorFondoEntera } : fondo}
+      className={`relative ${layoutApilado ? 'min-h-0 sm:min-h-[85vh] sm:flex sm:items-center sm:justify-center' : 'min-h-[70vh] sm:min-h-[85vh] flex items-center justify-center'} overflow-hidden bg-slate-900`}
+      style={layoutApilado ? { ...fondo, background: colorFondoEntera } : fondo}
     >
       {/* Imagen de fondo con <img> para mejor control en móvil */}
       {esImagen && !imagenEnteraMovil && (
@@ -92,15 +96,14 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
         </>
       )}
 
-      {/* Modo imagen entera: imagen completa sin recorte. En móvil como bloque superior, en escritorio centrada con object-contain. */}
-      {esImagen && imagenEnteraMovil && (
+      {/* Modo imagen entera: imagen completa sin recorte. En móvil como bloque superior apilado, en escritorio centrada con object-contain. */}
+      {layoutApilado && (
         <>
-          {/* Móvil: imagen entera como bloque superior */}
+          {/* Móvil: imagen entera como bloque superior APILADO (no flex item) */}
           <img
             src={hero.imagen_url}
             alt=""
-            className="sm:hidden block w-full h-auto relative z-0"
-            style={{ background: colorFondoEntera }}
+            className="sm:hidden w-full h-auto block relative z-0"
           />
           {/* Escritorio: imagen entera (object-contain), sin overlay oscuro encima */}
           <img
@@ -120,7 +123,7 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
         }}
       />
 
-      <div className={`relative z-10 text-center max-w-4xl mx-auto px-6 ${imagenEnteraMovil && esImagen ? 'py-10 sm:py-20' : 'py-20'}`}>
+      <div className={`relative z-10 text-center max-w-4xl mx-auto px-6 ${layoutApilado ? 'py-10 sm:py-20 w-full' : 'py-20'}`}>
         {hero?.badge && (
           <motion.div
             initial={{ opacity: 0, y: -20 }}
