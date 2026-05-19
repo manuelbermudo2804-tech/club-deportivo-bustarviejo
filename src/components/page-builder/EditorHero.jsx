@@ -27,14 +27,35 @@ export default function EditorHero({ hero, onChange }) {
       </div>
 
       {hero?.tipo === "imagen" && (
-        <div>
-          <Label>Imagen de fondo</Label>
-          <ImageUploadInput
-            value={hero?.imagen_url}
-            onChange={(v) => update("imagen_url", v)}
-          />
-          <p className="text-xs text-slate-500 mt-1">Recomendado: 1600x900px o superior.</p>
-        </div>
+        <>
+          <div>
+            <Label>Imagen de fondo</Label>
+            <ImageUploadInput
+              value={hero?.imagen_url}
+              onChange={(v) => update("imagen_url", v)}
+            />
+            <p className="text-xs text-slate-500 mt-1">Recomendado: 1600x900px (horizontal). En móvil se recorta automáticamente, ajusta el encuadre abajo.</p>
+          </div>
+          <div>
+            <Label>Encuadre en móvil</Label>
+            <Select
+              value={hero?.posicion_imagen_movil || "center"}
+              onValueChange={(v) => update("posicion_imagen_movil", v)}
+            >
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="center">🎯 Centro (por defecto)</SelectItem>
+                <SelectItem value="top">⬆️ Arriba (caras / cielo)</SelectItem>
+                <SelectItem value="bottom">⬇️ Abajo (pies / suelo)</SelectItem>
+                <SelectItem value="left">⬅️ Izquierda</SelectItem>
+                <SelectItem value="right">➡️ Derecha</SelectItem>
+                <SelectItem value="top left">↖️ Arriba-Izquierda</SelectItem>
+                <SelectItem value="top right">↗️ Arriba-Derecha</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-slate-500 mt-1">Si la imagen sale cortada por la parte importante en el móvil, prueba a cambiar el encuadre.</p>
+          </div>
+        </>
       )}
 
       {(hero?.tipo === "gradient" || hero?.tipo === "color") && (

@@ -48,14 +48,9 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
     return null;
   })();
 
+  const esImagen = hero?.tipo === "imagen" && hero?.imagen_url;
   const fondo = (() => {
-    if (hero?.tipo === "imagen" && hero?.imagen_url) {
-      return {
-        backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.5) 0%, rgba(15,23,42,0.85) 100%), url(${hero.imagen_url})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      };
-    }
+    if (esImagen) return {};
     if (hero?.tipo === "gradient") {
       return {
         background: `linear-gradient(135deg, ${colorPrimario} 0%, ${colorSecundario} 100%)`,
@@ -67,11 +62,32 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
     return { background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)" };
   })();
 
+  // Posición del objeto en móvil: por defecto "center", configurable desde el editor
+  const posicionMovil = hero?.posicion_imagen_movil || "center";
+
   return (
     <section
-      className="relative min-h-[85vh] flex items-center justify-center overflow-hidden"
+      className="relative min-h-[70vh] sm:min-h-[85vh] flex items-center justify-center overflow-hidden bg-slate-900"
       style={fondo}
     >
+      {/* Imagen de fondo con <img> para mejor control en móvil */}
+      {esImagen && (
+        <>
+          <img
+            src={hero.imagen_url}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ objectPosition: posicionMovil }}
+          />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: "linear-gradient(180deg, rgba(15,23,42,0.5) 0%, rgba(15,23,42,0.85) 100%)",
+            }}
+          />
+        </>
+      )}
+
       {/* Grano decorativo */}
       <div
         className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay"
