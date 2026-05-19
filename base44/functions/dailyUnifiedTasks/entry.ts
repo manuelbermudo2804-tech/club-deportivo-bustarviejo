@@ -430,6 +430,86 @@ async function taskCallupReminders(base44) {
 }
 
 // ══════════════════════════════════════════════════
+// TASK 5b: Remind parents who requested access but haven't used their code yet
+// Sends reminders at day +1 and day +3 from the original send date
+// ══════════════════════════════════════════════════
+function buildPendingReminderEmail({ code, nombreDestino, diasDesdeEnvio }) {
+  const appUrl = 'https://app.cdbustarviejo.com';
+  const isFirstReminder = diasDesdeEnvio <= 2;
+  const titulo = isFirstReminder ? '👋 ¿Has visto nuestra invitación?' : '⏰ Tu código sigue esperándote';
+  const intro = isFirstReminder
+    ? `Hace un par de días pediste acceso a la app del <strong>CD Bustarviejo</strong> y te enviamos un código, pero vemos que aún no lo has usado. Te dejamos por aquí el código otra vez por si se te coló el primer email.`
+    : `Pediste acceso a la app del <strong>CD Bustarviejo</strong> hace unos días pero todavía no has entrado. <strong>Tu código sigue activo</strong> — son 2 minutos.`;
+  const colorBanner = isFirstReminder ? '#ea580c' : '#dc2626';
+
+  return `<!DOCTYPE html><html><head><meta charset="utf-8"/></head>
+<body style="margin:0;padding:0;background:#f1f5f9;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;"><tr><td align="center" style="padding:24px 16px;">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+  <tr><td style="background:${colorBanner};padding:28px 24px;text-align:center;border-radius:16px 16px 0 0;">
+    <div style="font-size:22px;font-weight:bold;color:#fff;">CD BUSTARVIEJO</div>
+    <div style="font-size:13px;color:#fff;margin-top:6px;font-weight:bold;">${titulo}</div>
+  </td></tr>
+  <tr><td style="background:#fff;padding:28px;">
+    <p style="font-size:17px;color:#1e293b;">${nombreDestino ? `Hola <strong>${nombreDestino}</strong>,` : 'Hola,'}</p>
+    <p style="font-size:15px;color:#475569;line-height:24px;">${intro}</p>
+    <table width="100%" cellpadding="0" cellspacing="0" style="border-radius:12px;overflow:hidden;margin:20px 0;">
+      <tr><td style="background:#1e293b;padding:28px 20px;text-align:center;">
+        <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:3px;margin-bottom:10px;">🔑 Tu código de acceso</div>
+        <div style="font-family:'Courier New',monospace;font-size:40px;font-weight:bold;color:#f97316;letter-spacing:10px;">${code}</div>
+      </td></tr>
+    </table>
+    <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
+      <tr><td style="border-radius:10px;background:#16a34a;text-align:center;">
+        <a href="${appUrl}" target="_blank" style="display:inline-block;color:#fff;font-size:16px;font-weight:bold;text-decoration:none;padding:16px 40px;border-radius:10px;">Activar mi código →</a>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</td></tr></table>
+</body></html>`;
+}
+
+async function taskRemindPendingNewParents(base44) {
+  const pendingCodes = await base44.asServiceRole.entities.AccessCode.filter({
+    estado: 'pendiente',
+    tipo: 'padre_nuevo'
+  });
+  const now = new Date();
+  let sent = 0, skipped = 0;
+
+  for (const code of pendingCodes) {
+    if (!code.fecha_envio) { skipped++; continue; }
+    const diasDesdeEnvio = Math.floor((now.getTime() - new Date(code.fecha_envio).getTime()) / (1000 * 60 * 60 * 24));
+    const enviarDia1 = diasDesdeEnvio === 1;
+    const enviarDia3 = diasDesdeEnvio === 3;
+    if (!enviarDia1 && !enviarDia3) { skipped++; continue; }
+
+    const avisos = code.avisos_expiracion_enviados || [];
+    const avisoKey = enviarDia1 ? 'r_d1' : 'r_d3';
+    if (avisos.includes(avisoKey)) { skipped++; continue; }
+
+    try {
+      const html = buildPendingReminderEmail({ code: code.codigo, nombreDestino: code.nombre_destino, diasDesdeEnvio });
+      const subject = enviarDia1
+        ? `👋 CD Bustarviejo - ¿Has visto tu código? (${code.codigo})`
+        : `⏰ CD Bustarviejo - Tu código sigue esperándote (${code.codigo})`;
+      await sendWithResend(code.email, subject, html);
+      await base44.asServiceRole.entities.AccessCode.update(code.id, {
+        avisos_expiracion_enviados: [...avisos, avisoKey]
+      });
+      sent++;
+      console.log(`[PENDING-REMIND] ✅ Día+${diasDesdeEnvio} → ${code.email}`);
+    } catch (err) {
+      console.error(`[PENDING-REMIND] Error ${code.email}:`, err.message);
+    }
+  }
+
+  console.log(`[PENDING-REMIND] Sent: ${sent}, Skipped: ${skipped}`);
+  return { sent, skipped, checked: pendingCodes.length };
+}
+
+// ══════════════════════════════════════════════════
 // TASK 6: Cleanup old data (reduce DB volume)
 // ══════════════════════════════════════════════════
 async function taskCleanupOldData(base44) {
@@ -516,6 +596,7 @@ Deno.serve(async (req) => {
     const callups = await taskAutoCloseCallups(base44);
     const callupReminders = await taskCallupReminders(base44);
     const codes = await taskExpireAccessCodes(base44);
+    const pendingReminders = await taskRemindPendingNewParents(base44);
     const birthdays = await taskBirthdays(base44);
     const announcements = await taskExpireAnnouncements(base44);
     const cleanup = await taskCleanupOldData(base44);
@@ -530,6 +611,7 @@ Deno.serve(async (req) => {
       callups,
       callupReminders,
       accessCodes: codes,
+      pendingReminders,
       birthdays,
       announcements,
       cleanup
