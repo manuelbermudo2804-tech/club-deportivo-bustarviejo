@@ -1,0 +1,91 @@
+{
+  "name": "LandingSubmission",
+  "type": "object",
+  "properties": {
+    "landing_page_id": {
+      "type": "string",
+      "description": "ID de la LandingPage a la que pertenece esta inscripci\u00f3n"
+    },
+    "landing_slug": {
+      "type": "string",
+      "description": "Slug de la p\u00e1gina (denormalizado para b\u00fasquedas r\u00e1pidas)"
+    },
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del inscrito (extra\u00eddo de los campos)"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del inscrito"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono del inscrito"
+    },
+    "datos": {
+      "type": "object",
+      "description": "Todos los datos del formulario en formato gen\u00e9rico: { campo_id: valor }"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "nuevo",
+        "contactado",
+        "confirmado",
+        "cancelado"
+      ],
+      "default": "nuevo",
+      "description": "Estado de gesti\u00f3n del inscrito"
+    },
+    "notas_admin": {
+      "type": "string",
+      "description": "Notas internas del admin"
+    },
+    "etiquetas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Etiquetas para filtrar"
+    },
+    "ip": {
+      "type": "string",
+      "description": "IP del inscrito (para anti-spam)"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Navegador/dispositivo"
+    },
+    "device_fingerprint": {
+      "type": "string",
+      "description": "Huella de dispositivo (anti-duplicados)"
+    },
+    "referrer": {
+      "type": "string",
+      "description": "Origen del tr\u00e1fico (de d\u00f3nde lleg\u00f3)"
+    }
+  },
+  "required": [
+    "landing_page_id",
+    "datos"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

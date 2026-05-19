@@ -43,6 +43,10 @@ import PorraMiPorra from '@/pages/PorraMiPorra';
 import PorraRanking from '@/pages/PorraRanking';
 import SponsorSplash from '@/components/sponsors/SponsorSplash';
 import PropuestaGVCGaesco from '@/pages/PropuestaGVCGaesco';
+import PublicLanding from '@/pages/PublicLanding';
+import PageBuilder from '@/pages/PageBuilder';
+import PageBuilderEditor from '@/pages/PageBuilderEditor';
+import PageBuilderInscritos from '@/pages/PageBuilderInscritos';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -58,11 +62,20 @@ const AppRouter = () => {
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').toLowerCase();
   const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/propuestagvcgaesco'];
+  // Constructor de páginas: cualquier URL que empiece por /l/ es pública
+  const isLandingPath = cleanPath.startsWith('/l/');
   // Si la URL incluye ?from=app, el usuario viene de la app interna autenticada:
   // queremos renderizar con el layout normal (menú lateral, etc.) en vez de tratar
   // /PorraMiPorra y /PorraRanking como páginas 100% públicas sin entorno.
   const urlParams = new URLSearchParams(location.search);
   const fromApp = urlParams.get('from') === 'app';
+  if (isLandingPath) {
+    return (
+      <Routes>
+        <Route path="/l/:slug" element={<PublicLanding />} />
+      </Routes>
+    );
+  }
   if (publicPaths.includes(cleanPath) && !fromApp) {
     return (
       <Routes>
@@ -169,6 +182,9 @@ const AuthenticatedApp = () => {
       <Route path="/MyFeedback" element={<LayoutWrapper currentPageName="MyFeedback"><MyFeedback /></LayoutWrapper>} />
       <Route path="/PorraAdmin" element={<LayoutWrapper currentPageName="PorraAdmin"><PorraAdmin /></LayoutWrapper>} />
       <Route path="/MiPorra" element={<LayoutWrapper currentPageName="MiPorra"><MiPorra /></LayoutWrapper>} />
+      <Route path="/PageBuilder" element={<LayoutWrapper currentPageName="PageBuilder"><PageBuilder /></LayoutWrapper>} />
+      <Route path="/PageBuilderEditor" element={<LayoutWrapper currentPageName="PageBuilderEditor"><PageBuilderEditor /></LayoutWrapper>} />
+      <Route path="/PageBuilderInscritos" element={<LayoutWrapper currentPageName="PageBuilderInscritos"><PageBuilderInscritos /></LayoutWrapper>} />
       {/* Versiones INTERNAS (con layout/menú) de PorraMiPorra y PorraRanking — activadas
           cuando se llega con ?from=app desde la app autenticada. Las versiones públicas
           siguen siendo accesibles sin auth en el bloque público de AppRouter. */}

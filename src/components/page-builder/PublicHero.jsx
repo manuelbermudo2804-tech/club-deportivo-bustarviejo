@@ -1,0 +1,132 @@
+import React, { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+
+// Hero brutal estilo cinematográfico para la página pública.
+export default function PublicHero({ hero, branding, onCtaClick }) {
+  const [countdown, setCountdown] = useState(null);
+
+  useEffect(() => {
+    if (!hero?.mostrar_cuenta_atras || !hero?.fecha_evento) return;
+    const update = () => {
+      const diff = new Date(hero.fecha_evento).getTime() - Date.now();
+      if (diff <= 0) return setCountdown(null);
+      const dias = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const horas = Math.floor((diff / (1000 * 60 * 60)) % 24);
+      const mins = Math.floor((diff / (1000 * 60)) % 60);
+      setCountdown({ dias, horas, mins });
+    };
+    update();
+    const t = setInterval(update, 60000);
+    return () => clearInterval(t);
+  }, [hero?.fecha_evento, hero?.mostrar_cuenta_atras]);
+
+  const colorPrimario = hero?.color_primario || branding?.color_principal || "#ea580c";
+  const colorSecundario = branding?.color_secundario || "#15803d";
+
+  const fondo = (() => {
+    if (hero?.tipo === "imagen" && hero?.imagen_url) {
+      return {
+        backgroundImage: `linear-gradient(180deg, rgba(15,23,42,0.5) 0%, rgba(15,23,42,0.85) 100%), url(${hero.imagen_url})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      };
+    }
+    if (hero?.tipo === "gradient") {
+      return {
+        background: `linear-gradient(135deg, ${colorPrimario} 0%, ${colorSecundario} 100%)`,
+      };
+    }
+    if (hero?.tipo === "color") {
+      return { background: colorPrimario };
+    }
+    return { background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)" };
+  })();
+
+  return (
+    <section
+      className="relative min-h-[85vh] flex items-center justify-center overflow-hidden"
+      style={fondo}
+    >
+      {/* Grano decorativo */}
+      <div
+        className="absolute inset-0 opacity-20 pointer-events-none mix-blend-overlay"
+        style={{
+          backgroundImage:
+            'url("data:image/svg+xml,%3Csvg viewBox=%270 0 200 200%27 xmlns=%27http://www.w3.org/2000/svg%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%270.9%27/%3E%3C/filter%3E%3Crect width=%27100%25%27 height=%27100%25%27 filter=%27url(%23n)%27 opacity=%270.4%27/%3E%3C/svg%3E")',
+        }}
+      />
+
+      <div className="relative z-10 text-center max-w-4xl mx-auto px-6 py-20">
+        {hero?.badge && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-block mb-6 px-4 py-2 rounded-full text-xs font-bold tracking-widest uppercase text-white"
+            style={{ background: `${colorPrimario}cc`, backdropFilter: "blur(10px)" }}
+          >
+            {hero.badge}
+          </motion.div>
+        )}
+
+        <motion.h1
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.7 }}
+          className="text-5xl sm:text-6xl lg:text-8xl font-black tracking-tight text-white leading-[0.95] mb-6"
+          style={{ fontFamily: branding?.fuente_titulares || "Bricolage Grotesque, Inter, sans-serif" }}
+        >
+          {hero?.titulo || "Tu evento"}
+        </motion.h1>
+
+        {hero?.subtitulo && (
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25, duration: 0.7 }}
+            className="text-lg sm:text-xl lg:text-2xl text-white/85 max-w-2xl mx-auto leading-relaxed mb-10"
+          >
+            {hero.subtitulo}
+          </motion.p>
+        )}
+
+        {countdown && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.4 }}
+            className="grid grid-cols-3 gap-3 max-w-md mx-auto mb-10"
+          >
+            {[
+              { v: countdown.dias, l: "Días" },
+              { v: countdown.horas, l: "Horas" },
+              { v: countdown.mins, l: "Min" },
+            ].map((c, i) => (
+              <div
+                key={i}
+                className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/20"
+              >
+                <div className="text-4xl lg:text-5xl font-black text-white">{c.v}</div>
+                <div className="text-xs text-white/70 uppercase tracking-wider">{c.l}</div>
+              </div>
+            ))}
+          </motion.div>
+        )}
+
+        <motion.button
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+          onClick={onCtaClick}
+          className="inline-flex items-center justify-center px-10 py-5 rounded-full text-lg font-bold text-white shadow-2xl hover:scale-105 transition-transform"
+          style={{
+            background: `linear-gradient(135deg, ${colorPrimario}, ${colorSecundario})`,
+            boxShadow: `0 20px 60px -10px ${colorPrimario}80`,
+          }}
+        >
+          {hero?.cta_texto || "Inscríbete ahora"}
+          <span className="ml-2">→</span>
+        </motion.button>
+      </div>
+    </section>
+  );
+}

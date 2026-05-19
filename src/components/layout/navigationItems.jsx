@@ -85,6 +85,7 @@ export function buildAdminNavigation(ctx) {
     { title: "🩺 Análisis Inteligente App", url: createPageUrl("AppAnalytics"), icon: BarChart3 },
     { title: "⚡ Monitor de Créditos", url: createPageUrl("CreditUsage"), icon: BarChart3 },
     { title: "🌐 Páginas Externas", url: "/ExternalLinks", icon: ExternalLink },
+    { title: "🚀 Constructor de Páginas", url: "/PageBuilder", icon: Megaphone },
 
     { title: "─ EVENTOS ESPECIALES ─", section: true },
     { title: "🎉 Inscripciones San Isidro", url: createPageUrl("SanIsidroAdmin"), icon: Calendar },

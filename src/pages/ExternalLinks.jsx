@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { ExternalLink, Copy, Check, Globe, Users, CreditCard, Trophy, Megaphone, QrCode, Target, Handshake } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ExternalLink, Copy, Check, Globe, Users, CreditCard, Trophy, Megaphone, QrCode, Target, Handshake, Sparkles, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import PropuestaGenerator from "@/components/external-links/PropuestaGenerator";
@@ -123,6 +124,7 @@ function LinkCard({ page }) {
 }
 
 export default function ExternalLinks() {
+  const navigate = useNavigate();
   return (
     <div className="p-4 lg:p-6 max-w-4xl mx-auto">
       <div className="mb-6">
@@ -131,6 +133,34 @@ export default function ExternalLinks() {
           Todas las páginas públicas de la app que no requieren login. Puedes copiar la URL o abrirlas directamente.
         </p>
       </div>
+
+      {/* CTA — Constructor de páginas */}
+      <button
+        onClick={() => navigate("/PageBuilder")}
+        className="w-full mb-6 text-left group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 lg:p-8 text-white hover:shadow-2xl transition-shadow"
+      >
+        <div className="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/20 rounded-full blur-3xl" />
+        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-green-500/20 rounded-full blur-3xl" />
+        <div className="relative flex items-start gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center flex-shrink-0 shadow-xl">
+            <Sparkles className="w-7 h-7" />
+          </div>
+          <div className="flex-1">
+            <div className="inline-block px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 text-xs font-bold tracking-wider mb-2">
+              NUEVO
+            </div>
+            <h2 className="text-2xl lg:text-3xl font-black tracking-tight mb-1">
+              Constructor de Páginas
+            </h2>
+            <p className="text-white/70 text-sm lg:text-base">
+              Crea páginas públicas con formulario en minutos. Plantillas brutales, URL única, panel de inscritos.
+            </p>
+          </div>
+          <ArrowRight className="w-6 h-6 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all flex-shrink-0" />
+        </div>
+      </button>
+
+      <h2 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-3">📌 Páginas fijas del sistema</h2>
 
       <div className="grid gap-4 md:grid-cols-2">
         {EXTERNAL_PAGES.map((page) => (
