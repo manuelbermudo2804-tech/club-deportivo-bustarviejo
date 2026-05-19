@@ -75,7 +75,7 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
 
   return (
     <section
-      className={`relative ${layoutApilado ? 'min-h-0 sm:min-h-[85vh] sm:flex sm:items-center sm:justify-center' : 'min-h-[70vh] sm:min-h-[85vh] flex items-center justify-center'} overflow-hidden bg-slate-900`}
+      className={`relative ${layoutApilado ? 'min-h-0 overflow-hidden' : 'min-h-[70vh] sm:min-h-[85vh] flex items-center justify-center overflow-hidden'} bg-slate-900`}
       style={layoutApilado ? { ...fondo, background: colorFondoEntera } : fondo}
     >
       {/* Imagen de fondo con <img> para mejor control en móvil */}
@@ -96,22 +96,13 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
         </>
       )}
 
-      {/* Modo imagen entera: imagen completa sin recorte. En móvil como bloque superior apilado, en escritorio centrada con object-contain. */}
+      {/* Modo imagen entera: imagen completa sin recorte, APILADA arriba del texto en todos los tamaños. */}
       {layoutApilado && (
-        <>
-          {/* Móvil: imagen entera como bloque superior APILADO (no flex item) */}
-          <img
-            src={hero.imagen_url}
-            alt=""
-            className="sm:hidden w-full h-auto block relative z-0"
-          />
-          {/* Escritorio: imagen entera (object-contain), sin overlay oscuro encima */}
-          <img
-            src={hero.imagen_url}
-            alt=""
-            className="hidden sm:block absolute inset-0 w-full h-full object-contain"
-          />
-        </>
+        <img
+          src={hero.imagen_url}
+          alt=""
+          className="w-full h-auto block relative z-0 max-h-[80vh] object-contain mx-auto"
+        />
       )}
 
       {/* Grano decorativo */}
