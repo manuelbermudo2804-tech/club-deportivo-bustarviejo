@@ -19,18 +19,42 @@ export default function PublicBlockRenderer({ bloque, branding }) {
   );
 
   if (tipo === "texto") {
+    // Detectar si el contenido es HTML (del editor enriquecido) o texto plano (legacy)
+    const isHtml = datos.contenido && /<(p|ul|ol|li|strong|em|h\d|br|a)\b/i.test(datos.contenido);
     return wrapper(
-      <div className="text-center max-w-3xl mx-auto">
+      <div className="max-w-3xl mx-auto">
         {datos.titulo && (
-          <h2 className="text-4xl lg:text-5xl font-black tracking-tight mb-6 text-slate-900">
+          <h2 className="text-4xl lg:text-5xl font-black tracking-tight mb-6 text-slate-900 text-center">
             {datos.titulo}
           </h2>
         )}
         {datos.contenido && (
-          <p className="text-lg lg:text-xl text-slate-600 leading-relaxed whitespace-pre-wrap">
-            {datos.contenido}
-          </p>
+          isHtml ? (
+            <div
+              className="rich-content text-lg lg:text-xl text-slate-700 leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: datos.contenido }}
+            />
+          ) : (
+            <p className="text-lg lg:text-xl text-slate-600 leading-relaxed whitespace-pre-wrap text-center">
+              {datos.contenido}
+            </p>
+          )
         )}
+        <style>{`
+          .rich-content p { margin: 0 0 1.1em 0; }
+          .rich-content p:last-child { margin-bottom: 0; }
+          .rich-content strong { color: #0f172a; font-weight: 700; }
+          .rich-content em { color: #334155; }
+          .rich-content a { color: ${color}; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+          .rich-content a:hover { opacity: 0.8; }
+          .rich-content h2 { font-size: 1.875rem; font-weight: 800; color: #0f172a; margin: 1.5em 0 0.6em; line-height: 1.2; }
+          .rich-content h3 { font-size: 1.4rem; font-weight: 700; color: #0f172a; margin: 1.3em 0 0.5em; line-height: 1.3; }
+          .rich-content ul, .rich-content ol { margin: 0 0 1.2em 0; padding-left: 1.5em; }
+          .rich-content ul li, .rich-content ol li { margin-bottom: 0.5em; padding-left: 0.3em; }
+          .rich-content ul li::marker { color: ${color}; font-size: 1.1em; }
+          .rich-content ol li::marker { color: ${color}; font-weight: 700; }
+          .rich-content u { text-decoration-color: ${color}; text-decoration-thickness: 2px; }
+        `}</style>
       </div>
     );
   }

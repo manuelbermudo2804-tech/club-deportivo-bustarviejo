@@ -7,6 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2 } from "lucide-react";
 import ImageUploadInput from "./ImageUploadInput";
 import GalleryUploader from "./GalleryUploader";
+import RichTextEditor from "./RichTextEditor";
 
 // Editor de propiedades de un bloque concreto, según su tipo.
 export default function EditorBloqueProps({ bloque, onChange }) {
@@ -24,11 +25,14 @@ export default function EditorBloqueProps({ bloque, onChange }) {
         </div>
         <div>
           <Label>Contenido</Label>
-          <Textarea
+          <RichTextEditor
             value={datos.contenido || ""}
-            onChange={(e) => update("contenido", e.target.value)}
-            rows={5}
+            onChange={(html) => update("contenido", html)}
+            placeholder="Escribe aquí, o pega texto de Word/web y se formatea automáticamente…"
           />
+          <p className="text-xs text-slate-500 mt-1">
+            💡 Pega texto con listas (-, *, 1.) o **negritas** y se aplicará el formato automáticamente.
+          </p>
         </div>
       </div>
     );
