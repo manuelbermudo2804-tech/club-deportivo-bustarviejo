@@ -14,6 +14,7 @@ import EditorBloques from "@/components/page-builder/EditorBloques";
 import EditorBranding from "@/components/page-builder/EditorBranding";
 import EditorPanelGestion from "@/components/page-builder/EditorPanelGestion";
 import ShareDialog from "@/components/page-builder/ShareDialog";
+import { buildLandingUrl } from "@/components/page-builder/landingUrl";
 import ImageUploadInput from "@/components/page-builder/ImageUploadInput";
 import PublicHero from "@/components/page-builder/PublicHero";
 import PublicBlockRenderer from "@/components/page-builder/PublicBlockRenderer";
@@ -104,7 +105,7 @@ export default function PageBuilderEditor() {
     }
   };
 
-  const publicUrl = page?.slug ? `${window.location.origin}/l/${page.slug}` : "";
+  const publicUrl = buildLandingUrl(page?.slug);
 
 
 

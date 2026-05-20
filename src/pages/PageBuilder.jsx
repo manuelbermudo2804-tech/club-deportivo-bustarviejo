@@ -9,6 +9,7 @@ import {
   Eye, Globe, Loader2, QrCode, Check, Share2
 } from "lucide-react";
 import ShareDialog from "@/components/page-builder/ShareDialog";
+import { buildLandingUrl } from "@/components/page-builder/landingUrl";
 import { Badge } from "@/components/ui/badge";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -70,7 +71,7 @@ export default function PageBuilder() {
   };
 
   const handleCopyUrl = (page) => {
-    const url = `${window.location.origin}/l/${page.slug}`;
+    const url = buildLandingUrl(page.slug);
     navigator.clipboard.writeText(url);
     setCopiedId(page.id);
     toast.success("URL copiada");
@@ -145,7 +146,7 @@ export default function PageBuilder() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {filtered.map((p) => {
-            const url = `${window.location.origin}/l/${p.slug}`;
+            const url = buildLandingUrl(p.slug);
             return (
               <div key={p.id} className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-lg transition-shadow">
                 <div className="flex items-start justify-between gap-3 mb-3">
@@ -222,7 +223,7 @@ export default function PageBuilder() {
       <ShareDialog
         open={!!sharing}
         onClose={() => setSharing(null)}
-        url={sharing ? `${window.location.origin}/l/${sharing.slug}` : ""}
+        url={sharing ? buildLandingUrl(sharing.slug) : ""}
         title={sharing?.nombre}
       />
     </div>
