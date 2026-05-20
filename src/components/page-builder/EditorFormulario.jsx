@@ -95,6 +95,41 @@ export default function EditorFormulario({ formulario, onChange }) {
         />
       </div>
 
+      <div className="pt-3 border-t border-slate-200 space-y-3">
+        <Label className="text-base font-bold flex items-center gap-2">📧 Emails automáticos (Resend)</Label>
+        <p className="text-xs text-slate-500 -mt-2">
+          Al recibir una inscripción se envía un correo de confirmación al inscrito. Opcionalmente puedes notificar a uno o más administradores.
+        </p>
+        <div>
+          <Label className="text-xs">Asunto del email al inscrito</Label>
+          <Input
+            value={formulario?.email_confirmacion_asunto || ""}
+            onChange={(e) => update("email_confirmacion_asunto", e.target.value)}
+            placeholder="Confirmación de inscripción · CD Bustarviejo"
+            className="text-sm"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Mensaje personalizado en el email (opcional)</Label>
+          <Textarea
+            value={formulario?.email_confirmacion_texto || ""}
+            onChange={(e) => update("email_confirmacion_texto", e.target.value)}
+            rows={3}
+            placeholder="Si lo dejas vacío se usa un mensaje genérico de confirmación."
+            className="text-sm"
+          />
+        </div>
+        <div>
+          <Label className="text-xs">Notificar a admins (emails separados por coma)</Label>
+          <Input
+            value={formulario?.notificar_emails_admin || ""}
+            onChange={(e) => update("notificar_emails_admin", e.target.value)}
+            placeholder="info@cdbustarviejo.com, otro@cdbustarviejo.com"
+            className="text-sm"
+          />
+        </div>
+      </div>
+
       <div className="pt-3 border-t border-slate-200">
         <div className="flex items-center justify-between mb-3">
           <Label className="text-base font-bold">Campos del formulario ({campos.length})</Label>

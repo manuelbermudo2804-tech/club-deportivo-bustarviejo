@@ -59,7 +59,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
       const email = values.email || "";
       const telefono = values.telefono || "";
 
-      await base44.entities.LandingSubmission.create({
+      const submission = await base44.entities.LandingSubmission.create({
         landing_page_id: landingId,
         landing_slug: landingSlug,
         nombre,
@@ -70,6 +70,13 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
         user_agent: navigator.userAgent,
         referrer: document.referrer || "directo",
       });
+
+      // Email de confirmación al inscrito + notificación al admin (vía Resend, sin códigos)
+      if (submission?.id) {
+        base44.functions
+          .invoke("sendLandingConfirmation", { submissionId: submission.id })
+          .catch((err) => console.warn("Email de confirmación falló:", err));
+      }
 
       setSuccess(true);
     } catch (err) {
