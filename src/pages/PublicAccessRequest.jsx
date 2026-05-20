@@ -85,7 +85,7 @@ export default function PublicAccessRequest() {
     e.preventDefault();
     setError("");
 
-    if (!email.trim() || !nombre.trim() || !categoria) {
+    if (!email.trim() || !nombre.trim() || !categoria || !telefono.trim()) {
       setError("Por favor, rellena todos los campos obligatorios.");
       return;
     }
@@ -94,6 +94,13 @@ export default function PublicAccessRequest() {
     const trimmedName = nombre.trim();
     if (trimmedName.length < 4 || !trimmedName.includes(" ")) {
       setError("Por favor introduce tu nombre y apellidos completos.");
+      return;
+    }
+
+    // Validar móvil español (9 dígitos, empieza por 6 o 7)
+    const telDigits = telefono.replace(/\D/g, "");
+    if (telDigits.length !== 9 || !/^[67]/.test(telDigits)) {
+      setError("Introduce un móvil español válido (9 dígitos, empieza por 6 o 7).");
       return;
     }
 
@@ -356,19 +363,21 @@ export default function PublicAccessRequest() {
 
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">
-                Teléfono <span className="text-slate-400 font-normal">(opcional)</span>
+                Móvil *
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="tel"
+                  inputMode="numeric"
                   value={telefono}
                   onChange={(e) => setTelefono(e.target.value)}
                   placeholder="Ej: 600 123 456"
                   className="w-full border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
+                  required
                 />
               </div>
-              <p className="text-xs text-slate-500 mt-1">Por si tenemos que ayudarte si no te llega el código</p>
+              <p className="text-xs text-slate-500 mt-1">📱 <strong>Necesario</strong> para enviarte el código y contactar contigo si tienes problemas.</p>
             </div>
 
             <div>
