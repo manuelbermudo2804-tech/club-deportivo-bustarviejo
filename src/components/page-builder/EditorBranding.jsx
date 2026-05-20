@@ -101,6 +101,16 @@ export default function EditorBranding({ branding = {}, onChange }) {
             onCheckedChange={(v) => update("mostrar_footer_club", v)}
           />
         </div>
+        <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+          <div>
+            <Label className="cursor-pointer">Mostrar botón "Web del club"</Label>
+            <p className="text-xs text-slate-500">Botón flotante arriba que lleva a cdbustarviejo.com</p>
+          </div>
+          <Switch
+            checked={branding.mostrar_boton_web_club !== false}
+            onCheckedChange={(v) => update("mostrar_boton_web_club", v)}
+          />
+        </div>
       </div>
     </div>
   );

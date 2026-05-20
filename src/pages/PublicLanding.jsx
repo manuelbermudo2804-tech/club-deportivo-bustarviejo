@@ -124,7 +124,7 @@ export default function PublicLanding() {
 
   return (
     <div className="min-h-screen bg-white" style={{ color: branding.color_texto || "#0f172a" }}>
-      <BackToWebsiteButton />
+      {branding.mostrar_boton_web_club !== false && <BackToWebsiteButton />}
       <PublicHero hero={cfg.hero} branding={branding} onCtaClick={scrollToForm} />
 
       {bloques.map((b) => (
