@@ -1,0 +1,63 @@
+{
+  "name": "LopiviConfig",
+  "type": "object",
+  "properties": {
+    "dpi_nombre": {
+      "type": "string",
+      "description": "Nombre completo del Delegado/a de Protecci\u00f3n"
+    },
+    "dpi_telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto del DPI"
+    },
+    "dpi_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email confidencial del DPI (recibe denuncias)"
+    },
+    "dpi_foto_url": {
+      "type": "string",
+      "description": "URL foto del DPI (opcional)"
+    },
+    "dpi_cargo": {
+      "type": "string",
+      "default": "Delegado/a de Protecci\u00f3n de la Infancia y Adolescencia",
+      "description": "Cargo oficial"
+    },
+    "protocolo_url": {
+      "type": "string",
+      "description": "URL directa al PDF del Protocolo LOPIVI"
+    },
+    "mensaje_familias": {
+      "type": "string",
+      "description": "Mensaje opcional para las familias sobre la protecci\u00f3n del menor"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Mostrar el widget LOPIVI a las familias"
+    }
+  },
+  "required": [
+    "dpi_nombre",
+    "dpi_email"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

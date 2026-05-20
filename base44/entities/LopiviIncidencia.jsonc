@@ -1,0 +1,118 @@
+{
+  "name": "LopiviIncidencia",
+  "type": "object",
+  "properties": {
+    "codigo_referencia": {
+      "type": "string",
+      "description": "C\u00f3digo \u00fanico de referencia (ej: LOPIVI-A7X-K2M)"
+    },
+    "tipo_incidencia": {
+      "type": "string",
+      "enum": [
+        "Sospecha de maltrato",
+        "Acoso o bullying",
+        "Conducta inadecuada de adulto",
+        "Situaci\u00f3n de riesgo",
+        "Otro"
+      ],
+      "description": "Tipo de incidencia reportada"
+    },
+    "relacion_reportante": {
+      "type": "string",
+      "enum": [
+        "Padre/Madre/Tutor",
+        "Jugador/a",
+        "Entrenador/a",
+        "Coordinador/a",
+        "Otro miembro del club",
+        "An\u00f3nimo"
+      ],
+      "description": "Relaci\u00f3n del reportante con el club"
+    },
+    "menor_afectado": {
+      "type": "string",
+      "description": "Nombre o referencia del menor afectado (opcional)"
+    },
+    "categoria_equipo": {
+      "type": "string",
+      "description": "Categor\u00eda o equipo (opcional)"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n detallada de los hechos"
+    },
+    "fecha_hechos": {
+      "type": "string",
+      "description": "Cu\u00e1ndo ocurrieron los hechos (texto libre)"
+    },
+    "lugar_hechos": {
+      "type": "string",
+      "description": "D\u00f3nde ocurrieron los hechos"
+    },
+    "es_anonimo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la denuncia es an\u00f3nima"
+    },
+    "reportante_nombre": {
+      "type": "string",
+      "description": "Nombre del reportante (si no es an\u00f3nimo)"
+    },
+    "reportante_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del reportante (si no es an\u00f3nimo)"
+    },
+    "reportante_telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono del reportante (opcional)"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "nueva",
+        "en_revision",
+        "en_proceso",
+        "resuelta",
+        "archivada"
+      ],
+      "default": "nueva",
+      "description": "Estado de gesti\u00f3n por parte del DPI"
+    },
+    "notas_dpi": {
+      "type": "string",
+      "description": "Notas privadas del DPI"
+    },
+    "fecha_resolucion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de cierre del caso"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "Navegador desde el que se report\u00f3"
+    }
+  },
+  "required": [
+    "tipo_incidencia",
+    "descripcion"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

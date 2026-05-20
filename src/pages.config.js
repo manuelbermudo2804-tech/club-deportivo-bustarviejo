@@ -107,6 +107,7 @@ import JoinFemenino from './pages/JoinFemenino';
 import JoinReferral from './pages/JoinReferral';
 import JuniorMailbox from './pages/JuniorMailbox';
 import JuniorMailboxAdmin from './pages/JuniorMailboxAdmin';
+import LopiviAdmin from './pages/LopiviAdmin';
 import LotteryManagement from './pages/LotteryManagement';
 import ManualAcceso from './pages/ManualAcceso';
 import MarketListingDetail from './pages/MarketListingDetail';
@@ -231,6 +232,7 @@ export const PAGES = {
     "JoinReferral": JoinReferral,
     "JuniorMailbox": JuniorMailbox,
     "JuniorMailboxAdmin": JuniorMailboxAdmin,
+    "LopiviAdmin": LopiviAdmin,
     "LotteryManagement": LotteryManagement,
     "ManualAcceso": ManualAcceso,
     "MarketListingDetail": MarketListingDetail,

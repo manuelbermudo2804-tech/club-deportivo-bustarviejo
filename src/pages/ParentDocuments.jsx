@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FileText, Download, Book, ScrollText, Info, FileCheck } from "lucide-react";
 import EmptyState from "../components/common/EmptyState";
+import LopiviWidget from "../components/lopivi/LopiviWidget";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -88,6 +89,8 @@ export default function ParentDocuments() {
         </h1>
         <p className="text-slate-600 mt-1">Estatutos, reglamentos e información del club</p>
       </div>
+
+      <LopiviWidget />
 
       <Tabs value={filterType} onValueChange={setFilterType}>
         <TabsList className="bg-white shadow-sm flex-wrap h-auto">
