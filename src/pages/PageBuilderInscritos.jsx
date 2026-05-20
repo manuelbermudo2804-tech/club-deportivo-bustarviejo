@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Download, Loader2, Search, Mail, Phone, Users, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import SubmissionDataView from "@/components/page-builder/SubmissionDataView";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
@@ -273,16 +274,10 @@ export default function PageBuilderInscritos() {
 
               <div className="border-t border-slate-100 pt-4">
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">Datos del formulario</label>
-                <div className="space-y-2 bg-slate-50 rounded-xl p-4">
-                  {Object.entries(selected.datos || {}).map(([k, v]) => (
-                    <div key={k} className="grid grid-cols-3 gap-2 text-sm">
-                      <div className="text-slate-500 col-span-1 truncate" title={k}>{k}</div>
-                      <div className="text-slate-900 col-span-2 break-words font-medium">
-                        {typeof v === "boolean" ? (v ? "✅ Sí" : "❌ No") : String(v ?? "—")}
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                <SubmissionDataView
+                  datos={selected.datos}
+                  campos={page?.config?.formulario?.campos || []}
+                />
               </div>
 
               <div className="flex gap-2 pt-3 border-t border-slate-100 flex-wrap">
