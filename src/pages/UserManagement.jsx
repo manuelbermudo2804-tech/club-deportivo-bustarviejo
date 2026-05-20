@@ -612,13 +612,13 @@ export default function UserManagement() {
     [users]
   );
   const activeUsers = activeUsersWithoutDeleted.filter((u) => u.acceso_activo !== false && u.role === "user");
-  // Padres: cualquier usuario con el switch "tiene_hijos_jugando" activado
+  // Padres: usuarios con el switch "tiene_hijos_jugando" activado O con panel de familia
   // Incluye también staff (entrenadores/coordinadores/tesoreros) que tengan hijos en el club
   const parents = activeUsersWithoutDeleted.filter(
     (u) =>
       u.acceso_activo !== false &&
       u.role === "user" &&
-      u.tiene_hijos_jugando === true &&
+      (u.tiene_hijos_jugando === true || u.tipo_panel === "familia") &&
       !u.es_jugador &&
       !u.es_menor
   );
@@ -644,7 +644,7 @@ export default function UserManagement() {
 
       if (roleFilter !== "all") {
         if (roleFilter === "admin" && user.role !== "admin") return false;
-        if (roleFilter === "parent" && (user.role === "admin" || user.es_jugador || user.es_menor || user.tiene_hijos_jugando !== true)) return false;
+        if (roleFilter === "parent" && (user.role === "admin" || user.es_jugador || user.es_menor || (user.tiene_hijos_jugando !== true && user.tipo_panel !== "familia"))) return false;
         if (roleFilter === "player" && user.es_jugador !== true) return false;
         if (roleFilter === "minor" && user.es_menor !== true) return false;
         if (roleFilter === "coach" && (user.es_entrenador !== true || user.es_coordinador === true)) return false;
