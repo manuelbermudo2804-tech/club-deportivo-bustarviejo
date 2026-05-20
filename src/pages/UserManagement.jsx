@@ -612,6 +612,17 @@ export default function UserManagement() {
     [users]
   );
   const activeUsers = activeUsersWithoutDeleted.filter((u) => u.acceso_activo !== false && u.role === "user");
+  // Padres "puros": usuarios cuyo único rol es ser progenitor (no staff, no jugador, no menor)
+  const parents = activeUsersWithoutDeleted.filter(
+    (u) =>
+      u.acceso_activo !== false &&
+      u.role === "user" &&
+      !u.es_jugador &&
+      !u.es_menor &&
+      !u.es_entrenador &&
+      !u.es_coordinador &&
+      !u.es_tesorero
+  );
   const restrictedUsers = activeUsersWithoutDeleted.filter((u) => u.acceso_activo === false);
   const admins = activeUsersWithoutDeleted.filter((u) => u.role === "admin");
   const deletedUsers = users.filter((u) => u.eliminado === true);
@@ -664,7 +675,7 @@ export default function UserManagement() {
   const filterCounts = {
     all: users.filter((u) => !u.eliminado && !isUnvalidatedVisitor(u)).length,
     unvalidated: unvalidatedVisitors.length,
-    parent: activeUsers.length,
+    parent: parents.length,
     inactive_parents: usersWithoutActivePlayers.length,
     staff: staffUsers.length,
     admin: admins.length,
@@ -698,7 +709,7 @@ export default function UserManagement() {
       </div>
 
       <UserStats
-        activeUsers={activeUsers}
+        activeUsers={parents}
         admins={admins}
         jugadores={jugadores}
         menores={menores}
