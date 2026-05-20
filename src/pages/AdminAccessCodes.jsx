@@ -12,13 +12,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { 
   Mail, UserPlus, Clock, CheckCircle2, XCircle, Loader2, 
-  RefreshCw, Search, Send, KeyRound, Users, AlertCircle, Ban, SendHorizonal, ShieldAlert, Info, Copy, Zap, Trash2
+  RefreshCw, Search, Send, KeyRound, Users, AlertCircle, Ban, SendHorizonal, ShieldAlert, Info, Copy, Zap, Trash2, MessageCircle
 } from "lucide-react";
 import { toast } from "sonner";
 import BulkInviteDialog from "@/components/admin/BulkInviteDialog";
 import BandejaTab from "@/components/admin/access-codes/BandejaTab";
 import CodigosTab from "@/components/admin/access-codes/CodigosTab";
 import SeguridadTab from "@/components/admin/access-codes/SeguridadTab";
+import { getWhatsAppUrl } from "@/components/admin/access-codes/whatsappCodeMessage";
 
 function InviteDialog({ open, onOpenChange, onInvite }) {
   const [email, setEmail] = useState("");
@@ -269,7 +270,7 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
   );
 }
 
-function CodeCard({ code, onResend, onCancel, onDelete, isResending }) {
+function CodeCard({ code, onResend, onCancel, onDelete, isResending, telefono }) {
   const isExpired = code.fecha_expiracion && new Date(code.fecha_expiracion) < new Date();
   const displayEstado = isExpired && code.estado === 'pendiente' ? 'expirado' : code.estado;
 
@@ -334,6 +335,18 @@ function CodeCard({ code, onResend, onCancel, onDelete, isResending }) {
                 Reenviar
               </Button>
             )}
+            {displayEstado === 'pendiente' && telefono && (() => {
+              const waUrl = getWhatsAppUrl(telefono, code.tipo, code.nombre_destino, code.codigo);
+              if (!waUrl) return null;
+              return (
+                <a href={waUrl} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs w-full">
+                    <MessageCircle className="w-3 h-3 mr-1" />
+                    WhatsApp
+                  </Button>
+                </a>
+              );
+            })()}
             {displayEstado === 'pendiente' && (
               <Button
                 size="sm"
@@ -570,6 +583,19 @@ export default function AdminAccessCodes() {
     total: accessCodes.length,
   };
 
+  // Mapa email → teléfono para enriquecer CodeCards con botón WhatsApp
+  const phoneByEmail = React.useMemo(() => {
+    const map = {};
+    accessRequests.forEach(r => {
+      if (r.email && r.telefono) map[r.email.toLowerCase()] = r.telefono;
+    });
+    playersForPhones.forEach(p => {
+      if (p.email_padre && p.telefono && !map[p.email_padre.toLowerCase()]) map[p.email_padre.toLowerCase()] = p.telefono;
+      if (p.email_tutor_2 && p.telefono_tutor_2 && !map[p.email_tutor_2.toLowerCase()]) map[p.email_tutor_2.toLowerCase()] = p.telefono_tutor_2;
+    });
+    return map;
+  }, [accessRequests, playersForPhones]);
+
   // Contadores para los badges de las pestañas
   const bandejaCount = stuckUsersWithStatus.length;
   const seguridadCount = securityAlerts.length + unauthorizedScreenVisits.length;
@@ -658,6 +684,7 @@ export default function AdminAccessCodes() {
             cancelMutation={cancelMutation}
             deleteMutation={deleteMutation}
             resendingId={resendingId}
+            phoneByEmail={phoneByEmail}
           />
         </TabsContent>
 

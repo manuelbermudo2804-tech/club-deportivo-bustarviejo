@@ -122,6 +122,11 @@ export default function AccessRequestsPanel() {
                         >
                           <MessageCircle className="w-3 h-3" /> WhatsApp
                         </a>
+                        {req.prefiere_whatsapp && (
+                          <Badge className="bg-green-100 text-green-700 border-green-200 text-[10px] ml-1">
+                            📲 Pidió WhatsApp
+                          </Badge>
+                        )}
                       </p>
                     )}
                     {req.nombre_jugador && (

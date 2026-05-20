@@ -10,6 +10,7 @@ import { AlertCircle, CheckCircle2, Clock, KeyRound, Loader2, Search } from "luc
 export default function CodigosTab({
   counts, filter, setFilter, searchTerm, setSearchTerm,
   filtered, isLoading, CodeCard, resendMutation, cancelMutation, deleteMutation, resendingId,
+  phoneByEmail = {},
 }) {
   const statCards = [
     { key: 'pendiente', label: 'Pendientes', value: counts.pendiente, color: 'yellow', icon: Clock },
@@ -79,6 +80,7 @@ export default function CodigosTab({
               onCancel={(id) => cancelMutation.mutate(id)}
               onDelete={(id) => deleteMutation.mutate(id)}
               isResending={resendingId === code.id}
+              telefono={phoneByEmail[code.email?.toLowerCase()] || ''}
             />
           ))}
         </div>

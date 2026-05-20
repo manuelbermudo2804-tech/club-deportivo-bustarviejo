@@ -73,6 +73,7 @@ export default function PublicAccessRequest() {
   const [website, setWebsite] = useState(""); // honeypot
   const [aceptaGdpr, setAceptaGdpr] = useState(false);
   const [showGdprDetails, setShowGdprDetails] = useState(false);
+  const [prefiereWhatsapp, setPrefiereWhatsapp] = useState(false);
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
@@ -127,6 +128,7 @@ export default function PublicAccessRequest() {
         nombre_progenitor: trimmedName,
         telefono: telefono.trim(),
         categoria,
+        prefiere_whatsapp: prefiereWhatsapp,
         device_fingerprint: fingerprint,
         user_agent: navigator.userAgent,
         website, // honeypot
@@ -396,6 +398,26 @@ export default function PublicAccessRequest() {
                 ))}
               </select>
             </div>
+
+            {/* Preferencia WhatsApp — solo visible si hay teléfono válido */}
+            {telefono.replace(/\D/g, '').length === 9 && /^[67]/.test(telefono.replace(/\D/g, '')) && (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={prefiereWhatsapp}
+                    onChange={(e) => setPrefiereWhatsapp(e.target.checked)}
+                    className="mt-0.5 w-4 h-4 accent-green-600 flex-shrink-0"
+                  />
+                  <span className="text-xs text-green-800 leading-relaxed">
+                    <MessageCircle className="w-3.5 h-3.5 inline mr-1 text-green-600" />
+                    <strong>Quiero recibir el código también por WhatsApp</strong>
+                    <br />
+                    <span className="text-green-600">Además del email, te enviaremos las instrucciones por WhatsApp al número que has indicado.</span>
+                  </span>
+                </label>
+              </div>
+            )}
 
             {/* Aviso de protección de datos (GDPR) */}
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">

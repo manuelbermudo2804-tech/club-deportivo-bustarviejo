@@ -45,6 +45,11 @@
       "type": "string",
       "description": "Nombre del hijo/a (opcional)"
     },
+    "prefiere_whatsapp": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la familia quiere recibir el c\u00f3digo tambi\u00e9n por WhatsApp"
+    },
     "estado": {
       "type": "string",
       "enum": [

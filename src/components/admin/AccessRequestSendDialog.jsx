@@ -7,8 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Send, UserPlus, XCircle, AlertCircle } from "lucide-react";
+import { Loader2, Send, UserPlus, XCircle, AlertCircle, MessageCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
+import { getWhatsAppUrl } from "./access-codes/whatsappCodeMessage";
 
 /**
  * Diálogo para enviar el código a una solicitud pública.
@@ -22,6 +23,7 @@ export default function AccessRequestSendDialog({ request, open, onOpenChange, o
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [selectedCategorias, setSelectedCategorias] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [sentResult, setSentResult] = useState(null); // {codigo, tipo, nombre}
 
   const needsPlayer = tipo === 'segundo_progenitor' || tipo === 'juvenil';
   const needsCategoria = tipo === 'entrenador' || tipo === 'coordinador';
@@ -54,6 +56,7 @@ export default function AccessRequestSendDialog({ request, open, onOpenChange, o
       setSearchPlayer("");
       setSelectedPlayer(null);
       setSelectedCategorias([]);
+      setSentResult(null);
     }
   }, [open]);
 
@@ -98,6 +101,7 @@ export default function AccessRequestSendDialog({ request, open, onOpenChange, o
         ...(needsCategoria ? { categorias_asignadas: selectedCategorias } : {}),
       });
       toast.success(`Código ${result.codigo} enviado a ${request.email}`);
+      setSentResult({ codigo: result.codigo, tipo, nombre: request.nombre_progenitor });
       onSent?.(result, request);
     } catch (err) {
       toast.error(err?.response?.data?.error || 'Error al enviar código');
@@ -248,14 +252,47 @@ export default function AccessRequestSendDialog({ request, open, onOpenChange, o
             />
           </div>
 
-          <Button
-            onClick={handleSend}
-            disabled={loading || (needsPlayer && !selectedPlayer) || (needsCategoria && selectedCategorias.length === 0)}
-            className="w-full bg-orange-600 hover:bg-orange-700"
-          >
-            {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
-            Generar Código y Enviar Email
-          </Button>
+          {!sentResult ? (
+            <Button
+              onClick={handleSend}
+              disabled={loading || (needsPlayer && !selectedPlayer) || (needsCategoria && selectedCategorias.length === 0)}
+              className="w-full bg-orange-600 hover:bg-orange-700"
+            >
+              {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Send className="w-4 h-4 mr-2" />}
+              Generar Código y Enviar Email
+            </Button>
+          ) : (
+            <div className="space-y-3">
+              <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4 text-center">
+                <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
+                <p className="font-bold text-green-900">¡Código enviado por email!</p>
+                <p className="text-sm font-mono text-green-700 mt-1">{sentResult.codigo}</p>
+              </div>
+
+              {request.telefono && (() => {
+                const waUrl = getWhatsAppUrl(request.telefono, sentResult.tipo, sentResult.nombre, sentResult.codigo);
+                if (!waUrl) return null;
+                return (
+                  <a href={waUrl} target="_blank" rel="noopener noreferrer" className="block">
+                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white" type="button">
+                      <MessageCircle className="w-4 h-4 mr-2" />
+                      {request.prefiere_whatsapp ? '📲 Enviar también por WhatsApp (lo pidió)' : '📲 Enviar también por WhatsApp'}
+                    </Button>
+                  </a>
+                );
+              })()}
+
+              {request.prefiere_whatsapp && !request.telefono && (
+                <p className="text-xs text-amber-700 bg-amber-50 rounded-lg p-2 text-center">
+                  ⚠️ Pidió WhatsApp pero no dejó teléfono
+                </p>
+              )}
+
+              <Button variant="outline" className="w-full" onClick={() => onOpenChange(false)}>
+                Cerrar
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
