@@ -25,15 +25,25 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
   const [cuotas, setCuotas] = useState([]);
   const [activeSeason, setActiveSeason] = useState(null);
 
-  // Cargar temporada activa
+  // Cargar temporada activa SOLO cuando se abre el modal (evita rate limit innecesario)
   useEffect(() => {
+    if (!open) return;
+    if (activeSeason) return; // ya cargada
+    let cancelled = false;
     const fetchActiveSeason = async () => {
-      const configs = await base44.entities.SeasonConfig.list();
-      const active = configs.find(c => c.activa === true);
-      setActiveSeason(active?.temporada || getCurrentSeason());
+      try {
+        const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+        if (cancelled) return;
+        const active = Array.isArray(configs) ? configs[0] : null;
+        setActiveSeason(active?.temporada || getCurrentSeason());
+      } catch (err) {
+        // Rate limit u otro error transitorio: usar fallback calculado, sin romper el modal
+        if (!cancelled) setActiveSeason(getCurrentSeason());
+      }
     };
     fetchActiveSeason();
-  }, []);
+    return () => { cancelled = true; };
+  }, [open, activeSeason]);
 
   // Calcular deuda original automáticamente cuando se selecciona el jugador
   useEffect(() => {
