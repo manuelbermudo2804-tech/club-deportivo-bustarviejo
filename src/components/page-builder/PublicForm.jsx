@@ -59,24 +59,20 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
       const email = values.email || "";
       const telefono = values.telefono || "";
 
-      const submission = await base44.entities.LandingSubmission.create({
+      // Enviamos a través de la función pública (sin auth) — el email de confirmación
+      // se dispara desde el backend, así no requerimos token en el navegador.
+      const res = await base44.functions.invoke("landingPublic", {
+        action: "submit",
         landing_page_id: landingId,
         landing_slug: landingSlug,
         nombre,
         email,
         telefono,
         datos: values,
-        estado: "nuevo",
         user_agent: navigator.userAgent,
         referrer: document.referrer || "directo",
       });
-
-      // Email de confirmación al inscrito + notificación al admin (vía Resend, sin códigos)
-      if (submission?.id) {
-        base44.functions
-          .invoke("sendLandingConfirmation", { submissionId: submission.id })
-          .catch((err) => console.warn("Email de confirmación falló:", err));
-      }
+      if (res?.data?.error) throw new Error(res.data.error);
 
       setSuccess(true);
     } catch (err) {

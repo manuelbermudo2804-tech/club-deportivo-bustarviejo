@@ -16,19 +16,16 @@ export default function PublicLanding() {
     let cancelled = false;
     (async () => {
       try {
-        const results = await base44.entities.LandingPage.filter({ slug });
-        const found = results?.[0];
+        const res = await base44.functions.invoke('landingPublic', { action: 'get', slug });
+        const found = res?.data?.page || null;
         if (cancelled) return;
-        setPage(found || null);
+        setPage(found);
 
         // Incrementa visitas (best-effort, no bloquear si falla)
         if (found && found.id) {
-          base44.entities.LandingPage.update(found.id, {
-            estadisticas: {
-              ...(found.estadisticas || {}),
-              visitas: (found.estadisticas?.visitas || 0) + 1,
-            },
-          }).catch(() => {});
+          base44.functions
+            .invoke('landingPublic', { action: 'visit', page_id: found.id })
+            .catch(() => {});
         }
 
         // Meta tags completos (title + description + Open Graph + Twitter)
