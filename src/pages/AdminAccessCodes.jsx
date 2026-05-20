@@ -399,6 +399,20 @@ export default function AdminAccessCodes() {
     staleTime: 30000,
   });
 
+  // Solicitudes públicas (tienen teléfono) — para enriquecer datos de usuarios atascados
+  const { data: accessRequests = [] } = useQuery({
+    queryKey: ['accessRequestsForPhones'],
+    queryFn: () => base44.entities.AccessRequest.list('-created_date', 500),
+    staleTime: 60000,
+  });
+
+  // Jugadores activos (tienen teléfono del tutor) — backup para buscar contacto
+  const { data: playersForPhones = [] } = useQuery({
+    queryKey: ['playersForPhones'],
+    queryFn: () => base44.entities.Player.filter({ activo: true }),
+    staleTime: 60000,
+  });
+
   const stuckUsers = allUsers.filter(u => 
     u.role !== 'admin' && 
     !u.codigo_acceso_validado && 
@@ -409,10 +423,17 @@ export default function AdminAccessCodes() {
     !u.es_segundo_progenitor
   );
 
-  // Verificar si ya tienen un código pendiente
+  // Verificar si ya tienen un código pendiente + enriquecer con teléfono
   const stuckUsersWithStatus = stuckUsers.map(u => {
-    const existingCode = accessCodes.find(c => c.email?.toLowerCase() === u.email?.toLowerCase() && c.estado === 'pendiente');
-    return { ...u, existingCode };
+    const emailLower = u.email?.toLowerCase();
+    const existingCode = accessCodes.find(c => c.email?.toLowerCase() === emailLower && c.estado === 'pendiente');
+    // Buscar teléfono: 1º en AccessRequest, 2º en Player (email_padre / email_tutor_2)
+    const req = accessRequests.find(r => r.email?.toLowerCase() === emailLower);
+    const player = !req?.telefono ? playersForPhones.find(p =>
+      p.email_padre?.toLowerCase() === emailLower || p.email_tutor_2?.toLowerCase() === emailLower
+    ) : null;
+    const telefono = req?.telefono || player?.telefono || player?.telefono_tutor_2 || '';
+    return { ...u, existingCode, telefono };
   });
 
   // Análisis de seguridad: agrupar intentos por email
