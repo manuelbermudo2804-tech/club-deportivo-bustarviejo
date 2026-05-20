@@ -11,6 +11,7 @@ import BackToWebsiteButton from "@/components/public/BackToWebsiteButton";
 export default function PublicLanding() {
   const { slug } = useParams();
   const [page, setPage] = useState(null);
+  const [plazasOcupadas, setPlazasOcupadas] = useState(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -21,6 +22,7 @@ export default function PublicLanding() {
         const found = res?.data?.page || null;
         if (cancelled) return;
         setPage(found);
+        setPlazasOcupadas(res?.data?.plazas_ocupadas || 0);
 
         // Incrementa visitas (best-effort, no bloquear si falla)
         if (found && found.id) {
@@ -137,6 +139,8 @@ export default function PublicLanding() {
           landingSlug={page.slug}
           formulario={cfg.formulario}
           branding={branding}
+          limites={cfg.limites}
+          plazasOcupadas={plazasOcupadas}
         />
       )}
 

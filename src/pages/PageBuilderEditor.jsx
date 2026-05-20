@@ -271,6 +271,52 @@ export default function PageBuilderEditor() {
                 </div>
 
                 <div className="pt-3 border-t border-slate-200">
+                  <Label className="font-bold">🎟️ Plazas / Aforo</Label>
+                  <p className="text-xs text-slate-500 mt-1">Limita el número de inscripciones para evitar excesos.</p>
+                </div>
+                <div>
+                  <Label>Plazas máximas</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={page.config?.limites?.plazas_maximas ?? ""}
+                    onChange={(e) => updateConfig("limites", {
+                      ...(page.config?.limites || {}),
+                      plazas_maximas: e.target.value === "" ? null : parseInt(e.target.value) || 0,
+                    })}
+                    placeholder="Ej: 32 (deja vacío para sin límite)"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Cuando se llene, no se aceptarán más inscripciones automáticamente.</p>
+                </div>
+                <div>
+                  <Label>Mostrar contador de plazas a los usuarios</Label>
+                  <Select
+                    value={page.config?.limites?.mostrar_plazas ? "si" : "no"}
+                    onValueChange={(v) => updateConfig("limites", {
+                      ...(page.config?.limites || {}),
+                      mostrar_plazas: v === "si",
+                    })}
+                  >
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="si">✅ Sí, mostrar "X / Y plazas ocupadas"</SelectItem>
+                      <SelectItem value="no">❌ No, mantener oculto</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Mensaje cuando se agoten las plazas</Label>
+                  <Input
+                    value={page.config?.limites?.mensaje_plazas_agotadas || ""}
+                    onChange={(e) => updateConfig("limites", {
+                      ...(page.config?.limites || {}),
+                      mensaje_plazas_agotadas: e.target.value,
+                    })}
+                    placeholder="Lo sentimos, ya no quedan plazas disponibles."
+                  />
+                </div>
+
+                <div className="pt-3 border-t border-slate-200">
                   <Label className="font-bold">SEO & Compartir</Label>
                 </div>
                 <div>

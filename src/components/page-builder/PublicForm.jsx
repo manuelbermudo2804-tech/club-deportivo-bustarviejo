@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, Users, AlertCircle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
 // Formulario público brutal con campos dinámicos según la configuración.
-export default function PublicForm({ landingId, landingSlug, formulario, branding }) {
+export default function PublicForm({ landingId, landingSlug, formulario, branding, limites, plazasOcupadas = 0 }) {
   const [values, setValues] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -13,6 +13,12 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
   const color = branding?.color_principal || "#ea580c";
   const colorSec = branding?.color_secundario || "#15803d";
   const campos = formulario?.campos || [];
+
+  const plazasMax = parseInt(limites?.plazas_maximas) || 0;
+  const mostrarPlazas = !!limites?.mostrar_plazas && plazasMax > 0;
+  const plazasAgotadas = plazasMax > 0 && plazasOcupadas >= plazasMax;
+  const plazasRestantes = plazasMax > 0 ? Math.max(0, plazasMax - plazasOcupadas) : null;
+  const porcentaje = plazasMax > 0 ? Math.min(100, (plazasOcupadas / plazasMax) * 100) : 0;
 
   const update = (id, v) => setValues((p) => ({ ...p, [id]: v }));
 
@@ -77,7 +83,8 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
       setSuccess(true);
     } catch (err) {
       console.error(err);
-      toast.error("Hubo un problema. Inténtalo de nuevo en unos segundos.");
+      const msg = err?.message || "Hubo un problema. Inténtalo de nuevo en unos segundos.";
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -118,7 +125,53 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white rounded-3xl shadow-xl border border-slate-200 p-6 lg:p-10 space-y-5">
+        {/* Contador de plazas (si está activado) */}
+        {mostrarPlazas && (
+          <div className="mb-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2 text-slate-700 font-semibold">
+                <Users className="w-5 h-5" style={{ color }} />
+                <span>Plazas disponibles</span>
+              </div>
+              <div className="text-sm font-bold" style={{ color: plazasAgotadas ? "#dc2626" : color }}>
+                {plazasOcupadas} / {plazasMax}
+              </div>
+            </div>
+            <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className="h-full transition-all duration-500"
+                style={{
+                  width: `${porcentaje}%`,
+                  background: plazasAgotadas
+                    ? "linear-gradient(90deg, #dc2626, #b91c1c)"
+                    : `linear-gradient(90deg, ${color}, ${colorSec})`,
+                }}
+              />
+            </div>
+            {!plazasAgotadas && plazasRestantes !== null && (
+              <p className="text-xs text-slate-500 mt-2 text-center">
+                {plazasRestantes === 1
+                  ? "¡Solo queda 1 plaza!"
+                  : plazasRestantes <= 5
+                    ? `⚠️ ¡Solo quedan ${plazasRestantes} plazas!`
+                    : `Quedan ${plazasRestantes} plazas`}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Estado: plazas agotadas */}
+        {plazasAgotadas && (
+          <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-2xl p-6 text-center">
+            <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
+            <h3 className="text-xl font-black text-red-900 mb-1">Plazas agotadas</h3>
+            <p className="text-red-700">
+              {limites?.mensaje_plazas_agotadas || "Lo sentimos, ya no quedan plazas disponibles."}
+            </p>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className={`bg-white rounded-3xl shadow-xl border border-slate-200 p-6 lg:p-10 space-y-5 ${plazasAgotadas ? "opacity-50 pointer-events-none" : ""}`}>
           <div className="grid grid-cols-2 gap-4">
             {campos.map((c) => {
               const colClass =
@@ -274,7 +327,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || plazasAgotadas}
             className="w-full mt-4 px-8 py-4 rounded-2xl text-white font-bold text-lg shadow-xl hover:scale-[1.02] transition-transform disabled:opacity-60 disabled:cursor-wait"
             style={{
               background: `linear-gradient(135deg, ${color}, ${colorSec})`,

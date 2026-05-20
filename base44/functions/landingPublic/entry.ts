@@ -20,7 +20,15 @@ Deno.serve(async (req) => {
       if (!slug) return Response.json({ page: null });
       const results = await base44.asServiceRole.entities.LandingPage.filter({ slug });
       const page = results?.[0] || null;
-      return Response.json({ page });
+      let plazas_ocupadas = 0;
+      if (page?.id) {
+        try {
+          const subs = await base44.asServiceRole.entities.LandingSubmission.filter({ landing_page_id: page.id });
+          // Contar solo las inscripciones que no estén canceladas
+          plazas_ocupadas = (subs || []).filter(s => s.estado !== 'cancelado').length;
+        } catch {}
+      }
+      return Response.json({ page, plazas_ocupadas });
     }
 
     if (action === 'visit') {
@@ -43,6 +51,19 @@ Deno.serve(async (req) => {
       if (!page) return Response.json({ error: 'Página no encontrada' }, { status: 404 });
       if (page.estado === 'cerrada' || page.estado === 'archivada') {
         return Response.json({ error: 'Inscripciones cerradas' }, { status: 403 });
+      }
+
+      // Validar plazas (si hay límite configurado)
+      const plazasMax = parseInt(page?.config?.limites?.plazas_maximas) || 0;
+      if (plazasMax > 0) {
+        const subs = await base44.asServiceRole.entities.LandingSubmission.filter({ landing_page_id: pageId });
+        const ocupadas = (subs || []).filter(s => s.estado !== 'cancelado').length;
+        if (ocupadas >= plazasMax) {
+          return Response.json({
+            error: page?.config?.limites?.mensaje_plazas_agotadas || 'Lo sentimos, ya no quedan plazas disponibles.',
+            plazas_agotadas: true,
+          }, { status: 409 });
+        }
       }
 
       const submission = await base44.asServiceRole.entities.LandingSubmission.create({
