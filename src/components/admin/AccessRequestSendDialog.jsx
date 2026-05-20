@@ -270,7 +270,7 @@ export default function AccessRequestSendDialog({ request, open, onOpenChange, o
               </div>
 
               {request.telefono && (() => {
-                const waUrl = getWhatsAppUrl(request.telefono, sentResult.tipo, sentResult.nombre, sentResult.codigo);
+                const waUrl = getWhatsAppUrl(request.telefono, sentResult.tipo, sentResult.nombre, sentResult.codigo, request.email);
                 if (!waUrl) return null;
                 return (
                   <a href={waUrl} target="_blank" rel="noopener noreferrer" className="block">

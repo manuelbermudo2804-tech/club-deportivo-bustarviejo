@@ -336,7 +336,7 @@ function CodeCard({ code, onResend, onCancel, onDelete, isResending, telefono })
               </Button>
             )}
             {displayEstado === 'pendiente' && telefono && (() => {
-              const waUrl = getWhatsAppUrl(telefono, code.tipo, code.nombre_destino, code.codigo);
+              const waUrl = getWhatsAppUrl(telefono, code.tipo, code.nombre_destino, code.codigo, code.email);
               if (!waUrl) return null;
               return (
                 <a href={waUrl} target="_blank" rel="noopener noreferrer">
