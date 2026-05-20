@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { CheckCircle2, Loader2, Mail, Send, Calendar, MessageCircle, CreditCard, Camera, Bell, Trophy, Shield, Sparkles, ChevronDown, ChevronUp, Lock, Phone } from "lucide-react";
 import BackToAppButton from "../components/public/BackToAppButton";
+import BackToWebsiteButton from "../components/public/BackToWebsiteButton";
 import { getDeviceFingerprint } from "../components/sanisidro/deviceFingerprint";
 import usePublicPageTracker from "../components/public/usePublicPageTracker";
 import InstallHelpRequestForm from "../components/public/InstallHelpRequestForm";
@@ -208,6 +209,7 @@ export default function PublicAccessRequest() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-600 via-orange-700 to-green-700 py-6 px-4">
       <BackToAppButton />
+      <BackToWebsiteButton />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

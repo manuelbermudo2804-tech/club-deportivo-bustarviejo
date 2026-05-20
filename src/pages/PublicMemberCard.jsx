@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { base44 } from "@/api/base44Client";
 import { CheckCircle2, XCircle, Clock, MapPin, Phone, Store, AlertTriangle } from "lucide-react";
 import BackToAppButton from "../components/public/BackToAppButton";
+import BackToWebsiteButton from "../components/public/BackToWebsiteButton";
 import usePublicPageTracker from "../components/public/usePublicPageTracker";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
@@ -111,6 +112,7 @@ export default function PublicMemberCard() {
         : "bg-gradient-to-br from-red-600 via-red-700 to-red-900"
     }`}>
       <BackToAppButton />
+      <BackToWebsiteButton />
       <div className="max-w-md w-full space-y-6">
         {/* CARNET DIGITAL */}
         <Card className="border-4 border-white shadow-2xl">

@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import PublicHero from "@/components/page-builder/PublicHero";
 import PublicBlockRenderer from "@/components/page-builder/PublicBlockRenderer";
 import PublicForm from "@/components/page-builder/PublicForm";
+import BackToWebsiteButton from "@/components/public/BackToWebsiteButton";
 
 // Página pública renderizada desde la config de una LandingPage.
 // Ruta: /l/:slug
@@ -123,6 +124,7 @@ export default function PublicLanding() {
 
   return (
     <div className="min-h-screen bg-white" style={{ color: branding.color_texto || "#0f172a" }}>
+      <BackToWebsiteButton />
       <PublicHero hero={cfg.hero} branding={branding} onCtaClick={scrollToForm} />
 
       {bloques.map((b) => (
