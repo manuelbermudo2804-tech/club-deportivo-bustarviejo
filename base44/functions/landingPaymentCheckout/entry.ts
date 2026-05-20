@@ -19,12 +19,23 @@ Deno.serve(async (req) => {
       email,
       telefono,
       datos,
+      archivos,
       opcion_id,
       cantidad,
+      cupon_codigo,
       user_agent,
       referrer,
       origin,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      honeypot,
     } = body || {};
+
+    if (honeypot && honeypot.length > 0) {
+      // Bot detectado: devolvemos OK falso para no levantar sospechas
+      return Response.json({ url: origin || '/', session_id: 'bot' });
+    }
 
     if (!landing_page_id || !email) {
       return Response.json({ error: 'Faltan datos obligatorios' }, { status: 400 });
@@ -48,7 +59,54 @@ Deno.serve(async (req) => {
     }
 
     const qty = Math.max(1, Math.min(parseInt(cantidad) || 1, opcion.permitir_cantidad ? (opcion.cantidad_max || 100) : 1));
-    const importeTotal = Number((opcion.precio * qty).toFixed(2));
+    let importeTotal = Number((opcion.precio * qty).toFixed(2));
+
+    // Aplicar cupón si se ha enviado y es válido
+    let descuento = 0;
+    let cupon = null;
+    if (cupon_codigo) {
+      const cupones = page.config?.cupones || [];
+      cupon = cupones.find((c) => c.codigo && c.codigo.toLowerCase() === String(cupon_codigo).toLowerCase());
+      if (cupon && cupon.activo !== false &&
+          (!cupon.max_usos || (cupon.usos || 0) < cupon.max_usos) &&
+          (!cupon.fecha_expiracion || new Date(cupon.fecha_expiracion) >= new Date())) {
+        if (cupon.tipo === 'porcentaje') descuento = Math.min(importeTotal, importeTotal * (Number(cupon.valor) / 100));
+        else descuento = Math.min(importeTotal, Number(cupon.valor) || 0);
+        descuento = Number(descuento.toFixed(2));
+        importeTotal = Number((importeTotal - descuento).toFixed(2));
+      } else {
+        cupon = null; // inválido, ignorar
+      }
+    }
+
+    // Si el cupón deja el precio en 0, no podemos cobrar con Stripe — registramos como pagado directo
+    if (importeTotal <= 0) {
+      const submission = await base44.asServiceRole.entities.LandingSubmission.create({
+        landing_page_id,
+        landing_slug: landing_slug || page.slug || '',
+        nombre: nombre || '',
+        email: email || '',
+        telefono: telefono || '',
+        datos: datos || {},
+        archivos: archivos || [],
+        estado: 'nuevo',
+        user_agent: user_agent || '',
+        referrer: referrer || '',
+        utm_source: utm_source || '',
+        utm_medium: utm_medium || '',
+        utm_campaign: utm_campaign || '',
+        pago_estado: 'pagado',
+        pago_opcion_nombre: opcion.nombre,
+        pago_precio_unitario: opcion.precio,
+        pago_cantidad: qty,
+        pago_importe_total: 0,
+        pago_descuento_codigo: cupon?.codigo || '',
+        pago_descuento_importe: descuento,
+        pago_fecha: new Date().toISOString(),
+      });
+      try { base44.asServiceRole.functions.invoke('sendLandingConfirmation', { submissionId: submission.id }).catch(() => {}); } catch {}
+      return Response.json({ url: `${(origin || '').replace(/\/$/, '')}/l/${page.slug}?pago=ok&sid=free_${submission.id}`, session_id: `free_${submission.id}`, free: true });
+    }
 
     // Validar plazas antes de crear la sesión (cuentan submissions pagadas + pendientes recientes)
     const plazasMax = parseInt(page?.config?.limites?.plazas_maximas) || 0;
@@ -81,14 +139,20 @@ Deno.serve(async (req) => {
       email: email || '',
       telefono: telefono || '',
       datos: datos || {},
+      archivos: archivos || [],
       estado: 'pendiente_pago',
       user_agent: user_agent || '',
       referrer: referrer || '',
+      utm_source: utm_source || '',
+      utm_medium: utm_medium || '',
+      utm_campaign: utm_campaign || '',
       pago_estado: 'pendiente',
       pago_opcion_nombre: opcion.nombre,
       pago_precio_unitario: opcion.precio,
       pago_cantidad: qty,
       pago_importe_total: importeTotal,
+      pago_descuento_codigo: cupon?.codigo || '',
+      pago_descuento_importe: descuento,
     });
 
     // Crear sesión Stripe Checkout

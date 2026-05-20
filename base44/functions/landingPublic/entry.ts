@@ -81,11 +81,16 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Inscripciones cerradas' }, { status: 403 });
       }
 
+      // Anti-spam: honeypot
+      if (body.honeypot && String(body.honeypot).length > 0) {
+        return Response.json({ ok: true, submission_id: 'bot' });
+      }
+
       // Validar plazas (si hay límite configurado)
       const plazasMax = parseInt(page?.config?.limites?.plazas_maximas) || 0;
       if (plazasMax > 0) {
         const subs = await base44.asServiceRole.entities.LandingSubmission.filter({ landing_page_id: pageId });
-        const ocupadas = (subs || []).filter(s => s.estado !== 'cancelado').length;
+        const ocupadas = (subs || []).filter(s => s.estado !== 'cancelado' && s.estado !== 'lista_espera').length;
         if (ocupadas >= plazasMax) {
           return Response.json({
             error: page?.config?.limites?.mensaje_plazas_agotadas || 'Lo sentimos, ya no quedan plazas disponibles.',
@@ -101,9 +106,13 @@ Deno.serve(async (req) => {
         email: body.email || '',
         telefono: body.telefono || '',
         datos: body.datos || {},
+        archivos: body.archivos || [],
         estado: 'nuevo',
         user_agent: body.user_agent || '',
         referrer: body.referrer || '',
+        utm_source: body.utm_source || '',
+        utm_medium: body.utm_medium || '',
+        utm_campaign: body.utm_campaign || '',
       });
 
       // Actualizar estadísticas (best-effort)
@@ -123,6 +132,15 @@ Deno.serve(async (req) => {
         base44.asServiceRole.functions
           .invoke('sendLandingConfirmation', { submissionId: submission.id })
           .catch(() => {});
+      } catch {}
+
+      // Notificar al admin (push)
+      try {
+        if (page?.panel_gestion?.notificar_push !== false) {
+          base44.asServiceRole.functions
+            .invoke('notifyLandingSubmission', { submissionId: submission.id })
+            .catch(() => {});
+        }
       } catch {}
 
       return Response.json({ ok: true, submission_id: submission.id });

@@ -13,7 +13,8 @@ const TIPOS_CAMPO = [
   { v: "texto", l: "📝 Texto" },
   { v: "email", l: "📧 Email" },
   { v: "telefono", l: "📞 Teléfono" },
-  { v: "dni", l: "🆔 DNI" },
+  { v: "dni", l: "🆔 DNI (validado)" },
+  { v: "iban", l: "🏦 IBAN (validado)" },
   { v: "fecha", l: "📅 Fecha" },
   { v: "numero", l: "🔢 Número" },
   { v: "select", l: "📋 Selector" },
@@ -21,6 +22,7 @@ const TIPOS_CAMPO = [
   { v: "textarea", l: "📄 Texto largo" },
   { v: "checkbox", l: "☑️ Casilla" },
   { v: "aceptacion", l: "✅ Aceptación legal" },
+  { v: "archivo", l: "📎 Subida de archivo" },
   { v: "lista_jugadores", l: "👥 Lista de jugadores (repetidor)" },
 ];
 
@@ -188,6 +190,59 @@ export default function EditorFormulario({ formulario, onChange }) {
                   onChange={(v) => updateCampo(idx, "opciones", v)}
                 />
               )}
+
+              {c.tipo === "archivo" && (
+                <div className="mt-2 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">Tipos permitidos</Label>
+                      <Input
+                        value={c.accept || ""}
+                        onChange={(e) => updateCampo(idx, "accept", e.target.value)}
+                        placeholder=".pdf,.jpg,.png"
+                        className="text-sm h-8"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs">Tamaño máx (MB)</Label>
+                      <Input
+                        type="number"
+                        value={c.max_mb ?? 5}
+                        onChange={(e) => updateCampo(idx, "max_mb", parseInt(e.target.value) || 5)}
+                        className="text-sm h-8"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Visibilidad condicional */}
+              <details className="mt-2">
+                <summary className="text-xs text-slate-500 cursor-pointer hover:text-slate-700">
+                  🔀 Mostrar solo si… (condicional)
+                </summary>
+                <div className="mt-2 grid grid-cols-2 gap-2 p-2 bg-white rounded border border-slate-200">
+                  <Select
+                    value={c.condicion_campo || ""}
+                    onValueChange={(v) => updateCampo(idx, "condicion_campo", v === "__none__" ? "" : v)}
+                  >
+                    <SelectTrigger className="text-xs h-8"><SelectValue placeholder="(siempre visible)" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">(siempre visible)</SelectItem>
+                      {campos.filter((cc, i) => i < idx && cc.id !== c.id).map((cc) => (
+                        <SelectItem key={cc.id} value={cc.id}>{cc.etiqueta}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    value={c.condicion_valor || ""}
+                    onChange={(e) => updateCampo(idx, "condicion_valor", e.target.value)}
+                    placeholder="valor esperado"
+                    className="text-xs h-8"
+                    disabled={!c.condicion_campo}
+                  />
+                </div>
+              </details>
 
               {c.tipo === "lista_jugadores" && (
                 <div className="mt-2 space-y-2">

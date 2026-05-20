@@ -131,6 +131,61 @@ export const BLOCK_CATALOG = [
     descripcion: "Línea sutil",
     datosDefault: {},
   },
+  {
+    tipo: "countdown",
+    nombre: "Cuenta atrás",
+    emoji: "⏰",
+    descripcion: "Temporizador hasta una fecha",
+    datosDefault: {
+      titulo: "Faltan",
+      fecha: "",
+      mensaje_fin: "¡Ha llegado el momento!",
+    },
+  },
+  {
+    tipo: "sponsors",
+    nombre: "Patrocinadores",
+    emoji: "🤝",
+    descripcion: "Rejilla de logos",
+    datosDefault: {
+      titulo: "Con el apoyo de",
+      items: [],
+    },
+  },
+  {
+    tipo: "equipos",
+    nombre: "Equipos / Participantes",
+    emoji: "🏆",
+    descripcion: "Carrusel de equipos",
+    datosDefault: {
+      titulo: "Equipos participantes",
+      items: [],
+    },
+  },
+  {
+    tipo: "horarios",
+    nombre: "Horarios / Agenda",
+    emoji: "📅",
+    descripcion: "Tabla de horarios",
+    datosDefault: {
+      titulo: "Programa",
+      items: [
+        { hora: "10:00", titulo: "Apertura", descripcion: "Recepción de participantes" },
+        { hora: "11:00", titulo: "Inicio", descripcion: "" },
+      ],
+    },
+  },
+  {
+    tipo: "embed",
+    nombre: "Embed HTML / iframe",
+    emoji: "🔌",
+    descripcion: "Insertar widget externo",
+    datosDefault: {
+      titulo: "",
+      html: "",
+      altura: 400,
+    },
+  },
 ];
 
 export const getBlockMeta = (tipo) => BLOCK_CATALOG.find((b) => b.tipo === tipo);

@@ -174,6 +174,8 @@ export default function PublicLanding() {
           branding={branding}
           limites={cfg.limites}
           pago={cfg.pago}
+          cupones={cfg.cupones || []}
+          listaEspera={cfg.lista_espera || null}
           plazasOcupadas={plazasOcupadas}
           paymentSuccess={paymentSuccess}
         />

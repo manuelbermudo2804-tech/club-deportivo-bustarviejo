@@ -23,7 +23,7 @@
     },
     "plantilla_origen": {
       "type": "string",
-      "description": "Plantilla con la que se cre\u00f3 (ej: 'evento_gratuito', 'torneo_pago', 'captacion_interes', 'encuesta')"
+      "description": "Plantilla con la que se cre\u00f3"
     },
     "tema_visual": {
       "type": "string",
@@ -35,12 +35,10 @@
         "editorial",
         "playful"
       ],
-      "default": "cinematic",
-      "description": "Estilo visual base de la p\u00e1gina"
+      "default": "cinematic"
     },
     "config": {
       "type": "object",
-      "description": "Configuraci\u00f3n completa: bloques, hero, branding, formulario, etc.",
       "properties": {
         "hero": {
           "type": "object"
@@ -62,33 +60,113 @@
         },
         "limites": {
           "type": "object"
+        },
+        "pago": {
+          "type": "object"
+        },
+        "cupones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "codigo": {
+                "type": "string"
+              },
+              "tipo": {
+                "type": "string",
+                "enum": [
+                  "porcentaje",
+                  "fijo"
+                ]
+              },
+              "valor": {
+                "type": "number"
+              },
+              "max_usos": {
+                "type": "number"
+              },
+              "usos": {
+                "type": "number",
+                "default": 0
+              },
+              "activo": {
+                "type": "boolean",
+                "default": true
+              },
+              "fecha_expiracion": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "lista_espera": {
+          "type": "object",
+          "properties": {
+            "activa": {
+              "type": "boolean",
+              "default": false
+            },
+            "titulo": {
+              "type": "string"
+            },
+            "descripcion": {
+              "type": "string"
+            }
+          }
+        },
+        "anti_spam": {
+          "type": "object",
+          "properties": {
+            "honeypot": {
+              "type": "boolean",
+              "default": true
+            },
+            "rate_limit_min": {
+              "type": "number",
+              "default": 0
+            }
+          }
+        },
+        "integraciones": {
+          "type": "object",
+          "properties": {
+            "google_sheet_id": {
+              "type": "string"
+            },
+            "webhook_url": {
+              "type": "string"
+            }
+          }
         }
       }
     },
     "panel_gestion": {
       "type": "object",
-      "description": "Configuraci\u00f3n del panel de gesti\u00f3n accesible dentro de la app",
       "properties": {
         "mostrar_en_menu": {
           "type": "boolean",
-          "default": false,
-          "description": "Si TRUE, aparece como entrada en el men\u00fa lateral de los usuarios autorizados"
+          "default": false
         },
         "nombre_menu": {
-          "type": "string",
-          "description": "Nombre visible en el men\u00fa (ej: 'Torneo P\u00e1del 2026')"
+          "type": "string"
         },
         "emoji": {
           "type": "string",
-          "default": "\ud83c\udf89",
-          "description": "Emoji o icono para el men\u00fa"
+          "default": "\ud83c\udf89"
         },
         "emails_autorizados": {
           "type": "array",
           "items": {
             "type": "string"
-          },
-          "description": "Emails de usuarios concretos que pueden ver/gestionar este panel adem\u00e1s de admins"
+          }
+        },
+        "notificar_admins": {
+          "type": "boolean",
+          "default": false
+        },
+        "notificar_push": {
+          "type": "boolean",
+          "default": true
         }
       }
     },
@@ -106,6 +184,14 @@
         "ultima_inscripcion": {
           "type": "string",
           "format": "date-time"
+        },
+        "visitas_unicas": {
+          "type": "number",
+          "default": 0
+        },
+        "lista_espera_count": {
+          "type": "number",
+          "default": 0
         }
       }
     },

@@ -141,6 +141,67 @@ Deno.serve(async (req) => {
         }
         const today = new Date().toISOString().slice(0,10);
 
+        // ============ LANDING SUBMISSION (Constructor de páginas) ============
+        if (metadata.tipo === 'landing_submission' && metadata.submission_id) {
+          try {
+            await base44.asServiceRole.entities.StripePaymentLog.create({
+              section: 'landing_submission',
+              amount: Number(session.amount_total || 0) / 100,
+              currency: session.currency || 'eur',
+              status: 'succeeded',
+              session_id: session.id,
+              payment_intent_id: session.payment_intent || null,
+              email: session.customer_details?.email || session.customer_email || metadata.user_email,
+              related_entity: 'LandingSubmission',
+              related_id: metadata.submission_id,
+              metadata,
+              created_at: new Date().toISOString()
+            });
+
+            const submission = await base44.asServiceRole.entities.LandingSubmission.get(metadata.submission_id);
+            if (submission && submission.pago_estado !== 'pagado') {
+              await base44.asServiceRole.entities.LandingSubmission.update(metadata.submission_id, {
+                pago_estado: 'pagado',
+                estado: 'nuevo',
+                pago_fecha: new Date().toISOString(),
+                pago_stripe_payment_intent: session.payment_intent || null,
+              });
+
+              // Disparar email de confirmación (best-effort)
+              try {
+                base44.asServiceRole.functions
+                  .invoke('sendLandingConfirmation', { submissionId: metadata.submission_id })
+                  .catch(() => {});
+              } catch {}
+
+              // Push al admin (best-effort)
+              try {
+                base44.asServiceRole.functions
+                  .invoke('notifyLandingSubmission', { submissionId: metadata.submission_id })
+                  .catch(() => {});
+              } catch {}
+
+              // Actualizar estadísticas de la landing
+              try {
+                if (submission.landing_page_id) {
+                  const page = await base44.asServiceRole.entities.LandingPage.get(submission.landing_page_id);
+                  const stats = page?.estadisticas || {};
+                  await base44.asServiceRole.entities.LandingPage.update(submission.landing_page_id, {
+                    estadisticas: {
+                      ...stats,
+                      inscripciones: (stats.inscripciones || 0) + 1,
+                      ultima_inscripcion: new Date().toISOString(),
+                    },
+                  });
+                }
+              } catch {}
+            }
+            console.log('[stripe-webhook] LandingSubmission confirmada via webhook', metadata.submission_id);
+          } catch (e) {
+            console.error('[stripe-webhook] Error procesando landing_submission:', e?.message || e);
+          }
+        }
+
         // Caso 1: pago individual de cuota
         if (metadata.tipo === 'pago_cuota' && metadata.payment_id) {
           try {

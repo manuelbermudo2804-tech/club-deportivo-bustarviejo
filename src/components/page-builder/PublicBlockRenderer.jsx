@@ -1,5 +1,26 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+
+// Hook auxiliar para countdown
+function useCountdown(target) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!target) return;
+    const t = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [target]);
+  if (!target) return null;
+  const ts = new Date(target).getTime();
+  if (Number.isNaN(ts)) return null;
+  const diff = Math.max(0, ts - now);
+  return {
+    finished: diff <= 0,
+    dias: Math.floor(diff / 86400000),
+    horas: Math.floor((diff % 86400000) / 3600000),
+    min: Math.floor((diff % 3600000) / 60000),
+    seg: Math.floor((diff % 60000) / 1000),
+  };
+}
 
 // Renderiza los distintos tipos de bloques en la página pública con estética brutal.
 export default function PublicBlockRenderer({ bloque, branding }) {
@@ -390,5 +411,150 @@ export default function PublicBlockRenderer({ bloque, branding }) {
     );
   }
 
+  if (tipo === "countdown") {
+    return <CountdownBlock datos={datos} color={color} wrapper={wrapper} />;
+  }
+
+  if (tipo === "sponsors") {
+    const items = datos.items || [];
+    if (items.length === 0) return null;
+    return wrapper(
+      <div>
+        {datos.titulo && (
+          <h2 className="text-2xl lg:text-3xl font-black text-center mb-8 text-slate-700 uppercase tracking-wider">
+            {datos.titulo}
+          </h2>
+        )}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 items-center">
+          {items.map((sp, i) => {
+            const inner = (
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 h-24 flex items-center justify-center grayscale hover:grayscale-0 transition-all hover:shadow-md">
+                {sp.logo_url ? (
+                  <img src={sp.logo_url} alt={sp.nombre || ""} className="max-h-full max-w-full object-contain" />
+                ) : (
+                  <span className="text-slate-700 font-semibold">{sp.nombre}</span>
+                )}
+              </div>
+            );
+            return sp.url ? (
+              <a key={i} href={sp.url} target="_blank" rel="noopener noreferrer">{inner}</a>
+            ) : (
+              <div key={i}>{inner}</div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  if (tipo === "equipos") {
+    const items = datos.items || [];
+    if (items.length === 0) return null;
+    return wrapper(
+      <div>
+        {datos.titulo && (
+          <h2 className="text-3xl lg:text-4xl font-black text-center mb-10 text-slate-900">{datos.titulo}</h2>
+        )}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {items.map((eq, i) => (
+            <div key={i} className="bg-white rounded-2xl border border-slate-200 p-4 text-center hover:shadow-lg hover:-translate-y-1 transition-all">
+              {eq.logo_url ? (
+                <img src={eq.logo_url} alt={eq.nombre} className="w-16 h-16 mx-auto mb-2 rounded-full object-cover" />
+              ) : (
+                <div className="w-16 h-16 mx-auto mb-2 rounded-full bg-slate-100 flex items-center justify-center text-2xl">🏆</div>
+              )}
+              <div className="font-bold text-slate-900 text-sm">{eq.nombre}</div>
+              {eq.categoria && <div className="text-xs text-slate-500 mt-1">{eq.categoria}</div>}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (tipo === "horarios") {
+    const items = datos.items || [];
+    return wrapper(
+      <div className="max-w-3xl mx-auto">
+        {datos.titulo && (
+          <h2 className="text-3xl lg:text-4xl font-black text-center mb-10 text-slate-900">{datos.titulo}</h2>
+        )}
+        <div className="space-y-2">
+          {items.map((it, i) => (
+            <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white border border-slate-200 hover:shadow-md transition">
+              <div
+                className="flex-shrink-0 w-20 text-center py-2 rounded-xl font-black text-lg"
+                style={{ background: `${color}15`, color }}
+              >
+                {it.hora}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-slate-900">{it.titulo}</div>
+                {it.descripcion && <div className="text-sm text-slate-600 mt-1">{it.descripcion}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (tipo === "embed") {
+    if (!datos.html) return null;
+    return wrapper(
+      <div className="max-w-4xl mx-auto">
+        {datos.titulo && (
+          <h2 className="text-3xl lg:text-4xl font-black text-center mb-8 text-slate-900">{datos.titulo}</h2>
+        )}
+        <div
+          className="rounded-2xl overflow-hidden border border-slate-200"
+          style={{ minHeight: `${datos.altura || 400}px` }}
+          dangerouslySetInnerHTML={{ __html: datos.html }}
+        />
+      </div>
+    );
+  }
+
   return null;
+}
+
+function CountdownBlock({ datos, color, wrapper }) {
+  const cd = useCountdown(datos.fecha);
+  if (!cd) return null;
+
+  if (cd.finished) {
+    return wrapper(
+      <div className="text-center py-8">
+        <div className="text-5xl mb-4">🎉</div>
+        <p className="text-2xl font-bold text-slate-900">{datos.mensaje_fin || "¡Ya llegó!"}</p>
+      </div>
+    );
+  }
+
+  const Box = ({ valor, etiqueta }) => (
+    <div className="flex flex-col items-center">
+      <div className="bg-slate-900 text-white rounded-2xl px-4 py-3 min-w-[70px] lg:min-w-[90px] text-center">
+        <div className="text-3xl lg:text-5xl font-black tabular-nums" style={{ color: "#fff" }}>
+          {String(valor).padStart(2, "0")}
+        </div>
+      </div>
+      <div className="text-xs lg:text-sm text-slate-500 font-semibold uppercase tracking-wider mt-2">{etiqueta}</div>
+    </div>
+  );
+
+  return wrapper(
+    <div className="text-center">
+      {datos.titulo && (
+        <h2 className="text-2xl lg:text-3xl font-black mb-6 text-slate-700 uppercase tracking-wider" style={{ color }}>
+          {datos.titulo}
+        </h2>
+      )}
+      <div className="flex items-center justify-center gap-3 lg:gap-5">
+        <Box valor={cd.dias} etiqueta="Días" />
+        <Box valor={cd.horas} etiqueta="Horas" />
+        <Box valor={cd.min} etiqueta="Min" />
+        <Box valor={cd.seg} etiqueta="Seg" />
+      </div>
+    </div>
+  );
 }

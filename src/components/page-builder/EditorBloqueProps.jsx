@@ -343,6 +343,168 @@ export default function EditorBloqueProps({ bloque, onChange }) {
     return <p className="text-sm text-slate-500">Sin opciones. Solo es una línea separadora.</p>;
   }
 
+  // --- COUNTDOWN ---
+  if (bloque.tipo === "countdown") {
+    return (
+      <div className="space-y-3">
+        <div>
+          <Label>Título</Label>
+          <Input value={datos.titulo || ""} onChange={(e) => update("titulo", e.target.value)} placeholder="Faltan…" />
+        </div>
+        <div>
+          <Label>Fecha y hora objetivo</Label>
+          <Input
+            type="datetime-local"
+            value={datos.fecha || ""}
+            onChange={(e) => update("fecha", e.target.value)}
+          />
+        </div>
+        <div>
+          <Label>Mensaje cuando termine</Label>
+          <Input value={datos.mensaje_fin || ""} onChange={(e) => update("mensaje_fin", e.target.value)} placeholder="¡Ha llegado!" />
+        </div>
+      </div>
+    );
+  }
+
+  // --- SPONSORS ---
+  if (bloque.tipo === "sponsors") {
+    const items = datos.items || [];
+    return (
+      <div className="space-y-3">
+        <div>
+          <Label>Título</Label>
+          <Input value={datos.titulo || ""} onChange={(e) => update("titulo", e.target.value)} placeholder="Con el apoyo de" />
+        </div>
+        <div className="space-y-2">
+          {items.map((sp, idx) => (
+            <div key={idx} className="bg-slate-50 p-3 rounded-xl border space-y-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={sp.nombre || ""}
+                  onChange={(e) => { const n = [...items]; n[idx] = { ...sp, nombre: e.target.value }; updateItems(n); }}
+                  placeholder="Nombre del patrocinador"
+                />
+                <Button variant="ghost" size="icon" onClick={() => updateItems(items.filter((_, i) => i !== idx))} className="text-red-500">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+              <ImageUploadInput
+                value={sp.logo_url}
+                onChange={(v) => { const n = [...items]; n[idx] = { ...sp, logo_url: v }; updateItems(n); }}
+              />
+              <Input
+                value={sp.url || ""}
+                onChange={(e) => { const n = [...items]; n[idx] = { ...sp, url: e.target.value }; updateItems(n); }}
+                placeholder="URL de su web (opcional)"
+              />
+            </div>
+          ))}
+          <Button variant="outline" size="sm" onClick={() => updateItems([...items, { nombre: "", logo_url: "", url: "" }])} className="w-full gap-1">
+            <Plus className="w-3 h-3" /> Añadir patrocinador
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // --- EQUIPOS ---
+  if (bloque.tipo === "equipos") {
+    const items = datos.items || [];
+    return (
+      <div className="space-y-3">
+        <div>
+          <Label>Título</Label>
+          <Input value={datos.titulo || ""} onChange={(e) => update("titulo", e.target.value)} placeholder="Equipos participantes" />
+        </div>
+        <div className="space-y-2">
+          {items.map((eq, idx) => (
+            <div key={idx} className="bg-slate-50 p-3 rounded-xl border space-y-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={eq.nombre || ""}
+                  onChange={(e) => { const n = [...items]; n[idx] = { ...eq, nombre: e.target.value }; updateItems(n); }}
+                  placeholder="Nombre del equipo"
+                />
+                <Button variant="ghost" size="icon" onClick={() => updateItems(items.filter((_, i) => i !== idx))} className="text-red-500">
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+              <ImageUploadInput
+                value={eq.logo_url}
+                onChange={(v) => { const n = [...items]; n[idx] = { ...eq, logo_url: v }; updateItems(n); }}
+              />
+              <Input
+                value={eq.categoria || ""}
+                onChange={(e) => { const n = [...items]; n[idx] = { ...eq, categoria: e.target.value }; updateItems(n); }}
+                placeholder="Categoría / Grupo (opcional)"
+              />
+            </div>
+          ))}
+          <Button variant="outline" size="sm" onClick={() => updateItems([...items, { nombre: "", logo_url: "", categoria: "" }])} className="w-full gap-1">
+            <Plus className="w-3 h-3" /> Añadir equipo
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  // --- HORARIOS ---
+  if (bloque.tipo === "horarios") {
+    const items = datos.items || [];
+    return (
+      <div className="space-y-3">
+        <div>
+          <Label>Título</Label>
+          <Input value={datos.titulo || ""} onChange={(e) => update("titulo", e.target.value)} placeholder="Programa" />
+        </div>
+        <ListEditor
+          items={items}
+          onChange={updateItems}
+          newItem={() => ({ hora: "", titulo: "", descripcion: "" })}
+          fields={[
+            { key: "hora", label: "Hora", placeholder: "10:00", className: "w-32" },
+            { key: "titulo", label: "Título" },
+            { key: "descripcion", label: "Descripción", textarea: true },
+          ]}
+        />
+      </div>
+    );
+  }
+
+  // --- EMBED ---
+  if (bloque.tipo === "embed") {
+    return (
+      <div className="space-y-3">
+        <div>
+          <Label>Título (opcional)</Label>
+          <Input value={datos.titulo || ""} onChange={(e) => update("titulo", e.target.value)} />
+        </div>
+        <div>
+          <Label>Código HTML / iframe</Label>
+          <Textarea
+            value={datos.html || ""}
+            onChange={(e) => update("html", e.target.value)}
+            rows={6}
+            className="font-mono text-xs"
+            placeholder='<iframe src="..." width="100%" height="400"></iframe>'
+          />
+          <p className="text-xs text-amber-600 mt-1">
+            ⚠️ Solo pega código de fuentes en las que confíes. El HTML se renderiza tal cual.
+          </p>
+        </div>
+        <div>
+          <Label>Altura mínima (px)</Label>
+          <Input
+            type="number"
+            value={datos.altura ?? 400}
+            onChange={(e) => update("altura", parseInt(e.target.value) || 400)}
+          />
+        </div>
+      </div>
+    );
+  }
+
   return <p className="text-sm text-slate-500">Tipo de bloque no soportado.</p>;
 }
 

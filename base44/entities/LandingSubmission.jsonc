@@ -4,28 +4,41 @@
   "properties": {
     "landing_page_id": {
       "type": "string",
-      "description": "ID de la LandingPage a la que pertenece esta inscripci\u00f3n"
+      "description": "ID de la LandingPage"
     },
     "landing_slug": {
-      "type": "string",
-      "description": "Slug de la p\u00e1gina (denormalizado para b\u00fasquedas r\u00e1pidas)"
+      "type": "string"
     },
     "nombre": {
-      "type": "string",
-      "description": "Nombre del inscrito (extra\u00eddo de los campos)"
+      "type": "string"
     },
     "email": {
       "type": "string",
-      "format": "email",
-      "description": "Email del inscrito"
+      "format": "email"
     },
     "telefono": {
-      "type": "string",
-      "description": "Tel\u00e9fono del inscrito"
+      "type": "string"
     },
     "datos": {
       "type": "object",
-      "description": "Todos los datos del formulario en formato gen\u00e9rico: { campo_id: valor }"
+      "description": "Todos los datos del formulario: { campo_id: valor }"
+    },
+    "archivos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "campo_id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      }
     },
     "estado": {
       "type": "string",
@@ -34,37 +47,40 @@
         "contactado",
         "confirmado",
         "cancelado",
-        "pendiente_pago"
+        "pendiente_pago",
+        "lista_espera"
       ],
-      "default": "nuevo",
-      "description": "Estado de gesti\u00f3n del inscrito"
+      "default": "nuevo"
     },
     "notas_admin": {
-      "type": "string",
-      "description": "Notas internas del admin"
+      "type": "string"
     },
     "etiquetas": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Etiquetas para filtrar"
+      }
     },
     "ip": {
-      "type": "string",
-      "description": "IP del inscrito (para anti-spam)"
+      "type": "string"
     },
     "user_agent": {
-      "type": "string",
-      "description": "Navegador/dispositivo"
+      "type": "string"
     },
     "device_fingerprint": {
-      "type": "string",
-      "description": "Huella de dispositivo (anti-duplicados)"
+      "type": "string"
     },
     "referrer": {
-      "type": "string",
-      "description": "Origen del tr\u00e1fico (de d\u00f3nde lleg\u00f3)"
+      "type": "string"
+    },
+    "utm_source": {
+      "type": "string"
+    },
+    "utm_medium": {
+      "type": "string"
+    },
+    "utm_campaign": {
+      "type": "string"
     },
     "pago_estado": {
       "type": "string",
@@ -75,38 +91,41 @@
         "fallido",
         "reembolsado"
       ],
-      "default": "no_aplica",
-      "description": "Estado del pago con Stripe"
+      "default": "no_aplica"
     },
     "pago_opcion_nombre": {
-      "type": "string",
-      "description": "Nombre de la opci\u00f3n de pago elegida (ej: 'Inscripci\u00f3n + cena')"
+      "type": "string"
     },
     "pago_precio_unitario": {
-      "type": "number",
-      "description": "Precio unitario en \u20ac de la opci\u00f3n elegida"
+      "type": "number"
     },
     "pago_cantidad": {
       "type": "number",
-      "default": 1,
-      "description": "Cantidad seleccionada (ej: 2 entradas)"
+      "default": 1
     },
     "pago_importe_total": {
+      "type": "number"
+    },
+    "pago_descuento_codigo": {
+      "type": "string"
+    },
+    "pago_descuento_importe": {
       "type": "number",
-      "description": "Importe total pagado en \u20ac"
+      "default": 0
     },
     "pago_stripe_session_id": {
-      "type": "string",
-      "description": "ID de la sesi\u00f3n de Stripe Checkout"
+      "type": "string"
     },
     "pago_stripe_payment_intent": {
-      "type": "string",
-      "description": "ID del Payment Intent de Stripe"
+      "type": "string"
     },
     "pago_fecha": {
       "type": "string",
-      "format": "date-time",
-      "description": "Fecha en que se confirm\u00f3 el pago"
+      "format": "date-time"
+    },
+    "synced_to_sheet": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [

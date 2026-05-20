@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Eye, Globe, Loader2, Copy, Check, Share2 } from "lucide-react";
+import { ArrowLeft, Save, Eye, Globe, Loader2, Copy, Check, Share2, Smartphone, Monitor } from "lucide-react";
 import TemplatePicker from "@/components/page-builder/TemplatePicker";
 import EditorHero from "@/components/page-builder/EditorHero";
 import EditorFormulario from "@/components/page-builder/EditorFormulario";
@@ -14,6 +14,7 @@ import EditorBloques from "@/components/page-builder/EditorBloques";
 import EditorBranding from "@/components/page-builder/EditorBranding";
 import EditorPanelGestion from "@/components/page-builder/EditorPanelGestion";
 import EditorPago from "@/components/page-builder/EditorPago";
+import EditorAvanzado from "@/components/page-builder/EditorAvanzado";
 import ShareDialog from "@/components/page-builder/ShareDialog";
 import { buildLandingUrl } from "@/components/page-builder/landingUrl";
 import ImageUploadInput from "@/components/page-builder/ImageUploadInput";
@@ -38,6 +39,7 @@ export default function PageBuilderEditor() {
   const [tab, setTab] = useState("hero");
   const [copied, setCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [viewport, setViewport] = useState("desktop"); // 'desktop' | 'mobile'
 
   const [dirty, setDirty] = useState(false);
   const [initialPage, setInitialPage] = useState(null);
@@ -219,8 +221,9 @@ export default function PageBuilderEditor() {
               { id: "bloques", label: "🧱", title: "Bloques" },
               { id: "formulario", label: "📋", title: "Form" },
               { id: "pago", label: "💳", title: "Pago" },
+              { id: "avanzado", label: "🚀", title: "Avanzado" },
               { id: "branding", label: "🎨", title: "Estilo" },
-              { id: "panel", label: "🎫", title: "Panel app" },
+              { id: "panel", label: "🎫", title: "Panel" },
               { id: "ajustes", label: "⚙️", title: "Ajustes" },
             ].map((t) => (
               <button
@@ -261,6 +264,14 @@ export default function PageBuilderEditor() {
               <EditorPago
                 pago={page.config?.pago || {}}
                 onChange={(v) => updateConfig("pago", v)}
+              />
+            )}
+            {tab === "avanzado" && (
+              <EditorAvanzado
+                config={page.config || {}}
+                panel={page.panel_gestion || {}}
+                onConfigChange={updateConfig}
+                onPanelChange={(v) => setPage({ ...page, panel_gestion: v })}
               />
             )}
             {tab === "branding" && (
@@ -400,29 +411,50 @@ export default function PageBuilderEditor() {
 
         {/* Preview en vivo */}
         <div className="bg-slate-200 overflow-y-auto">
-          <div className="bg-slate-300 text-center py-2 text-xs text-slate-700 font-medium sticky top-0 z-10">
-            🖥️ Vista previa en vivo
+          <div className="bg-slate-300 text-center py-2 text-xs text-slate-700 font-medium sticky top-0 z-10 flex items-center justify-center gap-3">
+            <span>🖥️ Vista previa</span>
+            <div className="flex bg-white rounded-full p-0.5 shadow-sm">
+              <button
+                onClick={() => setViewport("desktop")}
+                className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 transition ${viewport === "desktop" ? "bg-slate-900 text-white" : "text-slate-600"}`}
+              >
+                <Monitor className="w-3 h-3" /> Desktop
+              </button>
+              <button
+                onClick={() => setViewport("mobile")}
+                className={`px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 transition ${viewport === "mobile" ? "bg-slate-900 text-white" : "text-slate-600"}`}
+              >
+                <Smartphone className="w-3 h-3" /> Móvil
+              </button>
+            </div>
           </div>
-          <div className="bg-white min-h-full">
-            <PublicHero
-              hero={page.config?.hero || {}}
-              branding={page.config?.branding || {}}
-              onCtaClick={() => {}}
-            />
-            {(page.config?.bloques || []).map((b) => (
-              <PublicBlockRenderer key={b.id} bloque={b} branding={page.config?.branding || {}} />
-            ))}
-            {page.config?.formulario && (
-              <PublicForm
-                landingId="preview"
-                landingSlug="preview"
-                formulario={page.config.formulario}
+          <div className={`min-h-full flex justify-center ${viewport === "mobile" ? "p-4 bg-slate-300" : ""}`}>
+            <div
+              className={`bg-white ${viewport === "mobile" ? "w-[390px] rounded-2xl shadow-2xl overflow-hidden border-8 border-slate-900" : "w-full"}`}
+              style={viewport === "mobile" ? { maxHeight: "calc(100vh - 120px)", overflowY: "auto" } : {}}
+            >
+              <PublicHero
+                hero={page.config?.hero || {}}
                 branding={page.config?.branding || {}}
-                limites={page.config?.limites || {}}
-                pago={page.config?.pago || {}}
-                isPreview={true}
+                onCtaClick={() => {}}
               />
-            )}
+              {(page.config?.bloques || []).map((b) => (
+                <PublicBlockRenderer key={b.id} bloque={b} branding={page.config?.branding || {}} />
+              ))}
+              {page.config?.formulario && (
+                <PublicForm
+                  landingId="preview"
+                  landingSlug="preview"
+                  formulario={page.config.formulario}
+                  branding={page.config?.branding || {}}
+                  limites={page.config?.limites || {}}
+                  pago={page.config?.pago || {}}
+                  cupones={page.config?.cupones || []}
+                  listaEspera={page.config?.lista_espera || null}
+                  isPreview={true}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>

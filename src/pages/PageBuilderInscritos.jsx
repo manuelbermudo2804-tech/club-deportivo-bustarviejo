@@ -19,6 +19,7 @@ const ESTADOS = {
   confirmado: { label: "✅ Confirmado", class: "bg-green-100 text-green-700" },
   cancelado: { label: "❌ Cancelado", class: "bg-red-100 text-red-700" },
   pendiente_pago: { label: "⏳ Pendiente pago", class: "bg-orange-100 text-orange-700" },
+  lista_espera: { label: "🔔 Lista espera", class: "bg-purple-100 text-purple-700" },
 };
 
 const PAGO_BADGES = {
@@ -235,6 +236,7 @@ export default function PageBuilderInscritos() {
             <SelectItem value="confirmado">✅ Confirmados</SelectItem>
             <SelectItem value="cancelado">❌ Cancelados</SelectItem>
             {tienePago && <SelectItem value="pendiente_pago">⏳ Pendiente pago</SelectItem>}
+            <SelectItem value="lista_espera">🔔 Lista espera</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -360,6 +362,46 @@ export default function PageBuilderInscritos() {
                   campos={page?.config?.formulario?.campos || []}
                 />
               </div>
+
+              {(selected.archivos || []).length > 0 && (
+                <div className="border-t border-slate-100 pt-4">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">📎 Archivos adjuntos</label>
+                  <div className="space-y-2">
+                    {selected.archivos.map((a, i) => (
+                      <a
+                        key={i}
+                        href={a.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-sm text-blue-600 hover:text-blue-800"
+                      >
+                        📄 <span className="flex-1 truncate">{a.nombre}</span>
+                        <span className="text-xs text-slate-400">Abrir →</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {(selected.utm_source || selected.utm_medium || selected.utm_campaign) && (
+                <div className="border-t border-slate-100 pt-4">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 block">📈 Origen del tráfico</label>
+                  <div className="flex gap-2 flex-wrap text-xs">
+                    {selected.utm_source && <Badge variant="outline">source: {selected.utm_source}</Badge>}
+                    {selected.utm_medium && <Badge variant="outline">medium: {selected.utm_medium}</Badge>}
+                    {selected.utm_campaign && <Badge variant="outline">campaign: {selected.utm_campaign}</Badge>}
+                  </div>
+                </div>
+              )}
+
+              {selected.pago_descuento_codigo && (
+                <div className="bg-blue-50 rounded-xl p-3 border border-blue-200 text-sm">
+                  🏷️ Cupón usado: <strong>{selected.pago_descuento_codigo}</strong>
+                  {selected.pago_descuento_importe > 0 && (
+                    <span className="text-green-700"> · −{selected.pago_descuento_importe.toFixed(2)}€</span>
+                  )}
+                </div>
+              )}
 
               <div className="flex gap-2 pt-3 border-t border-slate-100 flex-wrap">
                 {selected.email && (

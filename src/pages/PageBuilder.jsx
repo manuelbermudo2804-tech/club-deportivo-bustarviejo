@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   Plus, Search, Edit, Copy, ExternalLink, Trash2, Users,
-  Eye, Globe, Loader2, QrCode, Check, Share2
+  Eye, Globe, Loader2, QrCode, Check, Share2, BarChart3
 } from "lucide-react";
 import ShareDialog from "@/components/page-builder/ShareDialog";
 import { buildLandingUrl } from "@/components/page-builder/landingUrl";
@@ -178,6 +178,9 @@ export default function PageBuilder() {
                   </Button>
                   <Button size="sm" variant="outline" onClick={() => navigate(`/PageBuilderInscritos?id=${p.id}`)} className="gap-1 flex-1">
                     <Users className="w-3 h-3" /> Inscritos
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => navigate(`/PageBuilderAnalytics?id=${p.id}`)} className="gap-1" title="Analytics">
+                    <BarChart3 className="w-3 h-3" />
                   </Button>
                   {p.estado === "publicada" && p.slug && (
                     <Button size="sm" variant="outline" onClick={() => setSharing(p)} className="gap-1" title="Compartir / QR">
