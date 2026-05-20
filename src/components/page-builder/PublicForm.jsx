@@ -1,14 +1,25 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Loader2, CheckCircle2, Users, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle2, Users, AlertCircle, ShieldCheck } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
+import PaymentOptionsSelector from "./PaymentOptionsSelector";
 
 // Formulario público brutal con campos dinámicos según la configuración.
-export default function PublicForm({ landingId, landingSlug, formulario, branding, limites, plazasOcupadas = 0 }) {
+export default function PublicForm({ landingId, landingSlug, formulario, branding, limites, pago, plazasOcupadas = 0, paymentSuccess = false }) {
   const [values, setValues] = useState({});
   const [submitting, setSubmitting] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState(paymentSuccess);
+
+  // Inicialización de pago
+  const pagoActivo = !!pago?.activo && (pago?.opciones || []).length > 0;
+  const opciones = pago?.opciones || [];
+  const [opcionId, setOpcionId] = useState(opciones[0]?.id || "");
+  const [cantidad, setCantidad] = useState(1);
+
+  useEffect(() => {
+    if (paymentSuccess) setSuccess(true);
+  }, [paymentSuccess]);
 
   const color = branding?.color_principal || "#ea580c";
   const colorSec = branding?.color_secundario || "#15803d";
@@ -20,11 +31,13 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
   const plazasRestantes = plazasMax > 0 ? Math.max(0, plazasMax - plazasOcupadas) : null;
   const porcentaje = plazasMax > 0 ? Math.min(100, (plazasOcupadas / plazasMax) * 100) : 0;
 
+  const opcionElegida = opciones.find((o) => o.id === opcionId) || opciones[0];
+  const importeTotal = opcionElegida ? Number((opcionElegida.precio * cantidad).toFixed(2)) : 0;
+
   const update = (id, v) => setValues((p) => ({ ...p, [id]: v }));
 
   const validar = () => {
     for (const c of campos) {
-      // Validación especial para lista_jugadores: cada sub-campo requerido debe estar relleno
       if (c.tipo === "lista_jugadores") {
         const n = parseInt(values[`${c.id}_count`]) || 0;
         if (c.requerido && n < 1) {
@@ -53,6 +66,10 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
         }
       }
     }
+    if (pagoActivo && !opcionElegida) {
+      toast.error("Selecciona una opción de pago");
+      return false;
+    }
     return true;
   };
 
@@ -65,8 +82,36 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
       const email = values.email || "";
       const telefono = values.telefono || "";
 
-      // Enviamos a través de la función pública (sin auth) — el email de confirmación
-      // se dispara desde el backend, así no requerimos token en el navegador.
+      if (pagoActivo) {
+        if (!email) {
+          toast.error("Para pagar es necesario un email válido. Añade un campo Email obligatorio.");
+          setSubmitting(false);
+          return;
+        }
+        const res = await base44.functions.invoke("landingPaymentCheckout", {
+          landing_page_id: landingId,
+          landing_slug: landingSlug,
+          nombre,
+          email,
+          telefono,
+          datos: values,
+          opcion_id: opcionElegida.id,
+          cantidad,
+          user_agent: navigator.userAgent,
+          referrer: document.referrer || "directo",
+          origin: window.location.origin,
+        });
+        if (res?.data?.error) throw new Error(res.data.error);
+        if (res?.data?.url) {
+          try {
+            sessionStorage.setItem(`landing_payment_${landingId}`, JSON.stringify({ values, ts: Date.now() }));
+          } catch {}
+          window.location.href = res.data.url;
+          return;
+        }
+        throw new Error("No se pudo iniciar el pago");
+      }
+
       const res = await base44.functions.invoke("landingPublic", {
         action: "submit",
         landing_page_id: landingId,
@@ -91,6 +136,9 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
   };
 
   if (success) {
+    const mensaje = pagoActivo
+      ? (pago?.mensaje_exito_pago || "¡Pago confirmado! Te hemos enviado un email con todos los detalles.")
+      : (formulario?.mensaje_exito || "Hemos recibido tu inscripción. Te contactaremos pronto.");
     return (
       <div id="formulario" className="max-w-2xl mx-auto px-6 py-20">
         <motion.div
@@ -105,13 +153,15 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
             <CheckCircle2 className="w-10 h-10" style={{ color }} />
           </div>
           <h2 className="text-3xl font-black text-slate-900 mb-3">¡Listo!</h2>
-          <p className="text-lg text-slate-600">
-            {formulario?.mensaje_exito || "Hemos recibido tu inscripción. Te contactaremos pronto."}
-          </p>
+          <p className="text-lg text-slate-600">{mensaje}</p>
         </motion.div>
       </div>
     );
   }
+
+  const ctaTexto = pagoActivo
+    ? `${pago?.cta_pago || "Pagar e inscribirme"} · ${importeTotal.toFixed(2)} €`
+    : (formulario?.cta_envio || "Enviar");
 
   return (
     <section id="formulario" className="py-16 lg:py-24 px-6 bg-gradient-to-br from-slate-50 to-white">
@@ -125,7 +175,6 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
           )}
         </div>
 
-        {/* Contador de plazas (si está activado) */}
         {mostrarPlazas && (
           <div className="mb-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
             <div className="flex items-center justify-between mb-2">
@@ -160,7 +209,6 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
           </div>
         )}
 
-        {/* Estado: plazas agotadas */}
         {plazasAgotadas && (
           <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-2xl p-6 text-center">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
@@ -272,8 +320,8 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
                     const max = c.max ?? 12;
                     const count = parseInt(values[`${c.id}_count`]) || 0;
                     const subs = c.sub_campos || [];
-                    const opciones = [];
-                    for (let i = min; i <= max; i++) opciones.push(i);
+                    const opcionesNum = [];
+                    for (let i = min; i <= max; i++) opcionesNum.push(i);
                     return (
                       <div className="space-y-3">
                         <select
@@ -283,7 +331,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
                           className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-slate-900 focus:ring-2 focus:ring-slate-900/10 outline-none transition bg-white"
                         >
                           <option value="">Selecciona nº de jugadores…</option>
-                          {opciones.map((n) => <option key={n} value={n}>{n} jugadores</option>)}
+                          {opcionesNum.map((n) => <option key={n} value={n}>{n} jugadores</option>)}
                         </select>
 
                         {count > 0 && subs.length > 0 && (
@@ -325,6 +373,20 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
             })}
           </div>
 
+          {pagoActivo && (
+            <div className="pt-5 border-t-2 border-slate-100">
+              <PaymentOptionsSelector
+                opciones={opciones}
+                selectedId={opcionId}
+                cantidad={cantidad}
+                onSelect={setOpcionId}
+                onCantidadChange={setCantidad}
+                color={color}
+                colorSec={colorSec}
+              />
+            </div>
+          )}
+
           <button
             type="submit"
             disabled={submitting || plazasAgotadas}
@@ -337,12 +399,19 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
             {submitting ? (
               <span className="inline-flex items-center gap-2">
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Enviando…
+                {pagoActivo ? "Redirigiendo a pago seguro…" : "Enviando…"}
               </span>
             ) : (
-              formulario?.cta_envio || "Enviar"
+              ctaTexto
             )}
           </button>
+
+          {pagoActivo && (
+            <div className="flex items-center justify-center gap-2 text-xs text-slate-500 mt-2">
+              <ShieldCheck className="w-4 h-4 text-green-600" />
+              Pago 100% seguro procesado por Stripe · Tus datos están protegidos
+            </div>
+          )}
         </form>
       </div>
     </section>

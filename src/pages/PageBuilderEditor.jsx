@@ -13,6 +13,7 @@ import EditorFormulario from "@/components/page-builder/EditorFormulario";
 import EditorBloques from "@/components/page-builder/EditorBloques";
 import EditorBranding from "@/components/page-builder/EditorBranding";
 import EditorPanelGestion from "@/components/page-builder/EditorPanelGestion";
+import EditorPago from "@/components/page-builder/EditorPago";
 import ShareDialog from "@/components/page-builder/ShareDialog";
 import { buildLandingUrl } from "@/components/page-builder/landingUrl";
 import ImageUploadInput from "@/components/page-builder/ImageUploadInput";
@@ -177,6 +178,7 @@ export default function PageBuilderEditor() {
               { id: "hero", label: "🎬", title: "Hero" },
               { id: "bloques", label: "🧱", title: "Bloques" },
               { id: "formulario", label: "📋", title: "Form" },
+              { id: "pago", label: "💳", title: "Pago" },
               { id: "branding", label: "🎨", title: "Estilo" },
               { id: "panel", label: "🎫", title: "Panel app" },
               { id: "ajustes", label: "⚙️", title: "Ajustes" },
@@ -213,6 +215,12 @@ export default function PageBuilderEditor() {
               <EditorFormulario
                 formulario={page.config?.formulario || { campos: [] }}
                 onChange={(v) => updateConfig("formulario", v)}
+              />
+            )}
+            {tab === "pago" && (
+              <EditorPago
+                pago={page.config?.pago || {}}
+                onChange={(v) => updateConfig("pago", v)}
               />
             )}
             {tab === "branding" && (
@@ -370,6 +378,8 @@ export default function PageBuilderEditor() {
                 landingSlug="preview"
                 formulario={page.config.formulario}
                 branding={page.config?.branding || {}}
+                limites={page.config?.limites || {}}
+                pago={page.config?.pago || {}}
               />
             )}
           </div>

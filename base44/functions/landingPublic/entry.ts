@@ -24,8 +24,21 @@ Deno.serve(async (req) => {
       if (page?.id) {
         try {
           const subs = await base44.asServiceRole.entities.LandingSubmission.filter({ landing_page_id: page.id });
-          // Contar solo las inscripciones que no estén canceladas
-          plazas_ocupadas = (subs || []).filter(s => s.estado !== 'cancelado').length;
+          const tienePago = !!page?.config?.pago?.activo;
+          plazas_ocupadas = (subs || []).filter((s) => {
+            if (s.estado === 'cancelado') return false;
+            if (tienePago) {
+              // Solo cuentan las pagadas + pendientes recientes (30 min)
+              if (s.pago_estado === 'pagado') return true;
+              if (s.pago_estado === 'pendiente') {
+                const created = new Date(s.created_date).getTime();
+                return Date.now() - created < 30 * 60 * 1000;
+              }
+              return false;
+            }
+            // Sin pago: cualquier inscripción no cancelada cuenta
+            return true;
+          }).length;
         } catch {}
       }
       return Response.json({ page, plazas_ocupadas });

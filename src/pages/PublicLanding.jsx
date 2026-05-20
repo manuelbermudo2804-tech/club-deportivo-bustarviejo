@@ -1,18 +1,51 @@
 import React, { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import PublicHero from "@/components/page-builder/PublicHero";
 import PublicBlockRenderer from "@/components/page-builder/PublicBlockRenderer";
 import PublicForm from "@/components/page-builder/PublicForm";
 import BackToWebsiteButton from "@/components/public/BackToWebsiteButton";
+import { toast } from "sonner";
 
 // Página pública renderizada desde la config de una LandingPage.
 // Ruta: /l/:slug
 export default function PublicLanding() {
   const { slug } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [page, setPage] = useState(null);
   const [plazasOcupadas, setPlazasOcupadas] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+
+  // Detectar retorno desde Stripe
+  useEffect(() => {
+    const pago = searchParams.get("pago");
+    const sid = searchParams.get("sid");
+    if (pago === "ok" && sid) {
+      (async () => {
+        try {
+          const res = await base44.functions.invoke("landingPaymentConfirm", { session_id: sid });
+          if (res?.data?.paid || res?.data?.already_paid) {
+            setPaymentSuccess(true);
+          } else {
+            toast.error("No hemos podido confirmar el pago. Si te cobraron, contacta con nosotros.");
+          }
+        } catch {
+          toast.error("Error confirmando el pago");
+        } finally {
+          // Limpiar parámetros de la URL
+          searchParams.delete("pago");
+          searchParams.delete("sid");
+          setSearchParams(searchParams, { replace: true });
+        }
+      })();
+    } else if (pago === "cancelado") {
+      toast.info("Pago cancelado. Puedes intentarlo de nuevo cuando quieras.");
+      searchParams.delete("pago");
+      setSearchParams(searchParams, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -140,7 +173,9 @@ export default function PublicLanding() {
           formulario={cfg.formulario}
           branding={branding}
           limites={cfg.limites}
+          pago={cfg.pago}
           plazasOcupadas={plazasOcupadas}
+          paymentSuccess={paymentSuccess}
         />
       )}
 

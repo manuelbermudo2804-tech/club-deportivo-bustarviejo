@@ -18,6 +18,14 @@ const ESTADOS = {
   contactado: { label: "📞 Contactado", class: "bg-amber-100 text-amber-700" },
   confirmado: { label: "✅ Confirmado", class: "bg-green-100 text-green-700" },
   cancelado: { label: "❌ Cancelado", class: "bg-red-100 text-red-700" },
+  pendiente_pago: { label: "⏳ Pendiente pago", class: "bg-orange-100 text-orange-700" },
+};
+
+const PAGO_BADGES = {
+  pagado: { label: "✅ Pagado", class: "bg-green-100 text-green-700 border-green-200" },
+  pendiente: { label: "⏳ Pendiente", class: "bg-orange-100 text-orange-700 border-orange-200" },
+  fallido: { label: "❌ Fallido", class: "bg-red-100 text-red-700 border-red-200" },
+  reembolsado: { label: "↩️ Reembolsado", class: "bg-slate-100 text-slate-700 border-slate-200" },
 };
 
 // Panel de gestión de inscritos de una página.
@@ -131,11 +139,17 @@ export default function PageBuilderInscritos() {
     );
   });
 
+  const tienePago = !!page?.config?.pago?.activo;
+  const pagadas = submissions.filter((s) => s.pago_estado === "pagado");
+  const totalRecaudado = pagadas.reduce((sum, s) => sum + (s.pago_importe_total || 0), 0);
+
   const stats = {
     total: submissions.length,
     nuevo: submissions.filter((s) => s.estado === "nuevo").length,
     contactado: submissions.filter((s) => s.estado === "contactado").length,
     confirmado: submissions.filter((s) => s.estado === "confirmado").length,
+    pagadas: pagadas.length,
+    recaudado: totalRecaudado,
   };
 
   if (loading) {
@@ -178,18 +192,33 @@ export default function PageBuilderInscritos() {
           <div className="flex items-center gap-2 text-slate-500 text-sm mb-1"><Users className="w-4 h-4" /> Total</div>
           <div className="text-2xl font-black text-slate-900">{stats.total}</div>
         </div>
-        <div className="bg-blue-50 rounded-2xl p-4 border border-blue-200">
-          <div className="text-blue-600 text-sm mb-1">🆕 Nuevos</div>
-          <div className="text-2xl font-black text-blue-700">{stats.nuevo}</div>
-        </div>
-        <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200">
-          <div className="text-amber-600 text-sm mb-1">📞 Contactados</div>
-          <div className="text-2xl font-black text-amber-700">{stats.contactado}</div>
-        </div>
-        <div className="bg-green-50 rounded-2xl p-4 border border-green-200">
-          <div className="text-green-600 text-sm mb-1">✅ Confirmados</div>
-          <div className="text-2xl font-black text-green-700">{stats.confirmado}</div>
-        </div>
+        {tienePago ? (
+          <>
+            <div className="bg-green-50 rounded-2xl p-4 border border-green-200">
+              <div className="text-green-600 text-sm mb-1">✅ Pagadas</div>
+              <div className="text-2xl font-black text-green-700">{stats.pagadas}</div>
+            </div>
+            <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-200 col-span-2 md:col-span-2">
+              <div className="text-emerald-600 text-sm mb-1">💰 Total recaudado</div>
+              <div className="text-2xl font-black text-emerald-700">{stats.recaudado.toFixed(2)} €</div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="bg-blue-50 rounded-2xl p-4 border border-blue-200">
+              <div className="text-blue-600 text-sm mb-1">🆕 Nuevos</div>
+              <div className="text-2xl font-black text-blue-700">{stats.nuevo}</div>
+            </div>
+            <div className="bg-amber-50 rounded-2xl p-4 border border-amber-200">
+              <div className="text-amber-600 text-sm mb-1">📞 Contactados</div>
+              <div className="text-2xl font-black text-amber-700">{stats.contactado}</div>
+            </div>
+            <div className="bg-green-50 rounded-2xl p-4 border border-green-200">
+              <div className="text-green-600 text-sm mb-1">✅ Confirmados</div>
+              <div className="text-2xl font-black text-green-700">{stats.confirmado}</div>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Filtros */}
@@ -233,8 +262,20 @@ export default function PageBuilderInscritos() {
                       {s.telefono && <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3" /> {s.telefono}</span>}
                       <span>{new Date(s.created_date).toLocaleString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
                     </div>
+                    {tienePago && s.pago_opcion_nombre && (
+                      <div className="text-xs text-slate-600 mt-1">
+                        🛒 {s.pago_opcion_nombre}
+                        {s.pago_cantidad > 1 && ` × ${s.pago_cantidad}`}
+                        {s.pago_importe_total > 0 && ` · ${s.pago_importe_total.toFixed(2)} €`}
+                      </div>
+                    )}
                   </div>
-                  <Badge className={ESTADOS[s.estado]?.class}>{ESTADOS[s.estado]?.label || s.estado}</Badge>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {tienePago && s.pago_estado && PAGO_BADGES[s.pago_estado] && (
+                      <Badge className={`border ${PAGO_BADGES[s.pago_estado].class}`}>{PAGO_BADGES[s.pago_estado].label}</Badge>
+                    )}
+                    <Badge className={ESTADOS[s.estado]?.class}>{ESTADOS[s.estado]?.label || s.estado}</Badge>
+                  </div>
                 </div>
               </div>
             ))}
@@ -259,6 +300,43 @@ export default function PageBuilderInscritos() {
             </div>
 
             <div className="p-6 space-y-4">
+              {tienePago && selected.pago_estado && (
+                <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">💳 Pago</label>
+                  <div className="mt-2 space-y-1 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-slate-600">Estado:</span>
+                      <Badge className={`border ${PAGO_BADGES[selected.pago_estado]?.class || ""}`}>
+                        {PAGO_BADGES[selected.pago_estado]?.label || selected.pago_estado}
+                      </Badge>
+                    </div>
+                    {selected.pago_opcion_nombre && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Opción:</span>
+                        <span className="font-semibold text-slate-900">{selected.pago_opcion_nombre}</span>
+                      </div>
+                    )}
+                    {selected.pago_cantidad > 1 && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-slate-600">Cantidad:</span>
+                        <span className="font-semibold text-slate-900">{selected.pago_cantidad}</span>
+                      </div>
+                    )}
+                    {selected.pago_importe_total > 0 && (
+                      <div className="flex items-center justify-between pt-1 border-t border-slate-200">
+                        <span className="text-slate-700 font-semibold">Total:</span>
+                        <span className="font-black text-emerald-700 text-lg">{selected.pago_importe_total.toFixed(2)} €</span>
+                      </div>
+                    )}
+                    {selected.pago_fecha && (
+                      <div className="text-xs text-slate-500 pt-1">
+                        Pagado el {new Date(selected.pago_fecha).toLocaleString("es-ES")}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Estado</label>
                 <Select value={selected.estado} onValueChange={(v) => updateEstado(selected.id, v)}>
@@ -268,6 +346,9 @@ export default function PageBuilderInscritos() {
                     <SelectItem value="contactado">📞 Contactado</SelectItem>
                     <SelectItem value="confirmado">✅ Confirmado</SelectItem>
                     <SelectItem value="cancelado">❌ Cancelado</SelectItem>
+                    {selected.pago_estado === "pendiente" && (
+                      <SelectItem value="pendiente_pago">⏳ Pendiente pago</SelectItem>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
