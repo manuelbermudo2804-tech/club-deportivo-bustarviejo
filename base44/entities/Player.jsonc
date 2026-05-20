@@ -379,6 +379,10 @@
       "type": "string",
       "format": "email"
     },
+    "acceso_menor_telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono opcional del menor para env\u00edo de c\u00f3digo por WhatsApp"
+    },
     "acceso_menor_autorizado": {
       "type": "boolean",
       "default": false

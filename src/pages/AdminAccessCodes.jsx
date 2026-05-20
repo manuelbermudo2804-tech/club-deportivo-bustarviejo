@@ -592,6 +592,8 @@ export default function AdminAccessCodes() {
     playersForPhones.forEach(p => {
       if (p.email_padre && p.telefono && !map[p.email_padre.toLowerCase()]) map[p.email_padre.toLowerCase()] = p.telefono;
       if (p.email_tutor_2 && p.telefono_tutor_2 && !map[p.email_tutor_2.toLowerCase()]) map[p.email_tutor_2.toLowerCase()] = p.telefono_tutor_2;
+      // Acceso juvenil: si el menor dio su teléfono, usarlo para WhatsApp
+      if (p.acceso_menor_email && p.acceso_menor_telefono && !map[p.acceso_menor_email.toLowerCase()]) map[p.acceso_menor_email.toLowerCase()] = p.acceso_menor_telefono;
     });
     return map;
   }, [accessRequests, playersForPhones]);

@@ -326,6 +326,23 @@ export default function StepAuthorizations({
                 </p>
               </div>
 
+              <div>
+                <Label className="text-slate-700">
+                  Teléfono móvil de tu hijo/a <span className="text-xs font-normal text-slate-500">(opcional)</span>
+                </Label>
+                <Input
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  placeholder="600123456"
+                  value={currentPlayer.acceso_menor_telefono || ""}
+                  onChange={(e) => setCurrentPlayer({ ...currentPlayer, acceso_menor_telefono: e.target.value })}
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  📱 Si tu hijo/a tiene móvil propio, podremos enviarle el código y las instrucciones también por WhatsApp.
+                </p>
+              </div>
+
               <Alert className="border-blue-200 bg-blue-50">
                 <AlertDescription className="text-blue-800 text-xs">
                   💡 <strong>Importante:</strong> Tú seguirás teniendo acceso completo y podrás desactivar el acceso de tu hijo/a en cualquier momento desde la ficha del jugador.
