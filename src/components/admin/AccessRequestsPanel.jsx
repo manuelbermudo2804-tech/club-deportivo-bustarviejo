@@ -111,24 +111,40 @@ export default function AccessRequestsPanel() {
                     <p className="text-xs text-slate-600 flex items-center gap-1">
                       <Mail className="w-3 h-3" /> {req.email}
                     </p>
-                    {req.telefono && (
-                      <p className="text-xs text-slate-600 mt-0.5 flex items-center gap-1 flex-wrap">
-                        <Phone className="w-3 h-3" /> {req.telefono}
-                        <a
-                          href={`https://wa.me/${req.telefono.replace(/\D/g, '').replace(/^0+/, '')}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 bg-green-100 hover:bg-green-200 text-green-700 px-2 py-0.5 rounded-md text-[11px] font-semibold ml-1"
-                        >
-                          <MessageCircle className="w-3 h-3" /> WhatsApp
-                        </a>
-                        {req.prefiere_whatsapp && (
-                          <Badge className="bg-green-100 text-green-700 border-green-200 text-[10px] ml-1">
-                            📲 Pidió WhatsApp
-                          </Badge>
-                        )}
-                      </p>
-                    )}
+                    {req.telefono && (() => {
+                      const digits = req.telefono.replace(/\D/g, '').replace(/^0+/, '');
+                      const phoneNorm = digits.length === 9 ? `34${digits}` : digits;
+                      const nombre = (req.nombre_progenitor || '').split(' ')[0] || '';
+                      const saludo = nombre ? `¡Hola ${nombre}! 👋` : '¡Hola! 👋';
+                      const msg = encodeURIComponent(
+                        `${saludo}\n\nTe escribimos desde el *CD Bustarviejo* 🟠⚪.\n\nHemos recibido tu solicitud para acceder a la app del club. En unos minutos te enviaremos tu *código de acceso* por aquí y por email.\n\nSi tienes cualquier duda, respóndenos a este mismo chat 💬`
+                      );
+                      const waUrl = `https://wa.me/${phoneNorm}?text=${msg}`;
+                      return (
+                        <p className="text-xs text-slate-600 mt-0.5 flex items-center gap-1 flex-wrap">
+                          <Phone className="w-3 h-3" /> {req.telefono}
+                          <a
+                            href={waUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 bg-green-100 hover:bg-green-200 text-green-700 px-2 py-0.5 rounded-md text-[11px] font-semibold ml-1"
+                          >
+                            <MessageCircle className="w-3 h-3" /> WhatsApp
+                          </a>
+                          {req.prefiere_whatsapp && (
+                            <a
+                              href={waUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-2 py-0.5 rounded-md text-[10px] font-bold ml-1 shadow-sm"
+                              title="La familia pidió recibir el código por WhatsApp. Pulsa para abrir el chat."
+                            >
+                              📲 Pidió WhatsApp
+                            </a>
+                          )}
+                        </p>
+                      );
+                    })()}
                     {req.nombre_jugador && (
                       <p className="text-xs text-slate-500 mt-0.5">⚽ Jugador: {req.nombre_jugador}</p>
                     )}
