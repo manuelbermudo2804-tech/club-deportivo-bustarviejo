@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Eye, Globe, Loader2, Copy, Check, Share2, Smartphone, Monitor } from "lucide-react";
+import { ArrowLeft, Save, Eye, Globe, Loader2, Copy, Check, Share2, Smartphone, Monitor, HelpCircle } from "lucide-react";
 import TemplatePicker from "@/components/page-builder/TemplatePicker";
 import EditorHero from "@/components/page-builder/EditorHero";
 import EditorFormulario from "@/components/page-builder/EditorFormulario";
@@ -183,6 +183,14 @@ export default function PageBuilderEditor() {
         </div>
 
         <div className="flex items-center gap-2 flex-shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => window.open("/PageBuilderGuia", "_blank")}
+            title="Abrir guía de ayuda"
+          >
+            <HelpCircle className="w-4 h-4 text-slate-500" />
+          </Button>
           {page.id && page.slug && (
             <Button variant="outline" size="sm" onClick={() => setShareOpen(true)} className="gap-2">
               <Share2 className="w-4 h-4" /> <span className="hidden sm:inline">Compartir</span>

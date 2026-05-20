@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import {
   Plus, Search, Edit, Copy, ExternalLink, Trash2, Users,
-  Eye, Globe, Loader2, QrCode, Check, Share2, BarChart3
+  Eye, Globe, Loader2, QrCode, Check, Share2, BarChart3, BookOpen
 } from "lucide-react";
 import ShareDialog from "@/components/page-builder/ShareDialog";
 import { buildLandingUrl } from "@/components/page-builder/landingUrl";
@@ -106,13 +106,35 @@ export default function PageBuilder() {
             Crea páginas públicas con formulario en minutos. URL única para compartir.
           </p>
         </div>
-        <Button
-          onClick={() => navigate("/PageBuilderEditor")}
-          className="gap-2 bg-slate-900 hover:bg-slate-800"
-        >
-          <Plus className="w-4 h-4" /> Nueva página
-        </Button>
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            onClick={() => navigate("/PageBuilderGuia")}
+            variant="outline"
+            className="gap-2"
+          >
+            <BookOpen className="w-4 h-4" /> Guía
+          </Button>
+          <Button
+            onClick={() => navigate("/PageBuilderEditor")}
+            className="gap-2 bg-slate-900 hover:bg-slate-800"
+          >
+            <Plus className="w-4 h-4" /> Nueva página
+          </Button>
+        </div>
       </div>
+
+      {pages.length === 0 && !loading && !search && (
+        <div className="mb-5 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
+          <div className="text-2xl">💡</div>
+          <div className="flex-1">
+            <div className="font-bold text-slate-900">¿Es tu primera vez?</div>
+            <p className="text-sm text-slate-600">Lee la guía para entender qué hace cada función. 5 minutos y dominas el constructor.</p>
+          </div>
+          <Button size="sm" onClick={() => navigate("/PageBuilderGuia")} className="bg-blue-600 hover:bg-blue-700 gap-1">
+            <BookOpen className="w-3 h-3" /> Ver guía
+          </Button>
+        </div>
+      )}
 
       <div className="mb-5 relative max-w-md">
         <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
