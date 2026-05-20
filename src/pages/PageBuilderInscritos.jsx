@@ -51,8 +51,7 @@ export default function PageBuilderInscritos() {
     (async () => {
       try {
         const me = await base44.auth.me();
-        const allPages = await base44.entities.LandingPage.list();
-        const p = allPages.find((x) => x.id === pageId);
+        const p = await base44.entities.LandingPage.get(pageId);
 
         // Validar acceso: admin O email en panel_gestion.emails_autorizados
         const isAdmin = me?.role === "admin";
@@ -235,6 +234,7 @@ export default function PageBuilderInscritos() {
             <SelectItem value="contactado">📞 Contactados</SelectItem>
             <SelectItem value="confirmado">✅ Confirmados</SelectItem>
             <SelectItem value="cancelado">❌ Cancelados</SelectItem>
+            {tienePago && <SelectItem value="pendiente_pago">⏳ Pendiente pago</SelectItem>}
           </SelectContent>
         </Select>
       </div>

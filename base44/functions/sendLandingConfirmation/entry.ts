@@ -62,11 +62,32 @@ function buildUserEmail({ nombre, tituloLanding, mensajePersonalizado, color }) 
 </body></html>`;
 }
 
-function buildAdminEmail({ nombre, email, telefono, tituloLanding, slug, datos }) {
+function buildAdminEmail({ nombre, email, telefono, tituloLanding, slug, datos, campos }) {
+  // Mapear IDs de campo a etiquetas legibles
+  const labelMap = {};
+  (campos || []).forEach((c) => {
+    if (c.tipo === 'lista_jugadores' && Array.isArray(c.sub_campos)) {
+      c.sub_campos.forEach((sc) => { labelMap[`${c.id}__sub__${sc.id}`] = sc.etiqueta || sc.id; });
+    } else {
+      labelMap[c.id] = c.etiqueta || c.id;
+    }
+  });
+
+  const prettyLabel = (key) => {
+    if (labelMap[key]) return labelMap[key];
+    // Sub-campos de listas: {listaId}__{idx}__{subId}
+    const m = key.match(/^([^_]+)__(\d+)__(.+)$/);
+    if (m) {
+      const subLabel = labelMap[`${m[1]}__sub__${m[3]}`] || m[3];
+      return `Jugador ${parseInt(m[2]) + 1} · ${subLabel}`;
+    }
+    return key.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+  };
+
   const filas = Object.entries(datos || {})
     .filter(([k]) => !k.endsWith('_count') && !['nombre', 'email', 'telefono'].includes(k))
-    .slice(0, 40)
-    .map(([k, v]) => `<tr><td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-weight:600;color:#475569;font-size:12px;">${k}</td><td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;color:#0f172a;font-size:13px;">${typeof v === 'object' ? JSON.stringify(v) : String(v)}</td></tr>`)
+    .slice(0, 60)
+    .map(([k, v]) => `<tr><td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;font-weight:600;color:#475569;font-size:12px;">${prettyLabel(k)}</td><td style="padding:6px 10px;border-bottom:1px solid #e2e8f0;color:#0f172a;font-size:13px;">${typeof v === 'object' ? JSON.stringify(v) : String(v)}</td></tr>`)
     .join('');
 
   return `<!DOCTYPE html>
@@ -148,6 +169,7 @@ Deno.serve(async (req) => {
         tituloLanding,
         slug: submission.landing_slug,
         datos: submission.datos,
+        campos: formCfg.campos || [],
       });
       const subject = `📥 Nueva inscripción · ${tituloLanding}`;
       const results = [];

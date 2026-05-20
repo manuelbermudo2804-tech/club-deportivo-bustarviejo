@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import PaymentOptionsSelector from "./PaymentOptionsSelector";
 
 // Formulario público brutal con campos dinámicos según la configuración.
-export default function PublicForm({ landingId, landingSlug, formulario, branding, limites, pago, plazasOcupadas = 0, paymentSuccess = false }) {
+export default function PublicForm({ landingId, landingSlug, formulario, branding, limites, pago, plazasOcupadas = 0, paymentSuccess = false, isPreview = false }) {
   const [values, setValues] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(paymentSuccess);
@@ -75,6 +75,10 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isPreview) {
+      toast.info("Vista previa: el envío real está deshabilitado");
+      return;
+    }
     if (!validar()) return;
     setSubmitting(true);
     try {

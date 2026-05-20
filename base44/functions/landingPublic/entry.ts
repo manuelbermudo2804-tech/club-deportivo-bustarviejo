@@ -23,7 +23,22 @@ Deno.serve(async (req) => {
       let plazas_ocupadas = 0;
       if (page?.id) {
         try {
-          const subs = await base44.asServiceRole.entities.LandingSubmission.filter({ landing_page_id: page.id });
+          // Cargar paginado para evitar traer miles de filas (max 2000 por seguridad)
+          let subs = [];
+          let offset = 0;
+          const pageSize = 500;
+          while (offset < 2000) {
+            const chunk = await base44.asServiceRole.entities.LandingSubmission.filter(
+              { landing_page_id: page.id },
+              "-created_date",
+              pageSize,
+              offset
+            );
+            if (!chunk || chunk.length === 0) break;
+            subs = subs.concat(chunk);
+            if (chunk.length < pageSize) break;
+            offset += pageSize;
+          }
           const tienePago = !!page?.config?.pago?.activo;
           plazas_ocupadas = (subs || []).filter((s) => {
             if (s.estado === 'cancelado') return false;

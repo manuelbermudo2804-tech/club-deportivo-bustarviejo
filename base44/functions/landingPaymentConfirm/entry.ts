@@ -30,6 +30,14 @@ Deno.serve(async (req) => {
     const submission = await base44.asServiceRole.entities.LandingSubmission.get(submissionId);
     if (!submission) return Response.json({ error: 'submission no existe' }, { status: 404 });
 
+    // Validar que la session pertenece a esta submission (anti-suplantación)
+    if (submission.pago_stripe_session_id && submission.pago_stripe_session_id !== sessionId) {
+      return Response.json({ error: 'Sesión no coincide con la inscripción' }, { status: 403 });
+    }
+    if (session.metadata?.landing_page_id && session.metadata.landing_page_id !== submission.landing_page_id) {
+      return Response.json({ error: 'Datos de pago inconsistentes' }, { status: 403 });
+    }
+
     // Si ya está pagada, devolver OK (idempotencia)
     if (submission.pago_estado === 'pagado') {
       return Response.json({ ok: true, already_paid: true, submission_id: submissionId });
@@ -68,6 +76,12 @@ Deno.serve(async (req) => {
       return Response.json({ ok: true, paid: true, submission_id: submissionId });
     }
 
+    // Si Stripe reporta el pago como fallido/expirado, marcar la submission como fallida
+    if (['unpaid', 'no_payment_required'].indexOf(session.payment_status) === -1 && session.status === 'expired') {
+      try {
+        await base44.asServiceRole.entities.LandingSubmission.update(submissionId, { pago_estado: 'fallido' });
+      } catch {}
+    }
     return Response.json({ ok: false, paid: false, status: session.payment_status });
   } catch (error) {
     console.error('landingPaymentConfirm error:', error);

@@ -39,15 +39,19 @@ export default function PageBuilderEditor() {
   const [copied, setCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
+  const [dirty, setDirty] = useState(false);
+  const [initialPage, setInitialPage] = useState(null);
+
   // Cargar página existente
   useEffect(() => {
     if (!editId) return;
     (async () => {
       try {
-        const found = await base44.entities.LandingPage.list();
-        const p = found.find((x) => x.id === editId);
-        if (p) setPage(p);
-        else {
+        const p = await base44.entities.LandingPage.get(editId);
+        if (p) {
+          setPage(p);
+          setInitialPage(JSON.stringify(p));
+        } else {
           toast.error("Página no encontrada");
           navigate("/PageBuilder");
         }
@@ -56,6 +60,20 @@ export default function PageBuilderEditor() {
       }
     })();
   }, [editId, navigate]);
+
+  // Detectar cambios sin guardar
+  useEffect(() => {
+    if (!page || !initialPage) return;
+    setDirty(JSON.stringify(page) !== initialPage);
+  }, [page, initialPage]);
+
+  // Advertir antes de salir si hay cambios sin guardar
+  useEffect(() => {
+    if (!dirty) return;
+    const handler = (e) => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [dirty]);
 
   const handlePickTemplate = (template) => {
     setPage({
@@ -85,6 +103,16 @@ export default function PageBuilderEditor() {
     }
     setSaving(true);
     try {
+      // Validar slug único
+      const existing = await base44.entities.LandingPage.filter({ slug: page.slug });
+      const duplicate = (existing || []).find((x) => x.id !== page.id);
+      if (duplicate) {
+        toast.error(`La URL "/l/${page.slug}" ya está en uso por otra página`);
+        setTab("ajustes");
+        setSaving(false);
+        return;
+      }
+
       const payload = { ...page };
       if (nuevoEstado) payload.estado = nuevoEstado;
 
@@ -92,10 +120,12 @@ export default function PageBuilderEditor() {
         await base44.entities.LandingPage.update(page.id, payload);
         toast.success("Cambios guardados");
         setPage(payload);
+        setInitialPage(JSON.stringify(payload));
       } else {
         const created = await base44.entities.LandingPage.create(payload);
         toast.success("Página creada");
         setPage(created);
+        setInitialPage(JSON.stringify(created));
         navigate(`/PageBuilderEditor?id=${created.id}`, { replace: true });
       }
     } catch (err) {
@@ -127,11 +157,21 @@ export default function PageBuilderEditor() {
       {/* Topbar */}
       <div className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <Button variant="ghost" size="icon" onClick={() => navigate("/PageBuilder")}>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => {
+              if (dirty && !window.confirm("Tienes cambios sin guardar. ¿Salir igualmente?")) return;
+              navigate("/PageBuilder");
+            }}
+          >
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div className="min-w-0">
-            <div className="font-bold text-slate-900 truncate">{page.nombre || "Sin nombre"}</div>
+            <div className="font-bold text-slate-900 truncate flex items-center gap-2">
+              {page.nombre || "Sin nombre"}
+              {dirty && <span className="text-xs font-normal text-amber-600">● sin guardar</span>}
+            </div>
             <div className="text-xs text-slate-500 truncate">
               {page.slug ? `/l/${page.slug}` : "sin slug definido"}
               {page.estado === "publicada" && <span className="ml-2 text-green-600 font-semibold">● Publicada</span>}
@@ -380,6 +420,7 @@ export default function PageBuilderEditor() {
                 branding={page.config?.branding || {}}
                 limites={page.config?.limites || {}}
                 pago={page.config?.pago || {}}
+                isPreview={true}
               />
             )}
           </div>
