@@ -67,7 +67,6 @@ export function buildAdminNavigation(ctx) {
     { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
-    { title: "🛡️ LOPIVI - Protección Menor", url: createPageUrl("LopiviAdmin"), icon: ShieldAlert, badge: ctx.pendingLopiviCount > 0 ? ctx.pendingLopiviCount : null, urgentBadge: ctx.pendingLopiviCount > 0 },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "💬 Feedback Usuarios", url: createPageUrl("FeedbackManagement"), icon: MessageCircle, badge: ctx.pendingFeedback > 0 ? ctx.pendingFeedback : null },
     { title: "✉️ Buzón Juvenil", url: createPageUrl("JuniorMailboxAdmin"), icon: MessageCircle },
@@ -88,6 +87,9 @@ export function buildAdminNavigation(ctx) {
       { title: "─ MIS HIJOS ─", section: true },
       { title: "👨‍👩‍👧 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null },
     ] : []),
+
+    { title: "─ PROTECCIÓN DEL MENOR ─", section: true },
+    { title: "🛡️ LOPIVI - Incidencias", url: createPageUrl("LopiviAdmin"), icon: ShieldAlert, badge: ctx.pendingLopiviCount > 0 ? ctx.pendingLopiviCount : null, urgentBadge: ctx.pendingLopiviCount > 0, highlight: ctx.pendingLopiviCount > 0 },
 
     { title: "─ CONFIGURACIÓN ─", section: true },
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
