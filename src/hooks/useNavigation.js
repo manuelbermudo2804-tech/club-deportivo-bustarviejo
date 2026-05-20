@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useMemo, useEffect, useState } from "react";
+import { base44 } from "@/api/base44Client";
 import {
   buildAdminNavigation,
   buildCoachNavigation,
@@ -48,6 +49,22 @@ export default function useNavigation({
   // Landings con panel de gestión accesibles para este usuario
   const landingMenuItems = useLandingMenuItems(user, isAdmin);
 
+  // Contador de incidencias LOPIVI nuevas (solo admin)
+  const [pendingLopiviCount, setPendingLopiviCount] = useState(0);
+  useEffect(() => {
+    if (!isAdmin) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const items = await base44.entities.LopiviIncidencia.filter({ estado: "nueva" });
+        if (!cancelled) setPendingLopiviCount(items.length);
+      } catch {}
+    };
+    load();
+    const interval = setInterval(load, 60000);
+    return () => { cancelled = true; clearInterval(interval); };
+  }, [isAdmin]);
+
   const navCtx = {
     playersNeedingReview, pendingSignaturesAdmin, pendingInvitations,
     pendingCallupResponses, chatMenuCounts, unreadAnnouncementsCount,
@@ -55,6 +72,7 @@ export default function useNavigation({
     pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders,
     marketNewCount, unresolvedAdminChats, paymentsInReview,
     pendingFeedback,
+    pendingLopiviCount,
     programaSociosActivo, isMemberPaid, isPlayer, user, onlyComplementary,
     porraActiva,
     landingMenuItems,
@@ -62,7 +80,7 @@ export default function useNavigation({
 
   // Each role builds its own menu — memoized with relevant deps
   const adminNav = useMemo(() => buildAdminNavigation(navCtx),
-    [playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses, chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible, pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount, unresolvedAdminChats, paymentsInReview, pendingFeedback]);
+    [playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses, chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible, pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount, unresolvedAdminChats, paymentsInReview, pendingFeedback, pendingLopiviCount]);
 
   const coachNav = useMemo(() => buildCoachNavigation(navCtx),
     [programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts, isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount, hasPlayers, loteriaVisible, marketNewCount, user?.puede_gestionar_firmas, porraActiva, landingMenuItems]);

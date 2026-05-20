@@ -85,9 +85,9 @@ export default function ParentDocuments() {
       <div>
         <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
           <FileText className="w-8 h-8 text-orange-600" />
-          Documentos del Club
+          Documentos y LOPIVI
         </h1>
-        <p className="text-slate-600 mt-1">Estatutos, reglamentos e información del club</p>
+        <p className="text-slate-600 mt-1">Protección del menor, estatutos, reglamentos e información del club</p>
       </div>
 
       <LopiviWidget />
