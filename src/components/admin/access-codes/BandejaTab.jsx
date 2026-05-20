@@ -22,11 +22,13 @@ function normalizePhone(raw) {
 }
 
 function buildWhatsAppMessage(nombre, codigo) {
-  const saludo = nombre ? `Hola ${nombre.split(' ')[0]},` : 'Hola,';
+  const saludo = nombre ? `¡Hola ${nombre.split(' ')[0]}! 👋` : '¡Hola! 👋';
+  const intro = `${saludo}\n\nTe escribimos desde el *CD Bustarviejo* 🟠⚪.\n\nVemos que aún *no has validado tu código de acceso* a la app del club. Sin ese paso no puedes entrar ni ver la información de tu hijo/a.`;
+
   if (codigo) {
-    return `${saludo} soy del CD Bustarviejo. Te enviamos por email tu código de acceso a la app del club: *${codigo}*. ¿Necesitas ayuda para activarlo? 🟠⚪`;
+    return `${intro}\n\n📲 *Tu código es:* \`${codigo}\`\n\n*Cómo activarlo (2 minutos):*\n1️⃣ Abre la app del club (si no la tienes instalada, instálala primero)\n2️⃣ Inicia sesión con tu email\n3️⃣ Introduce el código de arriba cuando te lo pida\n\n¿Tienes algún problema o no te llegó el email? Respóndenos por aquí y te ayudamos enseguida 💬`;
   }
-  return `${saludo} soy del CD Bustarviejo. Te hemos enviado un email con tu código de acceso a la app del club. ¿Necesitas ayuda para activarlo? 🟠⚪`;
+  return `${intro}\n\nTe vamos a *generar y enviar un código nuevo* ahora mismo. Mira tu email en unos minutos (revisa también la carpeta de *spam*).\n\n¿Tienes algún problema? Respóndenos por aquí y te ayudamos 💬`;
 }
 
 /**
