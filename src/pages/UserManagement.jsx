@@ -612,16 +612,15 @@ export default function UserManagement() {
     [users]
   );
   const activeUsers = activeUsersWithoutDeleted.filter((u) => u.acceso_activo !== false && u.role === "user");
-  // Padres "puros": usuarios cuyo único rol es ser progenitor (no staff, no jugador, no menor)
+  // Padres: cualquier usuario con el switch "tiene_hijos_jugando" activado
+  // Incluye también staff (entrenadores/coordinadores/tesoreros) que tengan hijos en el club
   const parents = activeUsersWithoutDeleted.filter(
     (u) =>
       u.acceso_activo !== false &&
       u.role === "user" &&
+      u.tiene_hijos_jugando === true &&
       !u.es_jugador &&
-      !u.es_menor &&
-      !u.es_entrenador &&
-      !u.es_coordinador &&
-      !u.es_tesorero
+      !u.es_menor
   );
   const restrictedUsers = activeUsersWithoutDeleted.filter((u) => u.acceso_activo === false);
   const admins = activeUsersWithoutDeleted.filter((u) => u.role === "admin");
@@ -645,7 +644,7 @@ export default function UserManagement() {
 
       if (roleFilter !== "all") {
         if (roleFilter === "admin" && user.role !== "admin") return false;
-        if (roleFilter === "parent" && (user.role === "admin" || user.es_jugador || user.es_menor || user.es_entrenador || user.es_coordinador || user.es_tesorero)) return false;
+        if (roleFilter === "parent" && (user.role === "admin" || user.es_jugador || user.es_menor || user.tiene_hijos_jugando !== true)) return false;
         if (roleFilter === "player" && user.es_jugador !== true) return false;
         if (roleFilter === "minor" && user.es_menor !== true) return false;
         if (roleFilter === "coach" && (user.es_entrenador !== true || user.es_coordinador === true)) return false;
