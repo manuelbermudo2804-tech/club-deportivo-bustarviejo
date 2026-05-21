@@ -3,7 +3,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { CheckCircle2, Dumbbell, Info } from "lucide-react";
+import { CheckCircle2, Dumbbell, Info, AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 
 export default function StepCategory({
@@ -31,6 +31,10 @@ export default function StepCategory({
   const isComplementaria = selectedConfig?.es_actividad_complementaria === true;
   const incluyePrepFisica = selectedConfig?.incluye_preparacion_fisica === true;
   const suplemento = selectedConfig?.suplemento_prep_fisica || 0;
+
+  // Detectar si el jugador nace en el último trimestre (oct/nov/dic) → caso típico de error de categoría
+  const birthMonth = currentPlayer.fecha_nacimiento ? new Date(currentPlayer.fecha_nacimiento).getMonth() + 1 : null;
+  const esNacidoFinalAnio = birthMonth !== null && birthMonth >= 10;
 
   return (
     <div className="space-y-6">
@@ -66,6 +70,27 @@ export default function StepCategory({
           <AlertDescription className="text-green-800 text-sm">
             <strong>✅ Categoría auto-seleccionada:</strong> Según la edad ({playerAge} años) → <strong>{currentPlayer.deporte}</strong>
             <br /><span className="text-xs">Puedes cambiarla manualmente si no es correcta</span>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* AVISO IMPORTANTE: Revisar bien la categoría */}
+      {playerAge !== null && currentPlayer.deporte !== "Fútbol Femenino" && (
+        <Alert className={`border-2 ${esNacidoFinalAnio ? 'bg-amber-50 border-amber-400' : 'bg-blue-50 border-blue-300'}`}>
+          <AlertTriangle className={`h-5 w-5 ${esNacidoFinalAnio ? 'text-amber-600' : 'text-blue-600'}`} />
+          <AlertDescription className={`${esNacidoFinalAnio ? 'text-amber-900' : 'text-blue-900'} text-sm`}>
+            <strong>⚠️ Revisa bien la categoría antes de continuar</strong>
+            <p className="mt-1 text-xs leading-relaxed">
+              El sistema sugiere una categoría automáticamente según la edad actual, pero las categorías deportivas se rigen por el <strong>año de nacimiento</strong>, no por la edad exacta.
+            </p>
+            {esNacidoFinalAnio && (
+              <p className="mt-2 text-xs leading-relaxed bg-amber-100 p-2 rounded border border-amber-300">
+                📅 <strong>Este jugador cumple años a final de año</strong> ({['','enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'][birthMonth]}). Es muy probable que le corresponda <strong>una categoría distinta</strong> a la sugerida. Consulta con el coordinador si tienes dudas.
+              </p>
+            )}
+            <p className="mt-2 text-xs">
+              ✅ Si no estás seguro/a, déjala como está — el club revisará todas las inscripciones y te avisará si hay que cambiarla.
+            </p>
           </AlertDescription>
         </Alert>
       )}
