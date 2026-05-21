@@ -12,15 +12,9 @@ import { base44 } from "@/api/base44Client";
 
 /**
  * Modal: sube imagen/PDF/Excel → IA extrae deudas → tabla editable → crea todas en bloque.
- *
- * Props:
- *  - open: bool
- *  - onClose: () => void
- *  - players: array (para selección manual si IA no emparejó)
- *  - onCreated: () => void (refrescar lista al terminar)
  */
 export default function DebtImportFromFile({ open, onClose, players = [], onCreated }) {
-  const [step, setStep] = useState("upload"); // upload | extracting | review | creating
+  const [step, setStep] = useState("upload");
   const [rows, setRows] = useState([]);
 
   const handleClose = () => {
@@ -38,7 +32,6 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
     setStep("extracting");
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-
       const res = await base44.functions.invoke("extractDebtsFromFile", { file_url });
       const deudas = res?.data?.deudas || [];
 
@@ -78,31 +71,33 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
   };
 
   const updateRow = (id, field, value) => {
-    setRows(prev => prev.map(r => {
-      if (r.id !== id) return r;
-      const updated = { ...r, [field]: value };
-      if (field === "jugador_id" && value) {
-        const p = players.find(x => x.id === value);
-        if (p) {
-          updated.email_familia = p.email_padre || "";
-          updated.dni_jugador = p.dni_jugador || "";
-          updated.dni_tutor = p.dni_tutor_legal || "";
-          updated.jugador_nombre = p.nombre || "";
-          updated.match_confidence = "manual";
-          updated.match_reason = "Asignación manual";
+    setRows((prev) =>
+      prev.map((r) => {
+        if (r.id !== id) return r;
+        const updated = { ...r, [field]: value };
+        if (field === "jugador_id" && value) {
+          const p = players.find((x) => x.id === value);
+          if (p) {
+            updated.email_familia = p.email_padre || "";
+            updated.dni_jugador = p.dni_jugador || "";
+            updated.dni_tutor = p.dni_tutor_legal || "";
+            updated.jugador_nombre = p.nombre || "";
+            updated.match_confidence = "manual";
+            updated.match_reason = "Asignación manual";
+          }
         }
-      }
-      return updated;
-    }));
+        return updated;
+      })
+    );
   };
 
   const handleCreate = async () => {
-    const seleccionadas = rows.filter(r => r.incluir);
+    const seleccionadas = rows.filter((r) => r.incluir);
     if (seleccionadas.length === 0) {
       toast.error("Selecciona al menos una deuda");
       return;
     }
-    const sinImporte = seleccionadas.find(r => !r.importe || Number(r.importe) <= 0);
+    const sinImporte = seleccionadas.find((r) => !r.importe || Number(r.importe) <= 0);
     if (sinImporte) {
       toast.error(`Importe inválido para "${sinImporte.nombre_extraido}"`);
       return;
@@ -116,11 +111,13 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
     setStep("creating");
     try {
       const me = await base44.auth.me();
-      const payload = seleccionadas.map(r => {
+      const payload = seleccionadas.map((r) => {
         const slug = (r.jugador_nombre || r.nombre_extraido || "deudor")
           .toLowerCase()
           .replace(/[^a-z0-9]+/g, "-");
-        const emailFinal = (r.email_familia || "").toLowerCase().trim() || `sin-email-${slug}@pendiente.local`;
+        const emailFinal =
+          (r.email_familia || "").toLowerCase().trim() ||
+          `sin-email-${slug}@pendiente.local`;
         return {
           email_familia: emailFinal,
           dni_jugador: (r.dni_jugador || "").toUpperCase().trim(),
@@ -202,13 +199,13 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
           <div className="space-y-4">
             <div className="flex items-center justify-between bg-slate-50 rounded-lg p-3">
               <p className="text-sm font-semibold">
-                {rows.filter(r => r.incluir).length} / {rows.length} deuda(s) seleccionada(s)
+                {rows.filter((r) => r.incluir).length} / {rows.length} deuda(s) seleccionada(s)
               </p>
               <div className="flex gap-2">
-                <Button size="sm" variant="outline" onClick={() => setRows(rows.map(r => ({ ...r, incluir: true })))}>
+                <Button size="sm" variant="outline" onClick={() => setRows(rows.map((r) => ({ ...r, incluir: true })))}>
                   Marcar todas
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => setRows(rows.map(r => ({ ...r, incluir: false })))}>
+                <Button size="sm" variant="outline" onClick={() => setRows(rows.map((r) => ({ ...r, incluir: false })))}>
                   Desmarcar todas
                 </Button>
               </div>
@@ -219,10 +216,13 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
                 <div
                   key={r.id}
                   className={`border-2 rounded-lg p-3 ${
-                    !r.incluir ? "bg-slate-50 border-slate-200 opacity-60" :
-                    r.match_confidence === "alta" ? "border-green-300 bg-green-50" :
-                    r.match_confidence === "media" || r.match_confidence === "manual" ? "border-blue-300 bg-blue-50" :
-                    "border-amber-300 bg-amber-50"
+                    !r.incluir
+                      ? "bg-slate-50 border-slate-200 opacity-60"
+                      : r.match_confidence === "alta"
+                      ? "border-green-300 bg-green-50"
+                      : r.match_confidence === "media" || r.match_confidence === "manual"
+                      ? "border-blue-300 bg-blue-50"
+                      : "border-amber-300 bg-amber-50"
                   }`}
                 >
                   <div className="flex items-start gap-3 mb-3">
@@ -233,15 +233,21 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
                     />
                     <div className="flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-bold text-sm">📄 IA detectó: <span className="font-normal italic">"{r.nombre_extraido}"</span></p>
+                        <p className="font-bold text-sm">
+                          📄 IA detectó: <span className="font-normal italic">"{r.nombre_extraido}"</span>
+                        </p>
                         {r.match_confidence === "alta" && (
-                          <Badge className="bg-green-600"><CheckCircle2 className="w-3 h-3 mr-1" /> Match {r.match_reason}</Badge>
+                          <Badge className="bg-green-600">
+                            <CheckCircle2 className="w-3 h-3 mr-1" /> Match {r.match_reason}
+                          </Badge>
                         )}
                         {(r.match_confidence === "media" || r.match_confidence === "manual") && (
                           <Badge className="bg-blue-600">Match: {r.match_reason}</Badge>
                         )}
                         {!r.match_confidence && (
-                          <Badge className="bg-amber-600"><AlertCircle className="w-3 h-3 mr-1" /> Sin jugador — asigna manualmente</Badge>
+                          <Badge className="bg-amber-600">
+                            <AlertCircle className="w-3 h-3 mr-1" /> Sin jugador — asigna manualmente
+                          </Badge>
                         )}
                       </div>
                     </div>
@@ -255,7 +261,7 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
                           <SelectValue placeholder="Selecciona un jugador..." />
                         </SelectTrigger>
                         <SelectContent className="max-h-72">
-                          {players.map(p => (
+                          {players.map((p) => (
                             <SelectItem key={p.id} value={p.id}>
                               {p.nombre} {p.dni_jugador ? `(${p.dni_jugador})` : ""}
                             </SelectItem>
@@ -305,9 +311,11 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
             </div>
 
             <div className="flex justify-end gap-2 pt-3 border-t sticky bottom-0 bg-white pb-2">
-              <Button variant="outline" onClick={handleClose}>Cancelar</Button>
+              <Button variant="outline" onClick={handleClose}>
+                Cancelar
+              </Button>
               <Button onClick={handleCreate} className="bg-purple-600 hover:bg-purple-700">
-                <CheckCircle2 className="w-4 h-4 mr-2" /> Crear {rows.filter(r => r.incluir).length} deuda(s)
+                <CheckCircle2 className="w-4 h-4 mr-2" /> Crear {rows.filter((r) => r.incluir).length} deuda(s)
               </Button>
             </div>
           </div>
