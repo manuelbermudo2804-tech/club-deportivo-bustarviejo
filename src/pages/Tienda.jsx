@@ -31,7 +31,7 @@ export default function Tienda() {
       <div>
         <h1 className="text-2xl lg:text-3xl font-black text-slate-900 flex items-center gap-2">
           <ShoppingBag className="w-7 h-7 text-orange-600" />
-          Tienda y Equipaciones
+          Tienda y Equipación
         </h1>
         <p className="text-slate-500 text-sm mt-1">Equipación oficial y merchandising del CD Bustarviejo</p>
       </div>

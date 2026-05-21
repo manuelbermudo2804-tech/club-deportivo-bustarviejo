@@ -34,7 +34,7 @@ export const ALL_COACH_BUTTONS = [
   { id: "eventos", title: "🎉 Eventos Club", icon: Calendar, url: createPageUrl("ParentEventRSVP"), gradient: "from-indigo-600 to-indigo-700", priority: 17, section: "club" },
   { id: "documentos", title: "📄 Documentos", icon: FileText, url: createPageUrl("ParentDocuments"), gradient: "from-slate-600 to-slate-700", priority: 18, section: "club" },
   { id: "encuestas", title: "📋 Encuestas", icon: FileText, url: createPageUrl("Surveys"), gradient: "from-purple-600 to-purple-700", priority: 19, section: "club" },
-  { id: "tienda", title: "🛍️ Tienda y Equipaciones", icon: ShoppingBag, url: createPageUrl("Tienda"), gradient: "from-orange-600 to-orange-700", priority: 20, section: "club" },
+  { id: "tienda", title: "🛍️ Tienda y Equipación", icon: ShoppingBag, url: createPageUrl("Tienda"), gradient: "from-orange-600 to-orange-700", priority: 20, section: "club" },
   { id: "galeria", title: "🖼️ Galería", icon: Image, url: createPageUrl("Gallery"), gradient: "from-indigo-600 to-indigo-700", priority: 21, section: "club" },
   { id: "mis_hijos", title: "👨‍👩‍👧 Mis Hijos", icon: Users, url: createPageUrl("ParentPlayers"), gradient: "from-orange-600 to-orange-700", priority: 21, conditional: true, conditionKey: "hasPlayers", section: "club" },
   { id: "pagos_hijos", title: "💳 Pagos Mis Hijos", icon: CreditCard, url: createPageUrl("ParentPayments"), gradient: "from-green-600 to-green-700", priority: 22, conditional: true, conditionKey: "hasPlayers", section: "club" },
