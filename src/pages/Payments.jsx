@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
+import { createPageUrl } from "@/utils";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet, AlertTriangle, Calendar, Filter, RefreshCw, Settings2 } from "lucide-react";
+import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet, AlertTriangle, Calendar, Filter, RefreshCw, Settings2, ShieldAlert } from "lucide-react";
+import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -811,6 +813,14 @@ export default function Payments() {
           >
             <RefreshCw className="w-5 h-5" />
           </Button>
+          {isAdmin && (
+            <Link to={createPageUrl("MorososManagement")}>
+              <Button variant="outline" className="border-red-400 text-red-700 hover:bg-red-50 shadow-lg">
+                <ShieldAlert className="w-5 h-5 mr-2" />
+                Gestión de Morosos
+              </Button>
+            </Link>
+          )}
           <Button
             onClick={() => {
               setShowForm(!showForm);

@@ -1,0 +1,109 @@
+{
+  "name": "Deuda",
+  "type": "object",
+  "properties": {
+    "email_familia": {
+      "type": "string",
+      "description": "Email de la familia (padre/madre/tutor/jugador adulto) \u2014 clave principal de detecci\u00f3n"
+    },
+    "dni_jugador": {
+      "type": "string",
+      "description": "DNI del jugador (clave secundaria de detecci\u00f3n, por si cambian email)"
+    },
+    "dni_tutor": {
+      "type": "string",
+      "description": "DNI del tutor legal (clave terciaria opcional)"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador al que pertenece la deuda"
+    },
+    "tutor_nombre": {
+      "type": "string",
+      "description": "Nombre del tutor / titular de la deuda"
+    },
+    "importe": {
+      "type": "number",
+      "description": "Importe pendiente en euros"
+    },
+    "temporada_origen": {
+      "type": "string",
+      "description": "Temporada en la que se gener\u00f3 la deuda (ej: '2025-2026')"
+    },
+    "concepto": {
+      "type": "string",
+      "description": "Descripci\u00f3n de la deuda (ej: 'Cuota fraccionada Diciembre impagada')"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "pagada",
+        "condonada"
+      ],
+      "default": "pendiente",
+      "description": "Estado de la deuda"
+    },
+    "fecha_pago": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha en que se sald\u00f3 la deuda"
+    },
+    "pagada_con_payment_id": {
+      "type": "string",
+      "description": "ID del Payment con el que se sald\u00f3 (vinculaci\u00f3n con primera cuota nueva temporada)"
+    },
+    "notas_admin": {
+      "type": "string",
+      "description": "Notas internas del administrador"
+    },
+    "creada_por": {
+      "type": "string",
+      "description": "Email del admin que cre\u00f3 la deuda"
+    },
+    "actualizada_por": {
+      "type": "string",
+      "description": "Email del admin que la marc\u00f3 pagada/condonada"
+    },
+    "fecha_actualizacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima actualizaci\u00f3n de estado"
+    }
+  },
+  "required": [
+    "email_familia",
+    "importe",
+    "temporada_origen",
+    "concepto"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.email_familia": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
