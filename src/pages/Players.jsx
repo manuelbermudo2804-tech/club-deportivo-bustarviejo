@@ -16,6 +16,8 @@ import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
 import PlayerProfileDialog from "../components/players/PlayerProfileDialog";
 import PlayerCardSkeleton from "../components/skeletons/PlayerCardSkeleton";
+import RecalcCuotasDialog from "../components/players/RecalcCuotasDialog";
+import { analyzePaymentChanges } from "../components/players/recalcPaymentsHelper";
 import RenewalStatsPanel from "../components/players/RenewalStatsPanel";
 import CustomPaymentPlanForm from "../components/payments/CustomPaymentPlanForm";
 
@@ -38,6 +40,9 @@ export default function Players() {
   const ITEMS_PER_PAGE = 20;
   const [showCustomPlanForm, setShowCustomPlanForm] = useState(false);
   const [selectedPlayerForPlan, setSelectedPlayerForPlan] = useState(null);
+  const [recalcPlan, setRecalcPlan] = useState(null);
+  const [showRecalcDialog, setShowRecalcDialog] = useState(false);
+  const [recalcPlayerName, setRecalcPlayerName] = useState("");
   
   const queryClient = useQueryClient();
 
@@ -354,7 +359,36 @@ export default function Players() {
     delete cleanData._assisted_id;
 
     if (editingPlayer?.id) {
-      updatePlayerMutation.mutate({ id: editingPlayer.id, playerData: cleanData, originalPlayer: editingPlayer });
+      const oldCategory = editingPlayer.deporte;
+      const newCategory = cleanData.deporte;
+      const categoryChanged = oldCategory && newCategory && oldCategory !== newCategory;
+
+      updatePlayerMutation.mutate(
+        { id: editingPlayer.id, playerData: cleanData, originalPlayer: editingPlayer },
+        {
+          onSuccess: async () => {
+            // Si la categoría cambió, analizar si hay cuotas pendientes a recalcular
+            if (categoryChanged && isAdmin) {
+              try {
+                const plan = await analyzePaymentChanges({
+                  playerId: editingPlayer.id,
+                  oldCategory,
+                  newCategory,
+                  activeSeason,
+                  descuentoAplicado: cleanData.descuento_aplicado || 0,
+                });
+                if (plan.canRecalculate || plan.frozen?.length > 0) {
+                  setRecalcPlan(plan);
+                  setRecalcPlayerName(cleanData.nombre || editingPlayer.nombre);
+                  setShowRecalcDialog(true);
+                }
+              } catch (err) {
+                console.error("Error analizando cambio de categoría:", err);
+              }
+            }
+          },
+        }
+      );
     } else {
       createPlayerMutation.mutate(cleanData, {
         onSuccess: async () => {
@@ -889,6 +923,19 @@ export default function Players() {
         existingPlan={null}
         onSubmit={(planData) => createCustomPlanMutation.mutate(planData)}
         isSubmitting={createCustomPlanMutation.isPending}
+      />
+
+      <RecalcCuotasDialog
+        open={showRecalcDialog}
+        onOpenChange={setShowRecalcDialog}
+        plan={recalcPlan}
+        playerName={recalcPlayerName}
+        adminEmail={user?.email}
+        onApplied={() => {
+          queryClient.invalidateQueries({ queryKey: ['payments'] });
+          setRecalcPlan(null);
+        }}
+        onSkipped={() => setRecalcPlan(null)}
       />
     </div>
   );
