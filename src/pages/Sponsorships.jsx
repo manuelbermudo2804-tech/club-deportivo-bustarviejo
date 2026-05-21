@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Building2, FileText } from "lucide-react";
+import { Plus, Search, Building2, FileText, Receipt } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -129,6 +129,12 @@ export default function Sponsorships() {
             <Button variant="outline" className="border-orange-300 text-orange-700 hover:bg-orange-50">
               <FileText className="w-4 h-4 mr-2" />
               Generar Recibo
+            </Button>
+          </Link>
+          <Link to="/FacturaGenerator">
+            <Button variant="outline" className="border-orange-500 text-orange-800 hover:bg-orange-100">
+              <Receipt className="w-4 h-4 mr-2" />
+              Generar Factura
             </Button>
           </Link>
           <Button
