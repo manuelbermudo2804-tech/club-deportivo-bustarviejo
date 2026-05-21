@@ -78,6 +78,31 @@ Deno.serve(async (req) => {
 
     console.log(`[onPaymentApproved] Detected approval: ${data.jugador_nombre} (${data.mes}) ${data.cantidad}€`);
 
+    // 🔴 Saldar deudas vinculadas si el pago las traía marcadas en notas: [DEUDA_SALDA_IDS:id1,id2,...]
+    try {
+      const notas = data.notas || '';
+      const match = notas.match(/\[DEUDA_SALDA_IDS:([^\]]+)\]/);
+      if (match && match[1]) {
+        const ids = match[1].split(',').map(s => s.trim()).filter(Boolean);
+        const today = new Date().toISOString().split('T')[0];
+        for (const debtId of ids) {
+          try {
+            await base44.asServiceRole.entities.Deuda.update(debtId, {
+              estado: 'pagada',
+              fecha_pago: today,
+              pagada_con_payment_id: event.entity_id,
+              fecha_actualizacion: new Date().toISOString()
+            });
+            console.log(`[onPaymentApproved] Deuda ${debtId} marcada como pagada`);
+          } catch (debtErr) {
+            console.error(`[onPaymentApproved] Error saldando deuda ${debtId}:`, debtErr.message);
+          }
+        }
+      }
+    } catch (debtBlockErr) {
+      console.error('[onPaymentApproved] Error procesando deudas:', debtBlockErr.message);
+    }
+
     // Get player to find parent emails
     if (!data.jugador_id) {
       console.warn('[onPaymentApproved] No jugador_id on payment');

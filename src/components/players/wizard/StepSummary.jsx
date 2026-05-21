@@ -1,8 +1,9 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, AlertCircle } from "lucide-react";
+import DebtAlertBanner from "@/components/debts/DebtAlertBanner";
 
-export default function StepSummary({ currentPlayer, playerAge, isMayorDeEdad, siblingDiscount, isAdultPlayerSelfRegistration }) {
+export default function StepSummary({ currentPlayer, playerAge, isMayorDeEdad, siblingDiscount, isAdultPlayerSelfRegistration, currentUser, onDebtChange }) {
   const sections = [
     {
       title: "👤 Datos del Jugador",
@@ -79,6 +80,15 @@ export default function StepSummary({ currentPlayer, playerAge, isMayorDeEdad, s
         ✅ Resumen de la Inscripción
       </h3>
       <p className="text-sm text-slate-600">Revisa que todos los datos sean correctos antes de confirmar.</p>
+
+      {/* 🔴 Aviso de deuda pendiente */}
+      <DebtAlertBanner
+        email={currentPlayer.email_padre || currentUser?.email}
+        dniJugador={currentPlayer.dni_jugador}
+        dniTutor={currentPlayer.dni_tutor_legal}
+        jugadorNombre={currentPlayer.nombre}
+        onDebtDetected={onDebtChange}
+      />
 
       {siblingDiscount?.hasDiscount && (
         <div className="bg-green-50 border-2 border-green-300 rounded-lg p-3 flex items-center gap-2">

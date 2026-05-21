@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CheckCircle2, CreditCard, Gift, Info, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import DebtAlertBanner from "@/components/debts/DebtAlertBanner";
 
 const getCuotasFromConfig = (categoria, categoryConfigs) => {
   if (!categoryConfigs || categoryConfigs.length === 0) return null;
@@ -35,6 +36,7 @@ export default function RenewalPaymentFlow({
   const [tipoPago, setTipoPago] = useState("Único");
   const [isProcessing, setIsProcessing] = useState(false);
   const [descuentoHermano, setDescuentoHermano] = useState(0);
+  const [debtState, setDebtState] = useState({ has_debt: false, total: 0, accepted: false, deudas: [] });
 
   const categoria = newCategory || player.deporte;
   const cuotas = getCuotasFromConfig(categoria, categoryConfigs);
@@ -74,6 +76,11 @@ export default function RenewalPaymentFlow({
   const importeInscripcion = cuotas ? cuotas.inscripcion - descuentoHermano : 0;
 
   const handleConfirm = async () => {
+    // 🔴 Bloquear si hay deuda pendiente sin aceptar
+    if (debtState.has_debt && !debtState.accepted) {
+      toast.error("Debes aceptar que la deuda pendiente se sume a la primera cuota antes de continuar");
+      return;
+    }
     setIsProcessing(true);
     try {
       const paymentsToCreate = [];
@@ -126,11 +133,19 @@ export default function RenewalPaymentFlow({
         );
       }
 
+      // 🔴 Si hay deuda aceptada, sumarla al primer pago y anexar marca para saldarla
+      if (debtState.has_debt && debtState.accepted && paymentsToCreate.length > 0) {
+        const first = paymentsToCreate[0];
+        first.cantidad = Number((Number(first.cantidad) + Number(debtState.total)).toFixed(2));
+        first.notas = `${first.notas || ''}\n[DEUDA_SALDA_IDS:${(debtState.deudas || []).map(d => d.id).join(',')}] +${Number(debtState.total).toFixed(2)}€ deuda temp. anterior`.trim();
+      }
+
       onComplete({
         newCategory: categoria,
         tipoPago,
         payments: paymentsToCreate,
-        descuentoHermano
+        descuentoHermano,
+        debtSaldadaIds: debtState.has_debt && debtState.accepted ? (debtState.deudas || []).map(d => d.id) : []
       });
     } catch (error) {
       console.error("Error en renovación:", error);
@@ -158,7 +173,16 @@ export default function RenewalPaymentFlow({
         </CardTitle>
       </CardHeader>
       <CardContent className="pt-6 space-y-6">
-        
+
+        {/* 🔴 Aviso de deuda pendiente */}
+        <DebtAlertBanner
+          email={player.email_padre}
+          dniJugador={player.dni_jugador}
+          dniTutor={player.dni_tutor_legal}
+          jugadorNombre={player.nombre}
+          onDebtDetected={setDebtState}
+        />
+
         <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4">
           <p className="text-sm font-bold text-blue-900 mb-2">📋 Resumen de Renovación</p>
           <div className="space-y-1 text-sm text-blue-800">
@@ -280,7 +304,7 @@ export default function RenewalPaymentFlow({
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={isProcessing}
+            disabled={isProcessing || (debtState.has_debt && !debtState.accepted)}
             className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold"
           >
             {isProcessing ? (

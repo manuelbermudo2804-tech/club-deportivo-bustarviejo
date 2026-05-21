@@ -259,6 +259,9 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     }
   }, [isMayorDeEdad, currentUser, isAdultPlayerSelfRegistration, isEditing]);
 
+  // 🔴 Estado de deuda pendiente detectada (StepSummary)
+  const [debtState, setDebtState] = useState({ has_debt: false, total: 0, accepted: false, deudas: [] });
+
   // Track if user has manually changed the category
   const [userChangedCategory, setUserChangedCategory] = useState(false);
 
@@ -600,6 +603,17 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
         total_steps: totalSteps,
       });
     }
+    // 🔴 Bloquear si hay deuda pendiente y no se ha aceptado
+    if (debtState.has_debt && !debtState.accepted) {
+      toast.error("Debes aceptar que la deuda pendiente se sume a la primera cuota antes de continuar");
+      setStep(totalSteps - 1);
+      return;
+    }
+    if (debtState.has_debt && debtState.accepted) {
+      finalData.deuda_pendiente_aceptada = true;
+      finalData.deuda_pendiente_importe = debtState.total;
+      finalData.deuda_pendiente_ids = (debtState.deudas || []).map(d => d.id);
+    }
     clearFormDraft();
     onSubmit(finalData);
   };
@@ -653,7 +667,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       case 5: return <StepMedical currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} existingFamilyPlayers={existingFamilyPlayers} />;
       case 6: return isEditing ? null : <StepNormativa currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} />;
       case 7: return isEditing ? null : <StepAuthorizations currentPlayer={currentPlayer} setCurrentPlayer={setCurrentPlayer} fieldErrors={fieldErrors} setFieldErrors={setFieldErrors} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} isEditing={isEditing} playerAge={playerAge} categoryConfigs={categoryConfigsData} />;
-      case 8: return isEditing ? null : <StepSummary currentPlayer={currentPlayer} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} siblingDiscount={siblingDiscount} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} />;
+      case 8: return isEditing ? null : <StepSummary currentPlayer={currentPlayer} playerAge={playerAge} isMayorDeEdad={isMayorDeEdad} siblingDiscount={siblingDiscount} isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration} currentUser={currentUser} onDebtChange={setDebtState} />;
       default: return null;
     }
   };

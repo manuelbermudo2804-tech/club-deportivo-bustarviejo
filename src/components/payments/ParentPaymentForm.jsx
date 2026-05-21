@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import PaymentInstructions from "./PaymentInstructions";
 import { uploadPrivateFile } from "../utils/privateUpload";
+import DebtAlertBanner from "@/components/debts/DebtAlertBanner";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -50,6 +51,9 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
   const [tipoPagoFijado, setTipoPagoFijado] = useState(null);
   const [seasonConfig, setSeasonConfig] = useState(null);
   const [categoryConfigs, setCategoryConfigs] = useState([]);
+
+  // 🔴 Deuda pendiente — sólo se aplica si es la PRIMERA cuota del jugador (mes Junio)
+  const [debtState, setDebtState] = useState({ has_debt: false, total: 0, accepted: false, deudas: [] });
 
   // Fetch season config y CategoryConfig
   useEffect(() => {
@@ -358,6 +362,13 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
       return;
     }
 
+    // 🔴 Bloquear si hay deuda pendiente sin aceptar (sólo aplica en la primera cuota = Junio)
+    const isFirstCuota = currentPayment.mes === "Junio" || currentPayment.tipo_pago === "Único";
+    if (isFirstCuota && debtState.has_debt && !debtState.accepted) {
+      toast.error("Debes aceptar que la deuda pendiente se sume al pago antes de continuar");
+      return;
+    }
+
     // VALIDACIÓN: si existe un pago pendiente SIN justificante, actualizarlo
     const pagoExistente = payments.find(p => 
       p.jugador_id === currentPayment.jugador_id &&
@@ -385,8 +396,14 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
       return;
     }
 
-    console.log('✅ [ParentPaymentForm] Validación pasada, creando pago nuevo:', currentPayment);
-    onSubmit(currentPayment);
+    // Si hay deuda aceptada y es la primera cuota, anexar info al pago para que onPaymentApproved la salde
+    const paymentToSubmit = { ...currentPayment };
+    if (isFirstCuota && debtState.has_debt && debtState.accepted) {
+      paymentToSubmit.cantidad = Number((Number(currentPayment.cantidad) + Number(debtState.total)).toFixed(2));
+      paymentToSubmit.notas = `${currentPayment.notas || ''}\n[DEUDA_SALDA_IDS:${(debtState.deudas || []).map(d => d.id).join(',')}] +${Number(debtState.total).toFixed(2)}€ deuda temp. anterior`.trim();
+    }
+    console.log('✅ [ParentPaymentForm] Validación pasada, creando pago nuevo:', paymentToSubmit);
+    onSubmit(paymentToSubmit);
   };
 
   const cuotas = selectedPlayer ? getCuotasFromConfig(selectedPlayer.deporte, categoryConfigs) : null;
@@ -408,6 +425,18 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
           <CardTitle className="text-2xl">Registrar Pago</CardTitle>
         </CardHeader>
         <CardContent className="pt-6">
+          {/* 🔴 Aviso de deuda pendiente */}
+          {selectedPlayer && (
+            <div className="mb-6">
+              <DebtAlertBanner
+                email={selectedPlayer.email_padre}
+                dniJugador={selectedPlayer.dni_jugador}
+                dniTutor={selectedPlayer.dni_tutor_legal}
+                jugadorNombre={selectedPlayer.nombre}
+                onDebtDetected={setDebtState}
+              />
+            </div>
+          )}
           {pagoUnicoPagado && selectedPlayer && (
             <Alert className="bg-green-50 border-2 border-green-500 mb-6">
               <Info className="h-5 w-5 text-green-600" />
@@ -798,7 +827,7 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
                   <Button
                     type="submit"
                     className="bg-orange-600 hover:bg-orange-700"
-                    disabled={isSubmitting || !currentPayment.justificante_url || pagoUnicoPagado}
+                    disabled={isSubmitting || !currentPayment.justificante_url || pagoUnicoPagado || (debtState.has_debt && !debtState.accepted && (currentPayment.mes === 'Junio' || currentPayment.tipo_pago === 'Único'))}
                   >
                     {isSubmitting ? (
                       <>
