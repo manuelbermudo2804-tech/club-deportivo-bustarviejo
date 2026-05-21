@@ -262,7 +262,7 @@ export function buildParentNavigation(ctx) {
     ...(!onlyComplementary ? [{ title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : []),
     ...(!onlyComplementary ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
     { title: "💳 Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
-    { title: "👥 Mis Jugadores", url: createPageUrl("ParentPlayers"), icon: Users },
+    { title: "👥 Mis Jugadores e Inscripciones", url: createPageUrl("ParentPlayers"), icon: Users },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },

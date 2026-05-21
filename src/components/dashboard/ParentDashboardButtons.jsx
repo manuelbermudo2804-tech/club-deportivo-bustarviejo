@@ -7,7 +7,7 @@ export const ALL_PARENT_BUTTONS = [
   { id: "convocatorias", title: "🏆 Convocatorias", icon: Bell, url: createPageUrl("ParentCallups"), gradient: "from-yellow-600 to-yellow-700", priority: 1, competitionOnly: true },
   { id: "firmas", title: "🖊️ Firmas Federación", icon: FileSignature, url: createPageUrl("FederationSignatures"), gradient: "from-yellow-600 to-orange-600", priority: 2, competitionOnly: true },
   { id: "pagos", title: "💳 Pagos", icon: CreditCard, url: createPageUrl("ParentPayments"), gradient: "from-green-600 to-green-700", priority: 3 },
-  { id: "jugadores", title: "👥 Mis Jugadores", icon: Users, url: createPageUrl("ParentPlayers"), gradient: "from-orange-600 to-orange-700", priority: 4 },
+  { id: "jugadores", title: "👥 Mis Jugadores e Inscripciones", icon: Users, url: createPageUrl("ParentPlayers"), gradient: "from-orange-600 to-orange-700", priority: 4 },
   { id: "asistente", title: "🤖 Asistente Virtual", icon: MessageCircle, url: createPageUrl("Chatbot"), gradient: "from-indigo-600 to-purple-700", priority: 5 },
   { id: "mensajes_club", title: "🔔 Mensajes Club", icon: Bell, url: createPageUrl("ParentSystemMessages"), gradient: "from-orange-600 to-orange-700", priority: 6 },
   { id: "chat_coordinador", title: "🎓 Chat Coordinador", icon: MessageCircle, url: createPageUrl("ParentCoordinatorChat"), gradient: "from-cyan-600 to-cyan-700", priority: 7 },
