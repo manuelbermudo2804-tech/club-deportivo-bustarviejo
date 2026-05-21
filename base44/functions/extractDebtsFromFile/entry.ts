@@ -99,54 +99,70 @@ Deno.serve(async (req) => {
     const extractionSchema = {
       type: 'object',
       properties: {
+        contenido_detectado: {
+          type: 'string',
+          description: 'Resumen breve de lo que ves en el archivo (1-2 frases). Útil para debug si no extraes nada.'
+        },
         deudas: {
           type: 'array',
           items: {
             type: 'object',
             properties: {
-              nombre: { type: 'string', description: 'Nombre completo del jugador o de la persona deudora tal como aparece en el archivo' },
+              nombre: { type: 'string', description: 'Nombre del jugador o persona deudora' },
               dni: { type: 'string', description: 'DNI/NIE del jugador si aparece' },
               dni_tutor: { type: 'string', description: 'DNI/NIE del tutor si aparece' },
               email: { type: 'string', description: 'Email si aparece' },
               tutor_nombre: { type: 'string', description: 'Nombre del padre/madre/tutor si aparece' },
-              importe: { type: 'number', description: 'Importe de la deuda en euros (solo el número)' },
-              concepto: { type: 'string', description: 'Concepto o descripción del impago (ej: cuota septiembre, inscripción, etc.)' },
-              temporada: { type: 'string', description: 'Temporada a la que pertenece la deuda (ej: 2024-2025) si aparece' }
+              importe: { type: 'number', description: 'Importe en euros (solo el número)' },
+              concepto: { type: 'string', description: 'Concepto o motivo del impago' },
+              temporada: { type: 'string', description: 'Temporada (ej: 2024-2025) si aparece' }
             }
           }
         }
       }
     };
 
-    const prompt = `Analiza este archivo (puede ser una imagen, PDF, captura de pantalla, extracto bancario, hoja de cálculo, listado de WhatsApp, etc.) y extrae TODAS las deudas/impagos de personas que encuentres.
+    const prompt = `Eres un asistente que ayuda a un administrador de un club deportivo a registrar deudas/impagos.
 
-Para cada deuda, extrae:
-- nombre: nombre completo de la persona (jugador o tutor)
-- dni: DNI del jugador si aparece
-- dni_tutor: DNI del tutor si aparece
-- email: email si aparece
-- tutor_nombre: nombre del tutor/padre/madre si es distinto al jugador
-- importe: cantidad adeudada (solo número, ej: 75.50)
-- concepto: motivo del impago (ej: "Cuota septiembre 2024", "Inscripción", "Pago fraccionado")
-- temporada: temporada deportiva (ej: "2024-2025") si la puedes inferir
+Analiza este archivo (foto, captura, PDF, Excel, listado, mensaje de WhatsApp, extracto bancario, nota a mano, etc.) y extrae CUALQUIER información que pueda corresponder a personas que deben dinero al club.
 
-Si un dato no aparece, déjalo en blanco. Devuelve TODAS las deudas que encuentres, no resumas ni agrupes.`;
+IMPORTANTE:
+- Sé MUY permisivo: si ves un nombre con un importe al lado, YA ES UNA DEUDA, aunque no diga "impago" explícitamente.
+- Si ves una tabla/lista de personas con cifras, asume que son deudas pendientes.
+- Si solo ves un nombre y un importe (ej: "Juan García - 75€"), créa una deuda con esos datos aunque falten DNI/email/concepto.
+- Si solo aparece el nombre sin importe, NO lo incluyas.
+- Si no encuentras nada parecido a deudas, devuelve deudas: [] y explica en contenido_detectado qué ves.
+
+Para cada deuda extrae lo que puedas (deja en blanco lo que no aparezca):
+- nombre: nombre de la persona
+- dni / dni_tutor: si aparece algún DNI
+- email: si aparece
+- tutor_nombre: nombre del padre/madre si es distinto
+- importe: cantidad en euros (número)
+- concepto: motivo (si no hay, pon "Deuda pendiente")
+- temporada: ej 2024-2025 si la deduces
+
+Devuelve TODAS las personas con importe que encuentres, una por una, sin agrupar.`;
 
     const extractionResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
       prompt,
       file_urls: [file_url],
       response_json_schema: extractionSchema,
-      model: 'claude_sonnet_4_6'
+      model: 'gpt_5_4'
     });
 
     const deudasExtraidas = Array.isArray(extractionResult?.deudas) ? extractionResult.deudas : [];
-    console.log(`[extractDebtsFromFile] IA extrajo ${deudasExtraidas.length} deudas`);
+    const contenidoDetectado = extractionResult?.contenido_detectado || '';
+    console.log(`[extractDebtsFromFile] IA extrajo ${deudasExtraidas.length} deudas. Contenido detectado: ${contenidoDetectado}`);
 
     if (deudasExtraidas.length === 0) {
       return Response.json({
         success: true,
         deudas: [],
-        message: 'No se detectaron deudas en el archivo'
+        contenido_detectado: contenidoDetectado,
+        message: contenidoDetectado
+          ? `La IA vio el archivo pero no encontró deudas claras. Vio: "${contenidoDetectado}"`
+          : 'No se detectaron deudas en el archivo'
       });
     }
 

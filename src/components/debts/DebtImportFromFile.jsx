@@ -45,7 +45,9 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
       const deudas = res?.data?.deudas || [];
 
       if (deudas.length === 0) {
-        toast.warning("La IA no detectó deudas en el archivo. Prueba con otro o créala manualmente.");
+        const msg = res?.data?.message || "La IA no detectó deudas en el archivo.";
+        toast.warning(msg, { duration: 8000 });
+        console.log("[DebtImport] IA no extrajo deudas. Respuesta completa:", res?.data);
         setStep("upload");
         return;
       }
