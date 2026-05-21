@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ShieldCheck, AlertCircle, KeyRound, ShieldOff } from "lucide-react";
+import { Loader2, ShieldCheck, AlertCircle, KeyRound, ShieldOff, UserPlus, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
@@ -162,12 +162,28 @@ export default function AccessCodeVerification({ user, onSuccess }) {
             </Button>
           </form>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-left">
-            <p className="text-sm text-blue-800 font-medium mb-1">¿No tienes código?</p>
-            <p className="text-xs text-blue-700">
-              Si eres nuevo en el club, contacta con el administrador para solicitar tu código de acceso. 
-              Si ya recibiste un email del club, busca el código en ese correo.
+          <div className="relative flex items-center my-2">
+            <div className="flex-grow border-t border-slate-200"></div>
+            <span className="mx-3 text-xs text-slate-400 font-medium">o</span>
+            <div className="flex-grow border-t border-slate-200"></div>
+          </div>
+
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-300 rounded-2xl p-4 text-center space-y-3">
+            <div className="flex items-center justify-center gap-2">
+              <UserPlus className="w-5 h-5 text-green-700" />
+              <p className="text-sm font-bold text-green-900">¿Aún no tienes código?</p>
+            </div>
+            <p className="text-xs text-green-800 leading-relaxed">
+              Es normal si eres nuevo. Solicítalo aquí y el club te lo enviará por email.
             </p>
+            <a
+              href="/SolicitarAcceso"
+              className="flex items-center justify-center gap-2 w-full bg-gradient-to-r from-green-600 to-emerald-700 hover:from-green-700 hover:to-emerald-800 text-white font-bold rounded-xl shadow-lg transition-all"
+              style={{ height: '52px', minHeight: '52px', textDecoration: 'none' }}
+            >
+              Solicitar mi código
+              <ArrowRight className="w-5 h-5" />
+            </a>
           </div>
 
           <div className="pt-2 border-t">
