@@ -363,32 +363,39 @@ export default function Players() {
       const newCategory = cleanData.deporte;
       const categoryChanged = oldCategory && newCategory && oldCategory !== newCategory;
 
-      updatePlayerMutation.mutate(
-        { id: editingPlayer.id, playerData: cleanData, originalPlayer: editingPlayer },
-        {
-          onSuccess: async () => {
-            // Si la categoría cambió, analizar si hay cuotas pendientes a recalcular
-            if (categoryChanged && isAdmin) {
-              try {
-                const plan = await analyzePaymentChanges({
-                  playerId: editingPlayer.id,
-                  oldCategory,
-                  newCategory,
-                  activeSeason,
-                  descuentoAplicado: cleanData.descuento_aplicado || 0,
-                });
-                if (plan.canRecalculate || plan.frozen?.length > 0) {
-                  setRecalcPlan(plan);
-                  setRecalcPlayerName(cleanData.nombre || editingPlayer.nombre);
-                  setShowRecalcDialog(true);
-                }
-              } catch (err) {
-                console.error("Error analizando cambio de categoría:", err);
-              }
-            }
-          },
+      // Si cambia la categoría: PRIMERO analizar pagos pendientes, luego guardar.
+      // Así el diálogo aparece sí o sí, sin depender del cierre del form ni de race conditions.
+      if (categoryChanged && isAdmin) {
+        try {
+          // Asegurar que tenemos la temporada activa (puede no estar cacheada todavía)
+          let season = activeSeason;
+          if (!season?.temporada) {
+            const seasons = await base44.entities.SeasonConfig.list();
+            season = seasons.find(c => c.activa === true);
+          }
+
+          const plan = await analyzePaymentChanges({
+            playerId: editingPlayer.id,
+            oldCategory,
+            newCategory,
+            activeSeason: season,
+            descuentoAplicado: cleanData.descuento_aplicado || 0,
+          });
+          // Mostrar diálogo siempre que haya algo que enseñar (recalculables o congeladas)
+          if (plan.canRecalculate || plan.frozen?.length > 0) {
+            setRecalcPlan(plan);
+            setRecalcPlayerName(cleanData.nombre || editingPlayer.nombre);
+            setShowRecalcDialog(true);
+          } else {
+            toast.info("Categoría cambiada. No había cuotas pendientes que actualizar.");
+          }
+        } catch (err) {
+          console.error("Error analizando cambio de categoría:", err);
+          toast.error("No se pudo analizar el cambio de cuotas. La categoría sí se ha guardado.");
         }
-      );
+      }
+
+      updatePlayerMutation.mutate({ id: editingPlayer.id, playerData: cleanData, originalPlayer: editingPlayer });
     } else {
       createPlayerMutation.mutate(cleanData, {
         onSuccess: async () => {
