@@ -12,10 +12,11 @@ import { Checkbox } from "@/components/ui/checkbox";
  *  - email: email a comprobar (opcional, por defecto el del usuario logueado)
  *  - dniJugador: DNI del jugador (opcional)
  *  - dniTutor: DNI del tutor (opcional)
+ *  - jugadorNombre: Nombre completo del jugador (opcional) — coincidencia exacta normalizada
  *  - onDebtDetected: callback({ total, deudas, accepted }) — se llama cuando cambia el estado
  *  - requireAcceptance: si true muestra checkbox obligatorio (default true)
  */
-export default function DebtAlertBanner({ email, dniJugador, dniTutor, onDebtDetected, requireAcceptance = true }) {
+export default function DebtAlertBanner({ email, dniJugador, dniTutor, jugadorNombre, onDebtDetected, requireAcceptance = true }) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState(null);
   const [accepted, setAccepted] = useState(false);
@@ -23,10 +24,10 @@ export default function DebtAlertBanner({ email, dniJugador, dniTutor, onDebtDet
   useEffect(() => {
     let cancelled = false;
     const check = async () => {
-      if (!email && !dniJugador && !dniTutor) return;
+      if (!email && !dniJugador && !dniTutor && !jugadorNombre) return;
       setLoading(true);
       try {
-        const res = await base44.functions.invoke("checkPendingDebts", { email, dni_jugador: dniJugador, dni_tutor: dniTutor });
+        const res = await base44.functions.invoke("checkPendingDebts", { email, dni_jugador: dniJugador, dni_tutor: dniTutor, jugador_nombre: jugadorNombre });
         if (cancelled) return;
         setData(res.data);
       } catch (e) {
@@ -37,7 +38,7 @@ export default function DebtAlertBanner({ email, dniJugador, dniTutor, onDebtDet
     };
     check();
     return () => { cancelled = true; };
-  }, [email, dniJugador, dniTutor]);
+  }, [email, dniJugador, dniTutor, jugadorNombre]);
 
   useEffect(() => {
     if (!data) return;
