@@ -14,7 +14,7 @@ import { Plus, Upload, AlertTriangle, Check, Ban, Trash2, FileSpreadsheet, Searc
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import DebtDocumentsManager from "@/components/debts/DebtDocumentsManager";
-import DebtImportFromFile from "@/components/debts/DebtImportFromFile";
+import DebtImportFromFile from "@/components/debts/DebtImportFromFile.jsx";
 
 const ESTADOS = [
   { value: "pendiente", label: "Pendiente", color: "bg-red-100 text-red-700" },
