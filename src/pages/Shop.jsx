@@ -23,7 +23,7 @@ export default function Shop() {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
       <div className="px-4 lg:px-8 py-8 space-y-6">
         <div className="text-center">
-          <h1 className="text-white text-3xl lg:text-4xl font-bold">Tienda</h1>
+          <h1 className="text-white text-3xl lg:text-4xl font-bold">Tienda y Equipaciones</h1>
           <p className="text-slate-300 mt-1">Elige dónde quieres comprar</p>
         </div>
 

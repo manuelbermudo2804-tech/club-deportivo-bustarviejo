@@ -40,7 +40,7 @@ export const ALL_ADMIN_BUTTONS = [
   { id: "encuestas", title: "📋 Encuestas", icon: FileText, url: createPageUrl("Surveys"), gradient: "from-purple-600 to-purple-700", priority: 24 },
 
   // --- TIENDA Y SERVICIOS ---
-  { id: "tienda", title: "🛍️ Tienda", icon: ShoppingBag, url: createPageUrl("Tienda"), gradient: "from-orange-600 to-orange-700", priority: 26 },
+  { id: "tienda", title: "🛍️ Tienda y Equipaciones", icon: ShoppingBag, url: createPageUrl("Tienda"), gradient: "from-orange-600 to-orange-700", priority: 26 },
   { id: "mercadillo", title: "🛍️ Mercadillo", icon: Gift, url: createPageUrl("Mercadillo"), gradient: "from-amber-600 to-amber-700", priority: 27 },
   { id: "socios", title: "🎫 Gestión Socios", icon: Heart, url: createPageUrl("ClubMembersManagement"), gradient: "from-pink-600 to-pink-700", priority: 28 },
   { id: "patrocinios", title: "💰 Patrocinios", icon: CreditCard, url: createPageUrl("Sponsorships"), gradient: "from-green-600 to-green-700", priority: 29 },
