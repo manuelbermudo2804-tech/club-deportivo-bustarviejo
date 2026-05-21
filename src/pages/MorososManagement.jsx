@@ -10,10 +10,11 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Upload, AlertTriangle, Check, Ban, Trash2, FileSpreadsheet, Search, ArrowLeft, Paperclip } from "lucide-react";
+import { Plus, Upload, AlertTriangle, Check, Ban, Trash2, FileSpreadsheet, Search, ArrowLeft, Paperclip, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import DebtDocumentsManager from "@/components/debts/DebtDocumentsManager";
+import DebtImportFromFile from "@/components/debts/DebtImportFromFile";
 
 const ESTADOS = [
   { value: "pendiente", label: "Pendiente", color: "bg-red-100 text-red-700" },
@@ -42,8 +43,16 @@ export default function MorososManagement() {
   const [filtroEstado, setFiltroEstado] = useState("pendiente");
   const [search, setSearch] = useState("");
   const [showImport, setShowImport] = useState(false);
+  const [showAIImport, setShowAIImport] = useState(false);
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef(null);
+
+  // Cargar jugadores para el emparejamiento manual en el importador IA
+  const { data: players = [] } = useQuery({
+    queryKey: ["players-for-debts"],
+    queryFn: () => base44.entities.Player.list("-created_date", 2000),
+    initialData: [],
+  });
 
   const { data: deudas = [], isLoading } = useQuery({
     queryKey: ["deudas"],
@@ -229,7 +238,10 @@ export default function MorososManagement() {
             Registra deudas de temporadas anteriores. Se detectarán automáticamente en nuevas inscripciones/renovaciones.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => setShowAIImport(true)} className="border-purple-300 text-purple-700 hover:bg-purple-50">
+            <Sparkles className="w-4 h-4 mr-2" /> Importar con IA
+          </Button>
           <Button variant="outline" onClick={() => setShowImport(true)}>
             <FileSpreadsheet className="w-4 h-4 mr-2" /> Importar CSV
           </Button>
@@ -406,6 +418,14 @@ export default function MorososManagement() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* AI Import Dialog */}
+      <DebtImportFromFile
+        open={showAIImport}
+        onClose={() => setShowAIImport(false)}
+        players={players}
+        onCreated={() => queryClient.invalidateQueries({ queryKey: ["deudas"] })}
+      />
 
       {/* Import Dialog */}
       <Dialog open={showImport} onOpenChange={setShowImport}>
