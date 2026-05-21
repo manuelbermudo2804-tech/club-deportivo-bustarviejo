@@ -10,9 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Plus, Upload, AlertTriangle, Check, Ban, Trash2, FileSpreadsheet, Search, ArrowLeft } from "lucide-react";
+import { Plus, Upload, AlertTriangle, Check, Ban, Trash2, FileSpreadsheet, Search, ArrowLeft, Paperclip } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import DebtDocumentsManager from "@/components/debts/DebtDocumentsManager";
 
 const ESTADOS = [
   { value: "pendiente", label: "Pendiente", color: "bg-red-100 text-red-700" },
@@ -30,6 +31,7 @@ const emptyForm = {
   temporada_origen: "",
   concepto: "",
   notas_admin: "",
+  documentos_adjuntos: [],
 };
 
 export default function MorososManagement() {
@@ -122,6 +124,7 @@ export default function MorososManagement() {
       temporada_origen: deuda.temporada_origen || "",
       concepto: deuda.concepto || "",
       notas_admin: deuda.notas_admin || "",
+      documentos_adjuntos: Array.isArray(deuda.documentos_adjuntos) ? deuda.documentos_adjuntos : [],
     });
     setShowForm(true);
   };
@@ -307,6 +310,11 @@ export default function MorososManagement() {
                         {d.dni_tutor && ` · DNI Tutor: ${d.dni_tutor}`}
                       </p>
                       {d.notas_admin && <p className="text-xs italic text-slate-500 mt-1">📝 {d.notas_admin}</p>}
+                      {Array.isArray(d.documentos_adjuntos) && d.documentos_adjuntos.length > 0 && (
+                        <p className="text-xs text-blue-600 mt-1 flex items-center gap-1">
+                          <Paperclip className="w-3 h-3" /> {d.documentos_adjuntos.length} archivo(s) adjunto(s)
+                        </p>
+                      )}
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-right">
@@ -382,6 +390,12 @@ export default function MorososManagement() {
             <div>
               <Label>Notas internas</Label>
               <Textarea value={form.notas_admin} onChange={(e) => setForm({ ...form, notas_admin: e.target.value })} rows={2} />
+            </div>
+            <div className="pt-2 border-t">
+              <DebtDocumentsManager
+                documentos={form.documentos_adjuntos}
+                onChange={(docs) => setForm({ ...form, documentos_adjuntos: docs })}
+              />
             </div>
             <div className="flex justify-end gap-2 pt-2">
               <Button type="button" variant="outline" onClick={() => { setShowForm(false); setEditing(null); }}>Cancelar</Button>

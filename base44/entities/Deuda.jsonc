@@ -57,6 +57,39 @@
       "type": "string",
       "description": "Notas internas del administrador"
     },
+    "documentos_adjuntos": {
+      "type": "array",
+      "description": "Archivos privados adjuntos (capturas, PDFs, justificantes, conversaciones, etc.). Solo admin sube y ve.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "description": "Nombre original del archivo"
+          },
+          "file_uri": {
+            "type": "string",
+            "description": "URI privada del archivo (no es URL p\u00fablica)"
+          },
+          "tipo": {
+            "type": "string",
+            "description": "MIME type"
+          },
+          "tamano": {
+            "type": "number",
+            "description": "Tama\u00f1o en bytes"
+          },
+          "subido_por": {
+            "type": "string",
+            "description": "Email del admin que lo subi\u00f3"
+          },
+          "fecha_subida": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
     "creada_por": {
       "type": "string",
       "description": "Email del admin que cre\u00f3 la deuda"
