@@ -2,8 +2,26 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, Star, AlertTriangle, Ruler, Package, Ban } from "lucide-react";
+import useEquipacionAccess from "@/hooks/useEquipacionAccess";
+import EquipacionLocked from "./EquipacionLocked";
 
 export default function EquipacionSection({ clothingUrl }) {
+  const { loading, allowed } = useEquipacionAccess();
+
+  if (loading) {
+    return (
+      <Card className="overflow-hidden border-2 border-orange-200 shadow-lg">
+        <CardContent className="p-8 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-6 w-6 border-2 border-orange-600 border-t-transparent" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!allowed) {
+    return <EquipacionLocked />;
+  }
+
   return (
     <Card className="overflow-hidden border-2 border-orange-200 shadow-lg">
       <CardContent className="p-0">
