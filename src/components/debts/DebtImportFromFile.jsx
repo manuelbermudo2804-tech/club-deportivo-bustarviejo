@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Loader2, Sparkles, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { Upload, Loader2, Sparkles, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 
@@ -21,7 +21,7 @@ import { base44 } from "@/api/base44Client";
  */
 export default function DebtImportFromFile({ open, onClose, players = [], onCreated }) {
   const [step, setStep] = useState("upload"); // upload | extracting | review | creating
-  const [rows, setRows] = useState([]); // filas editables
+  const [rows, setRows] = useState([]);
 
   const handleClose = () => {
     if (step === "extracting" || step === "creating") return;
@@ -37,10 +37,8 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
 
     setStep("extracting");
     try {
-      // 1) Subir archivo
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
 
-      // 2) Llamar a IA
       const res = await base44.functions.invoke("extractDebtsFromFile", { file_url });
       const deudas = res?.data?.deudas || [];
 
@@ -52,7 +50,6 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
         return;
       }
 
-      // 3) Preparar filas editables
       const initialRows = deudas.map((d, idx) => ({
         id: `row-${idx}`,
         incluir: true,
@@ -84,7 +81,6 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
     setRows(prev => prev.map(r => {
       if (r.id !== id) return r;
       const updated = { ...r, [field]: value };
-      // Si cambian el jugador manualmente, autocompletar email/DNI
       if (field === "jugador_id" && value) {
         const p = players.find(x => x.id === value);
         if (p) {
@@ -106,45 +102,48 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
       toast.error("Selecciona al menos una deuda");
       return;
     }
-    const sinEmail = seleccionadas.find(r => !r.email_familia?.trim());
-    if (sinEmail) {
-      toast.error(`Falta email para "${sinEmail.nombre_extraido}". Asigna un jugador o introdúcelo manualmente.`);
-      return;
-    }
     const sinImporte = seleccionadas.find(r => !r.importe || Number(r.importe) <= 0);
     if (sinImporte) {
       toast.error(`Importe inválido para "${sinImporte.nombre_extraido}"`);
       return;
     }
-    const sinTemp = seleccionadas.find(r => !r.temporada_origen?.trim());
-    if (sinTemp) {
-      toast.error(`Falta temporada para "${sinTemp.nombre_extraido}"`);
-      return;
-    }
+
+    // Temporada por defecto si no hay
+    const now = new Date();
+    const y = now.getFullYear();
+    const temporadaDefault = now.getMonth() >= 6 ? `${y}-${y + 1}` : `${y - 1}-${y}`;
 
     setStep("creating");
     try {
       const me = await base44.auth.me();
-      const payload = seleccionadas.map(r => ({
-        email_familia: r.email_familia.toLowerCase().trim(),
-        dni_jugador: (r.dni_jugador || "").toUpperCase().trim(),
-        dni_tutor: (r.dni_tutor || "").toUpperCase().trim(),
-        jugador_nombre: r.jugador_nombre || "",
-        tutor_nombre: r.tutor_nombre || "",
-        importe: Number(r.importe),
-        temporada_origen: r.temporada_origen.trim(),
-        concepto: r.concepto || "Deuda importada por IA",
-        estado: "pendiente",
-        creada_por: me.email,
-        notas_admin: `Importada automáticamente con IA${r.match_reason ? ` (match: ${r.match_reason})` : ""}`,
-      }));
+      const payload = seleccionadas.map(r => {
+        const slug = (r.jugador_nombre || r.nombre_extraido || "deudor")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-");
+        const emailFinal = (r.email_familia || "").toLowerCase().trim() || `sin-email-${slug}@pendiente.local`;
+        return {
+          email_familia: emailFinal,
+          dni_jugador: (r.dni_jugador || "").toUpperCase().trim(),
+          dni_tutor: (r.dni_tutor || "").toUpperCase().trim(),
+          jugador_nombre: r.jugador_nombre || "",
+          tutor_nombre: r.tutor_nombre || "",
+          importe: Number(r.importe),
+          temporada_origen: (r.temporada_origen || "").trim() || temporadaDefault,
+          concepto: r.concepto || "Deuda importada por IA",
+          estado: "pendiente",
+          creada_por: me.email,
+          notas_admin: `Importada automáticamente con IA${r.match_reason ? ` (match: ${r.match_reason})` : ""}`,
+        };
+      });
 
+      console.log("[DebtImport] Creando deudas:", payload);
       await base44.entities.Deuda.bulkCreate(payload);
       toast.success(`✅ ${payload.length} deuda(s) creada(s)`);
       onCreated?.();
       handleClose();
     } catch (err) {
-      toast.error("Error al crear las deudas: " + err.message);
+      console.error("[DebtImport] Error bulkCreate:", err);
+      toast.error("Error al crear las deudas: " + (err?.message || JSON.stringify(err)), { duration: 10000 });
       setStep("review");
     }
   };
@@ -250,7 +249,7 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-2 ml-7">
                     <div>
-                      <Label className="text-xs">Jugador del club *</Label>
+                      <Label className="text-xs">Jugador del club</Label>
                       <Select value={r.jugador_id} onValueChange={(v) => updateRow(r.id, "jugador_id", v)}>
                         <SelectTrigger className="h-9 text-sm">
                           <SelectValue placeholder="Selecciona un jugador..." />
@@ -265,12 +264,12 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
                       </Select>
                     </div>
                     <div>
-                      <Label className="text-xs">Email familia *</Label>
+                      <Label className="text-xs">Email familia</Label>
                       <Input
                         value={r.email_familia}
                         onChange={(e) => updateRow(r.id, "email_familia", e.target.value)}
                         className="h-9 text-sm"
-                        placeholder="padre@ejemplo.com"
+                        placeholder="padre@ejemplo.com (opcional)"
                       />
                     </div>
                     <div>
@@ -284,7 +283,7 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
                       />
                     </div>
                     <div>
-                      <Label className="text-xs">Temporada *</Label>
+                      <Label className="text-xs">Temporada</Label>
                       <Input
                         value={r.temporada_origen}
                         onChange={(e) => updateRow(r.id, "temporada_origen", e.target.value)}
@@ -293,7 +292,7 @@ export default function DebtImportFromFile({ open, onClose, players = [], onCrea
                       />
                     </div>
                     <div className="md:col-span-2">
-                      <Label className="text-xs">Concepto *</Label>
+                      <Label className="text-xs">Concepto</Label>
                       <Input
                         value={r.concepto}
                         onChange={(e) => updateRow(r.id, "concepto", e.target.value)}
