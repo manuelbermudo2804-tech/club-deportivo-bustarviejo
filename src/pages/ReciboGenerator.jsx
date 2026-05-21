@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,34 @@ export default function ReciboGenerator() {
   const [selloUrl, setSelloUrl] = useState(() => localStorage.getItem(LS_SELLO) || "");
   const [firmaUrl, setFirmaUrl] = useState(() => localStorage.getItem(LS_FIRMA) || "");
   const [uploading, setUploading] = useState(null);
+  const [brandingId, setBrandingId] = useState(null);
+
+  // Cargar sello/firma/logo compartidos desde la entidad BrandingAssets
+  useEffect(() => {
+    (async () => {
+      try {
+        const items = await base44.entities.BrandingAssets.list();
+        if (items && items.length > 0) {
+          const b = items[0];
+          setBrandingId(b.id);
+          if (b.sello_url) { setSelloUrl(b.sello_url); localStorage.setItem(LS_SELLO, b.sello_url); }
+          if (b.firma_url) { setFirmaUrl(b.firma_url); localStorage.setItem(LS_FIRMA, b.firma_url); }
+          if (b.logo_url) { setLogoUrl(b.logo_url); localStorage.setItem(LS_LOGO, b.logo_url); }
+        }
+      } catch (e) { console.warn("No se pudo cargar branding compartido:", e); }
+    })();
+  }, []);
+
+  const saveBranding = async (campo, valor) => {
+    try {
+      if (brandingId) {
+        await base44.entities.BrandingAssets.update(brandingId, { [campo]: valor });
+      } else {
+        const created = await base44.entities.BrandingAssets.create({ [campo]: valor });
+        setBrandingId(created.id);
+      }
+    } catch (e) { console.warn("No se pudo guardar branding compartido:", e); }
+  };
 
   const [form, setForm] = useState({
     numero: "",
@@ -46,15 +75,18 @@ export default function ReciboGenerator() {
       if (type === "logo") {
         setLogoUrl(file_url);
         localStorage.setItem(LS_LOGO, file_url);
-        toast.success("Logo actualizado");
+        await saveBranding("logo_url", file_url);
+        toast.success("Logo actualizado para todos los dispositivos");
       } else if (type === "firma") {
         setFirmaUrl(file_url);
         localStorage.setItem(LS_FIRMA, file_url);
-        toast.success("Firma guardada");
+        await saveBranding("firma_url", file_url);
+        toast.success("Firma guardada para todos los dispositivos");
       } else {
         setSelloUrl(file_url);
         localStorage.setItem(LS_SELLO, file_url);
-        toast.success("Sello guardado");
+        await saveBranding("sello_url", file_url);
+        toast.success("Sello guardado para todos los dispositivos");
       }
     } catch (e) {
       toast.error("Error al subir la imagen");
@@ -128,11 +160,13 @@ export default function ReciboGenerator() {
   const resetSello = () => {
     localStorage.removeItem(LS_SELLO);
     setSelloUrl("");
+    saveBranding("sello_url", "");
   };
 
   const resetFirma = () => {
     localStorage.removeItem(LS_FIRMA);
     setFirmaUrl("");
+    saveBranding("firma_url", "");
   };
 
   return (

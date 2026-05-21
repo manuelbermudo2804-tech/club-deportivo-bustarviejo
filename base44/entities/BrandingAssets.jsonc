@@ -1,0 +1,37 @@
+{
+  "name": "BrandingAssets",
+  "type": "object",
+  "properties": {
+    "sello_url": {
+      "type": "string",
+      "description": "URL del sello del club (compartido entre todos los dispositivos)"
+    },
+    "firma_url": {
+      "type": "string",
+      "description": "URL de la firma escaneada del presidente"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL del logo del club (opcional, sobreescribe el por defecto)"
+    }
+  },
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "required": []
+}
