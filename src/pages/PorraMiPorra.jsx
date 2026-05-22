@@ -188,14 +188,14 @@ export default function PorraMiPorra() {
           </Card>
         )}
 
-        {/* Estado mini-resumen — SOLO INFORMATIVO (no clickable) */}
+        {/* Estado mini-resumen — ahora CLICKABLE: cada tarjeta salta a su pestaña */}
         <div>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 text-center">Estado de tu porra</p>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 text-center">Estado de tu porra — pulsa para editar</p>
           <div className="grid grid-cols-4 gap-2">
-            <StatusCard ok={participante.completado_grupos} label="Grupos" icon="⚽" />
-            <StatusCard ok={participante.completado_terceros} label="Terceros" icon="🥉" />
-            <StatusCard ok={participante.completado_bracket} label="Bracket" icon="🏆" />
-            <StatusCard ok={participante.completado_especiales} label="Especiales" icon="⭐" />
+            <StatusCard ok={participante.completado_grupos} label="Grupos" icon="⚽" active={tabActiva === 'grupos'} onClick={() => { flushGuardado && flushGuardado(); setTabActiva('grupos'); }} />
+            <StatusCard ok={participante.completado_terceros} label="Terceros" icon="🥉" active={tabActiva === 'terceros'} onClick={() => { flushGuardado && flushGuardado(); setTabActiva('terceros'); }} />
+            <StatusCard ok={participante.completado_bracket} label="Bracket" icon="🏆" active={tabActiva === 'bracket'} onClick={() => { flushGuardado && flushGuardado(); setTabActiva('bracket'); }} />
+            <StatusCard ok={participante.completado_especiales} label="Especiales" icon="⭐" active={tabActiva === 'especiales'} onClick={() => { flushGuardado && flushGuardado(); setTabActiva('especiales'); }} />
           </div>
         </div>
 
@@ -306,14 +306,18 @@ export default function PorraMiPorra() {
   );
 }
 
-function StatusCard({ ok, label, icon }) {
+function StatusCard({ ok, label, icon, active, onClick }) {
+  const baseColor = ok ? 'bg-green-50 border-green-400' : 'bg-white border-slate-200';
+  const activeRing = active ? 'ring-2 ring-orange-500 ring-offset-1' : '';
   return (
-    <div className={`rounded-lg p-2 md:p-3 text-center border-2 transition-colors ${
-      ok ? 'bg-green-50 border-green-400' : 'bg-white border-slate-200'
-    }`}>
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-lg p-2 md:p-3 text-center border-2 transition-all hover:shadow-md hover:scale-[1.03] active:scale-95 cursor-pointer ${baseColor} ${activeRing}`}
+    >
       <div className="text-xl md:text-2xl">{icon}</div>
       <p className="text-[10px] md:text-xs font-bold text-slate-700 mt-0.5">{label}</p>
       <p className="text-[9px] md:text-[10px] text-slate-500">{ok ? '✅ Hecho' : 'Pendiente'}</p>
-    </div>
+    </button>
   );
 }
