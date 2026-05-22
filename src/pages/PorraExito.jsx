@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, Trophy, Mail, ArrowRight, Loader2, Copy, Sparkles } from "lucide-react";
+import { CheckCircle2, Trophy, Mail, ArrowRight, Loader2, Copy, Sparkles, MessageCircle, Star } from "lucide-react";
 import { toast } from "sonner";
 import usePublicPageTracker from "@/components/public/usePublicPageTracker";
 
@@ -64,10 +64,23 @@ export default function PorraExito() {
     }
   };
 
-  const copiarEnlace = () => {
-    const url = `${window.location.origin}/PorraMiPorra?token=${participante?.token_acceso}`;
-    navigator.clipboard.writeText(url);
-    toast.success('Enlace copiado al portapapeles');
+  const getEnlaceMagico = () => `${window.location.origin}/PorraMiPorra?token=${participante?.token_acceso}`;
+
+  const copiarEnlace = async () => {
+    const url = getEnlaceMagico();
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success('✅ Enlace copiado — pégalo donde quieras guardarlo');
+    } catch {
+      toast.error('No se pudo copiar. Pulsa y mantén sobre el enlace para copiarlo manualmente.');
+    }
+  };
+
+  const compartirWhatsApp = () => {
+    const url = getEnlaceMagico();
+    const nombre = participante?.nombre?.split(' ')[0] || '';
+    const texto = `🏆 *Mi Porra Mundial 2026 — CD Bustarviejo*%0A%0AHola ${nombre}, este es tu enlace personal para acceder a tu porra cuando quieras:%0A%0A${encodeURIComponent(url)}%0A%0A⚠️ Guárdalo bien, es personal e intransferible.`;
+    window.open(`https://wa.me/?text=${texto}`, '_blank');
   };
 
   const irAPredecir = () => {
@@ -168,43 +181,71 @@ export default function PorraExito() {
 
             {isPagado && (
               <>
-                <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-xl p-4">
-                  <div className="flex items-start gap-3">
-                    <Mail className="w-6 h-6 text-blue-600 flex-shrink-0 mt-0.5" />
-                    <div className="text-sm">
-                      <p className="font-bold text-slate-900 mb-1">📬 Te hemos enviado un email</p>
-                      <p className="text-slate-700">
-                        Revisa tu correo <strong>{participante.email}</strong>. Te hemos mandado un <strong>enlace mágico</strong> para acceder a tu porra desde cualquier dispositivo cuando quieras.
-                      </p>
-                      <p className="text-xs text-slate-500 mt-2">
-                        ¿No lo encuentras? Mira en spam o promociones. <strong>Guarda este email</strong> como acceso permanente.
+                {/* 🎯 ACCESO PRINCIPAL — Lo más importante: que entre ya a su porra */}
+                <div className="bg-gradient-to-br from-orange-50 via-red-50 to-yellow-50 border-4 border-orange-400 rounded-2xl p-5 shadow-lg">
+                  <div className="text-center mb-4">
+                    <div className="inline-flex items-center gap-1 bg-orange-600 text-white text-xs font-black px-3 py-1 rounded-full mb-2">
+                      <Star className="w-3 h-3 fill-current" /> ACCESO A TU PORRA
+                    </div>
+                    <p className="text-sm text-slate-700 font-medium">
+                      Empieza ya o vuelve cuando quieras desde este botón:
+                    </p>
+                  </div>
+                  <Button
+                    onClick={irAPredecir}
+                    className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-black text-xl py-8 rounded-xl shadow-xl border-2 border-white"
+                  >
+                    <Trophy className="w-6 h-6 mr-2" />
+                    ENTRAR A MI PORRA
+                    <ArrowRight className="w-6 h-6 ml-2" />
+                  </Button>
+                </div>
+
+                {/* 💾 GUARDAR EL ENLACE — Para que no dependa del email */}
+                <div className="bg-white border-2 border-slate-200 rounded-xl p-4">
+                  <p className="text-sm font-bold text-slate-900 mb-1 flex items-center gap-2">
+                    💾 Guarda tu enlace personal
+                  </p>
+                  <p className="text-xs text-slate-600 mb-3">
+                    Es tu acceso permanente. Sin él tendrás que pedir un reenvío por email.
+                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <Button
+                      onClick={compartirWhatsApp}
+                      className="bg-green-600 hover:bg-green-700 text-white font-bold"
+                    >
+                      <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
+                    </Button>
+                    <Button
+                      onClick={copiarEnlace}
+                      variant="outline"
+                      className="border-slate-300 font-bold"
+                    >
+                      <Copy className="w-4 h-4 mr-2" /> Copiar enlace
+                    </Button>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-2 text-center">
+                    💡 Recomendado: envíatelo por WhatsApp a tu propio número
+                  </p>
+                </div>
+
+                {/* 📧 RESPALDO POR EMAIL — Ahora secundario, no la única vía */}
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                  <div className="flex items-start gap-2">
+                    <Mail className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div className="text-xs">
+                      <p className="font-bold text-slate-900">📬 También te lo hemos enviado por email</p>
+                      <p className="text-slate-600 mt-0.5">
+                        A <strong>{participante.email}</strong> como respaldo. Si no lo encuentras, revisa <strong>spam o promociones</strong>.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div>
-                  <Button
-                    onClick={irAPredecir}
-                    className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white font-black text-lg py-7 rounded-xl shadow-xl"
-                  >
-                    <Trophy className="w-5 h-5 mr-2" />
-                    EMPEZAR A PREDECIR
-                    <ArrowRight className="w-5 h-5 ml-2" />
-                  </Button>
-                  <Button
-                    onClick={copiarEnlace}
-                    variant="outline"
-                    className="w-full mt-2"
-                  >
-                    <Copy className="w-4 h-4 mr-2" /> Copiar mi enlace mágico
-                  </Button>
-                </div>
-
                 <div className="text-center pt-2">
                   <Sparkles className="w-5 h-5 mx-auto text-yellow-500 mb-1" />
                   <p className="text-xs text-slate-500">
-                    💡 Tip: añade tu enlace mágico a favoritos del navegador para acceder rápido
+                    💡 Añade también el enlace a favoritos del navegador para acceder rápido
                   </p>
                 </div>
               </>
