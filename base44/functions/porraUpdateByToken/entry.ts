@@ -97,6 +97,27 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Porra bloqueada' }, { status: 403 });
     }
 
+    // 🔒 BLINDAJE SERVIDOR: aunque el cliente intente saltarse el bloqueo,
+    // si pasó la fecha límite NO se acepta ningún cambio.
+    // Esto cierra el hueco entre que pasa la fecha y el cron porraBloquear marca bloqueada=true.
+    const configsCheck = await base44.asServiceRole.entities.PorraConfig.list();
+    const cfg = configsCheck[0];
+    if (cfg?.fecha_limite_predicciones) {
+      const limite = new Date(cfg.fecha_limite_predicciones).getTime();
+      if (Date.now() > limite) {
+        // Auto-bloquear este participante para que el cliente lo refleje inmediatamente
+        if (!participante.bloqueada) {
+          try {
+            await base44.asServiceRole.entities.PorraParticipante.update(participante.id, {
+              bloqueada: true,
+              fecha_bloqueo: new Date().toISOString(),
+            });
+          } catch {}
+        }
+        return Response.json({ error: 'Fecha límite superada — porra bloqueada' }, { status: 403 });
+      }
+    }
+
     // Filtrar solo campos permitidos (NUNCA aceptamos 'bloqueada' del cliente —
     // si lo aceptase, un usuario malicioso podría enviar bloqueada=false y desbloquearse).
     const safeUpdates = {};
