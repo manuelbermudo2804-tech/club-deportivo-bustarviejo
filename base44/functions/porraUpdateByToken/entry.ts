@@ -97,7 +97,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Porra bloqueada' }, { status: 403 });
     }
 
-    // Filtrar solo campos permitidos
+    // Filtrar solo campos permitidos (NUNCA aceptamos 'bloqueada' del cliente —
+    // si lo aceptase, un usuario malicioso podría enviar bloqueada=false y desbloquearse).
     const safeUpdates = {};
     for (const [k, v] of Object.entries(updates)) {
       if (ALLOWED_FIELDS.has(k)) safeUpdates[k] = v;
@@ -107,21 +108,17 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Sin cambios válidos' }, { status: 400 });
     }
 
-    await base44.asServiceRole.entities.PorraParticipante.update(participante.id, safeUpdates);
-
-    // Si la porra acaba de llegar al 100% por primera vez → BLOQUEARLA automáticamente.
-    // Una vez completa no se puede modificar (queda "cerrada" como hacen las casas de apuestas).
+    // 🔒 Decisión del SERVIDOR (no del cliente): si llega al 100% por primera vez,
+    // bloquear atómicamente en el mismo update. Esto cierra la race condition: una
+    // segunda petición simultánea verá bloqueada=true al recargar el participante.
     const llegaA100 = safeUpdates.porcentaje_completado === 100 && (participante.porcentaje_completado || 0) < 100;
+    const finalUpdates = { ...safeUpdates };
     if (llegaA100) {
-      try {
-        await base44.asServiceRole.entities.PorraParticipante.update(participante.id, {
-          bloqueada: true,
-          fecha_bloqueo: new Date().toISOString(),
-        });
-      } catch (lockErr) {
-        console.error('[porraUpdateByToken] Error bloqueando porra al 100%:', lockErr?.message || lockErr);
-      }
+      finalUpdates.bloqueada = true;
+      finalUpdates.fecha_bloqueo = new Date().toISOString();
     }
+
+    await base44.asServiceRole.entities.PorraParticipante.update(participante.id, finalUpdates);
 
     // Y además, enviar email de celebración al llegar al 100%
     // ⚠️ Saltar envío de email si la porra está en MODO TEST (ahorra créditos durante pruebas)
