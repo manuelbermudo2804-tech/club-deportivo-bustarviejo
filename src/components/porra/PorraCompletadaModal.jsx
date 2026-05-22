@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Trophy, Home, Users, Share2, CheckCircle2, Sparkles } from "lucide-react";
+import { Trophy, Home, Users, Share2, CheckCircle2, Sparkles, MessageCircle, Copy } from "lucide-react";
 import { toast } from "sonner";
 
 // Pantalla de éxito que aparece cuando el participante llega al 100% por primera vez.
@@ -51,6 +51,24 @@ export default function PorraCompletadaModal({ open, onOpenChange, participante,
     setTimeout(() => { window.location.href = '/Porra'; }, 150);
   };
 
+  const getEnlaceMagico = () => `${window.location.origin}/PorraMiPorra?token=${token}`;
+
+  const handleGuardarWhatsApp = () => {
+    const url = getEnlaceMagico();
+    const nombre = participante?.nombre?.split(' ')[0] || '';
+    const texto = `🏆 *Mi Porra Mundial 2026 — CD Bustarviejo*%0A%0AHola ${nombre}, este es tu enlace personal para volver a tu porra cuando quieras:%0A%0A${encodeURIComponent(url)}%0A%0A⚠️ Guárdalo bien, es personal e intransferible.`;
+    window.open(`https://wa.me/?text=${texto}`, '_blank');
+  };
+
+  const handleCopiarEnlace = async () => {
+    try {
+      await navigator.clipboard.writeText(getEnlaceMagico());
+      toast.success('✅ Enlace copiado — pégalo donde quieras guardarlo');
+    } catch {
+      toast.error('No se pudo copiar');
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md p-0 overflow-hidden border-0 bg-gradient-to-br from-green-500 via-emerald-600 to-green-700 text-white">
@@ -75,12 +93,32 @@ export default function PorraCompletadaModal({ open, onOpenChange, participante,
             </div>
           </div>
 
-          <div className="flex items-start gap-3 bg-blue-50 border-2 border-blue-200 rounded-xl p-3">
-            <Sparkles className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-xs text-blue-900">
-              <p className="font-bold mb-1">💡 Guarda este enlace</p>
-              <p>Hemos enviado el enlace mágico a tu email. Te recomendamos <strong>guardarlo en favoritos</strong> o <strong>añadirlo a la pantalla de inicio</strong> de tu móvil para volver fácilmente.</p>
+          {/* 💾 GUARDA TU ENLACE — Aquí sí tiene sentido: ya ha terminado y se va a ir */}
+          <div className="bg-gradient-to-br from-orange-50 via-yellow-50 to-amber-50 border-2 border-orange-300 rounded-xl p-4">
+            <p className="text-sm font-black text-slate-900 mb-1 flex items-center gap-2">
+              🔑 Guarda tu enlace para volver
+            </p>
+            <p className="text-xs text-slate-700 mb-3">
+              Es tu acceso personal y permanente. También te lo hemos enviado por <strong>email</strong>, pero guárdalo aquí para no depender de él:
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button
+                onClick={handleGuardarWhatsApp}
+                className="bg-green-600 hover:bg-green-700 text-white font-bold"
+              >
+                <MessageCircle className="w-4 h-4 mr-2" /> WhatsApp
+              </Button>
+              <Button
+                onClick={handleCopiarEnlace}
+                variant="outline"
+                className="border-slate-300 font-bold"
+              >
+                <Copy className="w-4 h-4 mr-2" /> Copiar
+              </Button>
             </div>
+            <p className="text-[11px] text-slate-500 mt-2 text-center">
+              💡 Recomendado: envíatelo por WhatsApp a tu propio número
+            </p>
           </div>
 
           {/* Botones de acción */}
