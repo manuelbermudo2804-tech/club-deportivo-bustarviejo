@@ -112,7 +112,6 @@ Deno.serve(async (req) => {
       return {
         posicion: posActual,
         alias_equipo: p.alias_equipo,
-        nombre: p.nombre,
         puntos_total: p.puntos_total || 0,
         puntos_grupos: p.puntos_grupos || 0,
         puntos_eliminatorias: p.puntos_eliminatorias || 0,

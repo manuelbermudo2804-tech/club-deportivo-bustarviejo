@@ -57,7 +57,6 @@ export default function RankingTable({ ranking, miAlias }) {
                   <div className="flex justify-center mb-1">{iconos[idx]}</div>
                   <p className="text-xs font-bold opacity-90">{realPos}º</p>
                   <p className="font-black text-sm truncate mt-1">{p.alias_equipo}</p>
-                  <p className="text-xs opacity-80 truncate">{p.nombre}</p>
                   <p className="text-lg font-black mt-1">{p.puntos_total} pts</p>
                   {!!p.movimiento && (
                     <div className="mt-1 inline-block bg-black/30 rounded px-1.5 py-0.5">
@@ -99,7 +98,6 @@ export default function RankingTable({ ranking, miAlias }) {
                   <p className="font-bold text-sm text-slate-900 truncate">
                     {p.alias_equipo} {esMio && <span className="text-blue-600 text-xs">(tú)</span>}
                   </p>
-                  <p className="text-xs text-slate-500 truncate">{p.nombre}</p>
                   {motivoTxt && (
                     <p className="text-[10px] mt-0.5 inline-block bg-orange-100 text-orange-700 rounded px-1.5 py-0.5 font-bold" title="Desempate frente al puesto anterior">
                       {motivoTxt}

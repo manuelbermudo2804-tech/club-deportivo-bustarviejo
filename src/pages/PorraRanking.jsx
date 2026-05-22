@@ -102,8 +102,7 @@ export default function PorraRanking() {
     if (!busqueda) return lista;
     const q = busqueda.toLowerCase();
     return lista.filter(p =>
-      p.alias_equipo.toLowerCase().includes(q) ||
-      p.nombre.toLowerCase().includes(q)
+      p.alias_equipo.toLowerCase().includes(q)
     );
   };
 
@@ -277,7 +276,7 @@ function BuscadorInline({ busqueda, setBusqueda }) {
       <Input
         value={busqueda}
         onChange={e => setBusqueda(e.target.value)}
-        placeholder="Buscar por alias o nombre..."
+        placeholder="Buscar por alias..."
         className="pl-9 bg-slate-50 border-slate-200"
       />
     </div>
