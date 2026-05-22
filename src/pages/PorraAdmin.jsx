@@ -59,7 +59,7 @@ export default function PorraAdmin() {
   };
 
   const copiarUrlPublica = () => {
-    const url = `${window.location.origin}/Porra`;
+    const url = 'https://app.cdbustarviejo.com/porra';
     navigator.clipboard.writeText(url);
     toast.success('URL copiada al portapapeles');
   };
