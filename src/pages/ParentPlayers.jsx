@@ -855,8 +855,8 @@ Email: info@cdbustarviejo.com
 
       {/* Flujo de pago para nueva inscripción */}
       {showPaymentFlow && pendingPlayerData && (
-        <div className="fixed inset-0 z-[100] bg-black/60 flex items-center justify-center p-4 overflow-y-auto">
-          <div className="max-w-2xl w-full my-8">
+        <div className="fixed inset-0 z-[100] bg-black/60 flex items-start justify-center overflow-y-auto">
+          <div className="max-w-2xl w-full my-4 px-4 pt-[env(safe-area-inset-top)]">
             <InscriptionPaymentFlow
               playerData={pendingPlayerData}
               seasonConfig={seasonConfig}

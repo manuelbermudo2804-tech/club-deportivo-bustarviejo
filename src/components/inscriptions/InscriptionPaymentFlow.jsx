@@ -210,21 +210,24 @@ export default function InscriptionPaymentFlow({
 
   return (
     <Card className="border-2 border-blue-500 shadow-xl">
-      <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
-        <CardTitle className="flex items-center gap-2">
+      <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
+        <CardTitle className="flex items-center gap-2 text-lg">
           <CreditCard className="w-6 h-6" />
-          Seleccionar Modalidad de Pago
+          Último paso: elige cómo fraccionar
         </CardTitle>
+        <p className="text-blue-100 text-xs mt-1">No tienes que pagar ahora — solo elegir la modalidad</p>
       </CardHeader>
       <CardContent className="pt-6 space-y-6">
         
         <div className="bg-green-50 border-2 border-green-300 rounded-xl p-4">
-          <p className="text-sm font-bold text-green-900 mb-2">✅ Jugador registrado correctamente</p>
+          <p className="text-sm font-bold text-green-900 mb-2">✅ Datos del jugador guardados correctamente</p>
           <div className="space-y-1 text-sm text-green-800">
             <p><strong>Nombre:</strong> {playerData.nombre}</p>
             <p><strong>Categoría:</strong> {playerData.deporte}</p>
             <p><strong>Temporada:</strong> {seasonConfig?.temporada || `${new Date().getFullYear()}/${new Date().getFullYear() + 1}`}</p>
           </div>
+          <p className="text-xs text-green-700 mt-2 font-medium">Solo falta elegir cómo quieres fraccionar la cuota. El pago lo harás más adelante por transferencia desde la sección "Pagos".</p>
+        </div>
         </div>
 
         {descuentoHermano > 0 && (
@@ -245,7 +248,7 @@ export default function InscriptionPaymentFlow({
         )}
 
         <div className="space-y-3">
-          <label className="text-sm font-bold text-slate-700">💳 ¿Cómo prefieres pagar? *</label>
+          <label className="text-sm font-bold text-slate-700">📋 ¿Cómo quieres fraccionar la cuota?</label>
           <Select value={tipoPago} onValueChange={setTipoPago}>
             <SelectTrigger className="h-14 text-base border-2 border-slate-300 hover:border-blue-500">
               <SelectValue />
@@ -468,13 +471,13 @@ export default function InscriptionPaymentFlow({
           )}
         </div>
 
-        <Alert className="bg-blue-50 border-blue-300">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            <p className="font-bold text-sm mb-1">📌 ¿Qué pasa ahora?</p>
+        <Alert className="bg-amber-50 border-2 border-amber-400">
+          <Info className="h-4 w-4 text-amber-600" />
+          <AlertDescription className="text-amber-900">
+            <p className="font-bold text-sm mb-1">⚠️ NO tienes que pagar ahora</p>
             <p className="text-xs leading-relaxed">
-              Las cuotas se crearán con estado <strong>"Pendiente"</strong>. 
-              Después podrás ir a la sección <strong>"Pagos"</strong> para registrar cada transferencia cuando la realices.
+              Al pulsar el botón, se <strong>generarán las cuotas</strong> con estado "Pendiente". 
+              El pago lo realizarás <strong>cuando quieras</strong> por transferencia bancaria desde la sección <strong>"Mis Pagos"</strong> dentro de la app.
             </p>
           </AlertDescription>
         </Alert>
@@ -492,7 +495,7 @@ export default function InscriptionPaymentFlow({
           ) : (
             <>
               <CheckCircle2 className="w-5 h-5 mr-2" />
-              Continuar y Generar Cuotas
+              Finalizar inscripción
             </>
           )}
         </Button>
