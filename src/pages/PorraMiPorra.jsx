@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
 import { Trophy, Loader2, Lock, AlertCircle, CheckCircle2, Save, Clock, Home, Pencil } from "lucide-react";
+import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import usePorraEditor from "@/components/porra/editor/usePorraEditor";
 import EditorGrupos from "@/components/porra/editor/EditorGrupos";
@@ -126,6 +127,28 @@ export default function PorraMiPorra() {
   const completado = participante.porcentaje_completado || 0;
   const fechaLimite = config?.fecha_limite_predicciones ? new Date(config.fecha_limite_predicciones) : null;
 
+  // Bloqueo secuencial: Grupos → Terceros → Bracket → Especiales.
+  // Desglose y Ligas siempre libres (son consulta/social).
+  const ordenPrereq = {
+    grupos: null,
+    terceros: { campo: 'completado_grupos', nombre: 'Grupos' },
+    bracket: { campo: 'completado_terceros', nombre: 'Terceros' },
+    especiales: { campo: 'completado_bracket', nombre: 'Bracket' },
+  };
+  const intentarCambiarTab = (nuevaTab) => {
+    const prereq = ordenPrereq[nuevaTab];
+    if (prereq && !participante[prereq.campo]) {
+      toast.error(`Antes completa "${prereq.nombre}" para desbloquear esta pestaña 🔒`);
+      return;
+    }
+    flushGuardado && flushGuardado();
+    setTabActiva(nuevaTab);
+  };
+  const estaBloqueada = (tab) => {
+    const prereq = ordenPrereq[tab];
+    return prereq ? !participante[prereq.campo] : false;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-orange-50">
       {/* Header sticky */}
@@ -188,14 +211,14 @@ export default function PorraMiPorra() {
           </Card>
         )}
 
-        {/* Estado mini-resumen — ahora CLICKABLE: cada tarjeta salta a su pestaña */}
+        {/* Estado mini-resumen — CLICKABLE con bloqueo secuencial */}
         <div>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 text-center">Estado de tu porra — pulsa para editar</p>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 text-center">Estado de tu porra — sigue el orden 👇</p>
           <div className="grid grid-cols-4 gap-2">
-            <StatusCard ok={participante.completado_grupos} label="Grupos" icon="⚽" active={tabActiva === 'grupos'} onClick={() => { flushGuardado && flushGuardado(); setTabActiva('grupos'); }} />
-            <StatusCard ok={participante.completado_terceros} label="Terceros" icon="🥉" active={tabActiva === 'terceros'} onClick={() => { flushGuardado && flushGuardado(); setTabActiva('terceros'); }} />
-            <StatusCard ok={participante.completado_bracket} label="Bracket" icon="🏆" active={tabActiva === 'bracket'} onClick={() => { flushGuardado && flushGuardado(); setTabActiva('bracket'); }} />
-            <StatusCard ok={participante.completado_especiales} label="Especiales" icon="⭐" active={tabActiva === 'especiales'} onClick={() => { flushGuardado && flushGuardado(); setTabActiva('especiales'); }} />
+            <StatusCard ok={participante.completado_grupos} label="Grupos" icon="⚽" active={tabActiva === 'grupos'} locked={estaBloqueada('grupos')} onClick={() => intentarCambiarTab('grupos')} />
+            <StatusCard ok={participante.completado_terceros} label="Terceros" icon="🥉" active={tabActiva === 'terceros'} locked={estaBloqueada('terceros')} onClick={() => intentarCambiarTab('terceros')} />
+            <StatusCard ok={participante.completado_bracket} label="Bracket" icon="🏆" active={tabActiva === 'bracket'} locked={estaBloqueada('bracket')} onClick={() => intentarCambiarTab('bracket')} />
+            <StatusCard ok={participante.completado_especiales} label="Especiales" icon="⭐" active={tabActiva === 'especiales'} locked={estaBloqueada('especiales')} onClick={() => intentarCambiarTab('especiales')} />
           </div>
         </div>
 
@@ -226,13 +249,13 @@ export default function PorraMiPorra() {
           <span>👇 Pulsa una pestaña para editar tus predicciones</span>
         </div>
 
-        {/* Tabs editor — visualmente destacadas y diferenciadas de las StatusCards de arriba */}
-        <Tabs value={tabActiva} onValueChange={(v) => { flushGuardado && flushGuardado(); setTabActiva(v); }}>
+        {/* Tabs editor — con bloqueo secuencial */}
+        <Tabs value={tabActiva} onValueChange={intentarCambiarTab}>
           <TabsList className="grid w-full grid-cols-6 h-auto p-1.5 bg-gradient-to-r from-slate-800 to-slate-900 shadow-lg rounded-xl">
             <TabsTrigger value="grupos" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">⚽ Grupos</TabsTrigger>
-            <TabsTrigger value="terceros" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">🥉 Terceros</TabsTrigger>
-            <TabsTrigger value="bracket" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">🏆 Bracket</TabsTrigger>
-            <TabsTrigger value="especiales" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">⭐ Especiales</TabsTrigger>
+            <TabsTrigger value="terceros" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=inactive]:opacity-60">{estaBloqueada('terceros') ? '🔒' : '🥉'} Terceros</TabsTrigger>
+            <TabsTrigger value="bracket" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=inactive]:opacity-60">{estaBloqueada('bracket') ? '🔒' : '🏆'} Bracket</TabsTrigger>
+            <TabsTrigger value="especiales" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md data-[state=inactive]:opacity-60">{estaBloqueada('especiales') ? '🔒' : '⭐'} Especiales</TabsTrigger>
             <TabsTrigger value="desglose" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-green-500 data-[state=active]:to-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md">📊 Desglose</TabsTrigger>
             <TabsTrigger value="ligas" className="py-2.5 text-[10px] md:text-sm font-bold text-white/70 data-[state=active]:bg-gradient-to-br data-[state=active]:from-orange-500 data-[state=active]:to-red-600 data-[state=active]:text-white data-[state=active]:shadow-md">👥 Ligas</TabsTrigger>
           </TabsList>
@@ -306,18 +329,25 @@ export default function PorraMiPorra() {
   );
 }
 
-function StatusCard({ ok, label, icon, active, onClick }) {
-  const baseColor = ok ? 'bg-green-50 border-green-400' : 'bg-white border-slate-200';
+function StatusCard({ ok, label, icon, active, locked, onClick }) {
+  const baseColor = locked
+    ? 'bg-slate-100 border-slate-300 opacity-70'
+    : ok ? 'bg-green-50 border-green-400' : 'bg-white border-slate-200';
   const activeRing = active ? 'ring-2 ring-orange-500 ring-offset-1' : '';
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`rounded-lg p-2 md:p-3 text-center border-2 transition-all hover:shadow-md hover:scale-[1.03] active:scale-95 cursor-pointer ${baseColor} ${activeRing}`}
+      className={`relative rounded-lg p-2 md:p-3 text-center border-2 transition-all hover:shadow-md hover:scale-[1.03] active:scale-95 cursor-pointer ${baseColor} ${activeRing}`}
     >
+      {locked && (
+        <div className="absolute top-1 right-1 text-xs">🔒</div>
+      )}
       <div className="text-xl md:text-2xl">{icon}</div>
       <p className="text-[10px] md:text-xs font-bold text-slate-700 mt-0.5">{label}</p>
-      <p className="text-[9px] md:text-[10px] text-slate-500">{ok ? '✅ Hecho' : 'Pendiente'}</p>
+      <p className="text-[9px] md:text-[10px] text-slate-500">
+        {locked ? 'Bloqueado' : ok ? '✅ Hecho' : 'Pendiente'}
+      </p>
     </button>
   );
 }
