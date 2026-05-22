@@ -184,19 +184,33 @@ export default function PorraMiPorra() {
       </div>
 
       <div className="max-w-5xl mx-auto px-3 md:px-4 py-4 space-y-4">
-        {/* Aviso bloqueo */}
+        {/* Aviso bloqueo — distingue entre completada al 100% y plazo cerrado */}
         {isBlocked && (
-          <Card className="border-2 border-red-300 bg-red-50">
-            <CardContent className="p-4 flex items-start gap-3">
-              <Lock className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-bold text-red-900">Porra bloqueada 🔒</p>
-                <p className="text-sm text-red-700 mt-0.5">
-                  El plazo de predicciones ha cerrado. Tu porra está guardada y empezará a sumar puntos cuando comiencen los partidos.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
+          completado === 100 ? (
+            <Card className="border-2 border-green-300 bg-green-50">
+              <CardContent className="p-4 flex items-start gap-3">
+                <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-green-900">✅ Porra completada y cerrada</p>
+                  <p className="text-sm text-green-800 mt-0.5">
+                    Has rellenado el 100% de las predicciones. Tu porra queda <strong>bloqueada</strong> para garantizar el juego limpio: ya no se puede modificar. Empezará a sumar puntos cuando comiencen los partidos. 🏆
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="border-2 border-red-300 bg-red-50">
+              <CardContent className="p-4 flex items-start gap-3">
+                <Lock className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-red-900">Porra bloqueada 🔒</p>
+                  <p className="text-sm text-red-700 mt-0.5">
+                    El plazo de predicciones ha cerrado. Tu porra está guardada y empezará a sumar puntos cuando comiencen los partidos.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          )
         )}
 
         {/* Fecha límite */}

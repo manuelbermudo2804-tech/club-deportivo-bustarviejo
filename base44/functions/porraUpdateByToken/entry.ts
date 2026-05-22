@@ -49,8 +49,8 @@ function emailCompletadaHtml({ nombre, alias, enlace, enlaceRanking }) {
 <p style="margin:0 0 16px;font-size:15px;color:#475569;line-height:1.6">Has rellenado todas las predicciones de tu equipo <strong style="color:#16a34a">${aliasSafe}</strong>. Ya solo queda esperar a que ruede el balón.</p>
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#dcfce7;border:2px solid #22c55e;border-radius:12px;margin:20px 0">
 <tr><td style="padding:16px;text-align:center">
-<p style="margin:0;font-size:14px;color:#14532d;font-weight:700">✅ Todas las predicciones guardadas</p>
-<p style="margin:6px 0 0;font-size:12px;color:#166534">Puedes seguir editándolas hasta el cierre del plazo</p>
+<p style="margin:0;font-size:14px;color:#14532d;font-weight:700">✅ Porra cerrada y guardada</p>
+<p style="margin:6px 0 0;font-size:12px;color:#166534">Tu porra queda bloqueada para garantizar el juego limpio 🔒</p>
 </td></tr></table>
 <p style="margin:24px 0 8px;font-size:14px;color:#1e293b;text-align:center;font-weight:bold">Tus accesos rápidos:</p>
 ${btn(enlace, '#16a34a', '🔧 Revisar mi porra')}
@@ -109,10 +109,23 @@ Deno.serve(async (req) => {
 
     await base44.asServiceRole.entities.PorraParticipante.update(participante.id, safeUpdates);
 
-    // Si la porra acaba de llegar al 100% por primera vez → enviar email de celebración
+    // Si la porra acaba de llegar al 100% por primera vez → BLOQUEARLA automáticamente.
+    // Una vez completa no se puede modificar (queda "cerrada" como hacen las casas de apuestas).
+    const llegaA100 = safeUpdates.porcentaje_completado === 100 && (participante.porcentaje_completado || 0) < 100;
+    if (llegaA100) {
+      try {
+        await base44.asServiceRole.entities.PorraParticipante.update(participante.id, {
+          bloqueada: true,
+          fecha_bloqueo: new Date().toISOString(),
+        });
+      } catch (lockErr) {
+        console.error('[porraUpdateByToken] Error bloqueando porra al 100%:', lockErr?.message || lockErr);
+      }
+    }
+
+    // Y además, enviar email de celebración al llegar al 100%
     // ⚠️ Saltar envío de email si la porra está en MODO TEST (ahorra créditos durante pruebas)
     // ✉️ Enviamos vía Resend directo (no consume créditos de integración Base44)
-    const llegaA100 = safeUpdates.porcentaje_completado === 100 && (participante.porcentaje_completado || 0) < 100;
     if (llegaA100 && !participante.email_completado_enviado) {
       try {
         const configs = await base44.asServiceRole.entities.PorraConfig.list();
