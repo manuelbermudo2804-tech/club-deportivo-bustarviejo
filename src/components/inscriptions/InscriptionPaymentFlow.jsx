@@ -228,7 +228,6 @@ export default function InscriptionPaymentFlow({
           </div>
           <p className="text-xs text-green-700 mt-2 font-medium">Solo falta elegir cómo quieres fraccionar la cuota. El pago lo harás más adelante por transferencia desde la sección "Pagos".</p>
         </div>
-        </div>
 
         {descuentoHermano > 0 && (
           <Alert className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 animate-pulse">
