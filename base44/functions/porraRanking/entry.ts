@@ -1,5 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+// Cache en memoria del ranking global (60s). Reduce drásticamente la carga cuando
+// cientos de personas refrescan el ranking durante un partido del Mundial.
+const RANKING_CACHE = { data: null, expiresAt: 0 };
+const RANKING_CACHE_TTL_MS = 60_000;
+
 // Devuelve el ranking público o filtrado por mini-liga
 // Body: { codigo_liga?: 'XXXXXX', limite?: 100 }
 //
@@ -20,6 +25,18 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
     const { codigo_liga, limite = 100 } = body;
+    const limiteNum = Math.min(Math.max(parseInt(limite, 10) || 100, 1), 500);
+
+    // Cache hit para ranking GLOBAL (no aplica a mini-ligas)
+    const now = Date.now();
+    if (!codigo_liga && RANKING_CACHE.data && RANKING_CACHE.expiresAt > now) {
+      const cached = RANKING_CACHE.data;
+      return Response.json({
+        ...cached,
+        ranking: cached.ranking.slice(0, limiteNum),
+        cached: true,
+      });
+    }
 
     const configs = await base44.asServiceRole.entities.PorraConfig.list();
     const config = configs[0];
@@ -99,7 +116,9 @@ Deno.serve(async (req) => {
       return 'inscripcion'; // último criterio
     };
 
-    const ordenados = filtrados.sort(comparar).slice(0, limite);
+    // Ordenar TODO el conjunto (necesario para asignar posiciones correctas y movimientos)
+    const ordenadosCompleto = filtrados.sort(comparar);
+    const ordenados = ordenadosCompleto.slice(0, limiteNum);
 
     // Construir respuesta con metadatos de desempate
     const ranking = ordenados.map((p, idx) => {
@@ -128,11 +147,48 @@ Deno.serve(async (req) => {
       };
     });
 
-    return Response.json({
+    const respuesta = {
       ranking,
       total: filtrados.length,
       liga: liga ? { nombre: liga.nombre, codigo: liga.codigo, descripcion: liga.descripcion } : null,
-    });
+    };
+
+    // Guardar en cache si es ranking global
+    if (!codigo_liga) {
+      // Cachear el ranking COMPLETO (sin recortar) para poder servir distintos limites
+      const rankingCompleto = ordenadosCompleto.map((p, idx) => {
+        const anterior = idx > 0 ? ordenadosCompleto[idx - 1] : null;
+        const empateConAnterior = anterior && (p.puntos_total || 0) === (anterior.puntos_total || 0);
+        const posActual = idx + 1;
+        const posAnt = p.posicion_anterior || null;
+        const movimiento = posAnt && posAnt !== posActual ? (posAnt - posActual) : 0;
+        return {
+          posicion: posActual,
+          alias_equipo: p.alias_equipo,
+          puntos_total: p.puntos_total || 0,
+          puntos_grupos: p.puntos_grupos || 0,
+          puntos_eliminatorias: p.puntos_eliminatorias || 0,
+          puntos_especiales: p.puntos_especiales || 0,
+          puntos_campeon: p.puntos_campeon || 0,
+          puntos_tercer_puesto: p.puntos_tercer_puesto || 0,
+          puntos_terceros: p.puntos_terceros || 0,
+          porcentaje_completado: p.porcentaje_completado || 0,
+          completado: p.completado_grupos && p.completado_bracket && p.completado_especiales,
+          empate_con_anterior: !!empateConAnterior,
+          motivo_desempate: empateConAnterior ? motivoDesempate(p, anterior) : null,
+          movimiento,
+          posicion_anterior: posAnt,
+        };
+      });
+      RANKING_CACHE.data = {
+        ranking: rankingCompleto,
+        total: filtrados.length,
+        liga: null,
+      };
+      RANKING_CACHE.expiresAt = now + RANKING_CACHE_TTL_MS;
+    }
+
+    return Response.json(respuesta);
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

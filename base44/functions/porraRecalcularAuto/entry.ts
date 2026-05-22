@@ -128,30 +128,43 @@ Deno.serve(async (req) => {
     if (!config) return Response.json({ skip: true, reason: 'sin config' });
 
     let actualizados = 0;
-    for (const p of pagados) {
-      try {
-        const nuevos = calcularPuntosParticipante(p, partidos, config);
-        await base44.asServiceRole.entities.PorraParticipante.update(p.id, nuevos);
-        actualizados++;
-      } catch (e) {
-        console.error('[porraRecalcularAuto] error participante', p.id, e?.message);
-      }
+    // Procesar en paralelo por lotes de 20 — escala bien hasta 1.000+ participantes
+    const BATCH = 20;
+    for (let i = 0; i < pagados.length; i += BATCH) {
+      const slice = pagados.slice(i, i + BATCH);
+      await Promise.all(slice.map(async (p) => {
+        try {
+          const nuevos = calcularPuntosParticipante(p, partidos, config);
+          await base44.asServiceRole.entities.PorraParticipante.update(p.id, nuevos);
+          actualizados++;
+        } catch (e) {
+          console.error('[porraRecalcularAuto] error participante', p.id, e?.message);
+        }
+      }));
     }
 
     // Actualizar posiciones globales preservando posicion_anterior para mostrar ▲▼
     const recargados = await base44.asServiceRole.entities.PorraParticipante.filter({ estado_pago: 'pagado' });
     const ordenados = recargados.sort((a, b) => (b.puntos_total || 0) - (a.puntos_total || 0));
+    const cambios = [];
     for (let i = 0; i < ordenados.length; i++) {
       const nuevaPos = i + 1;
       const posActual = ordenados[i].posicion_ranking;
       if (posActual !== nuevaPos) {
+        cambios.push({ id: ordenados[i].id, posActual, nuevaPos });
+      }
+    }
+    const BATCH_POS = 20;
+    for (let i = 0; i < cambios.length; i += BATCH_POS) {
+      const slice = cambios.slice(i, i + BATCH_POS);
+      await Promise.all(slice.map(async (c) => {
         try {
-          await base44.asServiceRole.entities.PorraParticipante.update(ordenados[i].id, {
-            posicion_anterior: posActual || nuevaPos,
-            posicion_ranking: nuevaPos,
+          await base44.asServiceRole.entities.PorraParticipante.update(c.id, {
+            posicion_anterior: c.posActual || c.nuevaPos,
+            posicion_ranking: c.nuevaPos,
           });
         } catch {}
-      }
+      }));
     }
 
     return Response.json({ success: true, actualizados, total: pagados.length });

@@ -10,7 +10,7 @@ import RankingTable from "@/components/porra/ranking/RankingTable";
 import ReglasDesempate from "@/components/porra/ranking/ReglasDesempate";
 import LiveIndicator from "@/components/porra/ranking/LiveIndicator";
 
-const AUTO_REFRESH_MS = 30000; // 30 segundos
+const AUTO_REFRESH_MS = 90000; // 90 segundos — equilibrio entre frescura y carga del servidor con muchos usuarios concurrentes
 
 // Página pública del ranking: ?liga=XXXXXX para mini-liga, sin param para global
 export default function PorraRanking() {

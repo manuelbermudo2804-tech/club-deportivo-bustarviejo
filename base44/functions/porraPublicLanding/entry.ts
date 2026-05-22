@@ -1,5 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+// Cache en memoria (60s) — la landing recibe muchas visitas anónimas y solo
+// necesita un count agregado, no datos en tiempo real.
+const LANDING_CACHE = { data: null, expiresAt: 0 };
+const LANDING_CACHE_TTL_MS = 60_000;
+
 // Endpoint PÚBLICO (sin auth) para la landing web.
 // Devuelve: config, equipos y stats agregadas (participantes pagados + bote).
 // Diseñado para que los visitantes anónimos NO necesiten saltarse RLS.
@@ -21,6 +26,12 @@ Deno.serve(async (req) => {
       } catch {
         // body vacío, ignorar
       }
+    }
+
+    // Si hay cache fresca Y no es modo preview, devolver directamente
+    const now = Date.now();
+    if (!previewCodigo && LANDING_CACHE.data && LANDING_CACHE.expiresAt > now) {
+      return Response.json({ ...LANDING_CACHE.data, cached: true });
     }
 
     const [configs, equipos, participantesPagados] = await Promise.all([
@@ -46,7 +57,7 @@ Deno.serve(async (req) => {
     // Si hay preview válido → forzar activa:true para que la landing se renderice.
     const activaParaCliente = !!config?.activa || previewValido;
 
-    return Response.json({
+    const respuesta = {
       preview_mode: previewValido,
       config: config ? {
         activa: activaParaCliente,
@@ -75,7 +86,15 @@ Deno.serve(async (req) => {
         total_participantes: totalParticipantes,
         bote: totalParticipantes * precio + aporteClub,
       },
-    });
+    };
+
+    // Cachear solo respuestas no-preview (el preview puede cambiar por código)
+    if (!previewCodigo) {
+      LANDING_CACHE.data = respuesta;
+      LANDING_CACHE.expiresAt = now + LANDING_CACHE_TTL_MS;
+    }
+
+    return Response.json(respuesta);
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

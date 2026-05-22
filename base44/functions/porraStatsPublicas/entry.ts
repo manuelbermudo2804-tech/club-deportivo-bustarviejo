@@ -1,5 +1,9 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+// Cache en memoria (60s) — las estadísticas agregadas no necesitan ser exactas al segundo.
+const STATS_CACHE = { data: null, expiresAt: 0 };
+const STATS_CACHE_TTL_MS = 60_000;
+
 // Devuelve estadísticas globales agregadas (qué % de gente predijo qué)
 // para mostrar "63% eligió 1" en cada partido y enganchar al usuario
 //
@@ -13,6 +17,12 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+
+    // Cache hit
+    const now = Date.now();
+    if (STATS_CACHE.data && STATS_CACHE.expiresAt > now) {
+      return Response.json({ ...STATS_CACHE.data, cached: true });
+    }
 
     // Solo participantes pagados cuentan
     const participantes = await base44.asServiceRole.entities.PorraParticipante.filter({ estado_pago: 'pagado' });
@@ -52,11 +62,14 @@ Deno.serve(async (req) => {
       }
     });
 
-    return Response.json({
+    const respuesta = {
       grupos,
       eliminatorias,
       total_participantes: total,
-    });
+    };
+    STATS_CACHE.data = respuesta;
+    STATS_CACHE.expiresAt = now + STATS_CACHE_TTL_MS;
+    return Response.json(respuesta);
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
