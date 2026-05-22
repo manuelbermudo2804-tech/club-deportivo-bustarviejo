@@ -115,16 +115,35 @@ export default function PorraCrear() {
     );
   }
 
-  if (!config?.activa) {
+  // 🔒 Bloquear si la porra no está activa O si pasó la fecha límite
+  const plazoCerrado = config?.fecha_limite_predicciones
+    ? Date.now() > new Date(config.fecha_limite_predicciones).getTime()
+    : false;
+
+  if (!config?.activa || plazoCerrado) {
+    const yaCerrado = plazoCerrado;
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-900 text-white p-4">
         <div className="text-center max-w-md">
           <Trophy className="w-16 h-16 mx-auto text-yellow-400 mb-4" />
-          <h1 className="text-2xl font-black mb-2">Porra cerrada</h1>
-          <p className="text-white/70 mb-6">Las inscripciones no están abiertas en este momento.</p>
-          <Button onClick={() => navigate('/Porra')} variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
-            Volver a la landing
-          </Button>
+          <h1 className="text-2xl font-black mb-2">
+            {yaCerrado ? '¡Inscripciones cerradas!' : 'Porra cerrada'}
+          </h1>
+          <p className="text-white/70 mb-6">
+            {yaCerrado
+              ? 'El plazo para apuntar nuevas porras ha terminado. Pero aún puedes seguir el ranking en vivo.'
+              : 'Las inscripciones no están abiertas en este momento.'}
+          </p>
+          <div className="flex flex-col gap-2">
+            {yaCerrado && (
+              <Button onClick={() => navigate('/PorraRanking')} className="bg-yellow-400 hover:bg-yellow-300 text-red-900 font-black">
+                <Trophy className="w-4 h-4 mr-2" /> Ver ranking en vivo
+              </Button>
+            )}
+            <Button onClick={() => navigate('/Porra')} variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
+              Volver a la landing
+            </Button>
+          </div>
         </div>
       </div>
     );

@@ -9,6 +9,7 @@ import PorraGruposPreview from "@/components/porra/PorraGruposPreview";
 import PorraVolverAppButton from "@/components/porra/PorraVolverAppButton";
 import PorraEmailMagicoInfo from "@/components/porra/PorraEmailMagicoInfo";
 import PorraRecuperarAccesosModal from "@/components/porra/PorraRecuperarAccesosModal";
+import PorraInscripcionesCerradas from "@/components/porra/PorraInscripcionesCerradas";
 import usePublicPageTracker from "@/components/public/usePublicPageTracker";
 
 // Landing pública de la Porra Mundial 2026
@@ -69,6 +70,25 @@ export default function Porra() {
           <p className="text-xl font-bold">Cargando porra...</p>
         </div>
       </div>
+    );
+  }
+
+  // 🔒 PLAZO CERRADO: si pasó la fecha límite de inscripciones → mostrar pantalla de "cerradas"
+  // (aunque admin haya dejado activa=true). Sale del flow normal antes de renderizar el CTA.
+  const plazoCerrado = config?.fecha_limite_predicciones
+    ? Date.now() > new Date(config.fecha_limite_predicciones).getTime()
+    : false;
+
+  if (config?.activa && plazoCerrado) {
+    return (
+      <>
+        <PorraInscripcionesCerradas
+          stats={stats}
+          onRecuperar={() => setShowRecuperar(true)}
+          fechaInicioMundial={config?.fecha_inicio_mundial}
+        />
+        <PorraRecuperarAccesosModal open={showRecuperar} onOpenChange={setShowRecuperar} />
+      </>
     );
   }
 
