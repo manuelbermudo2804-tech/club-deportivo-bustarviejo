@@ -14,6 +14,7 @@ import SocialLinks from "../components/SocialLinks";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import SelectiveReminderDialog from "../components/reminders/SelectiveReminderDialog";
+import { buildWhatsAppReminderMessage, openWhatsAppReminder } from "../components/reminders/whatsappReminderMessage";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -981,17 +982,21 @@ export default function PaymentReminders() {
                      </div>
                      <p className="text-xs text-slate-600">{family.email}</p>
                      {family.telefono && (
-                       <div className="flex items-center gap-2">
+                       <div className="flex items-center gap-2 flex-wrap">
                          <p className="text-xs text-slate-500">📱 {family.telefono}</p>
-                         <a
-                           href={`https://wa.me/${family.telefono.replace(/[^0-9]/g, '').replace(/^(?!34)/, '34')}`}
-                           target="_blank"
-                           rel="noopener noreferrer"
+                         <button
+                           type="button"
                            className="inline-flex items-center gap-1 text-[10px] bg-green-500 text-white px-2 py-0.5 rounded-full hover:bg-green-600 transition-colors"
-                           onClick={(e) => e.stopPropagation()}
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             const mensaje = buildWhatsAppReminderMessage({ family, clubIban, clubBank });
+                             const ok = openWhatsAppReminder({ telefono: family.telefono, mensaje });
+                             if (!ok) toast.error('Teléfono no válido');
+                           }}
+                           title="Abre WhatsApp con el recordatorio ya escrito"
                          >
-                           💬 WhatsApp
-                         </a>
+                           💬 WhatsApp con mensaje
+                         </button>
                        </div>
                      )}
                     </div>
