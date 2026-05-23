@@ -45,11 +45,13 @@ export function buildWhatsAppReminderMessage({ family, clubIban, clubBank, selec
   });
 
   mensaje += `💰 *Total pendiente: ${totalRecordatorio}€*\n\n`;
-  mensaje += `🏦 *Datos bancarios:*\n`;
+  mensaje += `💳 *La forma más rápida: pagar con tarjeta desde la app*\n`;
+  mensaje += `Entra en "Mis Pagos" y paga en 1 minuto. Queda registrado automáticamente ✅\n\n`;
+  mensaje += `🏦 *¿ Prefieres transferencia ?*\n`;
   mensaje += `IBAN: ${clubIban}\n`;
   mensaje += `Banco: ${clubBank}\n`;
-  mensaje += `Beneficiario: CD Bustarviejo\n\n`;
-  mensaje += `Por favor, realiza el pago y sube el justificante en la app 📱\n\n`;
+  mensaje += `Beneficiario: CD Bustarviejo\n`;
+  mensaje += `(recuerda subir el justificante en la app después)\n\n`;
   mensaje += `Cualquier duda, escríbenos por aquí 🙂\n\n`;
   mensaje += `Gracias,\n*CD Bustarviejo*`;
 
