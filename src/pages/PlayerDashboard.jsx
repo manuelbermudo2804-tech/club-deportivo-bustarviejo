@@ -33,6 +33,7 @@ import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHead
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
 import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
+import PorraPromoBanner from "../components/porra/PorraPromoBanner";
 
 export default function PlayerDashboard() {
   const [user, setUser] = useState(null);
@@ -546,6 +547,9 @@ export default function PlayerDashboard() {
 
         {/* Banner de renovación para jugadores +18 */}
         <PlayerRenewalBanner player={player} seasonConfig={seasonConfig} />
+
+        {/* Banner Porra Mundial 2026 (visible para jugadores +18, NO para menores) */}
+        <PorraPromoBanner />
 
         {/* Banner Clasificaciones y Mis Convocatorias */}
         <ClassificationsAndMatchesBanner 
