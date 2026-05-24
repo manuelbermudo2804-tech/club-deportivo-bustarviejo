@@ -190,6 +190,14 @@
     },
     "user_agent": {
       "type": "string"
+    },
+    "origen": {
+      "type": "string",
+      "enum": [
+        "app",
+        "web"
+      ],
+      "description": "Origen desde el que se cre\u00f3 la porra: 'app' (PWA instalada o navegaci\u00f3n desde la app interna) o 'web' (navegador externo)"
     }
   },
   "required": [

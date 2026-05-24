@@ -3,8 +3,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Copy, Download, ExternalLink } from "lucide-react";
+import { Search, Copy, Download, ExternalLink, Smartphone, Globe } from "lucide-react";
 import { toast } from "sonner";
+
+// Devuelve el origen del participante: 'app' | 'web' | 'desconocido'.
+// 1) si tiene el campo 'origen' guardado → usar ese (los nuevos lo traen)
+// 2) si no, inferir del user_agent (los participantes antiguos):
+//    - 'wv' (Android WebView), 'CDBustarviejo' o flags PWA → app
+//    - resto → web
+function detectarOrigen(p) {
+  if (p.origen === 'app' || p.origen === 'web') return p.origen;
+  const ua = (p.user_agent || '').toLowerCase();
+  if (!ua) return 'desconocido';
+  if (ua.includes('cdbustarviejo') || ua.includes('; wv)') || ua.includes('webview') || ua.includes('standalone')) {
+    return 'app';
+  }
+  return 'web';
+}
 
 // Lista administrativa de participantes con búsqueda, exportación y enlaces directos
 export default function PorraAdminParticipantes({ participantes = [] }) {
@@ -30,6 +45,13 @@ export default function PorraAdminParticipantes({ participantes = [] }) {
   const pagados = participantes.filter(p => p.estado_pago === 'pagado');
   const totalRecaudado = pagados.reduce((s, p) => s + (p.cantidad_pagada || 0), 0);
 
+  // KPIs de origen (sobre pagados, que es lo que importa para saber por dónde entran de verdad)
+  const origenStats = useMemo(() => {
+    const stats = { app: 0, web: 0, desconocido: 0 };
+    pagados.forEach(p => { stats[detectarOrigen(p)]++; });
+    return stats;
+  }, [pagados]);
+
   const copiarEnlace = (token) => {
     if (!token) return toast.error('Sin token');
     const url = `${window.location.origin}/PorraMiPorra?token=${token}`;
@@ -38,7 +60,7 @@ export default function PorraAdminParticipantes({ participantes = [] }) {
   };
 
   const exportarCSV = () => {
-    const cabecera = ['Nombre', 'Alias', 'Email', 'Teléfono', 'Estado', 'Pagado (€)', 'Puntos', '% Completado', 'Ligas', 'Fecha registro'];
+    const cabecera = ['Nombre', 'Alias', 'Email', 'Teléfono', 'Estado', 'Pagado (€)', 'Puntos', '% Completado', 'Ligas', 'Origen', 'Fecha registro'];
     const filas = filtrados.map(p => [
       p.nombre || '',
       p.alias_equipo || '',
@@ -49,6 +71,7 @@ export default function PorraAdminParticipantes({ participantes = [] }) {
       p.puntos_total || 0,
       p.porcentaje_completado || 0,
       (p.mini_liga_codigos || []).join('|'),
+      detectarOrigen(p),
       p.created_date ? new Date(p.created_date).toLocaleString('es-ES') : '',
     ]);
     const csv = [cabecera, ...filas]
@@ -73,6 +96,22 @@ export default function PorraAdminParticipantes({ participantes = [] }) {
             <p className="text-sm text-slate-500 mt-1">
               {participantes.length} totales · <strong className="text-green-700">{pagados.length} pagados</strong> · <strong className="text-orange-600">{totalRecaudado}€</strong> recaudados
             </p>
+            {pagados.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 mt-2 text-xs">
+                <span className="text-slate-500">De los pagados:</span>
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                  <Smartphone className="w-3 h-3 mr-1" /> App: <strong className="ml-1">{origenStats.app}</strong>
+                </Badge>
+                <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                  <Globe className="w-3 h-3 mr-1" /> Web: <strong className="ml-1">{origenStats.web}</strong>
+                </Badge>
+                {origenStats.desconocido > 0 && (
+                  <Badge variant="outline" className="bg-slate-50 text-slate-600 border-slate-200">
+                    ? Desconocido: <strong className="ml-1">{origenStats.desconocido}</strong>
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
           <Button onClick={exportarCSV} variant="outline" size="sm" disabled={filtrados.length === 0}>
             <Download className="w-4 h-4 mr-1" /> Exportar CSV ({filtrados.length})
@@ -128,6 +167,7 @@ export default function PorraAdminParticipantes({ participantes = [] }) {
                   <th className="text-right p-2">Pts</th>
                   <th className="text-right p-2 hidden md:table-cell">%</th>
                   <th className="text-center p-2 hidden lg:table-cell">Ligas</th>
+                  <th className="text-center p-2 hidden md:table-cell">Origen</th>
                   <th className="text-center p-2">Acciones</th>
                 </tr>
               </thead>
@@ -158,6 +198,14 @@ export default function PorraAdminParticipantes({ participantes = [] }) {
                     </td>
                     <td className="p-2 text-center hidden lg:table-cell text-xs">
                       {(p.mini_liga_codigos || []).length || '-'}
+                    </td>
+                    <td className="p-2 text-center hidden md:table-cell">
+                      {(() => {
+                        const o = detectarOrigen(p);
+                        if (o === 'app') return <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-[10px]"><Smartphone className="w-3 h-3 mr-1" /> App</Badge>;
+                        if (o === 'web') return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-[10px]"><Globe className="w-3 h-3 mr-1" /> Web</Badge>;
+                        return <span className="text-slate-400 text-xs">?</span>;
+                      })()}
                     </td>
                     <td className="p-2 text-center">
                       <div className="flex gap-1 justify-center">

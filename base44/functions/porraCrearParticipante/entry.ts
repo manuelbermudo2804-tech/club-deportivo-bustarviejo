@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
-    const { nombre, email, alias_equipo, telefono, mini_liga_codigo, return_url, preview_codigo } = body || {};
+    const { nombre, email, alias_equipo, telefono, mini_liga_codigo, return_url, preview_codigo, origen } = body || {};
 
     // Validaciones básicas
     if (!nombre || !email || !alias_equipo || !telefono) {
@@ -128,6 +128,7 @@ Deno.serve(async (req) => {
       mini_liga_codigos: miniLigaCodigos,
       ip_creacion: req.headers.get('x-forwarded-for') || '',
       user_agent: req.headers.get('user-agent') || '',
+      origen: (origen === 'app' || origen === 'web') ? origen : 'web',
     });
 
     // ============ MODO TEST: saltar Stripe Y NO enviar email (ahorra créditos en pruebas) ============

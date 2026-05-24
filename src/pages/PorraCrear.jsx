@@ -81,6 +81,15 @@ export default function PorraCrear() {
     }
     setLoading(true);
     try {
+      // Detectar origen: PWA instalada (standalone) o navegación desde la app interna (?from=app) → 'app'; resto → 'web'
+      let origen = 'web';
+      try {
+        const fromApp = new URLSearchParams(window.location.search).get('from') === 'app';
+        const isStandalone = window.matchMedia?.('(display-mode: standalone)')?.matches
+          || window.navigator.standalone === true;
+        if (fromApp || isStandalone) origen = 'app';
+      } catch { /* fallback a 'web' */ }
+
       const res = await base44.functions.invoke('porraCrearParticipante', {
         nombre: form.nombre,
         email: form.email,
@@ -89,6 +98,7 @@ export default function PorraCrear() {
         mini_liga_codigo: form.mini_liga_codigo || null,
         return_url: window.location.origin,
         preview_codigo: previewCodigo || undefined,
+        origen,
       });
       if (res.data?.ok && res.data?.modo_test && res.data?.redirect_url) {
         // MODO TEST: saltar Stripe y abrir pantalla de éxito directa
