@@ -47,12 +47,22 @@
     "email_enviado": {
       "type": "boolean",
       "default": false,
-      "description": "Si ya se notific\u00f3 a la familia del dorsal"
+      "description": "Si ya se notific\u00f3 a la familia del dorsal por email"
     },
     "fecha_email": {
       "type": "string",
       "format": "date-time",
       "description": "Fecha del \u00faltimo email enviado a la familia"
+    },
+    "whatsapp_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el admin ya abri\u00f3 WhatsApp para avisar a la familia"
+    },
+    "fecha_whatsapp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que el admin abri\u00f3 WhatsApp para avisar"
     },
     "notas": {
       "type": "string",

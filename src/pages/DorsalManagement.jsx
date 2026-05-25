@@ -14,6 +14,7 @@ import AssignmentDetailDialog from "@/components/dorsales/AssignmentDetailDialog
 import ConflictPreviewPanel from "@/components/dorsales/ConflictPreviewPanel";
 import PendingPlayersPanel from "@/components/dorsales/PendingPlayersPanel";
 import ImportExcelDialog from "@/components/dorsales/ImportExcelDialog";
+import PendingNotificationsPanel from "@/components/dorsales/PendingNotificationsPanel";
 import { getNextSeason, loadDorsalData } from "@/components/dorsales/dorsalHelpers";
 
 const CATEGORIAS = [
@@ -230,6 +231,12 @@ export default function DorsalManagement() {
                   />
                 </CardContent>
               </Card>
+
+              <PendingNotificationsPanel
+                assignments={assignmentsEnCategoria}
+                categoria={categoria}
+                onOpenAssignment={handleClickAssigned}
+              />
 
               <PendingPlayersPanel
                 players={players}

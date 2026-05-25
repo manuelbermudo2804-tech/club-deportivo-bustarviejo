@@ -3,6 +3,7 @@ import { cn } from "@/lib/utils";
 
 // Cuadrícula visual de dorsales 1..N para una categoría/temporada.
 // Verde = libre, Naranja = asignado, Gris = reservado.
+// Puntito en la esquina del asignado: verde = familia avisada (email o WhatsApp), naranja = sin avisar.
 export default function DorsalGrid({ min = 1, max = 25, reservados = [], assignments = [], onClickFree, onClickAssigned }) {
   const reservadosSet = new Set(reservados.map(Number));
   const asignadosMap = new Map();
@@ -15,6 +16,7 @@ export default function DorsalGrid({ min = 1, max = 25, reservados = [], assignm
     const isReservado = reservadosSet.has(n);
     const asign = asignadosMap.get(n);
     const isFree = !isReservado && !asign;
+    const avisado = asign && (asign.email_enviado || asign.whatsapp_enviado);
 
     cells.push(
       <button
@@ -31,7 +33,17 @@ export default function DorsalGrid({ min = 1, max = 25, reservados = [], assignm
           asign && "bg-orange-50 border-orange-400 hover:bg-orange-100 cursor-pointer",
           isReservado && "bg-slate-100 border-slate-300 cursor-not-allowed opacity-60"
         )}
+        title={asign ? (avisado ? "Familia avisada" : "Pendiente de avisar a la familia") : undefined}
       >
+        {asign && (
+          <span
+            className={cn(
+              "absolute top-1 right-1 w-3 h-3 rounded-full border-2 border-white shadow",
+              avisado ? "bg-green-500" : "bg-orange-500 animate-pulse"
+            )}
+            aria-label={avisado ? "Avisado" : "Sin avisar"}
+          />
+        )}
         <span className={cn(
           "text-2xl font-black leading-none",
           isFree && "text-green-700",
@@ -56,8 +68,20 @@ export default function DorsalGrid({ min = 1, max = 25, reservados = [], assignm
   }
 
   return (
-    <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
-      {cells}
+    <div className="space-y-3">
+      <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-10 gap-2">
+        {cells}
+      </div>
+      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 pt-1">
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-green-500 border-2 border-white shadow" />
+          Familia avisada
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="w-3 h-3 rounded-full bg-orange-500 border-2 border-white shadow" />
+          Pendiente de avisar
+        </div>
+      </div>
     </div>
   );
 }

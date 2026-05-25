@@ -77,7 +77,7 @@ export default function AssignmentDetailDialog({ open, onOpenChange, assignment,
     }
   };
 
-  const handleWhatsApp = () => {
+  const handleWhatsApp = async () => {
     const msg = buildWhatsAppMessage({
       jugador_nombre: assignment.jugador_nombre,
       dorsal: assignment.dorsal,
@@ -88,6 +88,14 @@ export default function AssignmentDetailDialog({ open, onOpenChange, assignment,
     const text = encodeURIComponent(msg);
     const url = phone ? `https://wa.me/${phone}?text=${text}` : `https://wa.me/?text=${text}`;
     window.open(url, "_blank", "noopener,noreferrer");
+    // Registrar que se ha abierto WhatsApp para avisar
+    try {
+      await base44.entities.DorsalAssignment.update(assignment.id, {
+        whatsapp_enviado: true,
+        fecha_whatsapp: new Date().toISOString(),
+      });
+      onChanged?.();
+    } catch { /* ignore */ }
   };
 
   const handleFree = async () => {
@@ -130,6 +138,10 @@ export default function AssignmentDetailDialog({ open, onOpenChange, assignment,
             <div className="mt-2">
               Teléfono familia: {phone ? <span className="font-mono">+{phone}</span> : <span className="text-slate-400">No registrado</span>}
             </div>
+            <div>WhatsApp familia: {assignment.whatsapp_enviado ? <span className="text-green-600 font-semibold">✓ Enviado</span> : <span className="text-orange-600 font-semibold">Pendiente</span>}</div>
+            {assignment.fecha_whatsapp && (
+              <div className="text-xs text-slate-400">Último WhatsApp: {new Date(assignment.fecha_whatsapp).toLocaleString()}</div>
+            )}
           </div>
         </div>
         <DialogFooter className="flex flex-col sm:flex-row gap-2">
