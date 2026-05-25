@@ -1,0 +1,108 @@
+{
+  "name": "DorsalAssignment",
+  "type": "object",
+  "description": "Asignaci\u00f3n de dorsal a un jugador en una temporada y categor\u00eda concreta. Una fila por (jugador, temporada).",
+  "properties": {
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador (entidad Player)"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre completo del jugador (denormalizado para vistas r\u00e1pidas)"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada de la asignaci\u00f3n, ej: '2026-2027'"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda deportiva en esa temporada, ej: 'F\u00fatbol Cadete'"
+    },
+    "dorsal": {
+      "type": "number",
+      "description": "N\u00famero de dorsal asignado (1-25 por defecto)"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "asignado",
+        "pendiente",
+        "conflicto"
+      ],
+      "default": "pendiente",
+      "description": "Estado de la asignaci\u00f3n"
+    },
+    "origen": {
+      "type": "string",
+      "enum": [
+        "import_excel",
+        "manual",
+        "renovacion_auto",
+        "preferente_auto"
+      ],
+      "default": "manual",
+      "description": "C\u00f3mo se asign\u00f3 este dorsal"
+    },
+    "email_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya se notific\u00f3 a la familia del dorsal"
+    },
+    "fecha_email": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del \u00faltimo email enviado a la familia"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas internas del admin sobre esta asignaci\u00f3n"
+    },
+    "asignado_por": {
+      "type": "string",
+      "description": "Email del admin que hizo la asignaci\u00f3n"
+    }
+  },
+  "required": [
+    "jugador_id",
+    "temporada",
+    "categoria",
+    "dorsal"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "es_coordinador": true
+          }
+        },
+        {
+          "user_condition": {
+            "es_entrenador": true
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

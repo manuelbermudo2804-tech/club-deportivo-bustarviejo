@@ -38,7 +38,11 @@
     },
     "numero_camiseta": {
       "type": "string",
-      "description": "N\u00famero de dorsal del jugador"
+      "description": "N\u00famero de dorsal del jugador (temporada actual)"
+    },
+    "dorsal_preferente": {
+      "type": "number",
+      "description": "Dorsal favorito del jugador. El sistema intenta asign\u00e1rselo cada temporada si est\u00e1 libre."
     },
     "tipo_inscripcion": {
       "type": "string",

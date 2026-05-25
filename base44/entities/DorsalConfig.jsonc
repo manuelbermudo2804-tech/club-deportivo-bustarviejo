@@ -1,0 +1,58 @@
+{
+  "name": "DorsalConfig",
+  "type": "object",
+  "description": "Configuraci\u00f3n por categor\u00eda: rango de dorsales permitidos y URL de la tienda. Una fila por (temporada, categor\u00eda).",
+  "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Temporada, ej: '2026-2027'"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda deportiva, ej: 'F\u00fatbol Cadete'"
+    },
+    "dorsal_min": {
+      "type": "number",
+      "default": 1,
+      "description": "Dorsal m\u00ednimo permitido"
+    },
+    "dorsal_max": {
+      "type": "number",
+      "default": 25,
+      "description": "Dorsal m\u00e1ximo permitido"
+    },
+    "dorsales_reservados": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      },
+      "description": "Dorsales bloqueados (no asignables, ej: el #1 s\u00f3lo para porteros)"
+    },
+    "tienda_url": {
+      "type": "string",
+      "description": "URL espec\u00edfica de la tienda para esta categor\u00eda (opcional, si no usa la general del club)"
+    }
+  },
+  "required": [
+    "temporada",
+    "categoria"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
