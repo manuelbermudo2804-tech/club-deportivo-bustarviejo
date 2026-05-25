@@ -33,10 +33,24 @@ Deno.serve(async (req) => {
       return Response.json({ assignments: [], players: players.length });
     }
 
-    // Temporada más reciente con asignaciones
-    const temporadas = [...new Set(mine.map(x => x.temporada).filter(Boolean))].sort().reverse();
-    const target = temporadas[0];
+    // Usar la temporada ACTIVA del club (no la más reciente con datos,
+    // para evitar mostrar temporadas futuras de prueba)
+    let target = null;
+    try {
+      const seasons = await sr.entities.SeasonConfig.filter({ activa: true });
+      if (seasons && seasons.length > 0) target = seasons[0].temporada;
+    } catch {}
+
+    // Fallback: temporada más reciente con asignaciones
+    if (!target) {
+      const temporadas = [...new Set(mine.map(x => x.temporada).filter(Boolean))].sort().reverse();
+      target = temporadas[0];
+    }
     const filtered = mine.filter(x => x.temporada === target);
+
+    if (filtered.length === 0) {
+      return Response.json({ assignments: [], players: players.length, temporada: target });
+    }
 
     // Un dorsal por jugador
     filtered.sort((x, y) => new Date(y.updated_date || 0) - new Date(x.updated_date || 0));
