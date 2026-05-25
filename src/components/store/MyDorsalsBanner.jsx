@@ -47,7 +47,7 @@ export default function MyDorsalsBanner() {
                 ✅ {assignments.length === 1 ? "Tu dorsal ya está asignado" : "Dorsales asignados"}
               </h3>
               <p className="text-sm text-green-800">
-                Usa <strong>este número de dorsal</strong> al personalizar la equipación:
+                Personaliza la equipación con <strong>este dorsal</strong> y el <strong>nombre de pila</strong> del jugador/a:
               </p>
             </div>
           </div>
@@ -73,7 +73,7 @@ export default function MyDorsalsBanner() {
           <div className="mt-3 bg-amber-50 border border-amber-300 rounded-lg p-3 flex items-start gap-2">
             <Info className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-amber-900 leading-relaxed">
-              <strong>Importante:</strong> revisa bien el <strong>dorsal</strong> al hacer el pedido. La equipación se fabrica personalizada y no admite cambios.
+              <strong>Importante:</strong> el dorsal lo asigna el club (el que ves arriba) y el <strong>nombre</strong> lo eliges tú al hacer el pedido — normalmente el <strong>nombre de pila</strong> del jugador/a. La equipación se fabrica personalizada y no admite cambios.
             </p>
           </div>
         </CardContent>
