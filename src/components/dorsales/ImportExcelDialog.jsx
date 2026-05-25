@@ -15,14 +15,29 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
   const [rows, setRows] = useState([]); // [{ nombre, categoria, dorsal, matchedPlayer, conflictGroup }]
   const [importing, setImporting] = useState(false);
 
+  const [errorMsg, setErrorMsg] = useState("");
+  const [fileName, setFileName] = useState("");
+
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
+    setErrorMsg("");
+    if (!file) {
+      setErrorMsg("No se seléccionó ningún archivo.");
+      return;
+    }
+    setFileName(file.name);
     setUploading(true);
+    console.log("[ImportExcel] Archivo seleccionado:", file.name, file.size, file.type);
     try {
-      // Subir el archivo
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      // Extraer datos con esquema definido
+      // 1) Subir el archivo
+      console.log("[ImportExcel] Subiendo archivo...");
+      const uploadRes = await base44.integrations.Core.UploadFile({ file });
+      const file_url = uploadRes?.file_url;
+      console.log("[ImportExcel] Archivo subido:", file_url);
+      if (!file_url) throw new Error("No se obtuvo la URL del archivo subido");
+
+      // 2) Extraer datos con esquema definido
+      console.log("[ImportExcel] Extrayendo datos...");
       const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
         file_url,
         json_schema: {
@@ -43,13 +58,24 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
           },
         },
       });
-      if (result.status !== "success" || !result.output?.jugadores?.length) {
-        toast.error("No se pudieron extraer datos del archivo. Revisa el formato.");
+      console.log("[ImportExcel] Resultado extracción:", result);
+
+      if (result?.status !== "success") {
+        const detail = result?.details || "Sin detalles";
+        setErrorMsg(`La extracción falló: ${detail}`);
+        toast.error("No se pudieron extraer datos del archivo");
+        setUploading(false);
+        return;
+      }
+
+      const extracted = result.output?.jugadores || [];
+      if (extracted.length === 0) {
+        setErrorMsg("El archivo se subió pero no se encontraron filas con columnas 'nombre/categoria/dorsal'. Revisa que las cabeceras sean correctas.");
+        toast.error("No se encontraron filas válidas");
         setUploading(false);
         return;
       }
       // Hacer matching con jugadores existentes
-      const extracted = result.output.jugadores;
       const matched = extracted.map((r) => {
         const norm = normalizarNombre(r.nombre);
         const match = players.find((p) => normalizarNombre(p.nombre) === norm) ||
@@ -65,10 +91,13 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
       setStep(2);
       toast.success(`${matched.length} filas extraídas del archivo`);
     } catch (err) {
-      console.error(err);
-      toast.error("Error al procesar el archivo: " + (err.message || ""));
+      console.error("[ImportExcel] Error:", err);
+      setErrorMsg(`Error: ${err?.message || String(err)}`);
+      toast.error("Error al procesar el archivo");
     } finally {
       setUploading(false);
+      // Reset del input para permitir re-seleccionar el mismo archivo
+      if (e?.target) e.target.value = "";
     }
   };
 
@@ -208,17 +237,39 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
             <label className="block">
               <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:bg-slate-50 cursor-pointer transition-colors">
                 <Upload className="w-10 h-10 mx-auto text-slate-400 mb-2" />
-                <div className="font-semibold">{uploading ? "Procesando..." : "Selecciona el archivo Excel o CSV"}</div>
+                <div className="font-semibold">
+                  {uploading ? "Procesando archivo, por favor espera..." : "Selecciona el archivo Excel o CSV"}
+                </div>
                 <div className="text-xs text-slate-500 mt-1">.xlsx, .xls, .csv</div>
+                {fileName && !uploading && (
+                  <div className="text-xs text-slate-700 mt-2 font-medium">Último archivo: {fileName}</div>
+                )}
                 <input
                   type="file"
-                  accept=".xlsx,.xls,.csv"
+                  accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
                   className="hidden"
                   onChange={handleFile}
                   disabled={uploading}
                 />
               </div>
             </label>
+
+            {uploading && (
+              <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                Procesando el archivo... esto puede tardar 10-20 segundos.
+              </div>
+            )}
+
+            {errorMsg && (
+              <div className="text-sm text-red-800 bg-red-50 border border-red-200 rounded-lg p-3">
+                <strong>⚠️ No se pudo procesar:</strong>
+                <div className="mt-1">{errorMsg}</div>
+                <div className="mt-2 text-xs text-red-700">
+                  Comprueba que el Excel tiene cabeceras llamadas exactamente <code>nombre</code>, <code>categoria</code> y <code>dorsal</code> (sin tildes, en minúsculas en la primera fila).
+                </div>
+              </div>
+            )}
           </div>
         )}
 
