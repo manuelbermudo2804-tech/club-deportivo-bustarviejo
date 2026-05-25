@@ -185,7 +185,7 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
   }, [rows, conflicts]);
 
   const handleImport = async () => {
-    if (!confirm(`¿Importar ${stats.ok} dorsales y enviar emails a las familias?`)) return;
+    if (!confirm(`¿Importar ${stats.ok} dorsales? (No se enviarán emails todavía — podrás notificar a cada familia por email o WhatsApp desde la ficha de cada dorsal).`)) return;
     setImporting(true);
     try {
       const ganadoresConflicto = new Set(
@@ -225,16 +225,13 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
             const created = await base44.entities.DorsalAssignment.create(payload);
             id = created.id;
           }
-          try {
-            await base44.functions.invoke("sendDorsalAssignmentEmail", { assignment_id: id });
-          } catch {}
           ok++;
         } catch (e) {
           console.error("Error fila:", row, e);
           failed++;
         }
       }
-      toast.success(`✅ ${ok} dorsales importados${failed ? ` · ${failed} con error` : ""}`);
+      toast.success(`✅ ${ok} dorsales importados${failed ? ` · ${failed} con error` : ""}. Recuerda notificar a cada familia desde la ficha del dorsal.`);
       onImported?.();
       onOpenChange(false);
       setStep(1);

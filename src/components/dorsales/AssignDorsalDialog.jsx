@@ -52,14 +52,7 @@ export default function AssignDorsalDialog({ open, onOpenChange, dorsal, tempora
         const created = await base44.entities.DorsalAssignment.create(payload);
         assignmentId = created.id;
       }
-      // Enviar email automáticamente
-      try {
-        await base44.functions.invoke("sendDorsalAssignmentEmail", { assignment_id: assignmentId });
-        toast.success(`Dorsal #${dorsal} asignado a ${jugador.nombre} y email enviado a la familia ✉️`);
-      } catch (e) {
-        toast.success(`Dorsal #${dorsal} asignado a ${jugador.nombre}`);
-        toast.warning("No se pudo enviar el email automáticamente. Puedes reenviarlo desde la ficha.");
-      }
+      toast.success(`Dorsal #${dorsal} asignado a ${jugador.nombre}. Puedes notificar a la familia desde la ficha del dorsal.`);
       onAssigned?.();
       onOpenChange(false);
       setJugadorId("");
