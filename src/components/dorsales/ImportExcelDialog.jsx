@@ -2,6 +2,22 @@ import React, { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+
+// Mapea texto de equipo del Excel (FEMENINO, BENJAMIN, CADETE...) a categoría oficial del club
+function mapEquipoACategoria(equipo) {
+  if (!equipo) return "";
+  const k = String(equipo).toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  if (k.includes("FEMENINO") || k.includes("FEMENINA")) return "Fútbol Femenino";
+  if (k.includes("PRE-BENJAMIN") || k.includes("PREBENJAMIN") || k.includes("PRE BENJAMIN")) return "Fútbol Pre-Benjamín (Mixto)";
+  if (k.includes("BENJAMIN")) return "Fútbol Benjamín (Mixto)";
+  if (k.includes("ALEVIN")) return "Fútbol Alevín (Mixto)";
+  if (k.includes("INFANTIL")) return "Fútbol Infantil (Mixto)";
+  if (k.includes("CADETE")) return "Fútbol Cadete";
+  if (k.includes("JUVENIL")) return "Fútbol Juvenil";
+  if (k.includes("AFICIONADO") || k.includes("SENIOR") || k.includes("SÉNIOR")) return "Fútbol Aficionado";
+  if (k.includes("BALONCESTO") || k.includes("BASKET")) return "Baloncesto (Mixto)";
+  return equipo; // fallback: dejar el texto tal cual
+}
 import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
@@ -36,7 +52,9 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
       console.log("[ImportExcel] Archivo subido:", file_url);
       if (!file_url) throw new Error("No se obtuvo la URL del archivo subido");
 
-      // 2) Extraer datos con esquema definido
+      // 2) Extraer datos con esquema flexible: acepta varias variantes de cabeceras
+      // Tu Excel usa: Equipo / Nombre y Apellidos / Dorsal (y puede tener varias hojas).
+      // Le pedimos al extractor que junte TODAS las hojas en una sola lista.
       console.log("[ImportExcel] Extrayendo datos...");
       const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
         file_url,
@@ -45,12 +63,22 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
           properties: {
             jugadores: {
               type: "array",
+              description: "Lista de TODOS los jugadores de TODAS las hojas del Excel. Si hay varias hojas (FEMENINO, BENJAMIN, ALEVIN, INFANTIL, CADETE, JUVENIL, AFICIONADO…), incluye los jugadores de cada una. Si hay hojas duplicadas como '25_26' o '26_27' que contienen todo, usa preferiblemente la más reciente.",
               items: {
                 type: "object",
                 properties: {
-                  nombre: { type: "string", description: "Nombre completo del jugador" },
-                  categoria: { type: "string", description: "Categoría deportiva (ej: Fútbol Cadete)" },
-                  dorsal: { type: "number", description: "Número de dorsal solicitado" },
+                  nombre: {
+                    type: "string",
+                    description: "Nombre completo del jugador. Puede venir en columnas llamadas 'Nombre y Apellidos', 'Nombre', 'Jugador', 'Player', etc.",
+                  },
+                  equipo: {
+                    type: "string",
+                    description: "Equipo/categoría del jugador. Puede venir en la columna 'Equipo', 'Categoría', 'Team', o ser el NOMBRE DE LA HOJA del Excel (FEMENINO, BENJAMIN, ALEVIN, INFANTIL, CADETE, JUVENIL, AFICIONADO).",
+                  },
+                  dorsal: {
+                    type: "number",
+                    description: "Número de dorsal (columna 'Dorsal', 'Número', 'Nº'). Solo el número entero.",
+                  },
                 },
                 required: ["nombre"],
               },
@@ -75,18 +103,27 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
         setUploading(false);
         return;
       }
-      // Hacer matching con jugadores existentes
-      const matched = extracted.map((r) => {
-        const norm = normalizarNombre(r.nombre);
-        const match = players.find((p) => normalizarNombre(p.nombre) === norm) ||
-                      players.find((p) => normalizarNombre(p.nombre).includes(norm) || norm.includes(normalizarNombre(p.nombre)));
-        return {
-          nombre_excel: r.nombre,
-          categoria: r.categoria || "",
-          dorsal: r.dorsal ? Number(r.dorsal) : null,
-          matchedPlayer: match || null,
-        };
-      });
+      // Hacer matching con jugadores existentes + deduplicar por nombre
+      const seen = new Set();
+      const matched = extracted
+        .filter((r) => r && r.nombre)
+        .map((r) => {
+          const norm = normalizarNombre(r.nombre);
+          if (seen.has(norm)) return null;
+          seen.add(norm);
+          const match = players.find((p) => normalizarNombre(p.nombre) === norm) ||
+                        players.find((p) => normalizarNombre(p.nombre).includes(norm) || norm.includes(normalizarNombre(p.nombre)));
+          // r.categoria por compatibilidad, r.equipo del nuevo esquema
+          const equipoRaw = r.equipo || r.categoria || "";
+          return {
+            nombre_excel: r.nombre,
+            categoria: mapEquipoACategoria(equipoRaw),
+            equipo_raw: equipoRaw,
+            dorsal: r.dorsal ? Number(r.dorsal) : null,
+            matchedPlayer: match || null,
+          };
+        })
+        .filter(Boolean);
       setRows(matched);
       setStep(2);
       toast.success(`${matched.length} filas extraídas del archivo`);
@@ -223,14 +260,15 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
         {step === 1 && (
           <div className="space-y-4">
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-900">
-              <strong>📋 Formato esperado del Excel/CSV:</strong>
-              <div className="mt-2">
-                Columnas: <code className="bg-white px-2 py-0.5 rounded">nombre</code>{" "}
-                <code className="bg-white px-2 py-0.5 rounded">categoria</code>{" "}
-                <code className="bg-white px-2 py-0.5 rounded">dorsal</code>
-              </div>
+              <strong>📋 Qué formato acepta el sistema:</strong>
+              <ul className="mt-2 space-y-1 text-xs text-blue-800 list-disc list-inside">
+                <li>Columnas con el nombre del jugador (ej: <code>Nombre y Apellidos</code>, <code>Nombre</code>, <code>Jugador</code>).</li>
+                <li>Columna con el equipo/categoría (ej: <code>Equipo</code>, <code>Categoría</code>) <strong>o</strong> usar el nombre de cada <strong>hoja</strong> como categoría (FEMENINO, BENJAMIN, ALEVIN…).</li>
+                <li>Columna <code>Dorsal</code> con el número.</li>
+                <li>Acepta <strong>varias hojas</strong> en el mismo archivo — las une todas automáticamente.</li>
+              </ul>
               <div className="mt-2 text-xs text-blue-700">
-                El sistema reconoce el jugador por el nombre y avisa de conflictos antes de guardar nada.
+                El sistema reconoce al jugador por el nombre y avisa de conflictos antes de guardar nada.
               </div>
             </div>
 
@@ -334,7 +372,8 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
                       <th className="px-2 py-1 text-left">Estado</th>
                       <th className="px-2 py-1 text-left">Nombre (Excel)</th>
                       <th className="px-2 py-1 text-left">Jugador encontrado</th>
-                      <th className="px-2 py-1 text-left">Categoría</th>
+                      <th className="px-2 py-1 text-left">Equipo (Excel)</th>
+                      <th className="px-2 py-1 text-left">Categoría mapeada</th>
                       <th className="px-2 py-1 text-right">Dorsal</th>
                     </tr>
                   </thead>
@@ -355,6 +394,7 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
                           <td className="px-2 py-1 text-slate-600">
                             {r.matchedPlayer ? r.matchedPlayer.nombre : <span className="text-red-600">No encontrado</span>}
                           </td>
+                          <td className="px-2 py-1 text-slate-500 text-xs">{r.equipo_raw || "—"}</td>
                           <td className="px-2 py-1 text-slate-600">{r.categoria || "—"}</td>
                           <td className="px-2 py-1 text-right font-bold">{r.dorsal || "—"}</td>
                         </tr>
