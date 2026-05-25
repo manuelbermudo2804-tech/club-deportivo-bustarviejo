@@ -49,13 +49,20 @@ export default function MyDorsalsBanner() {
         const mine = (all || []).filter((a) => playerIds.includes(a.jugador_id));
         console.log("[MyDorsalsBanner] mine assignments:", mine.length, mine.map(a => ({ player: a.jugador_nombre, dorsal: a.dorsal, temp: a.temporada })));
 
-        mine.sort((a, b) => String(b.temporada).localeCompare(String(a.temporada)));
+        // Quedarnos con la temporada más reciente que tenga asignaciones para este usuario
+        const temporadas = [...new Set(mine.map(a => a.temporada).filter(Boolean))].sort().reverse();
+        const temporadaTarget = temporadas[0];
+        console.log("[MyDorsalsBanner] temporada target:", temporadaTarget);
+
+        const mineDeTemporada = mine.filter(a => a.temporada === temporadaTarget);
+
+        // Un dorsal por jugador (el más reciente si hubiera duplicados en la misma temporada)
+        mineDeTemporada.sort((a, b) => new Date(b.updated_date || 0) - new Date(a.updated_date || 0));
         const seen = new Set();
         const unique = [];
-        for (const a of mine) {
-          const key = `${a.jugador_id}|${a.categoria}`;
-          if (seen.has(key)) continue;
-          seen.add(key);
+        for (const a of mineDeTemporada) {
+          if (seen.has(a.jugador_id)) continue;
+          seen.add(a.jugador_id);
           unique.push(a);
         }
         setAssignments(unique);
