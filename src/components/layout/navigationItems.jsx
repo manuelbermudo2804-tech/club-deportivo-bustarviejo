@@ -4,7 +4,7 @@ import {
   Settings, MessageCircle, Clock, Image, FileText, Clover, UserCircle,
   FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert,
   ClipboardCheck, Star, Trophy, KeyRound, RotateCw, CheckCircle2,
-  User as UserIcon, Share2, ExternalLink
+  User as UserIcon, Share2, ExternalLink, Shirt
 } from "lucide-react";
 
 /**
@@ -54,6 +54,7 @@ export function buildAdminNavigation(ctx) {
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
     { title: "⏱️ Control Minutos", url: createPageUrl("MatchMinutesTracker"), icon: Clock },
+    { title: "👕 Gestión de Dorsales", url: createPageUrl("DorsalManagement"), icon: Shirt },
 
     { title: "─ CALENDARIO Y EVENTOS ─", section: true },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
