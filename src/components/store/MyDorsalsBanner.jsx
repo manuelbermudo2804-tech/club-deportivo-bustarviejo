@@ -35,11 +35,21 @@ export default function MyDorsalsBanner() {
         console.log("[MyDorsalsBanner] user:", user?.email);
         if (!user || cancelled) return;
 
-        const players = await withRetry(() => base44.entities.Player.list("-updated_date", 50), "Player.list");
+        // Buscar jugadores por todos los emails posibles del usuario (padre, tutor2, jugador, menor)
+        const email = user.email;
+        const [byPadre, byTutor2, byJugador, byMenor] = await Promise.all([
+          withRetry(() => base44.entities.Player.filter({ email_padre: email }), "Player.byPadre"),
+          withRetry(() => base44.entities.Player.filter({ email_tutor_2: email }), "Player.byTutor2"),
+          withRetry(() => base44.entities.Player.filter({ email_jugador: email }), "Player.byJugador"),
+          withRetry(() => base44.entities.Player.filter({ acceso_menor_email: email }), "Player.byMenor"),
+        ]);
         if (cancelled) return;
-        console.log("[MyDorsalsBanner] players found:", players?.length, players?.map(p => ({ id: p.id, nombre: p.nombre })));
+        const allPlayersMap = new Map();
+        [...(byPadre||[]), ...(byTutor2||[]), ...(byJugador||[]), ...(byMenor||[])].forEach(p => allPlayersMap.set(p.id, p));
+        const players = [...allPlayersMap.values()];
+        console.log("[MyDorsalsBanner] players found:", players.length, players.map(p => ({ id: p.id, nombre: p.nombre })));
 
-        const playerIds = (players || []).map((p) => p.id);
+        const playerIds = players.map((p) => p.id);
         if (playerIds.length === 0) { setAssignments([]); return; }
 
         const all = await withRetry(() => base44.entities.DorsalAssignment.filter({ estado: "asignado" }), "DorsalAssignment.filter");
