@@ -19,9 +19,13 @@ const LS_FIRMA = "recibo_firma_url";
 // Datos del emisor — propios de facturas
 const LS_EMISOR = "factura_emisor_datos";
 
+// CIF oficial del club — NO modificar. Se fuerza en cada render para sobrescribir
+// cualquier valor antiguo guardado en localStorage de versiones anteriores.
+const CLUB_CIF_OFICIAL = "G80877673";
+
 const DEFAULT_EMISOR = {
   emisorNombre: "CD BUSTARVIEJO",
-  emisorCif: "G-86543210",
+  emisorCif: CLUB_CIF_OFICIAL,
   emisorDireccion: "C/ Real, s/n",
   emisorCp: "28720 Bustarviejo (Madrid)",
   emisorEmail: "info@cdbustarviejo.com",
@@ -65,7 +69,9 @@ export default function FacturaGenerator() {
   const [emisor, setEmisor] = useState(() => {
     try {
       const stored = localStorage.getItem(LS_EMISOR);
-      return stored ? { ...DEFAULT_EMISOR, ...JSON.parse(stored) } : DEFAULT_EMISOR;
+      const merged = stored ? { ...DEFAULT_EMISOR, ...JSON.parse(stored) } : DEFAULT_EMISOR;
+      // Forzar siempre el CIF oficial — no se permite modificación
+      return { ...merged, emisorCif: CLUB_CIF_OFICIAL };
     } catch { return DEFAULT_EMISOR; }
   });
 
@@ -264,7 +270,8 @@ export default function FacturaGenerator() {
                   </div>
                   <div>
                     <Label className="text-xs">CIF</Label>
-                    <Input value={emisor.emisorCif} onChange={(e) => updateEmisor("emisorCif", e.target.value)} />
+                    <Input value={CLUB_CIF_OFICIAL} disabled readOnly className="bg-slate-100 text-slate-700 font-semibold cursor-not-allowed" />
+                    <p className="text-[10px] text-slate-400 mt-1">CIF oficial del club — no modificable</p>
                   </div>
                 </div>
                 <div>
