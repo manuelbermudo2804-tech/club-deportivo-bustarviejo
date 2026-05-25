@@ -1,7 +1,12 @@
 import React, { useState, useMemo } from "react";
+import * as XLSX from "xlsx";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
+import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
+import { normalizarNombre, resolverPrioridad } from "./dorsalHelpers";
 
 // Mapea texto de equipo del Excel (FEMENINO, BENJAMIN, CADETE...) a categoría oficial del club
 function mapEquipoACategoria(equipo) {
@@ -16,124 +21,126 @@ function mapEquipoACategoria(equipo) {
   if (k.includes("JUVENIL")) return "Fútbol Juvenil";
   if (k.includes("AFICIONADO") || k.includes("SENIOR") || k.includes("SÉNIOR")) return "Fútbol Aficionado";
   if (k.includes("BALONCESTO") || k.includes("BASKET")) return "Baloncesto (Mixto)";
-  return equipo; // fallback: dejar el texto tal cual
+  return equipo;
 }
-import { Upload, FileSpreadsheet, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
-import { toast } from "sonner";
-import { base44 } from "@/api/base44Client";
-import { normalizarNombre, resolverPrioridad } from "./dorsalHelpers";
 
-// Importa un Excel/CSV con: nombre, categoria, dorsal
-// Pasos: 1) subir archivo → 2) revisar matches → 3) confirmar e importar
+// Busca la columna que contenga uno de los alias dados
+function findCol(headers, aliases) {
+  const norm = (s) => String(s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+  for (const h of headers) {
+    const nh = norm(h);
+    for (const a of aliases) {
+      if (nh === norm(a) || nh.includes(norm(a))) return h;
+    }
+  }
+  return null;
+}
+
+// Detecta si el nombre de la hoja es del estilo 'YY_YY' (ej '25_26') → es hoja resumen, la saltamos
+function isResumenSheet(name) {
+  return /^\d{2}_\d{2}$/.test(String(name || "").trim());
+}
+
+// Lee un .xlsx/.xls/.csv localmente y devuelve [{nombre, equipo, dorsal}]
+function parseExcelFile(arrayBuffer) {
+  const wb = XLSX.read(arrayBuffer, { type: "array" });
+  const allRows = [];
+
+  // Si hay hojas tipo '25_26' (resumen con todas las categorías) usamos solo la más reciente
+  const sheetNames = wb.SheetNames;
+  const resumenSheets = sheetNames.filter(isResumenSheet);
+  const categoriaSheets = sheetNames.filter((s) => !isResumenSheet(s));
+
+  let sheetsToUse;
+  if (resumenSheets.length > 0) {
+    // Usar la hoja resumen más reciente (orden alfabético inverso)
+    const latest = resumenSheets.sort().reverse()[0];
+    sheetsToUse = [latest];
+  } else {
+    sheetsToUse = categoriaSheets;
+  }
+
+  for (const sheetName of sheetsToUse) {
+    const ws = wb.Sheets[sheetName];
+    if (!ws) continue;
+    const json = XLSX.utils.sheet_to_json(ws, { defval: "" });
+    if (!json.length) continue;
+
+    const headers = Object.keys(json[0] || {});
+    const colNombre = findCol(headers, ["nombre y apellidos", "nombre completo", "nombre", "jugador", "player"]);
+    const colEquipo = findCol(headers, ["equipo", "categoria", "team", "grupo"]);
+    const colDorsal = findCol(headers, ["dorsal", "numero", "nº", "n.", "number"]);
+
+    for (const row of json) {
+      const nombre = colNombre ? String(row[colNombre] || "").trim() : "";
+      if (!nombre) continue;
+      const equipo = colEquipo ? String(row[colEquipo] || "").trim() : sheetName; // si no hay col Equipo, usar nombre de hoja
+      const dorsalRaw = colDorsal ? row[colDorsal] : null;
+      const dorsal = dorsalRaw !== null && dorsalRaw !== "" ? Number(dorsalRaw) : null;
+      allRows.push({ nombre, equipo, dorsal: Number.isFinite(dorsal) ? dorsal : null });
+    }
+  }
+  return allRows;
+}
+
 export default function ImportExcelDialog({ open, onOpenChange, temporada, players = [], allAssignments = [], onImported }) {
   const [step, setStep] = useState(1);
   const [uploading, setUploading] = useState(false);
-  const [rows, setRows] = useState([]); // [{ nombre, categoria, dorsal, matchedPlayer, conflictGroup }]
+  const [rows, setRows] = useState([]);
   const [importing, setImporting] = useState(false);
-
   const [errorMsg, setErrorMsg] = useState("");
   const [fileName, setFileName] = useState("");
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
     setErrorMsg("");
-    if (!file) {
-      setErrorMsg("No se seléccionó ningún archivo.");
-      return;
-    }
+    if (!file) return;
     setFileName(file.name);
     setUploading(true);
-    console.log("[ImportExcel] Archivo seleccionado:", file.name, file.size, file.type);
+    console.log("[ImportExcel] Archivo:", file.name, file.size, file.type);
+
     try {
-      // 1) Subir el archivo
-      console.log("[ImportExcel] Subiendo archivo...");
-      const uploadRes = await base44.integrations.Core.UploadFile({ file });
-      const file_url = uploadRes?.file_url;
-      console.log("[ImportExcel] Archivo subido:", file_url);
-      if (!file_url) throw new Error("No se obtuvo la URL del archivo subido");
+      const buf = await file.arrayBuffer();
+      const extracted = parseExcelFile(buf);
+      console.log("[ImportExcel] Filas extraídas:", extracted.length, extracted.slice(0, 3));
 
-      // 2) Extraer datos con esquema flexible: acepta varias variantes de cabeceras
-      // Tu Excel usa: Equipo / Nombre y Apellidos / Dorsal (y puede tener varias hojas).
-      // Le pedimos al extractor que junte TODAS las hojas en una sola lista.
-      console.log("[ImportExcel] Extrayendo datos...");
-      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url,
-        json_schema: {
-          type: "object",
-          properties: {
-            jugadores: {
-              type: "array",
-              description: "Lista de TODOS los jugadores de TODAS las hojas del Excel. Si hay varias hojas (FEMENINO, BENJAMIN, ALEVIN, INFANTIL, CADETE, JUVENIL, AFICIONADO…), incluye los jugadores de cada una. Si hay hojas duplicadas como '25_26' o '26_27' que contienen todo, usa preferiblemente la más reciente.",
-              items: {
-                type: "object",
-                properties: {
-                  nombre: {
-                    type: "string",
-                    description: "Nombre completo del jugador. Puede venir en columnas llamadas 'Nombre y Apellidos', 'Nombre', 'Jugador', 'Player', etc.",
-                  },
-                  equipo: {
-                    type: "string",
-                    description: "Equipo/categoría del jugador. Puede venir en la columna 'Equipo', 'Categoría', 'Team', o ser el NOMBRE DE LA HOJA del Excel (FEMENINO, BENJAMIN, ALEVIN, INFANTIL, CADETE, JUVENIL, AFICIONADO).",
-                  },
-                  dorsal: {
-                    type: "number",
-                    description: "Número de dorsal (columna 'Dorsal', 'Número', 'Nº'). Solo el número entero.",
-                  },
-                },
-                required: ["nombre"],
-              },
-            },
-          },
-        },
-      });
-      console.log("[ImportExcel] Resultado extracción:", result);
-
-      if (result?.status !== "success") {
-        const detail = result?.details || "Sin detalles";
-        setErrorMsg(`La extracción falló: ${detail}`);
-        toast.error("No se pudieron extraer datos del archivo");
-        setUploading(false);
-        return;
-      }
-
-      const extracted = result.output?.jugadores || [];
       if (extracted.length === 0) {
-        setErrorMsg("El archivo se subió pero no se encontraron filas con columnas 'nombre/categoria/dorsal'. Revisa que las cabeceras sean correctas.");
-        toast.error("No se encontraron filas válidas");
+        setErrorMsg("No se encontraron filas con datos. Asegúrate de que el Excel tiene columnas con el nombre del jugador, equipo y dorsal.");
         setUploading(false);
         return;
       }
-      // Hacer matching con jugadores existentes + deduplicar por nombre
+
+      // Deduplicar por nombre + matching con jugadores existentes
       const seen = new Set();
       const matched = extracted
-        .filter((r) => r && r.nombre)
         .map((r) => {
           const norm = normalizarNombre(r.nombre);
           if (seen.has(norm)) return null;
           seen.add(norm);
           const match = players.find((p) => normalizarNombre(p.nombre) === norm) ||
-                        players.find((p) => normalizarNombre(p.nombre).includes(norm) || norm.includes(normalizarNombre(p.nombre)));
-          // r.categoria por compatibilidad, r.equipo del nuevo esquema
-          const equipoRaw = r.equipo || r.categoria || "";
+                        players.find((p) => {
+                          const np = normalizarNombre(p.nombre);
+                          return np && norm && (np.includes(norm) || norm.includes(np));
+                        });
           return {
             nombre_excel: r.nombre,
-            categoria: mapEquipoACategoria(equipoRaw),
-            equipo_raw: equipoRaw,
-            dorsal: r.dorsal ? Number(r.dorsal) : null,
+            equipo_raw: r.equipo,
+            categoria: mapEquipoACategoria(r.equipo),
+            dorsal: r.dorsal,
             matchedPlayer: match || null,
           };
         })
         .filter(Boolean);
+
       setRows(matched);
       setStep(2);
-      toast.success(`${matched.length} filas extraídas del archivo`);
+      toast.success(`${matched.length} jugadores leídos del archivo`);
     } catch (err) {
       console.error("[ImportExcel] Error:", err);
-      setErrorMsg(`Error: ${err?.message || String(err)}`);
-      toast.error("Error al procesar el archivo");
+      setErrorMsg(`Error leyendo el archivo: ${err?.message || String(err)}`);
+      toast.error("No se pudo leer el archivo");
     } finally {
       setUploading(false);
-      // Reset del input para permitir re-seleccionar el mismo archivo
       if (e?.target) e.target.value = "";
     }
   };
@@ -151,7 +158,6 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
       .filter(([, arr]) => arr.length > 1)
       .map(([key, arr]) => {
         const [categoria, dorsal] = key.split("__");
-        // Resolver prioridad para sugerir ganador
         const candidatos = arr
           .filter((x) => x.matchedPlayer)
           .map((x) => ({
@@ -174,7 +180,7 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
     const sinDorsal = rows.filter((r) => !r.dorsal).length;
     const sinCategoria = rows.filter((r) => !r.categoria).length;
     const conflictIndices = new Set(conflicts.flatMap((c) => c.arr.map((x) => x.index)));
-    const ok = rows.length - sinMatch - sinDorsal - sinCategoria - conflictIndices.size;
+    const ok = rows.filter((r, i) => r.matchedPlayer && r.dorsal && r.categoria && !conflictIndices.has(i)).length;
     return { ok, sinMatch, sinDorsal, sinCategoria, conflictCount: conflictIndices.size };
   }, [rows, conflicts]);
 
@@ -182,7 +188,6 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
     if (!confirm(`¿Importar ${stats.ok} dorsales y enviar emails a las familias?`)) return;
     setImporting(true);
     try {
-      // Construir conjunto de filas a importar (ok + ganadores de conflictos)
       const ganadoresConflicto = new Set(
         conflicts.map((c) => c.ganador?.originalRow.index).filter((i) => i !== undefined)
       );
@@ -234,6 +239,7 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
       onOpenChange(false);
       setStep(1);
       setRows([]);
+      setFileName("");
     } catch (err) {
       console.error(err);
       toast.error("Error en la importación");
@@ -245,11 +251,13 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
   const reset = () => {
     setStep(1);
     setRows([]);
+    setFileName("");
+    setErrorMsg("");
   };
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <FileSpreadsheet className="w-5 h-5 text-green-600" />
@@ -260,23 +268,20 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
         {step === 1 && (
           <div className="space-y-4">
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-900">
-              <strong>📋 Qué formato acepta el sistema:</strong>
+              <strong>📋 Formatos aceptados:</strong>
               <ul className="mt-2 space-y-1 text-xs text-blue-800 list-disc list-inside">
-                <li>Columnas con el nombre del jugador (ej: <code>Nombre y Apellidos</code>, <code>Nombre</code>, <code>Jugador</code>).</li>
-                <li>Columna con el equipo/categoría (ej: <code>Equipo</code>, <code>Categoría</code>) <strong>o</strong> usar el nombre de cada <strong>hoja</strong> como categoría (FEMENINO, BENJAMIN, ALEVIN…).</li>
+                <li>Columnas con nombre del jugador (<code>Nombre y Apellidos</code>, <code>Nombre</code>, <code>Jugador</code>).</li>
+                <li>Columna de equipo/categoría (<code>Equipo</code>, <code>Categoría</code>) <strong>o</strong> usa el nombre de cada hoja como equipo (FEMENINO, BENJAMIN, ALEVIN…).</li>
                 <li>Columna <code>Dorsal</code> con el número.</li>
-                <li>Acepta <strong>varias hojas</strong> en el mismo archivo — las une todas automáticamente.</li>
+                <li>Varias hojas en un archivo: se unen automáticamente. Si hay hoja resumen tipo <code>25_26</code> o <code>26_27</code>, se usa solo la más reciente.</li>
               </ul>
-              <div className="mt-2 text-xs text-blue-700">
-                El sistema reconoce al jugador por el nombre y avisa de conflictos antes de guardar nada.
-              </div>
             </div>
 
             <label className="block">
               <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:bg-slate-50 cursor-pointer transition-colors">
                 <Upload className="w-10 h-10 mx-auto text-slate-400 mb-2" />
                 <div className="font-semibold">
-                  {uploading ? "Procesando archivo, por favor espera..." : "Selecciona el archivo Excel o CSV"}
+                  {uploading ? "Leyendo archivo..." : "Haz clic aquí para seleccionar tu Excel"}
                 </div>
                 <div className="text-xs text-slate-500 mt-1">.xlsx, .xls, .csv</div>
                 {fileName && !uploading && (
@@ -284,7 +289,7 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
                 )}
                 <input
                   type="file"
-                  accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel,text/csv"
+                  accept=".xlsx,.xls,.csv"
                   className="hidden"
                   onChange={handleFile}
                   disabled={uploading}
@@ -295,17 +300,14 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
             {uploading && (
               <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                Procesando el archivo... esto puede tardar 10-20 segundos.
+                Leyendo el Excel en tu navegador... (instantáneo)
               </div>
             )}
 
             {errorMsg && (
               <div className="text-sm text-red-800 bg-red-50 border border-red-200 rounded-lg p-3">
-                <strong>⚠️ No se pudo procesar:</strong>
+                <strong>⚠️ Error:</strong>
                 <div className="mt-1">{errorMsg}</div>
-                <div className="mt-2 text-xs text-red-700">
-                  Comprueba que el Excel tiene cabeceras llamadas exactamente <code>nombre</code>, <code>categoria</code> y <code>dorsal</code> (sin tildes, en minúsculas en la primera fila).
-                </div>
               </div>
             )}
           </div>
@@ -340,7 +342,7 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                 <div className="font-semibold text-amber-900 flex items-center gap-2 mb-2">
                   <AlertTriangle className="w-4 h-4" />
-                  Conflictos detectados — se asignará el dorsal al jugador con más antigüedad
+                  Conflictos — se asignará al jugador con más antigüedad
                 </div>
                 <div className="space-y-2">
                   {conflicts.map((c, i) => (
@@ -381,7 +383,6 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
                     {rows.map((r, i) => {
                       const conflictRow = conflicts.find((c) => c.arr.some((x) => x.index === i));
                       const isLoser = conflictRow && conflictRow.ganador?.jugadorId !== r.matchedPlayer?.id;
-                      const ok = r.matchedPlayer && r.dorsal && r.categoria && !isLoser;
                       return (
                         <tr key={i} className="border-t">
                           <td className="px-2 py-1">
