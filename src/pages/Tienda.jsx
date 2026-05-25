@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { ShoppingBag } from "lucide-react";
 import EquipacionSection from "../components/store/EquipacionSection";
 import MerchSection from "../components/store/MerchSection";
+import MyDorsalsBanner from "../components/store/MyDorsalsBanner";
 
 export default function Tienda() {
   const [config, setConfig] = useState(null);
@@ -35,6 +36,8 @@ export default function Tienda() {
         </h1>
         <p className="text-slate-500 text-sm mt-1">Equipación oficial y merchandising del CD Bustarviejo</p>
       </div>
+
+      <MyDorsalsBanner />
 
       <EquipacionSection clothingUrl={clothingUrl} />
       <MerchSection merchUrl={merchUrl} />
