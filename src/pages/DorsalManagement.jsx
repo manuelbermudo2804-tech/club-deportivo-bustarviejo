@@ -91,7 +91,7 @@ export default function DorsalManagement() {
   }, [temporada]);
 
   const config = useMemo(
-    () => configs.find((c) => c.categoria === categoria) || { dorsal_min: 1, dorsal_max: 25, dorsales_reservados: [] },
+    () => configs.find((c) => c.categoria === categoria) || { dorsal_min: 1, dorsal_max: 60, dorsales_reservados: [] },
     [configs, categoria]
   );
 
