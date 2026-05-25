@@ -15,27 +15,39 @@ export default function MyDorsalsBanner() {
 
   useEffect(() => {
     let cancelled = false;
+
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+    const withRetry = async (fn, label) => {
+      for (let i = 0; i < 4; i++) {
+        try { return await fn(); }
+        catch (e) {
+          const is429 = e?.status === 429 || /rate limit/i.test(e?.message || "");
+          if (!is429 || i === 3) throw e;
+          console.log(`[MyDorsalsBanner] ${label}: rate limited, retry ${i + 1}/3`);
+          await sleep(1500 * (i + 1));
+        }
+      }
+    };
+
     (async () => {
       try {
-        const user = await base44.auth.me();
+        const user = await withRetry(() => base44.auth.me(), "auth.me");
+        console.log("[MyDorsalsBanner] user:", user?.email);
         if (!user || cancelled) return;
 
-        // Cargar jugadores vinculados a esta familia/jugador (filtrados por RLS)
-        const players = await base44.entities.Player.list("-updated_date", 50);
+        const players = await withRetry(() => base44.entities.Player.list("-updated_date", 50), "Player.list");
         if (cancelled) return;
+        console.log("[MyDorsalsBanner] players found:", players?.length, players?.map(p => ({ id: p.id, nombre: p.nombre })));
 
         const playerIds = (players || []).map((p) => p.id);
-        if (playerIds.length === 0) {
-          setAssignments([]);
-          return;
-        }
+        if (playerIds.length === 0) { setAssignments([]); return; }
 
-        // Buscar TODOS los dorsales asignados (cualquier temporada) y quedarnos
-        // con el más reciente por cada (jugador, categoria).
-        const all = await base44.entities.DorsalAssignment.filter({ estado: "asignado" });
+        const all = await withRetry(() => base44.entities.DorsalAssignment.filter({ estado: "asignado" }), "DorsalAssignment.filter");
         if (cancelled) return;
+        console.log("[MyDorsalsBanner] total assignments:", all?.length);
 
         const mine = (all || []).filter((a) => playerIds.includes(a.jugador_id));
+        console.log("[MyDorsalsBanner] mine assignments:", mine.length, mine.map(a => ({ player: a.jugador_nombre, dorsal: a.dorsal, temp: a.temporada })));
 
         mine.sort((a, b) => String(b.temporada).localeCompare(String(a.temporada)));
         const seen = new Set();
@@ -47,7 +59,8 @@ export default function MyDorsalsBanner() {
           unique.push(a);
         }
         setAssignments(unique);
-      } catch {
+      } catch (e) {
+        console.error("[MyDorsalsBanner] ERROR:", e);
         if (!cancelled) setAssignments([]);
       } finally {
         if (!cancelled) setLoading(false);
