@@ -8,15 +8,30 @@ import { base44 } from "@/api/base44Client";
 
 // Construye el mensaje de WhatsApp listo para enviar a la familia
 function buildWhatsAppMessage({ jugador_nombre, dorsal, categoria, temporada, tiendaUrl }) {
+  const appUrl = "https://cdbustarviejo.base44.app";
   const lines = [
-    `⚽ ¡Hola! Ya tenemos el dorsal de *${jugador_nombre}* para la temporada *${temporada}*:`,
+    `⚽ ¡Hola! Ya tenemos asignado el dorsal de *${jugador_nombre}* para la temporada *${temporada}* 🎉`,
     "",
-    `*Dorsal #${dorsal}* — ${categoria}`,
+    `🔢 *Dorsal #${dorsal}*`,
+    `🏆 ${categoria}`,
     "",
-    `Ya puedes pedir la equipación con este dorsal en la tienda oficial del club.`,
+    `👕 *¿Cómo pedir la equipación?*`,
+    `1️⃣ Abre la app del club: ${appUrl}`,
+    `2️⃣ Entra en *Tienda y Equipación*`,
+    `3️⃣ Elige las prendas e indica el *#${dorsal}* en personalización`,
   ];
-  if (tiendaUrl) lines.push("", `🛍️ Tienda: ${tiendaUrl}`);
-  lines.push("", "Un saludo, *CD Bustarviejo*");
+  if (tiendaUrl) {
+    lines.push("", `🛍️ También puedes ir directo a la tienda: ${tiendaUrl}`);
+  }
+  lines.push(
+    "",
+    `⚠️ *Importante:* asegúrate de poner el dorsal *#${dorsal}* al hacer el pedido. Una vez personalizada, la equipación no admite cambios.`,
+    "",
+    `¿Dudas? Respóndenos por aquí o escribe al coordinador desde la app.`,
+    "",
+    `¡Nos vemos en el campo! 💪🟢⚫`,
+    `*CD Bustarviejo*`
+  );
   return lines.join("\n");
 }
 
