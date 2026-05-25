@@ -410,7 +410,7 @@ export default function ImportExcelDialog({ open, onOpenChange, temporada, playe
             <>
               <Button variant="outline" onClick={reset} disabled={importing}>Volver a subir</Button>
               <Button onClick={handleImport} disabled={importing || stats.ok === 0} className="bg-green-600 hover:bg-green-700">
-                {importing ? "Importando..." : `Importar ${stats.ok} dorsales y enviar emails`}
+                {importing ? "Importando..." : `Importar ${stats.ok} dorsales (sin notificar)`}
               </Button>
             </>
           )}
