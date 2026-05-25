@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Shirt, Grid3x3, AlertTriangle, History as HistoryIcon } from "lucide-react";
+import { Shirt, Grid3x3, AlertTriangle, History as HistoryIcon, Upload } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
@@ -13,6 +13,7 @@ import AssignDorsalDialog from "@/components/dorsales/AssignDorsalDialog";
 import AssignmentDetailDialog from "@/components/dorsales/AssignmentDetailDialog";
 import ConflictPreviewPanel from "@/components/dorsales/ConflictPreviewPanel";
 import PendingPlayersPanel from "@/components/dorsales/PendingPlayersPanel";
+import ImportExcelDialog from "@/components/dorsales/ImportExcelDialog";
 import { getNextSeason, loadDorsalData } from "@/components/dorsales/dorsalHelpers";
 
 const CATEGORIAS = [
@@ -41,6 +42,7 @@ export default function DorsalManagement() {
   const [assignDorsal, setAssignDorsal] = useState(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [detailAssignment, setDetailAssignment] = useState(null);
+  const [importOpen, setImportOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -140,10 +142,14 @@ export default function DorsalManagement() {
         <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center shadow-lg">
           <Shirt className="w-6 h-6 text-white" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold">Gestión de Dorsales</h1>
           <p className="text-sm text-slate-600">Asigna dorsales por temporada, categoría y previsiones de conflictos</p>
         </div>
+        <Button onClick={() => setImportOpen(true)} className="bg-green-600 hover:bg-green-700 gap-2">
+          <Upload className="w-4 h-4" />
+          <span className="hidden sm:inline">Importar Excel</span>
+        </Button>
       </div>
 
       <Card>
@@ -299,6 +305,15 @@ export default function DorsalManagement() {
         onOpenChange={setDetailOpen}
         assignment={detailAssignment}
         onChanged={refresh}
+      />
+
+      <ImportExcelDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        temporada={temporada}
+        players={players}
+        allAssignments={currentAssignmentsAll}
+        onImported={refresh}
       />
     </div>
   );
