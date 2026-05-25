@@ -15,69 +15,14 @@ export default function MyDorsalsBanner() {
 
   useEffect(() => {
     let cancelled = false;
-
-    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-    const withRetry = async (fn, label) => {
-      for (let i = 0; i < 4; i++) {
-        try { return await fn(); }
-        catch (e) {
-          const is429 = e?.status === 429 || /rate limit/i.test(e?.message || "");
-          if (!is429 || i === 3) throw e;
-          console.log(`[MyDorsalsBanner] ${label}: rate limited, retry ${i + 1}/3`);
-          await sleep(1500 * (i + 1));
-        }
-      }
-    };
-
     (async () => {
       try {
-        const user = await withRetry(() => base44.auth.me(), "auth.me");
-        console.log("[MyDorsalsBanner] user:", user?.email);
-        if (!user || cancelled) return;
-
-        // Buscar jugadores por todos los emails posibles del usuario (padre, tutor2, jugador, menor)
-        const email = user.email;
-        const [byPadre, byTutor2, byJugador, byMenor] = await Promise.all([
-          withRetry(() => base44.entities.Player.filter({ email_padre: email }), "Player.byPadre"),
-          withRetry(() => base44.entities.Player.filter({ email_tutor_2: email }), "Player.byTutor2"),
-          withRetry(() => base44.entities.Player.filter({ email_jugador: email }), "Player.byJugador"),
-          withRetry(() => base44.entities.Player.filter({ acceso_menor_email: email }), "Player.byMenor"),
-        ]);
+        const res = await base44.functions.invoke("getMyDorsals", {});
         if (cancelled) return;
-        const allPlayersMap = new Map();
-        [...(byPadre||[]), ...(byTutor2||[]), ...(byJugador||[]), ...(byMenor||[])].forEach(p => allPlayersMap.set(p.id, p));
-        const players = [...allPlayersMap.values()];
-        console.log("[MyDorsalsBanner] players found:", players.length, players.map(p => ({ id: p.id, nombre: p.nombre })));
-
-        const playerIds = players.map((p) => p.id);
-        if (playerIds.length === 0) { setAssignments([]); return; }
-
-        const all = await withRetry(() => base44.entities.DorsalAssignment.filter({ estado: "asignado" }), "DorsalAssignment.filter");
-        if (cancelled) return;
-        console.log("[MyDorsalsBanner] total assignments:", all?.length);
-
-        const mine = (all || []).filter((a) => playerIds.includes(a.jugador_id));
-        console.log("[MyDorsalsBanner] mine assignments:", mine.length, mine.map(a => ({ player: a.jugador_nombre, dorsal: a.dorsal, temp: a.temporada })));
-
-        // Quedarnos con la temporada más reciente que tenga asignaciones para este usuario
-        const temporadas = [...new Set(mine.map(a => a.temporada).filter(Boolean))].sort().reverse();
-        const temporadaTarget = temporadas[0];
-        console.log("[MyDorsalsBanner] temporada target:", temporadaTarget);
-
-        const mineDeTemporada = mine.filter(a => a.temporada === temporadaTarget);
-
-        // Un dorsal por jugador (el más reciente si hubiera duplicados en la misma temporada)
-        mineDeTemporada.sort((a, b) => new Date(b.updated_date || 0) - new Date(a.updated_date || 0));
-        const seen = new Set();
-        const unique = [];
-        for (const a of mineDeTemporada) {
-          if (seen.has(a.jugador_id)) continue;
-          seen.add(a.jugador_id);
-          unique.push(a);
-        }
-        setAssignments(unique);
+        const data = res?.data || {};
+        setAssignments(data.assignments || []);
       } catch (e) {
-        console.error("[MyDorsalsBanner] ERROR:", e);
+        console.error("[MyDorsalsBanner] error:", e);
         if (!cancelled) setAssignments([]);
       } finally {
         if (!cancelled) setLoading(false);
