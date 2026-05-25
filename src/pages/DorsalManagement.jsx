@@ -242,6 +242,9 @@ export default function DorsalManagement() {
                 players={players}
                 assignments={assignmentsEnCategoria}
                 categoria={categoria}
+                temporada={temporada}
+                config={config}
+                onAutoAssigned={refresh}
                 onAssignClick={(p) => {
                   // Al pulsar "Asignar" en un pendiente, sugerimos su preferente si está libre
                   const ocupados = new Set(assignmentsEnCategoria.filter((a) => a.estado === "asignado").map((a) => Number(a.dorsal)));

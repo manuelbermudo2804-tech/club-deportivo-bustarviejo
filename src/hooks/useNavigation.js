@@ -10,6 +10,7 @@ import {
   buildMinorNavigation,
 } from "../components/layout/navigationItems";
 import useLandingMenuItems from "./useLandingMenuItems";
+import useDorsalPending from "./useDorsalPending";
 
 /**
  * Centralizes all navigation-building logic that was spread across Layout.
@@ -49,6 +50,9 @@ export default function useNavigation({
   // Landings con panel de gestión accesibles para este usuario
   const landingMenuItems = useLandingMenuItems(user, isAdmin);
 
+  // Jugadores activos sin dorsal en la temporada siguiente (solo admin)
+  const pendingDorsalCount = useDorsalPending(isAdmin);
+
   // Contador de incidencias LOPIVI nuevas (solo admin)
   const [pendingLopiviCount, setPendingLopiviCount] = useState(0);
   useEffect(() => {
@@ -73,6 +77,7 @@ export default function useNavigation({
     marketNewCount, unresolvedAdminChats, paymentsInReview,
     pendingFeedback,
     pendingLopiviCount,
+    pendingDorsalCount,
     programaSociosActivo, isMemberPaid, isPlayer, user, onlyComplementary,
     porraActiva,
     landingMenuItems,
@@ -80,7 +85,7 @@ export default function useNavigation({
 
   // Each role builds its own menu — memoized with relevant deps
   const adminNav = useMemo(() => buildAdminNavigation(navCtx),
-    [playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses, chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible, pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount, unresolvedAdminChats, paymentsInReview, pendingFeedback, pendingLopiviCount]);
+    [playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses, chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount, hasPlayers, loteriaVisible, pendingLotteryOrders, pendingMemberRequests, pendingClothingOrders, marketNewCount, unresolvedAdminChats, paymentsInReview, pendingFeedback, pendingLopiviCount, pendingDorsalCount]);
 
   const coachNav = useMemo(() => buildCoachNavigation(navCtx),
     [programaSociosActivo, isMemberPaid, pendingCallupResponses, chatMenuCounts, isPlayer, pendingCallupsCount, pendingSignaturesCount, unreadAnnouncementsCount, hasPlayers, loteriaVisible, marketNewCount, user?.puede_gestionar_firmas, porraActiva, landingMenuItems]);

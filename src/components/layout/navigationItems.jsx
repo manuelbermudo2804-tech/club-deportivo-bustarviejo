@@ -54,7 +54,7 @@ export function buildAdminNavigation(ctx) {
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
     { title: "⏱️ Control Minutos", url: createPageUrl("MatchMinutesTracker"), icon: Clock },
-    { title: "👕 Gestión de Dorsales", url: createPageUrl("DorsalManagement"), icon: Shirt },
+    { title: "👕 Gestión de Dorsales", url: createPageUrl("DorsalManagement"), icon: Shirt, badge: ctx.pendingDorsalCount > 0 ? ctx.pendingDorsalCount : null, urgentBadge: ctx.pendingDorsalCount > 0 },
 
     { title: "─ CALENDARIO Y EVENTOS ─", section: true },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
