@@ -53,12 +53,12 @@ Deno.serve(async (req) => {
           <div style="font-size: 64px; font-weight: 900; color: #ea580c; line-height: 1; margin: 8px 0;">${assignment.dorsal}</div>
           <div style="font-size: 16px; color: #7c2d12; font-weight: 600;">${assignment.categoria}</div>
         </div>
+        <p>Ya puedes pedir la equipación con este dorsal en la tienda oficial del club.</p>
         ${tiendaUrl ? `
-        <p>Ya puedes encargar la equipación con este número en la tienda oficial:</p>
         <p style="text-align: center; margin: 24px 0;">
           <a href="${tiendaUrl}" style="display: inline-block; background: #ea580c; color: white; padding: 14px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px;">🛍️ Ir a la tienda</a>
         </p>
-        ` : '<p>Te avisaremos cuando esté abierta la tienda para encargar la equipación.</p>'}
+        ` : ''}
         <p style="margin-top: 32px; color: #64748b; font-size: 14px;">Un saludo,<br><strong>CD Bustarviejo</strong></p>
       </div>
     `;
