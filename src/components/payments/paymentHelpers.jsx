@@ -133,7 +133,7 @@ export function getPendingPaymentsCount(jugadorId, payments, customPlans, tempor
  * Calcula estadísticas de pagos para una lista de jugadores
  * Retorna: { pendingPayments, overduePayments, paymentsInReview }
  */
-export function calculatePaymentStats(allPayments, playerIds, customPlans = [], activeTemporada = null) {
+export function calculatePaymentStats(allPayments, playerIds, customPlans = []) {
   let pendingPayments = 0;
   let overduePayments = 0;
   let paymentsInReview = 0;
@@ -200,15 +200,6 @@ export function calculatePaymentStats(allPayments, playerIds, customPlans = [], 
             paymentsInReview++;
           }
         });
-
-        // CUOTAS VIRTUALES: si la familia está inscrita pero aún no se han
-        // creado los 3 Payments de la temporada activa, los contamos como pendientes
-        // para que el badge refleje realidad (esperado: 3 cuotas / temporada).
-        if (activeTemporada) {
-          const seasonRecords = playerPayments.filter(p => p.temporada === activeTemporada);
-          const virtualPending = Math.max(0, 3 - seasonRecords.length);
-          pendingPayments += virtualPending;
-        }
       }
     }
   });

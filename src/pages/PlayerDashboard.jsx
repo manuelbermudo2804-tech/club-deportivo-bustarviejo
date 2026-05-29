@@ -317,21 +317,6 @@ export default function PlayerDashboard() {
     }
   });
   
-  // CUOTAS VIRTUALES: si el jugador está activo en la temporada actual y aún no
-  // se han creado los 3 Payments, los contamos como pendientes para que el badge
-  // refleje realidad.
-  if (player?.activo) {
-    const seasonRecords = (payments || []).filter(p => p.temporada === currentSeason && p.is_deleted !== true);
-    const hasUnicoOrPlan = seasonRecords.some(p =>
-      p.tipo_pago === "Único" || p.tipo_pago === "único" ||
-      p.tipo_pago === "Plan Especial" || p.tipo_pago === "Plan Mensual"
-    );
-    if (!hasUnicoOrPlan) {
-      const virtualPending = Math.max(0, 3 - seasonRecords.length);
-      pagosPendientesNoVencidos += virtualPending;
-    }
-  }
-
   const paymentStats = {
     pagados: (payments || []).filter(p => p.estado === "Pagado").length,
     pendientes: pagosPendientesNoVencidos,

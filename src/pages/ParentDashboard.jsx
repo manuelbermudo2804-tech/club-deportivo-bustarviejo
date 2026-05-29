@@ -368,8 +368,8 @@ export default function ParentDashboard() {
     .map(id => availableButtons.find(b => b.id === id))
     .filter(Boolean);
 
-  // Calcular pagos pendientes para badges (incluye cuotas virtuales de la temporada activa)
-  const { pendingPayments: pagosPendientesCount } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans, activeSeason?.temporada);
+  // Calcular pagos pendientes para badges
+  const { pendingPayments: pagosPendientesCount } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
 
   // Añadir badges dinámicos
   const menuItems = displayButtons.map(item => {
