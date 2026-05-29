@@ -17,8 +17,7 @@
         "Importante",
         "Urgente"
       ],
-      "default": "Normal",
-      "description": "Nivel de prioridad del anuncio"
+      "default": "Normal"
     },
     "destinatarios_tipo": {
       "type": "string",
@@ -34,18 +33,15 @@
         "F\u00fatbol Femenino",
         "Baloncesto (Mixto)"
       ],
-      "default": "Todos",
-      "description": "A qui\u00e9n va dirigido el anuncio"
+      "default": "Todos"
     },
     "publicado": {
       "type": "boolean",
-      "default": true,
-      "description": "Si el anuncio est\u00e1 visible"
+      "default": true
     },
     "destacado": {
       "type": "boolean",
-      "default": false,
-      "description": "Si el anuncio est\u00e1 anclado"
+      "default": false
     },
     "tipo_caducidad": {
       "type": "string",
@@ -56,18 +52,15 @@
       "default": "fecha"
     },
     "duracion_horas": {
-      "type": "number",
-      "description": "Duraci\u00f3n en horas antes de expirar (si tipo_caducidad es 'horas')"
+      "type": "number"
     },
     "fecha_expiracion": {
       "type": "string",
-      "format": "date",
-      "description": "Fecha de expiraci\u00f3n"
+      "format": "date"
     },
     "fecha_caducidad_calculada": {
       "type": "string",
-      "format": "date-time",
-      "description": "Fecha calculada de caducidad"
+      "format": "date-time"
     },
     "enviar_email": {
       "type": "boolean",
@@ -97,25 +90,21 @@
             "format": "date-time"
           }
         }
-      },
-      "description": "Usuarios que leyeron el anuncio"
+      }
     },
     "destinatarios_emails": {
       "type": "array",
       "items": {
         "type": "string"
-      },
-      "description": "Lista de emails espec\u00edficos que ver\u00e1n el anuncio (vac\u00edo = todos)"
+      }
     },
     "mostrar_como_banner": {
       "type": "boolean",
-      "default": false,
-      "description": "Mostrar este anuncio como banner"
+      "default": false
     },
     "banner_activo": {
       "type": "boolean",
-      "default": false,
-      "description": "Activar/desactivar banner"
+      "default": false
     },
     "banner_posicion": {
       "type": "string",
@@ -123,13 +112,11 @@
         "top",
         "bottom"
       ],
-      "default": "top",
-      "description": "Posici\u00f3n del banner"
+      "default": "top"
     },
     "banner_dismissible": {
       "type": "boolean",
-      "default": true,
-      "description": "Permitir que el usuario cierre el banner"
+      "default": true
     },
     "banner_variant": {
       "type": "string",
@@ -139,13 +126,28 @@
         "success",
         "danger"
       ],
-      "default": "info",
-      "description": "Estilo visual del banner"
+      "default": "info"
+    },
+    "banner_imagen_url": {
+      "type": "string",
+      "description": "URL de imagen de fondo del banner (opcional)"
+    },
+    "banner_cta_texto": {
+      "type": "string",
+      "description": "Texto del bot\u00f3n de acci\u00f3n (ej: '\u00a1Ap\u00fantate ya!')"
+    },
+    "banner_cta_url": {
+      "type": "string",
+      "description": "URL destino del bot\u00f3n (ej: /Porra, /l/torneo-padel)"
+    },
+    "banner_cuenta_atras_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha objetivo para mostrar cuenta atr\u00e1s en el banner"
     },
     "push_enviada": {
       "type": "boolean",
-      "default": false,
-      "description": "Si ya se envi\u00f3 la notificaci\u00f3n push autom\u00e1tica"
+      "default": false
     }
   },
   "required": [

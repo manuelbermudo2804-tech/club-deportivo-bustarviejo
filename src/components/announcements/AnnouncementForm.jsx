@@ -254,6 +254,46 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                         <Label>Permitir que el usuario lo oculte</Label>
                       </div>
                     </div>
+
+                    {/* === MEJORAS VISUALES DEL BANNER === */}
+                    <div className="md:col-span-3 space-y-3 pt-3 border-t border-purple-200">
+                      <div className="space-y-1">
+                        <Label className="text-purple-900">🖼️ Imagen de fondo (opcional)</Label>
+                        <Input
+                          placeholder="https://...imagen.jpg"
+                          value={currentAnnouncement.banner_imagen_url || ''}
+                          onChange={(e) => setCurrentAnnouncement({ ...currentAnnouncement, banner_imagen_url: e.target.value })}
+                        />
+                        <p className="text-xs text-purple-700">Aparecerá difuminada de fondo. Pega la URL de una imagen subida a la galería.</p>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-purple-900">🔘 Texto del botón (opcional)</Label>
+                          <Input
+                            placeholder="¡Apúntate ya!"
+                            value={currentAnnouncement.banner_cta_texto || ''}
+                            onChange={(e) => setCurrentAnnouncement({ ...currentAnnouncement, banner_cta_texto: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-purple-900">🔗 URL destino del botón</Label>
+                          <Input
+                            placeholder="/l/torneo-padel-2026 o /Porra"
+                            value={currentAnnouncement.banner_cta_url || ''}
+                            onChange={(e) => setCurrentAnnouncement({ ...currentAnnouncement, banner_cta_url: e.target.value })}
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-purple-900">⏱️ Cuenta atrás hasta (opcional)</Label>
+                        <Input
+                          type="datetime-local"
+                          value={currentAnnouncement.banner_cuenta_atras_fecha ? currentAnnouncement.banner_cuenta_atras_fecha.slice(0, 16) : ''}
+                          onChange={(e) => setCurrentAnnouncement({ ...currentAnnouncement, banner_cuenta_atras_fecha: e.target.value ? new Date(e.target.value).toISOString() : '' })}
+                        />
+                        <p className="text-xs text-purple-700">Mostrará un contador en vivo (días/horas/minutos). Ideal para crear urgencia.</p>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>

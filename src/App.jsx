@@ -52,6 +52,7 @@ import PageBuilderInscritos from '@/pages/PageBuilderInscritos';
 import PageBuilderAnalytics from '@/pages/PageBuilderAnalytics';
 import PageBuilderGuia from '@/pages/PageBuilderGuia';
 import DorsalManagement from '@/pages/DorsalManagement';
+import GuiaEventos from '@/pages/GuiaEventos';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -195,6 +196,7 @@ const AuthenticatedApp = () => {
       <Route path="/PageBuilderAnalytics" element={<LayoutWrapper currentPageName="PageBuilderAnalytics"><PageBuilderAnalytics /></LayoutWrapper>} />
       <Route path="/PageBuilderGuia" element={<LayoutWrapper currentPageName="PageBuilderGuia"><PageBuilderGuia /></LayoutWrapper>} />
       <Route path="/DorsalManagement" element={<LayoutWrapper currentPageName="DorsalManagement"><DorsalManagement /></LayoutWrapper>} />
+      <Route path="/GuiaEventos" element={<LayoutWrapper currentPageName="GuiaEventos"><GuiaEventos /></LayoutWrapper>} />
       {/* Versiones INTERNAS (con layout/menú) de PorraMiPorra y PorraRanking — activadas
           cuando se llega con ?from=app desde la app autenticada. Las versiones públicas
           siguen siendo accesibles sin auth en el bloque público de AppRouter. */}
