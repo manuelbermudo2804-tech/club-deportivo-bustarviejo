@@ -43,6 +43,24 @@ export default function NavigationTracker() {
             base44.appLogs.logUserInApp(pageName).catch(() => {
                 // Silently fail - logging shouldn't break the app
             });
+
+            // Registrar page_view en AnalyticsEvent para el widget "En vivo"
+            (async () => {
+                try {
+                    const u = await base44.auth.me();
+                    await base44.entities.AnalyticsEvent.create({
+                        evento_tipo: "page_view",
+                        pagina: pageName,
+                        usuario_email: u?.email || null,
+                        usuario_rol: u?.role || null,
+                        timestamp: new Date().toISOString(),
+                        navegador: navigator?.userAgent?.slice(0, 200) || null,
+                        dispositivo: /Mobi|Android|iPhone|iPad/i.test(navigator?.userAgent || "") ? "mobile" : "desktop",
+                    });
+                } catch {
+                    // silently fail
+                }
+            })();
         }
     }, [location, isAuthenticated, Pages, mainPageKey]);
 
