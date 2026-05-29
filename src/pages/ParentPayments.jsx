@@ -930,9 +930,18 @@ export default function ParentPayments() {
                   
                   // Solo crear virtual si NO existe ningún pago para este mes
                   const cuotas = getCuotasFromConfig(player.deporte, categoryConfigs);
-                  const cantidad = hasPagoUnico 
+                  let cantidad = hasPagoUnico 
                     ? cuotas.total 
                     : getImportePorMesFromConfig(player.deporte, mes, categoryConfigs);
+                  // Aplicar ajuste manual de cuota si existe
+                  if (player.ajuste_cuota?.cuota_ajustada != null && player.ajuste_cuota?.cuota_original) {
+                    const ratio = Number(player.ajuste_cuota.cuota_ajustada) / Number(player.ajuste_cuota.cuota_original);
+                    cantidad = Math.round(cantidad * ratio * 100) / 100;
+                  }
+                  // Aplicar descuento por hermano en la cuota de Junio (único o fraccionado)
+                  if (player.tiene_descuento_hermano && Number(player.descuento_aplicado) > 0 && mes === 'Junio') {
+                    cantidad = Math.max(0, cantidad - Number(player.descuento_aplicado));
+                  }
                   
                   return {
                     id: `virtual-${player.id}-${mes}`,
