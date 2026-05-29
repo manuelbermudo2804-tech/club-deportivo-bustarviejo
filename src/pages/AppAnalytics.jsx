@@ -11,6 +11,7 @@ import DiagnosticFindings from "../components/diagnostic/DiagnosticFindings";
 import DiagnosticStats from "../components/diagnostic/DiagnosticStats";
 import PublicPageStats from "../components/admin/PublicPageStats";
 import InternalPageStats from "../components/admin/InternalPageStats";
+import LiveActivityWidget from "../components/admin/LiveActivityWidget";
 
 export default function AppAnalytics() {
   const [isRunning, setIsRunning] = useState(false);
@@ -150,6 +151,9 @@ export default function AppAnalytics() {
           <Button onClick={runDiagnostic} className="mt-3" variant="outline">Reintentar</Button>
         </div>
       )}
+
+      {/* En vivo — actividad ahora mismo */}
+      <LiveActivityWidget />
 
       {/* Visitas a páginas públicas — siempre visible */}
       <PublicPageStats />
