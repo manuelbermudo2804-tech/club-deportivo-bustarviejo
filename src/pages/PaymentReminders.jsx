@@ -110,17 +110,10 @@ export default function PaymentReminders() {
     return cuotas.junio || cuotas.septiembre || cuotas.diciembre || 0;
   };
 
-  // Temporada efectiva: la activa, pero si no tiene NINGÚN pago registrado, usa la más reciente con pagos
+  // Siempre la temporada activa
   const effectiveSeason = useMemo(() => {
-    const normalize = (s) => (s || '').replace(/-/g, '/');
-    const activeNorm = normalize(activeSeason || getCurrentSeason());
-    if (!payments || payments.length === 0) return activeNorm;
-    const tieneEnActiva = payments.some(p => normalize(p.temporada) === activeNorm);
-    if (tieneEnActiva) return activeNorm;
-    const temporadasConPagos = [...new Set(payments.map(p => normalize(p.temporada)).filter(Boolean))];
-    const masReciente = temporadasConPagos.sort().reverse()[0];
-    return masReciente || activeNorm;
-  }, [payments, activeSeason]);
+    return (activeSeason || getCurrentSeason()).replace(/-/g, '/');
+  }, [activeSeason]);
 
   // Agrupar por familia (email_padre)
   const familiesData = useMemo(() => {
@@ -702,12 +695,7 @@ export default function PaymentReminders() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
           <h1 className="text-xl lg:text-3xl font-bold text-slate-900">💳 Recordatorios de Pago</h1>
-          <p className="text-xs lg:text-sm text-slate-600 mt-1">
-            Mostrando temporada <strong>{effectiveSeason}</strong>
-            {effectiveSeason !== ((activeSeason || getCurrentSeason()).replace(/-/g, '/')) && (
-              <span className="ml-2 text-orange-600">⚠️ La temporada activa ({(activeSeason || getCurrentSeason()).replace(/-/g, '/')}) no tiene pagos registrados</span>
-            )}
-          </p>
+          <p className="text-xs lg:text-sm text-slate-600 mt-1">Temporada activa: <strong>{effectiveSeason}</strong></p>
         </div>
         <Button onClick={handleRefresh} variant="outline" size="sm">
           <RefreshCw className="w-4 h-4 mr-2" />
