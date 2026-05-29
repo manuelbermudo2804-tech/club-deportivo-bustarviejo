@@ -13,14 +13,29 @@ export default function MyDorsalsBanner() {
   const [loading, setLoading] = useState(true);
   const [assignments, setAssignments] = useState([]);
 
+  const [onlyBasketball, setOnlyBasketball] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await base44.functions.invoke("getMyDorsals", {});
+        const [res, players] = await Promise.all([
+          base44.functions.invoke("getMyDorsals", {}),
+          base44.entities.Player.list().catch(() => []),
+        ]);
         if (cancelled) return;
         const data = res?.data || {};
         setAssignments(data.assignments || []);
+
+        // Si la familia SOLO tiene jugadores de baloncesto, no aplica el sistema de dorsales
+        const activos = (players || []).filter(p => p.activo !== false);
+        const isBasket = (p) => {
+          const cats = [p.categoria_principal, p.deporte, ...(p.categorias || [])].filter(Boolean).join(" ").toLowerCase();
+          return cats.includes("baloncesto");
+        };
+        if (activos.length > 0 && activos.every(isBasket)) {
+          setOnlyBasketball(true);
+        }
       } catch (e) {
         console.error("[MyDorsalsBanner] error:", e);
         if (!cancelled) setAssignments([]);
@@ -32,6 +47,7 @@ export default function MyDorsalsBanner() {
   }, []);
 
   if (loading) return null;
+  if (onlyBasketball) return null;
 
   // Caso 1: TIENE dorsales asignados
   if (assignments.length > 0) {
