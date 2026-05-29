@@ -27,6 +27,8 @@ export const CONTENT_TYPES = [
   { id: "renovaciones", title: "🔄 Renovaciones", emoji: "🔄", icon: RefreshCcw, gradient: "from-teal-500 to-emerald-600", group: "club" },
   { id: "voluntarios", title: "🙋 Voluntarios", emoji: "🙋", icon: HandHeart, gradient: "from-lime-500 to-green-600", group: "club" },
   { id: "mercadillo", title: "🛒 Mercadillo", emoji: "🛒", icon: ShoppingBag, gradient: "from-indigo-500 to-violet-600", group: "club" },
+  { id: "porra", title: "🏆 Porra Mundial", emoji: "🏆", icon: Trophy, gradient: "from-emerald-500 to-green-600", group: "club" },
+  { id: "inscripciones", title: "📝 Inscripciones", emoji: "📝", icon: UserPlus, gradient: "from-blue-500 to-indigo-600", group: "club" },
 
   // Comunidad / Mañanas
   { id: "galeria", title: "📸 Galería", emoji: "📸", icon: ImageIcon, gradient: "from-violet-500 to-purple-600", group: "comunidad" },

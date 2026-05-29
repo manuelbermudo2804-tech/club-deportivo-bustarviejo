@@ -233,5 +233,46 @@ export async function fetchDataForType(type) {
     return `Buscamos VOLUNTARIOS CD Bustarviejo\nApúntate para echar una mano en eventos\nApuntados actualmente: ${vols.length}\nApúntate en: ${ORIGIN}/SanIsidro`;
   }
 
+  if (type === "porra") {
+    const [cfgs, participantes] = await Promise.all([
+      base44.entities.PorraConfig.list().catch(() => []),
+      base44.entities.PorraParticipante.filter({ estado_pago: "pagado" }, "-created_date", 1000).catch(() => []),
+    ]);
+    const cfg = cfgs[0] || {};
+    const precio = cfg.precio_entrada || 15;
+    const aporte = cfg.aporte_inicial_club || 0;
+    const comision = cfg.comision_club_porcentaje || 10;
+    const recaudado = participantes.length * precio;
+    const bote = aporte + recaudado * (1 - comision / 100);
+    const limite = cfg.fecha_limite_predicciones;
+    let dias = "";
+    if (limite) {
+      const dl = Math.ceil((new Date(limite) - new Date()) / (1000 * 60 * 60 * 24));
+      if (dl >= 0) dias = ` (faltan ${dl} días)`;
+    }
+    const estadoTxt = cfg.estado === "inscripciones_abiertas" ? "✅ Inscripciones abiertas" : (cfg.estado || "");
+    return `🏆 ${cfg.nombre_torneo || "Porra Mundial 2026"}\n${estadoTxt}\n\nParticipantes: ${participantes.length}\nPrecio entrada: ${precio}€\nBote estimado: ${bote.toFixed(0)}€\n${limite ? `Fecha límite: ${moment(limite).format("DD/MM/YYYY HH:mm")}${dias}` : ""}\n\nApunta tu porra: ${ORIGIN}/Porra`;
+  }
+
+  if (type === "inscripciones") {
+    const sc = await base44.entities.SeasonConfig.filter({ activa: true }).catch(() => []);
+    const cfg = sc[0] || {};
+    const players = await base44.entities.Player.filter({ activo: true }).catch(() => []);
+    const limite = cfg.fecha_limite_renovaciones;
+    let dias = "";
+    if (limite) {
+      const dl = Math.ceil((new Date(limite) - new Date()) / (1000 * 60 * 60 * 24));
+      if (dl >= 0) dias = ` (faltan ${dl} días)`;
+    }
+    let d = `📝 Inscripciones temporada ${cfg.temporada || ""} CD Bustarviejo\n\n`;
+    d += `Jugadores activos actualmente: ${players.length}\n`;
+    d += `Cuota única: ${cfg.cuota_unica || "?"}€\n`;
+    d += `Pago fraccionado: 3x ${cfg.cuota_tres_meses || "?"}€\n`;
+    if (cfg.permitir_plan_mensual) d += `Plan mensual disponible (domiciliación por tarjeta)\n`;
+    if (limite) d += `\nFecha límite: ${moment(limite).format("DD/MM/YYYY")}${dias}\n`;
+    d += `\nInscí́bete o renueva en: ${ORIGIN}/SolicitarAcceso`;
+    return d;
+  }
+
   return "";
 }
