@@ -454,12 +454,17 @@
         },
         {
           "user_condition": {
-            "es_entrenador": true
+            "data.es_entrenador": true
           }
         },
         {
           "user_condition": {
-            "es_coordinador": true
+            "data.es_coordinador": true
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_tesorero": true
           }
         }
       ]
@@ -510,12 +515,17 @@
         },
         {
           "user_condition": {
-            "es_entrenador": true
+            "data.es_entrenador": true
           }
         },
         {
           "user_condition": {
-            "es_coordinador": true
+            "data.es_coordinador": true
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_tesorero": true
           }
         }
       ]

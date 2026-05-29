@@ -405,9 +405,13 @@ export default function TreasurerFinancialPanel() {
       loteriaPagada: currentSeasonLottery.filter(o => o.pagado === true).reduce((sum, o) => sum + (o.total || 0), 0),
       loteriaPendiente: currentSeasonLottery.filter(o => o.pagado === false).reduce((sum, o) => sum + (o.total || 0), 0),
       
-      sociosTotal: currentSeasonMembers.filter(m => m.activo !== false).reduce((sum, m) => sum + (m.cuota_socio || m.cuota_pagada || 0), 0),
-      sociosPagados: currentSeasonMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + ((m.cuota_pagada || m.cuota_socio || 0)), 0),
-      sociosPendientes: currentSeasonMembers.filter(m => m.estado_pago !== "Pagado").reduce((sum, m) => sum + (m.cuota_socio || 0), 0),
+      // Solo cuentan los socios pagados EXTERNAMENTE (Stripe, transferencia, bizum).
+      // Los socios-padre automáticos (origen_pago='socio_padre_auto' o es_socio_padre=true)
+      // se excluyen porque sus 25€ ya están contados dentro de la cuota del jugador,
+      // y contarlos otra vez duplicaría el ingreso en el panel financiero.
+      sociosTotal: currentSeasonMembers.filter(m => m.activo !== false && m.es_socio_padre !== true && m.origen_pago !== 'socio_padre_auto').reduce((sum, m) => sum + (m.cuota_socio || m.cuota_pagada || 0), 0),
+      sociosPagados: currentSeasonMembers.filter(m => m.estado_pago === "Pagado" && m.es_socio_padre !== true && m.origen_pago !== 'socio_padre_auto').reduce((sum, m) => sum + ((m.cuota_pagada || m.cuota_socio || 0)), 0),
+      sociosPendientes: currentSeasonMembers.filter(m => m.estado_pago !== "Pagado" && m.es_socio_padre !== true && m.origen_pago !== 'socio_padre_auto').reduce((sum, m) => sum + (m.cuota_socio || 0), 0),
       
       patrociniosTotal: sponsors
         .filter(s => s.activo === true && isInSeason(s.fecha_inicio, activeSeason))
