@@ -8,8 +8,11 @@ export default function LiveActivityWidget() {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState(null);
+  const [error, setError] = useState(null);
 
   const load = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const data = await base44.entities.AnalyticsEvent.filter(
         { evento_tipo: "page_view" },
@@ -20,6 +23,7 @@ export default function LiveActivityWidget() {
       setLastUpdate(new Date());
     } catch (e) {
       console.error("LiveActivity load error:", e);
+      setError(e?.message || "Error cargando datos");
     } finally {
       setLoading(false);
     }
@@ -150,8 +154,18 @@ export default function LiveActivityWidget() {
         )}
       </div>
 
+      {error && (
+        <div className="mt-3 text-xs text-red-600 bg-red-50 border border-red-200 rounded-md p-2">
+          ⚠️ {error}
+        </div>
+      )}
+      {!error && !loading && events.length === 0 && (
+        <div className="mt-3 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2">
+          No hay eventos <code>page_view</code> registrados todavía. El widget se llenará cuando los usuarios naveguen por la app.
+        </div>
+      )}
       <div className="mt-3 text-[10px] text-slate-400 text-center">
-        Auto-refresca cada 30 segundos
+        {events.length > 0 && `${events.length} eventos cargados · `}Auto-refresca cada 30 segundos
       </div>
     </Card>
   );
