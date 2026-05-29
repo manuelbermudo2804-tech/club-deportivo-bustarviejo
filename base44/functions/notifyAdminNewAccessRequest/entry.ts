@@ -31,10 +31,6 @@ Deno.serve(async (req) => {
       activa: true
     });
 
-    if (subs.length === 0) {
-      return Response.json({ sent: 0, reason: 'Admin sin suscripciones push' });
-    }
-
     let sent = 0;
     for (const sub of subs) {
       try {
@@ -61,7 +57,32 @@ Deno.serve(async (req) => {
       }
     }
 
-    return Response.json({ success: true, sent });
+    // SIEMPRE enviar email al admin como respaldo (push puede fallar / estar caducado)
+    let emailSent = false;
+    try {
+      const telefono = data.telefono || '—';
+      const whatsapp = data.prefiere_whatsapp ? '✅ Sí, prefiere WhatsApp' : '—';
+      await base44.asServiceRole.functions.invoke('sendEmail', {
+        to: ADMIN_EMAIL,
+        subject: `🔔 Nueva solicitud de acceso: ${nombre}`,
+        html: `
+          <h2>Nueva solicitud de código de acceso</h2>
+          <p><strong>Nombre:</strong> ${nombre}</p>
+          <p><strong>Email:</strong> ${data.email}</p>
+          <p><strong>Teléfono:</strong> ${telefono}</p>
+          <p><strong>Categoría:</strong> ${categoria}</p>
+          <p><strong>WhatsApp:</strong> ${whatsapp}</p>
+          <p><strong>Nombre jugador:</strong> ${data.nombre_jugador || '—'}</p>
+          <hr>
+          <p>👉 <a href="https://app.base44.com/apps/6992c6be619d2da592897991/AdminAccessCodes?tab=bandeja">Abrir bandeja de solicitudes</a></p>
+        `
+      });
+      emailSent = true;
+    } catch (e) {
+      console.error('Error enviando email admin:', e);
+    }
+
+    return Response.json({ success: true, sent, emailSent });
   } catch (error) {
     console.error('Error notifyAdminNewAccessRequest:', error);
     return Response.json({ error: error.message }, { status: 500 });
