@@ -90,11 +90,12 @@ export default function Payments() {
 
 
   
-  // Filtros avanzados - SIEMPRE la temporada activa
+  // Filtros avanzados - empieza en la temporada activa, pero si no hay pagos en ella, auto-cambia a la más reciente con pagos
   const [temporadaFilter, setTemporadaFilter] = useState(activeSeasonStr);
+  const [temporadaAutoAdjusted, setTemporadaAutoAdjusted] = useState(false);
   // Sincronizar automáticamente cuando cambie la temporada activa
   useEffect(() => {
-    if (activeSeasonStr && temporadaFilter !== activeSeasonStr) {
+    if (activeSeasonStr && temporadaFilter !== activeSeasonStr && !temporadaAutoAdjusted) {
       setTemporadaFilter(activeSeasonStr);
     }
   }, [activeSeasonStr]);
@@ -730,6 +731,22 @@ export default function Payments() {
   const totalRecaudado = (payments || [])
     .filter(p => p.estado === "Pagado" && matchTemporada(p.temporada, temporadaFilter))
     .reduce((sum, p) => sum + (p.cantidad || 0), 0);
+
+  // Si el admin tiene un filtro de temporada activa SIN pagos, auto-cambiar a la temporada más reciente con pagos
+  useEffect(() => {
+    if (!isAdmin || !payments || payments.length === 0 || temporadaAutoAdjusted) return;
+    if (temporadaFilter === 'all') return;
+    const hayPagosEnTemporadaActual = payments.some(p => matchTemporada(p.temporada, temporadaFilter));
+    if (!hayPagosEnTemporadaActual) {
+      const temporadasConPagos = [...new Set(payments.map(p => p.temporada).filter(Boolean))];
+      const masReciente = temporadasConPagos.sort().reverse()[0];
+      if (masReciente) {
+        setTemporadaFilter(masReciente);
+        setTemporadaAutoAdjusted(true);
+        toast.info(`Mostrando temporada ${masReciente} (la temporada activa no tiene pagos aún)`);
+      }
+    }
+  }, [isAdmin, payments, temporadaFilter, temporadaAutoAdjusted]);
 
   // Temporadas únicas - mantener formato original pero ordenar correctamente
   const temporadasRaw = [...new Set((payments || []).map(p => p.temporada).filter(Boolean))];

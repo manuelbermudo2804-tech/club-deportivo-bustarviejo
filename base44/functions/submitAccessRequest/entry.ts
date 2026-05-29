@@ -67,6 +67,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Ya tienes una solicitud pendiente. Te enviaremos el código pronto.' }, { status: 400 });
     }
 
+    // 5.b Rate limit por email (máx 2 solicitudes en 24h, sea cual sea el estado)
+    const allWithEmail = await base44.asServiceRole.entities.AccessRequest.filter({ email: emailLower });
+    const since = Date.now() - 24 * 60 * 60 * 1000;
+    const recentByEmail = allWithEmail.filter(r => new Date(r.created_date).getTime() > since);
+    if (recentByEmail.length >= 2) {
+      return Response.json({ error: 'Has enviado demasiadas solicitudes con este email. Espera 24h o escríbenos a info@cdbustarviejo.com.' }, { status: 429 });
+    }
+
     // 6. Crear solicitud
     const ALLOWED_TIPOS = ['padre', 'madre', 'tutor', 'jugador_adulto'];
     await base44.asServiceRole.entities.AccessRequest.create({

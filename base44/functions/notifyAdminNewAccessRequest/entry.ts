@@ -1,8 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import webpush from 'npm:web-push@3.6.7';
 
-// Email del admin que recibe las notificaciones de nuevas solicitudes
-const ADMIN_EMAIL = 'manuelbermudo2804@gmail.com';
+// Email de respaldo si por algún motivo no hay admins en BD
+const FALLBACK_ADMIN_EMAIL = 'manuelbermudo2804@gmail.com';
 
 webpush.setVapidDetails(
   'mailto:CDBUSTARVIEJO@GMAIL.COM',
@@ -25,11 +25,25 @@ Deno.serve(async (req) => {
     const titulo = '🔔 Nueva solicitud de acceso';
     const cuerpo = `${nombre} (${categoria}) está esperando código.`;
 
-    // Buscar suscripciones push del admin
-    const subs = await base44.asServiceRole.entities.PushSubscription.filter({
-      usuario_email: ADMIN_EMAIL,
-      activa: true
-    });
+    // Obtener TODOS los admins (con fallback al email fijo si no hay ninguno)
+    let adminEmails = [];
+    try {
+      const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
+      adminEmails = admins.map(a => a.email).filter(Boolean);
+    } catch (e) { console.error('Error obteniendo admins:', e); }
+    if (adminEmails.length === 0) adminEmails = [FALLBACK_ADMIN_EMAIL];
+
+    // Buscar suscripciones push de TODOS los admins
+    let subs = [];
+    for (const adminEmail of adminEmails) {
+      try {
+        const s = await base44.asServiceRole.entities.PushSubscription.filter({
+          usuario_email: adminEmail,
+          activa: true
+        });
+        subs = subs.concat(s);
+      } catch {}
+    }
 
     let sent = 0;
     for (const sub of subs) {
@@ -57,32 +71,34 @@ Deno.serve(async (req) => {
       }
     }
 
-    // SIEMPRE enviar email al admin como respaldo (push puede fallar / estar caducado)
-    let emailSent = false;
-    try {
-      const telefono = data.telefono || '—';
-      const whatsapp = data.prefiere_whatsapp ? '✅ Sí, prefiere WhatsApp' : '—';
-      await base44.asServiceRole.functions.invoke('sendEmail', {
-        to: ADMIN_EMAIL,
-        subject: `🔔 Nueva solicitud de acceso: ${nombre}`,
-        html: `
-          <h2>Nueva solicitud de código de acceso</h2>
-          <p><strong>Nombre:</strong> ${nombre}</p>
-          <p><strong>Email:</strong> ${data.email}</p>
-          <p><strong>Teléfono:</strong> ${telefono}</p>
-          <p><strong>Categoría:</strong> ${categoria}</p>
-          <p><strong>WhatsApp:</strong> ${whatsapp}</p>
-          <p><strong>Nombre jugador:</strong> ${data.nombre_jugador || '—'}</p>
-          <hr>
-          <p>👉 <a href="https://app.base44.com/apps/6992c6be619d2da592897991/AdminAccessCodes?tab=bandeja">Abrir bandeja de solicitudes</a></p>
-        `
-      });
-      emailSent = true;
-    } catch (e) {
-      console.error('Error enviando email admin:', e);
+    // SIEMPRE enviar email a TODOS los admins como respaldo (push puede fallar / estar caducado)
+    let emailSent = 0;
+    const telefono = data.telefono || '—';
+    const whatsapp = data.prefiere_whatsapp ? '✅ Sí, prefiere WhatsApp' : '—';
+    for (const adminEmail of adminEmails) {
+      try {
+        await base44.asServiceRole.functions.invoke('sendEmail', {
+          to: adminEmail,
+          subject: `🔔 Nueva solicitud de acceso: ${nombre}`,
+          html: `
+            <h2>Nueva solicitud de código de acceso</h2>
+            <p><strong>Nombre:</strong> ${nombre}</p>
+            <p><strong>Email:</strong> ${data.email}</p>
+            <p><strong>Teléfono:</strong> ${telefono}</p>
+            <p><strong>Categoría:</strong> ${categoria}</p>
+            <p><strong>WhatsApp:</strong> ${whatsapp}</p>
+            <p><strong>Nombre jugador:</strong> ${data.nombre_jugador || '—'}</p>
+            <hr>
+            <p>👉 <a href="https://app.base44.com/apps/6992c6be619d2da592897991/AdminAccessCodes?tab=bandeja">Abrir bandeja de solicitudes</a></p>
+          `
+        });
+        emailSent++;
+      } catch (e) {
+        console.error(`Error enviando email a ${adminEmail}:`, e);
+      }
     }
 
-    return Response.json({ success: true, sent, emailSent });
+    return Response.json({ success: true, sent, emailSent, adminCount: adminEmails.length });
   } catch (error) {
     console.error('Error notifyAdminNewAccessRequest:', error);
     return Response.json({ error: error.message }, { status: 500 });
