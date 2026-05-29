@@ -71,17 +71,22 @@ export default function ParentPayments() {
     queryKey: ['myPlayers', user?.email],
     queryFn: async () => {
       console.log('🔍 [ParentPayments] Buscando jugadores para:', user?.email);
-      // Hacer 3 consultas paralelas para evitar problemas con $or en algunos dispositivos
-      const [byPadre, byTutor2, byJugador] = await Promise.all([
-        base44.entities.Player.filter({ email_padre: user?.email, activo: true }).catch(() => []),
-        base44.entities.Player.filter({ email_tutor_2: user?.email, activo: true }).catch(() => []),
-        base44.entities.Player.filter({ email_jugador: user?.email, activo: true }).catch(() => []),
-      ]);
+      const emailOrig = user?.email || '';
+      const emailLower = emailOrig.toLowerCase();
+      const emails = emailOrig === emailLower ? [emailOrig] : [emailOrig, emailLower];
+      // 3 consultas x cada variante de email para cubrir mayúsculas/minúsculas
+      const queries = [];
+      for (const em of emails) {
+        queries.push(base44.entities.Player.filter({ email_padre: em, activo: true }).catch(() => []));
+        queries.push(base44.entities.Player.filter({ email_tutor_2: em, activo: true }).catch(() => []));
+        queries.push(base44.entities.Player.filter({ email_jugador: em, activo: true }).catch(() => []));
+      }
+      const results = await Promise.all(queries);
       // Deduplicar por id
       const map = new Map();
-      [...byPadre, ...byTutor2, ...byJugador].forEach(p => map.set(p.id, p));
+      results.flat().forEach(p => map.set(p.id, p));
       const filtered = Array.from(map.values());
-      console.log('✅ [ParentPayments] Jugadores activos filtrados:', filtered.length, '(padre:', byPadre.length, 'tutor2:', byTutor2.length, 'jugador:', byJugador.length, ')');
+      console.log('✅ [ParentPayments] Jugadores activos filtrados:', filtered.length);
       return filtered;
     },
     enabled: !!user?.email,
