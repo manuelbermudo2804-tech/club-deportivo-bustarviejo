@@ -12,6 +12,7 @@ import UserStats from "@/components/admin/UserStats";
 import UserAlertsBar from "@/components/admin/UserAlertsBar";
 import UserFilters from "@/components/admin/UserFilters";
 import UserDialogs from "@/components/admin/UserDialogs";
+import UserInconsistenciesBanner from "@/components/admin/UserInconsistenciesBanner";
 import PairParentsDialog from "@/components/admin/dialogs/PairParentsDialog";
 import PairingResultsDialog from "@/components/admin/dialogs/PairingResultsDialog";
 
@@ -749,6 +750,21 @@ export default function UserManagement() {
         onBulkInstallReminders={sendBulkInstallReminders}
         onBulkRenewalReminders={sendBulkRenewalReminders}
         onSetFilter={setRoleFilter}
+      />
+
+      <UserInconsistenciesBanner
+        users={users}
+        players={players}
+        onOpenUser={(u) => { setSelectedUser(u); setSelectedRole(u.role || "user"); setSelectedPlayerId(u.jugador_id || u.player_id || ""); setShowRoleDialog(true); }}
+        onAutoFix={async (targets, patch) => {
+          let ok = 0, fail = 0;
+          for (const t of targets) {
+            try { await base44.entities.User.update(t.id, patch); ok++; } catch { fail++; }
+          }
+          queryClient.invalidateQueries({ queryKey: ["allUsers"] });
+          if (fail === 0) toast.success(`${ok} usuario(s) corregido(s)`);
+          else toast.warning(`${ok} corregidos, ${fail} con error`);
+        }}
       />
 
       <UserFilters
