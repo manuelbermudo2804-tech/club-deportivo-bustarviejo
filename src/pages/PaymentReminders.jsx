@@ -110,9 +110,22 @@ export default function PaymentReminders() {
     return cuotas.junio || cuotas.septiembre || cuotas.diciembre || 0;
   };
 
+  // Determinar temporada efectiva: si la activa no tiene pagos registrados, usar la temporada más reciente con pagos
+  const effectiveSeason = useMemo(() => {
+    const normalize = (s) => (s || '').replace(/-/g, '/');
+    const activeNorm = normalize(activeSeason || getCurrentSeason());
+    if (!payments || payments.length === 0) return activeNorm;
+    const tieneEnActiva = payments.some(p => normalize(p.temporada) === activeNorm);
+    if (tieneEnActiva) return activeNorm;
+    // Fallback: temporada más reciente con pagos
+    const temporadasConPagos = [...new Set(payments.map(p => normalize(p.temporada)).filter(Boolean))];
+    const masReciente = temporadasConPagos.sort().reverse()[0];
+    return masReciente || activeNorm;
+  }, [payments, activeSeason]);
+
   // Agrupar por familia (email_padre)
   const familiesData = useMemo(() => {
-    const currentSeason = (activeSeason || getCurrentSeason()).replace(/-/g, '/');
+    const currentSeason = effectiveSeason;
     const activePlayers = players.filter(p => p.activo === true);
     const familyMap = {};
 
@@ -380,7 +393,7 @@ export default function PaymentReminders() {
         totalPendingPayments: family.jugadores.reduce((sum, j) => sum + j.pendingMonths.length, 0)
       }))
       .sort((a, b) => b.totalFamilyDue - a.totalFamilyDue);
-  }, [players, payments, categoryConfigs, activeSeason]);
+  }, [players, payments, categoryConfigs, effectiveSeason, customPlans, allUsers]);
 
   const filteredFamilies = familiesData.filter(family => {
     // Filtro de búsqueda de texto
@@ -690,7 +703,12 @@ export default function PaymentReminders() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
           <h1 className="text-xl lg:text-3xl font-bold text-slate-900">💳 Recordatorios de Pago</h1>
-          <p className="text-xs lg:text-sm text-slate-600 mt-1">Sistema simplificado - Vista por familias</p>
+          <p className="text-xs lg:text-sm text-slate-600 mt-1">
+            Mostrando temporada <strong>{effectiveSeason}</strong>
+            {effectiveSeason !== ((activeSeason || getCurrentSeason()).replace(/-/g, '/')) && (
+              <span className="ml-2 text-orange-600">(la temporada activa aún no tiene pagos)</span>
+            )}
+          </p>
         </div>
         <Button onClick={handleRefresh} variant="outline" size="sm">
           <RefreshCw className="w-4 h-4 mr-2" />
