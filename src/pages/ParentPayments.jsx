@@ -1061,7 +1061,7 @@ export default function ParentPayments() {
                       </div>
                     )}
 
-                    {displayPayments.filter(p => !p.isVirtual).length === 0 ? (
+                    {displayPayments.length === 0 ? (
                       <div className="text-center py-8 text-slate-500 text-sm">
                         <p className="mb-1">💰 Aún no hay cuotas registradas</p>
                         <p className="text-xs">Las cuotas aparecerán aquí cuando se generen para la temporada</p>
