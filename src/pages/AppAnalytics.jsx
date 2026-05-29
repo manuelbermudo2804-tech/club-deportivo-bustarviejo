@@ -10,6 +10,7 @@ import DiagnosticSummary from "../components/diagnostic/DiagnosticSummary";
 import DiagnosticFindings from "../components/diagnostic/DiagnosticFindings";
 import DiagnosticStats from "../components/diagnostic/DiagnosticStats";
 import PublicPageStats from "../components/admin/PublicPageStats";
+import InternalPageStats from "../components/admin/InternalPageStats";
 
 export default function AppAnalytics() {
   const [isRunning, setIsRunning] = useState(false);
@@ -152,6 +153,9 @@ export default function AppAnalytics() {
 
       {/* Visitas a páginas públicas — siempre visible */}
       <PublicPageStats />
+
+      {/* Secciones internas más visitadas por usuarios autenticados */}
+      <InternalPageStats />
 
       {/* No result yet */}
       {!result && !isRunning && !error && (
