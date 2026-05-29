@@ -939,7 +939,7 @@ export default function ParentPayments() {
                     cantidad = Math.round(cantidad * ratio * 100) / 100;
                   }
                   // Aplicar descuento por hermano en la cuota de Junio (único o fraccionado)
-                  if (player.tiene_descuento_hermano && Number(player.descuento_aplicado) > 0 && mes === 'Junio') {
+                  if (Number(player.descuento_aplicado) > 0 && mes === 'Junio') {
                     cantidad = Math.max(0, cantidad - Number(player.descuento_aplicado));
                   }
                   
