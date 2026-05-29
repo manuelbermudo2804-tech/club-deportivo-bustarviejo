@@ -11,9 +11,8 @@ export default function LiveActivityWidget() {
 
   const load = async () => {
     try {
-      const since = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
       const data = await base44.entities.AnalyticsEvent.filter(
-        { evento_tipo: "page_view", timestamp: { $gte: since } },
+        { evento_tipo: "page_view" },
         "-timestamp",
         2000
       );
