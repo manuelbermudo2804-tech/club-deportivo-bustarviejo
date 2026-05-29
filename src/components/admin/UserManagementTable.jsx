@@ -253,7 +253,7 @@ export default function UserManagementTable({
                     <Switch
                       checked={user.es_menor === true && !user.acceso_menor_revocado}
                       onCheckedChange={() => onMinorRevoke && onMinorRevoke(user)}
-                      disabled={isRestricted || isDeleted || !user.es_menor}
+                      disabled={isRestricted || isDeleted}
                     />
                   </td>
 

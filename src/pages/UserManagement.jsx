@@ -336,9 +336,29 @@ export default function UserManagement() {
       (p) => p.acceso_menor_email && p.acceso_menor_email.trim().toLowerCase() === (user.email || "").trim().toLowerCase()
     );
     if (!linked) {
-      toast.error("No se encontró el jugador vinculado a este acceso juvenil");
+      toast.error("No se encontró el jugador vinculado a este acceso juvenil (revisa el campo 'Email del menor' en la ficha)");
       return;
     }
+
+    // Si el usuario aún no está marcado como juvenil: darle de alta como juvenil
+    if (!user.es_menor) {
+      if (!window.confirm(`¿Marcar a ${user.full_name || user.email} como JUVENIL vinculado a ${linked.nombre}?`)) return;
+      updateUserMutation.mutate({
+        userId: user.id,
+        userData: {
+          es_menor: true,
+          tipo_panel: "jugador_menor",
+          jugador_id: linked.id,
+          jugador_nombre: linked.nombre,
+        },
+      });
+      if (linked.acceso_menor_revocado) {
+        minorRevokeMutation.mutate({ player: linked, revoke: false });
+      }
+      return;
+    }
+
+    // Ya es juvenil: alternar revocado/restaurado en la ficha del jugador
     const isCurrentlyActive = !linked.acceso_menor_revocado;
     const action = isCurrentlyActive ? "REVOCAR" : "RESTAURAR";
     if (!window.confirm(`¿Quieres ${action} el acceso juvenil de ${linked.nombre}?`)) return;
