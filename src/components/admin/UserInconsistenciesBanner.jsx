@@ -32,7 +32,11 @@ export default function UserInconsistenciesBanner({ users, players, onAutoFix, o
     if (u.es_menor === true && u.es_jugador === true) buckets.minor_is_player.push(u);
     if (u.es_jugador === true && u.tipo_panel === "familia") buckets.player_with_family_panel.push(u);
     if (u.es_jugador === true && !u.player_id && !u.jugador_id) buckets.player_no_link.push(u);
-    if (u.es_menor === true && !u.jugador_id) buckets.minor_no_link.push(u);
+    if (u.es_menor === true) {
+      const email = (u.email || "").trim().toLowerCase();
+      const hasJuvenilLink = players.some(p => (p.acceso_menor_email || "").trim().toLowerCase() === email);
+      if (!hasJuvenilLink && !u.jugador_id) buckets.minor_no_link.push(u);
+    }
     if (u.tipo_panel === "staff" && !u.es_entrenador && !u.es_coordinador && !u.es_tesorero) buckets.staff_no_role_flag.push(u);
 
     if (u.tipo_panel === "familia" && u.tiene_hijos_jugando !== true) {
@@ -63,8 +67,8 @@ export default function UserInconsistenciesBanner({ users, players, onAutoFix, o
     { key: "player_no_link", title: "⚽❓ Jugadores sin ficha vinculada", color: "orange",
       desc: "es_jugador=true pero sin player_id. Hay que vincularlos manualmente desde su fila.",
       fix: null, fixLabel: null },
-    { key: "minor_no_link", title: "🧒❓ Menores sin ficha vinculada", color: "orange",
-      desc: "es_menor=true pero sin jugador_id. Vincular manualmente desde su fila.",
+    { key: "minor_no_link", title: "🧒❓ Menores sin acceso juvenil vinculado", color: "orange",
+      desc: "Son menores pero ningún jugador tiene su email en 'acceso_menor_email'. Hay que vincularlos desde la ficha del jugador (campo Email del menor) o quitarles es_menor.",
       fix: null, fixLabel: null },
     { key: "family_no_kids", title: "👨‍👩‍👧❓ Padres sin hijos activos en BD", color: "yellow",
       desc: "Tienen panel familia pero ningún jugador les apunta como padre/tutor. Posible visitante o ex-familia.",
