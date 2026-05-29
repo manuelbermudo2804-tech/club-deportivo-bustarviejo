@@ -1,4 +1,4 @@
-import { createClient } from 'npm:@base44/sdk@0.8.25';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const DISPOSABLE_DOMAINS = ['mailinator.com', 'tempmail.com', 'guerrillamail.com', '10minutemail.com', 'trashmail.com', 'yopmail.com', 'throwaway.email', 'fakeinbox.com'];
 
@@ -18,7 +18,7 @@ function isFakeName(name) {
 
 Deno.serve(async (req) => {
   try {
-    const base44 = createClient({ appId: Deno.env.get('BASE44_APP_ID') });
+    const base44 = createClientFromRequest(req);
     const body = await req.json();
     const { email, nombre_progenitor, tipo_solicitante, telefono, categoria, nombre_jugador, prefiere_whatsapp, device_fingerprint, user_agent, website } = body;
 
