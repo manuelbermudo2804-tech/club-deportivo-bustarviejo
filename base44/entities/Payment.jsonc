@@ -10,6 +10,16 @@
       "type": "string",
       "description": "Nombre del jugador"
     },
+    "email_padre": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del padre/tutor 1 (denormalizado del Player para RLS)"
+    },
+    "email_tutor_2": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del segundo tutor (denormalizado del Player para RLS)"
+    },
     "tipo_pago": {
       "type": "string",
       "enum": [
@@ -139,7 +149,7 @@
     "aportacion_solidaria_total": {
       "type": "number",
       "default": 0,
-      "description": "Importe TOTAL (\u20ac) que la familia se comprometi\u00f3 a aportar al Fondo Solidario en esta inscripci\u00f3n (se reparte entre las cuotas si paga fraccionado)"
+      "description": "Importe TOTAL (\u20ac) que la familia se comprometi\u00f3 a aportar al Fondo Solidario en esta inscripci\u00f3n"
     }
   },
   "required": [
@@ -166,6 +176,12 @@
         },
         {
           "created_by_id": "{{user.id}}"
+        },
+        {
+          "data.email_padre": "{{user.email}}"
+        },
+        {
+          "data.email_tutor_2": "{{user.email}}"
         }
       ]
     }

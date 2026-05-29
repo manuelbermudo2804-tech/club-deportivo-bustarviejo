@@ -27,25 +27,30 @@ Deno.serve(async (req) => {
     };
 
     let updated = 0;
-    let skipped = 0;
     let missingPlayer = 0;
+    let skipped = 0;
     let processed = 0;
-    let page = 0;
-    const pageSize = 200;
+    let rounds = 0;
+    const maxRounds = 500;
+    let cursorDate = null; // created_date cursor para paginar por todo el dataset
 
-    while (true) {
-      const payments = await base44.asServiceRole.entities.Payment.list('-created_date', pageSize, page * pageSize);
+    while (rounds < maxRounds) {
+      rounds++;
+      const query = cursorDate ? { created_date: { $lt: cursorDate } } : {};
+      const payments = await base44.asServiceRole.entities.Payment.filter(query, '-created_date', 100);
       if (!payments || payments.length === 0) break;
 
       for (const pay of payments) {
         processed++;
-        if (pay.email_padre || pay.email_tutor_2) { skipped++; continue; }
+        if (pay.email_padre) { skipped++; continue; }
         const player = await getPlayer(pay.jugador_id);
-        if (!player) { missingPlayer++; continue; }
-        const patch = {};
-        if (player.email_padre) patch.email_padre = player.email_padre;
+        if (!player) {
+          missingPlayer++;
+          try { await base44.asServiceRole.entities.Payment.update(pay.id, { email_padre: 'unknown@cdbustarviejo.com' }); } catch {}
+          continue;
+        }
+        const patch = { email_padre: player.email_padre || 'unknown@cdbustarviejo.com' };
         if (player.email_tutor_2) patch.email_tutor_2 = player.email_tutor_2;
-        if (Object.keys(patch).length === 0) { skipped++; continue; }
         try {
           await base44.asServiceRole.entities.Payment.update(pay.id, patch);
           updated++;
@@ -54,12 +59,15 @@ Deno.serve(async (req) => {
         }
       }
 
-      if (payments.length < pageSize) break;
-      page++;
-      if (page > 500) break; // safety
+      // Avanzar cursor al created_date más antiguo de esta página
+      const last = payments[payments.length - 1];
+      const lastDate = last?.created_date;
+      if (!lastDate || lastDate === cursorDate) break;
+      cursorDate = lastDate;
+      if (payments.length < 100) break;
     }
 
-    return Response.json({ ok: true, processed, updated, skipped, missingPlayer });
+    return Response.json({ ok: true, processed, updated, skipped, missingPlayer, rounds });
   } catch (error) {
     console.error('backfillPaymentEmails error:', error);
     return Response.json({ error: error.message }, { status: 500 });
