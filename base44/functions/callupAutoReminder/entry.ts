@@ -37,22 +37,32 @@ async function sendPush(base44, email, title, body, url) {
   }
 }
 
+// Ventanas de recordatorio: matches cuya hora_inicio cae entre [target-1h, target+1h] desde ahora
+// Se ejecuta cada hora. Cada match cae como máximo una vez en cada ventana → sin duplicados.
+const WINDOWS = [
+  { hours: 72, label: '-72h', emoji: '📅', urgency: 'Recordatorio', subjectPrefix: 'Recordatorio' },
+  { hours: 24, label: '-24h', emoji: '⚠️', urgency: '¡MAÑANA!', subjectPrefix: '⚠️ MAÑANA' },
+  { hours: 6,  label: '-6h',  emoji: '🚨', urgency: '¡HOY EN POCAS HORAS!', subjectPrefix: '🚨 HOY' },
+];
+
+function getMatchTimestamp(callup) {
+  const fecha = callup.fecha_partido;
+  if (!fecha) return null;
+  const hora = (callup.hora_concentracion || callup.hora_partido || '12:00').slice(0, 5);
+  // Madrid TZ: aproximación +01:00/+02:00. Las ventanas son ±1h, así que el DST no descuadra.
+  const month = parseInt(fecha.slice(5, 7), 10);
+  const isDST = month >= 4 && month <= 10; // aprox
+  const offset = isDST ? '+02:00' : '+01:00';
+  const t = Date.parse(`${fecha}T${hora}:00${offset}`);
+  return isNaN(t) ? null : t;
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
+    const now = Date.now();
 
-    // Fecha de mañana (zona horaria España - correcta con DST)
-    function getMadridDate(daysFromNow = 0) {
-      const now = new Date();
-      const madrid = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
-      madrid.setDate(madrid.getDate() + daysFromNow);
-      return madrid.toISOString().slice(0, 10);
-    }
-    const tomorrowStr = getMadridDate(1);
-
-    console.log(`[CallupReminder] Buscando convocatorias para mañana: ${tomorrowStr}`);
-
-    // Buscar convocatorias publicadas y activas para mañana
+    // Buscar TODAS las convocatorias publicadas y activas (futuras)
     let allCallupsRaw = await base44.asServiceRole.entities.Convocatoria.filter({ publicada: true });
     if (!Array.isArray(allCallupsRaw)) {
       if (typeof allCallupsRaw === 'string') {
@@ -62,32 +72,40 @@ Deno.serve(async (req) => {
       }
     }
     if (!Array.isArray(allCallupsRaw)) allCallupsRaw = [];
-    const tomorrowCallups = allCallupsRaw.filter(c => 
-      c.fecha_partido === tomorrowStr && 
-      c.estado_convocatoria === 'activa' &&
-      !c.cerrada
-    );
 
-    console.log(`[CallupReminder] Encontradas ${tomorrowCallups.length} convocatorias para mañana`);
+    // Para cada callup, determinar si cae en alguna ventana AHORA
+    const callupsByWindow = []; // { callup, window }
+    for (const c of allCallupsRaw) {
+      if (c.estado_convocatoria !== 'activa' || c.cerrada) continue;
+      const matchTs = getMatchTimestamp(c);
+      if (!matchTs || matchTs < now) continue;
+      const hoursUntil = (matchTs - now) / 3600000;
+      for (const w of WINDOWS) {
+        if (Math.abs(hoursUntil - w.hours) <= 1) {
+          callupsByWindow.push({ callup: c, window: w });
+          break;
+        }
+      }
+    }
+
+    console.log(`[CallupReminder] ${callupsByWindow.length} convocatorias en ventana de recordatorio`);
 
     let totalPending = 0;
     let totalNotified = 0;
 
-    // Cargar todos los Player una vez para resolver tutor_2 y acceso menor
     let allPlayers = [];
     try {
       allPlayers = await base44.asServiceRole.entities.Player.list();
       if (!Array.isArray(allPlayers)) allPlayers = [];
     } catch { allPlayers = []; }
 
-    for (const callup of tomorrowCallups) {
+    for (const { callup, window } of callupsByWindow) {
       const jugadores = Array.isArray(callup.jugadores_convocados) ? callup.jugadores_convocados : [];
       const pendientes = jugadores.filter(j => !j.confirmacion || j.confirmacion === 'pendiente');
 
-      console.log(`[CallupReminder] ${callup.titulo}: ${pendientes.length} pendientes de ${jugadores.length}`);
+      console.log(`[CallupReminder] [${window.label}] ${callup.titulo}: ${pendientes.length} pendientes de ${jugadores.length}`);
 
       for (const j of pendientes) {
-        // Recopilar todos los emails relacionados con el jugador (padre, tutor_2, menor con acceso)
         const playerData = allPlayers.find(p => p.id === j.jugador_id);
         const emails = new Set();
         if (j.email_padre) emails.add(j.email_padre);
@@ -98,26 +116,22 @@ Deno.serve(async (req) => {
         }
         if (emails.size === 0) continue;
 
-        const emailPadre = [...emails][0]; // mantener variable para compatibilidad
-
         totalPending++;
 
-        // Enviar push a todos los emails relacionados
-        const pushTitle = `⚠️ ¡Confirma la convocatoria!`;
-        const pushBody = `${j.jugador_nombre}: ${callup.titulo} es MAÑANA a las ${callup.hora_partido || '??:??'}. Confirma asistencia.`;
+        const pushTitle = `${window.emoji} ${window.urgency} Confirma convocatoria`;
+        const pushBody = `${j.jugador_nombre}: ${callup.titulo} (${callup.fecha_partido} ${callup.hora_partido || ''}). Confirma asistencia.`;
         for (const e of emails) {
           await sendPush(base44, e, pushTitle, pushBody, '/ParentCallups');
         }
 
-        // Enviar email
         const emailHtml = `<!DOCTYPE html>
 <html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
 <body style="margin:0;padding:0;background:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#f1f5f9;padding:24px 8px;"><tr><td align="center">
 <table width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
 <tr><td style="background:linear-gradient(135deg,#ea580c,#c2410c);padding:28px 24px;text-align:center;">
-  <div style="font-size:36px;margin-bottom:8px;">⚠️</div>
-  <div style="color:#fff;font-size:20px;font-weight:800;">¡EL PARTIDO ES MAÑANA!</div>
+  <div style="font-size:36px;margin-bottom:8px;">${window.emoji}</div>
+  <div style="color:#fff;font-size:20px;font-weight:800;">${window.urgency}</div>
   <div style="color:rgba(255,255,255,0.9);font-size:13px;margin-top:4px;">Aún no has confirmado la asistencia</div>
 </td></tr>
 <tr><td style="padding:24px;">
@@ -138,16 +152,15 @@ Deno.serve(async (req) => {
 </td></tr>
 </table></td></tr></table></body></html>`;
 
-        // Enviar email a todos los destinatarios (padre, tutor_2, menor con acceso)
         for (const e of emails) {
-          await sendViaResend(e, `⚠️ ¡MAÑANA! Confirma convocatoria de ${j.jugador_nombre}`, emailHtml);
+          await sendViaResend(e, `${window.subjectPrefix} Confirma convocatoria de ${j.jugador_nombre}`, emailHtml);
         }
         totalNotified++;
       }
     }
 
     console.log(`[CallupReminder] Resultado: ${totalPending} pendientes, ${totalNotified} notificados`);
-    return Response.json({ success: true, callups: tomorrowCallups.length, pending: totalPending, notified: totalNotified });
+    return Response.json({ success: true, callups: callupsByWindow.length, pending: totalPending, notified: totalNotified });
   } catch (error) {
     console.error('[CallupReminder] Error:', error);
     return Response.json({ success: false, error: error.message }, { status: 500 });
