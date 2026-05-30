@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Trophy, Users, Euro, Sparkles, Flame, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import PorraHeroPodium from "./PorraHeroPodium";
 
 // URL de la imagen hero generada (Copa del Mundo + colores del club)
 const HERO_BG_URL = "https://media.base44.com/images/public/6992c6be619d2da592897991/03f55d3ee_generated_image.png";
@@ -167,6 +168,9 @@ export default function PorraHeroLanding({ config, onCrearPorra, totalParticipan
             Ver ranking en vivo
           </Link>
         </div>
+
+        {/* Mini-podio Top 3 en vivo (solo si hay puntuaciones) */}
+        <PorraHeroPodium />
 
         <p className="mt-4 text-xs md:text-sm text-white/90 drop-shadow-lg font-medium">
           ⚡ Solo {config?.precio_entrada || 15}€ · 🥇🥈🥉 Premios al 1º, 2º y 3º · 💚 El {config?.comision_club_porcentaje || 10}% va para apoyar a los equipos del CD Bustarviejo
