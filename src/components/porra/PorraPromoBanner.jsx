@@ -22,10 +22,18 @@ export default function PorraPromoBanner() {
 
   if (!config?.banner_promocional_activo || !config?.activa) return null;
 
-  const texto = config.banner_texto || "🏆 ¡La Porra del Mundial 2026 ya está aquí!";
+  const enCurso = ['cerrada', 'en_curso', 'finalizada'].includes(config.estado);
+  const texto = enCurso
+    ? '🏆 ¡Sigue la Porra del Mundial 2026 en directo!'
+    : (config.banner_texto || '🏆 ¡La Porra del Mundial 2026 ya está aquí!');
+  const subtexto = enCurso
+    ? 'Ranking en vivo · Top 3 y posición de tu porra'
+    : `Apúntate ya · Solo ${config.precio_entrada || 15}€ · Premios al 1º, 2º y 3º`;
+  const cta = enCurso ? 'VER RANKING' : 'JUGAR';
+  const destino = enCurso ? '/PorraRanking?from=app' : '/MiPorra';
 
   return (
-    <Link to="/MiPorra" className="block group">
+    <Link to={destino} className="block group">
       <div className="relative overflow-hidden bg-gradient-to-r from-red-600 via-orange-500 to-yellow-500 rounded-2xl p-4 lg:p-5 shadow-2xl border-4 border-yellow-400 hover:scale-[1.02] active:scale-[0.98] transition-all">
         {/* Banderas decorativas flotantes */}
         <div className="absolute inset-0 opacity-25 pointer-events-none">
@@ -55,13 +63,13 @@ export default function PorraPromoBanner() {
             <div className="flex items-center gap-1 mt-1">
               <Sparkles className="w-3.5 h-3.5 text-yellow-200" />
               <p className="text-yellow-100 text-xs lg:text-sm font-bold">
-                Apúntate ya · Solo {config.precio_entrada || 15}€ · Premios al 1º, 2º y 3º
+                {subtexto}
               </p>
             </div>
           </div>
 
           <div className="flex-shrink-0 hidden sm:flex items-center gap-1 bg-white text-red-700 font-black px-3 py-2 rounded-xl shadow-lg group-hover:translate-x-1 transition-transform text-sm">
-            JUGAR
+            {cta}
             <ArrowRight className="w-4 h-4" />
           </div>
           <div className="flex-shrink-0 sm:hidden text-white">
