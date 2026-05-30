@@ -159,6 +159,11 @@ export default function PorraHeroLanding({ config, onCrearPorra, totalParticipan
         <p className="mt-4 text-xs md:text-sm text-white/90 drop-shadow-lg font-medium">
           ⚡ Solo {config?.precio_entrada || 15}€ · 🥇🥈🥉 Premios al 1º, 2º y 3º · 💚 El {config?.comision_club_porcentaje || 10}% va para apoyar a los equipos del CD Bustarviejo
         </p>
+
+        {/* Mensaje de transparencia */}
+        <div className="mt-5 max-w-2xl mx-auto bg-black/40 backdrop-blur-md rounded-xl px-4 py-3 border border-yellow-400/30 text-[11px] md:text-xs text-white/90 leading-relaxed">
+          🔒 <strong>100% transparente:</strong> Todas las porras se bloquean automáticamente al empezar el Mundial. Nadie — ni el admin del club — puede modificar predicciones después. Los puntos se calculan con una fórmula pública y el ranking es visible para todos en tiempo real.
+        </div>
       </div>
 
       {/* Onda decorativa inferior */}
