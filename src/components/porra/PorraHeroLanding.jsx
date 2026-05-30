@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Trophy, Users, Euro, Sparkles, Flame } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Trophy, Users, Euro, Sparkles, Flame, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // URL de la imagen hero generada (Copa del Mundo + colores del club)
@@ -155,6 +156,17 @@ export default function PorraHeroLanding({ config, onCrearPorra, totalParticipan
           <Trophy className="w-6 h-6 md:w-7 md:h-7 mr-2" />
           ¡APUNTAR MI PORRA YA!
         </Button>
+
+        {/* Botón secundario: ver ranking en vivo */}
+        <div className="mt-3">
+          <Link
+            to="/PorraRanking"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/30 text-white font-bold text-sm md:text-base transition-all"
+          >
+            <BarChart3 className="w-4 h-4" />
+            Ver ranking en vivo
+          </Link>
+        </div>
 
         <p className="mt-4 text-xs md:text-sm text-white/90 drop-shadow-lg font-medium">
           ⚡ Solo {config?.precio_entrada || 15}€ · 🥇🥈🥉 Premios al 1º, 2º y 3º · 💚 El {config?.comision_club_porcentaje || 10}% va para apoyar a los equipos del CD Bustarviejo
