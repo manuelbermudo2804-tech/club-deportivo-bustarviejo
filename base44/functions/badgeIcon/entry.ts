@@ -1,45 +1,25 @@
-// Renderiza "CDB" como PNG con transparencia REAL para usar como badge
-// en notificaciones push de Android. Android usa solo el canal alfa y
-// rellena la silueta de blanco en la barra de estado.
-import { Resvg, initWasm } from 'npm:@resvg/resvg-wasm@2.6.2';
+// Serves the CDB shield badge PNG for Android push notifications.
+// The image is hosted on Base44 storage; this function proxies it with
+// aggressive caching so notifications render fast on all devices.
 
-// Texto "CDB" como paths vectoriales (no depende de fuentes del sistema).
-// Tres letras en una tipografía bold sans-serif, color blanco, fondo transparente.
-const SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
-  <path fill="#ffffff" fill-rule="evenodd" d="M48 4a44 44 0 1 1 0 88 44 44 0 0 1 0-88zm0 28-15.2 11.04 5.81 17.88h18.78l5.81-17.88z"/>
-</svg>`;
+const BADGE_URL = "https://media.base44.com/images/public/6992c6be619d2da592897991/5837f9d6a_generated_image.png";
 
-let wasmReady = null;
-let cachedPng = null;
-const CACHE_KEY = 'v8';
-
-async function ensureWasm() {
-  if (!wasmReady) {
-    wasmReady = (async () => {
-      const resp = await fetch('https://unpkg.com/@resvg/resvg-wasm@2.6.2/index_bg.wasm');
-      const buf = await resp.arrayBuffer();
-      await initWasm(buf);
-    })();
-  }
-  return wasmReady;
-}
-
-Deno.serve(async () => {
+Deno.serve(async (_req) => {
   try {
-    if (!cachedPng) {
-      await ensureWasm();
-      const resvg = new Resvg(SVG);
-      cachedPng = resvg.render().asPng();
+    const upstream = await fetch(BADGE_URL);
+    if (!upstream.ok) {
+      return new Response("Badge not available", { status: 502 });
     }
-    return new Response(cachedPng, {
+    const bytes = await upstream.arrayBuffer();
+    return new Response(bytes, {
+      status: 200,
       headers: {
         "Content-Type": "image/png",
-        "Cache-Control": "public, max-age=86400",
-        "X-Badge-Version": CACHE_KEY,
-        "Access-Control-Allow-Origin": "*"
-      }
+        "Cache-Control": "public, max-age=86400, immutable",
+        "Access-Control-Allow-Origin": "*",
+      },
     });
-  } catch (e) {
-    return new Response(`error: ${e.message}`, { status: 500 });
+  } catch (err) {
+    return new Response("Error: " + err.message, { status: 500 });
   }
 });
