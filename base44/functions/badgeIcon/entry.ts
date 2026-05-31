@@ -6,12 +6,12 @@ import { Resvg, initWasm } from 'npm:@resvg/resvg-wasm@2.6.2';
 // Texto "CDB" como paths vectoriales (no depende de fuentes del sistema).
 // Tres letras en una tipografía bold sans-serif, color blanco, fondo transparente.
 const SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 96 96">
-  <path fill="#ffffff" fill-rule="evenodd" d="M48 2a46 46 0 1 0 0.01 0zM48 28l16.6 12.06-6.34 19.51H37.74l-6.34-19.51zM48 14l-3.5 6h7zM82 40l-6-3.2-2.2 6.8zM68.5 78l-1.5-6.7-5.8 3.8zM27.5 78l7.3-2.9-5.8-3.8zM14 40l8.2 3.6-2.2-6.8z"/>
+  <path fill="#ffffff" fill-rule="evenodd" d="M48 4a44 44 0 1 1 0 88 44 44 0 0 1 0-88zm0 28-15.2 11.04 5.81 17.88h18.78l5.81-17.88z"/>
 </svg>`;
 
 let wasmReady = null;
 let cachedPng = null;
-const CACHE_KEY = 'v7';
+const CACHE_KEY = 'v8';
 
 async function ensureWasm() {
   if (!wasmReady) {
