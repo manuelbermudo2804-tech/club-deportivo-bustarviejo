@@ -2,7 +2,7 @@
 // The image is hosted on Base44 storage; this function proxies it with
 // aggressive caching so notifications render fast on all devices.
 
-const BADGE_URL = "https://media.base44.com/images/public/6992c6be619d2da592897991/5837f9d6a_generated_image.png";
+const BADGE_URL = "https://media.base44.com/images/public/6992c6be619d2da592897991/4412c5231_generated_image.png";
 
 Deno.serve(async (_req) => {
   try {
