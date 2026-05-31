@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
         const payload_json = JSON.stringify({
           title: titulo,
           body: cuerpo,
-          tag: tag || 'notification',
+          tag: tag || `notif-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
           badgeCount: payload.badgeCount || 1,
           requireInteraction: requireInteraction || false,
           data: {
