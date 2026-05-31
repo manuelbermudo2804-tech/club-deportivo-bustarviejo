@@ -109,8 +109,6 @@ export function buildAdminNavigation(ctx) {
     { title: "─ DESARROLLO ─", section: true },
     { title: "📲 Check-in Tablet", url: createPageUrl("CheckinTablet"), icon: Smartphone },
     { title: "🔬 Registro de Errores y Eventos", url: createPageUrl("UploadDiagnostics"), icon: ShieldAlert },
-    { title: "🔔 Enviar Push de Prueba", url: "/PushBadgeTest", icon: Bell },
-    { title: "📊 Estadísticas Push", url: "/PushStats", icon: BarChart3 },
   ];
 }
 

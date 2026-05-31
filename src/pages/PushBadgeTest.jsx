@@ -2,9 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Bell, CheckCircle, XCircle, Loader2, Send, Mail } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { toast } from 'sonner';
+import { Bell, CheckCircle, XCircle, Loader2, Send } from 'lucide-react';
 
 const BUILD_TS = '20260326_v3'; // Cambia para verificar que el código se actualizó
 
@@ -199,49 +197,8 @@ export default function PushBadgeTest() {
     </div>
   );
 
-  // Enviar push genérico a un email concreto
-  const [target, setTarget] = useState({ email: '', titulo: '🔔 CD Bustarviejo', cuerpo: 'Mensaje de prueba' });
-  const [sendingTo, setSendingTo] = useState(false);
-  const sendToEmail = async () => {
-    if (!target.email) { toast.error('Indica un email'); return; }
-    setSendingTo(true);
-    try {
-      const res = await base44.functions.invoke('sendPushNotification', {
-        usuario_email: target.email.trim().toLowerCase(),
-        titulo: target.titulo,
-        cuerpo: target.cuerpo,
-      });
-      const d = res.data || {};
-      if (d.sent > 0) toast.success(`Enviada a ${d.sent} dispositivo(s)`);
-      else toast.error(d.error || 'Usuario sin suscripciones activas');
-    } catch (e) {
-      toast.error(e.response?.data?.error || e.message);
-    } finally {
-      setSendingTo(false);
-    }
-  };
-
   return (
     <div className="p-4 max-w-lg mx-auto space-y-4">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Mail className="w-5 h-5 text-blue-600" />
-            Enviar Push a un usuario
-          </CardTitle>
-          <p className="text-xs text-slate-500">Envía una notificación genérica a cualquier email del club.</p>
-        </CardHeader>
-        <CardContent className="space-y-2">
-          <Input placeholder="email@ejemplo.com" value={target.email} onChange={e => setTarget(t => ({ ...t, email: e.target.value }))} />
-          <Input placeholder="Título" value={target.titulo} onChange={e => setTarget(t => ({ ...t, titulo: e.target.value }))} />
-          <Input placeholder="Mensaje" value={target.cuerpo} onChange={e => setTarget(t => ({ ...t, cuerpo: e.target.value }))} />
-          <Button onClick={sendToEmail} disabled={sendingTo} className="w-full bg-blue-600 hover:bg-blue-700 gap-2">
-            {sendingTo ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-            Enviar push a este email
-          </Button>
-        </CardContent>
-      </Card>
-
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-lg">
