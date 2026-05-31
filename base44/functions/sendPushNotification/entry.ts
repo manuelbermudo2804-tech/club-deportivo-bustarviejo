@@ -40,8 +40,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Enviar a todas las suscripciones EN PARALELO con timeout de 10s
-    const results = await Promise.all(subscriptions.map(async (sub) => {
+    // Enviar a todas las suscripciones del usuario
+    const results = [];
+    for (const sub of subscriptions) {
       try {
         const pushSubscription = {
           endpoint: sub.endpoint,
@@ -54,7 +55,7 @@ Deno.serve(async (req) => {
         const payload_json = JSON.stringify({
           title: titulo,
           body: cuerpo,
-          tag: tag || `notif-${Date.now()}-${Math.random().toString(36).slice(2,7)}`,
+          tag: tag || 'notification',
           badgeCount: payload.badgeCount || 1,
           requireInteraction: requireInteraction || false,
           data: {
@@ -63,11 +64,8 @@ Deno.serve(async (req) => {
           }
         });
 
-        await Promise.race([
-          webpush.sendNotification(pushSubscription, payload_json),
-          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000))
-        ]);
-        return { email: usuario_email, status: 'sent', endpoint: sub.endpoint };
+        await webpush.sendNotification(pushSubscription, payload_json);
+        results.push({ email: usuario_email, status: 'sent' });
       } catch (error) {
         console.error(`Error enviando a ${usuario_email}:`, error.message);
         
@@ -76,9 +74,9 @@ Deno.serve(async (req) => {
           try { await base44.asServiceRole.entities.PushSubscription.delete(sub.id); } catch {}
         }
         
-        return { email: usuario_email, status: 'error', error: error.message, endpoint: sub.endpoint };
+        results.push({ email: usuario_email, status: 'error', error: error.message });
       }
-    }));
+    }
 
     return Response.json({
       success: true,

@@ -21,7 +21,6 @@ import ExportButton from "../components/ExportButton";
 
 import CallupForm from "../components/callups/CallupForm";
 import CallupCard from "../components/callups/CallupCard";
-import CallupResponseRatePanel from "../components/callups/CallupResponseRatePanel";
 import CancelRescheduleDialog from "../components/callups/CancelRescheduleDialog";
 import { buildCallupEmailHtml } from "../components/callups/callupEmailTemplate";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
@@ -634,11 +633,6 @@ export default function CoachCallups() {
           <p className="text-xs text-slate-500 mt-0.5">Pendientes</p>
         </div>
       </div>
-
-      {/* Panel de tasa de respuesta vs benchmarks del sector (solo admin) */}
-      {user?.role === "admin" && (
-        <CallupResponseRatePanel callups={seasonCallups} />
-      )}
 
       {(() => {
         const publishedCount = upcomingCallups.filter(c => c.publicada === true).length;

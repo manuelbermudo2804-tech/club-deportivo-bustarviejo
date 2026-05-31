@@ -109,7 +109,6 @@ export function buildAdminNavigation(ctx) {
     { title: "─ DESARROLLO ─", section: true },
     { title: "📲 Check-in Tablet", url: createPageUrl("CheckinTablet"), icon: Smartphone },
     { title: "🔬 Registro de Errores y Eventos", url: createPageUrl("UploadDiagnostics"), icon: ShieldAlert },
-    { title: "🧪 Test Chats", url: createPageUrl("ChatTestConsole"), icon: MessageCircle },
   ];
 }
 
