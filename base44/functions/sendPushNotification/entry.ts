@@ -40,9 +40,8 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Enviar a todas las suscripciones del usuario
-    const results = [];
-    for (const sub of subscriptions) {
+    // Enviar a todas las suscripciones EN PARALELO con timeout de 10s
+    const results = await Promise.all(subscriptions.map(async (sub) => {
       try {
         const pushSubscription = {
           endpoint: sub.endpoint,
@@ -64,8 +63,11 @@ Deno.serve(async (req) => {
           }
         });
 
-        await webpush.sendNotification(pushSubscription, payload_json);
-        results.push({ email: usuario_email, status: 'sent' });
+        await Promise.race([
+          webpush.sendNotification(pushSubscription, payload_json),
+          new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 10000))
+        ]);
+        return { email: usuario_email, status: 'sent', endpoint: sub.endpoint };
       } catch (error) {
         console.error(`Error enviando a ${usuario_email}:`, error.message);
         
@@ -74,9 +76,9 @@ Deno.serve(async (req) => {
           try { await base44.asServiceRole.entities.PushSubscription.delete(sub.id); } catch {}
         }
         
-        results.push({ email: usuario_email, status: 'error', error: error.message });
+        return { email: usuario_email, status: 'error', error: error.message, endpoint: sub.endpoint };
       }
-    }
+    }));
 
     return Response.json({
       success: true,
