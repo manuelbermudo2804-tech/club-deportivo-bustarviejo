@@ -23,6 +23,7 @@ self.addEventListener('push', (event) => {
   const options = {
     body: data.body || 'Tienes notificaciones pendientes',
     icon: 'https://media.base44.com/images/public/6992c6be619d2da592897991/f440d1299_generated_image.png',
+    badge: 'https://media.base44.com/images/public/6992c6be619d2da592897991/8689e144f_futbolista.png',
 
     tag: tag,
     renotify: true,
