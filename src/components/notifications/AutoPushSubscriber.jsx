@@ -108,10 +108,18 @@ function vapidKeyToUint8Array(vapidKey) {
   return arr;
 }
 
+function toBase64Url(bytes) {
+  // btoa produce base64 estándar (con +, /, =). Web-push y el navegador esperan base64url.
+  return btoa(String.fromCharCode(...new Uint8Array(bytes)))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
 async function syncSubscriptionToDB(email, sub) {
   try {
-    const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
-    const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
+    const p256dh = toBase64Url(sub.getKey('p256dh'));
+    const auth = toBase64Url(sub.getKey('auth'));
 
     // Buscar todas las suscripciones del usuario
     const allSubs = await base44.entities.PushSubscription.filter({ usuario_email: email });
