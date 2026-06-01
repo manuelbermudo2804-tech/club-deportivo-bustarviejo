@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import * as XLSX from "xlsx";
 
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
@@ -449,6 +450,84 @@ export default function Players() {
     deletePlayerMutation.mutate(player.id);
   };
 
+  const handleBackupExcel = () => {
+    try {
+      if (!allPlayers || allPlayers.length === 0) {
+        toast.error("No hay jugadores que exportar");
+        return;
+      }
+      // Aplanar TODOS los campos del jugador (incluida ficha médica) para el respaldo
+      const rows = allPlayers.map(p => {
+        const fm = p.ficha_medica || {};
+        return {
+          ID: p.id,
+          Nombre: p.nombre || '',
+          Categoría: p.deporte || '',
+          Categoría_Principal: p.categoria_principal || '',
+          Categorías_Adicionales: (p.categorias || []).join(', '),
+          Fecha_Nacimiento: p.fecha_nacimiento || '',
+          Mayor_Edad: p.es_mayor_edad ? 'Sí' : 'No',
+          Posición: p.posicion || '',
+          Dorsal: p.numero_camiseta || '',
+          Dorsal_Preferente: p.dorsal_preferente || '',
+          Tipo_Inscripción: p.tipo_inscripcion || '',
+          Estado_Renovación: p.estado_renovacion || '',
+          Temporada_Renovación: p.temporada_renovacion || '',
+          Activo: p.activo ? 'Sí' : 'No',
+          Lesionado: p.lesionado ? 'Sí' : 'No',
+          Sancionado: p.sancionado ? 'Sí' : 'No',
+          Motivo_Indisponibilidad: p.motivo_indisponibilidad || '',
+          Tipo_Documento: p.tipo_documento || '',
+          DNI_Jugador: p.dni_jugador || '',
+          Email_Jugador: p.email_jugador || '',
+          Acceso_Jugador_Autorizado: p.acceso_jugador_autorizado ? 'Sí' : 'No',
+          Teléfono: p.telefono || '',
+          Email_Padre_Tutor_1: p.email_padre || '',
+          Nombre_Tutor_Legal: p.nombre_tutor_legal || '',
+          DNI_Tutor_Legal: p.dni_tutor_legal || '',
+          Nombre_Tutor_2: p.nombre_tutor_2 || '',
+          Teléfono_Tutor_2: p.telefono_tutor_2 || '',
+          Email_Tutor_2: p.email_tutor_2 || '',
+          Dirección: p.direccion || '',
+          Municipio: p.municipio || '',
+          Tiene_Descuento_Hermano: p.tiene_descuento_hermano ? 'Sí' : 'No',
+          Descuento_Aplicado: p.descuento_aplicado || 0,
+          Incluye_Seguro: p.incluye_seguro_accidentes ? 'Sí' : 'No',
+          Incluye_Ficha_Federativa: p.incluye_ficha_federativa ? 'Sí' : 'No',
+          Autorización_Fotografía: p.autorizacion_fotografia || '',
+          Acepta_Política_Privacidad: p.acepta_politica_privacidad ? 'Sí' : 'No',
+          Fecha_Aceptación_Privacidad: p.fecha_aceptacion_privacidad || '',
+          Acepta_Normativa: p.acepta_normativa ? 'Sí' : 'No',
+          Versión_Normativa: p.version_normativa_aceptada || '',
+          Firma_Jugador_Completada: p.firma_jugador_completada ? 'Sí' : 'No',
+          Firma_Tutor_Completada: p.firma_tutor_completada ? 'Sí' : 'No',
+          Alergias: fm.alergias || '',
+          Medicación: fm.medicacion_habitual || '',
+          Condiciones_Médicas: fm.condiciones_medicas || '',
+          Grupo_Sanguíneo: fm.grupo_sanguineo || '',
+          Emergencia_1_Nombre: fm.contacto_emergencia_nombre || '',
+          Emergencia_1_Teléfono: fm.contacto_emergencia_telefono || '',
+          Emergencia_2_Nombre: fm.contacto_emergencia_2_nombre || '',
+          Emergencia_2_Teléfono: fm.contacto_emergencia_2_telefono || '',
+          Lesiones: fm.lesiones || '',
+          Observaciones_Médicas: fm.observaciones_medicas || '',
+          Observaciones: p.observaciones || '',
+          Fecha_Alta: p.created_date || '',
+          Fecha_Actualización: p.updated_date || '',
+        };
+      });
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Jugadores');
+      const fecha = new Date().toISOString().split('T')[0];
+      XLSX.writeFile(wb, `backup_jugadores_CDBustarviejo_${fecha}.xlsx`);
+      toast.success(`Backup de ${rows.length} jugadores descargado`);
+    } catch (err) {
+      console.error('Error generando backup Excel:', err);
+      toast.error('Error al generar el backup');
+    }
+  };
+
   const handleExportPlayers = () => {
     const dataToExport = filteredPlayers.map(player => ({
       "Nombre": player.nombre,
@@ -653,7 +732,18 @@ export default function Players() {
               className="border-green-600 text-green-600 hover:bg-green-50"
             >
               <Download className="w-5 h-5 mr-2" />
-              Exportar ({filteredPlayers.length})
+              Exportar CSV ({filteredPlayers.length})
+            </Button>
+          )}
+          {isAdmin && allPlayers.length > 0 && (
+            <Button
+              onClick={handleBackupExcel}
+              variant="outline"
+              className="border-blue-600 text-blue-600 hover:bg-blue-50"
+              title="Descargar backup completo de TODOS los jugadores en Excel"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              Backup Excel ({allPlayers.length})
             </Button>
           )}
           {isAdmin && (
