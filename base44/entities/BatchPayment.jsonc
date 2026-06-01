@@ -1,0 +1,95 @@
+{
+  "name": "BatchPayment",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "description": "C\u00f3digo \u00fanico del lote (ej: CDB-202601-AB123)"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email del usuario que cre\u00f3 el lote"
+    },
+    "metodo": {
+      "type": "string",
+      "enum": [
+        "Tarjeta",
+        "Transferencia"
+      ],
+      "description": "M\u00e9todo de pago elegido"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "pending_review",
+        "paid",
+        "canceled"
+      ],
+      "default": "draft",
+      "description": "Estado del lote"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada aplicable si es \u00fanica para el lote"
+    },
+    "total": {
+      "type": "number",
+      "description": "Importe total del lote"
+    },
+    "concepto": {
+      "type": "string",
+      "description": "Concepto \u00fanico para transferencias"
+    },
+    "justificante_url": {
+      "type": "string",
+      "description": "URL del justificante (transferencia)"
+    },
+    "stripe_session_id": {
+      "type": "string",
+      "description": "ID de la sesi\u00f3n de Stripe (si Tarjeta)"
+    },
+    "stripe_status": {
+      "type": "string",
+      "description": "Estado reportado por Stripe"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "payment_id": {
+            "type": "string"
+          },
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          },
+          "mes": {
+            "type": "string"
+          },
+          "temporada": {
+            "type": "string"
+          },
+          "cantidad": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Pagos incluidos en el lote"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas adicionales"
+    }
+  },
+  "required": [
+    "user_email",
+    "metodo",
+    "status",
+    "items",
+    "total"
+  ]
+}

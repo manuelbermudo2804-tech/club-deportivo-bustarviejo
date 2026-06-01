@@ -1,0 +1,309 @@
+{
+  "name": "ChatMessage",
+  "type": "object",
+  "properties": {
+    "remitente_email": {
+      "type": "string",
+      "description": "Email del remitente"
+    },
+    "remitente_nombre": {
+      "type": "string",
+      "description": "Nombre del remitente"
+    },
+    "destinatario_email": {
+      "type": "string",
+      "description": "Email del destinatario espec\u00edfico (opcional, si est\u00e1 vac\u00edo es mensaje general al grupo)"
+    },
+    "destinatario_nombre": {
+      "type": "string",
+      "description": "Nombre del destinatario para mostrar en UI"
+    },
+    "mensaje": {
+      "type": "string",
+      "description": "Contenido del mensaje"
+    },
+    "prioridad": {
+      "type": "string",
+      "enum": [
+        "Normal",
+        "Importante",
+        "Urgente"
+      ],
+      "default": "Normal",
+      "description": "Nivel de prioridad del mensaje"
+    },
+    "leido": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el mensaje fue le\u00eddo"
+    },
+    "leido_por": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Lista de usuarios que leyeron el mensaje"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "padre_a_grupo",
+        "admin_a_grupo",
+        "entrenador_a_grupo"
+      ],
+      "description": "Direcci\u00f3n del mensaje"
+    },
+    "deporte": {
+      "type": "string",
+      "description": "Deporte/Categor\u00eda completa del grupo (ej: F\u00fatbol Pre-Benjam\u00edn (Mixto))"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del grupo (usado como backup, puede estar vac\u00edo)"
+    },
+    "grupo_id": {
+      "type": "string",
+      "description": "ID del grupo (deporte_categoria)"
+    },
+    "notificacion_enviada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se envi\u00f3 notificaci\u00f3n por email"
+    },
+    "anclado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el mensaje est\u00e1 anclado/fijado en el chat"
+    },
+    "anclado_por": {
+      "type": "string",
+      "description": "Email de quien ancl\u00f3 el mensaje"
+    },
+    "anclado_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se ancl\u00f3 el mensaje"
+    },
+    "archivos_adjuntos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "tamano": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Archivos adjuntos (fotos, documentos, audios)"
+    },
+    "audio_url": {
+      "type": "string",
+      "description": "URL del audio enviado"
+    },
+    "audio_duracion": {
+      "type": "number",
+      "description": "Duraci\u00f3n del audio en segundos"
+    },
+    "encuesta": {
+      "type": "object",
+      "properties": {
+        "pregunta": {
+          "type": "string"
+        },
+        "opciones": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "votos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "usuario_email": {
+                "type": "string"
+              },
+              "usuario_nombre": {
+                "type": "string"
+              },
+              "opcion_index": {
+                "type": "number"
+              },
+              "fecha": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "cerrada": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "description": "Encuesta r\u00e1pida en el mensaje"
+    },
+    "ubicacion": {
+      "type": "object",
+      "properties": {
+        "latitud": {
+          "type": "number"
+        },
+        "longitud": {
+          "type": "number"
+        },
+        "nombre": {
+          "type": "string"
+        },
+        "direccion": {
+          "type": "string"
+        }
+      },
+      "description": "Ubicaci\u00f3n compartida"
+    },
+    "poll": {
+      "type": "object",
+      "properties": {
+        "question": {
+          "type": "string"
+        },
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "votes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "user_email": {
+                "type": "string"
+              },
+              "user_name": {
+                "type": "string"
+              },
+              "option_index": {
+                "type": "number"
+              },
+              "voted_at": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "multiple_choice": {
+          "type": "boolean",
+          "default": false
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "description": "Encuesta r\u00e1pida (legacy - usar 'encuesta')"
+    },
+    "reacciones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_email": {
+            "type": "string"
+          },
+          "user_nombre": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Reacciones al mensaje"
+    },
+    "eliminado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el mensaje fue eliminado"
+    },
+    "editado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el mensaje fue editado"
+    },
+    "fecha_edicion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de edici\u00f3n"
+    },
+    "respuesta_a": {
+      "type": "string",
+      "description": "ID del mensaje al que responde"
+    },
+    "mensaje_citado": {
+      "type": "object",
+      "properties": {
+        "autor_nombre": {
+          "type": "string"
+        },
+        "mensaje": {
+          "type": "string"
+        }
+      },
+      "description": "Mensaje al que se est\u00e1 respondiendo"
+    }
+  },
+  "required": [
+    "remitente_email",
+    "remitente_nombre",
+    "mensaje",
+    "tipo",
+    "grupo_id"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "grupo_id"
+      ]
+    },
+    {
+      "fields": [
+        "created_date"
+      ]
+    },
+    {
+      "fields": [
+        "grupo_id",
+        "created_date"
+      ]
+    }
+  ]
+}

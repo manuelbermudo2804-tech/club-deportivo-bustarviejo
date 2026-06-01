@@ -1,0 +1,80 @@
+{
+  "name": "CompetitionAsset",
+  "type": "object",
+  "properties": {
+    "url": {
+      "type": "string",
+      "description": "URL de la imagen a revisar"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda completa (ej: F\u00fatbol Benjam\u00edn (Mixto))"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "clasificacion",
+        "resultados",
+        "goleadores",
+        "otro"
+      ],
+      "default": "otro",
+      "description": "Tipo de asset dentro de competici\u00f3n"
+    },
+    "last_etag": {
+      "type": "string",
+      "description": "\u00daltimo ETag visto"
+    },
+    "last_modified": {
+      "type": "string",
+      "description": "\u00daltimo Last-Modified visto"
+    },
+    "last_hash": {
+      "type": "string",
+      "description": "Hash SHA-256 del contenido si no hay ETag/Last-Modified"
+    },
+    "http_status": {
+      "type": "number",
+      "description": "C\u00f3digo de estado HTTP de la \u00faltima comprobaci\u00f3n"
+    },
+    "bytes": {
+      "type": "number",
+      "description": "Tama\u00f1o del recurso en bytes (si disponible)"
+    },
+    "last_checked_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha/hora de la \u00faltima comprobaci\u00f3n"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "igual",
+        "cambiado",
+        "error",
+        "nuevo"
+      ],
+      "default": "nuevo",
+      "description": "Resultado de la \u00faltima comprobaci\u00f3n"
+    },
+    "reviewed_weeks": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Semanas marcadas como revisadas (formato ISO: RRRR-WII)"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas opcionales"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si debe incluirse en las comprobaciones"
+    }
+  },
+  "required": [
+    "url"
+  ]
+}

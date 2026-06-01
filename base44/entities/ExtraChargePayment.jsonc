@@ -1,0 +1,68 @@
+{
+  "name": "ExtraChargePayment",
+  "type": "object",
+  "properties": {
+    "extra_charge_id": {
+      "type": "string",
+      "description": "ID del cobro extra"
+    },
+    "usuario_email": {
+      "type": "string",
+      "description": "Email del pagador"
+    },
+    "jugador_id": {
+      "type": "string",
+      "description": "Jugador relacionado (opcional)"
+    },
+    "seleccion": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "item_nombre": {
+            "type": "string"
+          },
+          "cantidad": {
+            "type": "number",
+            "default": 1
+          },
+          "precio_unitario": {
+            "type": "number"
+          }
+        }
+      }
+    },
+    "total": {
+      "type": "number"
+    },
+    "metodo": {
+      "type": "string",
+      "enum": [
+        "Tarjeta",
+        "Transferencia"
+      ]
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "Pendiente",
+        "En revisi\u00f3n",
+        "Pagado"
+      ],
+      "default": "Pendiente"
+    },
+    "justificante_url": {
+      "type": "string"
+    },
+    "concepto": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "extra_charge_id",
+    "usuario_email",
+    "seleccion",
+    "total",
+    "metodo"
+  ]
+}

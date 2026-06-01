@@ -1,0 +1,143 @@
+{
+  "name": "EventTemplate",
+  "type": "object",
+  "properties": {
+    "nombre_plantilla": {
+      "type": "string",
+      "description": "Nombre identificativo de la plantilla (ej: Cena de Navidad)"
+    },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo del evento"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n del evento"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "Partido",
+        "Entrenamiento",
+        "Reuni\u00f3n",
+        "Torneo",
+        "Inicio Temporada",
+        "Gesti\u00f3n Club",
+        "Pago",
+        "Inscripci\u00f3n",
+        "Pedido Ropa",
+        "Fiesta Club",
+        "Cena/Comida",
+        "Asamblea",
+        "Fin Temporada",
+        "Otro"
+      ],
+      "description": "Tipo de evento"
+    },
+    "deporte": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol Masculino",
+        "F\u00fatbol Femenino",
+        "Baloncesto",
+        "Paddle",
+        "Todos"
+      ],
+      "default": "Todos",
+      "description": "Deporte al que aplica"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "Todas",
+        "Prebenjam\u00edn",
+        "Benjam\u00edn",
+        "Alev\u00edn",
+        "Infantil",
+        "Cadete",
+        "Juvenil",
+        "Senior"
+      ],
+      "default": "Todas",
+      "description": "Categor\u00eda"
+    },
+    "mes_tipico": {
+      "type": "number",
+      "description": "Mes en que suele ocurrir (1-12)"
+    },
+    "dia_semana_preferido": {
+      "type": "string",
+      "enum": [
+        "Lunes",
+        "Martes",
+        "Mi\u00e9rcoles",
+        "Jueves",
+        "Viernes",
+        "S\u00e1bado",
+        "Domingo"
+      ],
+      "description": "D\u00eda de la semana preferido"
+    },
+    "hora": {
+      "type": "string",
+      "description": "Hora t\u00edpica del evento"
+    },
+    "hora_fin": {
+      "type": "string",
+      "description": "Hora de fin t\u00edpica"
+    },
+    "ubicacion": {
+      "type": "string",
+      "description": "Ubicaci\u00f3n habitual"
+    },
+    "ubicacion_url": {
+      "type": "string",
+      "description": "URL de Google Maps"
+    },
+    "importante": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si es un evento destacado"
+    },
+    "color": {
+      "type": "string",
+      "enum": [
+        "orange",
+        "blue",
+        "green",
+        "red",
+        "purple",
+        "yellow"
+      ],
+      "default": "orange"
+    },
+    "requiere_confirmacion": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si requiere RSVP"
+    },
+    "capacidad_maxima": {
+      "type": "number",
+      "description": "Aforo m\u00e1ximo (opcional)"
+    },
+    "precio": {
+      "type": "number",
+      "description": "Precio de entrada (opcional)"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la plantilla est\u00e1 activa"
+    },
+    "es_plantilla_anual": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es una plantilla anual fija del club que se repite cada a\u00f1o"
+    }
+  },
+  "required": [
+    "nombre_plantilla",
+    "titulo",
+    "tipo"
+  ]
+}

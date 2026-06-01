@@ -1,0 +1,119 @@
+{
+  "name": "Survey",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo de la encuesta"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n de la encuesta"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "Satisfacci\u00f3n General",
+        "Evento Espec\u00edfico",
+        "Fin de Temporada",
+        "Instalaciones",
+        "Entrenadores",
+        "Otro"
+      ],
+      "description": "Tipo de encuesta"
+    },
+    "destinatarios": {
+      "type": "string",
+      "enum": [
+        "Todos",
+        "F\u00fatbol Pre-Benjam\u00edn (Mixto)",
+        "F\u00fatbol Benjam\u00edn (Mixto)",
+        "F\u00fatbol Alev\u00edn (Mixto)",
+        "F\u00fatbol Infantil (Mixto)",
+        "F\u00fatbol Cadete",
+        "F\u00fatbol Juvenil",
+        "F\u00fatbol Aficionado",
+        "F\u00fatbol Femenino",
+        "Baloncesto (Mixto)"
+      ],
+      "default": "Todos",
+      "description": "A qui\u00e9n va dirigida"
+    },
+    "preguntas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pregunta": {
+            "type": "string"
+          },
+          "tipo_respuesta": {
+            "type": "string",
+            "enum": [
+              "texto",
+              "rating",
+              "multiple"
+            ]
+          },
+          "opciones": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "obligatoria": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Preguntas de la encuesta"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la encuesta est\u00e1 activa"
+    },
+    "fecha_inicio": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de inicio"
+    },
+    "fecha_fin": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de cierre"
+    },
+    "anonima": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si las respuestas son an\u00f3nimas"
+    },
+    "respuestas_count": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero de respuestas recibidas"
+    },
+    "respuestas_nuevas": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero de respuestas sin revisar por admin"
+    },
+    "ultima_respuesta_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de la \u00faltima respuesta recibida"
+    },
+    "ultima_revision_admin": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de la \u00faltima vez que admin revis\u00f3 los resultados"
+    }
+  },
+  "required": [
+    "titulo",
+    "tipo",
+    "preguntas",
+    "fecha_inicio",
+    "fecha_fin"
+  ]
+}

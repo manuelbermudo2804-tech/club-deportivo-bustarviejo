@@ -1,0 +1,84 @@
+{
+  "name": "ChatbotConfig",
+  "type": "object",
+  "properties": {
+    "entrenador_email": {
+      "type": "string",
+      "description": "Email del entrenador"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del equipo"
+    },
+    "chatbot_activo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el chatbot est\u00e1 activado"
+    },
+    "solo_fuera_horario": {
+      "type": "boolean",
+      "default": true,
+      "description": "Solo activar fuera del horario laboral"
+    },
+    "modo_transparente": {
+      "type": "boolean",
+      "default": true,
+      "description": "Mostrar badge de bot visible para padres"
+    },
+    "notificar_todas_conversaciones": {
+      "type": "boolean",
+      "default": false,
+      "description": "Notificar al entrenador de cada mensaje del bot"
+    },
+    "faqs_personalizadas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pregunta": {
+            "type": "string"
+          },
+          "respuesta": {
+            "type": "string"
+          },
+          "categoria": {
+            "type": "string",
+            "enum": [
+              "Horarios",
+              "Pagos",
+              "Normas",
+              "Equipaci\u00f3n",
+              "General"
+            ]
+          }
+        }
+      },
+      "description": "Preguntas y respuestas personalizadas"
+    },
+    "palabras_escalacion": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [
+        "lesi\u00f3n",
+        "urgente",
+        "grave",
+        "hospital",
+        "accidente",
+        "emergencia",
+        "problema serio"
+      ],
+      "description": "Palabras que activan escalaci\u00f3n inmediata"
+    },
+    "mensaje_bienvenida": {
+      "type": "string",
+      "default": "Hola, soy el asistente del entrenador. Puedo ayudarte con horarios, pagos y consultas generales. \u00bfEn qu\u00e9 puedo ayudarte?",
+      "description": "Mensaje de bienvenida del bot"
+    }
+  },
+  "required": [
+    "entrenador_email",
+    "categoria"
+  ]
+}

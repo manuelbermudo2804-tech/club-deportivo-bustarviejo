@@ -1,0 +1,66 @@
+{
+  "name": "Order",
+  "type": "object",
+  "properties": {
+    "cliente_nombre": {
+      "type": "string",
+      "description": "Nombre del cliente"
+    },
+    "cliente_email": {
+      "type": "string",
+      "description": "Email del cliente"
+    },
+    "cliente_telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono del cliente"
+    },
+    "productos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "producto_id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          },
+          "cantidad": {
+            "type": "number"
+          },
+          "talla": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Lista de productos del pedido"
+    },
+    "total": {
+      "type": "number",
+      "description": "Total del pedido"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "Pendiente",
+        "Preparando",
+        "Listo",
+        "Entregado"
+      ],
+      "default": "Pendiente",
+      "description": "Estado del pedido"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas del pedido"
+    }
+  },
+  "required": [
+    "cliente_nombre",
+    "productos",
+    "total"
+  ]
+}

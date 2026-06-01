@@ -1,0 +1,214 @@
+{
+  "name": "CoordinatorMessage",
+  "type": "object",
+  "properties": {
+    "conversacion_id": {
+      "type": "string",
+      "description": "ID de la conversaci\u00f3n a la que pertenece"
+    },
+    "autor": {
+      "type": "string",
+      "enum": [
+        "padre",
+        "coordinador"
+      ],
+      "description": "Qui\u00e9n envi\u00f3 el mensaje"
+    },
+    "autor_email": {
+      "type": "string",
+      "description": "Email del autor"
+    },
+    "autor_nombre": {
+      "type": "string",
+      "description": "Nombre del autor"
+    },
+    "mensaje": {
+      "type": "string",
+      "description": "Contenido del mensaje"
+    },
+    "audio_url": {
+      "type": "string",
+      "description": "URL del audio si es mensaje de voz"
+    },
+    "audio_duracion": {
+      "type": "number",
+      "description": "Duraci\u00f3n del audio en segundos"
+    },
+    "adjuntos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "tamano": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Archivos adjuntos"
+    },
+    "ubicacion": {
+      "type": "object",
+      "properties": {
+        "latitud": {
+          "type": "number"
+        },
+        "longitud": {
+          "type": "number"
+        },
+        "nombre": {
+          "type": "string"
+        },
+        "direccion": {
+          "type": "string"
+        }
+      },
+      "description": "Ubicaci\u00f3n compartida"
+    },
+    "encuesta": {
+      "type": "object",
+      "properties": {
+        "pregunta": {
+          "type": "string"
+        },
+        "opciones": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "votos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "usuario_email": {
+                "type": "string"
+              },
+              "usuario_nombre": {
+                "type": "string"
+              },
+              "opcion_index": {
+                "type": "number"
+              },
+              "fecha": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "cerrada": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "description": "Encuesta interactiva"
+    },
+    "respuesta_a": {
+      "type": "string",
+      "description": "ID del mensaje al que responde"
+    },
+    "mensaje_citado": {
+      "type": "object",
+      "properties": {
+        "autor_nombre": {
+          "type": "string"
+        },
+        "mensaje": {
+          "type": "string"
+        }
+      },
+      "description": "Mensaje al que responde (copia)"
+    },
+    "editado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el mensaje fue editado"
+    },
+    "fecha_edicion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de la \u00faltima edici\u00f3n"
+    },
+    "eliminado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el mensaje fue eliminado"
+    },
+    "reacciones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_email": {
+            "type": "string"
+          },
+          "user_nombre": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Reacciones al mensaje"
+    },
+    "leido_coordinador": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el coordinador lo ley\u00f3"
+    },
+    "leido_padre": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el padre lo ley\u00f3"
+    },
+    "fecha_leido_coordinador": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Cu\u00e1ndo lo ley\u00f3 el coordinador"
+    },
+    "fecha_leido_padre": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Cu\u00e1ndo lo ley\u00f3 el padre"
+    }
+  },
+  "required": [
+    "conversacion_id",
+    "autor",
+    "autor_email",
+    "autor_nombre"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "conversacion_id"
+      ]
+    },
+    {
+      "fields": [
+        "created_date"
+      ]
+    },
+    {
+      "fields": [
+        "conversacion_id",
+        "created_date"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,88 @@
+{
+  "name": "MarketListing",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol",
+        "Baloncesto",
+        "Equipaci\u00f3n",
+        "Calzado",
+        "Protecciones",
+        "Accesorios",
+        "Otro Deportivo"
+      ]
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "venta",
+        "donacion"
+      ],
+      "default": "venta"
+    },
+    "precio": {
+      "type": "number",
+      "default": 0
+    },
+    "imagenes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "activo",
+        "reservado",
+        "vendido",
+        "entregado"
+      ],
+      "default": "activo"
+    },
+    "vendedor_nombre": {
+      "type": "string"
+    },
+    "vendedor_email": {
+      "type": "string"
+    },
+    "vendedor_telefono": {
+      "type": "string"
+    },
+    "reservado_por_email": {
+      "type": "string"
+    },
+    "reservado_por_nombre": {
+      "type": "string"
+    },
+    "reservado_fecha": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reserva_temporal_hasta": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora de caducidad de la reserva temporal"
+    },
+    "ultimo_recordatorio_reserva": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltimo email/notificaci\u00f3n de recordatorio enviado al vendedor"
+    }
+  },
+  "required": [
+    "titulo",
+    "categoria",
+    "tipo",
+    "vendedor_email",
+    "vendedor_telefono"
+  ]
+}

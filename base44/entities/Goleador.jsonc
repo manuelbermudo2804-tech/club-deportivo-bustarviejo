@@ -1,0 +1,46 @@
+{
+  "name": "Goleador",
+  "type": "object",
+  "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Temporada (ej: 2024/2025)"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda completa (ej: F\u00fatbol Juvenil)"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "equipo": {
+      "type": "string",
+      "description": "Equipo del jugador"
+    },
+    "goles": {
+      "type": "number",
+      "description": "Goles anotados"
+    },
+    "posicion": {
+      "type": "number",
+      "description": "Posici\u00f3n en la tabla"
+    },
+    "fuente_imagen_url": {
+      "type": "string",
+      "description": "URL de imagen usada para extracci\u00f3n (opcional)"
+    },
+    "fecha_actualizacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima actualizaci\u00f3n"
+    }
+  },
+  "required": [
+    "temporada",
+    "categoria",
+    "jugador_nombre",
+    "equipo",
+    "goles"
+  ]
+}

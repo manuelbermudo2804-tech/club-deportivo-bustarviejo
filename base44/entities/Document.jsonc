@@ -1,0 +1,174 @@
+{
+  "name": "Document",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo del documento"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n del documento"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "Estatutos",
+        "Reglamentaci\u00f3n",
+        "Normativa Federaci\u00f3n",
+        "Autorizaci\u00f3n",
+        "Consentimiento",
+        "Informaci\u00f3n General",
+        "Otro"
+      ],
+      "description": "Tipo de documento"
+    },
+    "tipo_destinatario": {
+      "type": "string",
+      "enum": [
+        "categoria",
+        "individual"
+      ],
+      "default": "categoria",
+      "description": "Si se env\u00eda por categor\u00eda o a jugadores espec\u00edficos"
+    },
+    "categoria_destino": {
+      "type": "string",
+      "enum": [
+        "Todos",
+        "F\u00fatbol Pre-Benjam\u00edn (Mixto)",
+        "F\u00fatbol Benjam\u00edn (Mixto)",
+        "F\u00fatbol Alev\u00edn (Mixto)",
+        "F\u00fatbol Infantil (Mixto)",
+        "F\u00fatbol Cadete",
+        "F\u00fatbol Juvenil",
+        "F\u00fatbol Aficionado",
+        "F\u00fatbol Femenino",
+        "Baloncesto (Mixto)"
+      ],
+      "default": "Todos",
+      "description": "A qu\u00e9 categor\u00eda va dirigido (si tipo_destinatario es categoria)"
+    },
+    "jugadores_destino": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de jugadores espec\u00edficos (si tipo_destinatario es individual)"
+    },
+    "archivo_url": {
+      "type": "string",
+      "description": "URL del archivo PDF"
+    },
+    "enlace_firma_externa": {
+      "type": "string",
+      "description": "URL externa para firma digital (ej: plataforma federaci\u00f3n)"
+    },
+    "codigo_qr_url": {
+      "type": "string",
+      "description": "URL de la imagen del c\u00f3digo QR para firma"
+    },
+    "requiere_firma": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el documento requiere ser firmado"
+    },
+    "fecha_limite_firma": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha l\u00edmite para firmar"
+    },
+    "publicado": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el documento est\u00e1 visible"
+    },
+    "firmas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          },
+          "email_padre": {
+            "type": "string"
+          },
+          "firmado": {
+            "type": "boolean"
+          },
+          "fecha_firma": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "comentario": {
+            "type": "string"
+          },
+          "confirmado_firma_externa": {
+            "type": "boolean",
+            "description": "Si el padre confirm\u00f3 que firm\u00f3 externamente"
+          },
+          "fecha_confirmacion_externa": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Fecha en que se confirm\u00f3 la firma externa"
+          }
+        }
+      },
+      "description": "Control de firmas por jugador"
+    },
+    "enviar_notificacion": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se debe notificar por email"
+    },
+    "notificacion_enviada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya se envi\u00f3 la notificaci\u00f3n"
+    },
+    "ultimo_recordatorio_enviado": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del \u00faltimo recordatorio autom\u00e1tico enviado"
+    },
+    "frecuencia_recordatorios_dias": {
+      "type": "number",
+      "default": 3,
+      "description": "Cada cu\u00e1ntos d\u00edas enviar recordatorios autom\u00e1ticos (0 = desactivado)"
+    },
+    "dias_antes_alerta_admin": {
+      "type": "number",
+      "default": 3,
+      "description": "D\u00edas antes de la fecha l\u00edmite para alertar a admins"
+    },
+    "porcentaje_alerta_admin": {
+      "type": "number",
+      "default": 50,
+      "description": "Porcentaje de firmas pendientes para alertar a admins"
+    },
+    "alertas_admin_enviadas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Registro de alertas enviadas a administradores"
+    }
+  },
+  "required": [
+    "titulo",
+    "tipo"
+  ]
+}

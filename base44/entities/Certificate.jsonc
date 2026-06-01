@@ -1,0 +1,83 @@
+{
+  "name": "Certificate",
+  "type": "object",
+  "properties": {
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "tipo_certificado": {
+      "type": "string",
+      "enum": [
+        "Inscripci\u00f3n",
+        "Pagos al D\u00eda",
+        "Asistencia",
+        "Participaci\u00f3n en Torneo"
+      ],
+      "description": "Tipo de certificado"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del certificado"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del jugador"
+    },
+    "fecha_emision": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de emisi\u00f3n del certificado"
+    },
+    "codigo_verificacion": {
+      "type": "string",
+      "description": "C\u00f3digo \u00fanico para verificar autenticidad"
+    },
+    "datos_certificado": {
+      "type": "object",
+      "description": "Datos espec\u00edficos seg\u00fan tipo de certificado"
+    },
+    "pdf_url": {
+      "type": "string",
+      "description": "URL del PDF generado"
+    },
+    "solicitado_por": {
+      "type": "string",
+      "description": "Email de quien solicit\u00f3 el certificado"
+    },
+    "enviado_por_email": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se envi\u00f3 por email"
+    },
+    "email_destino": {
+      "type": "string",
+      "description": "Email al que se envi\u00f3 el certificado"
+    },
+    "nombre_torneo": {
+      "type": "string",
+      "description": "Nombre del torneo (para certificados de torneo)"
+    },
+    "fecha_torneo": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del torneo"
+    },
+    "posicion_torneo": {
+      "type": "string",
+      "description": "Posici\u00f3n obtenida en el torneo"
+    }
+  },
+  "required": [
+    "jugador_id",
+    "jugador_nombre",
+    "tipo_certificado",
+    "temporada",
+    "fecha_emision",
+    "codigo_verificacion"
+  ]
+}

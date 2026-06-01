@@ -1,0 +1,55 @@
+{
+  "name": "CoachChatLog",
+  "type": "object",
+  "properties": {
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del chat"
+    },
+    "padre_email": {
+      "type": "string",
+      "description": "Email del padre"
+    },
+    "padre_nombre": {
+      "type": "string",
+      "description": "Nombre del padre"
+    },
+    "accion": {
+      "type": "string",
+      "enum": [
+        "mensaje_enviado",
+        "mensaje_bloqueado",
+        "discusion_detectada",
+        "limite_alcanzado",
+        "palabra_urgente_detectada"
+      ],
+      "description": "Tipo de acci\u00f3n registrada"
+    },
+    "detalles": {
+      "type": "string",
+      "description": "Detalles de la acci\u00f3n"
+    },
+    "palabra_bloqueada": {
+      "type": "string",
+      "description": "Palabra que caus\u00f3 el bloqueo (si aplica)"
+    },
+    "frase_discusion": {
+      "type": "string",
+      "description": "Frase que activ\u00f3 detecci\u00f3n de discusi\u00f3n"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del log"
+    },
+    "notificado_admin": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se notific\u00f3 al admin"
+    }
+  },
+  "required": [
+    "categoria",
+    "accion",
+    "temporada"
+  ]
+}

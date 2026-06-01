@@ -1,0 +1,263 @@
+{
+  "name": "Exercise",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del ejercicio"
+    },
+    "deporte": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol",
+        "Baloncesto"
+      ],
+      "description": "Deporte al que aplica"
+    },
+    "categoria_ejercicio": {
+      "type": "string",
+      "enum": [
+        "Resistencia - Capacidad",
+        "Resistencia - Potencia",
+        "T\u00e9cnica Individual",
+        "T\u00e1ctica Colectiva",
+        "Velocidad y Explosividad",
+        "Fuerza",
+        "Coordinaci\u00f3n",
+        "Calentamiento",
+        "Recuperaci\u00f3n",
+        "Porteros",
+        "Finalizaci\u00f3n",
+        "Posesi\u00f3n",
+        "Rondos y Conservaci\u00f3n",
+        "Transiciones",
+        "Juego A\u00e9reo",
+        "Estrategia a Bal\u00f3n Parado"
+      ],
+      "description": "Categor\u00eda principal del ejercicio"
+    },
+    "subcategoria": {
+      "type": "string",
+      "enum": [
+        "Pases y Control",
+        "Conducci\u00f3n",
+        "Regate",
+        "Tiro a Puerta",
+        "Centros y Remates",
+        "Presi\u00f3n y Recuperaci\u00f3n",
+        "Salida de Bal\u00f3n",
+        "Juego Combinativo",
+        "Superioridad Num\u00e9rica",
+        "Repliegue Defensivo",
+        "Contraataque",
+        "Circulaci\u00f3n de Bal\u00f3n",
+        "Amplitud y Profundidad",
+        "Juego por Bandas",
+        "Juego Interior"
+      ],
+      "description": "Subcategor\u00eda para filtrado m\u00e1s espec\u00edfico"
+    },
+    "posiciones_objetivo": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Todos",
+          "Portero",
+          "Defensa Central",
+          "Lateral",
+          "Centrocampista Defensivo",
+          "Centrocampista",
+          "Mediapunta",
+          "Extremo",
+          "Delantero",
+          "Base",
+          "Escolta",
+          "Alero",
+          "Ala-P\u00edvot",
+          "P\u00edvot"
+        ]
+      },
+      "description": "Posiciones para las que es m\u00e1s \u00fatil"
+    },
+    "nivel_edad": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Sub-8",
+          "Sub-10",
+          "Sub-12",
+          "Sub-14",
+          "Sub-16",
+          "Sub-18",
+          "Adultos"
+        ]
+      },
+      "description": "Edades recomendadas"
+    },
+    "nivel_dificultad": {
+      "type": "string",
+      "enum": [
+        "Iniciaci\u00f3n",
+        "B\u00e1sico",
+        "Intermedio",
+        "Avanzado",
+        "Profesional"
+      ],
+      "description": "Nivel de dificultad t\u00e9cnica"
+    },
+    "duracion_minutos": {
+      "type": "number",
+      "description": "Duraci\u00f3n aproximada en minutos"
+    },
+    "intensidad": {
+      "type": "string",
+      "enum": [
+        "Baja",
+        "Media",
+        "Alta",
+        "Muy Alta"
+      ],
+      "description": "Nivel de intensidad f\u00edsica"
+    },
+    "jugadores_min": {
+      "type": "number",
+      "description": "N\u00famero m\u00ednimo de jugadores"
+    },
+    "jugadores_max": {
+      "type": "number",
+      "description": "N\u00famero m\u00e1ximo de jugadores"
+    },
+    "espacio_necesario": {
+      "type": "string",
+      "description": "Dimensiones o tipo de espacio (ej: Media cancha, 30x20m)"
+    },
+    "materiales": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Materiales necesarios"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n general del ejercicio"
+    },
+    "instrucciones": {
+      "type": "string",
+      "description": "Instrucciones paso a paso"
+    },
+    "variaciones": {
+      "type": "string",
+      "description": "Variaciones posibles del ejercicio"
+    },
+    "consejos": {
+      "type": "string",
+      "description": "Consejos para el entrenador"
+    },
+    "objetivo_fisico": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Capacidad Aer\u00f3bica",
+          "Potencia Aer\u00f3bica",
+          "Velocidad",
+          "Agilidad",
+          "Coordinaci\u00f3n",
+          "Fuerza Explosiva",
+          "Resistencia Muscular",
+          "Flexibilidad",
+          "Equilibrio"
+        ]
+      },
+      "description": "Objetivos f\u00edsicos que trabaja"
+    },
+    "objetivo_tecnico": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Control de Bal\u00f3n",
+          "Conducci\u00f3n",
+          "Pase Corto",
+          "Pase Largo",
+          "Regate",
+          "Tiro",
+          "Cabeceo",
+          "Entrada",
+          "Pressing",
+          "Desmarque",
+          "Cobertura",
+          "Anticipaci\u00f3n",
+          "Perfilado"
+        ]
+      },
+      "description": "Objetivos t\u00e9cnicos que trabaja"
+    },
+    "objetivo_tactico": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Posesi\u00f3n",
+          "Transici\u00f3n Ofensiva",
+          "Transici\u00f3n Defensiva",
+          "Pressing Alto",
+          "Repliegue",
+          "Basculaci\u00f3n",
+          "L\u00ednea Defensiva",
+          "Superioridad Num\u00e9rica",
+          "Cambio de Orientaci\u00f3n",
+          "Amplitud",
+          "Profundidad"
+        ]
+      },
+      "description": "Objetivos t\u00e1cticos que trabaja"
+    },
+    "momento_sesion": {
+      "type": "string",
+      "enum": [
+        "Calentamiento",
+        "Activaci\u00f3n",
+        "Parte Principal - Inicio",
+        "Parte Principal - Medio",
+        "Parte Principal - Final",
+        "Vuelta a la Calma"
+      ],
+      "description": "Momento recomendado de la sesi\u00f3n"
+    },
+    "diagrama_url": {
+      "type": "string",
+      "description": "URL de imagen/diagrama del ejercicio"
+    },
+    "diagrama_ascii": {
+      "type": "string",
+      "description": "Representaci\u00f3n ASCII del ejercicio para visualizaci\u00f3n r\u00e1pida"
+    },
+    "tags_ia": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Etiquetas para b\u00fasqueda y clasificaci\u00f3n por IA"
+    },
+    "favorito": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si est\u00e1 marcado como favorito"
+    },
+    "fuente": {
+      "type": "string",
+      "description": "Fuente u origen del ejercicio"
+    }
+  },
+  "required": [
+    "nombre",
+    "deporte",
+    "categoria_ejercicio",
+    "duracion_minutos",
+    "descripcion"
+  ]
+}

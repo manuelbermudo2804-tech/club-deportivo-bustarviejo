@@ -1,0 +1,61 @@
+{
+  "name": "SurveyResponse",
+  "type": "object",
+  "properties": {
+    "survey_id": {
+      "type": "string",
+      "description": "ID de la encuesta"
+    },
+    "survey_titulo": {
+      "type": "string",
+      "description": "T\u00edtulo de la encuesta"
+    },
+    "respondente_email": {
+      "type": "string",
+      "description": "Email del respondente (vac\u00edo si an\u00f3nima)"
+    },
+    "respondente_nombre": {
+      "type": "string",
+      "description": "Nombre del respondente (vac\u00edo si an\u00f3nima)"
+    },
+    "respuestas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "pregunta": {
+            "type": "string"
+          },
+          "respuesta": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Respuestas a las preguntas"
+    },
+    "fecha_respuesta": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de respuesta"
+    },
+    "revisada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si admin ya revis\u00f3 esta respuesta"
+    },
+    "revisada_por": {
+      "type": "string",
+      "description": "Email del admin que revis\u00f3"
+    },
+    "fecha_revision": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se revis\u00f3"
+    }
+  },
+  "required": [
+    "survey_id",
+    "survey_titulo",
+    "respuestas"
+  ]
+}

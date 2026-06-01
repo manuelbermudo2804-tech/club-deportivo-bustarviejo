@@ -1,0 +1,66 @@
+{
+  "name": "BudgetTemplate",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre de la plantilla"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n de la plantilla"
+    },
+    "temporada_origen": {
+      "type": "string",
+      "description": "Temporada de la que se cre\u00f3 la plantilla"
+    },
+    "partidas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "categoria": {
+            "type": "string",
+            "enum": [
+              "Ingresos",
+              "Gastos Fijos",
+              "Gastos Variables",
+              "Inversiones"
+            ]
+          },
+          "presupuestado": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Partidas presupuestarias de la plantilla"
+    },
+    "total_ingresos": {
+      "type": "number",
+      "description": "Total de ingresos presupuestados"
+    },
+    "total_gastos": {
+      "type": "number",
+      "description": "Total de gastos presupuestados"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la plantilla est\u00e1 activa"
+    },
+    "etiquetas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Etiquetas para clasificar la plantilla"
+    }
+  },
+  "required": [
+    "nombre",
+    "partidas"
+  ]
+}

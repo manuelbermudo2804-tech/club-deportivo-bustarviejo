@@ -1,0 +1,83 @@
+{
+  "name": "Attendance",
+  "type": "object",
+  "properties": {
+    "fecha": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del entrenamiento"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol Pre-Benjam\u00edn (Mixto)",
+        "F\u00fatbol Benjam\u00edn (Mixto)",
+        "F\u00fatbol Alev\u00edn (Mixto)",
+        "F\u00fatbol Infantil (Mixto)",
+        "F\u00fatbol Cadete",
+        "F\u00fatbol Juvenil",
+        "F\u00fatbol Aficionado",
+        "F\u00fatbol Femenino",
+        "Baloncesto (Mixto)"
+      ],
+      "description": "Categor\u00eda del equipo"
+    },
+    "entrenador_email": {
+      "type": "string",
+      "description": "Email del entrenador que toma la asistencia"
+    },
+    "entrenador_nombre": {
+      "type": "string",
+      "description": "Nombre del entrenador"
+    },
+    "modo_checkin": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si esta sesi\u00f3n us\u00f3 el modo check-in autom\u00e1tico"
+    },
+    "asistencias": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "presente",
+              "ausente",
+              "justificado",
+              "tardanza"
+            ]
+          },
+          "hora_checkin": {
+            "type": "string",
+            "description": "Hora exacta del check-in (HH:MM:SS)"
+          },
+          "actitud": {
+            "type": "number"
+          },
+          "observaciones": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Lista de asistencias de jugadores"
+    },
+    "observaciones_generales": {
+      "type": "string",
+      "description": "Observaciones generales del entrenamiento"
+    }
+  },
+  "required": [
+    "fecha",
+    "categoria",
+    "entrenador_email",
+    "asistencias"
+  ]
+}

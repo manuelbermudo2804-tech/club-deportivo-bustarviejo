@@ -1,0 +1,163 @@
+{
+  "name": "MatchReport",
+  "type": "object",
+  "properties": {
+    "resultado_id": {
+      "type": "string",
+      "description": "ID del Resultado asociado"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del equipo"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada"
+    },
+    "jornada": {
+      "type": "number",
+      "description": "N\u00famero de jornada"
+    },
+    "local": {
+      "type": "string",
+      "description": "Equipo local"
+    },
+    "visitante": {
+      "type": "string",
+      "description": "Equipo visitante"
+    },
+    "goles_local": {
+      "type": "number"
+    },
+    "goles_visitante": {
+      "type": "number"
+    },
+    "fecha": {
+      "type": "string",
+      "description": "Fecha del partido"
+    },
+    "hora": {
+      "type": "string",
+      "description": "Hora del partido"
+    },
+    "campo": {
+      "type": "string",
+      "description": "Campo donde se jug\u00f3"
+    },
+    "arbitro": {
+      "type": "string",
+      "description": "Nombre del \u00e1rbitro principal"
+    },
+    "alineacion_local": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dorsal": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "titular": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Jugadores del equipo local"
+    },
+    "alineacion_visitante": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "dorsal": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "titular": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Jugadores del equipo visitante"
+    },
+    "goles": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "minuto": {
+            "type": "string"
+          },
+          "jugador": {
+            "type": "string"
+          },
+          "equipo": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Lista de goles con minuto y goleador"
+    },
+    "tarjetas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "minuto": {
+            "type": "string"
+          },
+          "jugador": {
+            "type": "string"
+          },
+          "equipo": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "amarilla",
+              "roja",
+              "doble_amarilla"
+            ]
+          }
+        }
+      },
+      "description": "Tarjetas mostradas"
+    },
+    "cambios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "minuto": {
+            "type": "string"
+          },
+          "sale": {
+            "type": "string"
+          },
+          "entra": {
+            "type": "string"
+          },
+          "equipo": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Cambios realizados"
+    },
+    "acta_url_original": {
+      "type": "string",
+      "description": "URL original de la intranet RFFM"
+    }
+  },
+  "required": [
+    "resultado_id",
+    "categoria",
+    "local",
+    "visitante"
+  ]
+}

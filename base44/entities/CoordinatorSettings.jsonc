@@ -1,0 +1,70 @@
+{
+  "name": "CoordinatorSettings",
+  "type": "object",
+  "properties": {
+    "coordinador_email": {
+      "type": "string",
+      "description": "Email del coordinador"
+    },
+    "modo_ausente": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si est\u00e1 activado el modo ausente"
+    },
+    "mensaje_ausente": {
+      "type": "string",
+      "description": "Mensaje autom\u00e1tico cuando est\u00e1 ausente"
+    },
+    "horario_laboral_activo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si est\u00e1 activado el horario laboral"
+    },
+    "horario_inicio": {
+      "type": "string",
+      "description": "Hora de inicio (ej: 09:00)"
+    },
+    "horario_fin": {
+      "type": "string",
+      "description": "Hora de fin (ej: 18:00)"
+    },
+    "dias_laborales": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Lunes",
+          "Martes",
+          "Mi\u00e9rcoles",
+          "Jueves",
+          "Viernes",
+          "S\u00e1bado",
+          "Domingo"
+        ]
+      },
+      "description": "D\u00edas laborales del coordinador"
+    },
+    "mensaje_fuera_horario": {
+      "type": "string",
+      "description": "Mensaje autom\u00e1tico fuera de horario"
+    },
+    "plantillas_respuesta": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "texto": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Plantillas personalizadas de respuesta r\u00e1pida"
+    }
+  },
+  "required": [
+    "coordinador_email"
+  ]
+}

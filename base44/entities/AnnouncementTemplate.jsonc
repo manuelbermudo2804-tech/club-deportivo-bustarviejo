@@ -1,0 +1,48 @@
+{
+  "name": "AnnouncementTemplate",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre de la plantilla"
+    },
+    "estilo": {
+      "type": "string",
+      "enum": [
+        "resumen_general",
+        "logros_y_cifras",
+        "carta_del_presidente",
+        "personalizada"
+      ],
+      "default": "resumen_general",
+      "description": "Estilo base de redacci\u00f3n"
+    },
+    "tono": {
+      "type": "string",
+      "enum": [
+        "cercano",
+        "formal"
+      ],
+      "default": "cercano",
+      "description": "Tono sugerido"
+    },
+    "titulo_base": {
+      "type": "string",
+      "description": "T\u00edtulo con placeholders {{mes}} y {{anio}}"
+    },
+    "cuerpo_base": {
+      "type": "string",
+      "description": "Cuerpo con placeholders: {{mes}}, {{anio}}, {{tareas}}, {{eventos}}, {{anuncios}}, {{galeria}}"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la plantilla est\u00e1 activa"
+    }
+  },
+  "required": [
+    "nombre",
+    "estilo",
+    "cuerpo_base"
+  ]
+}

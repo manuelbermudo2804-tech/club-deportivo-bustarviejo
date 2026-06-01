@@ -1,0 +1,89 @@
+{
+  "name": "Budget",
+  "type": "object",
+  "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del presupuesto (ej: 2024/2025)"
+    },
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del presupuesto"
+    },
+    "partidas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "categoria": {
+            "type": "string",
+            "enum": [
+              "Ingresos",
+              "Gastos Fijos",
+              "Gastos Variables",
+              "Inversiones"
+            ]
+          },
+          "presupuestado": {
+            "type": "number"
+          },
+          "ejecutado": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Partidas presupuestarias"
+    },
+    "google_sheet_id": {
+      "type": "string",
+      "description": "ID de la hoja de Google Sheets vinculada"
+    },
+    "google_sheet_url": {
+      "type": "string",
+      "description": "URL de la hoja de Google Sheets"
+    },
+    "fecha_ultima_sync": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima sincronizaci\u00f3n con Google Sheets"
+    },
+    "total_presupuestado_ingresos": {
+      "type": "number",
+      "default": 0
+    },
+    "total_presupuestado_gastos": {
+      "type": "number",
+      "default": 0
+    },
+    "total_ejecutado_ingresos": {
+      "type": "number",
+      "default": 0
+    },
+    "total_ejecutado_gastos": {
+      "type": "number",
+      "default": 0
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "notas": {
+      "type": "string"
+    },
+    "fecha_ultima_actualizacion_ejecutado": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de la \u00faltima actualizaci\u00f3n del ejecutado autom\u00e1tico"
+    }
+  },
+  "required": [
+    "temporada",
+    "nombre"
+  ]
+}

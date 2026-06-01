@@ -1,0 +1,258 @@
+{
+  "name": "Event",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo del evento"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n detallada del evento"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "Partido",
+        "Entrenamiento",
+        "Reuni\u00f3n",
+        "Torneo",
+        "Inicio Temporada",
+        "Gesti\u00f3n Club",
+        "Pago",
+        "Inscripci\u00f3n",
+        "Pedido Ropa",
+        "Fiesta Club",
+        "Cena/Comida",
+        "Asamblea",
+        "Fin Temporada",
+        "Otro"
+      ],
+      "description": "Tipo de evento"
+    },
+    "destinatario_categoria": {
+      "type": "string",
+      "enum": [
+        "Todos",
+        "F\u00fatbol Pre-Benjam\u00edn (Mixto)",
+        "F\u00fatbol Benjam\u00edn (Mixto)",
+        "F\u00fatbol Alev\u00edn (Mixto)",
+        "F\u00fatbol Infantil (Mixto)",
+        "F\u00fatbol Cadete",
+        "F\u00fatbol Juvenil",
+        "F\u00fatbol Aficionado",
+        "F\u00fatbol Femenino",
+        "Baloncesto (Mixto)"
+      ],
+      "default": "Todos",
+      "description": "Categor\u00eda destinataria del evento"
+    },
+    "deporte": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol Masculino",
+        "F\u00fatbol Femenino",
+        "Baloncesto",
+        "Paddle",
+        "Todos"
+      ],
+      "default": "Todos",
+      "description": "Deporte al que aplica el evento (legacy)"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "Todas",
+        "Prebenjam\u00edn",
+        "Benjam\u00edn",
+        "Alev\u00edn",
+        "Infantil",
+        "Cadete",
+        "Juvenil",
+        "Senior"
+      ],
+      "default": "Todas",
+      "description": "Categor\u00eda a la que aplica (legacy)"
+    },
+    "fecha": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del evento"
+    },
+    "fecha_fin": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha fin (para eventos de varios d\u00edas)"
+    },
+    "hora": {
+      "type": "string",
+      "description": "Hora del evento (ej: 10:00)"
+    },
+    "hora_fin": {
+      "type": "string",
+      "description": "Hora de fin del evento (ej: 12:00)"
+    },
+    "ubicacion": {
+      "type": "string",
+      "description": "Lugar donde se realiza el evento"
+    },
+    "ubicacion_url": {
+      "type": "string",
+      "description": "URL de Google Maps o direcci\u00f3n"
+    },
+    "rival": {
+      "type": "string",
+      "description": "Equipo rival (para partidos)"
+    },
+    "local_visitante": {
+      "type": "string",
+      "enum": [
+        "Local",
+        "Visitante"
+      ],
+      "description": "Si es partido local o visitante"
+    },
+    "importante": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es un evento destacado"
+    },
+    "color": {
+      "type": "string",
+      "enum": [
+        "orange",
+        "blue",
+        "green",
+        "red",
+        "purple",
+        "yellow"
+      ],
+      "default": "orange",
+      "description": "Color para el calendario"
+    },
+    "publicado": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el evento est\u00e1 visible"
+    },
+    "es_automatico": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el evento fue creado autom\u00e1ticamente"
+    },
+    "notificado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya se notific\u00f3 este evento a los usuarios"
+    },
+    "requiere_confirmacion": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si requiere confirmaci\u00f3n de asistencia (RSVP)"
+    },
+    "fecha_limite_rsvp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha l\u00edmite para confirmar asistencia"
+    },
+    "capacidad_maxima": {
+      "type": "number",
+      "description": "N\u00famero m\u00e1ximo de asistentes (opcional)"
+    },
+    "confirmaciones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "usuario_email": {
+            "type": "string"
+          },
+          "usuario_nombre": {
+            "type": "string"
+          },
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          },
+          "confirmacion": {
+            "type": "string",
+            "enum": [
+              "pendiente",
+              "asistire",
+              "no_asistire",
+              "quizas"
+            ]
+          },
+          "num_acompanantes": {
+            "type": "number",
+            "default": 0
+          },
+          "fecha_confirmacion": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "comentario": {
+            "type": "string"
+          },
+          "recordatorio_enviado": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "description": "Lista de confirmaciones de asistencia"
+    },
+    "enviar_recordatorio_automatico": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si se env\u00edan recordatorios autom\u00e1ticos"
+    },
+    "dias_antes_recordatorio": {
+      "type": "number",
+      "default": 3,
+      "description": "D\u00edas antes del evento para enviar recordatorio"
+    },
+    "recordatorio_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya se envi\u00f3 el recordatorio autom\u00e1tico"
+    },
+    "precio": {
+      "type": "number",
+      "description": "Precio de entrada/inscripci\u00f3n (opcional)"
+    },
+    "notas_internas": {
+      "type": "string",
+      "description": "Notas visibles solo para admins"
+    },
+    "creado_por": {
+      "type": "string",
+      "description": "Email del usuario que cre\u00f3 el evento"
+    },
+    "google_calendar_id": {
+      "type": "string",
+      "description": "ID del evento en Google Calendar"
+    },
+    "synced_to_google": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el evento est\u00e1 sincronizado con Google Calendar"
+    },
+    "google_calendar_link": {
+      "type": "string",
+      "description": "Enlace directo al evento en Google Calendar"
+    },
+    "sync_enabled": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si este evento debe sincronizarse con calendarios externos"
+    }
+  },
+  "required": [
+    "titulo",
+    "tipo",
+    "fecha"
+  ]
+}

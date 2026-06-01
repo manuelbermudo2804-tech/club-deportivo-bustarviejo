@@ -1,0 +1,89 @@
+{
+  "name": "InvitationRequest",
+  "type": "object",
+  "properties": {
+    "nombre_jugador": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "email_jugador": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del jugador/menor para enviar la invitaci\u00f3n"
+    },
+    "telefono_jugador": {
+      "type": "string",
+      "description": "Tel\u00e9fono del jugador"
+    },
+    "fecha_nacimiento": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de nacimiento del jugador"
+    },
+    "categoria_deseada": {
+      "type": "string",
+      "description": "Categor\u00eda/deporte en la que quiere inscribirse"
+    },
+    "tipo_solicitud": {
+      "type": "string",
+      "enum": [
+        "jugador_adulto",
+        "acceso_menor"
+      ],
+      "default": "jugador_adulto",
+      "description": "Tipo de solicitud: jugador adulto +18 o acceso juvenil menor 13-17"
+    },
+    "solicitado_por_nombre": {
+      "type": "string",
+      "description": "Nombre del padre/familiar que solicita"
+    },
+    "solicitado_por_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del padre/familiar que solicita"
+    },
+    "player_id": {
+      "type": "string",
+      "description": "ID del jugador vinculado (para acceso menor)"
+    },
+    "consentimiento_version": {
+      "type": "string",
+      "description": "Versi\u00f3n del texto de consentimiento aceptado"
+    },
+    "consentimiento_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora del consentimiento parental"
+    },
+    "consentimiento_user_agent": {
+      "type": "string",
+      "description": "User agent del navegador al dar consentimiento"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "enviada",
+        "completada"
+      ],
+      "default": "pendiente",
+      "description": "Estado de la solicitud"
+    },
+    "fecha_envio": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se envi\u00f3 la invitaci\u00f3n"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas adicionales"
+    }
+  },
+  "required": [
+    "nombre_jugador",
+    "email_jugador",
+    "solicitado_por_nombre",
+    "solicitado_por_email",
+    "estado"
+  ]
+}

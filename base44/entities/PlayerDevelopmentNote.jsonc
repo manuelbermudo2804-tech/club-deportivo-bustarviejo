@@ -1,0 +1,64 @@
+{
+  "name": "PlayerDevelopmentNote",
+  "type": "object",
+  "properties": {
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "autor_email": {
+      "type": "string",
+      "description": "Email del autor (entrenador/coordinador)"
+    },
+    "autor_nombre": {
+      "type": "string",
+      "description": "Nombre del autor"
+    },
+    "tipo_nota": {
+      "type": "string",
+      "enum": [
+        "Observaci\u00f3n",
+        "Progreso",
+        "Preocupaci\u00f3n",
+        "Logro",
+        "Recomendaci\u00f3n"
+      ],
+      "description": "Tipo de nota"
+    },
+    "contenido": {
+      "type": "string",
+      "description": "Contenido de la nota"
+    },
+    "visible_para_padres": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la nota es visible para los padres"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del jugador en ese momento"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada de la nota"
+    },
+    "fecha_evento": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del evento/observaci\u00f3n"
+    }
+  },
+  "required": [
+    "jugador_id",
+    "jugador_nombre",
+    "autor_email",
+    "autor_nombre",
+    "tipo_nota",
+    "contenido",
+    "temporada"
+  ]
+}

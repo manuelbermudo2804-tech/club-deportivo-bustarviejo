@@ -1,0 +1,29 @@
+{
+  "name": "StandingsConfig",
+  "type": "object",
+  "properties": {
+    "categoria": {
+      "type": "string",
+      "description": "Nombre completo de la categor\u00eda (ej: F\u00fatbol Benjam\u00edn (Mixto))"
+    },
+    "grupo": {
+      "type": "string",
+      "description": "Texto identificador del grupo (ej: Grupo 72)"
+    },
+    "rfef_url": {
+      "type": "string",
+      "description": "URL directa a la clasificaci\u00f3n en la web de la RFMF / RFEF"
+    },
+    "rfef_results_url": {
+      "type": "string",
+      "description": "URL directa a resultados/jornadas"
+    },
+    "rfef_scorers_url": {
+      "type": "string",
+      "description": "URL directa a tabla de goleadores"
+    }
+  },
+  "required": [
+    "categoria"
+  ]
+}

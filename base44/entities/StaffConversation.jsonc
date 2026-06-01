@@ -1,0 +1,75 @@
+{
+  "name": "StaffConversation",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre de la conversaci\u00f3n de staff"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda espec\u00edfica o 'General' para todo el staff"
+    },
+    "participantes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "rol": {
+            "type": "string",
+            "enum": [
+              "coordinador",
+              "entrenador",
+              "admin"
+            ]
+          }
+        }
+      },
+      "description": "Lista de participantes del staff"
+    },
+    "ultimo_mensaje": {
+      "type": "string",
+      "description": "Contenido del \u00faltimo mensaje"
+    },
+    "ultimo_mensaje_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del \u00faltimo mensaje"
+    },
+    "ultimo_mensaje_autor": {
+      "type": "string",
+      "description": "Nombre de quien envi\u00f3 el \u00faltimo mensaje"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la conversaci\u00f3n est\u00e1 activa"
+    },
+    "last_read_by": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Registro de \u00faltima lectura por usuario del staff"
+    }
+  },
+  "required": [
+    "nombre",
+    "categoria"
+  ]
+}

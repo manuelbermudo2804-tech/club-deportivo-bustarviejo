@@ -1,0 +1,76 @@
+{
+  "name": "MatchMinutes",
+  "type": "object",
+  "properties": {
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del equipo"
+    },
+    "rival": {
+      "type": "string",
+      "description": "Nombre del equipo rival"
+    },
+    "vuelta": {
+      "type": "string",
+      "enum": [
+        "ida",
+        "vuelta"
+      ],
+      "description": "Si es partido de ida (1\u00aa vuelta) o vuelta (2\u00aa vuelta)"
+    },
+    "jornada": {
+      "type": "number",
+      "description": "N\u00famero de jornada del calendario de liga"
+    },
+    "local_visitante": {
+      "type": "string",
+      "enum": [
+        "Local",
+        "Visitante"
+      ],
+      "description": "Si jugamos de local o visitante"
+    },
+    "duracion_partido": {
+      "type": "number",
+      "default": 0,
+      "description": "Duraci\u00f3n total del partido en minutos"
+    },
+    "minutos_jugadores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          },
+          "minutos_1parte": {
+            "type": "number",
+            "default": 0
+          },
+          "minutos_2parte": {
+            "type": "number",
+            "default": 0
+          }
+        }
+      },
+      "description": "Minutos jugados por cada jugador (1\u00aa y 2\u00aa parte)"
+    },
+    "entrenador_email": {
+      "type": "string",
+      "description": "Email del entrenador que registra"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada (ej: 2025/2026)"
+    }
+  },
+  "required": [
+    "categoria",
+    "rival",
+    "vuelta",
+    "entrenador_email"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "ChatAcceptance",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email del usuario que acept\u00f3"
+    },
+    "user_nombre": {
+      "type": "string",
+      "description": "Nombre completo del usuario"
+    },
+    "tipo_chat": {
+      "type": "string",
+      "enum": [
+        "coordinador",
+        "entrenador"
+      ],
+      "description": "Tipo de chat que acept\u00f3 usar"
+    },
+    "firma_base64": {
+      "type": "string",
+      "description": "Firma digital en base64"
+    },
+    "ip_address": {
+      "type": "string",
+      "description": "Direcci\u00f3n IP del usuario"
+    },
+    "fecha_aceptacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora de aceptaci\u00f3n"
+    },
+    "condiciones_version": {
+      "type": "string",
+      "default": "1.0",
+      "description": "Versi\u00f3n de las condiciones aceptadas"
+    }
+  },
+  "required": [
+    "user_email",
+    "user_nombre",
+    "tipo_chat",
+    "fecha_aceptacion"
+  ]
+}

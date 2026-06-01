@@ -1,0 +1,31 @@
+{
+  "name": "CompetitionCache",
+  "type": "object",
+  "properties": {
+    "categoria": {
+      "type": "string",
+      "description": "Nombre de la categor\u00eda (ej: F\u00fatbol Cadete)"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "jornadas",
+        "tabla_cruzada"
+      ],
+      "description": "Tipo de datos cacheados"
+    },
+    "datos": {
+      "type": "object",
+      "description": "Datos cacheados (jornadas o tabla cruzada)"
+    },
+    "ultima_sync": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de \u00faltima sincronizaci\u00f3n"
+    }
+  },
+  "required": [
+    "categoria",
+    "tipo"
+  ]
+}

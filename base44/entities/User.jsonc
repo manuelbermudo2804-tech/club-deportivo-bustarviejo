@@ -1,0 +1,118 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "role": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "user",
+        "tablet"
+      ],
+      "default": "user"
+    },
+    "tipo_panel": {
+      "type": "string",
+      "enum": [
+        "familia",
+        "jugador_adulto",
+        "jugador_menor"
+      ],
+      "description": "Tipo de panel del usuario"
+    },
+    "es_entrenador": {
+      "type": "boolean",
+      "default": false
+    },
+    "es_coordinador": {
+      "type": "boolean",
+      "default": false
+    },
+    "es_tesorero": {
+      "type": "boolean",
+      "default": false
+    },
+    "es_jugador": {
+      "type": "boolean",
+      "default": false
+    },
+    "es_junta": {
+      "type": "boolean",
+      "default": false
+    },
+    "es_segundo_progenitor": {
+      "type": "boolean",
+      "default": false
+    },
+    "es_menor": {
+      "type": "boolean",
+      "default": false
+    },
+    "player_id": {
+      "type": "string"
+    },
+    "tiene_hijos_jugando": {
+      "type": "boolean",
+      "default": false
+    },
+    "categorias_entrena": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "categorias_coordina": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "puede_gestionar_firmas": {
+      "type": "boolean",
+      "default": false
+    },
+    "puede_gestionar_voluntarios": {
+      "type": "boolean",
+      "default": false
+    },
+    "condiciones_chat_aceptadas": {
+      "type": "boolean",
+      "default": false
+    },
+    "chat_bloqueado": {
+      "type": "boolean",
+      "default": false
+    },
+    "motivo_bloqueo_chat": {
+      "type": "string"
+    },
+    "acceso_activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "motivo_restriccion": {
+      "type": "string"
+    },
+    "app_instalada": {
+      "type": "boolean",
+      "default": false
+    },
+    "codigo_acceso_validado": {
+      "type": "boolean",
+      "default": false
+    },
+    "chat_last_read": {
+      "type": "object",
+      "description": "Timestamps de \u00faltima lectura por chat grupal. Formato: { grupo_id: ISO_date_string }"
+    }
+  },
+  "required": [
+    "tipo_panel",
+    "player_id",
+    "categorias_entrena",
+    "categorias_coordina",
+    "motivo_bloqueo_chat",
+    "motivo_restriccion",
+    "chat_last_read"
+  ]
+}

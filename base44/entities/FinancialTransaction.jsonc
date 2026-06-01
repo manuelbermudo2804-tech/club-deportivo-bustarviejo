@@ -1,0 +1,170 @@
+{
+  "name": "FinancialTransaction",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "Ingreso",
+        "Gasto"
+      ],
+      "description": "Tipo de transacci\u00f3n"
+    },
+    "concepto": {
+      "type": "string",
+      "description": "Concepto o descripci\u00f3n"
+    },
+    "cantidad": {
+      "type": "number",
+      "description": "Importe en euros"
+    },
+    "fecha": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de la transacci\u00f3n"
+    },
+    "partida_id": {
+      "type": "string",
+      "description": "ID de la partida presupuestaria asociada"
+    },
+    "partida_nombre": {
+      "type": "string",
+      "description": "Nombre de la partida presupuestaria"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "Cuotas Socios",
+        "Inscripciones",
+        "Subvenciones",
+        "Patrocinios",
+        "Venta Equipaci\u00f3n",
+        "Eventos",
+        "Loter\u00eda",
+        "Otros Ingresos",
+        "Material Deportivo",
+        "Equipaci\u00f3n",
+        "Arbitrajes",
+        "Desplazamientos",
+        "Instalaciones",
+        "Mantenimiento",
+        "Seguros",
+        "Federaci\u00f3n",
+        "Personal",
+        "Suministros",
+        "Marketing",
+        "Eventos y Celebraciones",
+        "Otros Gastos"
+      ],
+      "description": "Categor\u00eda del movimiento"
+    },
+    "subcategoria": {
+      "type": "string",
+      "description": "Subcategor\u00eda opcional"
+    },
+    "proveedor_cliente": {
+      "type": "string",
+      "description": "Nombre del proveedor o cliente"
+    },
+    "numero_factura": {
+      "type": "string",
+      "description": "N\u00famero de factura o referencia"
+    },
+    "documento_url": {
+      "type": "string",
+      "description": "URL del documento/factura adjunto"
+    },
+    "documento_nombre": {
+      "type": "string",
+      "description": "Nombre del archivo adjunto"
+    },
+    "tipo_documento": {
+      "type": "string",
+      "enum": [
+        "Factura",
+        "Recibo",
+        "Justificante de pago",
+        "Presupuesto",
+        "Albar\u00e1n",
+        "Contrato",
+        "N\u00f3mina",
+        "Extracto bancario",
+        "Otro"
+      ],
+      "description": "Tipo de documento adjunto"
+    },
+    "subtipo_documento": {
+      "type": "string",
+      "enum": [
+        "Cuota deportiva",
+        "Equipaci\u00f3n/Ropa",
+        "Loter\u00eda",
+        "Material deportivo",
+        "Arbitraje",
+        "Desplazamiento",
+        "Instalaciones",
+        "Subvenci\u00f3n",
+        "Patrocinio",
+        "Seguro",
+        "Federaci\u00f3n",
+        "Otro"
+      ],
+      "description": "Subtipo del documento para clasificaci\u00f3n"
+    },
+    "palabras_clave": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Palabras clave para b\u00fasqueda"
+    },
+    "metodo_pago": {
+      "type": "string",
+      "enum": [
+        "Transferencia",
+        "Bizum",
+        "Efectivo",
+        "Tarjeta",
+        "Domiciliaci\u00f3n"
+      ],
+      "description": "M\u00e9todo de pago/cobro"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "Pendiente",
+        "Pagado",
+        "Cobrado",
+        "Anulado"
+      ],
+      "default": "Pendiente"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada asociada"
+    },
+    "categoria_equipo": {
+      "type": "string",
+      "description": "Categor\u00eda de equipo asociada (opcional)"
+    },
+    "notas": {
+      "type": "string"
+    },
+    "automatico": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si fue generado autom\u00e1ticamente desde pagos/pedidos"
+    },
+    "referencia_origen": {
+      "type": "string",
+      "description": "ID del pago/pedido origen si es autom\u00e1tico"
+    }
+  },
+  "required": [
+    "tipo",
+    "concepto",
+    "cantidad",
+    "fecha",
+    "categoria"
+  ]
+}

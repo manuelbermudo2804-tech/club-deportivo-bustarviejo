@@ -1,0 +1,135 @@
+{
+  "name": "MatchObservation",
+  "type": "object",
+  "properties": {
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol Pre-Benjam\u00edn (Mixto)",
+        "F\u00fatbol Benjam\u00edn (Mixto)",
+        "F\u00fatbol Alev\u00edn (Mixto)",
+        "F\u00fatbol Infantil (Mixto)",
+        "F\u00fatbol Cadete",
+        "F\u00fatbol Juvenil",
+        "F\u00fatbol Aficionado",
+        "F\u00fatbol Femenino",
+        "Baloncesto (Mixto)"
+      ],
+      "description": "Categor\u00eda del equipo"
+    },
+    "rival": {
+      "type": "string",
+      "description": "Nombre del rival"
+    },
+    "fecha_partido": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del partido"
+    },
+    "resultado": {
+      "type": "string",
+      "description": "Ej: 2-1 (Victoria/Derrota/Empate)"
+    },
+    "goles_primera_parte": {
+      "type": "number",
+      "description": "Goles marcados en 1\u00aa parte"
+    },
+    "goles_segunda_parte": {
+      "type": "number",
+      "description": "Goles marcados en 2\u00aa parte"
+    },
+    "estado_fisico": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Estado f\u00edsico del equipo (1=Muy bajo, 5=Excelente)"
+    },
+    "ocasiones_claras": {
+      "type": "number",
+      "description": "N\u00famero aproximado de ocasiones claras de gol"
+    },
+    "solidez_defensiva": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Solidez defensiva (1=Muy d\u00e9bil, 5=Excelente)"
+    },
+    "control_partido": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "Control general del partido (1=Dominados, 5=Dominantes)"
+    },
+    "observaciones": {
+      "type": "string",
+      "description": "Observaciones del entrenador (qu\u00e9 funcion\u00f3/qu\u00e9 fall\u00f3)"
+    },
+    "entrenador_email": {
+      "type": "string",
+      "description": "Email del entrenador que registra"
+    },
+    "entrenador_nombre": {
+      "type": "string",
+      "description": "Nombre del entrenador"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del partido (ej: 2024-2025)"
+    },
+    "jornada": {
+      "type": "number",
+      "description": "N\u00famero de jornada"
+    },
+    "auto_generada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la ficha fue generada autom\u00e1ticamente desde los datos de la RFFM"
+    },
+    "local_visitante": {
+      "type": "string",
+      "enum": [
+        "Local",
+        "Visitante"
+      ],
+      "description": "Si Bustarviejo jug\u00f3 como local o visitante"
+    },
+    "goles_favor": {
+      "type": "number",
+      "description": "Goles a favor de Bustarviejo"
+    },
+    "goles_contra": {
+      "type": "number",
+      "description": "Goles en contra de Bustarviejo"
+    },
+    "resultado_tipo": {
+      "type": "string",
+      "enum": [
+        "Victoria",
+        "Empate",
+        "Derrota"
+      ],
+      "description": "Tipo de resultado para Bustarviejo"
+    },
+    "campo": {
+      "type": "string",
+      "description": "Campo donde se jug\u00f3 el partido"
+    },
+    "completada_por_entrenador": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el entrenador a\u00f1adi\u00f3 sus observaciones a la ficha auto-generada"
+    },
+    "email_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se envi\u00f3 email al entrenador para completar la ficha"
+    }
+  },
+  "required": [
+    "categoria",
+    "rival",
+    "fecha_partido",
+    "resultado",
+    "temporada"
+  ]
+}

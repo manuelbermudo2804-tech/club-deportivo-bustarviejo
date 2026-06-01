@@ -1,0 +1,38 @@
+{
+  "name": "MarketReservation",
+  "type": "object",
+  "properties": {
+    "listing_id": {
+      "type": "string"
+    },
+    "comprador_nombre": {
+      "type": "string"
+    },
+    "comprador_email": {
+      "type": "string"
+    },
+    "comprador_telefono": {
+      "type": "string"
+    },
+    "mensaje": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "aceptada",
+        "cancelada"
+      ],
+      "default": "pendiente"
+    },
+    "fecha": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "listing_id",
+    "comprador_email"
+  ]
+}

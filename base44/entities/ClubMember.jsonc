@@ -1,0 +1,262 @@
+{
+  "name": "ClubMember",
+  "type": "object",
+  "properties": {
+    "numero_socio": {
+      "type": "string",
+      "description": "N\u00famero de socio \u00fanico (ej: CDB-2024-0001)"
+    },
+    "tipo_inscripcion": {
+      "type": "string",
+      "enum": [
+        "Nueva Inscripci\u00f3n",
+        "Renovaci\u00f3n"
+      ],
+      "default": "Nueva Inscripci\u00f3n",
+      "description": "Tipo de inscripci\u00f3n como socio"
+    },
+    "nombre_completo": {
+      "type": "string",
+      "description": "Nombre y apellidos completos del socio"
+    },
+    "dni": {
+      "type": "string",
+      "description": "DNI del socio"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono m\u00f3vil"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Correo electr\u00f3nico"
+    },
+    "direccion": {
+      "type": "string",
+      "description": "Direcci\u00f3n completa"
+    },
+    "municipio": {
+      "type": "string",
+      "description": "Municipio"
+    },
+    "fecha_nacimiento": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de nacimiento del socio"
+    },
+    "es_segundo_progenitor": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es segundo progenitor de un jugador inscrito"
+    },
+    "es_socio_externo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es un socio externo (sin hijos en el club)"
+    },
+    "es_socio_padre": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es un socio-padre (creado autom\u00e1ticamente al pagar cuota de hijo)"
+    },
+    "jugadores_relacionados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Jugadores relacionados con este socio"
+    },
+    "jugadores_hijos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Hijos jugadores (para socios-padre)"
+    },
+    "cuota_socio": {
+      "type": "number",
+      "default": 25,
+      "description": "Cuota de socio en euros"
+    },
+    "estado_pago": {
+      "type": "string",
+      "enum": [
+        "Pendiente",
+        "En revisi\u00f3n",
+        "Pagado",
+        "Fallido"
+      ],
+      "default": "Pendiente",
+      "description": "Estado del pago de la cuota de socio"
+    },
+    "metodo_pago": {
+      "type": "string",
+      "enum": [
+        "Transferencia",
+        "Bizum",
+        "Tarjeta"
+      ],
+      "description": "M\u00e9todo de pago utilizado"
+    },
+    "origen_pago": {
+      "type": "string",
+      "enum": [
+        "stripe_unico",
+        "stripe_suscripcion",
+        "transferencia",
+        "socio_padre_auto"
+      ],
+      "description": "Origen/tipo del pago"
+    },
+    "renovacion_automatica": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si tiene suscripci\u00f3n activa que se renueva autom\u00e1ticamente"
+    },
+    "stripe_subscription_id": {
+      "type": "string",
+      "description": "ID de la suscripci\u00f3n de Stripe (si paga por suscripci\u00f3n)"
+    },
+    "stripe_customer_id": {
+      "type": "string",
+      "description": "ID del customer de Stripe"
+    },
+    "stripe_subscription_status": {
+      "type": "string",
+      "enum": [
+        "active",
+        "past_due",
+        "canceled",
+        "unpaid",
+        "incomplete"
+      ],
+      "description": "Estado de la suscripci\u00f3n en Stripe"
+    },
+    "fecha_alta": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha en que se confirm\u00f3 el pago y se dio de alta como socio"
+    },
+    "fecha_vencimiento": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha en que vence la membres\u00eda (normalmente 30 junio del a\u00f1o de fin de temporada)"
+    },
+    "fecha_ultimo_cobro": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima fecha en que Stripe cobr\u00f3 correctamente (para suscripciones)"
+    },
+    "fecha_proximo_cobro": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Pr\u00f3xima fecha de cobro autom\u00e1tico (para suscripciones)"
+    },
+    "justificante_url": {
+      "type": "string",
+      "description": "URL del justificante de pago"
+    },
+    "justificante_base64": {
+      "type": "string",
+      "description": "Justificante de pago en formato base64 (data URL)"
+    },
+    "fecha_pago": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del pago"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada de inscripci\u00f3n (ej: 2024-2025)"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el socio est\u00e1 activo"
+    },
+    "carnet_token": {
+      "type": "string",
+      "description": "Token \u00fanico para acceso p\u00fablico al carnet digital (sin login)"
+    },
+    "carnet_email_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya se envi\u00f3 el email con el enlace al carnet p\u00fablico"
+    },
+    "referido_por": {
+      "type": "string",
+      "description": "Nombre de quien refiri\u00f3 a este socio"
+    },
+    "referido_por_email": {
+      "type": "string",
+      "description": "Email de quien refiri\u00f3 a este socio"
+    },
+    "referido_procesado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya se procesaron los premios del programa de referidos para este socio"
+    },
+    "carnet_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya se envi\u00f3 el carnet virtual por email"
+    },
+    "fecha_carnet_enviado": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de env\u00edo del carnet"
+    },
+    "recordatorio_renovacion_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya se envi\u00f3 recordatorio de renovaci\u00f3n para la pr\u00f3xima temporada"
+    },
+    "recordatorio_renovacion_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del \u00faltimo recordatorio de renovaci\u00f3n enviado"
+    },
+    "recordatorio_renovacion_count": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero de recordatorios de renovaci\u00f3n enviados"
+    },
+    "aviso_cobro_ok_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se envi\u00f3 aviso de cobro exitoso (para suscripciones renovadas)"
+    },
+    "aviso_cobro_fallido_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se envi\u00f3 aviso de cobro fallido"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas adicionales"
+    }
+  },
+  "required": [
+    "tipo_inscripcion",
+    "nombre_completo",
+    "email",
+    "temporada"
+  ]
+}

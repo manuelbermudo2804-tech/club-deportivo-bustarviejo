@@ -1,0 +1,64 @@
+{
+  "name": "TrainingSchedule",
+  "type": "object",
+  "properties": {
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol Pre-Benjam\u00edn (Mixto)",
+        "F\u00fatbol Benjam\u00edn (Mixto)",
+        "F\u00fatbol Alev\u00edn (Mixto)",
+        "F\u00fatbol Infantil (Mixto)",
+        "F\u00fatbol Cadete",
+        "F\u00fatbol Juvenil",
+        "F\u00fatbol Aficionado",
+        "F\u00fatbol Femenino",
+        "Baloncesto (Mixto)"
+      ],
+      "description": "Categor\u00eda del equipo"
+    },
+    "dia_semana": {
+      "type": "string",
+      "enum": [
+        "Lunes",
+        "Martes",
+        "Mi\u00e9rcoles",
+        "Jueves",
+        "Viernes"
+      ],
+      "description": "D\u00eda de la semana del entrenamiento"
+    },
+    "hora_inicio": {
+      "type": "string",
+      "description": "Hora de inicio (ej: 17:30)"
+    },
+    "hora_fin": {
+      "type": "string",
+      "description": "Hora de fin (ej: 18:45)"
+    },
+    "ubicacion": {
+      "type": "string",
+      "description": "Lugar del entrenamiento"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas adicionales sobre el entrenamiento"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del horario (ej: 2024-2025)"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el horario est\u00e1 activo"
+    }
+  },
+  "required": [
+    "categoria",
+    "dia_semana",
+    "hora_inicio",
+    "hora_fin",
+    "temporada"
+  ]
+}

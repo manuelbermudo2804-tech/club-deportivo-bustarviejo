@@ -1,0 +1,91 @@
+{
+  "name": "FemeninoInterest",
+  "type": "object",
+  "properties": {
+    "nombre_jugadora": {
+      "type": "string",
+      "description": "Nombre de la jugadora interesada"
+    },
+    "fecha_nacimiento": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de nacimiento de la jugadora"
+    },
+    "nombre_padre": {
+      "type": "string",
+      "description": "Nombre del padre/madre/tutor"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email de contacto"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto"
+    },
+    "municipio": {
+      "type": "string",
+      "description": "Municipio de residencia"
+    },
+    "experiencia_previa": {
+      "type": "string",
+      "enum": [
+        "Sin experiencia",
+        "Menos de 1 a\u00f1o",
+        "1-2 a\u00f1os",
+        "M\u00e1s de 2 a\u00f1os"
+      ],
+      "description": "Experiencia previa jugando al f\u00fatbol"
+    },
+    "como_nos_conocio": {
+      "type": "string",
+      "enum": [
+        "Amigo/Familiar del club",
+        "Redes sociales",
+        "Cartel/Publicidad",
+        "Web del club",
+        "Otro"
+      ],
+      "description": "C\u00f3mo conoci\u00f3 al club"
+    },
+    "referido_por_email": {
+      "type": "string",
+      "description": "Email del padre que refiri\u00f3 (para bonus)"
+    },
+    "referido_por_nombre": {
+      "type": "string",
+      "description": "Nombre del padre que refiri\u00f3"
+    },
+    "mensaje": {
+      "type": "string",
+      "description": "Mensaje adicional o preguntas"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "Nuevo",
+        "Contactado",
+        "Prueba programada",
+        "Inscrita",
+        "Descartado"
+      ],
+      "default": "Nuevo",
+      "description": "Estado de la solicitud"
+    },
+    "notas_admin": {
+      "type": "string",
+      "description": "Notas internas del administrador"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada de la solicitud"
+    }
+  },
+  "required": [
+    "nombre_jugadora",
+    "nombre_padre",
+    "email",
+    "telefono"
+  ]
+}

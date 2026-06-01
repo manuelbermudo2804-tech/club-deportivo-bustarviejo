@@ -1,0 +1,138 @@
+{
+  "name": "CustomPaymentPlan",
+  "type": "object",
+  "properties": {
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "familia_email": {
+      "type": "string",
+      "description": "Email del padre/tutor"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del plan"
+    },
+    "deuda_original": {
+      "type": "number",
+      "description": "Deuda total original antes del plan"
+    },
+    "deuda_condonada": {
+      "type": "number",
+      "default": 0,
+      "description": "Cantidad condonada/perdonada"
+    },
+    "deuda_final": {
+      "type": "number",
+      "description": "Deuda final a pagar despu\u00e9s de condonaci\u00f3n"
+    },
+    "numero_cuotas": {
+      "type": "number",
+      "description": "N\u00famero de cuotas acordadas"
+    },
+    "cuotas": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "numero": {
+            "type": "number"
+          },
+          "cantidad": {
+            "type": "number"
+          },
+          "fecha_vencimiento": {
+            "type": "string",
+            "format": "date"
+          },
+          "pagada": {
+            "type": "boolean",
+            "default": false
+          },
+          "fecha_pago": {
+            "type": "string",
+            "format": "date"
+          },
+          "justificante_url": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Detalle de cada cuota del plan"
+    },
+    "motivo_plan": {
+      "type": "string",
+      "enum": [
+        "Inscripci\u00f3n Tard\u00eda",
+        "Dificultad Econ\u00f3mica",
+        "P\u00e9rdida Empleo",
+        "Emergencia Familiar",
+        "Familia Numerosa",
+        "Otro"
+      ],
+      "description": "Motivo del plan especial"
+    },
+    "motivo_detalle": {
+      "type": "string",
+      "description": "Detalles adicionales del motivo"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "Activo",
+        "Completado",
+        "Incumplido",
+        "Cancelado"
+      ],
+      "default": "Activo",
+      "description": "Estado del plan de pago"
+    },
+    "creado_por": {
+      "type": "string",
+      "description": "Email del admin/tesorero que cre\u00f3 el plan"
+    },
+    "aprobado_por": {
+      "type": "string",
+      "description": "Email del admin que aprob\u00f3 el plan"
+    },
+    "fecha_aprobacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de aprobaci\u00f3n del plan"
+    },
+    "notas_internas": {
+      "type": "string",
+      "description": "Notas privadas del equipo administrativo"
+    },
+    "mensaje_para_familia": {
+      "type": "string",
+      "description": "Mensaje visible para la familia"
+    },
+    "notificaciones_activadas": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si enviar recordatorios autom\u00e1ticos"
+    },
+    "ultima_notificacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que se envi\u00f3 recordatorio"
+    }
+  },
+  "required": [
+    "jugador_id",
+    "jugador_nombre",
+    "familia_email",
+    "temporada",
+    "deuda_original",
+    "deuda_final",
+    "numero_cuotas",
+    "cuotas",
+    "motivo_plan"
+  ]
+}

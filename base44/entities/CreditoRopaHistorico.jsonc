@@ -1,0 +1,66 @@
+{
+  "name": "CreditoRopaHistorico",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email del usuario"
+    },
+    "user_nombre": {
+      "type": "string",
+      "description": "Nombre del usuario"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "ganado",
+        "gastado"
+      ],
+      "description": "Si es cr\u00e9dito ganado o gastado"
+    },
+    "cantidad": {
+      "type": "number",
+      "description": "Cantidad en euros"
+    },
+    "concepto": {
+      "type": "string",
+      "description": "Descripci\u00f3n del movimiento"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del movimiento"
+    },
+    "referido_nombre": {
+      "type": "string",
+      "description": "Nombre del socio referido (si tipo=ganado)"
+    },
+    "pedido_id": {
+      "type": "string",
+      "description": "ID del pedido de ropa (si tipo=gastado)"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador (si tipo=gastado)"
+    },
+    "saldo_antes": {
+      "type": "number",
+      "description": "Saldo antes de este movimiento"
+    },
+    "saldo_despues": {
+      "type": "number",
+      "description": "Saldo despu\u00e9s de este movimiento"
+    },
+    "fecha_movimiento": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del movimiento"
+    }
+  },
+  "required": [
+    "user_email",
+    "tipo",
+    "cantidad",
+    "concepto",
+    "temporada"
+  ]
+}

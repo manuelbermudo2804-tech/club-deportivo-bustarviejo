@@ -1,0 +1,114 @@
+{
+  "name": "BoardTask",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo de la tarea"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n detallada"
+    },
+    "area": {
+      "type": "string",
+      "enum": [
+        "Presidencia",
+        "Vicepresidencia",
+        "Secretar\u00eda",
+        "Tesorer\u00eda",
+        "Material e instalaciones",
+        "Cantera y equipos base",
+        "Eventos y patrocinio"
+      ],
+      "description": "\u00c1rea responsable"
+    },
+    "prioridad": {
+      "type": "string",
+      "enum": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "default": "media",
+      "description": "Prioridad de la tarea"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "en_progreso",
+        "bloqueado",
+        "hecho"
+      ],
+      "default": "pendiente",
+      "description": "Estado Kanban"
+    },
+    "fecha_limite": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha l\u00edmite (opcional)"
+    },
+    "rol_asignado": {
+      "type": "string",
+      "enum": [
+        "Presidente",
+        "Vicepresidente",
+        "Secretar\u00eda",
+        "Tesorero",
+        "Vocal1",
+        "Vocal2",
+        "Vocal3"
+      ],
+      "description": "Rol asignado"
+    },
+    "asignado_a_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Asignaci\u00f3n directa a una persona (opcional)"
+    },
+    "comentarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "autor_email": {
+            "type": "string"
+          },
+          "autor_nombre": {
+            "type": "string"
+          },
+          "mensaje": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Historial de comentarios"
+    },
+    "incidencia_id": {
+      "type": "string",
+      "description": "Vincular a incidencia (opcional)"
+    },
+    "fecha_cierre": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en la que se marc\u00f3 como hecho"
+    },
+    "cerrado_por_email": {
+      "type": "string",
+      "description": "Email de quien cerr\u00f3 la tarea"
+    },
+    "cerrado_por_nombre": {
+      "type": "string",
+      "description": "Nombre de quien cerr\u00f3 la tarea"
+    }
+  },
+  "required": [
+    "titulo",
+    "estado"
+  ]
+}

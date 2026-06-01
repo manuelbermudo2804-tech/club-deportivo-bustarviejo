@@ -1,0 +1,69 @@
+{
+  "name": "BirthdayLog",
+  "type": "object",
+  "properties": {
+    "destinatario_email": {
+      "type": "string",
+      "description": "Email del que cumple a\u00f1os"
+    },
+    "destinatario_nombre": {
+      "type": "string",
+      "description": "Nombre del que cumple a\u00f1os"
+    },
+    "destinatario_tipo": {
+      "type": "string",
+      "enum": [
+        "jugador_menor",
+        "jugador_adulto",
+        "padre",
+        "socio",
+        "entrenador",
+        "coordinador"
+      ],
+      "description": "Tipo de destinatario"
+    },
+    "fecha_cumpleanos": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del cumplea\u00f1os (YYYY-MM-DD)"
+    },
+    "edad": {
+      "type": "number",
+      "description": "Edad que cumple"
+    },
+    "email_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se envi\u00f3 el email"
+    },
+    "fecha_envio_email": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora del env\u00edo"
+    },
+    "notificacion_app_mostrada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se mostr\u00f3 la pantalla en la app"
+    },
+    "fecha_notificacion_app": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de visualizaci\u00f3n en la app"
+    },
+    "errores": {
+      "type": "string",
+      "description": "Errores durante el proceso"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas adicionales"
+    }
+  },
+  "required": [
+    "destinatario_email",
+    "destinatario_nombre",
+    "destinatario_tipo",
+    "fecha_cumpleanos"
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "name": "AppNotification",
+  "type": "object",
+  "properties": {
+    "usuario_email": {
+      "type": "string",
+      "description": "Email del usuario que debe ver la notificaci\u00f3n"
+    },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo de la notificaci\u00f3n"
+    },
+    "mensaje": {
+      "type": "string",
+      "description": "Mensaje de la notificaci\u00f3n"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "urgente",
+        "importante",
+        "info",
+        "normal"
+      ],
+      "default": "info",
+      "description": "Tipo de notificaci\u00f3n"
+    },
+    "icono": {
+      "type": "string",
+      "description": "Emoji o icono a mostrar"
+    },
+    "enlace": {
+      "type": "string",
+      "description": "URL de destino al hacer clic en la notificaci\u00f3n"
+    },
+    "vista": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el usuario ya vio la notificaci\u00f3n"
+    },
+    "fecha_vista": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se vio"
+    }
+  },
+  "required": [
+    "usuario_email",
+    "titulo",
+    "mensaje",
+    "tipo"
+  ]
+}

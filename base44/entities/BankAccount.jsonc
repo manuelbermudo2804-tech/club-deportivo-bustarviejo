@@ -1,0 +1,56 @@
+{
+  "name": "BankAccount",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre de la cuenta (ej: Cuenta Principal, Caja)"
+    },
+    "banco": {
+      "type": "string",
+      "description": "Nombre del banco"
+    },
+    "numero_cuenta": {
+      "type": "string",
+      "description": "N\u00famero de cuenta o IBAN"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "Corriente",
+        "Ahorro",
+        "Caja"
+      ],
+      "default": "Corriente",
+      "description": "Tipo de cuenta"
+    },
+    "saldo_inicial": {
+      "type": "number",
+      "default": 0,
+      "description": "Saldo inicial de la cuenta"
+    },
+    "saldo_actual": {
+      "type": "number",
+      "default": 0,
+      "description": "Saldo actual calculado"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la cuenta est\u00e1 activa"
+    },
+    "ultima_conciliacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima fecha de conciliaci\u00f3n"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada asociada"
+    }
+  },
+  "required": [
+    "nombre",
+    "tipo"
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "name": "JuniorMailbox",
+  "type": "object",
+  "properties": {
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador menor"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "jugador_email": {
+      "type": "string",
+      "description": "Email del menor"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del jugador"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "opinion",
+        "idea",
+        "problema",
+        "agradecimiento",
+        "pregunta"
+      ],
+      "description": "Tipo de mensaje"
+    },
+    "emoji_estado": {
+      "type": "string",
+      "description": "Emoji que representa c\u00f3mo se siente (\ud83d\ude0a\ud83d\ude10\ud83d\ude22\ud83e\udd14\ud83d\udcaa)"
+    },
+    "mensaje": {
+      "type": "string",
+      "description": "Contenido del mensaje del jugador"
+    },
+    "anonimo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el jugador quiere que sea an\u00f3nimo"
+    },
+    "respuesta_admin": {
+      "type": "string",
+      "description": "Respuesta del admin/coordinador"
+    },
+    "respondido_por": {
+      "type": "string",
+      "description": "Email de quien respondi\u00f3"
+    },
+    "respondido_por_nombre": {
+      "type": "string",
+      "description": "Nombre de quien respondi\u00f3"
+    },
+    "fecha_respuesta": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de la respuesta"
+    },
+    "leido_por_jugador": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el jugador ha le\u00eddo la respuesta"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "nuevo",
+        "leido",
+        "respondido"
+      ],
+      "default": "nuevo",
+      "description": "Estado del mensaje"
+    },
+    "destacado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el admin lo marca como destacado"
+    }
+  },
+  "required": [
+    "jugador_email",
+    "tipo",
+    "mensaje",
+    "estado"
+  ]
+}

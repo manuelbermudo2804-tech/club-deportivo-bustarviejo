@@ -1,0 +1,85 @@
+{
+  "name": "Reminder",
+  "type": "object",
+  "properties": {
+    "pago_id": {
+      "type": "string",
+      "description": "ID del pago relacionado"
+    },
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "email_padre": {
+      "type": "string",
+      "description": "Email del padre/tutor"
+    },
+    "tipo_recordatorio": {
+      "type": "string",
+      "enum": [
+        "15 d\u00edas antes",
+        "7 d\u00edas antes",
+        "3 d\u00edas antes",
+        "1 d\u00eda despu\u00e9s",
+        "Manual"
+      ],
+      "default": "15 d\u00edas antes",
+      "description": "Tipo de recordatorio seg\u00fan el calendario escalonado"
+    },
+    "fecha_envio": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha programada para enviar el recordatorio"
+    },
+    "enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el recordatorio ya fue enviado"
+    },
+    "fecha_enviado": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora en que se envi\u00f3 el recordatorio"
+    },
+    "enviado_chat": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se envi\u00f3 mensaje al chat del grupo"
+    },
+    "fecha_enviado_chat": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de env\u00edo al chat"
+    },
+    "mes_pago": {
+      "type": "string",
+      "enum": [
+        "Junio",
+        "Septiembre",
+        "Diciembre"
+      ],
+      "description": "Mes del pago a recordar"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del pago"
+    },
+    "cantidad": {
+      "type": "number",
+      "description": "Cantidad a pagar"
+    }
+  },
+  "required": [
+    "pago_id",
+    "jugador_id",
+    "jugador_nombre",
+    "tipo_recordatorio",
+    "fecha_envio",
+    "mes_pago",
+    "cantidad"
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "name": "SystemAlert",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo del problema"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n detallada"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "error",
+        "performance",
+        "data_integrity",
+        "inconsistency",
+        "behavior",
+        "security"
+      ],
+      "description": "Categor\u00eda del problema"
+    },
+    "severidad": {
+      "type": "string",
+      "enum": [
+        "low",
+        "medium",
+        "high",
+        "critical"
+      ],
+      "description": "Nivel de urgencia"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "activo",
+        "investigando",
+        "resuelto",
+        "ignorado"
+      ],
+      "default": "activo",
+      "description": "Estado del problema"
+    },
+    "ocurrencias": {
+      "type": "number",
+      "default": 1,
+      "description": "Cu\u00e1ntas veces ha ocurrido"
+    },
+    "primera_ocurrencia": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Primera vez que se detect\u00f3"
+    },
+    "ultima_ocurrencia": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que se detect\u00f3"
+    },
+    "afecta_usuarios": {
+      "type": "number",
+      "description": "Cu\u00e1ntos usuarios est\u00e1n afectados"
+    },
+    "solucion_sugerida": {
+      "type": "string",
+      "description": "Recomendaci\u00f3n de soluci\u00f3n"
+    },
+    "evidencia": {
+      "type": "object",
+      "description": "Datos/logs de evidencia"
+    },
+    "prioridad_score": {
+      "type": "number",
+      "minimum": 1,
+      "maximum": 100,
+      "description": "Score de 1-100 para priorizaci\u00f3n autom\u00e1tica"
+    },
+    "notas_admin": {
+      "type": "string",
+      "description": "Notas del administrador"
+    }
+  },
+  "required": [
+    "titulo",
+    "categoria",
+    "severidad"
+  ]
+}

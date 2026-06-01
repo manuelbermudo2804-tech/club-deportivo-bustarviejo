@@ -1,0 +1,115 @@
+{
+  "name": "TacticaPizarra",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre de la t\u00e1ctica o ejercicio"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol Pre-Benjam\u00edn (Mixto)",
+        "F\u00fatbol Benjam\u00edn (Mixto)",
+        "F\u00fatbol Alev\u00edn (Mixto)",
+        "F\u00fatbol Infantil (Mixto)",
+        "F\u00fatbol Cadete",
+        "F\u00fatbol Juvenil",
+        "F\u00fatbol Aficionado",
+        "F\u00fatbol Femenino"
+      ],
+      "description": "Categor\u00eda del equipo"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "T\u00e1ctica",
+        "Ejercicio",
+        "Jugada ensayada",
+        "Estrategia defensiva",
+        "Estrategia ofensiva"
+      ],
+      "default": "T\u00e1ctica",
+      "description": "Tipo de contenido"
+    },
+    "formacion_base": {
+      "type": "string",
+      "description": "Formaci\u00f3n t\u00e1ctica base (ej: 4-3-3)"
+    },
+    "posiciones_jugadores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "numero": {
+            "type": "number"
+          },
+          "x": {
+            "type": "number"
+          },
+          "y": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Posiciones de los 11 jugadores en el campo"
+    },
+    "lineas_dibujo": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "puntos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "x": {
+                  "type": "number"
+                },
+                "y": {
+                  "type": "number"
+                }
+              }
+            }
+          },
+          "color": {
+            "type": "string"
+          },
+          "grosor": {
+            "type": "number"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "solida",
+              "flecha",
+              "punteada"
+            ]
+          }
+        }
+      },
+      "description": "L\u00edneas dibujadas en el campo"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas adicionales sobre la t\u00e1ctica"
+    },
+    "entrenador_email": {
+      "type": "string",
+      "description": "Email del entrenador que cre\u00f3 la t\u00e1ctica"
+    },
+    "compartida": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la t\u00e1ctica est\u00e1 compartida con otros entrenadores"
+    }
+  },
+  "required": [
+    "nombre",
+    "categoria",
+    "tipo",
+    "posiciones_jugadores",
+    "entrenador_email"
+  ]
+}

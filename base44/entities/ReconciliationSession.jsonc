@@ -1,0 +1,49 @@
+{
+  "name": "ReconciliationSession",
+  "type": "object",
+  "properties": {
+    "extracto_url": {
+      "type": "string",
+      "description": "URL del extracto bancario subido (CSV)"
+    },
+    "movimientos_totales": {
+      "type": "number",
+      "description": "Total de movimientos importados"
+    },
+    "movimientos_reconciliados": {
+      "type": "number",
+      "default": 0,
+      "description": "Movimientos ya reconciliados"
+    },
+    "movimientos_pendientes": {
+      "type": "number",
+      "description": "Movimientos pendientes de revisar"
+    },
+    "admin_email": {
+      "type": "string",
+      "description": "Email del admin que realiz\u00f3 la sesi\u00f3n"
+    },
+    "completada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la sesi\u00f3n est\u00e1 completada"
+    },
+    "fecha_inicio": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de inicio del periodo"
+    },
+    "fecha_fin": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de fin del periodo"
+    }
+  },
+  "required": [
+    "extracto_url",
+    "movimientos_totales",
+    "admin_email",
+    "fecha_inicio",
+    "fecha_fin"
+  ]
+}

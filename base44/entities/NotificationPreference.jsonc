@@ -1,0 +1,93 @@
+{
+  "name": "NotificationPreference",
+  "type": "object",
+  "properties": {
+    "usuario_email": {
+      "type": "string",
+      "description": "Email del usuario"
+    },
+    "tipo_usuario": {
+      "type": "string",
+      "enum": [
+        "admin",
+        "coordinador",
+        "entrenador",
+        "tesorero"
+      ],
+      "description": "Tipo de usuario (padres no pueden configurar)"
+    },
+    "notif_convocatorias": {
+      "type": "boolean",
+      "default": true,
+      "description": "Recibir notificaciones de convocatorias"
+    },
+    "notif_pagos": {
+      "type": "boolean",
+      "default": true,
+      "description": "Recibir notificaciones de pagos"
+    },
+    "notif_recordatorios_pago": {
+      "type": "boolean",
+      "default": true,
+      "description": "Recibir notificaciones de recordatorios de pago pr\u00f3ximos"
+    },
+    "notif_chats_grupo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Recibir notificaciones de mensajes en chat de grupo"
+    },
+    "notif_mensajes_sistema": {
+      "type": "boolean",
+      "default": true,
+      "description": "Recibir notificaciones de mensajes privados del sistema"
+    },
+    "notif_chats_urgentes": {
+      "type": "boolean",
+      "default": true,
+      "description": "Recibir notificaciones de chats urgentes"
+    },
+    "notif_evaluaciones": {
+      "type": "boolean",
+      "default": true,
+      "description": "Recibir notificaciones de evaluaciones"
+    },
+    "notif_anuncios": {
+      "type": "boolean",
+      "default": true,
+      "description": "Recibir notificaciones de anuncios importantes"
+    },
+    "modo_entrega": {
+      "type": "string",
+      "enum": [
+        "inmediato",
+        "resumen_diario"
+      ],
+      "default": "inmediato",
+      "description": "Cu\u00e1ndo recibir notificaciones"
+    },
+    "silenciar_horario": {
+      "type": "boolean",
+      "default": false,
+      "description": "Silenciar notificaciones fuera de horario laboral"
+    },
+    "hora_inicio_silencio": {
+      "type": "string",
+      "default": "22:00",
+      "description": "Hora de inicio del silencio (formato HH:MM)"
+    },
+    "hora_fin_silencio": {
+      "type": "string",
+      "default": "08:00",
+      "description": "Hora de fin del silencio (formato HH:MM)"
+    },
+    "resumen_semanal_email": {
+      "type": "boolean",
+      "default": false,
+      "description": "Recibir resumen semanal por email"
+    }
+  },
+  "required": [
+    "usuario_email",
+    "tipo_usuario"
+  ]
+}

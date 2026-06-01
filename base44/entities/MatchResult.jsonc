@@ -1,0 +1,120 @@
+{
+  "name": "MatchResult",
+  "type": "object",
+  "properties": {
+    "convocatoria_id": {
+      "type": "string",
+      "description": "ID de la convocatoria asociada"
+    },
+    "titulo_partido": {
+      "type": "string",
+      "description": "T\u00edtulo del partido"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol Pre-Benjam\u00edn (Mixto)",
+        "F\u00fatbol Benjam\u00edn (Mixto)",
+        "F\u00fatbol Alev\u00edn (Mixto)",
+        "F\u00fatbol Infantil (Mixto)",
+        "F\u00fatbol Cadete",
+        "F\u00fatbol Juvenil",
+        "F\u00fatbol Aficionado",
+        "F\u00fatbol Femenino",
+        "Baloncesto (Mixto)"
+      ],
+      "description": "Categor\u00eda del equipo"
+    },
+    "fecha_partido": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del partido"
+    },
+    "rival": {
+      "type": "string",
+      "description": "Equipo rival"
+    },
+    "local_visitante": {
+      "type": "string",
+      "enum": [
+        "Local",
+        "Visitante"
+      ],
+      "description": "Local o visitante"
+    },
+    "goles_favor": {
+      "type": "number",
+      "description": "Goles a favor"
+    },
+    "goles_contra": {
+      "type": "number",
+      "description": "Goles en contra"
+    },
+    "resultado": {
+      "type": "string",
+      "enum": [
+        "Victoria",
+        "Empate",
+        "Derrota"
+      ],
+      "description": "Resultado del partido"
+    },
+    "jugadores_destacados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          },
+          "goles": {
+            "type": "number"
+          },
+          "asistencias": {
+            "type": "number"
+          },
+          "tarjetas_amarillas": {
+            "type": "number"
+          },
+          "tarjetas_rojas": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Estad\u00edsticas de jugadores"
+    },
+    "observaciones": {
+      "type": "string",
+      "description": "Observaciones del partido"
+    },
+    "asistencia_jugadores": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          },
+          "asistio": {
+            "type": "boolean"
+          }
+        }
+      },
+      "description": "Control de asistencia al partido"
+    }
+  },
+  "required": [
+    "titulo_partido",
+    "categoria",
+    "fecha_partido",
+    "goles_favor",
+    "goles_contra",
+    "resultado"
+  ]
+}

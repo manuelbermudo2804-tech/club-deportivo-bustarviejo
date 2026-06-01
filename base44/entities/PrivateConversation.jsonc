@@ -1,0 +1,87 @@
+{
+  "name": "PrivateConversation",
+  "type": "object",
+  "properties": {
+    "participante_familia_email": {
+      "type": "string",
+      "description": "Email del padre/tutor"
+    },
+    "participante_familia_nombre": {
+      "type": "string",
+      "description": "Nombre del padre/tutor"
+    },
+    "participante_staff_email": {
+      "type": "string",
+      "description": "Email del entrenador/coordinador/admin"
+    },
+    "participante_staff_nombre": {
+      "type": "string",
+      "description": "Nombre del entrenador/coordinador"
+    },
+    "participante_staff_rol": {
+      "type": "string",
+      "enum": [
+        "entrenador",
+        "coordinador",
+        "admin"
+      ],
+      "description": "Rol del staff en la conversaci\u00f3n"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda/deporte relacionado"
+    },
+    "jugadores_relacionados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Jugadores de esta familia en esa categor\u00eda"
+    },
+    "ultimo_mensaje": {
+      "type": "string",
+      "description": "Vista previa del \u00faltimo mensaje"
+    },
+    "ultimo_mensaje_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del \u00faltimo mensaje"
+    },
+    "ultimo_mensaje_de": {
+      "type": "string",
+      "enum": [
+        "familia",
+        "staff"
+      ],
+      "description": "Qui\u00e9n envi\u00f3 el \u00faltimo mensaje"
+    },
+    "archivada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la conversaci\u00f3n est\u00e1 archivada"
+    },
+    "last_read_familia_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que la familia abri\u00f3 la conversaci\u00f3n"
+    },
+    "last_read_staff_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que el staff abri\u00f3 la conversaci\u00f3n"
+    }
+  },
+  "required": [
+    "participante_familia_email",
+    "participante_staff_email",
+    "categoria"
+  ]
+}

@@ -1,0 +1,144 @@
+{
+  "name": "Sponsor",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del patrocinador"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL del logo del patrocinador"
+    },
+    "website_url": {
+      "type": "string",
+      "description": "URL de la web del patrocinador (se abre al hacer clic)"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el patrocinador aparece en el banner (switch ON/OFF)"
+    },
+    "nivel_patrocinio": {
+      "type": "string",
+      "enum": [
+        "Principal",
+        "Oro",
+        "Plata",
+        "Bronce",
+        "Colaborador"
+      ],
+      "default": "Bronce",
+      "description": "Nivel de patrocinio (afecta tiempo en banner y visualizaci\u00f3n)"
+    },
+    "paquete": {
+      "type": "string",
+      "enum": [
+        "Oro",
+        "Plata",
+        "Bronce",
+        "Personalizado"
+      ],
+      "default": "Bronce",
+      "description": "Paquete contratado (para facturaci\u00f3n interna)"
+    },
+    "precio_anual": {
+      "type": "number",
+      "description": "Precio anual del patrocinio en euros"
+    },
+    "fecha_inicio": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de inicio del patrocinio"
+    },
+    "fecha_fin": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de fin del patrocinio"
+    },
+    "contacto_nombre": {
+      "type": "string",
+      "description": "Nombre del contacto del patrocinador"
+    },
+    "contacto_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del contacto"
+    },
+    "contacto_telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono del contacto"
+    },
+    "direccion": {
+      "type": "string",
+      "description": "Direcci\u00f3n del patrocinador"
+    },
+    "equipos_patrocinados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Equipos espec\u00edficos que patrocina"
+    },
+    "jugadores_patrocinados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Jugadores espec\u00edficos patrocinados"
+    },
+    "beneficios_acordados": {
+      "type": "string",
+      "description": "Descripci\u00f3n de beneficios (logo en camiseta, banner, redes...)"
+    },
+    "documentos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "fecha_subida": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Contratos, facturas, etc."
+    },
+    "impresiones_totales": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de veces que apareci\u00f3 en el banner"
+    },
+    "clicks_totales": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de clicks en su logo"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas internas del club"
+    }
+  },
+  "required": [
+    "nombre",
+    "nivel_patrocinio",
+    "fecha_inicio"
+  ]
+}

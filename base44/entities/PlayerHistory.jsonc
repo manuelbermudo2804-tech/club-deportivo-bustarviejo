@@ -1,0 +1,81 @@
+{
+  "name": "PlayerHistory",
+  "type": "object",
+  "properties": {
+    "jugador_original_id": {
+      "type": "string",
+      "description": "ID del jugador original en la BD"
+    },
+    "nombre": {
+      "type": "string",
+      "description": "Nombre completo del jugador"
+    },
+    "deporte": {
+      "type": "string",
+      "description": "\u00daltimo deporte/categor\u00eda"
+    },
+    "temporadas_activo": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de temporadas en las que estuvo activo"
+    },
+    "ultima_temporada": {
+      "type": "string",
+      "description": "\u00daltima temporada en que estuvo activo"
+    },
+    "motivo_salida": {
+      "type": "string",
+      "enum": [
+        "no_renueva",
+        "baja_voluntaria",
+        "cambio_club",
+        "edad",
+        "otro"
+      ],
+      "description": "Motivo por el que dej\u00f3 el club"
+    },
+    "fecha_salida": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que dej\u00f3 de estar activo"
+    },
+    "email_padre": {
+      "type": "string",
+      "description": "Email del padre/tutor"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto"
+    },
+    "datos_completos": {
+      "type": "object",
+      "description": "Snapshot completo del registro del jugador al archivarse"
+    },
+    "total_pagado_historico": {
+      "type": "number",
+      "description": "Total pagado durante todas las temporadas"
+    },
+    "num_temporadas": {
+      "type": "number",
+      "description": "N\u00famero de temporadas que estuvo en el club"
+    },
+    "puede_reactivarse": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si puede volver a activarse"
+    },
+    "notas_admin": {
+      "type": "string",
+      "description": "Notas del administrador sobre la baja"
+    }
+  },
+  "required": [
+    "jugador_original_id",
+    "nombre",
+    "ultima_temporada",
+    "motivo_salida",
+    "fecha_salida"
+  ]
+}

@@ -1,0 +1,46 @@
+{
+  "name": "SponsorImpression",
+  "type": "object",
+  "properties": {
+    "sponsor_id": {
+      "type": "string",
+      "description": "ID del patrocinador"
+    },
+    "sponsor_nombre": {
+      "type": "string",
+      "description": "Nombre del patrocinador (para queries r\u00e1pidas)"
+    },
+    "ubicacion": {
+      "type": "string",
+      "enum": [
+        "banner",
+        "anuncio",
+        "galeria",
+        "newsletter"
+      ],
+      "description": "Ubicaci\u00f3n donde se mostr\u00f3"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "impresion",
+        "click"
+      ],
+      "description": "Tipo de interacci\u00f3n"
+    },
+    "user_email": {
+      "type": "string",
+      "description": "Email del usuario que vio/clic\u00f3 (opcional)"
+    },
+    "pagina": {
+      "type": "string",
+      "description": "P\u00e1gina donde ocurri\u00f3 (ej: Home, Announcements)"
+    }
+  },
+  "required": [
+    "sponsor_id",
+    "sponsor_nombre",
+    "ubicacion",
+    "tipo"
+  ]
+}

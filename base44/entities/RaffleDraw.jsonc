@@ -1,0 +1,64 @@
+{
+  "name": "RaffleDraw",
+  "type": "object",
+  "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del sorteo"
+    },
+    "premio_nombre": {
+      "type": "string",
+      "description": "Nombre del premio sorteado"
+    },
+    "premio_emoji": {
+      "type": "string",
+      "description": "Emoji del premio"
+    },
+    "premio_descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n del premio"
+    },
+    "ganador_email": {
+      "type": "string",
+      "description": "Email del ganador"
+    },
+    "ganador_nombre": {
+      "type": "string",
+      "description": "Nombre del ganador"
+    },
+    "participaciones_ganador": {
+      "type": "number",
+      "description": "N\u00famero de participaciones que ten\u00eda el ganador"
+    },
+    "total_participaciones": {
+      "type": "number",
+      "description": "Total de participaciones en el sorteo"
+    },
+    "fecha_sorteo": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora del sorteo"
+    },
+    "entregado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el premio ha sido entregado"
+    },
+    "fecha_entrega": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de entrega del premio"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas adicionales"
+    }
+  },
+  "required": [
+    "temporada",
+    "premio_nombre",
+    "ganador_email",
+    "ganador_nombre",
+    "fecha_sorteo"
+  ]
+}

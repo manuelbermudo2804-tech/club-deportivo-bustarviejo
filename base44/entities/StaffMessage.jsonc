@@ -1,0 +1,206 @@
+{
+  "name": "StaffMessage",
+  "type": "object",
+  "properties": {
+    "conversacion_id": {
+      "type": "string",
+      "description": "ID de la conversaci\u00f3n de staff"
+    },
+    "autor_email": {
+      "type": "string",
+      "description": "Email del autor"
+    },
+    "autor_nombre": {
+      "type": "string",
+      "description": "Nombre del autor"
+    },
+    "autor_rol": {
+      "type": "string",
+      "enum": [
+        "coordinador",
+        "entrenador",
+        "admin"
+      ],
+      "description": "Rol del autor"
+    },
+    "mensaje": {
+      "type": "string",
+      "description": "Contenido del mensaje"
+    },
+    "adjuntos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          },
+          "tamano": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Archivos adjuntos"
+    },
+    "ubicacion": {
+      "type": "object",
+      "properties": {
+        "latitud": {
+          "type": "number"
+        },
+        "longitud": {
+          "type": "number"
+        },
+        "nombre": {
+          "type": "string"
+        },
+        "direccion": {
+          "type": "string"
+        }
+      },
+      "description": "Ubicaci\u00f3n compartida"
+    },
+    "encuesta": {
+      "type": "object",
+      "properties": {
+        "pregunta": {
+          "type": "string"
+        },
+        "opciones": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "votos": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "usuario_email": {
+                "type": "string"
+              },
+              "usuario_nombre": {
+                "type": "string"
+              },
+              "opcion_index": {
+                "type": "number"
+              },
+              "fecha": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        },
+        "cerrada": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "description": "Encuesta interactiva"
+    },
+    "respuesta_a": {
+      "type": "string",
+      "description": "ID del mensaje al que responde"
+    },
+    "mensaje_citado": {
+      "type": "object",
+      "properties": {
+        "autor_nombre": {
+          "type": "string"
+        },
+        "mensaje": {
+          "type": "string"
+        }
+      },
+      "description": "Mensaje al que responde (copia)"
+    },
+    "editado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el mensaje fue editado"
+    },
+    "fecha_edicion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de la \u00faltima edici\u00f3n"
+    },
+    "eliminado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el mensaje fue eliminado"
+    },
+    "reacciones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_email": {
+            "type": "string"
+          },
+          "user_nombre": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Reacciones al mensaje"
+    },
+    "leido_por": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Usuarios que leyeron el mensaje"
+    }
+  },
+  "required": [
+    "conversacion_id",
+    "autor_email",
+    "autor_nombre",
+    "autor_rol"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "conversacion_id"
+      ]
+    },
+    {
+      "fields": [
+        "created_date"
+      ]
+    },
+    {
+      "fields": [
+        "conversacion_id",
+        "created_date"
+      ]
+    }
+  ]
+}

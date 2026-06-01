@@ -1,0 +1,54 @@
+{
+  "name": "ReconciliationRule",
+  "type": "object",
+  "properties": {
+    "patron_concepto": {
+      "type": "string",
+      "description": "Patr\u00f3n de texto detectado en el concepto bancario"
+    },
+    "categoria_destino": {
+      "type": "string",
+      "description": "Categor\u00eda de transacci\u00f3n a asignar"
+    },
+    "tipo_transaccion": {
+      "type": "string",
+      "enum": [
+        "Ingreso",
+        "Gasto"
+      ],
+      "description": "Tipo de transacci\u00f3n"
+    },
+    "subtipo_documento": {
+      "type": "string",
+      "description": "Subtipo de documento a asignar"
+    },
+    "proveedor_cliente": {
+      "type": "string",
+      "description": "Proveedor o cliente asociado"
+    },
+    "confianza_minima": {
+      "type": "number",
+      "default": 80,
+      "description": "Confianza m\u00ednima para aplicar autom\u00e1ticamente"
+    },
+    "veces_aplicada": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero de veces que se ha aplicado esta regla"
+    },
+    "ultima_aplicacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que se aplic\u00f3 esta regla"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "required": [
+    "patron_concepto",
+    "categoria_destino",
+    "tipo_transaccion"
+  ]
+}

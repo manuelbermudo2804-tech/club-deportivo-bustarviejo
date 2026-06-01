@@ -1,0 +1,88 @@
+{
+  "name": "CoachSettings",
+  "type": "object",
+  "properties": {
+    "entrenador_email": {
+      "type": "string",
+      "description": "Email del entrenador"
+    },
+    "entrenador_nombre": {
+      "type": "string",
+      "description": "Nombre del entrenador"
+    },
+    "categorias_entrena": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Categor\u00edas que entrena este entrenador"
+    },
+    "modo_ausente": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si est\u00e1 activado el modo ausente"
+    },
+    "mensaje_ausente": {
+      "type": "string",
+      "description": "Mensaje autom\u00e1tico cuando est\u00e1 ausente"
+    },
+    "horario_laboral_activo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si est\u00e1 activado el horario laboral"
+    },
+    "horario_inicio": {
+      "type": "string",
+      "description": "Hora de inicio (ej: 09:00)"
+    },
+    "horario_fin": {
+      "type": "string",
+      "description": "Hora de fin (ej: 20:00)"
+    },
+    "dias_laborales": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Lunes",
+          "Martes",
+          "Mi\u00e9rcoles",
+          "Jueves",
+          "Viernes",
+          "S\u00e1bado",
+          "Domingo"
+        ]
+      },
+      "description": "D\u00edas laborales del entrenador"
+    },
+    "mensaje_fuera_horario": {
+      "type": "string",
+      "description": "Mensaje autom\u00e1tico fuera de horario"
+    },
+    "foto_perfil_url": {
+      "type": "string",
+      "description": "URL de la foto de perfil del entrenador (p\u00fablico)"
+    },
+    "bio_entrenador": {
+      "type": "string",
+      "description": "Biograf\u00eda/descripci\u00f3n del entrenador (p\u00fablico)"
+    },
+    "telefono_contacto": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto del entrenador"
+    },
+    "mostrar_email_publico": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si las familias pueden ver el email"
+    },
+    "mostrar_telefono_publico": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si las familias pueden ver el tel\u00e9fono"
+    }
+  },
+  "required": [
+    "entrenador_email"
+  ]
+}

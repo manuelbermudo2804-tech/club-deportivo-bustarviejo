@@ -1,0 +1,77 @@
+{
+  "name": "StripePaymentLog",
+  "type": "object",
+  "properties": {
+    "section": {
+      "type": "string",
+      "enum": [
+        "cuotas",
+        "cuotas_batch",
+        "loteria",
+        "socios",
+        "extra"
+      ],
+      "description": "Secci\u00f3n/\u00e1rea del pago"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Importe en euros"
+    },
+    "currency": {
+      "type": "string",
+      "default": "eur"
+    },
+    "status": {
+      "type": "string",
+      "description": "Estado Stripe (succeeded, etc.)"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "Stripe Checkout session id"
+    },
+    "payment_intent_id": {
+      "type": "string",
+      "description": "Stripe payment intent id"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del cliente"
+    },
+    "related_entity": {
+      "type": "string",
+      "enum": [
+        "Payment",
+        "LotteryOrder",
+        "ClubMember",
+        "BatchPayment",
+        "Unknown"
+      ],
+      "default": "Unknown"
+    },
+    "related_id": {
+      "type": "string",
+      "description": "ID del registro relacionado"
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Metadatos adicionales"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notas internas"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del cobro"
+    }
+  },
+  "required": [
+    "section",
+    "amount",
+    "currency",
+    "status",
+    "created_at"
+  ]
+}

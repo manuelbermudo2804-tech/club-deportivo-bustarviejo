@@ -1,0 +1,98 @@
+{
+  "name": "AdminMessage",
+  "type": "object",
+  "properties": {
+    "conversacion_id": {
+      "type": "string",
+      "description": "ID de la conversaci\u00f3n admin"
+    },
+    "autor": {
+      "type": "string",
+      "enum": [
+        "padre",
+        "admin"
+      ],
+      "description": "Qui\u00e9n envi\u00f3 el mensaje"
+    },
+    "autor_email": {
+      "type": "string",
+      "description": "Email del autor"
+    },
+    "autor_nombre": {
+      "type": "string",
+      "description": "Nombre del autor"
+    },
+    "mensaje": {
+      "type": "string",
+      "description": "Contenido del mensaje"
+    },
+    "leido_admin": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el admin ley\u00f3 el mensaje"
+    },
+    "fecha_leido_admin": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de lectura por admin"
+    },
+    "leido_padre": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el padre ley\u00f3 el mensaje"
+    },
+    "fecha_leido_padre": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de lectura por padre"
+    },
+    "archivos_adjuntos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Archivos adjuntos al mensaje"
+    },
+    "es_nota_interna": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es una nota interna solo visible para admins"
+    }
+  },
+  "required": [
+    "conversacion_id",
+    "autor",
+    "autor_email",
+    "autor_nombre",
+    "mensaje"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "conversacion_id"
+      ]
+    },
+    {
+      "fields": [
+        "created_date"
+      ]
+    },
+    {
+      "fields": [
+        "conversacion_id",
+        "created_date"
+      ]
+    }
+  ]
+}

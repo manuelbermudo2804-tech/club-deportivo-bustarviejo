@@ -1,0 +1,102 @@
+{
+  "name": "CommunicationLog",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "email",
+        "chat",
+        "sms",
+        "whatsapp"
+      ],
+      "description": "Tipo de comunicaci\u00f3n enviada"
+    },
+    "plantilla": {
+      "type": "string",
+      "description": "ID de la plantilla utilizada"
+    },
+    "asunto": {
+      "type": "string",
+      "description": "Asunto del mensaje (para emails)"
+    },
+    "mensaje_preview": {
+      "type": "string",
+      "description": "Vista previa del mensaje (primeros 200 caracteres)"
+    },
+    "mensaje_completo": {
+      "type": "string",
+      "description": "Mensaje completo enviado"
+    },
+    "destinatarios_count": {
+      "type": "number",
+      "description": "N\u00famero de destinatarios"
+    },
+    "destinatarios_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de emails de destinatarios"
+    },
+    "segmento": {
+      "type": "string",
+      "description": "Segmento de miembros al que se envi\u00f3"
+    },
+    "categoria_destino": {
+      "type": "string",
+      "description": "Categor\u00eda deportiva destino (si aplica)"
+    },
+    "enviado_por": {
+      "type": "string",
+      "description": "Email del usuario que envi\u00f3"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "borrador",
+        "enviado",
+        "fallido",
+        "parcial"
+      ],
+      "default": "borrador",
+      "description": "Estado del env\u00edo"
+    },
+    "errores": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de errores si los hubo"
+    },
+    "fecha_envio": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora del env\u00edo"
+    },
+    "seguimiento_requerido": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si requiere seguimiento"
+    },
+    "fecha_seguimiento": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha programada para seguimiento"
+    },
+    "seguimiento_completado": {
+      "type": "boolean",
+      "default": false
+    },
+    "notas_seguimiento": {
+      "type": "string",
+      "description": "Notas del seguimiento realizado"
+    }
+  },
+  "required": [
+    "tipo",
+    "destinatarios_count",
+    "enviado_por",
+    "estado"
+  ]
+}

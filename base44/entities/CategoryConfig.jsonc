@@ -1,0 +1,90 @@
+{
+  "name": "CategoryConfig",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre completo de la categor\u00eda (ej: F\u00fatbol Pre-Benjam\u00edn (Mixto))"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada a la que pertenece esta configuraci\u00f3n (ej: 2025-2026)"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la categor\u00eda est\u00e1 activa y disponible"
+    },
+    "es_base": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es una de las 9 categor\u00edas BASE (inmutable - nunca se puede borrar)"
+    },
+    "es_actividad_complementaria": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es una actividad complementaria (p\u00e1del, voleibol, prep. f\u00edsica, multideporte) - no compite, sin convocatorias, sin clasificaci\u00f3n"
+    },
+    "compite_en_liga": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si esta categor\u00eda compite en liga federada (aparece en Centro de Competici\u00f3n con clasificaci\u00f3n, resultados y goleadores)"
+    },
+    "incluye_preparacion_fisica": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si esta categor\u00eda incluye preparaci\u00f3n f\u00edsica obligatoria en su cuota"
+    },
+    "suplemento_prep_fisica": {
+      "type": "number",
+      "default": 0,
+      "description": "Importe del suplemento de preparaci\u00f3n f\u00edsica incluido en la cuota (en euros)"
+    },
+    "checkin_automatico": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si est\u00e1 activo el check-in autom\u00e1tico por tablet/m\u00f3vil para esta categor\u00eda"
+    },
+    "checkin_minutos_tardanza": {
+      "type": "number",
+      "default": 10,
+      "description": "Minutos despu\u00e9s de la hora de inicio para considerar tardanza en check-in autom\u00e1tico"
+    },
+    "cuota_inscripcion": {
+      "type": "number",
+      "description": "Cuota de inscripci\u00f3n en euros"
+    },
+    "cuota_segunda": {
+      "type": "number",
+      "description": "Segunda cuota en euros"
+    },
+    "cuota_tercera": {
+      "type": "number",
+      "description": "Tercera cuota en euros"
+    },
+    "cuota_total": {
+      "type": "number",
+      "description": "Cuota total de la temporada en euros"
+    },
+    "deporte": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol",
+        "Baloncesto",
+        "P\u00e1del",
+        "Voleibol",
+        "Preparaci\u00f3n F\u00edsica",
+        "Multideporte",
+        "Otro"
+      ],
+      "description": "Deporte de la categor\u00eda"
+    }
+  },
+  "required": [
+    "nombre",
+    "cuota_inscripcion",
+    "cuota_segunda",
+    "cuota_tercera",
+    "cuota_total"
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "name": "DashboardButtonConfig",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email del usuario"
+    },
+    "panel_type": {
+      "type": "string",
+      "enum": [
+        "parent",
+        "admin",
+        "coach",
+        "coordinator",
+        "treasurer",
+        "player"
+      ],
+      "description": "Tipo de panel del usuario"
+    },
+    "selected_buttons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de los botones seleccionados en orden"
+    }
+  },
+  "required": [
+    "user_email",
+    "panel_type",
+    "selected_buttons"
+  ]
+}

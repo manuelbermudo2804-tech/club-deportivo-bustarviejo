@@ -1,0 +1,56 @@
+{
+  "name": "Product",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del producto"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n del producto"
+    },
+    "imagen_url": {
+      "type": "string",
+      "description": "URL de la imagen del producto"
+    },
+    "precio": {
+      "type": "number",
+      "description": "Precio en euros"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "Camisetas",
+        "Pantalones",
+        "Chandals",
+        "Accesorios",
+        "Balones",
+        "Equipamiento"
+      ],
+      "description": "Categor\u00eda del producto"
+    },
+    "tallas_disponibles": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Tallas disponibles"
+    },
+    "stock": {
+      "type": "number",
+      "description": "Cantidad en stock"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el producto est\u00e1 disponible"
+    }
+  },
+  "required": [
+    "nombre",
+    "precio",
+    "categoria",
+    "stock"
+  ]
+}

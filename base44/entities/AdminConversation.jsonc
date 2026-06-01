@@ -1,0 +1,151 @@
+{
+  "name": "AdminConversation",
+  "type": "object",
+  "properties": {
+    "padre_email": {
+      "type": "string",
+      "description": "Email del padre en la conversaci\u00f3n"
+    },
+    "padre_nombre": {
+      "type": "string",
+      "description": "Nombre completo del padre"
+    },
+    "jugadores_asociados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          },
+          "categoria": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Jugadores hijos del padre"
+    },
+    "escalada_desde_coordinador": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la conversaci\u00f3n fue escalada desde el coordinador"
+    },
+    "coordinador_que_escalo": {
+      "type": "string",
+      "description": "Email del coordinador que escal\u00f3"
+    },
+    "coordinador_nombre_que_escalo": {
+      "type": "string",
+      "description": "Nombre del coordinador que escal\u00f3"
+    },
+    "fecha_escalacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se escal\u00f3 la conversaci\u00f3n"
+    },
+    "contexto_escalacion": {
+      "type": "string",
+      "description": "Resumen del contexto previo (\u00faltimos mensajes)"
+    },
+    "motivo_escalacion": {
+      "type": "string",
+      "enum": [
+        "Insultos",
+        "Amenazas",
+        "Acusaciones graves",
+        "Ataques al personal",
+        "Conflicto familiar",
+        "Otro"
+      ],
+      "description": "Motivo por el cual se escal\u00f3 al admin"
+    },
+    "motivo_detalle": {
+      "type": "string",
+      "description": "Detalles adicionales del motivo"
+    },
+    "ultimo_mensaje": {
+      "type": "string",
+      "description": "Contenido del \u00faltimo mensaje"
+    },
+    "ultimo_mensaje_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del \u00faltimo mensaje"
+    },
+    "ultimo_mensaje_autor": {
+      "type": "string",
+      "enum": [
+        "padre",
+        "admin"
+      ],
+      "description": "Qui\u00e9n envi\u00f3 el \u00faltimo mensaje"
+    },
+    "archivada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la conversaci\u00f3n est\u00e1 archivada"
+    },
+    "fecha_archivado": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Cu\u00e1ndo se archiv\u00f3"
+    },
+    "resuelta": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la situaci\u00f3n ya fue resuelta"
+    },
+    "fecha_resolucion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de resoluci\u00f3n"
+    },
+    "resolucion_notas": {
+      "type": "string",
+      "description": "Notas sobre c\u00f3mo se resolvi\u00f3"
+    },
+    "criticidad": {
+      "type": "string",
+      "enum": [
+        "Baja",
+        "Media",
+        "Alta",
+        "Cr\u00edtica"
+      ],
+      "default": "Alta",
+      "description": "Nivel de criticidad de la conversaci\u00f3n"
+    },
+    "etiqueta": {
+      "type": "string",
+      "enum": [
+        "Conflicto",
+        "Legal",
+        "Disciplina",
+        "Quejas",
+        "Financiero",
+        "Otro"
+      ],
+      "description": "Categor\u00eda/etiqueta de la conversaci\u00f3n"
+    },
+    "last_read_admin_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que el admin abri\u00f3 la conversaci\u00f3n"
+    },
+    "last_read_padre_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que el padre abri\u00f3 la conversaci\u00f3n"
+    }
+  },
+  "required": [
+    "padre_email",
+    "padre_nombre",
+    "escalada_desde_coordinador",
+    "coordinador_que_escalo",
+    "motivo_escalacion"
+  ]
+}

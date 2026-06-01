@@ -1,0 +1,121 @@
+{
+  "name": "PrivateMessage",
+  "type": "object",
+  "properties": {
+    "conversacion_id": {
+      "type": "string",
+      "description": "ID de la conversaci\u00f3n privada"
+    },
+    "remitente_email": {
+      "type": "string",
+      "description": "Email del remitente"
+    },
+    "remitente_nombre": {
+      "type": "string",
+      "description": "Nombre del remitente"
+    },
+    "remitente_tipo": {
+      "type": "string",
+      "enum": [
+        "familia",
+        "staff"
+      ],
+      "description": "Tipo de remitente"
+    },
+    "mensaje": {
+      "type": "string",
+      "description": "Contenido del mensaje"
+    },
+    "leido": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el mensaje fue le\u00eddo"
+    },
+    "archivos_adjuntos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "imagen",
+              "documento",
+              "audio",
+              "video"
+            ]
+          }
+        }
+      },
+      "description": "Archivos adjuntos"
+    },
+    "reply_to": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "mensaje": {
+          "type": "string"
+        },
+        "remitente_nombre": {
+          "type": "string"
+        }
+      },
+      "description": "Mensaje al que se responde (quote/reply)"
+    },
+    "reactions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "user_email": {
+            "type": "string"
+          },
+          "user_name": {
+            "type": "string"
+          },
+          "emoji": {
+            "type": "string"
+          },
+          "created_date": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Reacciones emoji al mensaje"
+    }
+  },
+  "required": [
+    "conversacion_id",
+    "remitente_email",
+    "remitente_nombre",
+    "remitente_tipo",
+    "mensaje"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "conversacion_id"
+      ]
+    },
+    {
+      "fields": [
+        "created_date"
+      ]
+    },
+    {
+      "fields": [
+        "conversacion_id",
+        "created_date"
+      ]
+    }
+  ]
+}

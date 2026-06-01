@@ -1,0 +1,298 @@
+{
+  "name": "ClothingOrder",
+  "type": "object",
+  "properties": {
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "jugador_categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del jugador"
+    },
+    "email_padre": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del padre/tutor que hace el pedido"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto"
+    },
+    "chaqueta_partidos": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si solicita chaqueta de partidos - 35\u20ac"
+    },
+    "chaqueta_talla": {
+      "type": "string",
+      "enum": [
+        "Talla 6XS (4-5 a\u00f1os)",
+        "Talla 5XS (5-6 a\u00f1os)",
+        "Talla 4XS (7-8 a\u00f1os)",
+        "Talla 3XS (9-10 a\u00f1os)",
+        "Talla 2XS (11-12 a\u00f1os)",
+        "Talla XS (12-14 a\u00f1os)",
+        "Talla S",
+        "Talla M",
+        "Talla L",
+        "Talla XL",
+        "Talla XXL",
+        "Talla 3XL"
+      ],
+      "description": "Talla de la chaqueta de partidos"
+    },
+    "pack_entrenamiento": {
+      "type": "boolean",
+      "default": false,
+      "description": "Pack completo: Camiseta + Pantal\u00f3n + Sudadera - 41\u20ac"
+    },
+    "pack_camiseta_talla": {
+      "type": "string",
+      "enum": [
+        "Talla 6XS (4-5 a\u00f1os)",
+        "Talla 5XS (5-6 a\u00f1os)",
+        "Talla 4XS (7-8 a\u00f1os)",
+        "Talla 3XS (9-10 a\u00f1os)",
+        "Talla 2XS (11-12 a\u00f1os)",
+        "Talla XS (12-14 a\u00f1os)",
+        "Talla S",
+        "Talla M",
+        "Talla L",
+        "Talla XL",
+        "Talla XXL",
+        "Talla 3XL"
+      ],
+      "description": "Talla de la camiseta del pack"
+    },
+    "pack_pantalon_talla": {
+      "type": "string",
+      "enum": [
+        "Talla 6XS (4-5 a\u00f1os)",
+        "Talla 5XS (5-6 a\u00f1os)",
+        "Talla 4XS (7-8 a\u00f1os)",
+        "Talla 3XS (9-10 a\u00f1os)",
+        "Talla 2XS (11-12 a\u00f1os)",
+        "Talla XS (12-14 a\u00f1os)",
+        "Talla S",
+        "Talla M",
+        "Talla L",
+        "Talla XL",
+        "Talla XXL",
+        "Talla 3XL"
+      ],
+      "description": "Talla del pantal\u00f3n del pack"
+    },
+    "pack_sudadera_talla": {
+      "type": "string",
+      "enum": [
+        "Talla 6XS (4-5 a\u00f1os)",
+        "Talla 5XS (5-6 a\u00f1os)",
+        "Talla 4XS (7-8 a\u00f1os)",
+        "Talla 3XS (9-10 a\u00f1os)",
+        "Talla 2XS (11-12 a\u00f1os)",
+        "Talla XS (12-14 a\u00f1os)",
+        "Talla S",
+        "Talla M",
+        "Talla L",
+        "Talla XL",
+        "Talla XXL",
+        "Talla 3XL"
+      ],
+      "description": "Talla de la sudadera del pack"
+    },
+    "camiseta_individual": {
+      "type": "boolean",
+      "default": false,
+      "description": "Camiseta individual (FUERA DEL PACK) - 10\u20ac"
+    },
+    "camiseta_individual_talla": {
+      "type": "string",
+      "enum": [
+        "Talla 6XS (4-5 a\u00f1os)",
+        "Talla 5XS (5-6 a\u00f1os)",
+        "Talla 4XS (7-8 a\u00f1os)",
+        "Talla 3XS (9-10 a\u00f1os)",
+        "Talla 2XS (11-12 a\u00f1os)",
+        "Talla XS (12-14 a\u00f1os)",
+        "Talla S",
+        "Talla M",
+        "Talla L",
+        "Talla XL",
+        "Talla XXL",
+        "Talla 3XL"
+      ],
+      "description": "Talla de la camiseta individual"
+    },
+    "pantalon_individual": {
+      "type": "boolean",
+      "default": false,
+      "description": "Pantal\u00f3n individual (FUERA DEL PACK) - 17\u20ac"
+    },
+    "pantalon_individual_talla": {
+      "type": "string",
+      "enum": [
+        "Talla 6XS (4-5 a\u00f1os)",
+        "Talla 5XS (5-6 a\u00f1os)",
+        "Talla 4XS (7-8 a\u00f1os)",
+        "Talla 3XS (9-10 a\u00f1os)",
+        "Talla 2XS (11-12 a\u00f1os)",
+        "Talla XS (12-14 a\u00f1os)",
+        "Talla S",
+        "Talla M",
+        "Talla L",
+        "Talla XL",
+        "Talla XXL",
+        "Talla 3XL"
+      ],
+      "description": "Talla del pantal\u00f3n individual"
+    },
+    "sudadera_individual": {
+      "type": "boolean",
+      "default": false,
+      "description": "Sudadera individual (FUERA DEL PACK) - 18\u20ac"
+    },
+    "sudadera_individual_talla": {
+      "type": "string",
+      "enum": [
+        "Talla 6XS (4-5 a\u00f1os)",
+        "Talla 5XS (5-6 a\u00f1os)",
+        "Talla 4XS (7-8 a\u00f1os)",
+        "Talla 3XS (9-10 a\u00f1os)",
+        "Talla 2XS (11-12 a\u00f1os)",
+        "Talla XS (12-14 a\u00f1os)",
+        "Talla S",
+        "Talla M",
+        "Talla L",
+        "Talla XL",
+        "Talla XXL",
+        "Talla 3XL"
+      ],
+      "description": "Talla de la sudadera individual"
+    },
+    "chubasquero": {
+      "type": "boolean",
+      "default": false,
+      "description": "Chubasquero con escudo bordado - 20\u20ac"
+    },
+    "chubasquero_talla": {
+      "type": "string",
+      "enum": [
+        "Talla 6XS (4-5 a\u00f1os)",
+        "Talla 5XS (5-6 a\u00f1os)",
+        "Talla 4XS (7-8 a\u00f1os)",
+        "Talla 3XS (9-10 a\u00f1os)",
+        "Talla 2XS (11-12 a\u00f1os)",
+        "Talla XS (12-14 a\u00f1os)",
+        "Talla S",
+        "Talla M",
+        "Talla L",
+        "Talla XL",
+        "Talla XXL",
+        "Talla 3XL"
+      ],
+      "description": "Talla del chubasquero"
+    },
+    "anorak": {
+      "type": "boolean",
+      "default": false,
+      "description": "Anorak - 40\u20ac"
+    },
+    "anorak_talla": {
+      "type": "string",
+      "enum": [
+        "Talla 6XS (4-5 a\u00f1os)",
+        "Talla 5XS (5-6 a\u00f1os)",
+        "Talla 4XS (7-8 a\u00f1os)",
+        "Talla 3XS (9-10 a\u00f1os)",
+        "Talla 2XS (11-12 a\u00f1os)",
+        "Talla XS (12-14 a\u00f1os)",
+        "Talla S",
+        "Talla M",
+        "Talla L",
+        "Talla XL",
+        "Talla XXL",
+        "Talla 3XL"
+      ],
+      "description": "Talla del anorak"
+    },
+    "mochila": {
+      "type": "boolean",
+      "default": false,
+      "description": "Mochila con botero y escudo vinilo - 22\u20ac"
+    },
+    "precio_total": {
+      "type": "number",
+      "description": "Precio total del pedido en euros (sin descuentos)"
+    },
+    "credito_aplicado": {
+      "type": "number",
+      "default": 0,
+      "description": "Cr\u00e9dito del programa de referidos aplicado al pedido"
+    },
+    "precio_final": {
+      "type": "number",
+      "description": "Precio final a pagar (despu\u00e9s de aplicar cr\u00e9dito)"
+    },
+    "metodo_pago": {
+      "type": "string",
+      "enum": [
+        "Transferencia",
+        "Bizum"
+      ],
+      "description": "M\u00e9todo de pago utilizado"
+    },
+    "justificante_url": {
+      "type": "string",
+      "description": "URL del justificante de pago"
+    },
+    "concepto_pago": {
+      "type": "string",
+      "description": "Concepto que debe aparecer en la transferencia"
+    },
+    "fecha_pago": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del pago"
+    },
+    "pagado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el pago ha sido verificado por el administrador"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "Pendiente",
+        "En revisi\u00f3n",
+        "Confirmado",
+        "Preparado",
+        "Entregado"
+      ],
+      "default": "Pendiente",
+      "description": "Estado del pedido"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del pedido (ej: 2024-2025)"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas adicionales del pedido"
+    }
+  },
+  "required": [
+    "jugador_id",
+    "jugador_nombre",
+    "jugador_categoria",
+    "email_padre",
+    "telefono",
+    "precio_total",
+    "estado",
+    "temporada"
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "name": "ContactForm",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre y apellidos"
+    },
+    "edad": {
+      "type": "string",
+      "description": "Edad del jugador"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email de contacto"
+    },
+    "deporte": {
+      "type": "string",
+      "description": "Deporte de inter\u00e9s"
+    },
+    "futbol_femenino": {
+      "type": "string",
+      "description": "\u00bfInter\u00e9s en f\u00fatbol femenino?"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda aproximada"
+    },
+    "experiencia": {
+      "type": "string",
+      "description": "Experiencia aproximada"
+    },
+    "disponibilidad": {
+      "type": "string",
+      "description": "Disponibilidad"
+    },
+    "mensaje": {
+      "type": "string",
+      "description": "Mensaje opcional"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "nuevo",
+        "contactado",
+        "en_seguimiento",
+        "cerrado"
+      ],
+      "default": "nuevo",
+      "description": "Estado de gesti\u00f3n del contacto"
+    },
+    "notas_admin": {
+      "type": "string",
+      "description": "Notas internas del admin sobre este contacto"
+    },
+    "fecha_contacto": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se respondi\u00f3 al contacto"
+    }
+  },
+  "required": [
+    "nombre"
+  ]
+}

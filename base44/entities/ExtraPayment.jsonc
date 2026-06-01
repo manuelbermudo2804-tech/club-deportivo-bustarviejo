@@ -1,0 +1,122 @@
+{
+  "name": "ExtraPayment",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo del pago extra (ej: Autob\u00fas Torneo Valencia)"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n detallada del pago"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "Autob\u00fas",
+        "Excursi\u00f3n",
+        "Entrada",
+        "Material",
+        "Torneo",
+        "Equipaci\u00f3n Extra",
+        "Otro"
+      ],
+      "default": "Otro",
+      "description": "Tipo de pago extra"
+    },
+    "importe": {
+      "type": "number",
+      "description": "Importe a pagar en euros"
+    },
+    "fecha_limite": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha l\u00edmite para realizar el pago"
+    },
+    "fecha_evento": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del evento (si aplica)"
+    },
+    "categorias_destino": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Categor\u00edas a las que aplica (vac\u00edo = todas)"
+    },
+    "jugadores_especificos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Lista de jugadores espec\u00edficos (si no aplica a toda la categor\u00eda)"
+    },
+    "pagos_recibidos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          },
+          "email_padre": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "Pendiente",
+              "En revisi\u00f3n",
+              "Pagado"
+            ]
+          },
+          "justificante_url": {
+            "type": "string"
+          },
+          "fecha_pago": {
+            "type": "string",
+            "format": "date"
+          },
+          "notas": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Registro de pagos por jugador"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la ventana de pago est\u00e1 activa"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del pago extra"
+    },
+    "creado_por": {
+      "type": "string",
+      "description": "Email del admin/entrenador que cre\u00f3 el pago"
+    },
+    "notas_admin": {
+      "type": "string",
+      "description": "Notas internas para administradores"
+    }
+  },
+  "required": [
+    "titulo",
+    "tipo",
+    "importe"
+  ]
+}

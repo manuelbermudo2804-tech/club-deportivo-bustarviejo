@@ -1,0 +1,122 @@
+{
+  "name": "PlayerGoal",
+  "type": "object",
+  "properties": {
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "creado_por_email": {
+      "type": "string",
+      "description": "Email de quien cre\u00f3 la meta (menor o entrenador)"
+    },
+    "creado_por_nombre": {
+      "type": "string",
+      "description": "Nombre de quien cre\u00f3 la meta"
+    },
+    "entrenador_email": {
+      "type": "string",
+      "description": "Email del entrenador que cre\u00f3 el objetivo (legacy)"
+    },
+    "entrenador_nombre": {
+      "type": "string",
+      "description": "Nombre del entrenador (legacy)"
+    },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo del objetivo"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n detallada del objetivo"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "T\u00e9cnica",
+        "T\u00e1ctica",
+        "F\u00edsica",
+        "Mental",
+        "Actitud"
+      ],
+      "description": "Categor\u00eda del objetivo"
+    },
+    "es_personal": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la meta fue creada por el propio jugador (no por el entrenador)"
+    },
+    "completada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la meta fue completada"
+    },
+    "fecha_completada": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se complet\u00f3 la meta"
+    },
+    "progreso": {
+      "type": "number",
+      "default": 0,
+      "description": "Progreso del objetivo de 0 a 100"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "Pendiente",
+        "En progreso",
+        "Completado",
+        "Cancelado"
+      ],
+      "default": "Pendiente",
+      "description": "Estado del objetivo"
+    },
+    "fecha_limite": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha l\u00edmite para cumplir el objetivo"
+    },
+    "notas_progreso": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "nota": {
+            "type": "string"
+          },
+          "progreso_anterior": {
+            "type": "number"
+          },
+          "progreso_nuevo": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Historial de progreso del objetivo"
+    },
+    "visible_para_padres": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el objetivo es visible para los padres"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del objetivo"
+    }
+  },
+  "required": [
+    "jugador_id",
+    "jugador_nombre",
+    "titulo",
+    "categoria"
+  ]
+}

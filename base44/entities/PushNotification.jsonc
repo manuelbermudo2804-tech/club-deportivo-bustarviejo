@@ -1,0 +1,73 @@
+{
+  "name": "PushNotification",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo de la notificaci\u00f3n"
+    },
+    "mensaje": {
+      "type": "string",
+      "description": "Contenido del mensaje"
+    },
+    "enlace_destino": {
+      "type": "string",
+      "description": "P\u00e1gina de destino al hacer clic (opcional)"
+    },
+    "tipo_destinatario": {
+      "type": "string",
+      "enum": [
+        "todos",
+        "padres",
+        "entrenadores",
+        "administradores",
+        "categoria"
+      ],
+      "default": "todos",
+      "description": "A qui\u00e9n va dirigida la notificaci\u00f3n"
+    },
+    "categoria_destino": {
+      "type": "string",
+      "description": "Categor\u00eda/deporte espec\u00edfico si tipo_destinatario es 'categoria'"
+    },
+    "prioridad": {
+      "type": "string",
+      "enum": [
+        "normal",
+        "importante",
+        "urgente"
+      ],
+      "default": "normal",
+      "description": "Nivel de prioridad"
+    },
+    "icono": {
+      "type": "string",
+      "default": "\ud83d\udce2",
+      "description": "Emoji/icono de la notificaci\u00f3n"
+    },
+    "enviada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la notificaci\u00f3n ya fue enviada"
+    },
+    "fecha_envio": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora de env\u00edo"
+    },
+    "destinatarios_count": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero de destinatarios alcanzados"
+    },
+    "enviado_por": {
+      "type": "string",
+      "description": "Email del administrador que envi\u00f3"
+    }
+  },
+  "required": [
+    "titulo",
+    "mensaje",
+    "tipo_destinatario"
+  ]
+}

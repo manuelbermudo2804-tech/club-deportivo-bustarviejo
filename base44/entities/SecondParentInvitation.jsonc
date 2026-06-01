@@ -1,0 +1,83 @@
+{
+  "name": "SecondParentInvitation",
+  "type": "object",
+  "properties": {
+    "token": {
+      "type": "string",
+      "description": "Token \u00fanico de invitaci\u00f3n (UUID)"
+    },
+    "email_destino": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del segundo progenitor invitado"
+    },
+    "nombre_destino": {
+      "type": "string",
+      "description": "Nombre del segundo progenitor"
+    },
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador relacionado"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "invitado_por_email": {
+      "type": "string",
+      "description": "Email del primer progenitor que envi\u00f3 la invitaci\u00f3n"
+    },
+    "invitado_por_nombre": {
+      "type": "string",
+      "description": "Nombre del primer progenitor"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "aceptada",
+        "expirada",
+        "cancelada"
+      ],
+      "default": "pendiente",
+      "description": "Estado de la invitaci\u00f3n"
+    },
+    "fecha_envio": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de env\u00edo de la invitaci\u00f3n"
+    },
+    "fecha_aceptacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se acept\u00f3 la invitaci\u00f3n"
+    },
+    "fecha_expiracion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de expiraci\u00f3n del token (30 d\u00edas)"
+    },
+    "datos_completados": {
+      "type": "object",
+      "properties": {
+        "nombre_completo": {
+          "type": "string"
+        },
+        "telefono": {
+          "type": "string"
+        },
+        "dni": {
+          "type": "string"
+        }
+      },
+      "description": "Datos completados por el segundo progenitor al validar"
+    }
+  },
+  "required": [
+    "token",
+    "email_destino",
+    "jugador_id",
+    "invitado_por_email",
+    "estado"
+  ]
+}

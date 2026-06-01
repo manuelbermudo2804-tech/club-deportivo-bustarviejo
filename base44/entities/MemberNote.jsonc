@@ -1,0 +1,86 @@
+{
+  "name": "MemberNote",
+  "type": "object",
+  "properties": {
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador al que se refiere la nota"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "tipo_nota": {
+      "type": "string",
+      "enum": [
+        "Comunicaci\u00f3n",
+        "Comportamiento",
+        "M\u00e9dica",
+        "Administrativa",
+        "Pago",
+        "Rendimiento",
+        "Otra"
+      ],
+      "default": "Comunicaci\u00f3n",
+      "description": "Tipo de nota interna"
+    },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo breve de la nota"
+    },
+    "contenido": {
+      "type": "string",
+      "description": "Contenido detallado de la nota"
+    },
+    "autor_email": {
+      "type": "string",
+      "description": "Email del usuario que cre\u00f3 la nota"
+    },
+    "autor_nombre": {
+      "type": "string",
+      "description": "Nombre del usuario que cre\u00f3 la nota"
+    },
+    "privacidad": {
+      "type": "string",
+      "enum": [
+        "Solo Admin",
+        "Admin y Entrenadores",
+        "Todos"
+      ],
+      "default": "Solo Admin",
+      "description": "Qui\u00e9n puede ver esta nota"
+    },
+    "prioridad": {
+      "type": "string",
+      "enum": [
+        "Baja",
+        "Normal",
+        "Alta",
+        "Urgente"
+      ],
+      "default": "Normal",
+      "description": "Prioridad de la nota"
+    },
+    "archivada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la nota est\u00e1 archivada"
+    },
+    "tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Etiquetas para categorizar la nota"
+    }
+  },
+  "required": [
+    "jugador_id",
+    "jugador_nombre",
+    "tipo_nota",
+    "titulo",
+    "contenido",
+    "autor_email",
+    "autor_nombre"
+  ]
+}

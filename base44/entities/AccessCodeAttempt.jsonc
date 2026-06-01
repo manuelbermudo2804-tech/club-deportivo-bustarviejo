@@ -1,0 +1,44 @@
+{
+  "name": "AccessCodeAttempt",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email del usuario que intent\u00f3 validar"
+    },
+    "codigo_intentado": {
+      "type": "string",
+      "description": "C\u00f3digo que intent\u00f3 usar"
+    },
+    "ip_hint": {
+      "type": "string",
+      "description": "Identificador parcial para agrupar intentos"
+    },
+    "exitoso": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el intento fue exitoso"
+    },
+    "motivo_fallo": {
+      "type": "string",
+      "description": "Raz\u00f3n del fallo (c\u00f3digo_invalido, expirado, email_incorrecto, usado, cancelado, bloqueado)"
+    }
+  },
+  "required": [
+    "user_email",
+    "codigo_intentado",
+    "exitoso"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "user_email"
+      ]
+    },
+    {
+      "fields": [
+        "created_date"
+      ]
+    }
+  ]
+}

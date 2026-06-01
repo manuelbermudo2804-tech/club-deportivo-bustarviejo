@@ -1,0 +1,101 @@
+{
+  "name": "ExtraCharge",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo del cobro (ej. Autob\u00fas torneo)"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n visible para familias"
+    },
+    "fecha_limite": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha l\u00edmite de pago"
+    },
+    "metodos": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "Tarjeta",
+          "Transferencia"
+        ]
+      },
+      "description": "M\u00e9todos permitidos"
+    },
+    "destinatarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "categoria",
+              "equipo",
+              "jugador"
+            ]
+          },
+          "valor": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "A qui\u00e9n va dirigido"
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          },
+          "obligatorio": {
+            "type": "boolean",
+            "default": false
+          },
+          "permite_cantidad": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "description": "\u00cdtems seleccionables"
+    },
+    "publicado": {
+      "type": "boolean",
+      "default": false
+    },
+    "banner_activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "asignado_a": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs de jugadores concretos (resuelto al publicar)"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "borrador",
+        "activo",
+        "cerrado"
+      ],
+      "default": "borrador"
+    }
+  },
+  "required": [
+    "titulo",
+    "items"
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "name": "ProximoPartido",
+  "type": "object",
+  "properties": {
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del equipo (ej: F\u00fatbol Cadete)"
+    },
+    "jornada": {
+      "type": "number",
+      "description": "N\u00famero de jornada"
+    },
+    "local": {
+      "type": "string",
+      "description": "Equipo local"
+    },
+    "visitante": {
+      "type": "string",
+      "description": "Equipo visitante"
+    },
+    "fecha": {
+      "type": "string",
+      "description": "Fecha en formato dd/mm/yyyy"
+    },
+    "hora": {
+      "type": "string",
+      "description": "Hora del partido"
+    },
+    "campo": {
+      "type": "string",
+      "description": "Campo donde se juega"
+    },
+    "fecha_iso": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha en formato ISO para ordenar/filtrar"
+    },
+    "goles_local": {
+      "type": "number",
+      "description": "Goles del equipo local (si ya se jug\u00f3)"
+    },
+    "goles_visitante": {
+      "type": "number",
+      "description": "Goles del equipo visitante (si ya se jug\u00f3)"
+    },
+    "jugado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el partido ya se ha jugado"
+    }
+  },
+  "required": [
+    "categoria",
+    "local",
+    "visitante"
+  ]
+}

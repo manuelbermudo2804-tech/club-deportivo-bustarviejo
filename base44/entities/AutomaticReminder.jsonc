@@ -1,0 +1,75 @@
+{
+  "name": "AutomaticReminder",
+  "type": "object",
+  "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del recordatorio (ej: 2024/2025)"
+    },
+    "mes": {
+      "type": "string",
+      "enum": [
+        "Junio",
+        "Septiembre",
+        "Diciembre"
+      ],
+      "description": "Mes del pago recordado"
+    },
+    "tipo_recordatorio": {
+      "type": "string",
+      "enum": [
+        "15_dias_antes",
+        "7_dias_antes",
+        "2_dias_despues"
+      ],
+      "description": "Tipo de recordatorio enviado"
+    },
+    "familia_email": {
+      "type": "string",
+      "description": "Email de la familia a la que se envi\u00f3"
+    },
+    "jugadores_incluidos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          },
+          "cantidad": {
+            "type": "number"
+          }
+        }
+      },
+      "description": "Jugadores incluidos en el recordatorio"
+    },
+    "total_recordado": {
+      "type": "number",
+      "description": "Cantidad total del recordatorio"
+    },
+    "enviado_email": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se envi\u00f3 por email"
+    },
+    "enviado_chat": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se envi\u00f3 por chat privado"
+    },
+    "fecha_envio": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha exacta de env\u00edo"
+    }
+  },
+  "required": [
+    "temporada",
+    "mes",
+    "tipo_recordatorio",
+    "familia_email"
+  ]
+}

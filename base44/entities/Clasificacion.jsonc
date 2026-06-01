@@ -1,0 +1,66 @@
+{
+  "name": "Clasificacion",
+  "type": "object",
+  "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Temporada (ej: 2024-2025)"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del club (ej: F\u00fatbol Juvenil)"
+    },
+    "jornada": {
+      "type": "number",
+      "description": "N\u00famero de jornada"
+    },
+    "posicion": {
+      "type": "number",
+      "description": "Posici\u00f3n en la clasificaci\u00f3n"
+    },
+    "nombre_equipo": {
+      "type": "string",
+      "description": "Nombre del equipo"
+    },
+    "puntos": {
+      "type": "number",
+      "description": "Puntos totales"
+    },
+    "partidos_jugados": {
+      "type": "number",
+      "description": "Partidos jugados (opcional)"
+    },
+    "ganados": {
+      "type": "number",
+      "description": "Partidos ganados (opcional)"
+    },
+    "empatados": {
+      "type": "number",
+      "description": "Partidos empatados (opcional)"
+    },
+    "perdidos": {
+      "type": "number",
+      "description": "Partidos perdidos (opcional)"
+    },
+    "goles_favor": {
+      "type": "number",
+      "description": "Goles a favor (opcional)"
+    },
+    "goles_contra": {
+      "type": "number",
+      "description": "Goles en contra (opcional)"
+    },
+    "fecha_actualizacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de \u00faltima actualizaci\u00f3n"
+    }
+  },
+  "required": [
+    "temporada",
+    "categoria",
+    "posicion",
+    "nombre_equipo",
+    "puntos"
+  ]
+}

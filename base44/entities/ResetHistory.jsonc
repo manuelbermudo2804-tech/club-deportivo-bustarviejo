@@ -1,0 +1,57 @@
+{
+  "name": "ResetHistory",
+  "type": "object",
+  "properties": {
+    "fecha_reset": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se realiz\u00f3 el reset"
+    },
+    "temporada_anterior": {
+      "type": "string",
+      "description": "Temporada que finaliz\u00f3 (ej: 2024-2025)"
+    },
+    "temporada_nueva": {
+      "type": "string",
+      "description": "Temporada que comienza (ej: 2025-2026)"
+    },
+    "realizado_por": {
+      "type": "string",
+      "description": "Email del admin que hizo el reset"
+    },
+    "acciones": {
+      "type": "string",
+      "description": "JSON con las opciones de configuraci\u00f3n del reset"
+    },
+    "pagos_archivados": {
+      "type": "number",
+      "description": "N\u00famero de pagos archivados"
+    },
+    "recordatorios_eliminados": {
+      "type": "number",
+      "description": "N\u00famero de recordatorios eliminados"
+    },
+    "jugadores_actualizados": {
+      "type": "number",
+      "description": "N\u00famero de jugadores actualizados"
+    },
+    "jugadores_archivados": {
+      "type": "number",
+      "description": "N\u00famero de jugadores archivados a PlayerHistory (no renovados)"
+    },
+    "socios_desactivados": {
+      "type": "number",
+      "description": "N\u00famero de socios de temporada anterior desactivados"
+    },
+    "pedidos_ropa_archivados": {
+      "type": "number",
+      "description": "N\u00famero de pedidos de ropa eliminados"
+    }
+  },
+  "required": [
+    "fecha_reset",
+    "temporada_anterior",
+    "temporada_nueva",
+    "realizado_por"
+  ]
+}

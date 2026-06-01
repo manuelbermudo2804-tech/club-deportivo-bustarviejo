@@ -1,0 +1,75 @@
+{
+  "name": "EmailInvitation",
+  "type": "object",
+  "properties": {
+    "email_destinatario": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del destinatario"
+    },
+    "nombre_destinatario": {
+      "type": "string",
+      "description": "Nombre del destinatario (si se conoce)"
+    },
+    "asunto": {
+      "type": "string",
+      "description": "Asunto del email enviado"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "enviada",
+        "error",
+        "rebotada"
+      ],
+      "default": "enviada",
+      "description": "Estado de la invitaci\u00f3n"
+    },
+    "error_mensaje": {
+      "type": "string",
+      "description": "Mensaje de error si fall\u00f3 el env\u00edo"
+    },
+    "enviado_por": {
+      "type": "string",
+      "description": "Email del admin que envi\u00f3 la invitaci\u00f3n"
+    },
+    "enviado_por_nombre": {
+      "type": "string",
+      "description": "Nombre del admin que envi\u00f3"
+    },
+    "solicitud_id": {
+      "type": "string",
+      "description": "ID de la solicitud de invitaci\u00f3n relacionada (si aplica)"
+    },
+    "mensaje_personalizado": {
+      "type": "string",
+      "description": "Mensaje personalizado incluido en el email"
+    },
+    "abierta": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el email ha sido abierto por el destinatario"
+    },
+    "fecha_apertura": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora en que se abri\u00f3 el email"
+    },
+    "clicada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el destinatario hizo clic en el enlace"
+    },
+    "fecha_clic": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora en que se hizo clic"
+    }
+  },
+  "required": [
+    "email_destinatario",
+    "asunto",
+    "estado",
+    "enviado_por"
+  ]
+}

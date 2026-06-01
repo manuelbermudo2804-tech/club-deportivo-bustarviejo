@@ -1,0 +1,174 @@
+{
+  "name": "MedicalRecord",
+  "type": "object",
+  "properties": {
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del jugador"
+    },
+    "tipo_registro": {
+      "type": "string",
+      "enum": [
+        "Lesi\u00f3n",
+        "Enfermedad",
+        "Consulta M\u00e9dica",
+        "Reconocimiento",
+        "Seguimiento"
+      ],
+      "description": "Tipo de registro m\u00e9dico"
+    },
+    "gravedad": {
+      "type": "string",
+      "enum": [
+        "Leve",
+        "Moderada",
+        "Grave"
+      ],
+      "description": "Gravedad del caso"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n detallada"
+    },
+    "fecha_ocurrencia": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha en que ocurri\u00f3"
+    },
+    "fecha_alta_estimada": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha estimada de alta"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "Activo",
+        "En Seguimiento",
+        "Recuperado"
+      ],
+      "default": "Activo",
+      "description": "Estado del caso"
+    },
+    "puede_entrenar": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si puede entrenar"
+    },
+    "puede_jugar": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si puede jugar partidos"
+    },
+    "tratamiento": {
+      "type": "string",
+      "description": "Tratamiento prescrito"
+    },
+    "seguimientos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fecha": {
+            "type": "string",
+            "format": "date"
+          },
+          "observaciones": {
+            "type": "string"
+          },
+          "estado_mejoria": {
+            "type": "string",
+            "enum": [
+              "Peor",
+              "Igual",
+              "Mejor"
+            ]
+          }
+        }
+      },
+      "description": "Seguimientos del caso"
+    },
+    "documentos_url": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "URLs de documentos m\u00e9dicos"
+    },
+    "reportado_por": {
+      "type": "string",
+      "description": "Email de quien report\u00f3"
+    },
+    "visible_para_padres": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si los padres pueden ver este registro"
+    }
+  },
+  "required": [
+    "jugador_id",
+    "jugador_nombre",
+    "tipo_registro",
+    "gravedad",
+    "descripcion",
+    "fecha_ocurrencia"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "created_by": "{{user.email}}"
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.jugador_id": {
+            "$in": [
+              "{{user.id}}"
+            ]
+          }
+        },
+        {
+          "created_by": "{{user.email}}"
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.reportado_por": "{{user.email}}"
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,0 +1,54 @@
+{
+  "name": "AccountDeletionRequest",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del usuario que solicita la eliminaci\u00f3n"
+    },
+    "user_name": {
+      "type": "string",
+      "description": "Nombre del usuario (en el momento de la solicitud)"
+    },
+    "reason": {
+      "type": "string",
+      "description": "Motivo proporcionado por el usuario"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "solicitada",
+        "en_revision",
+        "aprobada",
+        "rechazada",
+        "procesada"
+      ],
+      "default": "solicitada",
+      "description": "Estado del ciclo de vida de la solicitud"
+    },
+    "requested_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha/hora de la solicitud"
+    },
+    "processed_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha/hora de procesamiento (si aplica)"
+    },
+    "processed_by": {
+      "type": "string",
+      "description": "Email del admin que la proces\u00f3"
+    },
+    "notes_admin": {
+      "type": "string",
+      "description": "Notas internas del administrador"
+    }
+  },
+  "required": [
+    "user_email",
+    "status",
+    "requested_at"
+  ]
+}

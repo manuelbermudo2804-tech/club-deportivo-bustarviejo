@@ -1,0 +1,72 @@
+{
+  "name": "ChatbotLog",
+  "type": "object",
+  "properties": {
+    "conversacion_id": {
+      "type": "string",
+      "description": "ID de la conversaci\u00f3n"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda del equipo"
+    },
+    "padre_email": {
+      "type": "string",
+      "description": "Email del padre"
+    },
+    "padre_nombre": {
+      "type": "string",
+      "description": "Nombre del padre"
+    },
+    "mensaje_padre": {
+      "type": "string",
+      "description": "Mensaje enviado por el padre"
+    },
+    "respuesta_bot": {
+      "type": "string",
+      "description": "Respuesta generada por el bot"
+    },
+    "tipo_consulta": {
+      "type": "string",
+      "enum": [
+        "Horarios",
+        "Pagos",
+        "Convocatorias",
+        "Normas",
+        "Equipaci\u00f3n",
+        "General",
+        "No clasificada"
+      ],
+      "description": "Tipo de consulta detectada"
+    },
+    "escalado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se escal\u00f3 a humano"
+    },
+    "razon_escalacion": {
+      "type": "string",
+      "description": "Raz\u00f3n por la que se escal\u00f3"
+    },
+    "satisfactorio": {
+      "type": "boolean",
+      "description": "Si el padre qued\u00f3 satisfecho (no escribi\u00f3 m\u00e1s)"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del log"
+    },
+    "tiempo_respuesta_ms": {
+      "type": "number",
+      "description": "Tiempo de respuesta en milisegundos"
+    }
+  },
+  "required": [
+    "conversacion_id",
+    "categoria",
+    "padre_email",
+    "mensaje_padre",
+    "respuesta_bot",
+    "temporada"
+  ]
+}

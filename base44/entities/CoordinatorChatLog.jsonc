@@ -1,0 +1,58 @@
+{
+  "name": "CoordinatorChatLog",
+  "type": "object",
+  "properties": {
+    "conversacion_id": {
+      "type": "string",
+      "description": "ID de la conversaci\u00f3n"
+    },
+    "padre_email": {
+      "type": "string",
+      "description": "Email del padre"
+    },
+    "padre_nombre": {
+      "type": "string",
+      "description": "Nombre del padre"
+    },
+    "accion": {
+      "type": "string",
+      "enum": [
+        "mensaje_enviado",
+        "mensaje_bloqueado",
+        "palabra_urgente_detectada",
+        "reportada_admin"
+      ],
+      "description": "Tipo de acci\u00f3n registrada"
+    },
+    "autor": {
+      "type": "string",
+      "enum": [
+        "padre",
+        "coordinador"
+      ],
+      "description": "Qui\u00e9n realiz\u00f3 la acci\u00f3n"
+    },
+    "detalles": {
+      "type": "string",
+      "description": "Detalles de la acci\u00f3n"
+    },
+    "palabra_bloqueada": {
+      "type": "string",
+      "description": "Palabra que caus\u00f3 el bloqueo (si aplica)"
+    },
+    "palabra_urgente": {
+      "type": "string",
+      "description": "Palabra urgente detectada (si aplica)"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del log"
+    }
+  },
+  "required": [
+    "conversacion_id",
+    "accion",
+    "autor",
+    "temporada"
+  ]
+}

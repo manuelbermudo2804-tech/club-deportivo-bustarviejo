@@ -1,0 +1,150 @@
+{
+  "name": "CoordinatorConversation",
+  "type": "object",
+  "properties": {
+    "padre_email": {
+      "type": "string",
+      "description": "Email del padre en la conversaci\u00f3n"
+    },
+    "padre_nombre": {
+      "type": "string",
+      "description": "Nombre completo del padre"
+    },
+    "jugadores_asociados": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          },
+          "categoria": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Jugadores hijos del padre"
+    },
+    "escalada_desde_entrenador": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la conversaci\u00f3n fue escalada desde el chat del entrenador"
+    },
+    "entrenador_que_escalo": {
+      "type": "string",
+      "description": "Email del entrenador que escal\u00f3 al coordinador"
+    },
+    "entrenador_nombre_que_escalo": {
+      "type": "string",
+      "description": "Nombre del entrenador que escal\u00f3"
+    },
+    "fecha_escalacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se escal\u00f3 la conversaci\u00f3n"
+    },
+    "contexto_escalacion": {
+      "type": "string",
+      "description": "Resumen del contexto previo del chat del entrenador"
+    },
+    "ultimo_mensaje": {
+      "type": "string",
+      "description": "Contenido del \u00faltimo mensaje"
+    },
+    "ultimo_mensaje_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del \u00faltimo mensaje"
+    },
+    "ultimo_mensaje_autor": {
+      "type": "string",
+      "enum": [
+        "padre",
+        "coordinador"
+      ],
+      "description": "Qui\u00e9n envi\u00f3 el \u00faltimo mensaje"
+    },
+    "archivada": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la conversaci\u00f3n est\u00e1 archivada por el coordinador"
+    },
+    "fecha_archivado": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Cu\u00e1ndo se archiv\u00f3"
+    },
+    "prioritaria": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es una conversaci\u00f3n prioritaria/urgente"
+    },
+    "etiqueta": {
+      "type": "string",
+      "enum": [
+        "Horarios",
+        "Quejas",
+        "Consulta Partido",
+        "Equipaci\u00f3n",
+        "Transporte",
+        "Lesiones",
+        "Otro"
+      ],
+      "description": "Categor\u00eda/etiqueta de la conversaci\u00f3n"
+    },
+    "padre_escribiendo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el padre est\u00e1 escribiendo"
+    },
+    "coordinador_escribiendo": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el coordinador est\u00e1 escribiendo"
+    },
+    "ultima_actividad_escribiendo": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que alguien estuvo escribiendo"
+    },
+    "reportada_admin": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la familia report\u00f3 esta conversaci\u00f3n"
+    },
+    "reportada_por": {
+      "type": "string",
+      "description": "Email de quien report\u00f3"
+    },
+    "reportada_nombre": {
+      "type": "string",
+      "description": "Nombre de quien report\u00f3"
+    },
+    "fecha_reporte": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se report\u00f3"
+    },
+    "motivo_reporte": {
+      "type": "string",
+      "description": "Motivo del reporte (opcional)"
+    },
+    "last_read_padre_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que el padre abri\u00f3 la conversaci\u00f3n"
+    },
+    "last_read_coordinador_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "\u00daltima vez que el coordinador abri\u00f3 la conversaci\u00f3n"
+    }
+  },
+  "required": [
+    "padre_email",
+    "padre_nombre"
+  ]
+}

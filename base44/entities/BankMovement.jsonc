@@ -1,0 +1,67 @@
+{
+  "name": "BankMovement",
+  "type": "object",
+  "properties": {
+    "cuenta_bancaria": {
+      "type": "string",
+      "description": "N\u00famero de cuenta bancaria"
+    },
+    "fecha": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del movimiento"
+    },
+    "concepto": {
+      "type": "string",
+      "description": "Concepto del movimiento bancario"
+    },
+    "importe": {
+      "type": "number",
+      "description": "Importe del movimiento"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "ingreso",
+        "gasto"
+      ],
+      "description": "Tipo de movimiento"
+    },
+    "reconciliado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el movimiento est\u00e1 reconciliado"
+    },
+    "payment_id": {
+      "type": "string",
+      "description": "ID del pago relacionado (nullable)"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador extra\u00eddo del concepto"
+    },
+    "confianza_match": {
+      "type": "number",
+      "description": "Porcentaje de confianza del match autom\u00e1tico (0-100)"
+    },
+    "revisado_por": {
+      "type": "string",
+      "description": "Email del admin que revis\u00f3"
+    },
+    "fecha_reconciliacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se reconcili\u00f3"
+    },
+    "notas_reconciliacion": {
+      "type": "string",
+      "description": "Notas de la reconciliaci\u00f3n"
+    }
+  },
+  "required": [
+    "fecha",
+    "concepto",
+    "importe",
+    "tipo"
+  ]
+}

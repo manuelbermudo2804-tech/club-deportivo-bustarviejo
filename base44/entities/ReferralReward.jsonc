@@ -1,0 +1,89 @@
+{
+  "name": "ReferralReward",
+  "type": "object",
+  "properties": {
+    "referrer_email": {
+      "type": "string",
+      "description": "Email del socio que refiri\u00f3"
+    },
+    "referrer_name": {
+      "type": "string",
+      "description": "Nombre del socio que refiri\u00f3"
+    },
+    "referred_member_id": {
+      "type": "string",
+      "description": "ID del nuevo socio referido"
+    },
+    "referred_member_name": {
+      "type": "string",
+      "description": "Nombre del nuevo socio referido"
+    },
+    "referred_player_id": {
+      "type": "string",
+      "description": "ID del jugador referido (si aplica)"
+    },
+    "referred_player_name": {
+      "type": "string",
+      "description": "Nombre del jugador referido"
+    },
+    "referred_player_category": {
+      "type": "string",
+      "description": "Categor\u00eda del jugador referido (ej: F\u00fatbol Femenino)"
+    },
+    "is_femenino_bonus": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se aplic\u00f3 bonus especial por f\u00fatbol femenino"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada en la que se realiz\u00f3 la referencia"
+    },
+    "clothing_credit_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "Cr\u00e9dito en ropa ganado por esta referencia"
+    },
+    "raffle_entries_earned": {
+      "type": "number",
+      "default": 0,
+      "description": "Participaciones en sorteo ganadas por esta referencia"
+    },
+    "special_reward": {
+      "type": "string",
+      "description": "Premio especial ganado (ej: Noche de Hotel)"
+    },
+    "reward_tier": {
+      "type": "string",
+      "enum": [
+        "tier_1",
+        "tier_3",
+        "tier_5",
+        "tier_10",
+        "tier_15"
+      ],
+      "description": "Nivel de premio alcanzado"
+    },
+    "reward_claimed": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el premio ha sido reclamado/entregado"
+    },
+    "claimed_date": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se reclam\u00f3 el premio"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas adicionales"
+    }
+  },
+  "required": [
+    "referrer_email",
+    "referrer_name",
+    "referred_member_id",
+    "referred_member_name",
+    "temporada"
+  ]
+}

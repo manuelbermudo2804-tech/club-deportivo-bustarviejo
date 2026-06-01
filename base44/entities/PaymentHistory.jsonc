@@ -1,0 +1,83 @@
+{
+  "name": "PaymentHistory",
+  "type": "object",
+  "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del pago (ej: 2024-2025)"
+    },
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "tipo_pago": {
+      "type": "string",
+      "enum": [
+        "\u00danico",
+        "Tres meses"
+      ],
+      "description": "Tipo de pago: \u00fanico o en tres meses"
+    },
+    "mes": {
+      "type": "string",
+      "enum": [
+        "Junio",
+        "Septiembre",
+        "Diciembre"
+      ],
+      "description": "Mes del pago"
+    },
+    "cantidad": {
+      "type": "number",
+      "description": "Cantidad pagada en euros"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "Pendiente",
+        "En revisi\u00f3n",
+        "Pagado"
+      ],
+      "description": "Estado del pago"
+    },
+    "metodo_pago": {
+      "type": "string",
+      "enum": [
+        "Bizum",
+        "Transferencia"
+      ],
+      "description": "M\u00e9todo de pago utilizado"
+    },
+    "justificante_url": {
+      "type": "string",
+      "description": "URL del justificante de pago"
+    },
+    "fecha_pago": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha en que se realiz\u00f3 el pago"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas adicionales"
+    },
+    "archivado_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se archiv\u00f3"
+    }
+  },
+  "required": [
+    "temporada",
+    "jugador_id",
+    "jugador_nombre",
+    "tipo_pago",
+    "mes",
+    "cantidad",
+    "estado"
+  ]
+}

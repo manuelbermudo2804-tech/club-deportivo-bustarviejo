@@ -1,0 +1,79 @@
+{
+  "name": "AnalyticsEvent",
+  "type": "object",
+  "properties": {
+    "evento_tipo": {
+      "type": "string",
+      "enum": [
+        "page_view",
+        "error",
+        "performance",
+        "user_action",
+        "api_call",
+        "database_query"
+      ],
+      "description": "Tipo de evento registrado"
+    },
+    "usuario_email": {
+      "type": "string",
+      "description": "Email del usuario (si aplica)"
+    },
+    "usuario_rol": {
+      "type": "string",
+      "description": "Rol del usuario (admin, coach, parent, etc)"
+    },
+    "pagina": {
+      "type": "string",
+      "description": "P\u00e1gina o componente donde ocurri\u00f3"
+    },
+    "accion": {
+      "type": "string",
+      "description": "Acci\u00f3n espec\u00edfica (click, submit, etc)"
+    },
+    "duracion_ms": {
+      "type": "number",
+      "description": "Duraci\u00f3n en milisegundos (para performance)"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Cu\u00e1ndo ocurri\u00f3"
+    },
+    "navegador": {
+      "type": "string",
+      "description": "Navegador del usuario"
+    },
+    "dispositivo": {
+      "type": "string",
+      "enum": [
+        "mobile",
+        "tablet",
+        "desktop"
+      ],
+      "description": "Tipo de dispositivo"
+    },
+    "sistema_operativo": {
+      "type": "string",
+      "description": "iOS, Android, Windows, Mac, Linux"
+    },
+    "detalles": {
+      "type": "object",
+      "description": "Datos adicionales (custom)"
+    },
+    "severidad": {
+      "type": "string",
+      "enum": [
+        "info",
+        "warning",
+        "error",
+        "critical"
+      ],
+      "default": "info"
+    }
+  },
+  "required": [
+    "evento_tipo",
+    "timestamp",
+    "pagina"
+  ]
+}

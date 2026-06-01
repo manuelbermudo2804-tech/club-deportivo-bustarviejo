@@ -1,0 +1,84 @@
+{
+  "name": "PhotoGallery",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo del \u00e1lbum o evento"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Descripci\u00f3n del evento o \u00e1lbum"
+    },
+    "fecha_evento": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del evento fotografiado"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "Todas las Categor\u00edas",
+        "F\u00fatbol Pre-Benjam\u00edn (Mixto)",
+        "F\u00fatbol Benjam\u00edn (Mixto)",
+        "F\u00fatbol Alev\u00edn (Mixto)",
+        "F\u00fatbol Infantil (Mixto)",
+        "F\u00fatbol Cadete",
+        "F\u00fatbol Juvenil",
+        "F\u00fatbol Aficionado",
+        "F\u00fatbol Femenino",
+        "Baloncesto (Mixto)"
+      ],
+      "default": "Todas las Categor\u00edas",
+      "description": "Categor\u00eda a la que pertenece el \u00e1lbum"
+    },
+    "tipo_evento": {
+      "type": "string",
+      "enum": [
+        "Partido",
+        "Entrenamiento",
+        "Torneo",
+        "Celebraci\u00f3n",
+        "Evento del Club",
+        "Otro"
+      ],
+      "description": "Tipo de evento"
+    },
+    "fotos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "url": {
+            "type": "string"
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "jugadores_etiquetados": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "description": "Fotos del \u00e1lbum"
+    },
+    "visible_para_padres": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si los padres pueden ver este \u00e1lbum"
+    },
+    "destacado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el \u00e1lbum aparece destacado"
+    }
+  },
+  "required": [
+    "titulo",
+    "fecha_evento",
+    "categoria"
+  ]
+}
