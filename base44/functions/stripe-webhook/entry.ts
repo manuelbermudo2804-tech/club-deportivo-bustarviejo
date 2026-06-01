@@ -82,6 +82,25 @@ function emailFalloPagoDirecto({ nombre, amount, tipoDesc, reason }) {
 <p style="margin:12px 0;font-size:15px;color:#333333">Atentamente,<br/><strong style="color:#ea580c">CD Bustarviejo</strong></p>`);
 }
 
+// Helper: enviar email via Resend (no requiere que el destinatario sea usuario de la app)
+async function sendEmailResend({ to, subject, body }) {
+  const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+  if (!RESEND_API_KEY) throw new Error('RESEND_API_KEY no configurada');
+  const html = body.startsWith('<') ? body : `<pre style="font-family:'Segoe UI',Arial,sans-serif;font-size:14px;color:#1e293b;white-space:pre-wrap;margin:0">${body}</pre>`;
+  const r = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      from: 'CD Bustarviejo <noreply@cdbustarviejo.com>',
+      to: [to],
+      subject,
+      html,
+    }),
+  });
+  if (!r.ok) throw new Error(`Resend error ${r.status}: ${await r.text()}`);
+  return true;
+}
+
 // Webhook: valida firma y ejecuta lógica mínima de negocio
 Deno.serve(async (req) => {
   const rawBody = await req.text();
@@ -242,7 +261,7 @@ Deno.serve(async (req) => {
                 if (player?.email_padre) recipients.push(player.email_padre);
                 if (player?.email_tutor_2 && !recipients.includes(player.email_tutor_2)) recipients.push(player.email_tutor_2);
                 for (const to of recipients) {
-                  await base44.asServiceRole.integrations.Core.SendEmail({
+                  await sendEmailResend({
                     to,
                     subject: `✅ Pago confirmado - ${payment.jugador_nombre}`,
                     body: `Hemos recibido tu pago de ${payment.cantidad}€ (${payment.mes}).\nEstado: Pagado.\nGracias por tu colaboración.\n\nCD Bustarviejo`
@@ -313,7 +332,7 @@ Deno.serve(async (req) => {
                       if (player?.email_padre) recipients.push(player.email_padre);
                       if (player?.email_tutor_2 && !recipients.includes(player.email_tutor_2)) recipients.push(player.email_tutor_2);
                       for (const to of recipients) {
-                        await base44.asServiceRole.integrations.Core.SendEmail({
+                        await sendEmailResend({
                           to,
                           subject: `✅ Pago confirmado - ${payment.jugador_nombre}`,
                           body: `Hemos recibido tu pago de ${payment.cantidad}€ (${payment.mes}).\nEstado: Pagado.\nGracias por tu colaboración.\n\nCD Bustarviejo`
