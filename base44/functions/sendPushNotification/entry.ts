@@ -69,9 +69,9 @@ Deno.serve(async (req) => {
       } catch (error) {
         console.error(`Error enviando a ${usuario_email}:`, error.message);
         
-        // Endpoint muerto → eliminar de la BD (no acumular inactivos)
+        // Endpoint muerto → desactivar (mantener histórico, no borrar)
         if (error.statusCode === 410 || error.statusCode === 404) {
-          try { await base44.asServiceRole.entities.PushSubscription.delete(sub.id); } catch {}
+          try { await base44.asServiceRole.entities.PushSubscription.update(sub.id, { activa: false }); } catch {}
         }
         
         results.push({ email: usuario_email, status: 'error', error: error.message });
