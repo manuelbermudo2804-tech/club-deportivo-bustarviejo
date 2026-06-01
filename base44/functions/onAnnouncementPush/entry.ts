@@ -52,7 +52,10 @@ Deno.serve(async (req) => {
         if (p.email_padre) emailSet.add(p.email_padre);
         if (p.email_tutor_2) emailSet.add(p.email_tutor_2);
         if (p.email_jugador) emailSet.add(p.email_jugador);
-        if (p.acceso_menor_email) emailSet.add(p.acceso_menor_email);
+        // Consentimiento LOPIVI del menor: solo si está autorizado y no revocado.
+        if (p.acceso_menor_email && p.acceso_menor_autorizado && !p.acceso_menor_revocado) {
+          emailSet.add(p.acceso_menor_email);
+        }
       }
       targetEmails = [...emailSet];
     }

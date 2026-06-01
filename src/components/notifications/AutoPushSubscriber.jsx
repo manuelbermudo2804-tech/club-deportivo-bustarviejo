@@ -41,6 +41,10 @@ async function autoSubscribe(email, lastEndpointRef) {
     // Solo proceder si ya tiene permiso granted
     if (Notification.permission !== 'granted') return;
 
+    // Serializar TODO el flujo (registro SW + subscribe + sincronización con BD)
+    // para evitar carreras con PushPermissionBanner y PushStatusCard.
+    await withPushSyncLock(async () => {
+
     // Buscar SW activo con scope raíz
     const regs = await navigator.serviceWorker.getRegistrations();
     let reg = regs.find(r => r.active && r.scope.endsWith('/') && !r.scope.includes('/functions'));
@@ -86,9 +90,10 @@ async function autoSubscribe(email, lastEndpointRef) {
     if (lastEndpointRef.current === sub.endpoint) return;
     lastEndpointRef.current = sub.endpoint;
 
-    // Sincronizar con BD (con lock para evitar race condition con PushPermissionBanner)
-    await withPushSyncLock(() => syncSubscriptionToDB(email, sub));
+    // Sincronizar con BD (ya estamos dentro del lock global)
+    await syncSubscriptionToDB(email, sub);
     console.log('✅ Auto-push subscription synced');
+    }); // cierre withPushSyncLock
   } catch (e) {
     console.warn('Auto-push subscription failed (non-blocking):', e.message);
   }
@@ -136,13 +141,8 @@ async function syncSubscriptionToDB(email, sub) {
       });
     }
 
-    // Eliminar suscripciones viejas con endpoints distintos (ya no sirven, evitar acumulación)
-    const stale = allSubs.filter(s => s.endpoint !== sub.endpoint);
-    for (const s of stale) {
-      try {
-        await base44.entities.PushSubscription.delete(s.id);
-      } catch {}
-    }
+    // ⚠️ NO borrar otras suscripciones del mismo email — son OTROS dispositivos del usuario
+    // (móvil + tablet + escritorio). El borrado real lo hace el backend cuando recibe 410/404.
   } catch (e) {
     console.warn('Error syncing push subscription to DB:', e.message);
   }

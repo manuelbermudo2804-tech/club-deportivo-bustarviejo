@@ -110,11 +110,8 @@ export default function PushPermissionBanner({ user }) {
                 p256dh_key: p256dh, auth_key: auth, activa: true, user_agent: navigator.userAgent.slice(0, 200)
               });
             }
-            // Clean up stale subscriptions
-            const stale = allSubs.filter(s => s.endpoint !== sub.endpoint);
-            for (const s of stale) {
-              try { await base44.entities.PushSubscription.delete(s.id); } catch {}
-            }
+            // ⚠️ NO borrar otras suscripciones del mismo email — son otros dispositivos del usuario.
+            // El backend ya marca/elimina las muertas cuando recibe 410/404.
           });
         }
       }

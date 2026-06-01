@@ -206,6 +206,8 @@ Deno.serve(async (req) => {
     // ==========================================
     if (entityName === 'Announcement') {
       if (!data.publicado) return Response.json({ skipped: 'not published' });
+      // Guardia anti-duplicado: si otra función (onAnnouncementPush) ya la envió, saltar.
+      if (data.push_enviada) return Response.json({ skipped: 'already pushed' });
       const titulo = data.titulo || 'Nuevo anuncio';
       const prioridad = data.prioridad || 'Normal';
       const destinatarios = data.destinatarios_tipo || 'Todos';
@@ -225,6 +227,8 @@ Deno.serve(async (req) => {
       const filtered = [...new Set(targetEmails)].filter(e => e !== senderEmail);
       const icon = prioridad === 'Urgente' ? '🚨' : prioridad === 'Importante' ? '📢' : '📋';
       const result = await sendPushToEmails(base44, filtered, `${icon} ${titulo}`, (data.contenido || '').substring(0, 100), '/Announcements', `announcement-${event.entity_id}`);
+      // Marcar como enviada para que onAnnouncementPush no la vuelva a procesar.
+      try { await base44.asServiceRole.entities.Announcement.update(event.entity_id, { push_enviada: true }); } catch {}
       return Response.json({ type: 'announcement', ...result });
     }
 
