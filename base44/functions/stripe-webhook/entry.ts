@@ -457,7 +457,7 @@ Deno.serve(async (req) => {
             try {
               const email = session.customer_details?.email || session.customer_email || metadata.user_email;
               if (email) {
-                await base44.asServiceRole.integrations.Core.SendEmail({
+                await sendEmailResend({
                   to: email,
                   subject: `✅ Plan Mensual activado - ${metadata.jugador_nombre}`,
                   body: `Hemos recibido tu pago inicial de ${metadata.pago_inicial}€ para ${metadata.jugador_nombre}.\n\nA partir de septiembre se cobrará automáticamente ${metadata.mensualidad}€/mes en tu tarjeta hasta ${metadata.mes_fin || 'Mayo'}.\n\nGracias por tu confianza.\n\nCD Bustarviejo`
@@ -510,7 +510,7 @@ Deno.serve(async (req) => {
             // Notificar al pagador
             try {
               if (payerEmail) {
-                await base44.asServiceRole.integrations.Core.SendEmail({
+                await sendEmailResend({
                   to: payerEmail,
                   subject: `✅ Pago confirmado - ${metadata.titulo || 'Cobro extra'}`,
                   body: `Hemos recibido tu pago de ${(Number(session.amount_total || 0) / 100).toFixed(2)}€ para "${metadata.titulo || 'Cobro extra'}".\nEstado: Pagado.\nGracias.\n\nCD Bustarviejo`
@@ -522,7 +522,7 @@ Deno.serve(async (req) => {
 
             // Notificar al admin
             try {
-              await base44.asServiceRole.integrations.Core.SendEmail({
+              await sendEmailResend({
                 to: 'info@cdbustarviejo.com',
                 subject: `✅ Cobro extra pagado (Stripe) - ${payerEmail}`,
                 body: `Cobro extra "${metadata.titulo || ''}" pagado por ${payerEmail}.\nImporte: ${(Number(session.amount_total || 0) / 100).toFixed(2)}€`
@@ -666,7 +666,7 @@ Deno.serve(async (req) => {
 
               // Emails
               try {
-                await base44.asServiceRole.integrations.Core.SendEmail({
+                await sendEmailResend({
                   to: payerEmail,
                   subject: '🎉 ¡Bienvenido/a al CD Bustarviejo!',
                   body: emailBienvenida({
@@ -676,7 +676,7 @@ Deno.serve(async (req) => {
                     dni: finalMember.dni || ''
                   })
                 });
-                await base44.asServiceRole.integrations.Core.SendEmail({
+                await sendEmailResend({
                   to: 'info@cdbustarviejo.com',
                   subject: `✅ Nuevo socio pagado (Payment Link) - ${finalMember.nombre_completo}`,
                   body: `Socio pagado via Payment Link:\nNombre: ${finalMember.nombre_completo}\nEmail: ${payerEmail}\nNúmero: ${finalMember.numero_socio}\nTemporada: ${tempActual}${!pendingMember ? '\n⚠️ AUTO-CREADO (no se pre-registró en la web). Revisar datos.' : ''}`
@@ -879,7 +879,7 @@ Deno.serve(async (req) => {
                 if (player?.email_tutor_2 && !recipients.includes(player.email_tutor_2)) recipients.push(player.email_tutor_2);
               }
               for (const to of recipients) {
-                await base44.asServiceRole.integrations.Core.SendEmail({
+                await sendEmailResend({
                   to,
                   subject: '✅ Pago de Lotería confirmado',
                   body: `Hemos recibido tu pago de Lotería. Pedido: ${order?.numero_decimos || ''} décimos.\nEstado: Pagado.\n¡Gracias y mucha suerte!\n\nCD Bustarviejo`
@@ -1038,7 +1038,7 @@ Deno.serve(async (req) => {
           try {
             const to = member?.email || email;
             if (to) {
-              await base44.asServiceRole.integrations.Core.SendEmail({
+              await sendEmailResend({
                 to,
                 subject: '🎉 ¡Bienvenido/a al CD Bustarviejo!',
                 body: emailBienvenida({
@@ -1049,7 +1049,7 @@ Deno.serve(async (req) => {
                 })
               });
             }
-            await base44.asServiceRole.integrations.Core.SendEmail({
+            await sendEmailResend({
               to: 'info@cdbustarviejo.com',
               subject: `✅ Nuevo socio pagado (Stripe) - ${member?.nombre_completo || metadata.nombre_completo || email}`,
               body: `Socio pagado: ${member?.nombre_completo || metadata.nombre_completo || ''}\nEmail: ${email}\nNúmero: ${member?.numero_socio || 'pendiente'}\nTemporada: ${temporada}\n${member?.id ? 'Auto-creado desde web' : 'Existente actualizado'}`
@@ -1161,7 +1161,7 @@ Deno.serve(async (req) => {
               // Notificar al socio que su renovación se procesó correctamente
               if (email) {
                 const prevMember = existing?.[0];
-                await base44.asServiceRole.integrations.Core.SendEmail({
+                await sendEmailResend({
                   to: email,
                   subject: `✅ Cuota de socio renovada automáticamente - Temporada ${temporada}`,
                   body: emailRenovacion({
@@ -1237,7 +1237,7 @@ Deno.serve(async (req) => {
             try {
               const email = subMeta.user_email || invoice.customer_email;
               if (email) {
-                await base44.asServiceRole.integrations.Core.SendEmail({
+                await sendEmailResend({
                   to: email,
                   subject: `✅ Cobro mensual recibido - ${subMeta.jugador_nombre}`,
                   body: `Hemos cobrado ${amount}€ de la mensualidad de ${mesNombre} para ${subMeta.jugador_nombre}.\n\nEste cobro es parte del Plan Mensual contratado.\n\nGracias por tu confianza.\n\nCD Bustarviejo`
@@ -1311,7 +1311,7 @@ Deno.serve(async (req) => {
             // Notificar al socio
             if (email) {
               try {
-                await base44.asServiceRole.integrations.Core.SendEmail({
+                await sendEmailResend({
                   to: email,
                   subject: `⚠️ Fallo en el cobro de tu cuota de socio`,
                   body: emailFalloCobro({ nombre: subMeta.nombre_completo || '', amount })
@@ -1331,7 +1331,7 @@ Deno.serve(async (req) => {
             }
             // Notificar admin
             try {
-              await base44.asServiceRole.integrations.Core.SendEmail({
+              await sendEmailResend({
                 to: 'info@cdbustarviejo.com',
                 subject: `⚠️ Fallo cobro cuota socio - ${email}`,
                 body: `Fallo al cobrar ${amount}€ de cuota de socio de ${email}.\nSuscripción: ${subId}\nStripe reintentará automáticamente.`
@@ -1380,13 +1380,13 @@ Deno.serve(async (req) => {
               const amount = (invoice.amount_due || 0) / 100;
               const email = subMeta.user_email || invoice.customer_email;
               if (email) {
-                await base44.asServiceRole.integrations.Core.SendEmail({
+                await sendEmailResend({
                   to: email,
                   subject: `⚠️ Fallo en cobro mensual - ${subMeta.jugador_nombre}`,
                   body: `No hemos podido cobrar ${amount}€ de la mensualidad de ${subMeta.jugador_nombre}.\n\nPor favor, verifica que tu tarjeta tiene fondos suficientes. Stripe reintentará el cobro automáticamente.\n\nSi el problema persiste, contacta con el club.\n\nCD Bustarviejo`
                 });
               }
-              await base44.asServiceRole.integrations.Core.SendEmail({
+              await sendEmailResend({
                 to: 'info@cdbustarviejo.com',
                 subject: `⚠️ Fallo cobro Plan Mensual - ${subMeta.jugador_nombre}`,
                 body: `Fallo al cobrar ${amount}€ de ${subMeta.jugador_nombre} (${email}).\nSuscripción: ${subId}\nStripe reintentará automáticamente.`
@@ -1440,7 +1440,7 @@ Deno.serve(async (req) => {
               // Notificar al socio
               if (email) {
                 try {
-                  await base44.asServiceRole.integrations.Core.SendEmail({
+                  await sendEmailResend({
                     to: email,
                     subject: '🔔 Tu suscripción de socio ha sido cancelada',
                     body: emailSuscripcionCancelada({
@@ -1512,7 +1512,7 @@ Deno.serve(async (req) => {
           : 'pago';
 
         if (email) {
-          await base44.asServiceRole.integrations.Core.SendEmail({
+          await sendEmailResend({
             to: email,
             subject: `⚠️ Fallo en ${tipoDesc}${jugadorNombre ? ` - ${jugadorNombre}` : ''}`,
             body: emailFalloPagoDirecto({
@@ -1524,7 +1524,7 @@ Deno.serve(async (req) => {
           });
         }
 
-        await base44.asServiceRole.integrations.Core.SendEmail({
+        await sendEmailResend({
           to: 'info@cdbustarviejo.com',
           subject: `⚠️ Fallo en pago (${tipoDesc}) - ${email || 'desconocido'}`,
           body: `Fallo al cobrar ${amount}€.\nTipo: ${tipoDesc}\nJugador: ${jugadorNombre}\nEmail: ${email}\nMotivo: ${failMessage}\nPaymentIntent: ${pi.id}`
