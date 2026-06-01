@@ -23,7 +23,7 @@ self.addEventListener('push', (event) => {
   const options = {
     body: data.body || 'Tienes notificaciones pendientes',
     icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg',
-    badge: 'https://media.base44.com/images/public/6992c6be619d2da592897991/a47dac39e_generated_image.png',
+    badge: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA5NiA5NiI+PGNpcmNsZSBjeD0iNDgiIGN5PSI0OCIgcj0iMzYiIGZpbGw9IiNmZmYiLz48L3N2Zz4=',
     tag: tag,
     renotify: true,
     requireInteraction: true,
