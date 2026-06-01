@@ -185,12 +185,10 @@ export default function SponsorBanner() {
                 <div key={`${sponsor.id}-${idx}`} className="flex-shrink-0">{inner}</div>
               );
 
-              return (
-                <React.Fragment key={`frag-${sponsor.id}-${idx}`}>
-                  {item}
-                  {separator}
-                </React.Fragment>
-              );
+              return [
+                React.cloneElement(item, { key: `item-${sponsor.id}-${idx}` }),
+                React.cloneElement(separator, { key: `sep-${sponsor.id}-${idx}` })
+              ];
             })}
           </div>
         </div>
