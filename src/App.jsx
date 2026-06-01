@@ -67,7 +67,7 @@ const AppRouter = () => {
   const location = useLocation();
   
   // Rutas 100% públicas (sin auth, sin layout)
-  const cleanPath = location.pathname.replace(/\/+$/, '').toLowerCase();
+  const cleanPath = location.pathname.replace(/\/+$/, '').replace(/^\/+/, '/').toLowerCase();
   const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/propuestagvcgaesco', '/privacidad'];
   // Constructor de páginas: cualquier URL que empiece por /l/ es pública
   const isLandingPath = cleanPath.startsWith('/l/');
