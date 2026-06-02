@@ -83,17 +83,25 @@ export default function PublicAccessRequest() {
   const emailSuggestion = checkEmailTypo(email);
 
   const trackEvent = (accion, detalles = {}, severidad = "info") => {
+    // Llamada HTTP directa: la página es pública (sin login), el SDK rechazaría
+    // la petición con 403 silencioso. logPublicEvent guarda con service role.
     try {
-      base44.entities.UploadDiagnostic.create({
-        event_type: "app_error",
-        context: `PublicAccessRequest · ${accion}`,
-        error_message: detalles.motivo || detalles.mensaje || accion,
-        user_email: email || "anónimo",
-        page_path: "/SolicitarAcceso",
-        user_agent: navigator.userAgent,
-        device: /Mobile|Android|iPhone/.test(navigator.userAgent) ? "móvil" : "desktop",
-        extra_data: { accion, severidad, ...detalles },
-      });
+      fetch(`${window.location.origin}/functions/logPublicEvent`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        keepalive: true,
+        body: JSON.stringify({
+          event_type: "app_error",
+          context: `PublicAccessRequest · ${accion}`,
+          error_message: detalles.motivo || detalles.mensaje || accion,
+          user_email: email || "anónimo",
+          page_path: "/SolicitarAcceso",
+          user_agent: navigator.userAgent,
+          device: /Mobile|Android|iPhone/.test(navigator.userAgent) ? "móvil" : "desktop",
+          extra_data: { accion, severidad, ...detalles },
+          severity: severidad === "error" ? "error" : severidad === "warning" ? "warning" : "info",
+        }),
+      }).catch(() => {});
     } catch {}
   };
 
@@ -127,33 +135,40 @@ export default function PublicAccessRequest() {
       if (!s.email.trim() && !s.nombre.trim() && !s.telefono.trim()) return;
       abandonedLoggedRef.current = true;
       try {
-        base44.entities.UploadDiagnostic.create({
-          event_type: "app_error",
-          context: "PublicAccessRequest · form_abandoned",
-          error_message: "Usuario abandonó el formulario sin enviar",
-          user_email: s.email || "anónimo",
-          page_path: "/SolicitarAcceso",
-          user_agent: navigator.userAgent,
-          device: /Mobile|Android|iPhone/.test(navigator.userAgent) ? "móvil" : "desktop",
-          extra_data: {
-            accion: "form_abandoned",
-            severidad: "warning",
-            form_data: {
-              email: s.email.trim().toLowerCase(),
-              nombre_progenitor: s.nombre.trim(),
-              telefono: s.telefono.trim(),
-              categoria: s.categoria,
-              prefiere_whatsapp: s.prefiereWhatsapp,
+        // keepalive: true para que el navegador envíe el fetch aunque se cierre la pestaña
+        fetch(`${window.location.origin}/functions/logPublicEvent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          keepalive: true,
+          body: JSON.stringify({
+            event_type: "app_error",
+            context: "PublicAccessRequest · form_abandoned",
+            error_message: "Usuario abandonó el formulario sin enviar",
+            user_email: s.email || "anónimo",
+            page_path: "/SolicitarAcceso",
+            user_agent: navigator.userAgent,
+            device: /Mobile|Android|iPhone/.test(navigator.userAgent) ? "móvil" : "desktop",
+            severity: "warning",
+            extra_data: {
+              accion: "form_abandoned",
+              severidad: "warning",
+              form_data: {
+                email: s.email.trim().toLowerCase(),
+                nombre_progenitor: s.nombre.trim(),
+                telefono: s.telefono.trim(),
+                categoria: s.categoria,
+                prefiere_whatsapp: s.prefiereWhatsapp,
+              },
+              campos_rellenos: {
+                nombre: !!s.nombre.trim(),
+                email: !!s.email.trim(),
+                telefono: !!s.telefono.trim(),
+                categoria: !!s.categoria,
+                gdpr: s.aceptaGdpr,
+              },
             },
-            campos_rellenos: {
-              nombre: !!s.nombre.trim(),
-              email: !!s.email.trim(),
-              telefono: !!s.telefono.trim(),
-              categoria: !!s.categoria,
-              gdpr: s.aceptaGdpr,
-            },
-          },
-        });
+          }),
+        }).catch(() => {});
       } catch {}
     };
     const onVisChange = () => { if (document.visibilityState === "hidden") handleHide(); };
