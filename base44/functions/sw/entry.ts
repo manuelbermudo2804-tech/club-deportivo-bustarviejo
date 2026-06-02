@@ -17,14 +17,16 @@ self.addEventListener('activate', (event) => {
 
 // Push notification handler
 self.addEventListener('push', (event) => {
-  const data = (() => { try { return event.data ? event.data.json() : {}; } catch { return {}; } })();
-  const tag = data.tag || 'notification';
+  // Parsear payload de forma defensiva
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; } catch { data = {}; }
 
+  const title = data.title || 'CD Bustarviejo';
   const options = {
     body: data.body || 'Tienes notificaciones pendientes',
     icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg',
-
-    tag: tag,
+    badge: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg',
+    tag: data.tag || 'notification',
     renotify: true,
     requireInteraction: true,
     vibrate: [200, 100, 200],
@@ -32,23 +34,22 @@ self.addEventListener('push', (event) => {
     data: { url: data.url || (data.data && data.data.url) || '/', ...(data.data || {}) }
   };
 
-  // Badge numerico en el icono de la PWA
+  // CRITICO: showNotification debe llamarse SINCRONAMENTE dentro del listener push.
+  // Cualquier await antes de showNotification penaliza la suscripcion en Android.
+  const notifPromise = self.registration.showNotification(title, options);
+
+  // Badge en paralelo (no bloqueante)
   const badgeCount = typeof data.badgeCount === 'number' ? data.badgeCount : 1;
+  const badgePromise = (async () => {
+    try {
+      if (self.navigator && self.navigator.setAppBadge) {
+        if (badgeCount > 0) await self.navigator.setAppBadge(badgeCount);
+        else await self.navigator.clearAppBadge();
+      }
+    } catch {}
+  })();
 
-  event.waitUntil(
-    (async () => {
-      // Mostrar notificacion (renotify:true + mismo tag = reemplaza y suena)
-      await self.registration.showNotification(data.title || 'CD Bustarviejo', options);
-
-      // Actualizar badge numerico en icono PWA
-      try {
-        if (self.navigator && self.navigator.setAppBadge) {
-          if (badgeCount > 0) await self.navigator.setAppBadge(badgeCount);
-          else await self.navigator.clearAppBadge();
-        }
-      } catch {}
-    })()
-  );
+  event.waitUntil(Promise.all([notifPromise, badgePromise]));
 });
 
 // Click en notificacion -> abrir la app
