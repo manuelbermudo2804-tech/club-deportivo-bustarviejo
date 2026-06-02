@@ -4,9 +4,40 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { RefreshCw, User, Smartphone, Clock, AlertTriangle } from "lucide-react";
+import { RefreshCw, User, Smartphone, Clock, AlertTriangle, RotateCcw, CheckCircle2 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { toast } from "sonner";
+
+async function recoverToAccessRequest(evt, onDone) {
+  const data = evt.extra_data?.form_data;
+  if (!data?.email || !data?.nombre_progenitor || !data?.categoria) {
+    toast.error("Este evento no tiene datos suficientes para recuperar.");
+    return;
+  }
+  try {
+    // Comprobar si ya existe (evitar duplicados)
+    const existing = await base44.entities.AccessRequest.filter({ email: data.email });
+    if (existing.length > 0) {
+      toast.info("Ya existe una solicitud con ese email en la bandeja.");
+      onDone?.();
+      return;
+    }
+    await base44.entities.AccessRequest.create({
+      email: data.email,
+      nombre_progenitor: data.nombre_progenitor,
+      telefono: data.telefono || "",
+      categoria: data.categoria,
+      prefiere_whatsapp: !!data.prefiere_whatsapp,
+      estado: "pendiente",
+      user_agent: evt.user_agent || "",
+    });
+    toast.success("✅ Recuperada a Códigos de Acceso");
+    onDone?.();
+  } catch (e) {
+    toast.error("Error al recuperar: " + (e.message || "desconocido"));
+  }
+}
 
 /**
  * Pestaña enfocada SOLO en los eventos del formulario público de solicitud
@@ -109,6 +140,8 @@ export default function RegistroPublicoTab() {
             const accion = evt.extra_data?.accion || "evento";
             const isError = accion.includes("error") || accion.includes("failed");
             const isSuccess = accion === "submit_success";
+            const formData = evt.extra_data?.form_data;
+            const isRecoverable = !!formData?.email && !!formData?.nombre_progenitor && !!formData?.categoria;
             const color = isSuccess ? "border-green-200 bg-green-50/40"
                        : isError ? "border-red-200 bg-red-50/40"
                        : "border-slate-200 bg-white";
@@ -138,6 +171,28 @@ export default function RegistroPublicoTab() {
                         {evt.created_date ? format(new Date(evt.created_date), "dd/MM HH:mm:ss", { locale: es }) : "?"}
                       </span>
                     </div>
+
+                    {/* Datos del formulario + botón recuperar */}
+                    {isRecoverable && (
+                      <div className="mt-2 p-2 bg-white border border-slate-200 rounded-lg text-xs space-y-1">
+                        <div className="font-semibold text-slate-700 mb-1">📋 Datos del formulario:</div>
+                        <div><strong>Nombre:</strong> {formData.nombre_progenitor}</div>
+                        <div><strong>Email:</strong> {formData.email}</div>
+                        {formData.telefono && <div><strong>Teléfono:</strong> {formData.telefono}</div>}
+                        <div><strong>Categoría:</strong> {formData.categoria}</div>
+                        {(isError || accion === "submit_attempt") && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="mt-2 border-green-300 text-green-700 hover:bg-green-50"
+                            onClick={() => recoverToAccessRequest(evt, refetch)}
+                          >
+                            <RotateCcw className="w-3 h-3 mr-1" />
+                            Recuperar a Códigos de Acceso
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

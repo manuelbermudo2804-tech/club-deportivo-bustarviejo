@@ -97,10 +97,19 @@ export default function PublicAccessRequest() {
     } catch {}
   };
 
+  // Snapshot del formulario para poder recuperar la solicitud si falla el servidor
+  const formSnapshot = () => ({
+    email: email.trim().toLowerCase(),
+    nombre_progenitor: nombre.trim(),
+    telefono: telefono.trim(),
+    categoria,
+    prefiere_whatsapp: prefiereWhatsapp,
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    trackEvent("submit_attempt");
+    trackEvent("submit_attempt", { form_data: formSnapshot() });
 
     if (!email.trim() || !nombre.trim() || !categoria || !telefono.trim()) {
       setError("Por favor, rellena todos los campos obligatorios.");
@@ -171,7 +180,7 @@ export default function PublicAccessRequest() {
     } catch (err) {
       const msg = err?.message || "Error al enviar. Inténtalo de nuevo.";
       setError(msg);
-      trackEvent("submit_error", { mensaje: msg }, "error");
+      trackEvent("submit_error", { mensaje: msg, form_data: formSnapshot() }, "error");
     } finally {
       setSending(false);
     }
