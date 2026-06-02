@@ -34,10 +34,12 @@ export default function MobileHeader({
             {!(window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true) && (
               <button
                 onClick={onShowInstall}
-                className="p-2 bg-green-500 text-white rounded-xl shadow-lg"
+                className="p-2 bg-green-500 text-white rounded-xl shadow-lg animate-pulse-install relative"
                 title="Ver cómo instalar"
+                style={{ animation: 'pulseInstall 1.6s ease-in-out infinite' }}
               >
                 <Smartphone className="w-5 h-5" />
+                <style>{`@keyframes pulseInstall { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(34,197,94,0.7); } 50% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(34,197,94,0); } }`}</style>
               </button>
             )}
 
