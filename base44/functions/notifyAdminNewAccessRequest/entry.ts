@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
           requireInteraction: true,
           data: { url: '/AdminAccessCodes?tab=bandeja', timestamp: new Date().toISOString() }
         });
-        await webpush.sendNotification(pushSubscription, payload);
+        await webpush.sendNotification(pushSubscription, payload, { urgency: 'high', TTL: 60 });
         sent++;
       } catch (error) {
         if (error.statusCode === 410 || error.statusCode === 404) {
