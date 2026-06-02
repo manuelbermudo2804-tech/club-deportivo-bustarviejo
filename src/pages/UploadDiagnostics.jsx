@@ -14,6 +14,7 @@ import ErrorsTab from "../components/diagnostic/ErrorsTab";
 import WizardTab from "../components/diagnostic/WizardTab";
 import AltasEnCursoTab from "../components/diagnostic/AltasEnCursoTab";
 import PWAAdoptionTab from "../components/diagnostic/PWAAdoptionTab";
+import RegistroPublicoTab from "../components/diagnostic/RegistroPublicoTab";
 
 const EVENT_ICONS = {
   button_click: { icon: MousePointer, color: "text-blue-600", bg: "bg-blue-50", label: "Botón pulsado" },
@@ -150,14 +151,19 @@ export default function UploadDiagnostics() {
         <h1 className="text-2xl font-bold">🔬 Centro de Diagnóstico</h1>
       </div>
 
-      <Tabs defaultValue="altas" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs defaultValue="publico" className="w-full">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="publico"><UserPlus className="w-4 h-4 mr-1.5" /> Registro Público</TabsTrigger>
           <TabsTrigger value="altas"><UserPlus className="w-4 h-4 mr-1.5" /> Altas</TabsTrigger>
           <TabsTrigger value="wizard"><TrendingUp className="w-4 h-4 mr-1.5" /> Wizard</TabsTrigger>
           <TabsTrigger value="pwa"><Download className="w-4 h-4 mr-1.5" /> PWA</TabsTrigger>
           <TabsTrigger value="uploads"><Camera className="w-4 h-4 mr-1.5" /> Subidas</TabsTrigger>
           <TabsTrigger value="errors"><Bug className="w-4 h-4 mr-1.5" /> Errores</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="publico" className="mt-4">
+          <RegistroPublicoTab />
+        </TabsContent>
 
         <TabsContent value="altas" className="mt-4">
           <AltasEnCursoTab />
