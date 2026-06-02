@@ -292,7 +292,20 @@ export default function PublicAccessRequest() {
       if (!res.ok) {
         throw new Error(data?.error || `Error ${res.status}`);
       }
-      trackEvent("submit_success", { categoria });
+      // Si el backend NO devuelve request_id es señal de algo raro (versión antigua o fallo silencioso)
+      // → lo registramos como sospechoso para que el admin lo vea en el panel de diagnóstico.
+      if (!data?.request_id) {
+        trackEvent("submit_error", {
+          mensaje: "Backend devolvió OK pero sin request_id (posible fantasma)",
+          form_data: formSnapshot(),
+          response: data,
+        }, "error");
+        setError("Hubo un problema guardando tu solicitud. Por favor inténtalo de nuevo o escríbenos a info@cdbustarviejo.com.");
+        return;
+      }
+      // Diferenciamos "creada nueva" de "ya tenías una pendiente" para auditar correctamente.
+      const accion = data.duplicate ? "submit_duplicate" : "submit_success";
+      trackEvent(accion, { categoria, request_id: data.request_id, form_data: formSnapshot() });
       setSent(true);
     } catch (err) {
       const msg = err?.message || "Error al enviar. Inténtalo de nuevo.";

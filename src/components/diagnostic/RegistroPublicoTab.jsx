@@ -20,6 +20,7 @@ const ACTION_META = {
   validation_failed: { label: "Validación KO", icon: AlertTriangle,      color: "text-orange-700 bg-orange-100",   ring: "border-orange-200" },
   submit_error:      { label: "Error servidor", icon: AlertTriangle,     color: "text-red-700 bg-red-100",         ring: "border-red-200" },
   submit_success:    { label: "Enviado OK",    icon: CheckCircle2,       color: "text-green-700 bg-green-100",     ring: "border-green-200" },
+  submit_duplicate:  { label: "Reenvío (ya existía)", icon: CheckCircle2, color: "text-teal-700 bg-teal-100",       ring: "border-teal-200" },
   form_abandoned:    { label: "Abandonó",      icon: LogOut,             color: "text-amber-700 bg-amber-100",     ring: "border-amber-200" },
 };
 
@@ -110,7 +111,7 @@ export default function RegistroPublicoTab() {
       s.eventos.sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
       s.acciones = s.eventos.map(getAccion);
       s.resultado =
-        s.acciones.includes("submit_success") ? "completado" :
+        s.acciones.includes("submit_success") || s.acciones.includes("submit_duplicate") ? "completado" :
         s.acciones.includes("form_abandoned") ? "abandonado" :
         s.acciones.includes("submit_error") || s.acciones.includes("submit_attempt") ? "fallo" :
         s.acciones.includes("form_started") ? "interactuo" :

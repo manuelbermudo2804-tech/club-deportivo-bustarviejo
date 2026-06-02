@@ -67,8 +67,10 @@ Deno.serve(async (req) => {
     if (existing.length > 0) {
       // No tratamos como error: la familia ya solicitó, devolvemos success para no asustar
       // y el admin ya tiene la solicitud en la bandeja.
-      console.log('[submitAccessRequest] Duplicado pendiente, devolviendo success silencioso para', emailLower);
-      return Response.json({ success: true, duplicate: true });
+      // Devolvemos el id REAL del request existente para que el frontend pueda
+      // distinguir "creada de cero" vs "ya existía" y no aparezca como fantasma.
+      console.log('[submitAccessRequest] Duplicado pendiente, devolviendo success silencioso para', emailLower, 'id:', existing[0].id);
+      return Response.json({ success: true, duplicate: true, request_id: existing[0].id });
     }
 
     // 5.b Rate limit por email (máx 2 solicitudes en 24h, sea cual sea el estado)
@@ -100,7 +102,21 @@ Deno.serve(async (req) => {
     // sobre AccessRequest → notifyAdminNewAccessRequest. Es más fiable que invocar la
     // función internamente (lo que devolvía 403 al cruzar service-role entre funciones).
 
-    return Response.json({ success: true });
+    // VERIFICACIÓN POST-CREACIÓN: re-leemos el registro para confirmar que está en la BD.
+    // Si por cualquier motivo (race condition, error silencioso del SDK) no quedó guardado,
+    // devolvemos error explícito al frontend para que la familia sepa que NO se envió.
+    let verified = null;
+    try {
+      verified = await base44.asServiceRole.entities.AccessRequest.get(created.id);
+    } catch (e) {
+      console.error('[submitAccessRequest] No se pudo verificar la creación:', e?.message);
+    }
+    if (!verified) {
+      console.error('[submitAccessRequest] ⚠️ create() devolvió OK pero el registro NO está en la BD', { id: created?.id, email: emailLower });
+      return Response.json({ error: 'No se pudo guardar tu solicitud. Por favor inténtalo de nuevo en unos segundos.' }, { status: 500 });
+    }
+
+    return Response.json({ success: true, request_id: created.id });
   } catch (error) {
     console.error('[submitAccessRequest] Error fatal:', error);
     return Response.json({ error: error.message }, { status: 500 });
