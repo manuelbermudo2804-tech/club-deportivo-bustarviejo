@@ -19,6 +19,7 @@ Deno.serve(async (req) => {
       device,
       extra_data,
       severity,
+      session_id,
     } = body || {};
 
     if (!context) {
@@ -36,6 +37,7 @@ Deno.serve(async (req) => {
       device: device || null,
       extra_data: extra_data || {},
       severity: severity || 'info',
+      session_id: session_id ? String(session_id).slice(0, 100) : undefined,
     });
 
     return Response.json({ ok: true });

@@ -63,6 +63,20 @@ const STEPS = [
   { num: 3, title: "Instala la app y entra", desc: "Con tu código accedes y te registras" },
 ];
 
+// ID de sesión único por pestaña — agrupa todos los eventos del mismo visitante
+const getSessionId = () => {
+  try {
+    let sid = sessionStorage.getItem("par_session_id");
+    if (!sid) {
+      sid = `s_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
+      sessionStorage.setItem("par_session_id", sid);
+    }
+    return sid;
+  } catch {
+    return `s_${Date.now().toString(36)}`;
+  }
+};
+
 export default function PublicAccessRequest() {
   usePublicPageTracker("PublicAccessRequest");
   const [email, setEmail] = useState("");
@@ -78,6 +92,8 @@ export default function PublicAccessRequest() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
   const [showInstallHelp, setShowInstallHelp] = useState(false);
+  const sessionIdRef = useRef(getSessionId());
+  const formStartedLoggedRef = useRef(false);
 
   const emailsMatch = email && emailConfirm && email.trim().toLowerCase() === emailConfirm.trim().toLowerCase();
   const emailSuggestion = checkEmailTypo(email);
@@ -100,9 +116,35 @@ export default function PublicAccessRequest() {
           device: /Mobile|Android|iPhone/.test(navigator.userAgent) ? "móvil" : "desktop",
           extra_data: { accion, severidad, ...detalles },
           severity: severidad === "error" ? "error" : severidad === "warning" ? "warning" : "info",
+          session_id: sessionIdRef.current,
         }),
       }).catch(() => {});
     } catch {}
+  };
+
+  // Registrar visita en cuanto el componente monta (1 vez por sesión de pestaña)
+  useEffect(() => {
+    const visitKey = "par_visit_logged";
+    try {
+      if (sessionStorage.getItem(visitKey)) return;
+      sessionStorage.setItem(visitKey, "1");
+    } catch {}
+    let fingerprint = "";
+    try { fingerprint = getDeviceFingerprint(); } catch {}
+    trackEvent("page_view", {
+      referrer: document.referrer || "",
+      fingerprint,
+      screen: `${window.screen?.width || 0}x${window.screen?.height || 0}`,
+      language: navigator.language || "",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Registrar "empezó a escribir" la primera vez que toque cualquier campo
+  const logFormStartedOnce = () => {
+    if (formStartedLoggedRef.current) return;
+    formStartedLoggedRef.current = true;
+    trackEvent("form_started");
   };
 
   // Snapshot del formulario para poder recuperar la solicitud si falla el servidor
@@ -149,6 +191,7 @@ export default function PublicAccessRequest() {
             user_agent: navigator.userAgent,
             device: /Mobile|Android|iPhone/.test(navigator.userAgent) ? "móvil" : "desktop",
             severity: "warning",
+            session_id: sessionIdRef.current,
             extra_data: {
               accion: "form_abandoned",
               severidad: "warning",
@@ -427,7 +470,7 @@ export default function PublicAccessRequest() {
               <input
                 type="text"
                 value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
+                onChange={(e) => { logFormStartedOnce(); setNombre(e.target.value); }}
                 placeholder="Ej: María García López"
                 className="w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
                 required
@@ -444,7 +487,7 @@ export default function PublicAccessRequest() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e) => { logFormStartedOnce(); setEmail(e.target.value); }}
                   placeholder="tuemail@ejemplo.com"
                   className="w-full border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
                   required
@@ -492,7 +535,7 @@ export default function PublicAccessRequest() {
                   type="tel"
                   inputMode="numeric"
                   value={telefono}
-                  onChange={(e) => setTelefono(e.target.value)}
+                  onChange={(e) => { logFormStartedOnce(); setTelefono(e.target.value); }}
                   placeholder="Ej: 600 123 456"
                   className="w-full border border-slate-300 rounded-xl pl-10 pr-4 py-3 text-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500 outline-none"
                   required
