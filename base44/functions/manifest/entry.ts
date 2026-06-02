@@ -1,9 +1,8 @@
 Deno.serve(async (_req) => {
-  // Icono "any" — escudo completo, se muestra tal cual (iOS, Chrome Desktop, MIUI)
-  const ICON_ANY = "https://media.base44.com/images/public/6992c6be619d2da592897991/e4665760a_image.png";
-  // Icono "maskable" — escudo centrado en safe-zone con fondo sólido verde
-  // (Samsung One UI lo recorta a squircle; sin safe-zone se ve mal o sale genérico)
-  const ICON_MASKABLE = "https://media.base44.com/images/public/6992c6be619d2da592897991/6805b8b37_generated_image.png";
+  // Iconos servidos vía proxy desde el mismo dominio app.cdbustarviejo.com
+  // para evitar bloqueos de operadores/firewalls al dominio media.base44.com
+  const ICON_ANY = "/functions/appIcon?v=any";
+  const ICON_MASKABLE = "/functions/appIcon?v=maskable";
 
   const manifest = {
     name: "CD Bustarviejo",
