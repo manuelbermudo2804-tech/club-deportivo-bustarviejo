@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter, X, Download, AlertTriangle, CheckCircle2, UserX, MessageCircle } from "lucide-react";
+import { Plus, Search, Filter, X, Download, AlertTriangle, CheckCircle2, UserX, MessageCircle, Contact } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -528,30 +528,54 @@ export default function Players() {
     }
   };
 
-  // Copia los teléfonos de los jugadores filtrados al portapapeles, formato listo para WhatsApp
-  const handleCopyWhatsAppPhones = async () => {
-    const phones = new Set();
+  // Descarga un archivo .vcf con los contactos (Tutor 1 + Tutor 2) de los jugadores filtrados.
+  // El archivo se puede abrir desde el móvil para importar todos los contactos a la agenda de golpe.
+  const handleDownloadContactsVcf = () => {
+    const cards = [];
+    const seen = new Set();
     filteredPlayers.forEach(p => {
-      [p.telefono, p.telefono_tutor_2].forEach(t => {
-        if (!t) return;
-        const clean = String(t).replace(/\D/g, '');
-        if (clean.length >= 9) {
-          const withCountry = clean.startsWith('34') ? clean : `34${clean}`;
-          phones.add(`+${withCountry}`);
-        }
+      const tutors = [
+        { nombre: p.nombre_tutor_legal || `Tutor de ${p.nombre}`, tel: p.telefono, email: p.email_padre },
+        { nombre: p.nombre_tutor_2 || `Tutor 2 de ${p.nombre}`, tel: p.telefono_tutor_2, email: p.email_tutor_2 },
+      ];
+      tutors.forEach(t => {
+        if (!t.tel) return;
+        const clean = String(t.tel).replace(/\D/g, '');
+        if (clean.length < 9) return;
+        const withCountry = clean.startsWith('34') ? clean : `34${clean}`;
+        const phoneIntl = `+${withCountry}`;
+        if (seen.has(phoneIntl)) return;
+        seen.add(phoneIntl);
+        const cat = p.categoria_principal || p.deporte || '';
+        const displayName = `${t.nombre} (${p.nombre}${cat ? ' – ' + cat : ''})`;
+        const vcard = [
+          'BEGIN:VCARD',
+          'VERSION:3.0',
+          `FN:${displayName}`,
+          `N:${t.nombre};;;;`,
+          `TEL;TYPE=CELL:${phoneIntl}`,
+          t.email ? `EMAIL:${t.email}` : null,
+          `ORG:CD Bustarviejo${cat ? ' – ' + cat : ''}`,
+          'END:VCARD',
+        ].filter(Boolean).join('\r\n');
+        cards.push(vcard);
       });
     });
-    if (phones.size === 0) {
-      toast.error("No hay teléfonos en este filtro");
+    if (cards.length === 0) {
+      toast.error("No hay contactos en este filtro");
       return;
     }
-    const text = Array.from(phones).join(', ');
-    try {
-      await navigator.clipboard.writeText(text);
-      toast.success(`✅ ${phones.size} teléfonos copiados. Pégalos en "Nuevo grupo" de WhatsApp.`);
-    } catch {
-      toast.error("No se pudo copiar. Intenétalo de nuevo.");
-    }
+    const blob = new Blob([cards.join('\r\n')], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    const tag = categoryFilter !== 'all' ? categoryFilter.replace(/\s+/g, '_') : 'todos';
+    link.download = `contactos_${tag}_${new Date().toISOString().split('T')[0]}.vcf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    toast.success(`✅ ${cards.length} contactos descargados. Ábrelo en el móvil para importarlos.`);
   };
 
   const handleExportPlayers = () => {
@@ -753,13 +777,13 @@ export default function Players() {
         <div className="flex gap-3">
           {isAdmin && filteredPlayers.length > 0 && (
             <Button
-              onClick={handleCopyWhatsAppPhones}
+              onClick={handleDownloadContactsVcf}
               variant="outline"
               className="border-green-600 text-green-700 hover:bg-green-50 bg-green-50/50"
-              title="Copia los teléfonos del filtro actual listos para pegar en un grupo de WhatsApp"
+              title="Descarga un archivo de contactos del filtro actual. Ábrelo en el móvil para guardarlos en tu agenda y crear grupos en WhatsApp."
             >
-              <MessageCircle className="w-5 h-5 mr-2" />
-              Copiar teléfonos WhatsApp
+              <Contact className="w-5 h-5 mr-2" />
+              Descargar contactos
             </Button>
           )}
           {isAdmin && filteredPlayers.length > 0 && (
