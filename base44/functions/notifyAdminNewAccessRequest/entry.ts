@@ -46,7 +46,9 @@ Deno.serve(async (req) => {
     }
 
     let sent = 0;
+    const sendResults = [];
     for (const sub of subs) {
+      const endpointShort = (sub.endpoint || '').slice(0, 60) + '...';
       try {
         const pushSubscription = {
           endpoint: sub.endpoint,
@@ -64,9 +66,13 @@ Deno.serve(async (req) => {
         });
         // TTL 24h: aunque Chrome Android esté en Doze/ahorro de batería, FCM guarda el
         // push y lo entrega cuando el dispositivo se reactive. Con TTL=60 se descartaba.
-        await webpush.sendNotification(pushSubscription, payload, { urgency: 'high', TTL: 86400 });
+        const result = await webpush.sendNotification(pushSubscription, payload, { urgency: 'high', TTL: 86400 });
         sent++;
+        console.log(`[push OK] ${sub.usuario_email} ${endpointShort} status=${result?.statusCode} body=${result?.body}`);
+        sendResults.push({ email: sub.usuario_email, ok: true, statusCode: result?.statusCode, body: result?.body });
       } catch (error) {
+        console.error(`[push FAIL] ${sub.usuario_email} ${endpointShort} status=${error.statusCode} body=${error.body} message=${error.message}`);
+        sendResults.push({ email: sub.usuario_email, ok: false, statusCode: error.statusCode, body: error.body, message: error.message });
         if (error.statusCode === 410 || error.statusCode === 404) {
           try { await base44.asServiceRole.entities.PushSubscription.delete(sub.id); } catch {}
         }
@@ -100,7 +106,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return Response.json({ success: true, sent, emailSent, adminCount: adminEmails.length });
+    return Response.json({ success: true, sent, emailSent, adminCount: adminEmails.length, sendResults });
   } catch (error) {
     console.error('Error notifyAdminNewAccessRequest:', error);
     return Response.json({ error: error.message }, { status: 500 });
