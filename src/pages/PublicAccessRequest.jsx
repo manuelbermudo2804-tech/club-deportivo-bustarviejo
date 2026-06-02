@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { CheckCircle2, Loader2, Mail, Send, Calendar, MessageCircle, CreditCard, Camera, Bell, Trophy, Shield, Sparkles, ChevronDown, ChevronUp, Lock, Phone } from "lucide-react";
@@ -105,6 +105,65 @@ export default function PublicAccessRequest() {
     categoria,
     prefiere_whatsapp: prefiereWhatsapp,
   });
+
+  // ---- Tracking de ABANDONO de formulario ----
+  // Si el usuario rellena algo y cierra la pestaña sin enviar, lo registramos
+  // una sola vez por sesión (con los datos rellenados para poder contactar).
+  const formStateRef = useRef({ email, nombre, telefono, categoria, prefiereWhatsapp, aceptaGdpr });
+  const abandonedLoggedRef = useRef(false);
+  const sentRef = useRef(false);
+
+  useEffect(() => {
+    formStateRef.current = { email, nombre, telefono, categoria, prefiereWhatsapp, aceptaGdpr };
+  });
+
+  useEffect(() => { sentRef.current = sent; }, [sent]);
+
+  useEffect(() => {
+    const handleHide = () => {
+      if (abandonedLoggedRef.current || sentRef.current) return;
+      const s = formStateRef.current;
+      // Solo si rellenó algo significativo (al menos email o nombre o teléfono)
+      if (!s.email.trim() && !s.nombre.trim() && !s.telefono.trim()) return;
+      abandonedLoggedRef.current = true;
+      try {
+        base44.entities.UploadDiagnostic.create({
+          event_type: "app_error",
+          context: "PublicAccessRequest · form_abandoned",
+          error_message: "Usuario abandonó el formulario sin enviar",
+          user_email: s.email || "anónimo",
+          page_path: "/SolicitarAcceso",
+          user_agent: navigator.userAgent,
+          device: /Mobile|Android|iPhone/.test(navigator.userAgent) ? "móvil" : "desktop",
+          extra_data: {
+            accion: "form_abandoned",
+            severidad: "warning",
+            form_data: {
+              email: s.email.trim().toLowerCase(),
+              nombre_progenitor: s.nombre.trim(),
+              telefono: s.telefono.trim(),
+              categoria: s.categoria,
+              prefiere_whatsapp: s.prefiereWhatsapp,
+            },
+            campos_rellenos: {
+              nombre: !!s.nombre.trim(),
+              email: !!s.email.trim(),
+              telefono: !!s.telefono.trim(),
+              categoria: !!s.categoria,
+              gdpr: s.aceptaGdpr,
+            },
+          },
+        });
+      } catch {}
+    };
+    const onVisChange = () => { if (document.visibilityState === "hidden") handleHide(); };
+    document.addEventListener("visibilitychange", onVisChange);
+    window.addEventListener("pagehide", handleHide);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisChange);
+      window.removeEventListener("pagehide", handleHide);
+    };
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
