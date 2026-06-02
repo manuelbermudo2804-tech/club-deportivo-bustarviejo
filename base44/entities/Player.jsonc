@@ -257,6 +257,15 @@
       "type": "boolean",
       "default": true
     },
+    "exento_bloqueo_impago": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si TRUE, este jugador queda EXCLUIDO del bloqueo autom\u00e1tico por impago en convocatorias, aunque tenga cuotas vencidas. Solo lo gestiona admin/tesorero (becas, acuerdos privados, casos especiales)."
+    },
+    "motivo_exencion_bloqueo": {
+      "type": "string",
+      "description": "Motivo interno por el que se excluye al jugador del bloqueo por impago (visible solo a admin/tesorero, no al entrenador)."
+    },
     "ajuste_cuota": {
       "type": "object",
       "properties": {

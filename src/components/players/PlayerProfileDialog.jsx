@@ -13,6 +13,7 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import FeeAdjustmentDialog from "../payments/FeeAdjustmentDialog";
+import PaymentBlockExemptionCard from "./PaymentBlockExemptionCard";
 
 export default function PlayerProfileDialog({ 
   player, 
@@ -285,6 +286,11 @@ export default function PlayerProfileDialog({
                 </div>
               </CardContent>
             </Card>
+
+            {/* Excepción de bloqueo por impago (solo admin/tesorero) */}
+            {isAdmin && (
+              <PaymentBlockExemptionCard player={player} onUpdated={() => onOpenChange(false)} />
+            )}
 
             {/* Información Médica */}
             {player.ficha_medica && Object.values(player.ficha_medica).some(val => val) && (
