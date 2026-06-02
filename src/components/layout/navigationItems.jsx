@@ -110,6 +110,7 @@ export function buildAdminNavigation(ctx) {
     { title: "📲 Check-in Tablet", url: createPageUrl("CheckinTablet"), icon: Smartphone },
     { title: "🔬 Registro de Errores y Eventos", url: createPageUrl("UploadDiagnostics"), icon: ShieldAlert },
     { title: "🔔 Test Push (Diagnóstico)", url: "/PushBadgeTest", icon: Bell },
+    { title: "💬 Test Consola Chats", url: createPageUrl("ChatTestConsole"), icon: MessageCircle },
   ];
 }
 
