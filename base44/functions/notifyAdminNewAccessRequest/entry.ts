@@ -62,7 +62,9 @@ Deno.serve(async (req) => {
           requireInteraction: true,
           data: { url: '/AdminAccessCodes?tab=bandeja', timestamp: new Date().toISOString() }
         });
-        await webpush.sendNotification(pushSubscription, payload, { urgency: 'high', TTL: 60 });
+        // TTL 24h: aunque Chrome Android esté en Doze/ahorro de batería, FCM guarda el
+        // push y lo entrega cuando el dispositivo se reactive. Con TTL=60 se descartaba.
+        await webpush.sendNotification(pushSubscription, payload, { urgency: 'high', TTL: 86400 });
         sent++;
       } catch (error) {
         if (error.statusCode === 410 || error.statusCode === 404) {
