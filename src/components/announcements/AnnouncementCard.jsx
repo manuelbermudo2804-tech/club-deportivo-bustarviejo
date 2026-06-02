@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Pin, Clock, Trash2, Eye } from "lucide-react";
+import { Edit, Pin, Clock, Trash2, Eye, ChevronDown, ChevronUp } from "lucide-react";
 import { format, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
 import ShareButtons from "../social/ShareButtons";
@@ -42,6 +42,11 @@ export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdm
     : false;
 
   const isRead = announcement.leido_por?.some(l => l.email === userEmail);
+
+  const [expanded, setExpanded] = React.useState(false);
+  const contenido = announcement.contenido || "";
+  // Mostrar botón "Ver más" si el texto es largo (más de ~200 chars o tiene varios saltos de línea)
+  const necesitaExpandir = contenido.length > 200 || (contenido.match(/\n/g) || []).length >= 3;
 
   // Marcar como leído automáticamente cuando se renderiza (si no es admin)
   React.useEffect(() => {
@@ -91,9 +96,18 @@ export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdm
         </div>
 
         <CardContent className="p-3">
-          <p className="text-sm text-slate-700 mb-2 leading-relaxed whitespace-pre-wrap line-clamp-3">
-            {announcement.contenido}
+          <p className={`text-sm text-slate-700 mb-2 leading-relaxed whitespace-pre-wrap break-words ${!expanded && necesitaExpandir ? "line-clamp-3" : ""}`}>
+            {contenido}
           </p>
+          {necesitaExpandir && (
+            <button
+              type="button"
+              onClick={() => setExpanded(!expanded)}
+              className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 mb-2"
+            >
+              {expanded ? (<><ChevronUp className="w-3 h-3" /> Ver menos</>) : (<><ChevronDown className="w-3 h-3" /> Ver más</>)}
+            </button>
+          )}
 
           <div className="flex flex-wrap gap-1 pt-2 border-t border-slate-200">
             <Badge variant="outline" className="text-[10px] px-1.5 py-0">
