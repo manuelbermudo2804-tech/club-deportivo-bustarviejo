@@ -123,19 +123,30 @@ export default function PublicAccessRequest() {
     setSending(true);
     try {
       const fingerprint = getDeviceFingerprint();
-      await base44.functions.invoke("submitAccessRequest", {
-        email: email.trim().toLowerCase(),
-        nombre_progenitor: trimmedName,
-        telefono: telefono.trim(),
-        categoria,
-        prefiere_whatsapp: prefiereWhatsapp,
-        device_fingerprint: fingerprint,
-        user_agent: navigator.userAgent,
-        website, // honeypot
+      // Llamada HTTP directa (sin SDK) para que funcione SIN login.
+      // El SDK exige auth a nivel de app aunque la función sea anónima,
+      // así que las familias no logueadas recibían 403 silencioso.
+      const res = await fetch(`${window.location.origin}/functions/submitAccessRequest`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          nombre_progenitor: trimmedName,
+          telefono: telefono.trim(),
+          categoria,
+          prefiere_whatsapp: prefiereWhatsapp,
+          device_fingerprint: fingerprint,
+          user_agent: navigator.userAgent,
+          website, // honeypot
+        }),
       });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        throw new Error(data?.error || `Error ${res.status}`);
+      }
       setSent(true);
     } catch (err) {
-      setError(err?.response?.data?.error || "Error al enviar. Inténtalo de nuevo.");
+      setError(err?.message || "Error al enviar. Inténtalo de nuevo.");
     } finally {
       setSending(false);
     }
