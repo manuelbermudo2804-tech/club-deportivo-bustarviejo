@@ -336,12 +336,32 @@ export default function UserManagement() {
     const linked = players.find(
       (p) => p.acceso_menor_email && p.acceso_menor_email.trim().toLowerCase() === (user.email || "").trim().toLowerCase()
     );
+
+    // CASO 1: No hay player vinculado todavía → permitir marcar como juvenil sin vincular
     if (!linked) {
-      toast.error("No se encontró el jugador vinculado a este acceso juvenil (revisa el campo 'Email del menor' en la ficha)");
+      if (user.es_menor) {
+        // Ya es juvenil sin player vinculado: alternar quitando el flag
+        if (!window.confirm(`¿Quitar el rol de JUVENIL a ${user.full_name || user.email}?`)) return;
+        updateUserMutation.mutate({
+          userId: user.id,
+          userData: { es_menor: false, tipo_panel: null, jugador_id: null, jugador_nombre: null },
+        });
+        return;
+      }
+      if (!window.confirm(`No hay ninguna ficha de jugador con este email del menor todavía.\n\n¿Marcar a ${user.full_name || user.email} como JUVENIL de todos modos? (podrás crear/vincular la ficha después)`)) return;
+      updateUserMutation.mutate({
+        userId: user.id,
+        userData: {
+          es_menor: true,
+          tipo_panel: "jugador_menor",
+          codigo_acceso_validado: true,
+          fecha_validacion_codigo: new Date().toISOString(),
+        },
+      });
       return;
     }
 
-    // Si el usuario aún no está marcado como juvenil: darle de alta como juvenil
+    // CASO 2: Hay player vinculado y aún no es juvenil → darle de alta vinculado
     if (!user.es_menor) {
       if (!window.confirm(`¿Marcar a ${user.full_name || user.email} como JUVENIL vinculado a ${linked.nombre}?`)) return;
       updateUserMutation.mutate({
@@ -351,6 +371,8 @@ export default function UserManagement() {
           tipo_panel: "jugador_menor",
           jugador_id: linked.id,
           jugador_nombre: linked.nombre,
+          codigo_acceso_validado: true,
+          fecha_validacion_codigo: new Date().toISOString(),
         },
       });
       if (linked.acceso_menor_revocado) {
@@ -359,7 +381,7 @@ export default function UserManagement() {
       return;
     }
 
-    // Ya es juvenil: alternar revocado/restaurado en la ficha del jugador
+    // CASO 3: Ya es juvenil y hay player vinculado → alternar revocado/restaurado
     const isCurrentlyActive = !linked.acceso_menor_revocado;
     const action = isCurrentlyActive ? "REVOCAR" : "RESTAURAR";
     if (!window.confirm(`¿Quieres ${action} el acceso juvenil de ${linked.nombre}?`)) return;
