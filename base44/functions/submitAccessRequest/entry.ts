@@ -96,21 +96,9 @@ Deno.serve(async (req) => {
 
     console.log('[submitAccessRequest] Solicitud creada OK', { id: created?.id, email: emailLower, nombre: nombre_progenitor });
 
-    // Notificar admin de forma directa (push + email) — no dependemos de automatización
-    try {
-      await base44.asServiceRole.functions.invoke('notifyAdminNewAccessRequest', {
-        data: {
-          email: emailLower,
-          nombre_progenitor: nombre_progenitor.trim(),
-          telefono: (telefono || '').trim(),
-          categoria,
-          nombre_jugador: nombre_jugador || '',
-          prefiere_whatsapp: !!prefiere_whatsapp,
-        }
-      });
-    } catch (notifyErr) {
-      console.error('[submitAccessRequest] Error notificando admin (no bloqueante):', notifyErr);
-    }
+    // La notificación a admin (push + email) la dispara una automatización entity create
+    // sobre AccessRequest → notifyAdminNewAccessRequest. Es más fiable que invocar la
+    // función internamente (lo que devolvía 403 al cruzar service-role entre funciones).
 
     return Response.json({ success: true });
   } catch (error) {
