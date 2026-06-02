@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   User, Mail, Phone, Calendar, MapPin, FileText, CreditCard, 
   Star, CheckCircle2, XCircle, Clock, Award, Heart, Edit,
-  TrendingUp, Activity, Settings2
+  TrendingUp, Activity, Settings2, ShieldCheck
 } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -101,6 +101,17 @@ export default function PlayerProfileDialog({
                 </div>
               )}
               {player.nombre}
+              {isAdmin && player.exento_bloqueo_impago && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('info')}
+                  title={player.motivo_exencion_bloqueo || 'Excluido del bloqueo por impago'}
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-600 text-white text-xs font-bold shadow hover:bg-purple-700 animate-pulse"
+                >
+                  <ShieldCheck className="w-3.5 h-3.5" />
+                  EXENTO IMPAGO
+                </button>
+              )}
             </DialogTitle>
             {isAdmin && onEdit && (
               <Button
