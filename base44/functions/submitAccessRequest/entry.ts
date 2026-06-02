@@ -10,9 +10,10 @@ const FAKE_NAME_PATTERNS = [
 ];
 
 function isFakeName(name) {
-  if (!name || name.trim().length < 4) return true;
+  if (!name || name.trim().length < 3) return true;
   const trimmed = name.trim();
-  if (!trimmed.includes(' ')) return true; // Debe tener al menos nombre + apellido
+  // YA NO exigimos espacio (nombre + apellido) — muchas familias ponen solo el nombre
+  // y eso bloqueaba solicitudes legítimas. Solo bloqueamos patrones obviamente falsos.
   return FAKE_NAME_PATTERNS.some(p => p.test(trimmed));
 }
 
@@ -64,7 +65,10 @@ Deno.serve(async (req) => {
     });
 
     if (existing.length > 0) {
-      return Response.json({ error: 'Ya tienes una solicitud pendiente. Te enviaremos el código pronto.' }, { status: 400 });
+      // No tratamos como error: la familia ya solicitó, devolvemos success para no asustar
+      // y el admin ya tiene la solicitud en la bandeja.
+      console.log('[submitAccessRequest] Duplicado pendiente, devolviendo success silencioso para', emailLower);
+      return Response.json({ success: true, duplicate: true });
     }
 
     // 5.b Rate limit por email (máx 2 solicitudes en 24h, sea cual sea el estado)
@@ -77,7 +81,7 @@ Deno.serve(async (req) => {
 
     // 6. Crear solicitud
     const ALLOWED_TIPOS = ['padre', 'madre', 'tutor', 'jugador_adulto'];
-    await base44.asServiceRole.entities.AccessRequest.create({
+    const created = await base44.asServiceRole.entities.AccessRequest.create({
       email: emailLower,
       nombre_progenitor: nombre_progenitor.trim(),
       tipo_solicitante: ALLOWED_TIPOS.includes(tipo_solicitante) ? tipo_solicitante : undefined,
@@ -90,9 +94,27 @@ Deno.serve(async (req) => {
       user_agent: user_agent || '',
     });
 
+    console.log('[submitAccessRequest] Solicitud creada OK', { id: created?.id, email: emailLower, nombre: nombre_progenitor });
+
+    // Notificar admin de forma directa (push + email) — no dependemos de automatización
+    try {
+      await base44.asServiceRole.functions.invoke('notifyAdminNewAccessRequest', {
+        data: {
+          email: emailLower,
+          nombre_progenitor: nombre_progenitor.trim(),
+          telefono: (telefono || '').trim(),
+          categoria,
+          nombre_jugador: nombre_jugador || '',
+          prefiere_whatsapp: !!prefiere_whatsapp,
+        }
+      });
+    } catch (notifyErr) {
+      console.error('[submitAccessRequest] Error notificando admin (no bloqueante):', notifyErr);
+    }
+
     return Response.json({ success: true });
   } catch (error) {
-    console.error('Error:', error);
+    console.error('[submitAccessRequest] Error fatal:', error);
     return Response.json({ error: error.message }, { status: 500 });
   }
 });
