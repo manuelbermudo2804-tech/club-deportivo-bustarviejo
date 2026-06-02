@@ -1,5 +1,9 @@
 Deno.serve(async (_req) => {
-  const ICON_URL = "https://media.base44.com/images/public/6992c6be619d2da592897991/e4665760a_image.png";
+  // Icono "any" — escudo completo, se muestra tal cual (iOS, Chrome Desktop, MIUI)
+  const ICON_ANY = "https://media.base44.com/images/public/6992c6be619d2da592897991/e4665760a_image.png";
+  // Icono "maskable" — escudo centrado en safe-zone con fondo sólido verde
+  // (Samsung One UI lo recorta a squircle; sin safe-zone se ve mal o sale genérico)
+  const ICON_MASKABLE = "https://media.base44.com/images/public/6992c6be619d2da592897991/6805b8b37_generated_image.png";
 
   const manifest = {
     name: "CD Bustarviejo",
@@ -10,14 +14,14 @@ Deno.serve(async (_req) => {
     display: "standalone",
     orientation: "portrait",
     background_color: "#ffffff",
-    theme_color: "#1e1e1e",
+    theme_color: "#15803d",
     icons: [
-      // Iconos "any" — los que se muestran en la pantalla de inicio (sin recortar)
-      { src: ICON_URL, sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: ICON_URL, sizes: "512x512", type: "image/png", purpose: "any" },
-      // Iconos "maskable" — separados (Chrome recorta para adaptar a la forma del sistema)
-      { src: ICON_URL, sizes: "192x192", type: "image/png", purpose: "maskable" },
-      { src: ICON_URL, sizes: "512x512", type: "image/png", purpose: "maskable" }
+      // Iconos "any" — pantalla de inicio sin recortar (iOS, MIUI, Chrome Desktop)
+      { src: ICON_ANY, sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: ICON_ANY, sizes: "512x512", type: "image/png", purpose: "any" },
+      // Iconos "maskable" — versión con safe-zone para Samsung One UI / Android Adaptive
+      { src: ICON_MASKABLE, sizes: "192x192", type: "image/png", purpose: "maskable" },
+      { src: ICON_MASKABLE, sizes: "512x512", type: "image/png", purpose: "maskable" }
     ]
   };
 
