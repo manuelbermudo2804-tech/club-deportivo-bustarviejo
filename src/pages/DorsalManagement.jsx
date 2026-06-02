@@ -59,9 +59,9 @@ export default function DorsalManagement() {
         const current = activa?.temporada || "2025-2026";
         setCurrentSeasonStr(current);
         const next = getNextSeason(current);
-        const list = Array.from(new Set([next, current, ...seasons.map((s) => s.temporada)])).filter(Boolean);
+        const list = Array.from(new Set([current, next, ...seasons.map((s) => s.temporada)])).filter(Boolean);
         setTemporadas(list);
-        setTemporada(next);
+        setTemporada(current);
       } catch (e) {
         console.error(e);
         toast.error("Error cargando datos");
