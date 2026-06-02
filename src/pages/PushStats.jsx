@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid } from "recharts";
 import PushCoverageByCategory from "../components/notifications/PushCoverageByCategory";
 import PushUsersList from "../components/notifications/PushUsersList";
+import PushDeliveryMetrics from "../components/notifications/PushDeliveryMetrics";
 
 const COLORS = ['#10b981', '#ef4444', '#f59e0b', '#6366f1', '#ec4899'];
 
@@ -290,6 +291,9 @@ export default function PushStats() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Métricas de entrega real (enviadas vs recibidas) */}
+          <PushDeliveryMetrics />
 
           {/* Category coverage */}
           <PushCoverageByCategory data={stats.categoryData} />

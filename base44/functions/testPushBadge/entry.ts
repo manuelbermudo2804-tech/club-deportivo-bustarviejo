@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import webpush from 'npm:web-push@3.6.7';
 
 Deno.serve(async (req) => {
@@ -19,33 +19,70 @@ Deno.serve(async (req) => {
 
     webpush.setVapidDetails('mailto:CDBUSTARVIEJO@GMAIL.COM', publicKey, privateKey);
 
-    const { endpoint, keys, badgeCount } = await req.json();
+    const { endpoint, keys, badgeCount, usuario_email, user_agent } = await req.json();
 
     if (!endpoint || !keys) {
       return Response.json({ error: 'Envía endpoint y keys de la suscripción push' }, { status: 400 });
     }
 
+    // Crear registro de entrega ANTES de enviar (para correlación con SW)
+    const deliveryId = crypto.randomUUID();
+    const sentAt = new Date().toISOString();
+    const title = '🔔 CD Bustarviejo';
+    const tag = 'badge-update';
+
+    try {
+      await base44.asServiceRole.entities.PushDelivery.create({
+        delivery_id: deliveryId,
+        usuario_email: usuario_email || user.email || 'unknown',
+        endpoint_hash: String(endpoint).slice(-24),
+        user_agent: user_agent || '',
+        title,
+        tag,
+        source: 'testPushBadge',
+        sent_at: sentAt,
+        delivered: false
+      });
+    } catch (e) {
+      console.error('No se pudo crear PushDelivery:', e.message);
+    }
+
     const pushPayload = JSON.stringify({
-      title: '🔔 CD Bustarviejo',
+      title,
       body: `Tienes ${badgeCount || 5} notificaciones pendientes`,
-      tag: 'badge-update',
+      tag,
       badgeCount: badgeCount || 5,
-      data: { url: '/', type: 'badge_update' }
+      deliveryId,
+      data: { url: '/', type: 'badge_update', deliveryId }
     });
 
-    await webpush.sendNotification(
-      { endpoint, keys: { auth: keys.auth, p256dh: keys.p256dh } },
-      pushPayload,
-      { urgency: 'high', TTL: 86400 }
-    );
+    try {
+      await webpush.sendNotification(
+        { endpoint, keys: { auth: keys.auth, p256dh: keys.p256dh } },
+        pushPayload,
+        { urgency: 'high', TTL: 86400 }
+      );
+    } catch (sendError) {
+      // Marcar error en el registro
+      try {
+        const matches = await base44.asServiceRole.entities.PushDelivery.filter({ delivery_id: deliveryId });
+        if (matches[0]) {
+          await base44.asServiceRole.entities.PushDelivery.update(matches[0].id, {
+            send_error: sendError.message
+          });
+        }
+      } catch {}
+      throw sendError;
+    }
 
-    return Response.json({ 
-      success: true, 
-      message: 'Push enviada correctamente. Mira el icono de la app.' 
+    return Response.json({
+      success: true,
+      delivery_id: deliveryId,
+      message: 'Push enviada correctamente. Mira el icono de la app.'
     });
   } catch (error) {
     console.error('Error test push:', error);
-    return Response.json({ 
+    return Response.json({
       error: error.message,
       statusCode: error.statusCode || null
     }, { status: 500 });

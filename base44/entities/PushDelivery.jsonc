@@ -1,0 +1,76 @@
+{
+  "name": "PushDelivery",
+  "type": "object",
+  "properties": {
+    "delivery_id": {
+      "type": "string",
+      "description": "ID \u00fanico de la entrega (UUID generado en el env\u00edo)"
+    },
+    "usuario_email": {
+      "type": "string",
+      "description": "Email del destinatario"
+    },
+    "endpoint_hash": {
+      "type": "string",
+      "description": "\u00daltimos 24 caracteres del endpoint para identificar dispositivo"
+    },
+    "user_agent": {
+      "type": "string",
+      "description": "User agent del dispositivo destino"
+    },
+    "title": {
+      "type": "string",
+      "description": "T\u00edtulo de la notificaci\u00f3n enviada"
+    },
+    "tag": {
+      "type": "string",
+      "description": "Tag de la notificaci\u00f3n"
+    },
+    "source": {
+      "type": "string",
+      "description": "Funci\u00f3n que origin\u00f3 el env\u00edo (sendPushNotification, testPushBadge, onPushTrigger, etc.)"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp de env\u00edo desde el servidor"
+    },
+    "received_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp de recepci\u00f3n reportado por el Service Worker"
+    },
+    "delivered": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el SW confirm\u00f3 recepci\u00f3n"
+    },
+    "latency_ms": {
+      "type": "number",
+      "description": "Diferencia ms entre sent_at y received_at"
+    },
+    "send_error": {
+      "type": "string",
+      "description": "Error en el env\u00edo si lo hubo"
+    }
+  },
+  "required": [
+    "delivery_id",
+    "usuario_email",
+    "sent_at"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {},
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 import webpush from 'npm:web-push@3.6.7';
 
 // Configurar web-push con las claves VAPID
@@ -43,7 +43,27 @@ Deno.serve(async (req) => {
     // Enviar a todas las suscripciones del usuario
     const results = [];
     for (const sub of subscriptions) {
+      const deliveryId = crypto.randomUUID();
+      const sentAt = new Date().toISOString();
+
       try {
+        // Registrar envío antes de enviar
+        try {
+          await base44.asServiceRole.entities.PushDelivery.create({
+            delivery_id: deliveryId,
+            usuario_email,
+            endpoint_hash: String(sub.endpoint).slice(-24),
+            user_agent: sub.user_agent || '',
+            title: titulo,
+            tag: tag || 'notification',
+            source: 'sendPushNotification',
+            sent_at: sentAt,
+            delivered: false
+          });
+        } catch (e) {
+          console.error('No se pudo crear PushDelivery:', e.message);
+        }
+
         const pushSubscription = {
           endpoint: sub.endpoint,
           keys: {
@@ -58,23 +78,38 @@ Deno.serve(async (req) => {
           tag: tag || 'notification',
           badgeCount: payload.badgeCount || 1,
           requireInteraction: requireInteraction || false,
+          deliveryId,
           data: {
             url: url || '/',
-            timestamp: new Date().toISOString()
+            timestamp: sentAt,
+            deliveryId
           }
         });
 
-        await webpush.sendNotification(pushSubscription, payload_json);
-        results.push({ email: usuario_email, status: 'sent' });
+        await webpush.sendNotification(pushSubscription, payload_json, {
+          urgency: 'high',
+          TTL: 86400
+        });
+        results.push({ email: usuario_email, delivery_id: deliveryId, status: 'sent' });
       } catch (error) {
         console.error(`Error enviando a ${usuario_email}:`, error.message);
-        
+
+        // Marcar error en registro
+        try {
+          const matches = await base44.asServiceRole.entities.PushDelivery.filter({ delivery_id: deliveryId });
+          if (matches[0]) {
+            await base44.asServiceRole.entities.PushDelivery.update(matches[0].id, {
+              send_error: error.message
+            });
+          }
+        } catch {}
+
         // Endpoint muerto → desactivar (mantener histórico, no borrar)
         if (error.statusCode === 410 || error.statusCode === 404) {
           try { await base44.asServiceRole.entities.PushSubscription.update(sub.id, { activa: false }); } catch {}
         }
-        
-        results.push({ email: usuario_email, status: 'error', error: error.message });
+
+        results.push({ email: usuario_email, delivery_id: deliveryId, status: 'error', error: error.message });
       }
     }
 

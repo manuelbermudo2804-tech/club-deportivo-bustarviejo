@@ -1,5 +1,10 @@
-Deno.serve((_req) => {
+Deno.serve((req) => {
+  // Derivar la URL absoluta del endpoint logPushDelivery a partir de la URL del SW
+  const logUrl = req.url.split('?')[0].replace(/\/sw$/, '/logPushDelivery');
+
   const swCode = `
+const LOG_DELIVERY_URL = '${logUrl}';
+
 self.addEventListener('install', (event) => {
   // Forzar activacion inmediata del nuevo SW
   self.skipWaiting();
@@ -49,7 +54,16 @@ self.addEventListener('push', (event) => {
     } catch {}
   })();
 
-  event.waitUntil(Promise.all([notifPromise, badgePromise]));
+  // Reportar recepcion al servidor (metrica enviada vs recibida)
+  const deliveryId = data.deliveryId || (data.data && data.data.deliveryId);
+  const reportPromise = deliveryId ? fetch(LOG_DELIVERY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ delivery_id: deliveryId }),
+    keepalive: true
+  }).catch(() => {}) : Promise.resolve();
+
+  event.waitUntil(Promise.all([notifPromise, badgePromise, reportPromise]));
 });
 
 // Click en notificacion -> abrir la app
