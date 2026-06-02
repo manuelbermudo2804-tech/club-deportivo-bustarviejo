@@ -71,6 +71,18 @@ export default function RegistroPublicoTab() {
     staleTime: 0,
   });
 
+  // Cargar TODAS las AccessRequest existentes para cruzar con sesiones marcadas como "submit_success"
+  // y detectar las que aparecen como enviadas pero NO llegaron realmente a la bandeja.
+  const { data: bandejaEmails = new Set() } = useQuery({
+    queryKey: ["access-request-emails"],
+    queryFn: async () => {
+      const reqs = await base44.entities.AccessRequest.list("-created_date", 500);
+      return new Set(reqs.map(r => (r.email || "").toLowerCase().trim()).filter(Boolean));
+    },
+    refetchInterval: 15000,
+    staleTime: 0,
+  });
+
   // Agrupar por sesión
   const sesiones = useMemo(() => {
     const map = new Map();
@@ -103,9 +115,19 @@ export default function RegistroPublicoTab() {
         s.acciones.includes("submit_error") || s.acciones.includes("submit_attempt") ? "fallo" :
         s.acciones.includes("form_started") ? "interactuo" :
         "solo_visita";
+
+      // ⚠️ Detectar sesiones "fantasma": marcadas como enviadas pero el email NO está en la bandeja.
+      // Causa típica: backend detectó duplicado y devolvió success silencioso, o algo falló entre medias.
+      if (s.resultado === "completado") {
+        const ultimoConDatos = [...s.eventos].reverse().find(e => e.extra_data?.form_data?.email);
+        const emailEnviado = (ultimoConDatos?.extra_data?.form_data?.email || s.email || "").toLowerCase().trim();
+        s.emailEnviado = emailEnviado;
+        s.enBandeja = emailEnviado ? bandejaEmails.has(emailEnviado) : null;
+        s.esFantasma = emailEnviado && bandejaEmails.size > 0 && !bandejaEmails.has(emailEnviado);
+      }
     }
     return Array.from(map.values()).sort((a, b) => new Date(b.last_at) - new Date(a.last_at));
-  }, [events]);
+  }, [events, bandejaEmails]);
 
   // Stats globales
   const stats = useMemo(() => {
@@ -119,7 +141,8 @@ export default function RegistroPublicoTab() {
     // En vivo: sesiones con actividad en los últimos 2 minutos
     const hace2min = Date.now() - 2 * 60 * 1000;
     const enVivo = sesiones.filter(s => new Date(s.last_at).getTime() > hace2min).length;
-    return { totalSesiones, visitas, interactuaron, enviados, abandonados, conInteres, conversion, enVivo };
+    const fantasmas = sesiones.filter(s => s.esFantasma).length;
+    return { totalSesiones, visitas, interactuaron, enviados, abandonados, conInteres, conversion, enVivo, fantasmas };
   }, [sesiones]);
 
   // Filtrar sesiones según pestaña activa
@@ -148,6 +171,11 @@ export default function RegistroPublicoTab() {
           </p>
         </div>
         <div className="flex items-center gap-2">
+          {stats.fantasmas > 0 && (
+            <Badge className="bg-red-100 text-red-700 border-red-300 animate-pulse">
+              ⚠️ {stats.fantasmas} fantasma{stats.fantasmas > 1 ? "s" : ""}
+            </Badge>
+          )}
           {stats.enVivo > 0 && (
             <Badge className="bg-green-100 text-green-700 border-green-300 animate-pulse">
               <span className="w-2 h-2 rounded-full bg-green-500 mr-1.5 inline-block" />
@@ -271,6 +299,8 @@ function SessionRow({ sesion, onRecover }) {
   const ultimoConDatos = [...sesion.eventos].reverse().find(e => e.extra_data?.form_data);
   const formData = ultimoConDatos?.extra_data?.form_data;
   const isRecoverable = !!(formData?.email && formData?.nombre_progenitor && formData?.categoria);
+  // Auto-expandir sesiones fantasma para que salten a la vista del admin
+  useState(() => { if (sesion.esFantasma) setExpandido(true); });
 
   return (
     <div className="border border-slate-200 rounded-xl bg-white overflow-hidden">
@@ -282,8 +312,13 @@ function SessionRow({ sesion, onRecover }) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge className={`text-xs ${badge.cls}`}>{badge.label}</Badge>
+            {sesion.esFantasma && (
+              <Badge className="text-xs bg-red-100 text-red-700 border-red-300 animate-pulse">
+                ⚠️ NO está en bandeja
+              </Badge>
+            )}
             <span className="text-sm font-medium text-slate-900 truncate">
-              {sesion.email || "anónimo"}
+              {sesion.email || sesion.emailEnviado || "anónimo"}
             </span>
             <span className="text-xs text-slate-400">· {haceRato}</span>
           </div>
@@ -353,16 +388,24 @@ function SessionRow({ sesion, onRecover }) {
               {formData.email && <div><strong>Email:</strong> {formData.email}</div>}
               {formData.telefono && <div><strong>Teléfono:</strong> {formData.telefono}</div>}
               {formData.categoria && <div><strong>Categoría:</strong> {formData.categoria}</div>}
-              {isRecoverable && sesion.resultado !== "completado" && (
+              {isRecoverable && (sesion.resultado !== "completado" || sesion.esFantasma) && (
                 <Button
                   size="sm"
                   variant="outline"
-                  className="mt-2 border-green-300 text-green-700 hover:bg-green-50"
+                  className={sesion.esFantasma
+                    ? "mt-2 border-red-300 text-red-700 hover:bg-red-50"
+                    : "mt-2 border-green-300 text-green-700 hover:bg-green-50"}
                   onClick={() => recoverToAccessRequest(ultimoConDatos, onRecover)}
                 >
                   <RotateCcw className="w-3 h-3 mr-1" />
-                  Recuperar a Códigos de Acceso
+                  {sesion.esFantasma ? "⚠️ Recuperar (sesión fantasma)" : "Recuperar a Códigos de Acceso"}
                 </Button>
+              )}
+              {sesion.esFantasma && (
+                <p className="text-[10px] text-red-600 mt-1 leading-snug">
+                  El usuario completó el envío pero su solicitud NO está en la bandeja.
+                  Causa típica: el backend detectó duplicado o algo falló al crear. Recupera manualmente con el botón rojo.
+                </p>
               )}
             </div>
           )}
