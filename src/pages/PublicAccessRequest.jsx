@@ -84,14 +84,15 @@ export default function PublicAccessRequest() {
 
   const trackEvent = (accion, detalles = {}, severidad = "info") => {
     try {
-      base44.entities.AnalyticsEvent.create({
-        evento_tipo: severidad === "error" ? "error" : "user_action",
-        pagina: "PublicAccessRequest",
-        accion,
-        severidad,
-        timestamp: new Date().toISOString(),
-        navegador: navigator.userAgent,
-        detalles,
+      base44.entities.UploadDiagnostic.create({
+        event_type: "app_error",
+        context: `PublicAccessRequest · ${accion}`,
+        error_message: detalles.motivo || detalles.mensaje || accion,
+        user_email: email || "anónimo",
+        page_path: "/SolicitarAcceso",
+        user_agent: navigator.userAgent,
+        device: /Mobile|Android|iPhone/.test(navigator.userAgent) ? "móvil" : "desktop",
+        extra_data: { accion, severidad, ...detalles },
       });
     } catch {}
   };
