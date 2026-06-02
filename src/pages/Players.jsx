@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter, X, Download, AlertTriangle, CheckCircle2, UserX } from "lucide-react";
+import { Plus, Search, Filter, X, Download, AlertTriangle, CheckCircle2, UserX, MessageCircle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -528,6 +528,32 @@ export default function Players() {
     }
   };
 
+  // Copia los teléfonos de los jugadores filtrados al portapapeles, formato listo para WhatsApp
+  const handleCopyWhatsAppPhones = async () => {
+    const phones = new Set();
+    filteredPlayers.forEach(p => {
+      [p.telefono, p.telefono_tutor_2].forEach(t => {
+        if (!t) return;
+        const clean = String(t).replace(/\D/g, '');
+        if (clean.length >= 9) {
+          const withCountry = clean.startsWith('34') ? clean : `34${clean}`;
+          phones.add(`+${withCountry}`);
+        }
+      });
+    });
+    if (phones.size === 0) {
+      toast.error("No hay teléfonos en este filtro");
+      return;
+    }
+    const text = Array.from(phones).join(', ');
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success(`✅ ${phones.size} teléfonos copiados. Pégalos en "Nuevo grupo" de WhatsApp.`);
+    } catch {
+      toast.error("No se pudo copiar. Intenétalo de nuevo.");
+    }
+  };
+
   const handleExportPlayers = () => {
     const dataToExport = filteredPlayers.map(player => ({
       "Nombre": player.nombre,
@@ -725,6 +751,17 @@ export default function Players() {
           </p>
         </div>
         <div className="flex gap-3">
+          {isAdmin && filteredPlayers.length > 0 && (
+            <Button
+              onClick={handleCopyWhatsAppPhones}
+              variant="outline"
+              className="border-green-600 text-green-700 hover:bg-green-50 bg-green-50/50"
+              title="Copia los teléfonos del filtro actual listos para pegar en un grupo de WhatsApp"
+            >
+              <MessageCircle className="w-5 h-5 mr-2" />
+              Copiar teléfonos WhatsApp
+            </Button>
+          )}
           {isAdmin && filteredPlayers.length > 0 && (
             <Button
               onClick={handleExportPlayers}

@@ -8,8 +8,16 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { 
   User, Mail, Phone, Calendar, MapPin, FileText, CreditCard, 
   Star, CheckCircle2, XCircle, Clock, Award, Heart, Edit,
-  TrendingUp, Activity, Settings2, ShieldCheck
+  TrendingUp, Activity, Settings2, ShieldCheck, MessageCircle
 } from "lucide-react";
+
+// Convierte un teléfono español a formato wa.me (+34XXXXXXXXX)
+const toWhatsAppUrl = (tel) => {
+  if (!tel) return null;
+  const clean = String(tel).replace(/\D/g, '');
+  const withCountry = clean.startsWith('34') ? clean : `34${clean}`;
+  return `https://wa.me/${withCountry}`;
+};
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import FeeAdjustmentDialog from "../payments/FeeAdjustmentDialog";
@@ -270,10 +278,39 @@ export default function PlayerProfileDialog({
                   {player.telefono && (
                     <div className="flex items-center gap-3">
                       <Phone className="w-5 h-5 text-slate-400" />
-                      <div>
+                      <div className="flex-1">
                         <p className="text-xs text-slate-500">Teléfono Tutor 1</p>
                         <p className="font-medium text-slate-900">{player.telefono}</p>
                       </div>
+                      <a
+                        href={toWhatsAppUrl(player.telefono)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-xs font-semibold shadow"
+                        title="Abrir WhatsApp"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        WhatsApp
+                      </a>
+                    </div>
+                  )}
+                  {player.telefono_tutor_2 && (
+                    <div className="flex items-center gap-3">
+                      <Phone className="w-5 h-5 text-slate-400" />
+                      <div className="flex-1">
+                        <p className="text-xs text-slate-500">Teléfono Tutor 2</p>
+                        <p className="font-medium text-slate-900">{player.telefono_tutor_2}</p>
+                      </div>
+                      <a
+                        href={toWhatsAppUrl(player.telefono_tutor_2)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-green-500 hover:bg-green-600 text-white text-xs font-semibold shadow"
+                        title="Abrir WhatsApp"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        WhatsApp
+                      </a>
                     </div>
                   )}
                   {player.email_tutor_2 && (
