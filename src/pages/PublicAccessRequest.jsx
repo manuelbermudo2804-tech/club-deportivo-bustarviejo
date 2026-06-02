@@ -82,12 +82,28 @@ export default function PublicAccessRequest() {
   const emailsMatch = email && emailConfirm && email.trim().toLowerCase() === emailConfirm.trim().toLowerCase();
   const emailSuggestion = checkEmailTypo(email);
 
+  const trackEvent = (accion, detalles = {}, severidad = "info") => {
+    try {
+      base44.entities.AnalyticsEvent.create({
+        evento_tipo: severidad === "error" ? "error" : "user_action",
+        pagina: "PublicAccessRequest",
+        accion,
+        severidad,
+        timestamp: new Date().toISOString(),
+        navegador: navigator.userAgent,
+        detalles,
+      });
+    } catch {}
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    trackEvent("submit_attempt");
 
     if (!email.trim() || !nombre.trim() || !categoria || !telefono.trim()) {
       setError("Por favor, rellena todos los campos obligatorios.");
+      trackEvent("validation_failed", { motivo: "campos_vacios" }, "warning");
       return;
     }
 
@@ -95,6 +111,7 @@ export default function PublicAccessRequest() {
     const trimmedName = nombre.trim();
     if (trimmedName.length < 4 || !trimmedName.includes(" ")) {
       setError("Por favor introduce tu nombre y apellidos completos.");
+      trackEvent("validation_failed", { motivo: "nombre_invalido", valor: trimmedName }, "warning");
       return;
     }
 
@@ -102,21 +119,25 @@ export default function PublicAccessRequest() {
     const telDigits = telefono.replace(/\D/g, "");
     if (telDigits.length !== 9 || !/^[67]/.test(telDigits)) {
       setError("Introduce un móvil español válido (9 dígitos, empieza por 6 o 7).");
+      trackEvent("validation_failed", { motivo: "movil_invalido" }, "warning");
       return;
     }
 
     if (emailSuggestion) {
       setError(`¿Quisiste escribir ${emailSuggestion}? Corrige tu email antes de continuar.`);
+      trackEvent("validation_failed", { motivo: "email_typo", sugerencia: emailSuggestion }, "warning");
       return;
     }
 
     if (!emailsMatch) {
       setError("Los emails no coinciden. Revísalos por favor.");
+      trackEvent("validation_failed", { motivo: "emails_no_coinciden" }, "warning");
       return;
     }
 
     if (!aceptaGdpr) {
       setError("Debes aceptar la política de protección de datos para continuar.");
+      trackEvent("validation_failed", { motivo: "gdpr_no_aceptado" }, "warning");
       return;
     }
 
@@ -144,9 +165,12 @@ export default function PublicAccessRequest() {
       if (!res.ok) {
         throw new Error(data?.error || `Error ${res.status}`);
       }
+      trackEvent("submit_success", { categoria });
       setSent(true);
     } catch (err) {
-      setError(err?.message || "Error al enviar. Inténtalo de nuevo.");
+      const msg = err?.message || "Error al enviar. Inténtalo de nuevo.";
+      setError(msg);
+      trackEvent("submit_error", { mensaje: msg }, "error");
     } finally {
       setSending(false);
     }
