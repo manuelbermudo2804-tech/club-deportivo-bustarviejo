@@ -79,7 +79,7 @@ export const validators = {
 
     const KNOWN_DOMAINS = {
       "gmail.com": ["gamil.com","gmal.com","gmial.com","gmaill.com","gmail.con","gmail.es","gnail.com","gmali.com","gmai.com","gmail.co","gmil.com","gimail.com","gemail.com","gmail.om","gmaol.com","gmailcom","gmeil.com","gmqil.com"],
-      "hotmail.com": ["hotmal.com","hotmai.com","hotmial.com","hotamil.com","hotmaill.com","hotmail.con","hotmil.com","hotmeil.com","homail.com","hotmaol.com","hotmali.com","hotmail.es","hotmailcom","htmail.com","hotmall.com"],
+      "hotmail.com": ["hotmal.com","hotmai.com","hotmial.com","hotamil.com","hotmaill.com","hotmail.con","hotmil.com","hotmeil.com","homail.com","hotmaol.com","hotmali.com","hotmailcom","htmail.com","hotmall.com"],
       "hotmail.es": ["hotmal.es","hotmai.es","hotmial.es","hotamil.es","homail.es","hotmil.es"],
       "yahoo.com": ["yaho.com","yahooo.com","yhoo.com","yaoo.com","yahoo.con","yahho.com","yhaoo.com","yahocom"],
       "yahoo.es": ["yaho.es","yahooo.es","yhoo.es","yaoo.es"],
