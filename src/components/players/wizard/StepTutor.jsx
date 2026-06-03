@@ -265,8 +265,7 @@ export default function StepTutor({
               setCurrentPlayer({ ...currentPlayer, email_padre: e.target.value });
               if (fieldErrors.email_padre) setFieldErrors(prev => ({ ...prev, email_padre: null }));
             }}
-            disabled={isParent}
-            className={`${isParent ? "bg-slate-100" : ""} ${fieldErrors.email_padre ? "border-2 border-red-500 bg-red-50" : ""}`}
+            className={fieldErrors.email_padre ? "border-2 border-red-500 bg-red-50" : ""}
           />
           {fieldErrors.email_padre && <p className="text-xs text-red-600">{fieldErrors.email_padre}</p>}
         </div>

@@ -52,22 +52,19 @@ export const validators = {
     return { valid: true };
   },
 
-  // Valida email
+  // Valida email — solo formato. Los typos se muestran como SUGERENCIA en EmailInputWithTypoCheck
+  // pero NUNCA bloquean (un typo detectado puede ser un email legítimo, ej: hotmail.es real).
   email: (value) => {
     if (!value) return { valid: true };
-    
+
+    // Tolerar espacios al principio/final (autocompletado móvil)
+    const trimmed = String(value).trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    
-    if (!emailRegex.test(value)) {
+
+    if (!emailRegex.test(trimmed)) {
       return { valid: false, error: "Email no válido. Ejemplo: usuario@ejemplo.com" };
     }
 
-    // Detectar typos en dominios comunes
-    const typoCheck = validators.emailDomainTypo(value);
-    if (typoCheck.suggestion) {
-      return { valid: false, error: typoCheck.error, suggestion: typoCheck.suggestion };
-    }
-    
     return { valid: true };
   },
 
