@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { ShoppingBag, ExternalLink, UserCircle2 } from "lucide-react";
+import { ShoppingBag, ExternalLink } from "lucide-react";
 import EquipacionSection from "../components/store/EquipacionSection";
 import MerchSection from "../components/store/MerchSection";
 import MyDorsalsBanner from "../components/store/MyDorsalsBanner";
@@ -48,12 +48,8 @@ export default function Tienda() {
           <div className="flex-1 min-w-0">
             <p className="font-bold text-amber-900 text-sm">⚠️ La tienda es una web externa</p>
             <p className="text-amber-800 text-xs mt-1 leading-relaxed">
-              Al pulsar el botón se abrirá la tienda oficial en una nueva ventana. <strong>Tendrás que crear una cuenta o iniciar sesión en esa tienda</strong> (es distinta a la app del club) para poder hacer el pedido.
+              Al pulsar el botón se abrirá la tienda oficial en una nueva ventana. <strong>Tendrás que darte de alta en esa tienda</strong> para poder hacer el pedido.
             </p>
-            <div className="flex items-center gap-1.5 mt-2 text-amber-900 text-xs font-semibold">
-              <UserCircle2 className="w-4 h-4" />
-              <span>Tu usuario de la app NO sirve para la tienda.</span>
-            </div>
           </div>
         </div>
       </div>
