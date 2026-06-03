@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-export default function DashboardButtonCard({ item, isExternal, extraBadge }) {
+export default function DashboardButtonCard({ item, isExternal, extraBadge, pulse = false }) {
   const Wrapper = isExternal 
     ? ({ children }) => <a href={item.url} target="_blank" rel="noopener noreferrer" className="group">{children}</a>
     : ({ children }) => <Link to={item.url} className="group">{children}</Link>;
@@ -10,7 +10,7 @@ export default function DashboardButtonCard({ item, isExternal, extraBadge }) {
 
   return (
     <Wrapper>
-      <div className="relative bg-slate-800 rounded-2xl lg:rounded-3xl overflow-hidden shadow-lg lg:shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-[0.97] border border-slate-700/80 lg:border-2 hover:border-orange-500/60 btn-hover-shine">
+      <div className={`relative bg-slate-800 rounded-2xl lg:rounded-3xl overflow-hidden shadow-lg lg:shadow-elegant-xl card-hover-glow transition-all duration-300 active:scale-[0.97] border lg:border-2 btn-hover-shine ${pulse ? 'border-orange-400 ring-2 ring-orange-500/70 animate-pulse-strong shadow-orange-500/40' : 'border-slate-700/80 hover:border-orange-500/60'}`}>
         <div className="absolute inset-0 bg-gradient-to-br from-slate-700/40 to-black/70 opacity-60"></div>
         <div className={`absolute bottom-0 right-0 w-28 h-28 lg:w-32 lg:h-32 bg-gradient-to-tl ${item.gradient} opacity-25 blur-2xl transition-opacity duration-300 group-hover:opacity-50`}></div>
         <div className={`absolute top-0 left-0 w-20 h-20 lg:w-24 lg:h-24 bg-gradient-to-br ${item.gradient} opacity-15 blur-xl transition-opacity duration-300 group-hover:opacity-40`}></div>
@@ -21,7 +21,12 @@ export default function DashboardButtonCard({ item, isExternal, extraBadge }) {
             <item.icon className="w-[18px] h-[18px] text-white drop-shadow-sm" />
           </div>
           <h3 className="text-white font-semibold text-center text-[12px] leading-tight">{item.title}</h3>
-          {badge && (
+          {pulse && (
+            <span className="bg-orange-500 text-white text-[8px] font-extrabold px-1.5 py-0.5 rounded-full shadow-md mt-1 animate-bounce">
+              👈 ¡EMPIEZA AQUÍ!
+            </span>
+          )}
+          {!pulse && badge && (
             <span className="bg-orange-500 text-white text-[8px] font-bold px-1.5 py-0.5 rounded-full shadow-md mt-1">
               {badge.value} {badge.label}
             </span>
@@ -35,7 +40,10 @@ export default function DashboardButtonCard({ item, isExternal, extraBadge }) {
           </div>
           <div className="flex-1 min-w-0">
             <h3 className="text-white font-semibold text-sm truncate">{item.title}</h3>
-            {badge && (
+            {pulse && (
+              <p className="text-orange-300 text-xs font-extrabold mt-0.5 animate-pulse">👈 ¡EMPIEZA AQUÍ — Inscribe a tu hijo/a!</p>
+            )}
+            {!pulse && badge && (
               <p className="text-orange-400 text-xs font-medium mt-0.5">{badge.value} {badge.label}</p>
             )}
           </div>

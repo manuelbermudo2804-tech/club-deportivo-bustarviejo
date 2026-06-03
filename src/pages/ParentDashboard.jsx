@@ -612,7 +612,12 @@ export default function ParentDashboard() {
 
         <div className="grid grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2 lg:gap-4 stagger-animation">
           {menuItems.map((item, index) => (
-            <DashboardButtonCard key={index} item={item} isExternal={item.url?.startsWith('http')} />
+            <DashboardButtonCard
+              key={index}
+              item={item}
+              isExternal={item.url?.startsWith('http')}
+              pulse={item.id === "jugadores" && myPlayers.length === 0}
+            />
           ))}
         </div>
 
