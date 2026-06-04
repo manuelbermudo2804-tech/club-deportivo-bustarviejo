@@ -29,7 +29,7 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
     if (!localText.trim() && pendingAttachments.length === 0) return;
     
     onSendMessage({
-      mensaje: localText.trim() || (pendingAttachments.length > 0 ? "📎 Archivo adjunto" : ""),
+      mensaje: localText.trim(),
       adjuntos: pendingAttachments,
       audio_url: null,
       audio_duracion: 0

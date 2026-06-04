@@ -666,7 +666,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
       {/* Messages Area - scrollable */}
       <div ref={scrollContainerRef} className="flex-1 overflow-y-auto overflow-x-hidden px-3 py-2 pb-24 min-h-0 scroll-smooth relative" style={{backgroundColor: '#E5DDD5'}}>
-        {messages.map((msg, idx) => {
+        {messages.filter(m => !m.eliminado).map((msg, idx) => {
           const isMine = (isCoordinator && msg.autor === "coordinador") || (!isCoordinator && msg.autor === "padre");
           
           return (
@@ -703,12 +703,12 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                   <div className="mt-1">
                     <ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isMine} />
                   </div>
-                ) : (
+                ) : msg.mensaje?.trim() ? (
                  <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
                    <EmojiScaler content={msg.mensaje} />
                    {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
                  </p>
-                )}
+                ) : null}
 
                 {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
                 
