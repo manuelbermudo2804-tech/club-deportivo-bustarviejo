@@ -215,10 +215,20 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         }
         
         const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
+        // Detectar tipo MIME por extensión si el navegador no lo proporciona
+        let mimeType = file.type;
+        if (!mimeType || mimeType === '') {
+          const ext = (file.name || '').split('.').pop()?.toLowerCase();
+          if (['jpg', 'jpeg'].includes(ext)) mimeType = 'image/jpeg';
+          else if (ext === 'png') mimeType = 'image/png';
+          else if (ext === 'gif') mimeType = 'image/gif';
+          else if (ext === 'webp') mimeType = 'image/webp';
+          else if (ext === 'pdf') mimeType = 'application/pdf';
+        }
         uploaded.push({
           url: file_url,
           nombre: file.name,
-          tipo: file.type,
+          tipo: mimeType,
           tamano: file.size
         });
       }
