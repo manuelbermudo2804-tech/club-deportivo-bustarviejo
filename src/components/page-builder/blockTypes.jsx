@@ -106,13 +106,13 @@ export const BLOCK_CATALOG = [
     tipo: "contacto",
     nombre: "Contacto",
     emoji: "📞",
-    descripcion: "Tarjeta con teléfono, email, WhatsApp y dirección",
+    descripcion: "Una o varias personas de contacto (teléfono, email, WhatsApp)",
     datosDefault: {
       titulo: "Contáctanos",
       subtitulo: "Estamos aquí para ayudarte",
-      telefono: "",
-      email: "",
-      whatsapp: "",
+      personas: [
+        { nombre: "", rol: "", telefono: "", email: "", whatsapp: "" },
+      ],
       direccion: "",
       horario: "",
     },

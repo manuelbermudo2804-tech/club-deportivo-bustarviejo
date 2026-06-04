@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import ContactoBlock from "./ContactoBlock";
 
 // Hook auxiliar para countdown
 function useCountdown(target) {
@@ -352,63 +353,7 @@ export default function PublicBlockRenderer({ bloque, branding }) {
   }
 
   if (tipo === "contacto") {
-    const colorSec = branding?.color_secundario || color;
-    const waPhone = (datos.whatsapp || "").replace(/[^\d]/g, "");
-    const items = [
-      datos.telefono && { icono: "📞", label: "Teléfono", valor: datos.telefono, href: `tel:${datos.telefono.replace(/\s/g, "")}` },
-      datos.email && { icono: "📧", label: "Email", valor: datos.email, href: `mailto:${datos.email}` },
-      waPhone && { icono: "💬", label: "WhatsApp", valor: datos.whatsapp, href: `https://wa.me/${waPhone}` },
-      datos.direccion && { icono: "📍", label: "Dirección", valor: datos.direccion, href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(datos.direccion)}` },
-      datos.horario && { icono: "🕐", label: "Horario", valor: datos.horario, href: null },
-    ].filter(Boolean);
-
-    return wrapper(
-      <div className="max-w-4xl mx-auto">
-        {datos.titulo && (
-          <h2 className="text-3xl lg:text-5xl font-black text-center mb-3 text-slate-900 tracking-tight">
-            {datos.titulo}
-          </h2>
-        )}
-        {datos.subtitulo && (
-          <p className="text-center text-lg text-slate-600 mb-10">{datos.subtitulo}</p>
-        )}
-        <div className="grid sm:grid-cols-2 gap-4">
-          {items.map((item, i) => {
-            const content = (
-              <div className="flex items-start gap-4 p-5 lg:p-6 rounded-2xl bg-white border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all h-full">
-                <div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
-                  style={{ background: `linear-gradient(135deg, ${color}15, ${colorSec}15)` }}
-                >
-                  {item.icono}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                    {item.label}
-                  </div>
-                  <div className="text-base lg:text-lg font-semibold text-slate-900 break-words">
-                    {item.valor}
-                  </div>
-                </div>
-              </div>
-            );
-            return item.href ? (
-              <a
-                key={i}
-                href={item.href}
-                target={item.href.startsWith("http") ? "_blank" : undefined}
-                rel="noopener noreferrer"
-                className="block"
-              >
-                {content}
-              </a>
-            ) : (
-              <div key={i}>{content}</div>
-            );
-          })}
-        </div>
-      </div>
-    );
+    return <ContactoBlock datos={datos} color={color} branding={branding} wrapper={wrapper} />;
   }
 
   if (tipo === "countdown") {

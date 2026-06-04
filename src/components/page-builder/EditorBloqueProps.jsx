@@ -188,6 +188,23 @@ export default function EditorBloqueProps({ bloque, onChange }) {
 
   // --- CONTACTO ---
   if (bloque.tipo === "contacto") {
+    // Compatibilidad: si la página vieja tenía un único contacto (telefono/email/whatsapp sueltos),
+    // lo migramos sobre la marcha a la nueva estructura "personas".
+    const personas = Array.isArray(datos.personas) && datos.personas.length > 0
+      ? datos.personas
+      : [{
+          nombre: "",
+          rol: "",
+          telefono: datos.telefono || "",
+          email: datos.email || "",
+          whatsapp: datos.whatsapp || "",
+        }];
+    const updatePersonas = (next) => update("personas", next);
+    const updatePersona = (idx, key, value) => {
+      const next = [...personas];
+      next[idx] = { ...next[idx], [key]: value };
+      updatePersonas(next);
+    };
     return (
       <div className="space-y-3">
         <div>
@@ -198,27 +215,76 @@ export default function EditorBloqueProps({ bloque, onChange }) {
           <Label>Subtítulo</Label>
           <Input value={datos.subtitulo || ""} onChange={(e) => update("subtitulo", e.target.value)} placeholder="Estamos aquí para ayudarte" />
         </div>
-        <div>
-          <Label>📞 Teléfono</Label>
-          <Input value={datos.telefono || ""} onChange={(e) => update("telefono", e.target.value)} placeholder="+34 600 000 000" />
+
+        <div className="space-y-2">
+          <Label>Personas de contacto</Label>
+          {personas.map((p, idx) => (
+            <div key={idx} className="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+              <div className="flex items-center gap-2">
+                <Input
+                  value={p.nombre || ""}
+                  onChange={(e) => updatePersona(idx, "nombre", e.target.value)}
+                  placeholder="Nombre (ej: Sergio)"
+                  className="text-sm font-semibold"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => updatePersonas(personas.filter((_, i) => i !== idx))}
+                  className="text-red-500 flex-shrink-0"
+                  disabled={personas.length === 1}
+                  title={personas.length === 1 ? "Debe haber al menos 1 contacto" : "Eliminar"}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              </div>
+              <Input
+                value={p.rol || ""}
+                onChange={(e) => updatePersona(idx, "rol", e.target.value)}
+                placeholder="Rol (ej: Organizador, Responsable…)"
+                className="text-sm"
+              />
+              <Input
+                value={p.telefono || ""}
+                onChange={(e) => updatePersona(idx, "telefono", e.target.value)}
+                placeholder="📞 Teléfono — +34 600 000 000"
+                className="text-sm"
+              />
+              <Input
+                value={p.email || ""}
+                onChange={(e) => updatePersona(idx, "email", e.target.value)}
+                placeholder="📧 Email"
+                className="text-sm"
+              />
+              <Input
+                value={p.whatsapp || ""}
+                onChange={(e) => updatePersona(idx, "whatsapp", e.target.value)}
+                placeholder="WhatsApp — 34600000000 (con prefijo, sin espacios)"
+                className="text-sm"
+              />
+            </div>
+          ))}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => updatePersonas([...personas, { nombre: "", rol: "", telefono: "", email: "", whatsapp: "" }])}
+            className="w-full gap-1"
+          >
+            <Plus className="w-3 h-3" /> Añadir otra persona
+          </Button>
         </div>
-        <div>
-          <Label>📧 Email</Label>
-          <Input value={datos.email || ""} onChange={(e) => update("email", e.target.value)} placeholder="contacto@ejemplo.com" />
+
+        <div className="pt-2 border-t border-slate-200 space-y-3">
+          <div>
+            <Label>📍 Dirección (común, opcional)</Label>
+            <Input value={datos.direccion || ""} onChange={(e) => update("direccion", e.target.value)} placeholder="Calle, número, ciudad" />
+          </div>
+          <div>
+            <Label>🕐 Horario (común, opcional)</Label>
+            <Input value={datos.horario || ""} onChange={(e) => update("horario", e.target.value)} placeholder="L-V 9:00 - 20:00" />
+          </div>
         </div>
-        <div>
-          <Label>💬 WhatsApp (con prefijo, sin espacios)</Label>
-          <Input value={datos.whatsapp || ""} onChange={(e) => update("whatsapp", e.target.value)} placeholder="34600000000" />
-        </div>
-        <div>
-          <Label>📍 Dirección</Label>
-          <Input value={datos.direccion || ""} onChange={(e) => update("direccion", e.target.value)} placeholder="Calle, número, ciudad" />
-        </div>
-        <div>
-          <Label>🕐 Horario (opcional)</Label>
-          <Input value={datos.horario || ""} onChange={(e) => update("horario", e.target.value)} placeholder="L-V 9:00 - 20:00" />
-        </div>
-        <p className="text-xs text-slate-500">Deja en blanco los campos que no quieras mostrar.</p>
+        <p className="text-xs text-slate-500">Deja en blanco los campos que no quieras mostrar. Si añades 2 personas, se mostrarán en la misma fila.</p>
       </div>
     );
   }
