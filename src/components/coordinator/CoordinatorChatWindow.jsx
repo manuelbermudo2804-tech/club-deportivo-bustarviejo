@@ -215,20 +215,12 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         }
         
         const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
-        // Detectar tipo MIME por extensión si el navegador no lo proporciona
-        let mimeType = file.type;
-        if (!mimeType || mimeType === '') {
-          const ext = (file.name || '').split('.').pop()?.toLowerCase();
-          if (['jpg', 'jpeg'].includes(ext)) mimeType = 'image/jpeg';
-          else if (ext === 'png') mimeType = 'image/png';
-          else if (ext === 'gif') mimeType = 'image/gif';
-          else if (ext === 'webp') mimeType = 'image/webp';
-          else if (ext === 'pdf') mimeType = 'application/pdf';
-        }
+        // Si el archivo original era imagen, forzar tipo 'image/jpeg' para que se renderice como burbuja
+        const isImage = file.type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|heic|heif)$/i.test(file.name || '');
         uploaded.push({
           url: file_url,
           nombre: file.name,
-          tipo: mimeType,
+          tipo: isImage ? 'image/jpeg' : (file.type || 'application/octet-stream'),
           tamano: file.size
         });
       }
@@ -427,7 +419,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       toast.error("Error al enviar mensaje");
     },
     mutationFn: async (messageData) => {
-      if (!conversation?.id || !user?.email || !messageData.mensaje?.trim()) {
+      const hasAttachments = (messageData.adjuntos?.length || messageData.archivos_adjuntos?.length || 0) > 0;
+      const hasAudio = !!messageData.audio_url;
+      if (!conversation?.id || !user?.email || (!messageData.mensaje?.trim() && !hasAttachments && !hasAudio)) {
         throw new Error("Datos obligatorios faltantes");
       }
 
@@ -436,7 +430,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         autor: isCoordinator ? "coordinador" : "padre",
         autor_email: user.email,
         autor_nombre: user.full_name || (isCoordinator ? "Coordinador" : "Padre"),
-        mensaje: messageData.mensaje.trim(),
+        mensaje: (messageData.mensaje || '').trim(),
         leido_coordinador: isCoordinator,
         leido_padre: !isCoordinator,
         archivos_adjuntos: messageData.adjuntos || messageData.archivos_adjuntos || []
