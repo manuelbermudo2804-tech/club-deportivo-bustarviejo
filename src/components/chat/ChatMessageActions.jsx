@@ -48,10 +48,12 @@ export default function ChatMessageActions({
           </>
         )}
         
-        <DropdownMenuItem onClick={() => onForward(message)}>
-          <Forward className="w-4 h-4 mr-2" />
-          Reenviar
-        </DropdownMenuItem>
+        {typeof onForward === 'function' && (
+          <DropdownMenuItem onClick={() => onForward(message)}>
+            <Forward className="w-4 h-4 mr-2" />
+            Reenviar
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );

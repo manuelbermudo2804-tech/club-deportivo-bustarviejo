@@ -686,11 +686,12 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                     isMine={isMine}
                     isStaff={isCoordinator}
                     onReply={(m) => setReplyingTo(m)}
-                    onEdit={(m) => {
-                      setEditingMessage(m);
-                      toast.info("Edición próximamente");
+                    onEdit={(m) => setEditingMessage(m)}
+                    onDelete={(m) => {
+                      if (window.confirm("¿Eliminar este mensaje?")) {
+                        deleteMessageMutation.mutate(m.id);
+                      }
                     }}
-                    onDelete={(m) => deleteMessageMutation.mutate(m.id)}
                   />
                 </div>
 
@@ -791,7 +792,9 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
            onLocationClick={() => setShowLocationDialog(true)}
            onPollClick={() => setShowPollDialog(true)}
            uploading={uploading}
-           placeholder="Escribe un mensaje..."
+           placeholder={editingMessage ? "Edita tu mensaje..." : "Escribe un mensaje..."}
+           editingText={editingMessage?.mensaje || ""}
+           onCancelEdit={() => setEditingMessage(null)}
          />
        </div>
 

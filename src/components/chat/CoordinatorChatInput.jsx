@@ -8,11 +8,18 @@ import AudioRecordButton from "./AudioRecordButton";
 const CoordinatorChatInput = memo(function CoordinatorChatInput({
   onSendMessage,
   uploading,
-  placeholder = "Mensaje"
+  placeholder = "Mensaje",
+  editingText = "",
+  onCancelEdit
 }) {
   const [localText, setLocalText] = useState("");
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [audioExpanded, setAudioExpanded] = useState(false);
+
+  // Cargar texto del mensaje a editar
+  React.useEffect(() => {
+    if (editingText) setLocalText(editingText);
+  }, [editingText]);
 
   const handleSend = useCallback(() => {
     if (!localText.trim()) return;
@@ -38,6 +45,17 @@ const CoordinatorChatInput = memo(function CoordinatorChatInput({
 
   return (
     <div className="border-t bg-white flex-shrink-0 p-2">
+      {editingText && (
+        <div className="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 mb-2 text-xs">
+          <span className="text-amber-800">✏️ Editando mensaje</span>
+          <button
+            onClick={() => { setLocalText(""); onCancelEdit?.(); }}
+            className="text-amber-700 hover:text-amber-900 font-medium"
+          >
+            Cancelar
+          </button>
+        </div>
+      )}
       <div className="flex items-end gap-2">
         {audioExpanded ? (
           <AudioRecordButton 
