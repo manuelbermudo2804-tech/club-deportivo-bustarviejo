@@ -91,7 +91,65 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-self.addEventListener('fetch', () => {});
+// ============================================
+// Web Share Target — interceptar POST con imágenes
+// ============================================
+// Cuando el usuario comparte una imagen desde Android, llega un POST multipart aquí.
+// Guardamos los archivos en IndexedDB y redirigimos a /ShareReceiver?shared=1 para que
+// la página los lea desde JS.
+
+const SHARE_DB = 'shareTargetDB';
+const SHARE_STORE = 'sharedFiles';
+
+function openShareDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(SHARE_DB, 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(SHARE_STORE)) {
+        db.createObjectStore(SHARE_STORE, { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function saveSharedFiles(files, text) {
+  const db = await openShareDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(SHARE_STORE, 'readwrite');
+    const store = tx.objectStore(SHARE_STORE);
+    // Limpiar previos
+    store.clear();
+    // Guardar el batch actual con id fijo "current"
+    store.put({ id: 'current', files, text, ts: Date.now() });
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+}
+
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  const isShareTarget = event.request.method === 'POST' &&
+    (url.pathname === '/ShareReceiver' || url.pathname.toLowerCase() === '/sharereceiver');
+
+  if (!isShareTarget) return;
+
+  event.respondWith((async () => {
+    try {
+      const formData = await event.request.formData();
+      const files = formData.getAll('files').filter(f => f && f.size > 0);
+      const text = formData.get('text') || formData.get('url') || formData.get('title') || '';
+      if (files.length > 0) {
+        await saveSharedFiles(files, text);
+      }
+    } catch (e) {
+      // Si falla, igualmente redirigimos
+    }
+    return Response.redirect('/ShareReceiver?shared=1', 303);
+  })());
+});
   `.trim();
 
   return new Response(swCode, {

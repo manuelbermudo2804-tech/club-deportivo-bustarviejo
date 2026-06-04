@@ -21,7 +21,23 @@ Deno.serve(async (req) => {
       { src: ICON_ANY, sizes: "512x512", type: "image/png", purpose: "any" },
       { src: ICON_MASKABLE, sizes: "192x192", type: "image/png", purpose: "maskable" },
       { src: ICON_MASKABLE, sizes: "512x512", type: "image/png", purpose: "maskable" }
-    ]
+    ],
+    share_target: {
+      action: "/ShareReceiver",
+      method: "POST",
+      enctype: "multipart/form-data",
+      params: {
+        title: "title",
+        text: "text",
+        url: "url",
+        files: [
+          {
+            name: "files",
+            accept: ["image/*"]
+          }
+        ]
+      }
+    }
   };
 
   return new Response(JSON.stringify(manifest, null, 2), {
