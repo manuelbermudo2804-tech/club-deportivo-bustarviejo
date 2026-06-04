@@ -401,7 +401,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         autor: isCoordinator ? "coordinador" : "padre",
         autor_email: user.email,
         autor_nombre: user.full_name || (isCoordinator ? "Coordinador" : "Padre"),
-        archivos_adjuntos: messageData.adjuntos || [],
+        adjuntos: messageData.adjuntos || [],
         audio_url: messageData.audio_url,
         audio_duracion: messageData.audio_duracion,
         created_date: new Date().toISOString(),
@@ -433,7 +433,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         mensaje: (messageData.mensaje || '').trim(),
         leido_coordinador: isCoordinator,
         leido_padre: !isCoordinator,
-        archivos_adjuntos: messageData.adjuntos || messageData.archivos_adjuntos || []
+        adjuntos: messageData.adjuntos || messageData.archivos_adjuntos || []
       };
 
       if (messageData.audio_url) {
@@ -532,10 +532,23 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
   const deleteMessageMutation = useMutation({
     mutationFn: async (messageId) => {
-      await base44.entities.CoordinatorMessage.update(messageId, {
-        eliminado: true,
-        mensaje: "Este mensaje fue eliminado"
-      });
+      // Borrado real (no soft-delete) para que desaparezca también para el padre
+      await base44.entities.CoordinatorMessage.delete(messageId);
+    },
+    onMutate: async (messageId) => {
+      // Optimistic update: quitar el mensaje del cache inmediatamente
+      await queryClient.cancelQueries({ queryKey: ['coordinatorMessages', conversation?.id] });
+      const previousMessages = queryClient.getQueryData(['coordinatorMessages', conversation?.id]);
+      queryClient.setQueryData(['coordinatorMessages', conversation?.id], (old = []) =>
+        old.filter(m => m.id !== messageId)
+      );
+      return { previousMessages };
+    },
+    onError: (err, messageId, context) => {
+      if (context?.previousMessages) {
+        queryClient.setQueryData(['coordinatorMessages', conversation?.id], context.previousMessages);
+      }
+      toast.error("Error al eliminar mensaje");
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
@@ -724,7 +737,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                 )}
 
                 {(() => {
-                  const attachments = msg.archivos_adjuntos || [];
+                  const attachments = msg.adjuntos || msg.archivos_adjuntos || [];
                   const images = attachments.filter(f => f.tipo?.startsWith('image/') || f.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i));
                   const audios = attachments.filter(f => f.tipo?.startsWith('audio/'));
                   const files = attachments.filter(f => !f.tipo?.startsWith('image/') && !f.tipo?.startsWith('audio/'));
