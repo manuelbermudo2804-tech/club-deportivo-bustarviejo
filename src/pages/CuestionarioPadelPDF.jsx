@@ -9,10 +9,9 @@ const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/objec
 // === DEFINICIÓN DEL CUESTIONARIO ===
 const BLOQUES = [
   {
-    titulo: "BLOQUE 1 — Modelo organizativo y responsabilidades",
-    icon: "🏛️",
+    titulo: "BLOQUE 1 - Modelo organizativo y responsabilidades",
     preguntas: [
-      "¿Quién es el organizador oficial de la liga? (Ayuntamiento, Concejalía de Deportes, empresa externa…)",
+      "¿Quién es el organizador oficial de la liga? (Ayuntamiento, Concejalía de Deportes, empresa externa...)",
       "¿Quién aparecerá como entidad responsable a efectos legales y de comunicación pública?",
       "¿Cuál es el rol exacto del CD Bustarviejo? (Solo gestión digital / Gestión + arbitraje / Organización completa / Otro)",
       "¿Habrá una persona designada del Ayuntamiento como interlocutor único? Nombre y teléfono",
@@ -20,8 +19,7 @@ const BLOQUES = [
     ],
   },
   {
-    titulo: "BLOQUE 2 — Formato de la liga",
-    icon: "🎾",
+    titulo: "BLOQUE 2 - Formato de la liga",
     preguntas: [
       "Nombre oficial de la liga (ej: \"I Liga Municipal de Pádel de Bustarviejo 2026\")",
       "¿Confirmáis las 3 categorías del Excel? Categoría A (Avanzados, Elo 1500), B (Medios, Elo 1000), C (Iniciación, Elo 500)",
@@ -34,8 +32,7 @@ const BLOQUES = [
     ],
   },
   {
-    titulo: "BLOQUE 3 — Calendario y partidos",
-    icon: "📅",
+    titulo: "BLOQUE 3 - Calendario y partidos",
     preguntas: [
       "Fecha de inicio prevista de la liga",
       "Fecha de fin / cierre",
@@ -49,35 +46,32 @@ const BLOQUES = [
     ],
   },
   {
-    titulo: "BLOQUE 4 — Inscripciones y cobros",
-    icon: "💰",
+    titulo: "BLOQUE 4 - Inscripciones y cobros",
     preguntas: [
-      "Precio de inscripción por jugador (€)",
+      "Precio de inscripción por jugador (EUR)",
       "¿Hay descuentos? (Empadronados / Socios CD Bustarviejo / Familiares / Jóvenes / Mayores / Otros)",
       "¿Quién cobra a los jugadores? (Ayto / Club / Pago directo online TPV)",
       "Métodos de pago aceptados (Transferencia / Bizum / Tarjeta online / Presencial)",
-      "¿Qué incluye la inscripción? (camiseta, agua, trofeos, seguro, uso de pistas…)",
+      "¿Qué incluye la inscripción? (camiseta, agua, trofeos, seguro, uso de pistas...)",
       "¿Hay seguro deportivo obligatorio? ¿Quién lo gestiona y paga?",
       "¿Política de devoluciones / bajas?",
     ],
   },
   {
-    titulo: "BLOQUE 5 — Datos de los jugadores",
-    icon: "👥",
+    titulo: "BLOQUE 5 - Datos de los jugadores",
     preguntas: [
       "Datos obligatorios a recoger (Nombre, DNI, Fecha nacimiento, Email, Teléfono, Dirección, Foto, Empadronamiento, Talla, etc.)",
       "¿Edad mínima permitida? ¿Y para menores, autorización paterna?",
       "¿Aceptación de RGPD personalizada del Ayuntamiento? ¿Tenéis vuestro texto legal o usamos uno estándar?",
-      "¿Quién es el responsable del tratamiento de datos? (Ayto o Club) — CLAVE",
+      "¿Quién es el responsable del tratamiento de datos? (Ayto o Club) - CLAVE",
       "¿Necesitáis que los jugadores firmen algún documento físico además?",
     ],
   },
   {
-    titulo: "BLOQUE 6 — Acceso y visibilidad pública",
-    icon: "🌐",
+    titulo: "BLOQUE 6 - Acceso y visibilidad pública",
     preguntas: [
       "¿La web de la liga debe ser pública (cualquiera puede ver ranking, partidos, jugadores)?",
-      "URL deseada: ¿cdbustarviejo.com/padel, padelbustarviejo.es, dominio propio del Ayto…?",
+      "URL deseada: ¿cdbustarviejo.com/padel, padelbustarviejo.es, dominio propio del Ayto...?",
       "¿Aparecerá el logo del Ayuntamiento? (Pasar versión oficial en alta calidad)",
       "¿Aparecerá el logo de la Concejalía de Deportes?",
       "¿Aparecerán logos de patrocinadores? ¿Vosotros los gestionáis o nosotros?",
@@ -86,8 +80,7 @@ const BLOQUES = [
     ],
   },
   {
-    titulo: "BLOQUE 7 — Funcionalidades deseadas",
-    icon: "📱",
+    titulo: "BLOQUE 7 - Funcionalidades deseadas",
     preguntas: [
       "IMPRESCINDIBLES: Inscripción online / Ranking en vivo / Registro de partidos con Elo / Listado de jugadores / Calendario",
       "RECOMENDABLES: Notificaciones push-email / Perfil individual con historial / Estadísticas / Exportación Excel / Galería / Calculadora Elo",
@@ -96,8 +89,7 @@ const BLOQUES = [
     ],
   },
   {
-    titulo: "BLOQUE 8 — Gestión y administración",
-    icon: "👨‍💼",
+    titulo: "BLOQUE 8 - Gestión y administración",
     preguntas: [
       "¿Cuántas personas del Ayto necesitarán acceso de administrador? Nombre + email de cada una",
       "¿Necesitan permisos diferentes? (algunos solo lectura, otros gestión completa)",
@@ -107,8 +99,7 @@ const BLOQUES = [
     ],
   },
   {
-    titulo: "BLOQUE 9 — Premios y finalización",
-    icon: "🏆",
+    titulo: "BLOQUE 9 - Premios y finalización",
     preguntas: [
       "¿Hay premios al final de la liga? ¿Cuáles? (trofeos, material, dinero, etc.)",
       "¿Premios por categoría o solo absoluto?",
@@ -118,8 +109,7 @@ const BLOQUES = [
     ],
   },
   {
-    titulo: "BLOQUE 10 — Comunicación con jugadores",
-    icon: "📞",
+    titulo: "BLOQUE 10 - Comunicación con jugadores",
     preguntas: [
       "¿Cómo queréis comunicaros con los jugadores? (Email / WhatsApp / SMS / Avisos en app)",
       "¿Quién redacta y envía las comunicaciones oficiales?",
@@ -128,31 +118,28 @@ const BLOQUES = [
     ],
   },
   {
-    titulo: "BLOQUE 11 — Aspectos económicos del servicio (Ayto ↔ Club)",
-    icon: "💼",
+    titulo: "BLOQUE 11 - Aspectos económicos del servicio (Ayto - Club)",
     preguntas: [
       "Modalidad de contratación del servicio: ¿Contrato menor / Convenio de colaboración / Encargo de gestión / Subvención condicionada?",
-      "¿Pago único o fraccionado? (al inicio, al final, mensual…)",
-      "¿IVA incluido o no? El club es no lucrativo — confirmar tratamiento fiscal",
+      "¿Pago único o fraccionado? (al inicio, al final, mensual...)",
+      "¿IVA incluido o no? El club es no lucrativo - confirmar tratamiento fiscal",
       "¿Requerís presupuesto formal antes de firmar?",
       "¿Necesitáis facturas o vale con un recibo de servicios?",
       "¿Hay fecha límite para presentar la propuesta económica?",
     ],
   },
   {
-    titulo: "BLOQUE 12 — Aspectos legales y técnicos",
-    icon: "⚖️",
+    titulo: "BLOQUE 12 - Aspectos legales y técnicos",
     preguntas: [
       "¿El Ayuntamiento exige cumplir alguna normativa específica? (ENS, accesibilidad WCAG, etc.)",
       "¿Se requiere que los datos estén alojados en servidores europeos? (RGPD)",
-      "¿Quién es propietario de los datos generados durante la liga? (jugadores, resultados…)",
+      "¿Quién es propietario de los datos generados durante la liga? (jugadores, resultados...)",
       "Al finalizar la liga, ¿qué pasa con la plataforma? (Se mantiene / Se archiva / Se entrega al Ayto)",
       "¿Existe alguna plataforma o sistema previo del Ayto con el que debamos integrarnos?",
     ],
   },
   {
-    titulo: "BLOQUE 13 — Plazos",
-    icon: "🚀",
+    titulo: "BLOQUE 13 - Plazos",
     preguntas: [
       "Fecha objetivo de lanzamiento de la web pública",
       "Fecha objetivo de apertura de inscripciones",
@@ -161,8 +148,7 @@ const BLOQUES = [
     ],
   },
   {
-    titulo: "BLOQUE 14 — Otros",
-    icon: "❓",
+    titulo: "BLOQUE 14 - Otros",
     preguntas: [
       "¿Edición piloto o liga consolidada? ¿Es la primera vez o ya se hizo en años anteriores?",
       "Si ya hubo ediciones anteriores, ¿tenéis datos históricos que queráis migrar?",
@@ -221,7 +207,7 @@ const generarPDF = async () => {
   doc.setTextColor(15, 23, 42);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
-  doc.text("CD Bustarviejo  →  Ayuntamiento de Bustarviejo", pageW / 2, y, { align: "center" });
+  doc.text("CD Bustarviejo  -  Ayuntamiento de Bustarviejo", pageW / 2, y, { align: "center" });
   y += 8;
 
   doc.setFont("helvetica", "normal");
@@ -242,7 +228,7 @@ const generarPDF = async () => {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.setTextColor(37, 99, 235);
-  doc.text("📋 INSTRUCCIONES", marginX + 4, y + 7);
+  doc.text("INSTRUCCIONES", marginX + 4, y + 7);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
@@ -262,7 +248,7 @@ const generarPDF = async () => {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(10);
   doc.setTextColor(37, 99, 235);
-  doc.text("📞 CONTACTO PARA DUDAS", marginX, y);
+  doc.text("CONTACTO PARA DUDAS", marginX, y);
   y += 5;
   doc.setFont("helvetica", "normal");
   doc.setTextColor(71, 85, 105);
@@ -361,7 +347,7 @@ const generarPDF = async () => {
   doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
   doc.setTextColor(255, 255, 255);
-  doc.text("📨 Próximos pasos", pageW / 2, 60, { align: "center" });
+  doc.text("Próximos pasos", pageW / 2, 60, { align: "center" });
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(11);
@@ -369,13 +355,13 @@ const generarPDF = async () => {
     "Una vez recibidas vuestras respuestas, el CD Bustarviejo",
     "elaborará en un plazo de 5 días hábiles:",
     "",
-    "✓ Una propuesta técnica detallada con el alcance funcional",
-    "✓ Un cronograma de desarrollo y lanzamiento",
-    "✓ Un presupuesto cerrado con el coste del servicio",
+    "- Una propuesta técnica detallada con el alcance funcional",
+    "- Un cronograma de desarrollo y lanzamiento",
+    "- Un presupuesto cerrado con el coste del servicio",
     "",
     "",
     "Gracias por confiar en el CD Bustarviejo",
-    "para este proyecto deportivo municipal 🎾",
+    "para este proyecto deportivo municipal",
   ];
   let cY = 90;
   cierre.forEach(line => { doc.text(line, pageW / 2, cY, { align: "center" }); cY += 8; });
