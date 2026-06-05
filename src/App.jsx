@@ -35,6 +35,7 @@ import ExternalLinks from '@/pages/ExternalLinks';
 import ReciboGenerator from '@/pages/ReciboGenerator';
 import FacturaGenerator from '@/pages/FacturaGenerator';
 import PresupuestoGenerator from '@/pages/PresupuestoGenerator';
+import CuestionarioPadelPDF from '@/pages/CuestionarioPadelPDF';
 import MorososManagement from '@/pages/MorososManagement';
 import MyFeedback from '@/pages/MyFeedback';
 import Porra from '@/pages/Porra';
@@ -192,6 +193,7 @@ const AuthenticatedApp = () => {
       <Route path="/ReciboGenerator" element={<LayoutWrapper currentPageName="ReciboGenerator"><ReciboGenerator /></LayoutWrapper>} />
       <Route path="/FacturaGenerator" element={<LayoutWrapper currentPageName="FacturaGenerator"><FacturaGenerator /></LayoutWrapper>} />
       <Route path="/PresupuestoGenerator" element={<LayoutWrapper currentPageName="PresupuestoGenerator"><PresupuestoGenerator /></LayoutWrapper>} />
+      <Route path="/CuestionarioPadelPDF" element={<LayoutWrapper currentPageName="CuestionarioPadelPDF"><CuestionarioPadelPDF /></LayoutWrapper>} />
       <Route path="/MorososManagement" element={<LayoutWrapper currentPageName="MorososManagement"><MorososManagement /></LayoutWrapper>} />
       <Route path="/MyFeedback" element={<LayoutWrapper currentPageName="MyFeedback"><MyFeedback /></LayoutWrapper>} />
       <Route path="/PorraAdmin" element={<LayoutWrapper currentPageName="PorraAdmin"><PorraAdmin /></LayoutWrapper>} />
