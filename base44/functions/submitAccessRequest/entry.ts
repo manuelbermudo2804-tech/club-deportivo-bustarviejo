@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
       user_agent: user_agent || '',
     });
 
-    console.log('[submitAccessRequest] Solicitud creada OK', { id: created?.id, email: emailLower, nombre: nombre_progenitor });
+    console.log('[submitAccessRequest] v2 Solicitud creada OK', { id: created?.id, email: emailLower, nombre: nombre_progenitor });
 
     // La notificación a admin (push + email) la dispara una automatización entity create
     // sobre AccessRequest → notifyAdminNewAccessRequest. Es más fiable que invocar la
