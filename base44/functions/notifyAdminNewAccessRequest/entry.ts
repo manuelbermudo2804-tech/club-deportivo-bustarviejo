@@ -4,6 +4,26 @@ import webpush from 'npm:web-push@3.6.7';
 // Email de respaldo si por algún motivo no hay admins en BD
 const FALLBACK_ADMIN_EMAIL = 'manuelbermudo2804@gmail.com';
 
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+const FROM_EMAIL = 'CD Bustarviejo <noreply@cdbustarviejo.com>';
+
+// Envío directo via Resend (evita el 403 de invocar sendEmail entre funciones service-role)
+async function sendWithResend(to, subject, html) {
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${RESEND_API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ from: FROM_EMAIL, to: [to], subject, html }),
+  });
+  if (!response.ok) {
+    const errBody = await response.text().catch(() => '');
+    throw new Error(`Resend ${response.status}: ${errBody}`);
+  }
+  return response.json();
+}
+
 webpush.setVapidDetails(
   'mailto:CDBUSTARVIEJO@GMAIL.COM',
   Deno.env.get('VAPID_PUBLIC_KEY'),
@@ -85,10 +105,10 @@ Deno.serve(async (req) => {
     const whatsapp = data.prefiere_whatsapp ? '✅ Sí, prefiere WhatsApp' : '—';
     for (const adminEmail of adminEmails) {
       try {
-        await base44.asServiceRole.functions.invoke('sendEmail', {
-          to: adminEmail,
-          subject: `🔔 Nueva solicitud de acceso: ${nombre}`,
-          html: `
+        await sendWithResend(
+          adminEmail,
+          `🔔 Nueva solicitud de acceso: ${nombre}`,
+          `
             <h2>Nueva solicitud de código de acceso</h2>
             <p><strong>Nombre:</strong> ${nombre}</p>
             <p><strong>Email:</strong> ${data.email}</p>
@@ -99,10 +119,10 @@ Deno.serve(async (req) => {
             <hr>
             <p>👉 <a href="https://app.base44.com/apps/6992c6be619d2da592897991/AdminAccessCodes?tab=bandeja">Abrir bandeja de solicitudes</a></p>
           `
-        });
+        );
         emailSent++;
       } catch (e) {
-        console.error(`Error enviando email a ${adminEmail}:`, e);
+        console.error(`Error enviando email a ${adminEmail}:`, e?.message || e);
       }
     }
 
