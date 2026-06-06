@@ -21,6 +21,7 @@ import MinorMotivationalQuote from "@/components/minor/MinorMotivationalQuote";
 import MinorBirthdayBanner from "@/components/minor/MinorBirthdayBanner";
 import MinorCommitmentLevel from "@/components/minor/MinorCommitmentLevel";
 import MinorChallenges from "@/components/minor/MinorChallenges";
+import MinorFifaCard from "@/components/minor/MinorFifaCard";
 import MainSponsorBanner from "@/components/sponsors/MainSponsorBanner";
 
 
@@ -415,8 +416,15 @@ export default function MinorDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <div className="max-w-lg mx-auto p-4 space-y-3 pb-24">
-        {/* ─── HERO ─── */}
-        <HeroSection player={linkedPlayer} user={user} />
+        {/* ─── HERO (Carta FIFA) ─── */}
+        <MinorFifaCard
+          player={linkedPlayer}
+          user={user}
+          attendances={attendances}
+          callupsCount={callups.length}
+          goles={myGolesCount}
+          isComplementaria={isComplementaria}
+        />
         {linkedPlayer && <MinorAgeTransitionBanner player={linkedPlayer} />}
         {linkedPlayer && <MinorBirthdayBanner player={linkedPlayer} />}
 
