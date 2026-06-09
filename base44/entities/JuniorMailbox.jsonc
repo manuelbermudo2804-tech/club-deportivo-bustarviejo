@@ -85,5 +85,34 @@
     "tipo",
     "mensaje",
     "estado"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "es_menor": true
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.jugador_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

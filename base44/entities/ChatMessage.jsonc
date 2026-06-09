@@ -305,5 +305,48 @@
         "created_date"
       ]
     }
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "es_entrenador": true
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.grupo_id": {
+            "$in": "{{user.data.categorias_hijos}}"
+          }
+        },
+        {
+          "data.grupo_id": {
+            "$in": "{{user.categorias_entrena}}"
+          }
+        }
+      ]
+    },
+    "update": {
+      "created_by_id": "{{user.id}}"
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
