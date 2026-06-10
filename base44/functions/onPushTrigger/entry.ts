@@ -14,8 +14,22 @@ async function sendPushToEmails(base44, emails, title, body, url, tag) {
   const uniqueEmails = [...new Set(emails)];
   if (!uniqueEmails.length || !VAPID_PUBLIC || !VAPID_PRIVATE) return { sent: 0, failed: 0 };
 
-  const allSubs = await base44.asServiceRole.entities.PushSubscription.filter({ activa: true });
-  const targetSubs = allSubs.filter(s => uniqueEmails.includes(s.usuario_email));
+  // OPTIMIZACIÓN: filtrar por email en la query en vez de traer TODAS las subs activas.
+  // Para listas grandes (anuncios, convocatorias) caemos al modo legacy (1 query global).
+  // Para mensajes 1-a-1 (privados, coordinador, admin) usamos queries paralelas pequeñas.
+  let targetSubs = [];
+  if (uniqueEmails.length <= 5) {
+    const subsArrays = await Promise.all(
+      uniqueEmails.map(email =>
+        base44.asServiceRole.entities.PushSubscription.filter({ usuario_email: email, activa: true })
+          .catch(() => [])
+      )
+    );
+    targetSubs = subsArrays.flat();
+  } else {
+    const allSubs = await base44.asServiceRole.entities.PushSubscription.filter({ activa: true });
+    targetSubs = allSubs.filter(s => uniqueEmails.includes(s.usuario_email));
+  }
   if (targetSubs.length === 0) return { sent: 0, failed: 0 };
 
   const subsByEmail = {};
