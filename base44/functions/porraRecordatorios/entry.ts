@@ -46,6 +46,15 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
 
+    // Permitir forzar envío manual con { force: true } en el body
+    let force = false;
+    try {
+      if (req.method === 'POST') {
+        const body = await req.json();
+        force = !!body?.force;
+      }
+    } catch {}
+
     const configs = await base44.asServiceRole.entities.PorraConfig.list();
     const config = configs[0];
     if (!config?.fecha_limite_predicciones) {
@@ -60,12 +69,12 @@ Deno.serve(async (req) => {
     if (msRestantes <= 0) {
       return Response.json({ skip: true, reason: 'Plazo ya cerrado' });
     }
-    if (diasRestantes > 7) {
+    if (!force && diasRestantes > 7) {
       return Response.json({ skip: true, reason: 'Aún faltan más de 7 días', diasRestantes });
     }
 
     // Solo enviamos en días específicos: 7, 3, 1 (para no spamear)
-    const enviarHoy = [7, 3, 1].includes(diasRestantes);
+    const enviarHoy = force || [7, 3, 1].includes(diasRestantes);
     if (!enviarHoy) {
       return Response.json({ skip: true, reason: `No es día de recordatorio (faltan ${diasRestantes})` });
     }
