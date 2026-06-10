@@ -4,6 +4,7 @@ import { Loader2, CheckCircle2, Users, AlertCircle, ShieldCheck, Upload, Tag, Be
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import PaymentOptionsSelector from "./PaymentOptionsSelector";
+import usePublicFormTracker from "./usePublicFormTracker";
 
 // Validadores
 const validDNI = (s) => {
@@ -62,6 +63,22 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
     if (paymentSuccess) setSuccess(true);
   }, [paymentSuccess]);
 
+  // Red de seguridad: page_view, form_started, form_abandoned, snapshot
+  const { trackEvent, logFormStartedOnce, saveDraft, clearDraft } = usePublicFormTracker({
+    landingSlug,
+    landingId,
+    getValues: () => values,
+    isSent: success || waitlistSuccess,
+  });
+
+  // Snapshot del borrador en cuanto cambian valores (debounced suave)
+  useEffect(() => {
+    if (success || waitlistSuccess) return;
+    const t = setTimeout(() => { saveDraft(); }, 800);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values]);
+
   const color = branding?.color_principal || "#ea580c";
   const colorSec = branding?.color_secundario || "#15803d";
   const campos = formulario?.campos || [];
@@ -76,7 +93,10 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
   const importeBase = opcionElegida ? Number((opcionElegida.precio * cantidad).toFixed(2)) : 0;
   const importeTotal = cuponValidado ? cuponValidado.importe_final : importeBase;
 
-  const update = (id, v) => setValues((p) => ({ ...p, [id]: v }));
+  const update = (id, v) => {
+    logFormStartedOnce();
+    setValues((p) => ({ ...p, [id]: v }));
+  };
 
   // Campos visibles según condicional
   const visibleCampos = useMemo(() => {
@@ -94,6 +114,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
     if (!file) return;
     if (file.size > maxMB * 1024 * 1024) {
       toast.error(`Archivo demasiado grande (max ${maxMB}MB)`);
+      trackEvent("file_too_big", { campo_id: campoId, size_mb: (file.size / 1024 / 1024).toFixed(2), max_mb: maxMB }, "warning");
       return;
     }
     setUploadingField(campoId);
@@ -117,6 +138,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
     } catch (err) {
       console.error(err);
       toast.error("Error subiendo archivo");
+      trackEvent("file_upload_error", { campo_id: campoId, mensaje: err?.message || "upload_failed", nombre: file?.name }, "error");
     } finally {
       setUploadingField(null);
     }
@@ -175,10 +197,12 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
       // Validación específica DNI/IBAN
       if (c.tipo === "dni" && values[c.id] && !validDNI(values[c.id])) {
         toast.error(`DNI inválido en "${c.etiqueta}"`);
+        trackEvent("validation_failed", { motivo: "dni_invalido", campo: c.etiqueta }, "warning");
         return false;
       }
       if (c.tipo === "iban" && values[c.id] && !validIBAN(values[c.id])) {
         toast.error(`IBAN inválido en "${c.etiqueta}"`);
+        trackEvent("validation_failed", { motivo: "iban_invalido", campo: c.etiqueta }, "warning");
         return false;
       }
       if (c.tipo === "lista_jugadores") {
@@ -205,12 +229,14 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
         const v = values[c.id];
         if (v === undefined || v === null || v === "" || (c.tipo === "aceptacion" && !v)) {
           toast.error(`Completa el campo: ${c.etiqueta}`);
+          trackEvent("validation_failed", { motivo: "campo_requerido_vacio", campo: c.etiqueta, tipo: c.tipo }, "warning");
           return false;
         }
       }
     }
     if (pagoActivo && !opcionElegida) {
       toast.error("Selecciona una opción de pago");
+      trackEvent("validation_failed", { motivo: "sin_opcion_pago" }, "warning");
       return false;
     }
     return true;
@@ -223,6 +249,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
       return;
     }
     if (!validar()) return;
+    trackEvent("submit_attempt", { pago_activo: pagoActivo, importe: importeTotal, form_data: values });
     setSubmitting(true);
     try {
       const nombre = values.nombre || values.responsable || values.nombre_equipo || "Sin nombre";
@@ -260,6 +287,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
           try {
             sessionStorage.setItem(`landing_payment_${landingId}`, JSON.stringify({ values, ts: Date.now() }));
           } catch {}
+          trackEvent("payment_redirect", { session_id: res.data.session_id, importe: importeTotal });
           window.location.href = res.data.url;
           return;
         }
@@ -282,11 +310,14 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
       });
       if (res?.data?.error) throw new Error(res.data.error);
 
+      trackEvent("submit_success", { submission_id: res?.data?.submission_id, form_data: values });
+      clearDraft();
       setSuccess(true);
     } catch (err) {
       console.error(err);
       const msg = err?.message || "Hubo un problema. Inténtalo de nuevo en unos segundos.";
       toast.error(msg);
+      trackEvent("submit_error", { mensaje: msg, pago_activo: pagoActivo, form_data: values }, "error");
     } finally {
       setSubmitting(false);
     }

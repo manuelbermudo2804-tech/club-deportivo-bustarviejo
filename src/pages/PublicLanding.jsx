@@ -21,17 +21,38 @@ export default function PublicLanding() {
   useEffect(() => {
     const pago = searchParams.get("pago");
     const sid = searchParams.get("sid");
+    const logEvt = (accion, severidad = "info", detalles = {}) => {
+      try {
+        fetch(`${window.location.origin}/functions/logPublicEvent`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          keepalive: true,
+          body: JSON.stringify({
+            event_type: "app_error",
+            context: `PublicLanding[${slug}] · ${accion}`,
+            error_message: detalles.mensaje || accion,
+            page_path: `/l/${slug}`,
+            user_agent: navigator.userAgent,
+            severity: severidad === "error" ? "error" : severidad === "warning" ? "warning" : "info",
+            extra_data: { accion, severidad, session_id: sid, ...detalles },
+          }),
+        }).catch(() => {});
+      } catch {}
+    };
     if (pago === "ok" && sid) {
       (async () => {
         try {
           const res = await base44.functions.invoke("landingPaymentConfirm", { session_id: sid });
           if (res?.data?.paid || res?.data?.already_paid) {
             setPaymentSuccess(true);
+            logEvt("payment_confirmed", "info", { already_paid: !!res?.data?.already_paid });
           } else {
             toast.error("No hemos podido confirmar el pago. Si te cobraron, contacta con nosotros.");
+            logEvt("payment_confirm_failed", "error", { mensaje: "Stripe devolvió pero no consta pagado" });
           }
-        } catch {
+        } catch (err) {
           toast.error("Error confirmando el pago");
+          logEvt("payment_confirm_error", "error", { mensaje: err?.message || "exception" });
         } finally {
           // Limpiar parámetros de la URL
           searchParams.delete("pago");
@@ -41,6 +62,7 @@ export default function PublicLanding() {
       })();
     } else if (pago === "cancelado") {
       toast.info("Pago cancelado. Puedes intentarlo de nuevo cuando quieras.");
+      logEvt("payment_cancelled", "warning");
       searchParams.delete("pago");
       setSearchParams(searchParams, { replace: true });
     }
