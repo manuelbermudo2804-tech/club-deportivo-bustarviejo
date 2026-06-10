@@ -1,11 +1,12 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
-import { FileText, Download, Check, CheckCheck } from "lucide-react";
+import { FileText, Download, Check, CheckCheck, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import EmojiScaler from "./EmojiScaler";
 import ChatImageBubble from "./ChatImageBubble";
 import ChatAudioBubble from "./ChatAudioBubble";
+import { isUrgentMessage } from "./urgentKeywords";
 
 export default function ChatMessageItem({ message, currentUserEmail, showSenderName = true, showReadStatus = false, isGroupStart = true, marginTop = '12px' }) {
   // CRÍTICO: Soportar AMBOS remitente_email (ChatMessage) Y autor_email (StaffMessage)
@@ -15,16 +16,24 @@ export default function ChatMessageItem({ message, currentUserEmail, showSenderN
   const isCoach = message.tipo === "entrenador_a_grupo";
   const isBot = message.es_respuesta_bot === true;
   const isSystem = message.tipo === "sistema";
+  const isUrgent = isUrgentMessage(message);
 
   return (
     <div className={`flex ${isMine ? 'justify-end' : 'justify-start'}`} style={{ marginTop }}>
       <div className={`max-w-[85%] ${
+        isUrgent ? 'bg-red-50 text-red-950 border-2 border-red-500 shadow-lg shadow-red-200' :
         isMine ? 'bg-green-600 text-white' : 
         isBot ? 'bg-blue-100 text-blue-900 border-2 border-blue-300' :
         isCoach ? 'bg-green-100 text-slate-900' : 
         isSystem ? 'bg-orange-100 text-orange-900 border-2 border-orange-300' :
         'bg-slate-100 text-slate-900'
       } ${isMine ? 'rounded-[18px_4px_18px_18px]' : 'rounded-[4px_18px_18px_18px]'} px-3 py-1.5 shadow-none`}>
+        {isUrgent && (
+          <div className="flex items-center gap-1.5 mb-1.5 -mx-1 px-2 py-1 bg-red-600 text-white rounded-md font-bold text-[12px] animate-pulse">
+            <AlertTriangle className="w-3.5 h-3.5" />
+            <span>AVISO URGENTE</span>
+          </div>
+        )}
         {showSenderName && (
           <div className="flex items-center gap-1 mb-0.5">
             <p className="text-[11px] font-semibold opacity-75">
@@ -35,7 +44,7 @@ export default function ChatMessageItem({ message, currentUserEmail, showSenderN
             {isSystem && <Badge className="text-[10px] bg-orange-500 px-1 py-0 h-4">Sistema</Badge>}
           </div>
         )}
-        <p className="text-[15px] whitespace-pre-wrap leading-tight">
+        <p className={`text-[15px] whitespace-pre-wrap leading-tight ${isUrgent ? 'font-semibold' : ''}`}>
           <EmojiScaler content={message.mensaje} />
         </p>
         {message.audio_url && (
