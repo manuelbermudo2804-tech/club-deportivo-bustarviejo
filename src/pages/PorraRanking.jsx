@@ -70,13 +70,13 @@ export default function PorraRanking() {
     else setRefreshing(true);
     try {
       // Cargar ranking global siempre
-      const resGlobal = await base44.functions.invoke('porraRanking', {});
+      const resGlobal = await base44.functions.invoke('porraRanking', { limite: 500 });
       setRankingGlobal(resGlobal.data?.ranking || []);
       setOcultoPorAdmin(resGlobal.data?.oculto || false);
 
       // Si hay código de liga, cargar también su ranking
       if (codigoLigaUrl) {
-        const resLiga = await base44.functions.invoke('porraRanking', { codigo_liga: codigoLigaUrl });
+        const resLiga = await base44.functions.invoke('porraRanking', { codigo_liga: codigoLigaUrl, limite: 500 });
         if (resLiga.data?.ranking) {
           setRankingLiga(resLiga.data.ranking);
           setLiga(resLiga.data.liga);
