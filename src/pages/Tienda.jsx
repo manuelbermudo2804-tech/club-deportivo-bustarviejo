@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { ShoppingBag, ExternalLink } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import EquipacionSection from "../components/store/EquipacionSection";
 import MerchSection from "../components/store/MerchSection";
 import MyDorsalsBanner from "../components/store/MyDorsalsBanner";
@@ -28,7 +28,7 @@ export default function Tienda() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-4 lg:p-6 space-y-6">
+    <div className="max-w-3xl mx-auto p-4 lg:p-6 space-y-5">
       <div>
         <h1 className="text-2xl lg:text-3xl font-black text-slate-900 flex items-center gap-2">
           <ShoppingBag className="w-7 h-7 text-orange-600" />
@@ -38,21 +38,6 @@ export default function Tienda() {
       </div>
 
       <MyDorsalsBanner />
-
-      {/* Aviso: la tienda es externa y requiere su propio registro */}
-      <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="w-10 h-10 rounded-full bg-amber-200 flex items-center justify-center flex-shrink-0">
-            <ExternalLink className="w-5 h-5 text-amber-800" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="font-bold text-amber-900 text-sm">⚠️ La tienda es una web externa</p>
-            <p className="text-amber-800 text-xs mt-1 leading-relaxed">
-              Al pulsar el botón se abrirá la tienda oficial en una nueva ventana. <strong>Tendrás que darte de alta en esa tienda</strong> para poder hacer el pedido.
-            </p>
-          </div>
-        </div>
-      </div>
 
       <EquipacionSection clothingUrl={clothingUrl} />
       <MerchSection merchUrl={merchUrl} />
