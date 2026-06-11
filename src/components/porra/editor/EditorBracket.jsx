@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Crown, Lock, Sparkles } from "lucide-react";
 import { resolverCruces16avos } from "@/lib/porraBracket";
+import PorraCrucesFifaInfo from "@/components/porra/PorraCrucesFifaInfo";
 
 // Bracket auto-completable: el ganador de cada partido aparece como candidato en el siguiente
 // El usuario NO arrastra equipos: solo elige ganador entre los DOS contendientes ya definidos
@@ -132,6 +133,8 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
 
   return (
     <div className="space-y-4">
+      <PorraCrucesFifaInfo />
+
       <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 text-sm">
         <p className="font-bold text-purple-900 mb-1 flex items-center gap-1">
           <Sparkles className="w-4 h-4" /> Bracket inteligente

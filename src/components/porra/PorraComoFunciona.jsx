@@ -190,6 +190,10 @@ export default function PorraComoFunciona({ config }) {
               a: "¡No! Tienes muchísimos partidos por delante. Aunque falles 10 seguidos, puedes remontar. El ranking se actualiza cada vez que se juega un partido."
             },
             {
+              q: "¿Los cruces de 16avos son '1º vs Mejor 3º'?",
+              a: "NO exactamente. El Mundial 2026 tiene 48 equipos y una ronda nueva (16avos). De los 16 cruces oficiales FIFA, solo 8 son contra 'Mejor 3º' (M74, M77, M79, M80, M81, M82, M85 y M87). Los otros 8 son partidos fijos entre 1º y 2º de grupos concretos (o 2º vs 2º). Son los cruces oficiales del Anexo C del reglamento FIFA — los mismos que verás en FIFA.com."
+            },
+            {
               q: "¿Puedo cambiar mis predicciones?",
               a: "Sí, cuando quieras... hasta el día del primer partido del Mundial. Después se bloquea tu porra y ya no se puede tocar (¡así nadie hace trampas!)."
             },
