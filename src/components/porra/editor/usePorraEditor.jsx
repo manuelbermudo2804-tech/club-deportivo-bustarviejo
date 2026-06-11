@@ -102,7 +102,12 @@ export default function usePorraEditor(token) {
     }
     const pending = pendingUpdatesRef.current;
     if (!pending || Object.keys(pending).length === 0) return;
-    if (!participanteRef.current || isBlocked) return;
+    if (!participanteRef.current) return;
+    // Determinar bloqueo efectivo: si lo pendiente es SOLO bracket, usar isBracketBlocked
+    const pendingKeys = Object.keys(pending);
+    const soloBracket = pendingKeys.every(k => k === 'predicciones_eliminatorias');
+    const bloqueadoEfectivo = soloBracket ? isBracketBlocked : isBlocked;
+    if (bloqueadoEfectivo) return;
     pendingUpdatesRef.current = {};
     try {
       setSaving(true);
@@ -117,7 +122,7 @@ export default function usePorraEditor(token) {
     } finally {
       setSaving(false);
     }
-  }, [isBlocked, token]);
+  }, [isBlocked, isBracketBlocked, token]);
 
   // Guardado con debounce 700ms — acumula updates pendientes para no perderlos
   // Solo bracket: si está bloqueado normal pero el test admin puede editar bracket,
