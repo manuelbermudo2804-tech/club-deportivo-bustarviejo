@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Copy, Download, ExternalLink, Smartphone, Globe } from "lucide-react";
+import { Search, Copy, Download, ExternalLink, Smartphone, Globe, Users } from "lucide-react";
 import { toast } from "sonner";
 
 // Devuelve el origen del participante: 'app' | 'web' | 'desconocido'.
@@ -24,13 +24,44 @@ function detectarOrigen(p) {
 // Lista administrativa de participantes con búsqueda, exportación y enlaces directos
 export default function PorraAdminParticipantes({ participantes = [] }) {
   const [busqueda, setBusqueda] = useState('');
-  const [filtroEstado, setFiltroEstado] = useState('todos'); // todos | pagado | pendiente
+  const [filtroEstado, setFiltroEstado] = useState('todos'); // todos | pagado | pendiente | multiples
+
+  // Contar cuántas porras tiene cada email
+  const porrasPorEmail = useMemo(() => {
+    const conteo = {};
+    participantes.forEach(p => {
+      const email = (p.email || '').trim().toLowerCase();
+      if (!email) return;
+      conteo[email] = (conteo[email] || 0) + 1;
+    });
+    return conteo;
+  }, [participantes]);
+
+  // Emails con más de una porra
+  const emailsConVarias = useMemo(() => {
+    return new Set(Object.keys(porrasPorEmail).filter(e => porrasPorEmail[e] > 1));
+  }, [porrasPorEmail]);
+
+  // Nº de usuarios distintos que han hecho más de una porra
+  const usuariosConVarias = emailsConVarias.size;
+  // Nº total de porras que pertenecen a esos usuarios
+  const porrasDeUsuariosConVarias = useMemo(() => {
+    return participantes.filter(p => {
+      const email = (p.email || '').trim().toLowerCase();
+      return email && emailsConVarias.has(email);
+    }).length;
+  }, [participantes, emailsConVarias]);
 
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase();
     return participantes
       .filter(p => {
-        if (filtroEstado !== 'todos' && p.estado_pago !== filtroEstado) return false;
+        if (filtroEstado === 'multiples') {
+          const email = (p.email || '').trim().toLowerCase();
+          if (!email || !emailsConVarias.has(email)) return false;
+        } else if (filtroEstado !== 'todos' && p.estado_pago !== filtroEstado) {
+          return false;
+        }
         if (!q) return true;
         return (
           (p.nombre || '').toLowerCase().includes(q) ||
@@ -39,8 +70,17 @@ export default function PorraAdminParticipantes({ participantes = [] }) {
           (p.telefono || '').includes(q)
         );
       })
-      .sort((a, b) => (b.puntos_total || 0) - (a.puntos_total || 0));
-  }, [participantes, busqueda, filtroEstado]);
+      .sort((a, b) => {
+        // Si filtramos por múltiples, agrupar por email para verlos juntos
+        if (filtroEstado === 'multiples') {
+          const ea = (a.email || '').toLowerCase();
+          const eb = (b.email || '').toLowerCase();
+          if (ea !== eb) return ea.localeCompare(eb);
+          return new Date(a.created_date || 0) - new Date(b.created_date || 0);
+        }
+        return (b.puntos_total || 0) - (a.puntos_total || 0);
+      });
+  }, [participantes, busqueda, filtroEstado, emailsConVarias]);
 
   const pagados = participantes.filter(p => p.estado_pago === 'pagado');
   const totalRecaudado = pagados.reduce((s, p) => s + (p.cantidad_pagada || 0), 0);
@@ -144,11 +184,33 @@ export default function PorraAdminParticipantes({ participantes = [] }) {
                 {f.l}
               </Button>
             ))}
+            <Button
+              size="sm"
+              variant={filtroEstado === 'multiples' ? 'default' : 'outline'}
+              onClick={() => setFiltroEstado('multiples')}
+              className={filtroEstado === 'multiples' ? 'bg-purple-600 hover:bg-purple-700' : usuariosConVarias > 0 ? 'border-purple-400 text-purple-700 hover:bg-purple-50' : ''}
+              disabled={usuariosConVarias === 0}
+              title={usuariosConVarias === 0 ? 'Nadie ha hecho más de una porra' : `${usuariosConVarias} usuarios con varias porras (${porrasDeUsuariosConVarias} porras en total)`}
+            >
+              <Users className="w-3.5 h-3.5 mr-1" />
+              Con varias porras {usuariosConVarias > 0 && `(${usuariosConVarias})`}
+            </Button>
           </div>
         </div>
       </CardHeader>
 
       <CardContent>
+        {filtroEstado === 'multiples' && usuariosConVarias > 0 && (
+          <div className="mb-4 p-3 bg-purple-50 border-2 border-purple-300 rounded-lg flex items-start gap-3">
+            <Users className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+            <div className="text-sm">
+              <p className="font-bold text-purple-900">👥 Usuarios con varias porras</p>
+              <p className="text-purple-700 mt-1">
+                <strong>{usuariosConVarias}</strong> {usuariosConVarias === 1 ? 'usuario ha creado' : 'usuarios han creado'} más de una porra, sumando <strong>{porrasDeUsuariosConVarias}</strong> porras en total. Están agrupadas por email y ordenadas por fecha de creación.
+              </p>
+            </div>
+          </div>
+        )}
         {filtrados.length === 0 ? (
           <div className="text-center py-12 text-slate-500">
             <p className="text-lg">{participantes.length === 0 ? 'Aún no hay participantes' : 'Sin resultados con el filtro actual'}</p>
@@ -172,14 +234,25 @@ export default function PorraAdminParticipantes({ participantes = [] }) {
                 </tr>
               </thead>
               <tbody>
-                {filtrados.map(p => (
-                  <tr key={p.id} className="border-b hover:bg-slate-50">
+                {filtrados.map(p => {
+                  const emailLc = (p.email || '').trim().toLowerCase();
+                  const numPorras = emailLc ? (porrasPorEmail[emailLc] || 1) : 1;
+                  const tieneVarias = numPorras > 1;
+                  return (
+                  <tr key={p.id} className={`border-b hover:bg-slate-50 ${tieneVarias ? 'bg-purple-50/40' : ''}`}>
                     <td className="p-2 font-medium">
                       {p.nombre}
                       {p.bloqueada && <Badge variant="outline" className="ml-1 text-[9px] bg-red-50 text-red-700">🔒</Badge>}
                     </td>
                     <td className="p-2 font-bold text-orange-700">{p.alias_equipo}</td>
-                    <td className="p-2 text-slate-600 hidden md:table-cell text-xs">{p.email}</td>
+                    <td className="p-2 hidden md:table-cell text-xs">
+                      <span className="text-slate-600">{p.email}</span>
+                      {tieneVarias && (
+                        <Badge variant="outline" className="ml-1 text-[9px] bg-purple-100 text-purple-700 border-purple-300" title={`Este email tiene ${numPorras} porras`}>
+                          ×{numPorras}
+                        </Badge>
+                      )}
+                    </td>
                     <td className="p-2 text-slate-600 hidden lg:table-cell text-xs">{p.telefono || '-'}</td>
                     <td className="p-2">
                       <Badge
@@ -232,7 +305,8 @@ export default function PorraAdminParticipantes({ participantes = [] }) {
                       </div>
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>
