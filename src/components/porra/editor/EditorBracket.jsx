@@ -6,10 +6,43 @@ import PorraCrucesFifaInfo from "@/components/porra/PorraCrucesFifaInfo";
 
 // Bracket auto-completable: el ganador de cada partido aparece como candidato en el siguiente
 // El usuario NO arrastra equipos: solo elige ganador entre los DOS contendientes ya definidos
-//
-// Estructura simplificada: en cada fase los partidos están ordenados (numero_partido)
-// y el ganador del partido N de la fase X "alimenta" al partido floor(N/2) de la fase X+1
 const FASES_ORDEN = ['16avos', '8vos', '4tos', 'semis', 'final'];
+
+// ============================================================
+// BRACKET OFICIAL FIFA 2026 — cruces de octavos en adelante
+// Fuente: FIFA.com (fixture oficial M73-M104)
+// El índice del partido es 0-based (idx 0 = primer partido de la fase)
+// El valor es el par [idxAnterior_local, idxAnterior_visitante] de la fase previa
+// ============================================================
+const CRUCES_FIFA_OFICIAL = {
+  // Octavos (M89-M96) — ganadores de 16avos (M73-M88 → idx 0-15)
+  '8vos': [
+    [0, 1],   // M89 = W73 vs W74
+    [4, 5],   // M90 = W77 vs W78
+    [2, 3],   // M91 = W75 vs W76
+    [8, 9],   // M92 = W81 vs W82
+    [6, 7],   // M93 = W79 vs W80
+    [12, 13], // M94 = W85 vs W86
+    [10, 11], // M95 = W83 vs W84
+    [14, 15], // M96 = W87 vs W88
+  ],
+  // Cuartos (M97-M100) — ganadores de octavos
+  '4tos': [
+    [0, 1], // M97 = W89 vs W90
+    [2, 3], // M98 = W91 vs W92
+    [4, 5], // M99 = W93 vs W94
+    [6, 7], // M100 = W95 vs W96
+  ],
+  // Semis (M101-M102) — ganadores de cuartos
+  'semis': [
+    [0, 1], // M101 = W97 vs W98
+    [2, 3], // M102 = W99 vs W100
+  ],
+  // Final (M104) — ganadores de semis
+  'final': [
+    [0, 1], // M104 = W101 vs W102
+  ],
+};
 
 // Los puntos se sobreescriben dinámicamente desde la config
 const FASES_META_BASE = {
@@ -81,14 +114,18 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
       const ganadoresCuartos = cuartos.map(c => participante.predicciones_eliminatorias?.[c.id]).filter(Boolean);
       return ganadoresCuartos.filter(c => !ganadoresSemis.includes(c));
     }
-    // 8vos, 4tos, semis, final → ganadores del par de partidos anteriores
+    // 8vos, 4tos, semis, final → cruces FIFA oficiales (M89=W73vsW74, M90=W77vsW78, ...)
     const idxAnterior = FASES_ORDEN.indexOf(faseActual);
     if (idxAnterior <= 0) return equiposEn16avos;
     const faseAnterior = FASES_ORDEN[idxAnterior - 1];
     const partidosAnt = partidos.filter(p => p.fase === faseAnterior).sort((a, b) => a.numero_partido - b.numero_partido);
-    // Cada partido de la fase actual recibe los ganadores de 2 partidos anteriores
-    const a = partidosAnt[idxPartido * 2];
-    const b = partidosAnt[idxPartido * 2 + 1];
+
+    // Mapeo FIFA oficial. Si no hay mapeo definido para esa fase, fallback secuencial
+    const mapeo = CRUCES_FIFA_OFICIAL[faseActual]?.[idxPartido];
+    const [idxA, idxB] = mapeo || [idxPartido * 2, idxPartido * 2 + 1];
+
+    const a = partidosAnt[idxA];
+    const b = partidosAnt[idxB];
     const cands = [];
     if (a && participante.predicciones_eliminatorias?.[a.id]) cands.push(participante.predicciones_eliminatorias[a.id]);
     if (b && participante.predicciones_eliminatorias?.[b.id]) cands.push(participante.predicciones_eliminatorias[b.id]);
