@@ -147,13 +147,34 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
 
       <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4 text-sm">
         <p className="font-bold text-blue-900 mb-2 flex items-center gap-1">
-          ℹ️ Cómo funcionan los cruces a partir de octavos
+          ℹ️ Cómo funciona la puntuación (LÉEME)
         </p>
-        <p className="text-blue-900 text-xs leading-relaxed">
-          Los <strong>16avos</strong> siguen el cuadro oficial FIFA. A partir de <strong>octavos</strong>, los cruces que ves en la app se forman emparejando los ganadores de partidos consecutivos (1 vs 2, 3 vs 4...) y <strong>pueden no coincidir exactamente con el cuadro oficial FIFA</strong>.
-          <br/><br/>
-          <strong>Esto NO afecta a tus puntos:</strong> ganas puntos por cada equipo que aciertes que llega a cada fase (octavos, cuartos, semis, final y campeón), sin importar el cruce concreto. Elige con tranquilidad a quién ves avanzando en cada ronda. ✅
-        </p>
+        <div className="text-blue-900 text-xs leading-relaxed space-y-2">
+          <p>
+            <strong>👉 Lo importante:</strong> ganas puntos por cada equipo que aciertes que <strong>llega a cada fase</strong> (octavos, cuartos, semis, final y campeón). <strong>NO importa contra quién juegue en tu cuadro.</strong>
+          </p>
+
+          <div className="bg-white/70 rounded-lg p-2.5 border border-blue-200">
+            <p className="font-bold mb-1">📋 Ejemplo 1 — Quieres que España gane el Mundial:</p>
+            <p>Vas clicando España en 16avos → 8vos → 4tos → semis → final → CAMPEÓN. Si España llega a la final y la gana en la realidad → <strong>cobras TODOS los puntos por España</strong> (incluidos los +{config?.puntos_campeon ?? 15} de campeón). 🏆</p>
+          </div>
+
+          <div className="bg-white/70 rounded-lg p-2.5 border border-blue-200">
+            <p className="font-bold mb-1">📋 Ejemplo 2 — Quieres España 🇪🇸 y Portugal 🇵🇹 en la final:</p>
+            <p>Tienes que ponerlos en <strong>mitades distintas del cuadro</strong> para que ambos lleguen a la final en tu predicción.<br/>
+            👉 Si caen en la misma mitad, solo uno puede llegar a la final en tu predicción (el otro se queda en semis).<br/>
+            👉 Aun así, si en la realidad ambos llegan a la final → ganas los puntos de cada uno según hasta dónde los marcaste tú.</p>
+          </div>
+
+          <div className="bg-white/70 rounded-lg p-2.5 border border-blue-200">
+            <p className="font-bold mb-1">📋 Ejemplo 3 — Acertaste finalista pero no campeón:</p>
+            <p>Marcaste Argentina campeón. En la realidad llega a la final pero pierde. → Ganas puntos de FINAL por Argentina ({config?.puntos_final ?? 10} pts), pero NO los +{config?.puntos_campeon ?? 15} de campeón.</p>
+          </div>
+
+          <p className="pt-1">
+            <strong>⚠️ Sobre los cruces:</strong> los 16avos siguen el cuadro oficial FIFA. A partir de octavos, los emparejamientos visuales que ves en la app pueden no coincidir con los oficiales — <strong>pero da igual</strong>, los puntos se calculan por equipos que llegan a cada fase. 😊
+          </p>
+        </div>
       </div>
 
       {FASES_RENDER.map(faseKey => {
