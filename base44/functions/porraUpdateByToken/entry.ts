@@ -103,7 +103,15 @@ Deno.serve(async (req) => {
     // Bypass de prueba (admin): puede editar SOLO el bracket aunque haya pasado la fecha límite
     const TEST_EMAILS_BYPASS = ['manuelbermudo@hotmail.com'];
     const esTestAdmin = participante.email && TEST_EMAILS_BYPASS.includes(participante.email.toLowerCase());
-    const BRACKET_ONLY_FIELDS = new Set(['predicciones_eliminatorias', 'completado_bracket', 'porcentaje_completado']);
+    const BRACKET_ONLY_FIELDS = new Set([
+      'predicciones_eliminatorias',
+      'completado_bracket',
+      'porcentaje_completado',
+      // Flags derivados que el cliente recalcula en cada save — no modifican predicciones reales
+      'completado_grupos',
+      'completado_terceros',
+      'completado_especiales',
+    ]);
     const updateKeys = Object.keys(updates || {});
     const soloBracket = updateKeys.length > 0 && updateKeys.every(k => BRACKET_ONLY_FIELDS.has(k));
     const bypassPermitido = esTestAdmin && soloBracket;
