@@ -28,18 +28,24 @@ const CRUCES_FIFA_OFICIAL = {
     [12, 14], // M96 = W85 vs W87
   ],
   // Cuartos (M97-M100) — ganadores de octavos (idx 0-7 en orden M89→M96)
+  // ORDEN INTERNO en el array de cuartos:
+  //   idx 0 → M97  (LADO IZQUIERDO superior)
+  //   idx 1 → M99  (LADO IZQUIERDO inferior)
+  //   idx 2 → M98  (LADO DERECHO superior)
+  //   idx 3 → M100 (LADO DERECHO inferior)
+  // Así las semis quedan obvias: izq=[0,1], der=[2,3]
   '4tos': [
-    [0, 1], // M97 = W89 vs W90
-    [4, 5], // M98 = W93 vs W94
-    [2, 3], // M99 = W91 vs W92
-    [6, 7], // M100 = W95 vs W96
+    [0, 1], // idx 0 → M97  = W89 vs W90   (izq sup)
+    [2, 3], // idx 1 → M99  = W91 vs W92   (izq inf)
+    [4, 5], // idx 2 → M98  = W93 vs W94   (der sup)
+    [6, 7], // idx 3 → M100 = W95 vs W96   (der inf)
   ],
-  // Semis (M101-M102) — ganadores de cuartos
-  // M101 = W97 vs W99 (lado izquierdo del bracket)
-  // M102 = W98 vs W100 (lado derecho del bracket)
+  // Semis (M101-M102) — los 2 lados del cuadro NO se cruzan hasta la final
+  // M101 = ganador lado IZQUIERDO (W97 vs W99)
+  // M102 = ganador lado DERECHO  (W98 vs W100)
   'semis': [
-    [0, 2], // M101 = W97 vs W99
-    [1, 3], // M102 = W98 vs W100
+    [0, 1], // M101 = W97 vs W99  → LADO IZQUIERDO
+    [2, 3], // M102 = W98 vs W100 → LADO DERECHO
   ],
   // Final (M104) — ganadores de semis
   'final': [
