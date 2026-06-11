@@ -17,6 +17,7 @@ import PorraAdminMejoresTercerosReales from "@/components/porra/admin/PorraAdmin
 import PorraAdminResultadosFinales from "@/components/porra/admin/PorraAdminResultadosFinales";
 import PorraAdminTesting from "@/components/porra/admin/PorraAdminTesting";
 import PorraAdminCierre from "@/components/porra/admin/PorraAdminCierre";
+import PorraAdminAvisoBracket from "@/components/porra/admin/PorraAdminAvisoBracket";
 
 // Panel admin para gestionar la Porra Mundial 2026
 export default function PorraAdmin() {
@@ -151,12 +152,13 @@ export default function PorraAdmin() {
         <Tabs defaultValue="config">
           {/* En móvil: scroll horizontal con pestillas auto-ancho. En desktop (lg+): grid de 7 columnas */}
           <div className="-mx-4 md:mx-0 overflow-x-auto lg:overflow-visible scrollbar-thin">
-            <TabsList className="flex w-max lg:w-full lg:grid lg:grid-cols-7 gap-1 px-4 lg:px-0">
+            <TabsList className="flex w-max lg:w-full lg:grid lg:grid-cols-8 gap-1 px-4 lg:px-0">
               <TabsTrigger value="config" className="flex-shrink-0 whitespace-nowrap"><Settings className="w-4 h-4 mr-1" />Configuración</TabsTrigger>
               <TabsTrigger value="equipos" className="flex-shrink-0 whitespace-nowrap">🏳️ Equipos ({equipos.length})</TabsTrigger>
               <TabsTrigger value="partidos" className="flex-shrink-0 whitespace-nowrap">⚽ Partidos ({partidos.length})</TabsTrigger>
               <TabsTrigger value="resultados" className="flex-shrink-0 whitespace-nowrap data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-900"><Trophy className="w-4 h-4 mr-1" />🏆 Resultados</TabsTrigger>
               <TabsTrigger value="participantes" className="flex-shrink-0 whitespace-nowrap"><Users className="w-4 h-4 mr-1" />Participantes ({participantes.length})</TabsTrigger>
+              <TabsTrigger value="aviso" className="flex-shrink-0 whitespace-nowrap data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900">📣 Aviso Bracket</TabsTrigger>
               <TabsTrigger value="cierre" className="flex-shrink-0 whitespace-nowrap data-[state=active]:bg-green-100 data-[state=active]:text-green-900">🏁 Cierre</TabsTrigger>
               <TabsTrigger value="testing" className="flex-shrink-0 whitespace-nowrap data-[state=active]:bg-purple-100 data-[state=active]:text-purple-900"><FlaskConical className="w-4 h-4 mr-1" />🧪 Pruebas</TabsTrigger>
             </TabsList>
@@ -178,6 +180,9 @@ export default function PorraAdmin() {
           <TabsContent value="participantes" className="space-y-4">
             <PorraAdminRecalcular totalParticipantes={totalPagados} />
             <PorraAdminParticipantes participantes={participantes} config={config} onUpdate={cargarTodo} />
+          </TabsContent>
+          <TabsContent value="aviso">
+            <PorraAdminAvisoBracket participantes={participantes} />
           </TabsContent>
           <TabsContent value="cierre">
             <PorraAdminCierre config={config} participantes={participantes} onUpdate={cargarTodo} />
