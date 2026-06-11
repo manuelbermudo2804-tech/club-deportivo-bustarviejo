@@ -36,12 +36,12 @@ const CRUCES_FIFA_OFICIAL = {
     [2, 3], // P3 = M99  = W91 vs W92
     [6, 7], // P4 = M100 = W95 vs W96
   ],
-  // Semis (M101-M102) — cruces oficiales FIFA 2026
-  // M101 = W97 vs W99   → Semi 1 = Cuartos P1 vs Cuartos P3
-  // M102 = W98 vs W100  → Semi 2 = Cuartos P2 vs Cuartos P4
+  // Semis — cruces simples por orden de cuartos
+  // Semi 1 = Cuartos P1 vs Cuartos P2
+  // Semi 2 = Cuartos P3 vs Cuartos P4
   'semis': [
-    [0, 2], // Semi 1 = W M97 vs W M99
-    [1, 3], // Semi 2 = W M98 vs W M100
+    [0, 1], // Semi 1 = W Cuartos1 vs W Cuartos2
+    [2, 3], // Semi 2 = W Cuartos3 vs W Cuartos4
   ],
   // Final (M104) — ganadores de semis
   'final': [
