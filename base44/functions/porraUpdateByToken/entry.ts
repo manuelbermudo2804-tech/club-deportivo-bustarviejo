@@ -100,12 +100,16 @@ Deno.serve(async (req) => {
     // 🔒 BLINDAJE SERVIDOR: aunque el cliente intente saltarse el bloqueo,
     // si pasó la fecha límite NO se acepta ningún cambio.
     // Esto cierra el hueco entre que pasa la fecha y el cron porraBloquear marca bloqueada=true.
-    // Bypass de prueba: admin puede editar aunque haya pasado la fecha límite
+    // Bypass de prueba (admin): puede editar SOLO el bracket aunque haya pasado la fecha límite
     const TEST_EMAILS_BYPASS = ['manuelbermudo@hotmail.com'];
     const esTestAdmin = participante.email && TEST_EMAILS_BYPASS.includes(participante.email.toLowerCase());
+    const BRACKET_ONLY_FIELDS = new Set(['predicciones_eliminatorias', 'completado_bracket', 'porcentaje_completado']);
+    const updateKeys = Object.keys(updates || {});
+    const soloBracket = updateKeys.length > 0 && updateKeys.every(k => BRACKET_ONLY_FIELDS.has(k));
+    const bypassPermitido = esTestAdmin && soloBracket;
     const configsCheck = await base44.asServiceRole.entities.PorraConfig.list();
     const cfg = configsCheck[0];
-    if (!esTestAdmin && cfg?.fecha_limite_predicciones) {
+    if (!bypassPermitido && cfg?.fecha_limite_predicciones) {
       const limite = new Date(cfg.fecha_limite_predicciones).getTime();
       if (Date.now() > limite) {
         // Auto-bloquear este participante para que el cliente lo refleje inmediatamente

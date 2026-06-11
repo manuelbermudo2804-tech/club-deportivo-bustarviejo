@@ -20,12 +20,12 @@ export default function usePorraEditor(token) {
   const pendingUpdatesRef = useRef({});
   useEffect(() => { participanteRef.current = participante; }, [participante]);
 
+  // Test admin: emails que pueden editar SOLO el bracket aunque haya pasado la fecha
+  const TEST_EMAILS_BYPASS = ['manuelbermudo@hotmail.com'];
+  const esTestAdmin = participante?.email && TEST_EMAILS_BYPASS.includes(participante.email.toLowerCase());
+
   const isBlocked = (() => {
     if (!participante) return true;
-    // Bypass de prueba: admin puede editar aunque haya pasado la fecha límite
-    const TEST_EMAILS_BYPASS = ['manuelbermudo@hotmail.com'];
-    const esTestAdmin = participante.email && TEST_EMAILS_BYPASS.includes(participante.email.toLowerCase());
-    if (esTestAdmin) return false;
     if (participante.bloqueada) return true;
     if (config?.fecha_limite_predicciones) {
       const limite = new Date(config.fecha_limite_predicciones).getTime();
@@ -33,6 +33,9 @@ export default function usePorraEditor(token) {
     }
     return false;
   })();
+
+  // Bracket editable: igual que isBlocked, pero el test admin SÍ puede editarlo
+  const isBracketBlocked = isBlocked && !esTestAdmin;
 
   const cargar = useCallback(async () => {
     if (!token) {
@@ -117,15 +120,21 @@ export default function usePorraEditor(token) {
   }, [isBlocked, token]);
 
   // Guardado con debounce 700ms — acumula updates pendientes para no perderlos
+  // Solo bracket: si está bloqueado normal pero el test admin puede editar bracket,
+  // permitimos guardar SI las únicas updates son del bracket.
   const guardarDebounced = useCallback((updates) => {
-    if (!participanteRef.current || isBlocked) return;
+    if (!participanteRef.current) return;
+    const updateKeys = Object.keys(updates || {});
+    const soloBracket = updateKeys.every(k => k === 'predicciones_eliminatorias');
+    const bloqueadoEfectivo = soloBracket ? isBracketBlocked : isBlocked;
+    if (bloqueadoEfectivo) return;
     // Acumular updates pendientes (no sobrescribir si llegan varios antes del flush)
     pendingUpdatesRef.current = { ...pendingUpdatesRef.current, ...updates };
     // Actualizar UI optimista usando siempre la referencia más reciente
     setParticipante(prev => ({ ...prev, ...updates }));
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => { flushGuardado(); }, 700);
-  }, [isBlocked, flushGuardado]);
+  }, [isBlocked, isBracketBlocked, flushGuardado]);
 
   // Si el usuario cierra/recarga la pestaña: intentar flush antes de salir
   useEffect(() => {
@@ -175,7 +184,7 @@ export default function usePorraEditor(token) {
 
   return {
     participante, config, equipos, partidos,
-    loading, saving, error, isBlocked,
+    loading, saving, error, isBlocked, isBracketBlocked,
     setResultadoGrupo, setClasificacionGrupo,
     setEliminatoriaGanador, setEspecial, setTercerPuesto, setMejoresTerceros,
     refrescar: cargar,

@@ -33,7 +33,7 @@ export default function PorraMiPorra() {
 
   const {
     participante, config, equipos, partidos,
-    loading, saving, error, isBlocked,
+    loading, saving, error, isBlocked, isBracketBlocked,
     setResultadoGrupo, setClasificacionGrupo,
     setEliminatoriaGanador, setEspecial, setMejoresTerceros,
     refrescar, flushGuardado,
@@ -301,7 +301,7 @@ export default function PorraMiPorra() {
               participante={participante}
               partidos={partidos}
               equipos={equipos}
-              isBlocked={isBlocked}
+              isBlocked={isBracketBlocked}
               onSetGanador={setEliminatoriaGanador}
               config={config}
             />
