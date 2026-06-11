@@ -98,13 +98,12 @@ Deno.serve(async (req) => {
     }
 
     // 🔒 BLINDAJE SERVIDOR: aunque el cliente intente saltarse el bloqueo,
-    // si pasó la fecha límite NO se acepta ningún cambio.
-    // Esto cierra el hueco entre que pasa la fecha y el cron porraBloquear marca bloqueada=true.
-    // Bypass de prueba (admin): puede editar SOLO el bracket aunque haya pasado la fecha límite
-    const TEST_EMAILS_BYPASS = ['manuelbermudo@hotmail.com'];
-    const esTestAdmin = participante.email && TEST_EMAILS_BYPASS.includes(participante.email.toLowerCase());
+    // si pasó la fecha límite NO se acepta ningún cambio EXCEPTO la re-edición única del bracket.
+    // Bypass de re-edición de bracket: todos los participantes pueden re-editar el bracket UNA VEZ
+    // tras el rediseño FIFA 2026 (mientras bracket_reeditado=false), aunque pase la fecha límite.
     const BRACKET_ONLY_FIELDS = new Set([
       'predicciones_eliminatorias',
+      'prediccion_tercer_puesto',
       'completado_bracket',
       'porcentaje_completado',
       // Flags derivados que el cliente recalcula en cada save — no modifican predicciones reales
@@ -114,7 +113,8 @@ Deno.serve(async (req) => {
     ]);
     const updateKeys = Object.keys(updates || {});
     const soloBracket = updateKeys.length > 0 && updateKeys.every(k => BRACKET_ONLY_FIELDS.has(k));
-    const bypassPermitido = esTestAdmin && soloBracket;
+    const puedeReeditarBracket = !participante.bracket_reeditado;
+    const bypassPermitido = soloBracket && puedeReeditarBracket;
     const configsCheck = await base44.asServiceRole.entities.PorraConfig.list();
     const cfg = configsCheck[0];
     if (!bypassPermitido && cfg?.fecha_limite_predicciones) {

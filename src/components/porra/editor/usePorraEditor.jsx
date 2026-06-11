@@ -20,10 +20,6 @@ export default function usePorraEditor(token) {
   const pendingUpdatesRef = useRef({});
   useEffect(() => { participanteRef.current = participante; }, [participante]);
 
-  // Test admin: emails que pueden editar SOLO el bracket aunque haya pasado la fecha
-  const TEST_EMAILS_BYPASS = ['manuelbermudo@hotmail.com'];
-  const esTestAdmin = participante?.email && TEST_EMAILS_BYPASS.includes(participante.email.toLowerCase());
-
   const isBlocked = (() => {
     if (!participante) return true;
     if (participante.bloqueada) return true;
@@ -34,8 +30,10 @@ export default function usePorraEditor(token) {
     return false;
   })();
 
-  // Bracket editable: igual que isBlocked, pero el test admin SÍ puede editarlo
-  const isBracketBlocked = isBlocked && !esTestAdmin;
+  // Bracket: re-edición única tras rediseño FIFA 2026.
+  // Bloqueado SOLO si el usuario ya confirmó su re-edición del bracket.
+  // Mientras `bracket_reeditado` sea false, puede editarlo aunque haya pasado la fecha límite.
+  const isBracketBlocked = !!participante?.bracket_reeditado;
 
   const cargar = useCallback(async () => {
     if (!token) {
@@ -187,11 +185,32 @@ export default function usePorraEditor(token) {
     guardarDebounced({ mejores_terceros: lista });
   };
 
+  // Confirma y cierra el bracket: flush + llamada explícita para marcar bracket_reeditado=true
+  const confirmarBracket = useCallback(async () => {
+    if (!token || !participanteRef.current) return { ok: false };
+    // Flush pendientes primero para no perder el último cambio
+    await flushGuardado();
+    try {
+      setSaving(true);
+      const { data } = await base44.functions.invoke('porraConfirmarBracket', { token });
+      if (data?.success) {
+        setParticipante(prev => ({ ...prev, bracket_reeditado: true, fecha_bracket_reeditado: new Date().toISOString() }));
+        return { ok: true };
+      }
+      return { ok: false, error: data?.error || 'No se pudo confirmar' };
+    } catch (e) {
+      return { ok: false, error: e?.response?.data?.error || 'Error al confirmar' };
+    } finally {
+      setSaving(false);
+    }
+  }, [token, flushGuardado]);
+
   return {
     participante, config, equipos, partidos,
     loading, saving, error, isBlocked, isBracketBlocked,
     setResultadoGrupo, setClasificacionGrupo,
     setEliminatoriaGanador, setEspecial, setTercerPuesto, setMejoresTerceros,
+    confirmarBracket,
     refrescar: cargar,
     flushGuardado,
   };

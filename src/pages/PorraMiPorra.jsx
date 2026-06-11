@@ -16,6 +16,7 @@ import PorraCompletadaModal from "@/components/porra/PorraCompletadaModal";
 import MiDesglosePuntos from "@/components/porra/desglose/MiDesglosePuntos";
 import CompartirPorraButton from "@/components/porra/CompartirPorraButton";
 import PorraInfoDuranteTorneo from "@/components/porra/PorraInfoDuranteTorneo";
+import BracketReedicionBanner from "@/components/porra/editor/BracketReedicionBanner";
 import { base44 } from "@/api/base44Client";
 
 // Hub principal del editor de porra
@@ -36,6 +37,7 @@ export default function PorraMiPorra() {
     loading, saving, error, isBlocked, isBracketBlocked,
     setResultadoGrupo, setClasificacionGrupo,
     setEliminatoriaGanador, setEspecial, setMejoresTerceros,
+    confirmarBracket,
     refrescar, flushGuardado,
   } = usePorraEditor(token);
 
@@ -208,6 +210,11 @@ export default function PorraMiPorra() {
                   <p className="text-sm text-red-700 mt-0.5">
                     El plazo de predicciones ha cerrado. Tu porra está guardada y empezará a sumar puntos cuando comiencen los partidos.
                   </p>
+                  {!participante.bracket_reeditado && (
+                    <p className="text-sm text-amber-800 mt-2 bg-amber-100 border border-amber-300 rounded p-2">
+                      🆕 <strong>Excepción:</strong> puedes <strong>re-editar el bracket UNA vez</strong> con los nuevos cruces oficiales FIFA 2026. Ve a la pestaña <strong>🏆 Bracket</strong>.
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -297,6 +304,11 @@ export default function PorraMiPorra() {
             />
           </TabsContent>
           <TabsContent value="bracket" className="mt-4">
+            <BracketReedicionBanner
+              participante={participante}
+              onConfirmar={confirmarBracket}
+              saving={saving}
+            />
             <EditorBracket
               participante={participante}
               partidos={partidos}

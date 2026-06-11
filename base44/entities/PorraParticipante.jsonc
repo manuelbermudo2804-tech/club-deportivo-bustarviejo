@@ -178,6 +178,16 @@
       "type": "string",
       "format": "date-time"
     },
+    "bracket_reeditado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el usuario ya us\u00f3 su re-edici\u00f3n \u00fanica del bracket tras el redise\u00f1o FIFA 2026 (octavos\u2192final)."
+    },
+    "fecha_bracket_reeditado": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que el usuario finaliz\u00f3 la re-edici\u00f3n del bracket."
+    },
     "mini_liga_codigos": {
       "type": "array",
       "items": {
