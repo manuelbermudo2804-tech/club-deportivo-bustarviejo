@@ -22,6 +22,10 @@ export default function usePorraEditor(token) {
 
   const isBlocked = (() => {
     if (!participante) return true;
+    // Bypass de prueba: admin puede editar aunque haya pasado la fecha límite
+    const TEST_EMAILS_BYPASS = ['manuelbermudo@hotmail.com'];
+    const esTestAdmin = participante.email && TEST_EMAILS_BYPASS.includes(participante.email.toLowerCase());
+    if (esTestAdmin) return false;
     if (participante.bloqueada) return true;
     if (config?.fecha_limite_predicciones) {
       const limite = new Date(config.fecha_limite_predicciones).getTime();
