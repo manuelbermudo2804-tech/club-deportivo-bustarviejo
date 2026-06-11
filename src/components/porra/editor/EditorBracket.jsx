@@ -173,16 +173,6 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
 
       <PorraCrucesFifaInfo />
 
-      <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4 text-sm">
-        <p className="font-bold text-purple-900 mb-1 flex items-center gap-1">
-          <Sparkles className="w-4 h-4" /> Cómo funciona
-        </p>
-        <p className="text-purple-800 text-xs leading-relaxed">
-          Elige al ganador de cada eliminatoria. <strong>El ganador avanza automáticamente</strong> al siguiente partido. 🤖<br/>
-          Puntos: <strong>{config?.puntos_16avos ?? 2}</strong> 16avos · <strong>{config?.puntos_8vos ?? 3}</strong> 8vos · <strong>{config?.puntos_4tos ?? 5}</strong> 4tos · <strong>{config?.puntos_semis ?? 7}</strong> semis · <strong>{config?.puntos_final ?? 10}</strong> final · <strong>+{config?.puntos_campeon ?? 15}</strong> si aciertas el campeón.
-        </p>
-      </div>
-
       <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4 text-sm">
         <p className="font-bold text-blue-900 mb-2 flex items-center gap-1">
           📚 Ejemplos prácticos de puntuación
