@@ -141,6 +141,8 @@ export default function PorraRanking() {
       <div className="max-w-4xl mx-auto p-3 md:p-4 space-y-4">
         {/* Info durante el torneo: actualizaciones, puntos guardados, etc. */}
         <PorraInfoDuranteTorneo variant="ranking" />
+        {/* Info bracket vs realidad: aclara que los cruces de la app no coinciden con los de la FIFA */}
+        <PorraInfoDuranteTorneo variant="porra" />
 
         {loading ? (
           <div className="text-center py-20">
