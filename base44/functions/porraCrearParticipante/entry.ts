@@ -55,11 +55,13 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'La porra no está activa' }, { status: 403 });
     }
 
-    // Comprobar fecha límite
-    if (config.fecha_limite_predicciones) {
-      const limite = new Date(config.fecha_limite_predicciones).getTime();
-      if (Date.now() > limite) {
-        return Response.json({ error: 'Plazo de inscripciones cerrado' }, { status: 403 });
+    // Comprobar cierre de inscripciones: una vez empieza el Mundial, NO se aceptan porras nuevas.
+    // (fecha_limite_predicciones se reutiliza para la re-edición del bracket; el cierre de
+    // inscripciones es fecha_inicio_mundial).
+    if (config.fecha_inicio_mundial) {
+      const inicio = new Date(config.fecha_inicio_mundial).getTime();
+      if (Date.now() > inicio) {
+        return Response.json({ error: 'Plazo de inscripciones cerrado: el Mundial ya ha comenzado' }, { status: 403 });
       }
     }
 

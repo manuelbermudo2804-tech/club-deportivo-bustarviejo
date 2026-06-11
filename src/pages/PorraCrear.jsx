@@ -125,9 +125,11 @@ export default function PorraCrear() {
     );
   }
 
-  // 🔒 Bloquear si la porra no está activa O si pasó la fecha límite
-  const plazoCerrado = config?.fecha_limite_predicciones
-    ? Date.now() > new Date(config.fecha_limite_predicciones).getTime()
+  // 🔒 Bloquear si la porra no está activa O si ya empezó el Mundial (cierre de inscripciones).
+  // OJO: fecha_limite_predicciones se reutiliza para el cierre del BRACKET (re-edición octavos→final),
+  // por eso aquí usamos fecha_inicio_mundial como cierre de inscripciones.
+  const plazoCerrado = config?.fecha_inicio_mundial
+    ? Date.now() > new Date(config.fecha_inicio_mundial).getTime()
     : false;
 
   if (!config?.activa || plazoCerrado) {
