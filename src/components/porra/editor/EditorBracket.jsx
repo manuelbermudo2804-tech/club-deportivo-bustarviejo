@@ -28,24 +28,20 @@ const CRUCES_FIFA_OFICIAL = {
     [12, 14], // M96 = W85 vs W87
   ],
   // Cuartos (M97-M100) — ganadores de octavos (idx 0-7 en orden M89→M96)
-  // ORDEN INTERNO en el array de cuartos:
-  //   idx 0 → M97  (LADO IZQUIERDO superior)
-  //   idx 1 → M99  (LADO IZQUIERDO inferior)
-  //   idx 2 → M98  (LADO DERECHO superior)
-  //   idx 3 → M100 (LADO DERECHO inferior)
-  // Así las semis quedan obvias: izq=[0,1], der=[2,3]
+  // El idx aquí es el idx visual en la UI (Partido 1, 2, 3, 4) que coincide
+  // con numero_partido ascendente (M97, M98, M99, M100).
   '4tos': [
-    [0, 1], // idx 0 → M97  = W89 vs W90   (izq sup)
-    [2, 3], // idx 1 → M99  = W91 vs W92   (izq inf)
-    [4, 5], // idx 2 → M98  = W93 vs W94   (der sup)
-    [6, 7], // idx 3 → M100 = W95 vs W96   (der inf)
+    [0, 1], // P1 = M97  = W89 vs W90
+    [4, 5], // P2 = M98  = W93 vs W94
+    [2, 3], // P3 = M99  = W91 vs W92
+    [6, 7], // P4 = M100 = W95 vs W96
   ],
-  // Semis (M101-M102) — los 2 lados del cuadro NO se cruzan hasta la final
-  // M101 = ganador lado IZQUIERDO (W97 vs W99)
-  // M102 = ganador lado DERECHO  (W98 vs W100)
+  // Semis (M101-M102) — cruces oficiales FIFA 2026
+  // M101 = W97 vs W99   → Semi 1 = Cuartos P1 vs Cuartos P3
+  // M102 = W98 vs W100  → Semi 2 = Cuartos P2 vs Cuartos P4
   'semis': [
-    [0, 1], // M101 = W97 vs W99  → LADO IZQUIERDO
-    [2, 3], // M102 = W98 vs W100 → LADO DERECHO
+    [0, 2], // Semi 1 = W M97 vs W M99
+    [1, 3], // Semi 2 = W M98 vs W M100
   ],
   // Final (M104) — ganadores de semis
   'final': [
