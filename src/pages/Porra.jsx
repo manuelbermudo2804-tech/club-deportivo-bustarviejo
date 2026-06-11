@@ -80,13 +80,14 @@ export default function Porra() {
     ? Date.now() > new Date(config.fecha_inicio_mundial).getTime()
     : false;
 
-  if (config?.activa && plazoCerrado) {
+  if (plazoCerrado) {
     return (
       <>
         <PorraInscripcionesCerradas
           stats={stats}
           onRecuperar={() => setShowRecuperar(true)}
           fechaInicioMundial={config?.fecha_inicio_mundial}
+          fechaLimiteBracket={config?.fecha_limite_predicciones}
         />
         <PorraRecuperarAccesosModal open={showRecuperar} onOpenChange={setShowRecuperar} />
       </>
