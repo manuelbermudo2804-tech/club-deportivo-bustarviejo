@@ -93,11 +93,12 @@ Deno.serve(async (req) => {
     if (!participante) {
       return Response.json({ error: 'Porra no encontrada' }, { status: 404 });
     }
-    // 🔒 BLINDAJE SERVIDOR: aunque el cliente intente saltarse el bloqueo,
-    // si pasó la fecha límite NO se acepta ningún cambio EXCEPTO la re-edición única del bracket.
-    // Bypass de re-edición de bracket: todos los participantes pueden re-editar el bracket UNA VEZ
-    // tras el rediseño FIFA 2026 (mientras bracket_reeditado=false), aunque pase la fecha límite
-    // o la porra esté "bloqueada" (por haber llegado al 100% antes del rediseño).
+    // 🔒 BLINDAJE SERVIDOR — Mundial 2026 EN MARCHA:
+    // - Fase de grupos, mejores terceros y especiales: BLOQUEADOS desde el inicio del Mundial.
+    //   El partido inaugural ya se ha jugado, por lo que nadie puede modificar predicciones
+    //   de grupos / terceros / especiales (sería trampa con información a posteriori).
+    // - Bracket (eliminatorias + tercer puesto): editable hasta el 28-jun-2026 18:00 Madrid (CEST=UTC+2)
+    //   → 16:00 UTC. Pasada esa fecha, queda bloqueado por completo.
     const BRACKET_ONLY_FIELDS = new Set([
       'predicciones_eliminatorias',
       'prediccion_tercer_puesto',
@@ -110,29 +111,26 @@ Deno.serve(async (req) => {
     ]);
     const updateKeys = Object.keys(updates || {});
     const soloBracket = updateKeys.length > 0 && updateKeys.every(k => BRACKET_ONLY_FIELDS.has(k));
-    const puedeReeditarBracket = !participante.bracket_reeditado;
-    const bypassPermitido = soloBracket && puedeReeditarBracket;
 
-    if (participante.bloqueada && !bypassPermitido) {
-      return Response.json({ error: 'Porra bloqueada' }, { status: 403 });
+    // Cualquier intento de modificar grupos / terceros / especiales se rechaza ya.
+    if (!soloBracket) {
+      return Response.json({
+        error: 'La fase de grupos, mejores terceros y predicciones especiales están bloqueadas. El Mundial ya ha comenzado.'
+      }, { status: 403 });
     }
 
-    const configsCheck = await base44.asServiceRole.entities.PorraConfig.list();
-    const cfg = configsCheck[0];
-    if (!bypassPermitido && cfg?.fecha_limite_predicciones) {
-      const limite = new Date(cfg.fecha_limite_predicciones).getTime();
-      if (Date.now() > limite) {
-        // Auto-bloquear este participante para que el cliente lo refleje inmediatamente
-        if (!participante.bloqueada) {
-          try {
-            await base44.asServiceRole.entities.PorraParticipante.update(participante.id, {
-              bloqueada: true,
-              fecha_bloqueo: new Date().toISOString(),
-            });
-          } catch {}
-        }
-        return Response.json({ error: 'Fecha límite superada — porra bloqueada' }, { status: 403 });
+    // Fecha de cierre del bracket: 28 jun 2026 16:00 UTC (= 18:00 Europe/Madrid CEST)
+    const BRACKET_DEADLINE_MS = Date.UTC(2026, 5, 28, 16, 0, 0);
+    if (Date.now() > BRACKET_DEADLINE_MS) {
+      if (!participante.bloqueada) {
+        try {
+          await base44.asServiceRole.entities.PorraParticipante.update(participante.id, {
+            bloqueada: true,
+            fecha_bloqueo: new Date().toISOString(),
+          });
+        } catch {}
       }
+      return Response.json({ error: 'Fecha límite del bracket superada — porra bloqueada' }, { status: 403 });
     }
 
     // Filtrar solo campos permitidos (NUNCA aceptamos 'bloqueada' del cliente —
