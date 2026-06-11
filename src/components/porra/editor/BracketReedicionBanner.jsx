@@ -8,6 +8,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import CountdownTimer from "@/components/porra/CountdownTimer";
 
 /**
  * Banner que aparece SOBRE el editor del bracket explicando la re-edición
@@ -15,7 +16,7 @@ import {
  * - Si bracket_reeditado=false → muestra aviso + botón "Confirmar y cerrar bracket"
  * - Si bracket_reeditado=true  → muestra estado cerrado
  */
-export default function BracketReedicionBanner({ participante, onConfirmar, saving }) {
+export default function BracketReedicionBanner({ participante, onConfirmar, saving, fechaLimite }) {
   const [confirming, setConfirming] = useState(false);
   const yaCerrado = !!participante?.bracket_reeditado;
 
@@ -46,17 +47,35 @@ export default function BracketReedicionBanner({ participante, onConfirmar, savi
     }
   };
 
+  const fechaTxt = fechaLimite ? new Date(fechaLimite).toLocaleDateString('es-ES', {
+    weekday: 'long', day: 'numeric', month: 'long'
+  }) : null;
+  const horaTxt = fechaLimite ? new Date(fechaLimite).toLocaleTimeString('es-ES', {
+    hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid'
+  }) : null;
+
   return (
     <Card className="border-2 border-amber-300 bg-gradient-to-br from-amber-50 to-orange-50 mb-3">
       <CardContent className="p-4">
         <div className="flex items-start gap-2 mb-3">
           <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div className="text-sm">
+          <div className="text-sm flex-1">
             <p className="font-bold text-amber-900">⚠️ Re-edición única del bracket</p>
             <p className="text-amber-800 text-xs mt-1 leading-relaxed">
               Hemos actualizado los cruces de <strong>octavos hasta la final</strong> al formato oficial FIFA 2026.
               Revisa y ajusta tus predicciones del bracket. Cuando estés conforme, pulsa <strong>"Confirmar y cerrar bracket"</strong> — solo podrás hacerlo <strong>UNA vez</strong>.
             </p>
+            {fechaLimite && (
+              <p className="text-amber-800 text-xs mt-2 leading-relaxed">
+                ✅ Puedes modificarlo y confirmarlo hasta el{' '}
+                <strong>{fechaTxt} a las {horaTxt}h</strong>.
+              </p>
+            )}
+            {fechaLimite && (
+              <div className="mt-2">
+                <CountdownTimer targetDate={fechaLimite} variant="light" label="Tiempo restante" />
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,5 +1,6 @@
 import React from "react";
 import { AlertTriangle } from "lucide-react";
+import CountdownTimer from "@/components/porra/CountdownTimer";
 
 /**
  * Banner reutilizable que avisa a los participantes de que deben revisar/confirmar
@@ -48,10 +49,13 @@ export default function BracketReeditAvisoBanner({ fechaLimiteBracket, variant =
             (octavos → final). Tus predicciones de fase de grupos y mejores terceros{' '}
             <strong>se mantienen intactas</strong>, pero el cuadro de eliminatorias se ha reorganizado y necesitas confirmarlo.
           </p>
-          <p className={`${body} text-xs md:text-sm leading-relaxed`}>
+          <p className={`${body} text-xs md:text-sm leading-relaxed mb-2`}>
             ✅ Puedes <strong>modificarlo y confirmarlo</strong> hasta el{' '}
             <strong className={strong}>{fechaTxt} a las {horaTxt}h</strong>.
           </p>
+          <div className="mt-2 mb-1">
+            <CountdownTimer targetDate={fechaLimiteBracket} variant={isDark ? "dark" : "light"} label="Tiempo restante" />
+          </div>
           <p className={`${muted} text-[11px] md:text-xs mt-2 italic`}>
             Accede a tu porra desde el email mágico que recibiste o desde "Recuperar accesos".
           </p>

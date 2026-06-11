@@ -127,7 +127,12 @@ export default function PorraMiPorra() {
     );
   }
 
-  const completado = participante.porcentaje_completado || 0;
+  // Si el bracket está pendiente de re-confirmar tras el rediseño FIFA 2026,
+  // NO podemos mostrar 100%: el usuario aún tiene que revisar el bracket.
+  // Visualmente lo cap­amos al 75% (3 de 4 secciones) hasta que confirme.
+  const bracketPendienteReedit = isBlocked && !participante.bracket_reeditado;
+  const completadoRaw = participante.porcentaje_completado || 0;
+  const completado = bracketPendienteReedit ? Math.min(completadoRaw, 75) : completadoRaw;
   const fechaLimite = config?.fecha_limite_predicciones ? new Date(config.fecha_limite_predicciones) : null;
 
   // Bloqueo secuencial: Grupos → Terceros → Bracket → Especiales.
@@ -173,7 +178,12 @@ export default function PorraMiPorra() {
                   <Loader2 className="w-3 h-3 animate-spin" /> Guardando
                 </span>
               )}
-              {!saving && completado > 0 && (
+              {!saving && bracketPendienteReedit && (
+                <span className="text-xs bg-amber-500/40 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 font-bold">
+                  ⚠️ Bracket pendiente
+                </span>
+              )}
+              {!saving && !bracketPendienteReedit && completado > 0 && (
                 <span className="text-xs bg-green-500/30 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
                   <Save className="w-3 h-3" /> {completado}%
                 </span>
@@ -252,7 +262,7 @@ export default function PorraMiPorra() {
           <div className="grid grid-cols-4 gap-2">
             <StatusCard ok={participante.completado_grupos} label="Grupos" icon="⚽" active={tabActiva === 'grupos'} locked={estaBloqueada('grupos')} onClick={() => intentarCambiarTab('grupos')} />
             <StatusCard ok={participante.completado_terceros} label="Terceros" icon="🥉" active={tabActiva === 'terceros'} locked={estaBloqueada('terceros')} onClick={() => intentarCambiarTab('terceros')} />
-            <StatusCard ok={participante.completado_bracket} label="Bracket" icon="🏆" active={tabActiva === 'bracket'} locked={estaBloqueada('bracket')} pendingReedit={isBlocked && !participante.bracket_reeditado} onClick={() => intentarCambiarTab('bracket')} />
+            <StatusCard ok={participante.completado_bracket && !bracketPendienteReedit} label="Bracket" icon="🏆" active={tabActiva === 'bracket'} locked={estaBloqueada('bracket')} pendingReedit={bracketPendienteReedit} onClick={() => intentarCambiarTab('bracket')} />
             <StatusCard ok={participante.completado_especiales} label="Especiales" icon="⭐" active={tabActiva === 'especiales'} locked={estaBloqueada('especiales')} onClick={() => intentarCambiarTab('especiales')} />
           </div>
         </div>
@@ -321,6 +331,7 @@ export default function PorraMiPorra() {
               participante={participante}
               onConfirmar={confirmarBracket}
               saving={saving}
+              fechaLimite={config?.fecha_limite_predicciones}
             />
             <EditorBracket
               participante={participante}
