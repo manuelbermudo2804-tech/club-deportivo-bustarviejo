@@ -20,20 +20,18 @@ export default function usePorraEditor(token) {
   const pendingUpdatesRef = useRef({});
   useEffect(() => { participanteRef.current = participante; }, [participante]);
 
-  const isBlocked = (() => {
+  // 🔒 Mundial 2026 EN MARCHA:
+  // - Grupos, mejores terceros y especiales: BLOQUEADOS para todo el mundo (el Mundial ya empezó).
+  // - Bracket: editable hasta el 28-jun 18:00 Madrid (16:00 UTC), salvo que el usuario ya
+  //   haya confirmado su re-edición (entonces queda bloqueado también).
+  const BRACKET_DEADLINE_MS = Date.UTC(2026, 5, 28, 16, 0, 0);
+  const isBlocked = true; // grupos / terceros / especiales: SIEMPRE bloqueados desde el inicio del Mundial
+  const isBracketBlocked = (() => {
     if (!participante) return true;
-    if (participante.bloqueada) return true;
-    if (config?.fecha_limite_predicciones) {
-      const limite = new Date(config.fecha_limite_predicciones).getTime();
-      if (Date.now() > limite) return true;
-    }
+    if (participante.bracket_reeditado) return true;
+    if (Date.now() > BRACKET_DEADLINE_MS) return true;
     return false;
   })();
-
-  // Bracket: re-edición única tras rediseño FIFA 2026.
-  // Bloqueado SOLO si el usuario ya confirmó su re-edición del bracket.
-  // Mientras `bracket_reeditado` sea false, puede editarlo aunque haya pasado la fecha límite.
-  const isBracketBlocked = !!participante?.bracket_reeditado;
 
   const cargar = useCallback(async () => {
     if (!token) {
