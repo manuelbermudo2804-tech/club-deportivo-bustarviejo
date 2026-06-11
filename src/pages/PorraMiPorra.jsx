@@ -15,6 +15,7 @@ import MiniLigasManager from "@/components/porra/ligas/MiniLigasManager";
 import PorraCompletadaModal from "@/components/porra/PorraCompletadaModal";
 import MiDesglosePuntos from "@/components/porra/desglose/MiDesglosePuntos";
 import CompartirPorraButton from "@/components/porra/CompartirPorraButton";
+import PorraInfoDuranteTorneo from "@/components/porra/PorraInfoDuranteTorneo";
 import { base44 } from "@/api/base44Client";
 
 // Hub principal del editor de porra
@@ -256,6 +257,9 @@ export default function PorraMiPorra() {
 
         {/* Compartir por WhatsApp — retar a amigos */}
         <CompartirPorraButton participante={participante} miniLigas={misLigas} />
+
+        {/* Info durante el torneo: aclara dudas típicas (bracket vs realidad, puntos, etc.) */}
+        <PorraInfoDuranteTorneo variant="porra" />
 
         {/* Indicador visual de dónde se edita */}
         <div className="bg-gradient-to-r from-orange-100 to-red-100 border-2 border-orange-300 rounded-xl px-3 py-2 flex items-center gap-2 text-sm font-bold text-orange-900 shadow-sm">

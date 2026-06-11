@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import RankingTable from "@/components/porra/ranking/RankingTable";
 import ReglasDesempate from "@/components/porra/ranking/ReglasDesempate";
 import LiveIndicator from "@/components/porra/ranking/LiveIndicator";
+import PorraInfoDuranteTorneo from "@/components/porra/PorraInfoDuranteTorneo";
 
 const AUTO_REFRESH_MS = 90000; // 90 segundos — equilibrio entre frescura y carga del servidor con muchos usuarios concurrentes
 
@@ -138,15 +139,8 @@ export default function PorraRanking() {
       </div>
 
       <div className="max-w-4xl mx-auto p-3 md:p-4 space-y-4">
-        {/* Aviso de horario de actualización oficial */}
-        <Card className="bg-blue-900/40 border-blue-400/40 backdrop-blur">
-          <CardContent className="p-3 flex items-start gap-2">
-            <Info className="w-4 h-4 text-blue-300 flex-shrink-0 mt-0.5" />
-            <div className="text-xs text-blue-100 leading-relaxed">
-              <strong className="text-white">🕙 El ranking oficial se actualiza cada día sobre las 10:00 h</strong>, una vez confirmados todos los resultados de la jornada anterior. <span className="text-blue-200/80">No hace falta que estés pendiente por la noche 😴 — los puntos del día se reflejarán por la mañana.</span>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Info durante el torneo: actualizaciones, puntos guardados, etc. */}
+        <PorraInfoDuranteTorneo variant="ranking" />
 
         {loading ? (
           <div className="text-center py-20">
