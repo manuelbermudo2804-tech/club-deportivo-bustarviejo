@@ -187,16 +187,34 @@ export default function PorraMiPorra() {
       </div>
 
       <div className="max-w-5xl mx-auto px-3 md:px-4 py-4 space-y-4">
-        {/* Aviso bloqueo — distingue entre completada al 100% y plazo cerrado */}
+        {/* Aviso bloqueo — 3 estados:
+            1) Bracket pendiente de re-modificar (amarillo pulsátil)
+            2) Porra completada y cerrada (verde) — incluye tras confirmar bracket
+            3) Bloqueada sin completar (rojo) */}
         {isBlocked && (
-          completado === 100 ? (
+          !participante.bracket_reeditado ? (
+            <Card className="border-2 border-amber-400 bg-amber-50 animate-pulse-strong">
+              <CardContent className="p-4 flex items-start gap-3">
+                <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold text-amber-900">✏️ Porra actualizada — Bracket pendiente de modificar</p>
+                  <p className="text-sm text-amber-800 mt-1">
+                    Hemos actualizado los cruces del bracket a los <strong>oficiales FIFA 2026</strong>. Tienes hasta el inicio de los <strong>16avos de final</strong> para revisar tus eliminatorias y pulsar <strong>"Confirmar y cerrar bracket"</strong>.
+                  </p>
+                  <p className="text-xs text-amber-700 mt-2">
+                    👉 Ve a la pestaña <strong>🏆 Bracket</strong> para revisar y confirmar.
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : completado === 100 ? (
             <Card className="border-2 border-green-300 bg-green-50">
               <CardContent className="p-4 flex items-start gap-3">
                 <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
                   <p className="font-bold text-green-900">✅ Porra completada y cerrada</p>
                   <p className="text-sm text-green-800 mt-0.5">
-                    Has rellenado el 100% de las predicciones. Tu porra queda <strong>bloqueada</strong> para garantizar el juego limpio: ya no se puede modificar. Empezará a sumar puntos cuando comiencen los partidos. 🏆
+                    Has rellenado el 100% de las predicciones y confirmado tu bracket. Tu porra queda <strong>bloqueada</strong> para garantizar el juego limpio: ya no se puede modificar. Empezará a sumar puntos cuando comiencen los partidos. 🏆
                   </p>
                 </div>
               </CardContent>
@@ -210,11 +228,6 @@ export default function PorraMiPorra() {
                   <p className="text-sm text-red-700 mt-0.5">
                     El plazo de predicciones ha cerrado. Tu porra está guardada y empezará a sumar puntos cuando comiencen los partidos.
                   </p>
-                  {!participante.bracket_reeditado && (
-                    <p className="text-sm text-amber-800 mt-2 bg-amber-100 border border-amber-300 rounded p-2">
-                      🆕 <strong>Excepción:</strong> puedes <strong>re-editar el bracket UNA vez</strong> con los nuevos cruces oficiales FIFA 2026. Ve a la pestaña <strong>🏆 Bracket</strong>.
-                    </p>
-                  )}
                 </div>
               </CardContent>
             </Card>
@@ -239,7 +252,7 @@ export default function PorraMiPorra() {
           <div className="grid grid-cols-4 gap-2">
             <StatusCard ok={participante.completado_grupos} label="Grupos" icon="⚽" active={tabActiva === 'grupos'} locked={estaBloqueada('grupos')} onClick={() => intentarCambiarTab('grupos')} />
             <StatusCard ok={participante.completado_terceros} label="Terceros" icon="🥉" active={tabActiva === 'terceros'} locked={estaBloqueada('terceros')} onClick={() => intentarCambiarTab('terceros')} />
-            <StatusCard ok={participante.completado_bracket} label="Bracket" icon="🏆" active={tabActiva === 'bracket'} locked={estaBloqueada('bracket')} onClick={() => intentarCambiarTab('bracket')} />
+            <StatusCard ok={participante.completado_bracket} label="Bracket" icon="🏆" active={tabActiva === 'bracket'} locked={estaBloqueada('bracket')} pendingReedit={isBlocked && !participante.bracket_reeditado} onClick={() => intentarCambiarTab('bracket')} />
             <StatusCard ok={participante.completado_especiales} label="Especiales" icon="⭐" active={tabActiva === 'especiales'} locked={estaBloqueada('especiales')} onClick={() => intentarCambiarTab('especiales')} />
           </div>
         </div>
@@ -359,10 +372,12 @@ export default function PorraMiPorra() {
   );
 }
 
-function StatusCard({ ok, label, icon, active, locked, onClick }) {
-  const baseColor = locked
-    ? 'bg-slate-100 border-slate-300 opacity-70'
-    : ok ? 'bg-green-50 border-green-400' : 'bg-white border-slate-200';
+function StatusCard({ ok, label, icon, active, locked, pendingReedit, onClick }) {
+  const baseColor = pendingReedit
+    ? 'bg-amber-50 border-amber-400 animate-pulse-strong'
+    : locked
+      ? 'bg-slate-100 border-slate-300 opacity-70'
+      : ok ? 'bg-green-50 border-green-400' : 'bg-white border-slate-200';
   const activeRing = active ? 'ring-2 ring-orange-500 ring-offset-1' : '';
   return (
     <button
@@ -370,13 +385,13 @@ function StatusCard({ ok, label, icon, active, locked, onClick }) {
       onClick={onClick}
       className={`relative rounded-lg p-2 md:p-3 text-center border-2 transition-all hover:shadow-md hover:scale-[1.03] active:scale-95 cursor-pointer ${baseColor} ${activeRing}`}
     >
-      {locked && (
+      {locked && !pendingReedit && (
         <div className="absolute top-1 right-1 text-xs">🔒</div>
       )}
       <div className="text-xl md:text-2xl">{icon}</div>
       <p className="text-[10px] md:text-xs font-bold text-slate-700 mt-0.5">{label}</p>
-      <p className="text-[9px] md:text-[10px] text-slate-500">
-        {locked ? 'Bloqueado' : ok ? '✅ Hecho' : 'Pendiente'}
+      <p className={`text-[9px] md:text-[10px] ${pendingReedit ? 'text-amber-700 font-bold' : 'text-slate-500'}`}>
+        {pendingReedit ? '✏️ Pendiente de modificar' : locked ? 'Bloqueado' : ok ? '✅ Hecho' : 'Pendiente'}
       </p>
     </button>
   );
