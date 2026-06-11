@@ -73,10 +73,11 @@ export default function Porra() {
     );
   }
 
-  // 🔒 PLAZO CERRADO: si pasó la fecha límite de inscripciones → mostrar pantalla de "cerradas"
-  // (aunque admin haya dejado activa=true). Sale del flow normal antes de renderizar el CTA.
-  const plazoCerrado = config?.fecha_limite_predicciones
-    ? Date.now() > new Date(config.fecha_limite_predicciones).getTime()
+  // 🔒 INSCRIPCIONES CERRADAS: una vez empieza el Mundial, ya no se pueden crear porras nuevas.
+  // (la fecha_limite_predicciones se reutiliza para el cierre del BRACKET — re-edición octavos→final —
+  // por eso aquí usamos fecha_inicio_mundial como cierre de inscripciones).
+  const plazoCerrado = config?.fecha_inicio_mundial
+    ? Date.now() > new Date(config.fecha_inicio_mundial).getTime()
     : false;
 
   if (config?.activa && plazoCerrado) {

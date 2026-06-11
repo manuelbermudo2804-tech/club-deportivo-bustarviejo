@@ -13,8 +13,9 @@ export default function PorraHeroLanding({ config, onCrearPorra, totalParticipan
   const [tiempo, setTiempo] = useState({ dias: 0, horas: 0, min: 0, seg: 0 });
 
   useEffect(() => {
-    if (!config?.fecha_limite_predicciones) return;
-    const target = new Date(config.fecha_limite_predicciones).getTime();
+    // Contador hasta el INICIO del Mundial (cierre de inscripciones), no hasta el cierre del bracket
+    if (!config?.fecha_inicio_mundial) return;
+    const target = new Date(config.fecha_inicio_mundial).getTime();
     const tick = () => {
       const ahora = Date.now();
       const diff = Math.max(0, target - ahora);
@@ -97,11 +98,11 @@ export default function PorraHeroLanding({ config, onCrearPorra, totalParticipan
           <br />¿Te atreves a predecirlo todo?
         </p>
 
-        {/* Countdown */}
-        {config?.fecha_limite_predicciones && (
+        {/* Countdown hasta el inicio del Mundial (cierre de inscripciones) */}
+        {config?.fecha_inicio_mundial && Date.now() < new Date(config.fecha_inicio_mundial).getTime() && (
           <div className="mb-7">
             <p className="text-xs md:text-sm uppercase tracking-widest mb-3 text-yellow-200 font-black flex items-center justify-center gap-2 drop-shadow-lg">
-              <Flame className="w-4 h-4" /> Cierre de predicciones en <Flame className="w-4 h-4" />
+              <Flame className="w-4 h-4" /> Cierre de inscripciones en <Flame className="w-4 h-4" />
             </p>
             <div className="flex justify-center gap-2 md:gap-3">
               {[
