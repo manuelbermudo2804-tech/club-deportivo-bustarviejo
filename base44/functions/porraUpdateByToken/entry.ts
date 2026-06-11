@@ -93,14 +93,11 @@ Deno.serve(async (req) => {
     if (!participante) {
       return Response.json({ error: 'Porra no encontrada' }, { status: 404 });
     }
-    if (participante.bloqueada) {
-      return Response.json({ error: 'Porra bloqueada' }, { status: 403 });
-    }
-
     // 🔒 BLINDAJE SERVIDOR: aunque el cliente intente saltarse el bloqueo,
     // si pasó la fecha límite NO se acepta ningún cambio EXCEPTO la re-edición única del bracket.
     // Bypass de re-edición de bracket: todos los participantes pueden re-editar el bracket UNA VEZ
-    // tras el rediseño FIFA 2026 (mientras bracket_reeditado=false), aunque pase la fecha límite.
+    // tras el rediseño FIFA 2026 (mientras bracket_reeditado=false), aunque pase la fecha límite
+    // o la porra esté "bloqueada" (por haber llegado al 100% antes del rediseño).
     const BRACKET_ONLY_FIELDS = new Set([
       'predicciones_eliminatorias',
       'prediccion_tercer_puesto',
@@ -115,6 +112,11 @@ Deno.serve(async (req) => {
     const soloBracket = updateKeys.length > 0 && updateKeys.every(k => BRACKET_ONLY_FIELDS.has(k));
     const puedeReeditarBracket = !participante.bracket_reeditado;
     const bypassPermitido = soloBracket && puedeReeditarBracket;
+
+    if (participante.bloqueada && !bypassPermitido) {
+      return Response.json({ error: 'Porra bloqueada' }, { status: 403 });
+    }
+
     const configsCheck = await base44.asServiceRole.entities.PorraConfig.list();
     const cfg = configsCheck[0];
     if (!bypassPermitido && cfg?.fecha_limite_predicciones) {
