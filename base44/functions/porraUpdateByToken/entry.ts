@@ -119,6 +119,13 @@ Deno.serve(async (req) => {
       }, { status: 403 });
     }
 
+    // Si el participante YA confirmó su bracket (bracket_reeditado=true) → todo bloqueado.
+    if (participante.bracket_reeditado) {
+      return Response.json({
+        error: 'Tu bracket ya está confirmado y cerrado. No se permiten más cambios.'
+      }, { status: 403 });
+    }
+
     // Fecha de cierre del bracket: 28 jun 2026 16:00 UTC (= 18:00 Europe/Madrid CEST)
     const BRACKET_DEADLINE_MS = Date.UTC(2026, 5, 28, 16, 0, 0);
     if (Date.now() > BRACKET_DEADLINE_MS) {
