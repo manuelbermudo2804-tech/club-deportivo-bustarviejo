@@ -145,6 +145,17 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
         </p>
       </div>
 
+      <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4 text-sm">
+        <p className="font-bold text-blue-900 mb-2 flex items-center gap-1">
+          ℹ️ Cómo funcionan los cruces a partir de octavos
+        </p>
+        <p className="text-blue-900 text-xs leading-relaxed">
+          Los <strong>16avos</strong> siguen el cuadro oficial FIFA. A partir de <strong>octavos</strong>, los cruces que ves en la app se forman emparejando los ganadores de partidos consecutivos (1 vs 2, 3 vs 4...) y <strong>pueden no coincidir exactamente con el cuadro oficial FIFA</strong>.
+          <br/><br/>
+          <strong>Esto NO afecta a tus puntos:</strong> ganas puntos por cada equipo que aciertes que llega a cada fase (octavos, cuartos, semis, final y campeón), sin importar el cruce concreto. Elige con tranquilidad a quién ves avanzando en cada ronda. ✅
+        </p>
+      </div>
+
       {FASES_RENDER.map(faseKey => {
         const metaBase = FASES_META_BASE[faseKey];
         const meta = { ...metaBase, pts: config?.[metaBase.ptsKey] ?? metaBase.defaultPts };
