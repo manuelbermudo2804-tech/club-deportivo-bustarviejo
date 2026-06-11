@@ -3,7 +3,9 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 // Cache en memoria del ranking global (60s). Reduce drásticamente la carga cuando
 // cientos de personas refrescan el ranking durante un partido del Mundial.
 const RANKING_CACHE = { data: null, expiresAt: 0 };
-const RANKING_CACHE_TTL_MS = 60_000;
+// TTL corto (20s) para que tras un recálculo de puntos durante un partido en vivo
+// los usuarios vean cambios casi al instante.
+const RANKING_CACHE_TTL_MS = 20_000;
 
 // Devuelve el ranking público o filtrado por mini-liga
 // Body: { codigo_liga?: 'XXXXXX', limite?: 100 }
@@ -60,10 +62,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Helper: puntos del tramo final (estimado a partir de los breakdowns disponibles)
-    // puntos_eliminatorias incluye TODAS las eliminatorias. Para separar el "tramo final"
-    // usamos: puntos_campeon + puntos_tercer_puesto.
-    // Es la mejor aproximación con los campos guardados actualmente.
+    // Helper: "tramo final" como criterio de desempate.
+    // NOTA: puntos_eliminatorias agrupa TODAS las rondas eliminatorias (16avos..final)
+    // sin separar por fase, por lo que aquí sólo podemos usar los puntos que sí están
+    // separados en el modelo: puntos_campeon + puntos_tercer_puesto.
     const tramoFinal = (p) => (p.puntos_campeon || 0) + (p.puntos_tercer_puesto || 0);
 
     // Comparador con las 7 reglas de desempate

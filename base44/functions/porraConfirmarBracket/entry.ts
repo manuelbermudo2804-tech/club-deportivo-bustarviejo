@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 // Endpoint público: confirma y cierra la re-edición del bracket de un participante.
 // Una vez llamado, el bracket queda bloqueado definitivamente (bracket_reeditado=true).
