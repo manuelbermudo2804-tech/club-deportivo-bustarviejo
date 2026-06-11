@@ -1,7 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Trophy, Lock, Mail, ExternalLink, AlertTriangle } from "lucide-react";
+import { Trophy, Lock, Mail, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import BracketReeditAvisoBanner from "@/components/porra/BracketReeditAvisoBanner";
 
 // Pantalla mostrada cuando el plazo de inscripciones ha cerrado.
 // Reemplaza el CTA de "apuntar" por accesos a ranking y recuperación de porras.
@@ -53,36 +54,10 @@ export default function PorraInscripcionesCerradas({ stats = {}, onRecuperar, fe
           </p>
         )}
 
-        {/* AVISO BRACKET REEDITABLE — solo si aún no ha pasado la fecha límite */}
-        {fechaLimiteBracket && Date.now() < new Date(fechaLimiteBracket).getTime() && (
-          <div className="bg-yellow-400/15 border-2 border-yellow-400/60 rounded-2xl p-4 md:p-5 mb-6 text-left backdrop-blur-md">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="w-6 h-6 text-yellow-300 flex-shrink-0 mt-0.5 animate-pulse" />
-              <div className="flex-1">
-                <p className="font-black text-yellow-200 text-sm md:text-base mb-1.5">
-                  📢 ¿Ya tienes porra? Revisa tu bracket
-                </p>
-                <p className="text-white/90 text-xs md:text-sm leading-relaxed mb-2">
-                  Hemos actualizado el bracket de eliminatorias al{' '}
-                  <strong className="text-yellow-200">cuadro oficial FIFA 2026</strong>{' '}
-                  (octavos → final). Tus predicciones de fase de grupos y mejores terceros{' '}
-                  <strong>se mantienen intactas</strong>, pero el cuadro de eliminatorias se ha reorganizado y necesitas confirmarlo.
-                </p>
-                <p className="text-white/90 text-xs md:text-sm leading-relaxed">
-                  ✅ Puedes <strong>modificarlo y confirmarlo</strong> hasta el{' '}
-                  <strong className="text-yellow-200">
-                    {new Date(fechaLimiteBracket).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
-                    {' a las '}
-                    {new Date(fechaLimiteBracket).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' })}h
-                  </strong>.
-                </p>
-                <p className="text-white/70 text-[11px] md:text-xs mt-2 italic">
-                  Accede a tu porra desde el email que recibiste o desde el botón "Recupera tus porras" más abajo.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* AVISO BRACKET REEDITABLE — desaparece solo cuando pasa la fecha límite */}
+        <div className="mb-6">
+          <BracketReeditAvisoBanner fechaLimiteBracket={fechaLimiteBracket} variant="dark" />
+        </div>
 
         <div className="space-y-3">
           <Button

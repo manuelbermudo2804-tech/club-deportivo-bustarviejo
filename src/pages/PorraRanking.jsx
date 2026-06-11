@@ -10,6 +10,7 @@ import RankingTable from "@/components/porra/ranking/RankingTable";
 import ReglasDesempate from "@/components/porra/ranking/ReglasDesempate";
 import LiveIndicator from "@/components/porra/ranking/LiveIndicator";
 import PorraInfoDuranteTorneo from "@/components/porra/PorraInfoDuranteTorneo";
+import BracketReeditAvisoBanner from "@/components/porra/BracketReeditAvisoBanner";
 
 const AUTO_REFRESH_MS = 90000; // 90 segundos — equilibrio entre frescura y carga del servidor con muchos usuarios concurrentes
 
@@ -32,11 +33,16 @@ export default function PorraRanking() {
   const [codigoInput, setCodigoInput] = useState(codigoLigaUrl || '');
   const [miAlias, setMiAlias] = useState(null);
   const [ocultoPorAdmin, setOcultoPorAdmin] = useState(false);
+  const [fechaLimiteBracket, setFechaLimiteBracket] = useState(null);
   const intervalRef = useRef(null);
 
   useEffect(() => {
     document.title = "Ranking — Porra Mundial 2026";
     cargar(true);
+    // Cargar fecha límite del bracket para mostrar aviso amarillo
+    base44.functions.invoke('porraPublicLanding', {})
+      .then(res => setFechaLimiteBracket(res.data?.config?.fecha_limite_predicciones || null))
+      .catch(() => {});
   }, [codigoLigaUrl]);
 
   useEffect(() => {
@@ -141,8 +147,8 @@ export default function PorraRanking() {
       <div className="max-w-4xl mx-auto p-3 md:p-4 space-y-4">
         {/* Info durante el torneo: actualizaciones, puntos guardados, etc. */}
         <PorraInfoDuranteTorneo variant="ranking" />
-        {/* Info bracket vs realidad: aclara que los cruces de la app no coinciden con los de la FIFA */}
-        <PorraInfoDuranteTorneo variant="porra" />
+        {/* Aviso bracket FIFA 2026 reeditable hasta 28 jun 19:00h — desaparece solo */}
+        <BracketReeditAvisoBanner fechaLimiteBracket={fechaLimiteBracket} variant="light" />
 
         {loading ? (
           <div className="text-center py-20">
