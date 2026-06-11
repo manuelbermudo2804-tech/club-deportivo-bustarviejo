@@ -16,10 +16,10 @@ const FASES_ORDEN = ['16avos', '8vos', '4tos', 'semis', 'final'];
 // ============================================================
 const CRUCES_FIFA_OFICIAL = {
   // Octavos (M89-M96) — ganadores de 16avos (M73-M88 → idx 0-15)
-  // Verificado contra fixture oficial FIFA 2026
+  // Verificado contra fixture oficial FIFA 2026 (bracket facilitado por usuario)
   '8vos': [
-    [1, 4],   // M89 = W74 vs W77
-    [0, 2],   // M90 = W73 vs W75
+    [0, 2],   // M89 = W73 vs W75
+    [1, 4],   // M90 = W74 vs W77
     [3, 5],   // M91 = W76 vs W78
     [6, 7],   // M92 = W79 vs W80
     [10, 11], // M93 = W83 vs W84
@@ -35,9 +35,11 @@ const CRUCES_FIFA_OFICIAL = {
     [6, 7], // M100 = W95 vs W96
   ],
   // Semis (M101-M102) — ganadores de cuartos
+  // M101 = W97 vs W99 (lado izquierdo del bracket)
+  // M102 = W98 vs W100 (lado derecho del bracket)
   'semis': [
-    [0, 1], // M101 = W97 vs W98
-    [2, 3], // M102 = W99 vs W100
+    [0, 2], // M101 = W97 vs W99
+    [1, 3], // M102 = W98 vs W100
   ],
   // Final (M104) — ganadores de semis
   'final': [
