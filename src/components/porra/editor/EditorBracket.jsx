@@ -133,68 +133,15 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
 
   return (
     <div className="space-y-4">
-      {/* 🚨 AVISO CRÍTICO — Cruces visuales vs FIFA */}
-      <div className="bg-gradient-to-br from-red-50 to-orange-50 border-4 border-red-400 rounded-2xl p-5 shadow-lg">
-        <div className="flex items-start gap-3 mb-3">
-          <div className="text-3xl">⚠️</div>
-          <div className="flex-1">
-            <p className="font-black text-red-900 text-base mb-1">LEE ESTO ANTES DE EMPEZAR — IMPORTANTE</p>
-            <p className="text-red-800 text-xs">Explicación oficial sobre los cruces del bracket</p>
-          </div>
-        </div>
-
-        <div className="space-y-3 text-sm text-slate-800 leading-relaxed">
-          <div className="bg-white rounded-xl p-3 border-2 border-green-300">
-            <p className="font-bold text-green-900 mb-1">✅ Lo que SÍ coincide con FIFA</p>
-            <p className="text-xs">Los <strong>16avos de final (M73-M88)</strong> siguen exactamente el cuadro oficial FIFA Mundial 2026.</p>
-          </div>
-
-          <div className="bg-white rounded-xl p-3 border-2 border-amber-300">
-            <p className="font-bold text-amber-900 mb-1">⚠️ Lo que NO coincide visualmente</p>
-            <p className="text-xs">Desde <strong>octavos en adelante</strong> (8vos, cuartos, semis, final), los emparejamientos que ves en pantalla <strong>pueden NO coincidir</strong> con los cruces oficiales FIFA. Es un detalle visual de la app.</p>
-          </div>
-
-          <div className="bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl p-3 border-2 border-blue-400">
-            <p className="font-black text-blue-900 mb-2 text-base">🎯 PERO TRANQUILO: tus puntos NO se ven afectados</p>
-            <p className="text-xs text-blue-900 mb-2">
-              Los puntos se calculan por <strong>"equipo que llega a cada fase"</strong>, NO por el cruce concreto.
-            </p>
-            <p className="text-xs text-blue-900">
-              👉 Si predices que <strong>España llega a semis</strong> y España llega a semis en la realidad → <strong>cobras los puntos igual</strong>, da igual contra quién la cruzaste tú en el cuadro.
-            </p>
-          </div>
-
-          <div className="bg-white rounded-xl p-3 border border-slate-300">
-            <p className="font-bold text-slate-900 mb-1 text-xs">💡 ¿Y entonces cómo hago el bracket?</p>
-            <p className="text-xs">Simplemente <strong>elige al ganador de cada cruce</strong> que ves en pantalla. El ganador avanza automáticamente. Lo que importa es <strong>hasta qué fase haces llegar a cada equipo</strong>.</p>
-          </div>
-        </div>
-      </div>
-
-      <PorraCrucesFifaInfo />
-
-      <div className="bg-blue-50 border-2 border-blue-300 rounded-xl p-4 text-sm">
-        <p className="font-bold text-blue-900 mb-2 flex items-center gap-1">
-          📚 Ejemplos prácticos de puntuación
+      {/* Aviso simple y claro */}
+      <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 text-sm">
+        <p className="font-bold text-amber-900 mb-2">⚠️ Importante — Léeme</p>
+        <p className="text-amber-900 text-xs leading-relaxed">
+          Los puntos se ganan por <strong>cada equipo que aciertes que llega a cada fase</strong> (octavos, cuartos, semis, final, campeón). <strong>NO importa contra quién juegue en tu cuadro.</strong> Si predices que España llega a semis y llega → cobras los puntos, da igual el cruce.
         </p>
-        <div className="text-blue-900 text-xs leading-relaxed space-y-2">
-          <div className="bg-white/70 rounded-lg p-2.5 border border-blue-200">
-            <p className="font-bold mb-1">📋 Ejemplo 1 — Quieres que España gane el Mundial:</p>
-            <p>Vas clicando España en 16avos → 8vos → 4tos → semis → final → CAMPEÓN. Si España llega a la final y la gana en la realidad → <strong>cobras TODOS los puntos por España</strong> (incluidos los +{config?.puntos_campeon ?? 15} de campeón). 🏆</p>
-          </div>
-
-          <div className="bg-white/70 rounded-lg p-2.5 border border-blue-200">
-            <p className="font-bold mb-1">📋 Ejemplo 2 — Quieres España 🇪🇸 y Portugal 🇵🇹 en la final:</p>
-            <p>Tienes que ponerlos en <strong>mitades distintas del cuadro</strong> para que ambos lleguen a la final en tu predicción.<br/>
-            👉 Si caen en la misma mitad, solo uno puede llegar a la final en tu predicción (el otro se queda en semis).<br/>
-            👉 Aun así, si en la realidad ambos llegan a la final → ganas los puntos de cada uno según hasta dónde los marcaste tú.</p>
-          </div>
-
-          <div className="bg-white/70 rounded-lg p-2.5 border border-blue-200">
-            <p className="font-bold mb-1">📋 Ejemplo 3 — Acertaste finalista pero no campeón:</p>
-            <p>Marcaste Argentina campeón. En la realidad llega a la final pero pierde. → Ganas puntos de FINAL por Argentina ({config?.puntos_final ?? 10} pts), pero NO los +{config?.puntos_campeon ?? 15} de campeón.</p>
-          </div>
-        </div>
+        <p className="text-amber-800 text-xs mt-2">
+          🏆 Acertar al campeón da <strong>+{config?.puntos_campeon ?? 15} pts extra</strong>.
+        </p>
       </div>
 
       {FASES_RENDER.map(faseKey => {
@@ -295,11 +242,6 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
         );
       })}
 
-      <div className="bg-yellow-50 border-2 border-yellow-300 rounded-xl p-4 text-sm">
-        <p className="text-yellow-900 text-xs">
-          💡 <strong>Tip pro:</strong> acertar al campeón te da <strong>{config?.puntos_campeon ?? 15} puntos extra</strong>. ¡Piénsalo bien!
-        </p>
-      </div>
     </div>
   );
 }
