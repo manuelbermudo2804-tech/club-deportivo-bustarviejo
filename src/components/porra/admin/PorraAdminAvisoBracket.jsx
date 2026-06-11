@@ -89,7 +89,9 @@ ${intro}
 
 ${linksPorras}
 
-Solo tienes que entrar, repasar las eliminatorias y pulsar *"Confirmar y cerrar bracket"*. Si no lo haces, tu porra se quedará con las predicciones antiguas.
+📲 *IMPORTANTE:* Antes de entrar, *cierra la app y vuelve a abrirla* (o refresca el navegador con el icono 🔄) para asegurarte de ver la versión actualizada. Si no, puede que veas los cruces antiguos.
+
+Luego solo tienes que entrar, repasar las eliminatorias y pulsar *"Confirmar y cerrar bracket"*. Si no lo haces, tu porra se quedará con las predicciones antiguas.
 
 ¡Perdona las molestias y mucha suerte! 🏆⚽
 
