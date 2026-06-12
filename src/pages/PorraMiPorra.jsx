@@ -142,9 +142,13 @@ export default function PorraMiPorra() {
     bracket: { campo: 'completado_terceros', nombre: 'Terceros' },
     especiales: { campo: 'completado_bracket', nombre: 'Bracket' },
   };
+  // Si la porra ya está bloqueada (Mundial empezado) o el bracket está pendiente
+  // de re-confirmar tras el rediseño FIFA 2026, levantamos el bloqueo secuencial:
+  // el usuario DEBE poder acceder al bracket sin importar el estado anterior.
+  const desbloquearTodo = isBlocked || bracketPendienteReedit;
   const intentarCambiarTab = (nuevaTab) => {
     const prereq = ordenPrereq[nuevaTab];
-    if (prereq && !participante[prereq.campo]) {
+    if (!desbloquearTodo && prereq && !participante[prereq.campo]) {
       toast.error(`Antes completa "${prereq.nombre}" para desbloquear esta pestaña 🔒`);
       return;
     }
@@ -152,6 +156,7 @@ export default function PorraMiPorra() {
     setTabActiva(nuevaTab);
   };
   const estaBloqueada = (tab) => {
+    if (desbloquearTodo) return false;
     const prereq = ordenPrereq[tab];
     return prereq ? !participante[prereq.campo] : false;
   };
