@@ -51,14 +51,30 @@ export default function PorraAdminAvisoBracket({ participantes }) {
     return limpio;
   };
 
-  // Agrupar por teléfono normalizado
+  // Agrupar por teléfono normalizado.
+  // PASO 1: indexamos qué teléfono está asociado a cada email (la primera porra del email con tel manda).
+  // PASO 2: cuando una porra no tiene tel propio, intentamos recuperarlo desde otra porra del mismo email.
+  // Así, si una persona tiene 3 porras y solo 2 traen tel, las 3 acaban en el mismo WhatsApp.
   const grupos = useMemo(() => {
-    const map = new Map();
-    participantes.forEach(p => {
-      if (p.estado_pago !== 'pagado') return;
-      if (p.bracket_reeditado) return; // ya re-editó, no molestar
+    const pagadosPendientes = participantes.filter(
+      p => p.estado_pago === 'pagado' && !p.bracket_reeditado
+    );
+
+    // Email (lowercase) -> primer teléfono normalizado encontrado para ese email
+    const emailToTel = new Map();
+    pagadosPendientes.forEach(p => {
+      const email = (p.email || '').toLowerCase().trim();
+      if (!email) return;
       const tel = normalizarTelefono(p.telefono);
-      if (!tel) return;
+      if (tel && !emailToTel.has(email)) emailToTel.set(email, tel);
+    });
+
+    const map = new Map();
+    pagadosPendientes.forEach(p => {
+      const email = (p.email || '').toLowerCase().trim();
+      // Fallback: si esta porra no tiene tel, usar el de otra porra del mismo email
+      const tel = normalizarTelefono(p.telefono) || emailToTel.get(email) || null;
+      if (!tel) return; // sin teléfono ni propio ni heredado -> contará como "sin teléfono"
       if (!map.has(tel)) {
         map.set(tel, { telefono: tel, nombre: p.nombre, porras: [] });
       }
@@ -75,7 +91,13 @@ export default function PorraAdminAvisoBracket({ participantes }) {
   // Estadísticas
   const totalPagados = participantes.filter(p => p.estado_pago === 'pagado').length;
   const yaReeditaron = participantes.filter(p => p.estado_pago === 'pagado' && p.bracket_reeditado).length;
-  const sinTelefono = participantes.filter(p => p.estado_pago === 'pagado' && !p.bracket_reeditado && !normalizarTelefono(p.telefono)).length;
+  // "Sin teléfono" = porras pagadas pendientes cuyo dueño no aparece en ningún grupo
+  // (ni con tel propio ni con tel heredado de otra porra del mismo email).
+  const idsConGrupo = new Set();
+  grupos.forEach(g => g.porras.forEach(p => idsConGrupo.add(p.id)));
+  const sinTelefono = participantes.filter(
+    p => p.estado_pago === 'pagado' && !p.bracket_reeditado && !idsConGrupo.has(p.id)
+  ).length;
 
   const filtrados = grupos.filter(g => {
     if (!busqueda) return true;
