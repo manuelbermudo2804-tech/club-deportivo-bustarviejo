@@ -3,8 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Phone, AlertCircle, Search, CheckCircle2, Copy } from "lucide-react";
+import { MessageCircle, Phone, AlertCircle, Search, CheckCircle2, Copy, Pencil, Save, X } from "lucide-react";
 import { toast } from "sonner";
+import { base44 } from "@/api/base44Client";
 
 // URL base pública de la app
 const APP_BASE = 'https://app.cdbustarviejo.com';
@@ -18,8 +19,29 @@ const APP_BASE = 'https://app.cdbustarviejo.com';
  * - Agrupa por teléfono normalizado (varias porras = un solo WhatsApp).
  * - Excluye automáticamente los que ya hayan re-editado el bracket.
  */
-export default function PorraAdminAvisoBracket({ participantes }) {
+export default function PorraAdminAvisoBracket({ participantes, onRefresh }) {
   const [busqueda, setBusqueda] = useState('');
+  // Edición inline del teléfono: { [participanteId]: 'valor en input' }
+  const [editandoTel, setEditandoTel] = useState({});
+  const [guardandoId, setGuardandoId] = useState(null);
+
+  const empezarEditar = (p) => setEditandoTel(prev => ({ ...prev, [p.id]: p.telefono || '' }));
+  const cancelarEditar = (id) => setEditandoTel(prev => { const n = { ...prev }; delete n[id]; return n; });
+  const guardarTelefono = async (p) => {
+    const nuevoTel = (editandoTel[p.id] || '').trim();
+    if (!nuevoTel) { toast.error('El teléfono no puede estar vacío'); return; }
+    setGuardandoId(p.id);
+    try {
+      await base44.entities.PorraParticipante.update(p.id, { telefono: nuevoTel });
+      toast.success(`Teléfono actualizado para "${p.alias_equipo}"`);
+      cancelarEditar(p.id);
+      if (typeof onRefresh === 'function') await onRefresh();
+    } catch (e) {
+      toast.error('Error al guardar el teléfono');
+    } finally {
+      setGuardandoId(null);
+    }
+  };
   // Estado persistente en localStorage: una vez marcado como enviado, NO se desmarca
   // al refrescar, navegar o cerrar la app. Se guarda por teléfono normalizado.
   const STORAGE_KEY = 'porra_aviso_bracket_enviados_v1';
@@ -110,9 +132,10 @@ export default function PorraAdminAvisoBracket({ participantes }) {
   // (ni con tel propio ni con tel heredado de otra porra del mismo email).
   const idsConGrupo = new Set();
   grupos.forEach(g => g.porras.forEach(p => idsConGrupo.add(p.id)));
-  const sinTelefono = participantes.filter(
+  const participantesSinTel = participantes.filter(
     p => p.estado_pago === 'pagado' && !p.bracket_reeditado && !idsConGrupo.has(p.id)
-  ).length;
+  ).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+  const sinTelefono = participantesSinTel.length;
 
   const filtrados = grupos.filter(g => {
     if (!busqueda) return true;
@@ -213,12 +236,49 @@ Luego entra, repasa las eliminatorias y pulsa *"Confirmar y cerrar bracket"*. Si
         </div>
 
         {sinTelefono > 0 && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2 text-sm">
-            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-            <p className="text-red-800">
-              Hay <strong>{sinTelefono}</strong> participantes pagados pendientes de re-editar
-              que NO tienen teléfono guardado. Deberás avisarles por email u otro canal.
-            </p>
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 space-y-2">
+            <div className="flex items-start gap-2 text-sm">
+              <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-red-800">
+                Hay <strong>{sinTelefono}</strong> porras pagadas pendientes <strong>sin teléfono</strong>.
+                Añade el teléfono aquí para poder agruparlas y enviar el WhatsApp.
+              </p>
+            </div>
+            <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
+              {participantesSinTel.map(p => {
+                const editando = editandoTel[p.id] !== undefined;
+                return (
+                  <div key={p.id} className="bg-white rounded border border-red-200 p-2 flex items-center gap-2 flex-wrap">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-semibold text-slate-900 truncate">{p.nombre}</p>
+                      <p className="text-xs text-slate-500 truncate">"{p.alias_equipo}" · {p.email}</p>
+                    </div>
+                    {editando ? (
+                      <div className="flex items-center gap-1">
+                        <Input
+                          value={editandoTel[p.id]}
+                          onChange={(e) => setEditandoTel(prev => ({ ...prev, [p.id]: e.target.value }))}
+                          placeholder="606046828"
+                          className="h-8 w-36 text-sm"
+                          autoFocus
+                          onKeyDown={(e) => { if (e.key === 'Enter') guardarTelefono(p); if (e.key === 'Escape') cancelarEditar(p.id); }}
+                        />
+                        <Button size="sm" className="h-8 bg-green-600 hover:bg-green-700" onClick={() => guardarTelefono(p)} disabled={guardandoId === p.id}>
+                          <Save className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button size="sm" variant="outline" className="h-8" onClick={() => cancelarEditar(p.id)}>
+                          <X className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <Button size="sm" variant="outline" className="h-8 border-red-300 text-red-700" onClick={() => empezarEditar(p)}>
+                        <Pencil className="w-3.5 h-3.5 mr-1" /> Añadir tel.
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
 
@@ -276,10 +336,42 @@ Luego entra, repasa las eliminatorias y pulsa *"Confirmar y cerrar bracket"*. Si
                     <p className="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
                       <Phone className="w-3 h-3" /> {grupo.telefono}
                     </p>
-                    <div className="mt-1.5 text-xs text-slate-600 space-y-0.5">
-                      {grupo.porras.map(p => (
-                        <p key={p.id} className="truncate">• {p.alias}</p>
-                      ))}
+                    <div className="mt-1.5 text-xs text-slate-600 space-y-1">
+                      {grupo.porras.map(p => {
+                        const participanteCompleto = participantes.find(x => x.id === p.id);
+                        const editando = editandoTel[p.id] !== undefined;
+                        return (
+                          <div key={p.id} className="flex items-center gap-1.5 flex-wrap">
+                            <span className="truncate">• {p.alias}</span>
+                            {editando ? (
+                              <span className="inline-flex items-center gap-1">
+                                <Input
+                                  value={editandoTel[p.id]}
+                                  onChange={(e) => setEditandoTel(prev => ({ ...prev, [p.id]: e.target.value }))}
+                                  placeholder="606046828"
+                                  className="h-6 w-32 text-xs px-2"
+                                  autoFocus
+                                  onKeyDown={(e) => { if (e.key === 'Enter') guardarTelefono(participanteCompleto); if (e.key === 'Escape') cancelarEditar(p.id); }}
+                                />
+                                <button onClick={() => guardarTelefono(participanteCompleto)} className="text-green-600 hover:text-green-700" disabled={guardandoId === p.id} title="Guardar">
+                                  <Save className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => cancelarEditar(p.id)} className="text-slate-500 hover:text-slate-700" title="Cancelar">
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => empezarEditar(participanteCompleto)}
+                                className="text-slate-400 hover:text-blue-600 inline-flex items-center"
+                                title={`Editar teléfono (actual: ${participanteCompleto?.telefono || 'ninguno'})`}
+                              >
+                                <Pencil className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
                   <div className="flex gap-1.5 flex-shrink-0">

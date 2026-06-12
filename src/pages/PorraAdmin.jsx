@@ -187,7 +187,7 @@ export default function PorraAdmin() {
             <PorraAdminEstadoBracket participantes={participantes} />
           </TabsContent>
           <TabsContent value="aviso">
-            <PorraAdminAvisoBracket participantes={participantes} />
+            <PorraAdminAvisoBracket participantes={participantes} onRefresh={cargarTodo} />
           </TabsContent>
           <TabsContent value="cierre">
             <PorraAdminCierre config={config} participantes={participantes} onUpdate={cargarTodo} />
