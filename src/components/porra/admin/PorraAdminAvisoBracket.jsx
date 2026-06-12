@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Phone, AlertCircle, Search, CheckCircle2, Copy, Pencil, Save, X, Mail, Loader2 } from "lucide-react";
+import { MessageCircle, Phone, AlertCircle, Search, CheckCircle2, Copy, Pencil, Save, X, Mail, Loader2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 
@@ -216,6 +216,32 @@ Luego entra, repasa las eliminatorias y pulsa *"Confirmar y cerrar bracket"*. Si
   const copiarMensaje = (grupo) => {
     navigator.clipboard.writeText(construirMensaje(grupo));
     toast.success('Mensaje copiado al portapapeles');
+  };
+
+  // Descarga una vCard (.vcf) para guardar el contacto en la agenda del móvil.
+  // Al abrirla, el sistema operativo pregunta si guardar el contacto.
+  const descargarVCard = (grupo) => {
+    const nombre = grupo.nombre || 'Porra Mundial';
+    const tel = grupo.telefono;
+    const vcard = [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      `FN:${nombre} (Porra)`,
+      `N:${nombre};;;;`,
+      `TEL;TYPE=CELL:${tel}`,
+      `ORG:Porra Mundial 2026 - CD Bustarviejo`,
+      'END:VCARD',
+    ].join('\n');
+    const blob = new Blob([vcard], { type: 'text/vcard;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${nombre.replace(/[^\w\s-]/g, '').replace(/\s+/g, '_')}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast.success('Contacto descargado. Ábrelo para guardarlo en la agenda.');
   };
 
   // Cuenta cuántos participantes pagados quedan pendientes de re-editar (con email)
@@ -462,6 +488,15 @@ Luego entra, repasa las eliminatorias y pulsa *"Confirmar y cerrar bracket"*. Si
                     </div>
                   </div>
                   <div className="flex gap-1.5 flex-shrink-0">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => descargarVCard(grupo)}
+                      title="Guardar contacto en la agenda (.vcf)"
+                      className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
