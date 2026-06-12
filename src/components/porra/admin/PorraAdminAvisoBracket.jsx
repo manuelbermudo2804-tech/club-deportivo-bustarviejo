@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,7 +20,21 @@ const APP_BASE = 'https://app.cdbustarviejo.com';
  */
 export default function PorraAdminAvisoBracket({ participantes }) {
   const [busqueda, setBusqueda] = useState('');
-  const [enviadosLocal, setEnviadosLocal] = useState(new Set());
+  // Estado persistente en localStorage: una vez marcado como enviado, NO se desmarca
+  // al refrescar, navegar o cerrar la app. Se guarda por teléfono normalizado.
+  const STORAGE_KEY = 'porra_aviso_bracket_enviados_v1';
+  const [enviadosLocal, setEnviadosLocal] = useState(() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return new Set(JSON.parse(raw));
+    } catch {}
+    return new Set();
+  });
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...enviadosLocal]));
+    } catch {}
+  }, [enviadosLocal]);
 
   // Normaliza teléfono: solo dígitos, añade +34 si es número español de 9 dígitos
   const normalizarTelefono = (tel) => {
