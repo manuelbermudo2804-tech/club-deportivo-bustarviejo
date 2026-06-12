@@ -200,21 +200,48 @@ Deno.serve(async (req) => {
     }
 
     let actualizados = 0;
+    let saltados = 0;
     const errores = [];
+    const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-    // Procesar en paralelo por lotes de 20 — escala bien hasta 1.000+ participantes
-    const BATCH = 20;
-    for (let i = 0; i < todos.length; i += BATCH) {
-      const slice = todos.slice(i, i + BATCH);
-      await Promise.all(slice.map(async (p) => {
+    // Procesar SECUENCIALMENTE para no saturar el rate-limit del SDK (429 tras ~100 escrituras seguidas).
+    // Solo actualizamos si los puntos REALMENTE cambian respecto a lo guardado. Esto reduce
+    // drásticamente el número de updates en recálculos sucesivos.
+    const cambioPuntos = (p, nuevos) => {
+      return (
+        (p.puntos_grupos || 0) !== nuevos.puntos_grupos ||
+        (p.puntos_terceros || 0) !== nuevos.puntos_terceros ||
+        (p.puntos_eliminatorias || 0) !== nuevos.puntos_eliminatorias ||
+        (p.puntos_tercer_puesto || 0) !== nuevos.puntos_tercer_puesto ||
+        (p.puntos_campeon || 0) !== nuevos.puntos_campeon ||
+        (p.puntos_especiales || 0) !== nuevos.puntos_especiales ||
+        (p.puntos_total || 0) !== nuevos.puntos_total
+      );
+    };
+
+    for (const p of todos) {
+      const nuevos = calcularPuntosParticipante(p, partidos, config);
+      if (!cambioPuntos(p, nuevos)) { saltados++; continue; }
+
+      let intentos = 0;
+      while (intentos < 3) {
         try {
-          const nuevos = calcularPuntosParticipante(p, partidos, config);
           await base44.asServiceRole.entities.PorraParticipante.update(p.id, nuevos);
           actualizados++;
+          break;
         } catch (e) {
+          intentos++;
+          if (String(e.message || '').includes('Rate limit') && intentos < 3) {
+            // Cooldown progresivo: 2s, 5s
+            await sleep(intentos === 1 ? 2000 : 5000);
+            continue;
+          }
           errores.push({ id: p.id, error: e.message });
+          break;
         }
-      }));
+      }
+      // Pausa entre escrituras para no saturar el rate-limit
+      await sleep(120);
     }
 
     // Recalcular posiciones globales — guardamos posicion_anterior para mostrar ▲▼ en el ranking
@@ -230,23 +257,33 @@ Deno.serve(async (req) => {
         cambios.push({ id: ordenados[i].id, posActual, nuevaPos });
       }
     }
-    const BATCH_POS = 20;
-    for (let i = 0; i < cambios.length; i += BATCH_POS) {
-      const slice = cambios.slice(i, i + BATCH_POS);
-      await Promise.all(slice.map(async (c) => {
+    // Posiciones también secuenciales con pausa, con reintento si rate-limit
+    for (const c of cambios) {
+      let intentos = 0;
+      while (intentos < 3) {
         try {
           await base44.asServiceRole.entities.PorraParticipante.update(c.id, {
             posicion_anterior: c.posActual || c.nuevaPos,
             posicion_ranking: c.nuevaPos,
           });
-        } catch {}
-      }));
+          break;
+        } catch (e) {
+          intentos++;
+          if (String(e.message || '').includes('Rate limit') && intentos < 3) {
+            await sleep(intentos === 1 ? 2000 : 5000);
+            continue;
+          }
+          break;
+        }
+      }
+      await sleep(120);
     }
 
     return Response.json({
       success: true,
       total_participantes: todos.length,
       actualizados,
+      saltados,
       errores: errores.length,
     });
   } catch (error) {
