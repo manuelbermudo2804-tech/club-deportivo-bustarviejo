@@ -189,7 +189,9 @@ Deno.serve(async (req) => {
       base44.asServiceRole.entities.PorraPartido.list('', 200),
       body.participante_id
         ? base44.asServiceRole.entities.PorraParticipante.filter({ id: body.participante_id })
-        : base44.asServiceRole.entities.PorraParticipante.filter({ estado_pago: 'pagado' }),
+        // IMPORTANTE: sin límite explícito el SDK devuelve solo ~100. Pasamos 2000 para
+        // garantizar que se procesen TODOS los participantes pagados.
+        : base44.asServiceRole.entities.PorraParticipante.filter({ estado_pago: 'pagado' }, '-created_date', 2000),
     ]);
 
     const config = configs[0];
@@ -216,7 +218,8 @@ Deno.serve(async (req) => {
     }
 
     // Recalcular posiciones globales — guardamos posicion_anterior para mostrar ▲▼ en el ranking
-    const recargados = await base44.asServiceRole.entities.PorraParticipante.filter({ estado_pago: 'pagado' });
+    // (igual: forzamos límite alto para no truncar a 100)
+    const recargados = await base44.asServiceRole.entities.PorraParticipante.filter({ estado_pago: 'pagado' }, '-created_date', 2000);
     const ordenados = recargados.sort((a, b) => (b.puntos_total || 0) - (a.puntos_total || 0));
     // Filtrar solo los que cambian de posición y actualizarlos en paralelo por lotes de 20
     const cambios = [];
