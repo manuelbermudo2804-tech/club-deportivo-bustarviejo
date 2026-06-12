@@ -85,15 +85,17 @@ export default function PorraAdminAvisoBracket({ participantes }) {
 
 ${intro}
 
-⚠️ Necesitamos que revises y confirmes tu bracket antes del *domingo 28 de junio a las 19:00h*.
+🔒 La fase de grupos, mejores terceros y predicciones especiales *ya están bloqueadas* (el Mundial ha empezado).
+
+⚠️ Lo único que aún puedes ajustar es el *bracket de eliminatorias*, y tienes hasta el *domingo 28 de junio a las 18:00h* (luego se cierra para todo el mundo).
 
 ${linksPorras}
 
 📲 *IMPORTANTE:* Antes de entrar, *cierra la app y vuelve a abrirla* (o refresca el navegador con el icono 🔄) para asegurarte de ver la versión actualizada. Si no, puede que veas los cruces antiguos.
 
-Luego solo tienes que entrar, repasar las eliminatorias y pulsar *"Confirmar y cerrar bracket"*. Si no lo haces, tu porra se quedará con las predicciones antiguas.
+Luego entra, repasa las eliminatorias y pulsa *"Confirmar y cerrar bracket"*. Si no lo haces antes del 28/06 a las 18:00, tu porra se quedará con las predicciones que tengas en ese momento.
 
-¡Perdona las molestias y mucha suerte! 🏆⚽
+¡Mucha suerte! 🏆⚽
 
 — CD Bustarviejo`;
   };
