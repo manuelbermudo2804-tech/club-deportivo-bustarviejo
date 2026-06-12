@@ -51,30 +51,45 @@ export default function PorraAdminAvisoBracket({ participantes }) {
     return limpio;
   };
 
+  // Normaliza nombre para comparar (sin tildes, lowercase, sin espacios extra)
+  const normalizarNombre = (n) => {
+    if (!n) return '';
+    return String(n)
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase().replace(/\s+/g, ' ').trim();
+  };
+
   // Agrupar por teléfono normalizado.
-  // PASO 1: indexamos qué teléfono está asociado a cada email (la primera porra del email con tel manda).
-  // PASO 2: cuando una porra no tiene tel propio, intentamos recuperarlo desde otra porra del mismo email.
-  // Así, si una persona tiene 3 porras y solo 2 traen tel, las 3 acaban en el mismo WhatsApp.
+  // PASO 1: indexamos qué teléfono está asociado a cada email Y a cada nombre normalizado.
+  // PASO 2: si una porra no tiene tel propio, lo heredamos desde otra porra del mismo email
+  //         o, en su defecto, del mismo nombre (útil cuando el email difiere pero es la misma persona).
+  // Así, si Sergio Baonza tiene 2 porras y solo una trae bien el tel, las 2 acaban en el mismo WhatsApp.
   const grupos = useMemo(() => {
     const pagadosPendientes = participantes.filter(
       p => p.estado_pago === 'pagado' && !p.bracket_reeditado
     );
 
-    // Email (lowercase) -> primer teléfono normalizado encontrado para ese email
     const emailToTel = new Map();
+    const nombreToTel = new Map();
     pagadosPendientes.forEach(p => {
-      const email = (p.email || '').toLowerCase().trim();
-      if (!email) return;
       const tel = normalizarTelefono(p.telefono);
-      if (tel && !emailToTel.has(email)) emailToTel.set(email, tel);
+      if (!tel) return;
+      const email = (p.email || '').toLowerCase().trim();
+      const nombre = normalizarNombre(p.nombre);
+      if (email && !emailToTel.has(email)) emailToTel.set(email, tel);
+      if (nombre && !nombreToTel.has(nombre)) nombreToTel.set(nombre, tel);
     });
 
     const map = new Map();
     pagadosPendientes.forEach(p => {
       const email = (p.email || '').toLowerCase().trim();
-      // Fallback: si esta porra no tiene tel, usar el de otra porra del mismo email
-      const tel = normalizarTelefono(p.telefono) || emailToTel.get(email) || null;
-      if (!tel) return; // sin teléfono ni propio ni heredado -> contará como "sin teléfono"
+      const nombre = normalizarNombre(p.nombre);
+      // Fallback en cascada: tel propio -> tel de otra porra con mismo email -> tel de otra porra con mismo nombre
+      const tel = normalizarTelefono(p.telefono)
+        || emailToTel.get(email)
+        || nombreToTel.get(nombre)
+        || null;
+      if (!tel) return;
       if (!map.has(tel)) {
         map.set(tel, { telefono: tel, nombre: p.nombre, porras: [] });
       }
