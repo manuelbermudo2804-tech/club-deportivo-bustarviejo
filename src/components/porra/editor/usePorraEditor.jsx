@@ -107,10 +107,13 @@ export default function usePorraEditor(token) {
     const pending = pendingUpdatesRef.current;
     if (!pending || Object.keys(pending).length === 0) return;
     if (!participanteRef.current) return;
-    // Determinar bloqueo efectivo según qué se está guardando
-    const pendingKeys = Object.keys(pending);
-    const soloBracket = pendingKeys.every(k => k === 'predicciones_eliminatorias');
-    const soloTerceros = pendingKeys.every(k => k === 'mejores_terceros');
+    // Determinar bloqueo efectivo según qué se está guardando.
+    // Solo miramos los campos "predicción" — los flags (completado_*/porcentaje_*)
+    // los añade el flush automáticamente y no deben influir en la decisión.
+    const FLAG_FIELDS = new Set(['completado_grupos','completado_terceros','completado_bracket','completado_especiales','porcentaje_completado']);
+    const predKeys = Object.keys(pending).filter(k => !FLAG_FIELDS.has(k));
+    const soloBracket = predKeys.length > 0 && predKeys.every(k => k === 'predicciones_eliminatorias');
+    const soloTerceros = predKeys.length > 0 && predKeys.every(k => k === 'mejores_terceros');
     let bloqueadoEfectivo = isBlocked;
     if (soloBracket) bloqueadoEfectivo = isBracketBlocked;
     else if (soloTerceros) bloqueadoEfectivo = isTercerosBlocked;

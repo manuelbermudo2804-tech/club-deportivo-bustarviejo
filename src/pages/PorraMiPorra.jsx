@@ -136,7 +136,14 @@ export default function PorraMiPorra() {
 
   // Bloqueo secuencial: Grupos → Terceros → Bracket → Especiales.
   // Desglose y Ligas siempre libres (son consulta/social).
-  const ordenPrereq = {
+  // 🟢 Mundial EN MARCHA: las pestañas ya no son secuenciales — todo lo de antes
+  //    está bloqueado por el servidor de todas formas, y los casos con excepción
+  //    (p.ej. Carlos puede editar Terceros) deben poder navegar libremente al
+  //    Bracket aunque Terceros no esté al 100%.
+  const mundialEnMarcha = isBlocked;
+  const ordenPrereq = mundialEnMarcha ? {
+    grupos: null, terceros: null, bracket: null, especiales: null,
+  } : {
     grupos: null,
     terceros: { campo: 'completado_grupos', nombre: 'Grupos' },
     bracket: { campo: 'completado_terceros', nombre: 'Terceros' },
