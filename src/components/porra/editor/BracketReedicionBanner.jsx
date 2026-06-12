@@ -122,22 +122,6 @@ export default function BracketReedicionBanner({ participante, onConfirmar, savi
           </p>
         </CardContent>
       </Card>
-
-      {/* Botón flotante (sticky) en la parte inferior — siempre visible mientras desplazas */}
-      <div className="sticky bottom-2 z-30 mb-3">
-        <ConfirmDialog>
-          <Button
-            disabled={saving || confirming}
-            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white font-black text-base py-5 shadow-2xl ring-4 ring-green-300/60 animate-pulse-strong border-2 border-white"
-          >
-            {(saving || confirming) ? (
-              <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Guardando…</>
-            ) : (
-              <><CheckCircle2 className="w-5 h-5 mr-2" /> ✅ CONFIRMAR Y CERRAR MI BRACKET</>
-            )}
-          </Button>
-        </ConfirmDialog>
-      </div>
     </>
   );
 }
