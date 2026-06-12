@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, Phone, AlertCircle, Search, CheckCircle2, Copy, Pencil, Save, X } from "lucide-react";
+import { MessageCircle, Phone, AlertCircle, Search, CheckCircle2, Copy, Pencil, Save, X, Mail, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 
@@ -24,6 +24,7 @@ export default function PorraAdminAvisoBracket({ participantes, onRefresh }) {
   // Edición inline del teléfono: { [participanteId]: 'valor en input' }
   const [editandoTel, setEditandoTel] = useState({});
   const [guardandoId, setGuardandoId] = useState(null);
+  const [enviandoEmails, setEnviandoEmails] = useState(false);
 
   const empezarEditar = (p) => setEditandoTel(prev => ({ ...prev, [p.id]: p.telefono || '' }));
   const cancelarEditar = (id) => setEditandoTel(prev => { const n = { ...prev }; delete n[id]; return n; });
@@ -217,6 +218,35 @@ Luego entra, repasa las eliminatorias y pulsa *"Confirmar y cerrar bracket"*. Si
     toast.success('Mensaje copiado al portapapeles');
   };
 
+  // Cuenta cuántos participantes pagados quedan pendientes de re-editar (con email)
+  const pendientesEmail = participantes.filter(
+    p => p.estado_pago === 'pagado' && !p.bracket_reeditado && p.email && p.token_acceso
+  );
+  const destinatariosUnicos = new Set(pendientesEmail.map(p => String(p.email).toLowerCase().trim())).size;
+
+  const enviarEmailMasivo = async () => {
+    if (pendientesEmail.length === 0) {
+      toast.info('No quedan porras pendientes de re-editar');
+      return;
+    }
+    if (!confirm(`Vas a enviar un email a ${destinatariosUnicos} destinatarios únicos con el link a sus ${pendientesEmail.length} porras pendientes. ¿Continuar?`)) return;
+
+    setEnviandoEmails(true);
+    try {
+      const res = await base44.functions.invoke('porraEnviarEmailReedicion', {});
+      const data = res?.data || {};
+      if (data.error) {
+        toast.error(data.error);
+      } else {
+        toast.success(`📧 ${data.enviados || 0} emails enviados${data.fallidos ? ` · ${data.fallidos} fallidos` : ''}`);
+      }
+    } catch (e) {
+      toast.error('Error al enviar emails: ' + (e?.message || e));
+    } finally {
+      setEnviandoEmails(false);
+    }
+  };
+
   const abrirTodosSinEnviar = () => {
     const pendientes = filtrados.filter(g => !grupoEnviado(g));
     if (pendientes.length === 0) {
@@ -263,6 +293,34 @@ Luego entra, repasa las eliminatorias y pulsa *"Confirmar y cerrar bracket"*. Si
             <div className="text-xs text-red-500">Sin teléfono ⚠️</div>
           </div>
         </div>
+
+        {/* Banner: enviar email masivo (alternativa a WhatsApp cuando está bloqueado) */}
+        {pendientesEmail.length > 0 && (
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-300 rounded-xl p-4 space-y-3">
+            <div className="flex items-start gap-2">
+              <Mail className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-blue-900">📧 Aviso por email (recomendado)</p>
+                <p className="text-sm text-blue-800 mt-1 leading-relaxed">
+                  Envía un email a cada participante pendiente con sus enlaces personalizados.
+                  Útil si WhatsApp está bloqueado o no tienes los teléfonos.
+                  Llega a <strong>{destinatariosUnicos} destinatarios únicos</strong> ({pendientesEmail.length} porras pendientes).
+                </p>
+              </div>
+            </div>
+            <Button
+              onClick={enviarEmailMasivo}
+              disabled={enviandoEmails || pendientesEmail.length === 0}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold"
+            >
+              {enviandoEmails ? (
+                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando emails…</>
+              ) : (
+                <><Mail className="w-4 h-4 mr-2" /> Enviar email a los {destinatariosUnicos} pendientes</>
+              )}
+            </Button>
+          </div>
+        )}
 
         {sinTelefono > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-3 space-y-2">
