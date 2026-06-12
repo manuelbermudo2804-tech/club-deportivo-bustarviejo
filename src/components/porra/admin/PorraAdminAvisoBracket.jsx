@@ -43,9 +43,12 @@ export default function PorraAdminAvisoBracket({ participantes, onRefresh }) {
     }
   };
   // Estado persistente en localStorage: una vez marcado como enviado, NO se desmarca
-  // al refrescar, navegar o cerrar la app. Se guarda por teléfono normalizado.
-  const STORAGE_KEY = 'porra_aviso_bracket_enviados_v1';
-  const [enviadosLocal, setEnviadosLocal] = useState(() => {
+  // al refrescar. Guardamos por ID de porra (inmutable) para que un cambio de teléfono
+  // o de agrupación no haga "desaparecer" los avisos ya enviados.
+  // Migra automáticamente desde la versión anterior (que guardaba por teléfono).
+  const STORAGE_KEY = 'porra_aviso_bracket_enviados_v2';
+  const STORAGE_KEY_OLD = 'porra_aviso_bracket_enviados_v1';
+  const [enviadosPorraIds, setEnviadosPorraIds] = useState(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) return new Set(JSON.parse(raw));
@@ -54,9 +57,28 @@ export default function PorraAdminAvisoBracket({ participantes, onRefresh }) {
   });
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify([...enviadosLocal]));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify([...enviadosPorraIds]));
     } catch {}
-  }, [enviadosLocal]);
+  }, [enviadosPorraIds]);
+
+  // Migración una sola vez: si había datos en v1 (claves = teléfonos), los convertimos
+  // a IDs de porra usando los participantes actuales.
+  useEffect(() => {
+    try {
+      const rawOld = localStorage.getItem(STORAGE_KEY_OLD);
+      if (!rawOld) return;
+      const oldTels = new Set(JSON.parse(rawOld));
+      if (oldTels.size === 0) { localStorage.removeItem(STORAGE_KEY_OLD); return; }
+      const idsMigrados = new Set(enviadosPorraIds);
+      participantes.forEach(p => {
+        const tel = normalizarTelefono(p.telefono);
+        if (tel && oldTels.has(tel)) idsMigrados.add(p.id);
+      });
+      setEnviadosPorraIds(idsMigrados);
+      localStorage.removeItem(STORAGE_KEY_OLD);
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [participantes.length]);
 
   // Normaliza teléfono: solo dígitos, añade +34 si es número español de 9 dígitos
   const normalizarTelefono = (tel) => {
@@ -174,13 +196,20 @@ Luego entra, repasa las eliminatorias y pulsa *"Confirmar y cerrar bracket"*. Si
 — CD Bustarviejo`;
   };
 
+  // Un grupo se considera "enviado" si TODAS sus porras están marcadas como enviadas
+  const grupoEnviado = (grupo) => grupo.porras.every(p => enviadosPorraIds.has(p.id));
+
   const abrirWhatsApp = (grupo) => {
     const mensaje = encodeURIComponent(construirMensaje(grupo));
     const tel = grupo.telefono.replace(/[^\d]/g, '');
     const url = `https://wa.me/${tel}?text=${mensaje}`;
     window.open(url, '_blank');
-    // Marcar como enviado localmente
-    setEnviadosLocal(prev => new Set([...prev, grupo.telefono]));
+    // Marcar como enviado por ID de porra (inmutable, resistente a cambios de tel)
+    setEnviadosPorraIds(prev => {
+      const next = new Set(prev);
+      grupo.porras.forEach(p => next.add(p.id));
+      return next;
+    });
   };
 
   const copiarMensaje = (grupo) => {
@@ -189,7 +218,7 @@ Luego entra, repasa las eliminatorias y pulsa *"Confirmar y cerrar bracket"*. Si
   };
 
   const abrirTodosSinEnviar = () => {
-    const pendientes = filtrados.filter(g => !enviadosLocal.has(g.telefono));
+    const pendientes = filtrados.filter(g => !grupoEnviado(g));
     if (pendientes.length === 0) {
       toast.info('No quedan pendientes');
       return;
@@ -299,7 +328,7 @@ Luego entra, repasa las eliminatorias y pulsa *"Confirmar y cerrar bracket"*. Si
             disabled={filtrados.length === 0}
           >
             <MessageCircle className="w-4 h-4 mr-2" />
-            Abrir todos ({filtrados.filter(g => !enviadosLocal.has(g.telefono)).length})
+            Abrir todos ({filtrados.filter(g => !grupoEnviado(g)).length})
           </Button>
         </div>
 
@@ -310,7 +339,7 @@ Luego entra, repasa las eliminatorias y pulsa *"Confirmar y cerrar bracket"*. Si
               No hay participantes para avisar 🎉
             </p>
           ) : filtrados.map(grupo => {
-            const enviado = enviadosLocal.has(grupo.telefono);
+            const enviado = grupoEnviado(grupo);
             return (
               <div
                 key={grupo.telefono}
