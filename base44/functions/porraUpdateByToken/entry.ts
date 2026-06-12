@@ -112,8 +112,18 @@ Deno.serve(async (req) => {
     const updateKeys = Object.keys(updates || {});
     const soloBracket = updateKeys.length > 0 && updateKeys.every(k => BRACKET_ONLY_FIELDS.has(k));
 
+    // 🎟️ Excepción puntual concedida por admin: permitir a participantes concretos
+    // editar los Mejores Terceros aunque el Mundial ya haya empezado.
+    // Se mantiene el bloqueo general — solo se libera caso por caso.
+    const EXCEPCION_TERCEROS_IDS = new Set([
+      '6a1157c170b2ab600e6dea5e', // Carlos Molina ("Mol")
+    ]);
+    const TERCEROS_FIELDS = new Set(['mejores_terceros', 'completado_terceros', 'porcentaje_completado']);
+    const soloTerceros = updateKeys.length > 0 && updateKeys.every(k => TERCEROS_FIELDS.has(k));
+    const excepcionTerceros = EXCEPCION_TERCEROS_IDS.has(participante.id) && soloTerceros;
+
     // Cualquier intento de modificar grupos / terceros / especiales se rechaza ya.
-    if (!soloBracket) {
+    if (!soloBracket && !excepcionTerceros) {
       return Response.json({
         error: 'La fase de grupos, mejores terceros y predicciones especiales están bloqueadas. El Mundial ya ha comenzado.'
       }, { status: 403 });
