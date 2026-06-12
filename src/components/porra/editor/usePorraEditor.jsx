@@ -25,7 +25,15 @@ export default function usePorraEditor(token) {
   // - Bracket: editable hasta el 28-jun 18:00 Madrid (16:00 UTC), salvo que el usuario ya
   //   haya confirmado su re-edición (entonces queda bloqueado también).
   const BRACKET_DEADLINE_MS = Date.UTC(2026, 5, 28, 16, 0, 0);
+  // 🎟️ Excepción puntual: participantes a los que admin permite editar mejores terceros
+  // aunque el Mundial ya haya empezado. Solo afecta a la pestaña Terceros (el backend
+  // también lo blinda — ver functions/porraUpdateByToken).
+  const EXCEPCION_TERCEROS_IDS = new Set([
+    '6a1157c170b2ab600e6dea5e', // Carlos Molina ("Mol")
+  ]);
+  const tieneExcepcionTerceros = !!participante && EXCEPCION_TERCEROS_IDS.has(participante.id);
   const isBlocked = true; // grupos / terceros / especiales: SIEMPRE bloqueados desde el inicio del Mundial
+  const isTercerosBlocked = isBlocked && !tieneExcepcionTerceros;
   const isBracketBlocked = (() => {
     if (!participante) return true;
     if (participante.bracket_reeditado) return true;
@@ -99,10 +107,13 @@ export default function usePorraEditor(token) {
     const pending = pendingUpdatesRef.current;
     if (!pending || Object.keys(pending).length === 0) return;
     if (!participanteRef.current) return;
-    // Determinar bloqueo efectivo: si lo pendiente es SOLO bracket, usar isBracketBlocked
+    // Determinar bloqueo efectivo según qué se está guardando
     const pendingKeys = Object.keys(pending);
     const soloBracket = pendingKeys.every(k => k === 'predicciones_eliminatorias');
-    const bloqueadoEfectivo = soloBracket ? isBracketBlocked : isBlocked;
+    const soloTerceros = pendingKeys.every(k => k === 'mejores_terceros');
+    let bloqueadoEfectivo = isBlocked;
+    if (soloBracket) bloqueadoEfectivo = isBracketBlocked;
+    else if (soloTerceros) bloqueadoEfectivo = isTercerosBlocked;
     if (bloqueadoEfectivo) return;
     pendingUpdatesRef.current = {};
     try {
@@ -118,7 +129,7 @@ export default function usePorraEditor(token) {
     } finally {
       setSaving(false);
     }
-  }, [isBlocked, isBracketBlocked, token]);
+  }, [isBlocked, isBracketBlocked, isTercerosBlocked, token]);
 
   // Guardado con debounce 700ms — acumula updates pendientes para no perderlos
   // Solo bracket: si está bloqueado normal pero el test admin puede editar bracket,
@@ -127,7 +138,10 @@ export default function usePorraEditor(token) {
     if (!participanteRef.current) return;
     const updateKeys = Object.keys(updates || {});
     const soloBracket = updateKeys.every(k => k === 'predicciones_eliminatorias');
-    const bloqueadoEfectivo = soloBracket ? isBracketBlocked : isBlocked;
+    const soloTerceros = updateKeys.every(k => k === 'mejores_terceros');
+    let bloqueadoEfectivo = isBlocked;
+    if (soloBracket) bloqueadoEfectivo = isBracketBlocked;
+    else if (soloTerceros) bloqueadoEfectivo = isTercerosBlocked;
     if (bloqueadoEfectivo) return;
     // Acumular updates pendientes (no sobrescribir si llegan varios antes del flush)
     pendingUpdatesRef.current = { ...pendingUpdatesRef.current, ...updates };
@@ -135,7 +149,7 @@ export default function usePorraEditor(token) {
     setParticipante(prev => ({ ...prev, ...updates }));
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => { flushGuardado(); }, 700);
-  }, [isBlocked, isBracketBlocked, flushGuardado]);
+  }, [isBlocked, isBracketBlocked, isTercerosBlocked, flushGuardado]);
 
   // Si el usuario cierra/recarga la pestaña: intentar flush antes de salir
   useEffect(() => {
@@ -205,7 +219,7 @@ export default function usePorraEditor(token) {
 
   return {
     participante, config, equipos, partidos,
-    loading, saving, error, isBlocked, isBracketBlocked,
+    loading, saving, error, isBlocked, isBracketBlocked, isTercerosBlocked,
     setResultadoGrupo, setClasificacionGrupo,
     setEliminatoriaGanador, setEspecial, setTercerPuesto, setMejoresTerceros,
     confirmarBracket,

@@ -33,7 +33,7 @@ export default function PorraMiPorra() {
 
   const {
     participante, config, equipos, partidos,
-    loading, saving, error, isBlocked, isBracketBlocked,
+    loading, saving, error, isBlocked, isBracketBlocked, isTercerosBlocked,
     setResultadoGrupo, setClasificacionGrupo,
     setEliminatoriaGanador, setEspecial, setMejoresTerceros,
     confirmarBracket,
@@ -318,7 +318,7 @@ export default function PorraMiPorra() {
             <EditorMejoresTerceros
               participante={participante}
               equipos={equipos}
-              isBlocked={isBlocked}
+              isBlocked={isTercerosBlocked}
               onToggleTercero={setMejoresTerceros}
             />
           </TabsContent>
