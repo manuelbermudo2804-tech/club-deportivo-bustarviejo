@@ -3,7 +3,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2, XCircle, Search, Download, Phone, Mail, Clock } from "lucide-react";
+import { CheckCircle2, XCircle, Search, Download, Phone, Mail, Clock, MessageCircle } from "lucide-react";
+
+// URL base pública de la app
+const APP_BASE = 'https://app.cdbustarviejo.com';
+
+// Construye el mensaje de WhatsApp para un participante pendiente (mismo texto que el panel de avisos)
+const construirMensajeWhatsApp = (p) => {
+  const nombre = (p.nombre || '').split(' ')[0] || 'crack';
+  return `¡Hola ${nombre}! 👋
+
+Perdona las molestias 🙏 Hemos actualizado tu porra del Mundial 2026 con los cruces oficiales de FIFA (octavos → final).
+
+🔒 La fase de grupos, mejores terceros y predicciones especiales *ya están bloqueadas* (el Mundial ha empezado).
+
+⚠️ Lo único que aún puedes ajustar es el *bracket de eliminatorias*, y tienes hasta el *domingo 28 de junio a las 18:00h* (luego se cierra para todo el mundo).
+
+🔗 "${p.alias_equipo}": ${APP_BASE}/PorraMiPorra?token=${p.token_acceso}
+
+👉 Entra en el enlace, repasa las eliminatorias y pulsa *"Confirmar y cerrar bracket"*. Si no lo haces antes del 28/06 a las 18:00, tu porra se quedará con las predicciones que tengas en ese momento.
+
+¡Gracias por tu paciencia y mucha suerte! 🏆⚽
+
+— CD Bustarviejo`;
+};
+
+const abrirWhatsApp = (p) => {
+  const tel = String(p.telefono || '').replace(/[^\d]/g, '');
+  const mensaje = encodeURIComponent(construirMensajeWhatsApp(p));
+  window.open(`https://wa.me/${tel}?text=${mensaje}`, '_blank');
+};
 
 /**
  * Panel admin: lista completa con el estado de re-edición del bracket
@@ -207,6 +236,16 @@ export default function PorraAdminEstadoBracket({ participantes }) {
                     )}
                   </div>
                 </div>
+                {!p.bracket_reeditado && p.telefono && p.token_acceso && (
+                  <Button
+                    size="sm"
+                    onClick={() => abrirWhatsApp(p)}
+                    className="bg-green-600 hover:bg-green-700 flex-shrink-0"
+                    title="Enviar recordatorio por WhatsApp"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5 mr-1" /> WhatsApp
+                  </Button>
+                )}
               </div>
             </div>
           ))}
