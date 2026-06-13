@@ -8,8 +8,8 @@ import { CheckCircle2, XCircle, Search, Download, Phone, Mail, Clock, MessageCir
 // URL base pública de la app
 const APP_BASE = 'https://app.cdbustarviejo.com';
 
-// Construye el mensaje de WhatsApp para un participante pendiente (mismo texto que el panel de avisos)
-const construirMensajeWhatsApp = (p) => {
+// Mensaje normal de recordatorio (mismo texto que el panel de avisos)
+const construirMensajeNormal = (p) => {
   const nombre = (p.nombre || '').split(' ')[0] || 'crack';
   return `¡Hola ${nombre}! 👋
 
@@ -28,9 +28,26 @@ Perdona las molestias 🙏 Hemos actualizado tu porra del Mundial 2026 con los c
 — CD Bustarviejo`;
 };
 
-const abrirWhatsApp = (p) => {
+// Mensaje de ÚLTIMA OPORTUNIDAD (para usar el 26-27 de junio, 48h antes del cierre)
+const construirMensajeUltimaHora = (p) => {
+  const nombre = (p.nombre || '').split(' ')[0] || 'crack';
+  return `⏰ ¡${nombre}, ÚLTIMA OPORTUNIDAD!
+
+Tu bracket de la porra del Mundial 2026 *sigue sin confirmar* y el plazo se cierra el *domingo 28 de junio a las 18:00h*. ¡Quedan horas! 🚨
+
+Es solo 1 minuto: revisa tus eliminatorias (octavos → final) y pulsa *"Confirmar y cerrar bracket"*.
+
+🔗 "${p.alias_equipo}": ${APP_BASE}/PorraMiPorra?token=${p.token_acceso}
+
+Si no lo haces antes de esa hora, tu porra se quedará *bloqueada con las predicciones actuales* y ya no podrás cambiarlas. ¡No te quedes fuera! ⚽🏆
+
+— CD Bustarviejo`;
+};
+
+const abrirWhatsApp = (p, tono) => {
   const tel = String(p.telefono || '').replace(/[^\d]/g, '');
-  const mensaje = encodeURIComponent(construirMensajeWhatsApp(p));
+  const texto = tono === 'ultima' ? construirMensajeUltimaHora(p) : construirMensajeNormal(p);
+  const mensaje = encodeURIComponent(texto);
   window.open(`https://wa.me/${tel}?text=${mensaje}`, '_blank');
 };
 
@@ -42,6 +59,7 @@ const abrirWhatsApp = (p) => {
 export default function PorraAdminEstadoBracket({ participantes }) {
   const [busqueda, setBusqueda] = useState('');
   const [filtro, setFiltro] = useState('todos'); // todos | reeditados | pendientes
+  const [tonoWhatsApp, setTonoWhatsApp] = useState('normal'); // normal | ultima
 
   const pagados = useMemo(
     () => participantes.filter(p => p.estado_pago === 'pagado'),
@@ -180,6 +198,31 @@ export default function PorraAdminEstadoBracket({ participantes }) {
           </Button>
         </div>
 
+        {/* Selector de tono del mensaje de WhatsApp */}
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <p className="text-xs font-semibold text-green-900 mb-2">
+            Tono del mensaje de WhatsApp (botón verde de cada pendiente):
+          </p>
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              size="sm"
+              variant={tonoWhatsApp === 'normal' ? 'default' : 'outline'}
+              onClick={() => setTonoWhatsApp('normal')}
+              className={tonoWhatsApp === 'normal' ? 'bg-green-600 hover:bg-green-700' : ''}
+            >
+              📩 Recordatorio normal
+            </Button>
+            <Button
+              size="sm"
+              variant={tonoWhatsApp === 'ultima' ? 'default' : 'outline'}
+              onClick={() => setTonoWhatsApp('ultima')}
+              className={tonoWhatsApp === 'ultima' ? 'bg-orange-600 hover:bg-orange-700' : ''}
+            >
+              ⏰ Última oportunidad (26-27 jun)
+            </Button>
+          </div>
+        </div>
+
         {/* Buscador */}
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -239,7 +282,7 @@ export default function PorraAdminEstadoBracket({ participantes }) {
                 {!p.bracket_reeditado && p.telefono && p.token_acceso && (
                   <Button
                     size="sm"
-                    onClick={() => abrirWhatsApp(p)}
+                    onClick={() => abrirWhatsApp(p, tonoWhatsApp)}
                     className="bg-green-600 hover:bg-green-700 flex-shrink-0"
                     title="Enviar recordatorio por WhatsApp"
                   >
