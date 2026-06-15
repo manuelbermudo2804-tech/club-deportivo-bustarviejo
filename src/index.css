@@ -171,20 +171,3 @@ button:focus-visible {
     @apply bg-background text-foreground;
   }
 }
-
-/* ============================
-   CANDADO GLOBAL DE SCROLL HORIZONTAL
-   Evita que cualquier pantalla se deslice a los lados en móvil.
-   El scroll lateral DENTRO de tablas/contenedores marcados sigue funcionando
-   gracias a .overflow-x-auto (no se ven afectados).
-   ============================ */
-html, body {
-  max-width: 100%;
-  overflow-x: hidden;
-  overscroll-behavior-x: none;
-}
-
-#root {
-  max-width: 100%;
-  overflow-x: hidden;
-}
