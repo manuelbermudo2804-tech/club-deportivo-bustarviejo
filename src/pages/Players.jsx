@@ -774,37 +774,37 @@ export default function Players() {
             {isAdmin || isTreasurer ? "Gestión de fichas y plantilla" : "Jugadores registrados a tu nombre"}
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 w-full md:w-auto">
           {isAdmin && filteredPlayers.length > 0 && (
             <Button
               onClick={handleDownloadContactsVcf}
               variant="outline"
-              className="border-green-600 text-green-700 hover:bg-green-50 bg-green-50/50"
+              className="border-green-600 text-green-700 hover:bg-green-50 bg-green-50/50 w-full sm:w-auto justify-center min-w-0"
               title="Descarga un archivo de contactos del filtro actual. Ábrelo en el móvil para guardarlos en tu agenda y crear grupos en WhatsApp."
             >
-              <Contact className="w-5 h-5 mr-2" />
-              Descargar contactos
+              <Contact className="w-5 h-5 mr-2 flex-shrink-0" />
+              <span className="truncate">Descargar contactos</span>
             </Button>
           )}
           {isAdmin && filteredPlayers.length > 0 && (
             <Button
               onClick={handleExportPlayers}
               variant="outline"
-              className="border-green-600 text-green-600 hover:bg-green-50"
+              className="border-green-600 text-green-600 hover:bg-green-50 w-full sm:w-auto justify-center min-w-0"
             >
-              <Download className="w-5 h-5 mr-2" />
-              Exportar CSV ({filteredPlayers.length})
+              <Download className="w-5 h-5 mr-2 flex-shrink-0" />
+              <span className="truncate">Exportar CSV ({filteredPlayers.length})</span>
             </Button>
           )}
           {isAdmin && allPlayers.length > 0 && (
             <Button
               onClick={handleBackupExcel}
               variant="outline"
-              className="border-blue-600 text-blue-600 hover:bg-blue-50"
+              className="border-blue-600 text-blue-600 hover:bg-blue-50 w-full sm:w-auto justify-center min-w-0"
               title="Descargar backup completo de TODOS los jugadores en Excel"
             >
-              <Download className="w-5 h-5 mr-2" />
-              Backup Excel ({allPlayers.length})
+              <Download className="w-5 h-5 mr-2 flex-shrink-0" />
+              <span className="truncate">Backup Excel ({allPlayers.length})</span>
             </Button>
           )}
           {isAdmin && (
@@ -813,10 +813,10 @@ export default function Players() {
                 setEditingPlayer(null);
                 setShowForm(!showForm);
               }}
-              className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+              className="bg-orange-600 hover:bg-orange-700 shadow-lg w-full sm:w-auto justify-center min-w-0"
             >
-              <Plus className="w-5 h-5 mr-2" />
-              Nuevo Jugador
+              <Plus className="w-5 h-5 mr-2 flex-shrink-0" />
+              <span className="truncate">Nuevo Jugador</span>
             </Button>
           )}
         </div>
