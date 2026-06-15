@@ -805,7 +805,7 @@ export default function Payments() {
             </div>
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto">
           {filteredPayments.length > 0 && (
             <ExportButton
               data={prepareExportData()}
@@ -831,10 +831,10 @@ export default function Payments() {
             <RefreshCw className="w-5 h-5" />
           </Button>
           {isAdmin && (
-            <Link to={createPageUrl("MorososManagement")}>
-              <Button variant="outline" className="border-red-400 text-red-700 hover:bg-red-50 shadow-lg">
-                <ShieldAlert className="w-5 h-5 mr-2" />
-                Gestión de Morosos
+            <Link to={createPageUrl("MorososManagement")} className="flex-1 sm:flex-none min-w-0">
+              <Button variant="outline" className="border-red-400 text-red-700 hover:bg-red-50 shadow-lg w-full justify-center min-w-0">
+                <ShieldAlert className="w-5 h-5 mr-2 flex-shrink-0" />
+                <span className="truncate">Gestión de Morosos</span>
               </Button>
             </Link>
           )}
@@ -847,10 +847,10 @@ export default function Payments() {
                 }, 100);
               }
             }}
-            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
+            className="bg-orange-600 hover:bg-orange-700 shadow-lg flex-1 sm:flex-none justify-center min-w-0"
           >
-            <Plus className="w-5 h-5 mr-2" />
-            Registrar Pago
+            <Plus className="w-5 h-5 mr-2 flex-shrink-0" />
+            <span className="truncate">Registrar Pago</span>
           </Button>
         </div>
       </div>
