@@ -62,44 +62,50 @@ Deno.serve(async (req) => {
       });
     });
 
-    // 8vos de final — 8 partidos. Cada uno enfrenta a ganadores de 2 partidos
-    // consecutivos de 16avos (pares 1-2, 3-4, 5-6, ...).
-    for (let i = 1; i <= 8; i++) {
-      const m1 = (i - 1) * 2 + 1;
-      const m2 = (i - 1) * 2 + 2;
+    // Cruces oficiales FIFA 2026 (M89-M104). Deben coincidir EXACTAMENTE con el
+    // mapeo CRUCES_FIFA_OFICIAL del frontend (components/porra/editor/EditorBracket).
+    // Cada valor es [idxA, idxB] (0-based) de los partidos de la fase anterior.
+    const CRUCES_FIFA = {
+      '8vos':  [[0, 2], [1, 4], [3, 5], [6, 7], [10, 11], [8, 9], [13, 15], [12, 14]],
+      '4tos':  [[0, 1], [4, 5], [2, 3], [6, 7]],
+      'semis': [[0, 1], [2, 3]],
+    };
+
+    // 8vos de final — 8 partidos según el bracket oficial FIFA
+    CRUCES_FIFA['8vos'].forEach(([a, b], i) => {
       partidos.push({
         fase: '8vos',
-        numero_partido: i,
-        equipo_local_placeholder: `Ganador 16avos-${m1}`,
-        equipo_visitante_placeholder: `Ganador 16avos-${m2}`,
+        numero_partido: i + 1,
+        equipo_local_placeholder: `Ganador 16avos-${a + 1}`,
+        equipo_visitante_placeholder: `Ganador 16avos-${b + 1}`,
         fecha_partido: new Date('2026-07-04T16:00:00Z').toISOString(),
         finalizado: false,
       });
-    }
+    });
 
-    // Cuartos — 4 partidos
-    for (let i = 1; i <= 4; i++) {
+    // Cuartos — 4 partidos según el bracket oficial FIFA
+    CRUCES_FIFA['4tos'].forEach(([a, b], i) => {
       partidos.push({
         fase: '4tos',
-        numero_partido: i,
-        equipo_local_placeholder: `Ganador 8vos-${(i - 1) * 2 + 1}`,
-        equipo_visitante_placeholder: `Ganador 8vos-${(i - 1) * 2 + 2}`,
+        numero_partido: i + 1,
+        equipo_local_placeholder: `Ganador 8vos-${a + 1}`,
+        equipo_visitante_placeholder: `Ganador 8vos-${b + 1}`,
         fecha_partido: new Date('2026-07-09T16:00:00Z').toISOString(),
         finalizado: false,
       });
-    }
+    });
 
-    // Semis — 2 partidos
-    for (let i = 1; i <= 2; i++) {
+    // Semis — 2 partidos según el bracket oficial FIFA
+    CRUCES_FIFA['semis'].forEach(([a, b], i) => {
       partidos.push({
         fase: 'semis',
-        numero_partido: i,
-        equipo_local_placeholder: `Ganador 4tos-${(i - 1) * 2 + 1}`,
-        equipo_visitante_placeholder: `Ganador 4tos-${(i - 1) * 2 + 2}`,
+        numero_partido: i + 1,
+        equipo_local_placeholder: `Ganador 4tos-${a + 1}`,
+        equipo_visitante_placeholder: `Ganador 4tos-${b + 1}`,
         fecha_partido: new Date('2026-07-14T16:00:00Z').toISOString(),
         finalizado: false,
       });
-    }
+    });
 
     // Tercer puesto
     partidos.push({
