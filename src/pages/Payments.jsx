@@ -1337,21 +1337,21 @@ export default function Payments() {
                       return (
                         <Card key={player.id} className="border hover:shadow-lg transition-shadow">
                           <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 border-b p-3 lg:p-4">
-                            <div className="flex items-center justify-between gap-2">
+                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
                               <div className="flex items-center gap-2 min-w-0">
                                 {player.foto_url ? (
-                                  <img src={player.foto_url} className="w-8 h-8 lg:w-10 lg:h-10 rounded-full object-cover flex-shrink-0" alt="" />
+                                  <img src={player.foto_url} className="w-9 h-9 lg:w-10 lg:h-10 rounded-full object-cover flex-shrink-0" alt="" />
                                 ) : (
-                                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0">
+                                  <div className="w-9 h-9 lg:w-10 lg:h-10 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold text-xs lg:text-sm flex-shrink-0">
                                     {player.nombre.charAt(0)}
                                   </div>
                                 )}
-                                <div className="min-w-0">
-                                  <h3 className="font-bold text-sm lg:text-base text-slate-900 truncate">{player.nombre}</h3>
+                                <div className="min-w-0 flex-1">
+                                  <h3 className="font-bold text-sm lg:text-base text-slate-900 break-words leading-tight">{player.nombre}</h3>
                                   <p className="text-xs text-slate-600 truncate">{player.deporte || "Sin categoría"}</p>
                                 </div>
                               </div>
-                              <div className="flex gap-2 items-center">
+                              <div className="flex gap-2 items-center flex-wrap lg:flex-nowrap lg:flex-shrink-0">
                                 {isAdmin && (
                                   <Button
                                     size="sm"
