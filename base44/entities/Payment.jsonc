@@ -97,6 +97,10 @@
       "type": "string",
       "description": "URL del recibo PDF generado autom\u00e1ticamente"
     },
+    "numero_recibo": {
+      "type": "string",
+      "description": "N\u00famero de recibo limpio y correlativo por temporada (ej: 2025/2026-0001)"
+    },
     "stripe_subscription_id": {
       "type": "string",
       "description": "ID de la suscripci\u00f3n de Stripe (para Plan Mensual)"

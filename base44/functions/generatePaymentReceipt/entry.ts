@@ -86,8 +86,8 @@ const buildReciboPDF = async ({ numero, fecha, recibiDe, cantidad, concepto, tem
   doc.roundedRect(pageW - marginX - 38, 22, 33, 22, 2, 2, 'FD');
   doc.setFont('times', 'normal'); doc.setFontSize(7); doc.setTextColor(100, 116, 139);
   doc.text('RECIBO Nº', pageW - marginX - 21.5, 28, { align: 'center' });
-  doc.setFont('times', 'bold'); doc.setFontSize(14); doc.setTextColor(234, 88, 12);
-  doc.text(String(numero || '—'), pageW - marginX - 21.5, 35, { align: 'center' });
+  doc.setFont('times', 'bold'); doc.setFontSize(10); doc.setTextColor(234, 88, 12);
+  doc.text(String(numero || '—'), pageW - marginX - 21.5, 34, { align: 'center' });
   const fechaFmt = formatFechaLarga(fecha) || '____ de __________ de ______';
   doc.setFont('times', 'italic'); doc.setFontSize(6.5); doc.setTextColor(100, 116, 139);
   doc.text(fechaFmt, pageW - marginX - 21.5, 41.5, { align: 'center' });
@@ -208,9 +208,22 @@ Deno.serve(async (req) => {
     const conceptoRecibo = `Cuota ${payment.mes} · ${player.nombre} (${player.deporte || 'Deportiva'})`;
     const recibiDe = player.nombre_tutor_legal || (player.email_padre ? `Tutor/a de ${player.nombre}` : player.nombre);
 
+    // Número de recibo limpio y correlativo por temporada (ej: 2025/2026-0001)
+    // Si el pago ya tiene un número asignado, reutilizarlo (para no cambiarlo al regenerar)
+    let numeroRecibo = payment.numero_recibo;
+    if (!numeroRecibo) {
+      const temporadaPago = payment.temporada || 'S/T';
+      const pagosTemporada = await base44.asServiceRole.entities.Payment.filter({ temporada: temporadaPago });
+      const yaAsignados = pagosTemporada.filter(p => p.numero_recibo).length;
+      const correlativo = String(yaAsignados + 1).padStart(4, '0');
+      numeroRecibo = `${temporadaPago}-${correlativo}`;
+      // Persistir el número en el pago para que sea estable
+      await base44.asServiceRole.entities.Payment.update(paymentId, { numero_recibo: numeroRecibo });
+    }
+
     // Generar el recibo profesional (marco, marca de agua, sello y firma del presidente)
     const doc = await buildReciboPDF({
-      numero: payment.id.substring(0, 8).toUpperCase(),
+      numero: numeroRecibo,
       fecha: payment.fecha_pago || payment.created_date,
       recibiDe,
       cantidad: Number(payment.cantidad).toFixed(2),
