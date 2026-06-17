@@ -463,14 +463,19 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
         )}
 
         <form onSubmit={handleSubmit} className={`bg-white rounded-3xl shadow-xl border border-slate-200 p-6 lg:p-10 space-y-5 ${mostrarListaEspera ? "hidden" : ""} ${(plazasAgotadas && !mostrarListaEspera) ? "opacity-50 pointer-events-none" : ""}`}>
-          {/* Honeypot anti-bot — invisible para humanos */}
+          {/* Honeypot anti-bot — invisible para humanos.
+              IMPORTANTE: usamos un name neutro + autoComplete="new-password" para que
+              el autocompletado del navegador (sobre todo móviles) NO rellene este campo
+              y marque por error a personas reales como bots. */}
           <input
             type="text"
+            name="company_website_hp"
             value={honeypot}
             onChange={(e) => setHoneypot(e.target.value)}
             tabIndex={-1}
-            autoComplete="off"
-            className="absolute -left-[9999px] opacity-0 pointer-events-none"
+            autoComplete="new-password"
+            inputMode="none"
+            className="absolute -left-[9999px] opacity-0 pointer-events-none h-0 w-0"
             aria-hidden="true"
           />
           <div className="grid grid-cols-2 gap-4">
