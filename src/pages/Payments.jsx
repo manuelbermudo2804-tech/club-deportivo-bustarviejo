@@ -1522,11 +1522,27 @@ export default function Payments() {
                                        ) : payment.estado === "Pendiente" && (
                                          <span className="text-red-600 text-xs lg:text-sm">❌</span>
                                        )}
-                                       {payment.recibo_url && payment.estado === "Pagado" && (
+                                       {payment.estado === "Pagado" && !payment.isVirtual && (
                                          <Button
                                            variant="ghost"
                                            size="sm"
-                                           onClick={() => window.open(payment.recibo_url, '_blank')}
+                                           onClick={async () => {
+                                             if (payment.recibo_url) { window.open(payment.recibo_url, '_blank'); return; }
+                                             toast.loading('Generando recibo…', { id: `recibo-${payment.id}` });
+                                             try {
+                                               const res = await base44.functions.invoke('generatePaymentReceipt', { paymentId: payment.id });
+                                               const url = res?.data?.recibo_url;
+                                               if (url) {
+                                                 await queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+                                                 window.open(url, '_blank');
+                                                 toast.success('Recibo generado', { id: `recibo-${payment.id}` });
+                                               } else {
+                                                 toast.error('No se pudo generar el recibo', { id: `recibo-${payment.id}` });
+                                               }
+                                             } catch (e) {
+                                               toast.error('Error al generar el recibo', { id: `recibo-${payment.id}` });
+                                             }
+                                           }}
                                            className="text-green-600 hover:text-green-700 p-1 h-6"
                                            title="Descargar recibo"
                                          >

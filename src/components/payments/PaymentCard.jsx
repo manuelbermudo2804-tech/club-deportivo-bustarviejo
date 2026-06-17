@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Upload, FileText, Loader2, CheckCircle2, Clock, AlertCircle } from "lucide-react";
+import { Upload, FileText, Loader2, CheckCircle2, Clock, AlertCircle, Download } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 
 const statusConfig = {
   "Pagado": { emoji: "🟢", bg: "bg-green-50 border-green-200", icon: CheckCircle2, color: "text-green-700", badgeCls: "bg-green-100 text-green-800" },
@@ -26,6 +28,33 @@ export default function PaymentCard({
 }) {
   const cfg = statusConfig[payment.estado] || statusConfig["Pendiente"];
   const StatusIcon = cfg.icon;
+
+  const [generatingReceipt, setGeneratingReceipt] = useState(false);
+
+  const handleDownloadReceipt = async () => {
+    // Si ya tiene recibo guardado, abrirlo directamente
+    if (payment.recibo_url) {
+      window.open(payment.recibo_url, '_blank');
+      return;
+    }
+    // Generar al vuelo para pagos antiguos sin recibo
+    if (payment.isVirtual) return;
+    setGeneratingReceipt(true);
+    try {
+      const res = await base44.functions.invoke('generatePaymentReceipt', { paymentId: payment.id });
+      const url = res?.data?.recibo_url;
+      if (url) {
+        window.open(url, '_blank');
+        toast.success('Recibo generado');
+      } else {
+        toast.error('No se pudo generar el recibo');
+      }
+    } catch (e) {
+      toast.error('Error al generar el recibo');
+    } finally {
+      setGeneratingReceipt(false);
+    }
+  };
 
   return (
     <div className={`rounded-xl border-2 ${cfg.bg} p-4 transition-all`}>
@@ -115,17 +144,22 @@ export default function PaymentCard({
             </Button>
           )}
 
-          {/* Recibo */}
-          {payment.recibo_url && (
-            <a
-              href={payment.recibo_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-green-600 hover:text-green-800 font-medium"
+          {/* Recibo — disponible para cualquier cuota pagada (genera al vuelo si aún no existe) */}
+          {payment.estado === "Pagado" && !payment.isVirtual && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleDownloadReceipt}
+              disabled={generatingReceipt}
+              className="h-8 text-xs border-green-300 text-green-700 hover:bg-green-50"
             >
-              <FileText className="w-3.5 h-3.5" />
-              Recibo
-            </a>
+              {generatingReceipt ? (
+                <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
+              ) : (
+                <Download className="w-3.5 h-3.5 mr-1" />
+              )}
+              {generatingReceipt ? 'Generando…' : 'Descargar recibo'}
+            </Button>
           )}
         </div>
       </div>
