@@ -73,18 +73,9 @@ const buildReciboPDF = async ({ numero, fecha, recibiDe, cantidad, concepto, tem
   doc.line(15, pageH - 15 - cs, 15, pageH - 15); doc.line(15, pageH - 15, 15 + cs, pageH - 15);
   doc.line(pageW - 15 - cs, pageH - 15, pageW - 15, pageH - 15); doc.line(pageW - 15, pageH - 15 - cs, pageW - 15, pageH - 15);
 
-  // Marca de agua
+  // Header (logo del club, sin marca de agua pesada para no agotar CPU)
   const logoData = await loadImageAsDataUrl(logoUrl);
-  if (logoData) {
-    try {
-      doc.setGState(new doc.GState({ opacity: 0.06 }));
-      doc.addImage(logoData, 'PNG', pageW / 2 - 50, pageH / 2 - 50, 100, 100, undefined, 'FAST');
-      doc.setGState(new doc.GState({ opacity: 1 }));
-    } catch (e) { console.warn('marca de agua:', e); }
-  }
-
-  // Header
-  if (logoData) { try { doc.addImage(logoData, 'JPEG', marginX + 5, 22, 22, 22); } catch { try { doc.addImage(logoData, 'PNG', marginX + 5, 22, 22, 22); } catch {} } }
+  if (logoData) { try { doc.addImage(logoData, 'JPEG', marginX + 5, 22, 22, 22, undefined, 'FAST'); } catch { try { doc.addImage(logoData, 'PNG', marginX + 5, 22, 22, 22, undefined, 'FAST'); } catch {} } }
   doc.setFont('times', 'bold'); doc.setFontSize(20); doc.setTextColor(15, 23, 42);
   doc.text('CD BUSTARVIEJO', marginX + 32, 30);
   doc.setFont('times', 'italic'); doc.setFontSize(9); doc.setTextColor(100, 116, 139);
@@ -150,7 +141,7 @@ const buildReciboPDF = async ({ numero, fecha, recibiDe, cantidad, concepto, tem
   y += 35;
   if (firmaUrl) {
     const firmaData = await loadImageAsDataUrl(firmaUrl);
-    if (firmaData) { try { doc.addImage(firmaData, 'PNG', marginX + 12, y - 22, 55, 22); } catch { try { doc.addImage(firmaData, 'JPEG', marginX + 12, y - 22, 55, 22); } catch {} } }
+    if (firmaData) { try { doc.addImage(firmaData, 'PNG', marginX + 12, y - 22, 55, 22, undefined, 'FAST'); } catch { try { doc.addImage(firmaData, 'JPEG', marginX + 12, y - 22, 55, 22, undefined, 'FAST'); } catch {} } }
   }
   doc.setDrawColor(30, 41, 59); doc.setLineWidth(0.5); doc.line(marginX, y, marginX + 80, y);
   doc.setFont('times', 'bold'); doc.setFontSize(8); doc.setTextColor(194, 65, 12);
@@ -161,7 +152,7 @@ const buildReciboPDF = async ({ numero, fecha, recibiDe, cantidad, concepto, tem
   doc.text('DNI: 51404895X', marginX + 40, y + 15, { align: 'center' });
   if (selloUrl) {
     const selloData = await loadImageAsDataUrl(selloUrl);
-    if (selloData) { try { doc.addImage(selloData, 'PNG', pageW - marginX - 50, y - 30, 48, 48); } catch { try { doc.addImage(selloData, 'JPEG', pageW - marginX - 50, y - 30, 48, 48); } catch {} } }
+    if (selloData) { try { doc.addImage(selloData, 'PNG', pageW - marginX - 50, y - 30, 48, 48, undefined, 'FAST'); } catch { try { doc.addImage(selloData, 'JPEG', pageW - marginX - 50, y - 30, 48, 48, undefined, 'FAST'); } catch {} } }
   }
 
   // Pie
@@ -233,13 +224,14 @@ Deno.serve(async (req) => {
 
     console.log('📝 [generatePaymentReceipt] PDF generado, subiendo a almacenamiento...');
     
-    // Convertir a ArrayBuffer para upload
+    // Convertir a ArrayBuffer y envolver en File (UploadFile requiere un archivo con nombre)
     const pdfArrayBuffer = doc.output('arraybuffer');
-    const pdfBlob = new Blob([pdfArrayBuffer], { type: 'application/pdf' });
+    const safeName = `Recibo_${player.nombre.replace(/\s+/g, '_')}_${payment.mes}.pdf`;
+    const pdfFile = new File([pdfArrayBuffer], safeName, { type: 'application/pdf' });
     
     // Subir el PDF
     const uploadResponse = await base44.asServiceRole.integrations.Core.UploadFile({
-      file: pdfBlob
+      file: pdfFile
     });
     
     const reciboUrl = uploadResponse.file_url;
