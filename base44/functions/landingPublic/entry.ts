@@ -81,8 +81,13 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Inscripciones cerradas' }, { status: 403 });
       }
 
-      // Anti-spam: honeypot
-      if (body.honeypot && String(body.honeypot).length > 0) {
+      // Anti-spam: honeypot.
+      // IMPORTANTE: el autocompletado de algunos navegadores móviles rellena este
+      // campo oculto con datos del usuario (nombre/teléfono), marcando por error a
+      // personas reales como bots. Por eso SOLO descartamos si el contenido parece
+      // realmente de bot (contiene una URL/enlace), no cualquier texto.
+      const hp = String(body.honeypot || '').trim();
+      if (hp && /https?:\/\/|www\.|<a\s|\.com|\.ru|\[url\]/i.test(hp)) {
         return Response.json({ ok: true, submission_id: 'bot' });
       }
 
