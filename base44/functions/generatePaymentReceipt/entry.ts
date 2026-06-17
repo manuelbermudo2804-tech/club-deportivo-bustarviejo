@@ -212,11 +212,12 @@ Deno.serve(async (req) => {
     // Si el pago ya tiene un número asignado, reutilizarlo (para no cambiarlo al regenerar)
     let numeroRecibo = payment.numero_recibo;
     if (!numeroRecibo) {
-      const temporadaPago = payment.temporada || 'S/T';
-      const pagosTemporada = await base44.asServiceRole.entities.Payment.filter({ temporada: temporadaPago });
-      const yaAsignados = pagosTemporada.filter(p => p.numero_recibo).length;
+      // Usar SIEMPRE la temporada activa de configuración (ej: 2026/2027), no la del campo del pago
+      const temporadaActiva = activeConfig?.temporada || payment.temporada || 'S/T';
+      const todosPagos = await base44.asServiceRole.entities.Payment.list('', 5000);
+      const yaAsignados = todosPagos.filter(p => p.numero_recibo && p.numero_recibo.startsWith(`${temporadaActiva}-`)).length;
       const correlativo = String(yaAsignados + 1).padStart(4, '0');
-      numeroRecibo = `${temporadaPago}-${correlativo}`;
+      numeroRecibo = `${temporadaActiva}-${correlativo}`;
       // Persistir el número en el pago para que sea estable
       await base44.asServiceRole.entities.Payment.update(paymentId, { numero_recibo: numeroRecibo });
     }
@@ -228,7 +229,7 @@ Deno.serve(async (req) => {
       recibiDe,
       cantidad: Number(payment.cantidad).toFixed(2),
       concepto: conceptoRecibo,
-      temporada: payment.temporada,
+      temporada: activeConfig?.temporada || payment.temporada,
       lugar: 'Bustarviejo',
       logoUrl: branding.logo_url || CLUB_LOGO_DEFAULT,
       selloUrl: branding.sello_url || '',
