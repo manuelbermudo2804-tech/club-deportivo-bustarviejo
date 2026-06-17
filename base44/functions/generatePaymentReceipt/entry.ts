@@ -1,6 +1,176 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { jsPDF } from 'npm:jspdf@2.5.2';
 
+// Carga una imagen remota como dataURL para incrustarla en el PDF
+const loadImageAsDataUrl = async (url) => {
+  if (!url) return null;
+  try {
+    const res = await fetch(url);
+    const buf = await res.arrayBuffer();
+    const bytes = new Uint8Array(buf);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    const base64 = btoa(binary);
+    const contentType = res.headers.get('content-type') || 'image/png';
+    return `data:${contentType};base64,${base64}`;
+  } catch (e) {
+    console.warn('No se pudo cargar imagen:', url, e);
+    return null;
+  }
+};
+
+const numeroALetras = (num) => {
+  const n = parseFloat(String(num).replace(',', '.'));
+  if (isNaN(n)) return '';
+  const entero = Math.floor(n);
+  const decimal = Math.round((n - entero) * 100);
+  const unidades = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve', 'veinte'];
+  const decenas = ['', '', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
+  const centenas = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
+  const conv = (num) => {
+    if (num === 0) return 'cero';
+    if (num === 100) return 'cien';
+    if (num <= 20) return unidades[num];
+    if (num < 100) { const d = Math.floor(num / 10), u = num % 10; if (num < 30) return 'veinti' + unidades[u]; return decenas[d] + (u ? ' y ' + unidades[u] : ''); }
+    if (num < 1000) { const c = Math.floor(num / 100), r = num % 100; return centenas[c] + (r ? ' ' + conv(r) : ''); }
+    if (num < 1000000) { const m = Math.floor(num / 1000), r = num % 1000; return (m === 1 ? 'mil' : conv(m) + ' mil') + (r ? ' ' + conv(r) : ''); }
+    return String(num);
+  };
+  let r = conv(entero) + ' euros';
+  if (decimal > 0) r += ' con ' + conv(decimal) + ' céntimos';
+  return r.charAt(0).toUpperCase() + r.slice(1);
+};
+
+const MESES_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+const formatFechaLarga = (fechaStr) => {
+  try {
+    const d = new Date(fechaStr);
+    return `${d.getDate()} de ${MESES_ES[d.getMonth()]} de ${d.getFullYear()}`;
+  } catch {
+    return '';
+  }
+};
+
+// Construye el recibo "bonito" (marco, marca de agua, sello y firma) reutilizando el diseño de patrocinio
+const buildReciboPDF = async ({ numero, fecha, recibiDe, cantidad, concepto, temporada, lugar, logoUrl, selloUrl, firmaUrl }) => {
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageW = 210;
+  const pageH = 297;
+  const marginX = 20;
+
+  // Marco decorativo
+  doc.setDrawColor(251, 146, 60);
+  doc.setLineWidth(0.3);
+  doc.rect(12, 12, pageW - 24, pageH - 24);
+  doc.setDrawColor(234, 88, 12);
+  doc.setLineWidth(1.2);
+  doc.rect(15, 15, pageW - 30, pageH - 30);
+  doc.setDrawColor(194, 65, 12);
+  doc.setLineWidth(1.5);
+  const cs = 8;
+  doc.line(15, 15 + cs, 15, 15); doc.line(15, 15, 15 + cs, 15);
+  doc.line(pageW - 15 - cs, 15, pageW - 15, 15); doc.line(pageW - 15, 15, pageW - 15, 15 + cs);
+  doc.line(15, pageH - 15 - cs, 15, pageH - 15); doc.line(15, pageH - 15, 15 + cs, pageH - 15);
+  doc.line(pageW - 15 - cs, pageH - 15, pageW - 15, pageH - 15); doc.line(pageW - 15, pageH - 15 - cs, pageW - 15, pageH - 15);
+
+  // Marca de agua
+  const logoData = await loadImageAsDataUrl(logoUrl);
+  if (logoData) {
+    try {
+      doc.setGState(new doc.GState({ opacity: 0.06 }));
+      doc.addImage(logoData, 'PNG', pageW / 2 - 50, pageH / 2 - 50, 100, 100, undefined, 'FAST');
+      doc.setGState(new doc.GState({ opacity: 1 }));
+    } catch (e) { console.warn('marca de agua:', e); }
+  }
+
+  // Header
+  if (logoData) { try { doc.addImage(logoData, 'JPEG', marginX + 5, 22, 22, 22); } catch { try { doc.addImage(logoData, 'PNG', marginX + 5, 22, 22, 22); } catch {} } }
+  doc.setFont('times', 'bold'); doc.setFontSize(20); doc.setTextColor(15, 23, 42);
+  doc.text('CD BUSTARVIEJO', marginX + 32, 30);
+  doc.setFont('times', 'italic'); doc.setFontSize(9); doc.setTextColor(100, 116, 139);
+  doc.text('Club Deportivo · Bustarviejo · Madrid', marginX + 32, 36);
+
+  // Caja Nº recibo
+  doc.setFillColor(255, 247, 237); doc.setDrawColor(234, 88, 12); doc.setLineWidth(0.5);
+  doc.roundedRect(pageW - marginX - 38, 22, 33, 22, 2, 2, 'FD');
+  doc.setFont('times', 'normal'); doc.setFontSize(7); doc.setTextColor(100, 116, 139);
+  doc.text('RECIBO Nº', pageW - marginX - 21.5, 28, { align: 'center' });
+  doc.setFont('times', 'bold'); doc.setFontSize(14); doc.setTextColor(234, 88, 12);
+  doc.text(String(numero || '—'), pageW - marginX - 21.5, 35, { align: 'center' });
+  const fechaFmt = formatFechaLarga(fecha) || '____ de __________ de ______';
+  doc.setFont('times', 'italic'); doc.setFontSize(6.5); doc.setTextColor(100, 116, 139);
+  doc.text(fechaFmt, pageW - marginX - 21.5, 41.5, { align: 'center' });
+
+  // Separador
+  doc.setDrawColor(234, 88, 12); doc.setLineWidth(0.6);
+  doc.line(marginX, 55, pageW / 2 - 4, 55); doc.line(pageW / 2 + 4, 55, pageW - marginX, 55);
+  doc.setFillColor(234, 88, 12); doc.circle(pageW / 2, 55, 1.2, 'F');
+
+  // Título
+  doc.setFont('times', 'bold'); doc.setFontSize(32); doc.setTextColor(30, 41, 59);
+  doc.text('R E C I B Í', pageW / 2, 75, { align: 'center' });
+  doc.setDrawColor(234, 88, 12); doc.setLineWidth(0.8);
+  doc.line(pageW / 2 - 12, 79, pageW / 2 + 12, 79);
+
+  let y = 100;
+  const miniLabel = (label, yPos) => { doc.setFont('times', 'normal'); doc.setFontSize(8); doc.setTextColor(148, 163, 184); doc.text(label.toUpperCase(), marginX, yPos); };
+  const dottedLine = (yPos) => { doc.setLineDashPattern([0.5, 1], 0); doc.setDrawColor(148, 163, 184); doc.setLineWidth(0.2); doc.line(marginX, yPos, pageW - marginX, yPos); doc.setLineDashPattern([], 0); };
+
+  // Recibí de
+  miniLabel('Recibí de', y); y += 6;
+  doc.setFont('times', 'bold'); doc.setFontSize(13); doc.setTextColor(15, 23, 42);
+  doc.text(String(recibiDe || ''), marginX, y);
+  dottedLine(y + 1.5); y += 12;
+
+  // Cantidad
+  miniLabel('La cantidad de', y); y += 7;
+  doc.setFont('times', 'bold'); doc.setFontSize(28); doc.setTextColor(194, 65, 12);
+  doc.text(cantidad ? `${cantidad} €` : '________ €', marginX, y);
+  y += 2; dottedLine(y); y += 5;
+  if (cantidad) { doc.setFont('times', 'italic'); doc.setFontSize(10); doc.setTextColor(100, 116, 139); doc.text(`(${numeroALetras(cantidad)})`, marginX, y); y += 10; } else { y += 5; }
+
+  // Concepto
+  miniLabel('En concepto de', y); y += 6;
+  doc.setFont('times', 'bold'); doc.setFontSize(12); doc.setTextColor(15, 23, 42);
+  const conceptoCompleto = (concepto || '') + (temporada ? `  ·  Temporada ${temporada}` : '');
+  const conceptoLines = doc.splitTextToSize(conceptoCompleto, pageW - marginX * 2);
+  doc.text(conceptoLines, marginX, y);
+  y += conceptoLines.length * 6 + 1; dottedLine(y);
+
+  // Lugar y fecha
+  y += 25;
+  doc.setFont('times', 'italic'); doc.setFontSize(11); doc.setTextColor(71, 85, 105);
+  doc.text('En ', marginX, y);
+  doc.setFont('times', 'bold'); doc.setTextColor(15, 23, 42); doc.text(lugar || 'Bustarviejo', marginX + 8, y);
+  const lugarW = doc.getTextWidth(lugar || 'Bustarviejo');
+  doc.setFont('times', 'italic'); doc.setTextColor(71, 85, 105); doc.text(', a ', marginX + 8 + lugarW, y);
+  doc.setFont('times', 'bold'); doc.setTextColor(15, 23, 42); doc.text(fechaFmt + '.', marginX + 8 + lugarW + 6, y);
+
+  // Firma y sello
+  y += 35;
+  if (firmaUrl) {
+    const firmaData = await loadImageAsDataUrl(firmaUrl);
+    if (firmaData) { try { doc.addImage(firmaData, 'PNG', marginX + 12, y - 22, 55, 22); } catch { try { doc.addImage(firmaData, 'JPEG', marginX + 12, y - 22, 55, 22); } catch {} } }
+  }
+  doc.setDrawColor(30, 41, 59); doc.setLineWidth(0.5); doc.line(marginX, y, marginX + 80, y);
+  doc.setFont('times', 'bold'); doc.setFontSize(8); doc.setTextColor(194, 65, 12);
+  doc.text('EL PRESIDENTE', marginX + 40, y + 4.5, { align: 'center' });
+  doc.setFont('times', 'bold'); doc.setFontSize(11); doc.setTextColor(15, 23, 42);
+  doc.text('Manuel Bermudo Santacruz', marginX + 40, y + 10, { align: 'center' });
+  doc.setFont('times', 'italic'); doc.setFontSize(8); doc.setTextColor(100, 116, 139);
+  doc.text('DNI: 51404895X', marginX + 40, y + 15, { align: 'center' });
+  if (selloUrl) {
+    const selloData = await loadImageAsDataUrl(selloUrl);
+    if (selloData) { try { doc.addImage(selloData, 'PNG', pageW - marginX - 50, y - 30, 48, 48); } catch { try { doc.addImage(selloData, 'JPEG', pageW - marginX - 50, y - 30, 48, 48); } catch {} } }
+  }
+
+  // Pie
+  doc.setFont('times', 'italic'); doc.setFontSize(7); doc.setTextColor(148, 163, 184);
+  doc.text('CD Bustarviejo · cdbustarviejo@gmail.com · Bustarviejo, Madrid', pageW / 2, pageH - 22, { align: 'center' });
+
+  return doc;
+};
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -35,109 +205,32 @@ Deno.serve(async (req) => {
     const activeConfig = configs.find(c => c.activa === true);
     console.log('✅ [generatePaymentReceipt] Config encontrada:', activeConfig?.temporada);
 
-    // Generar el PDF del recibo
-    const doc = new jsPDF();
-    
-    // Header con logo y título
-    doc.setFontSize(20);
-    doc.setTextColor(234, 88, 12); // Orange
-    doc.text('CD BUSTARVIEJO', 105, 20, { align: 'center' });
-    
-    doc.setFontSize(16);
-    doc.setTextColor(0, 0, 0);
-    doc.text('RECIBO DE PAGO', 105, 30, { align: 'center' });
-    
-    // Línea separadora
-    doc.setDrawColor(234, 88, 12);
-    doc.setLineWidth(0.5);
-    doc.line(20, 35, 190, 35);
-    
-    // Información del recibo
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    
-    const startY = 45;
-    let currentY = startY;
-    
-    // Número de recibo
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(12);
-    doc.text(`Nº Recibo: ${payment.id.substring(0, 8).toUpperCase()}`, 20, currentY);
-    currentY += 8;
-    
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100);
-    doc.text(`Fecha: ${new Date(payment.fecha_pago || payment.created_date).toLocaleDateString('es-ES')}`, 20, currentY);
-    currentY += 15;
-    
-    // Datos del jugador
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.text('DATOS DEL JUGADOR', 20, currentY);
-    currentY += 8;
-    
-    doc.setFontSize(10);
-    doc.setTextColor(60, 60, 60);
-    doc.text(`Nombre: ${player.nombre}`, 25, currentY);
-    currentY += 6;
-    doc.text(`Categoría: ${player.deporte || 'No especificado'}`, 25, currentY);
-    currentY += 15;
-    
-    // Datos del pago
-    doc.setFontSize(12);
-    doc.setTextColor(0, 0, 0);
-    doc.text('CONCEPTO DEL PAGO', 20, currentY);
-    currentY += 8;
-    
-    doc.setFontSize(10);
-    doc.setTextColor(60, 60, 60);
-    doc.text(`Temporada: ${payment.temporada}`, 25, currentY);
-    currentY += 6;
-    doc.text(`Tipo de Pago: ${payment.tipo_pago}`, 25, currentY);
-    currentY += 6;
-    doc.text(`Mes: ${payment.mes}`, 25, currentY);
-    currentY += 6;
-    doc.text(`Método de Pago: ${payment.metodo_pago}`, 25, currentY);
-    currentY += 15;
-    
-    // Importe - destacado
-    doc.setFillColor(34, 197, 94); // Green
-    doc.rect(20, currentY - 5, 170, 15, 'F');
-    
-    doc.setFontSize(14);
-    doc.setTextColor(255, 255, 255);
-    doc.text(`IMPORTE TOTAL: ${payment.cantidad.toFixed(2)}€`, 105, currentY + 5, { align: 'center' });
-    currentY += 20;
-    
-    // Información adicional
-    if (payment.notas) {
-      doc.setFontSize(10);
-      doc.setTextColor(100, 100, 100);
-      doc.text('Notas:', 20, currentY);
-      currentY += 6;
-      doc.setTextColor(60, 60, 60);
-      
-      // Split text si es muy largo
-      const notasLines = doc.splitTextToSize(payment.notas, 170);
-      doc.text(notasLines, 25, currentY);
-      currentY += (notasLines.length * 6) + 10;
-    }
-    
-    // Pie de página
-    currentY = 270;
-    doc.setDrawColor(234, 88, 12);
-    doc.setLineWidth(0.3);
-    doc.line(20, currentY, 190, currentY);
-    currentY += 5;
-    
-    doc.setFontSize(8);
-    doc.setTextColor(100, 100, 100);
-    doc.text('CD BUSTARVIEJO - Club Deportivo Bustarviejo', 105, currentY, { align: 'center' });
-    currentY += 4;
-    doc.text('Email: cdbustarviejo@gmail.com', 105, currentY, { align: 'center' });
-    currentY += 4;
-    doc.text('Este recibo ha sido generado automáticamente', 105, currentY, { align: 'center' });
-    
+    // Obtener logo, sello y firma del club (compartidos en BrandingAssets)
+    const CLUB_LOGO_DEFAULT = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg';
+    let branding = {};
+    try {
+      const brandingItems = await base44.asServiceRole.entities.BrandingAssets.list();
+      branding = brandingItems?.[0] || {};
+    } catch (e) { console.warn('No se pudo cargar BrandingAssets:', e); }
+
+    // Concepto legible de la cuota
+    const conceptoRecibo = `Cuota ${payment.mes} · ${player.nombre} (${player.deporte || 'Deportiva'})`;
+    const recibiDe = player.nombre_tutor_legal || (player.email_padre ? `Tutor/a de ${player.nombre}` : player.nombre);
+
+    // Generar el recibo profesional (marco, marca de agua, sello y firma del presidente)
+    const doc = await buildReciboPDF({
+      numero: payment.id.substring(0, 8).toUpperCase(),
+      fecha: payment.fecha_pago || payment.created_date,
+      recibiDe,
+      cantidad: Number(payment.cantidad).toFixed(2),
+      concepto: conceptoRecibo,
+      temporada: payment.temporada,
+      lugar: 'Bustarviejo',
+      logoUrl: branding.logo_url || CLUB_LOGO_DEFAULT,
+      selloUrl: branding.sello_url || '',
+      firmaUrl: branding.firma_url || '',
+    });
+
     console.log('📝 [generatePaymentReceipt] PDF generado, subiendo a almacenamiento...');
     
     // Convertir a ArrayBuffer para upload
