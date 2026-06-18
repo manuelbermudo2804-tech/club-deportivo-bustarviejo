@@ -61,12 +61,16 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   useEffect(() => {
     if (!conversation?.id) return;
     const unsub = base44.entities.CoordinatorMessage.subscribe((event) => {
-      if (event.data?.conversacion_id === conversation.id) {
+      // Ignorar mis propios mensajes: ya están en caché por la actualización
+      // optimista. Invalidar aquí provocaría un refetch que, por consistencia
+      // eventual, podría no devolver aún el mensaje y lo borraría de pantalla
+      // hasta salir y volver a entrar.
+      if (event.data?.conversacion_id === conversation.id && event.data?.autor_email !== user?.email) {
         queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
       }
     });
     return unsub;
-  }, [conversation?.id, queryClient]);
+  }, [conversation?.id, user?.email, queryClient]);
 
   const { data: conversationState } = useQuery({
     queryKey: ['coordinatorConversationState', conversation?.id],
