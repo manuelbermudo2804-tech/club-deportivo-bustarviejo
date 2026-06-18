@@ -500,7 +500,7 @@ export default function ParentCoordinatorChat() {
                     }}>
                       {!isPadre && (
                         <p className="text-xs font-medium mb-1" style={{color: '#0891B2'}}>
-                          🎓 {msg.autor_nombre}
+                          🎓 Coordinador
                         </p>
                       )}
                       
