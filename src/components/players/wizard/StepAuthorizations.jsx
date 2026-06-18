@@ -77,7 +77,7 @@ export default function StepAuthorizations({
               <p className="font-semibold text-slate-900">POLÍTICA DE PROTECCIÓN DE DATOS - CLUB DEPORTIVO BUSTARVIEJO</p>
               <p>En cumplimiento del RGPD (UE) 2016/679, le informamos que sus datos serán tratados por el CD Bustarviejo para gestión de inscripciones, comunicaciones del club y gestión administrativa y deportiva.</p>
               <p><strong>Destinatarios:</strong> Federaciones deportivas, compañías de seguros, administraciones públicas cuando sea requerido.</p>
-              <p><strong>Derechos:</strong> Acceso, rectificación, supresión, limitación, portabilidad y oposición en cdbustarviejo@gmail.com</p>
+              <p><strong>Derechos:</strong> Acceso, rectificación, supresión, limitación, portabilidad y oposición en info@cdbustarviejo.com</p>
             </div>
             {!privacyScrolled && (
               <div className="flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">
@@ -113,7 +113,7 @@ export default function StepAuthorizations({
               <p>De conformidad con el derecho a la propia imagen recogido en la Ley Orgánica 1/1982, de 5 de mayo, y en el Reglamento (UE) 2016/679 (RGPD), el Club Deportivo Bustarviejo solicita su autorización para la captación, almacenamiento y publicación de fotografías y vídeos {isAdultPlayerSelfRegistration ? "del jugador inscrito" : "del menor inscrito"} durante entrenamientos, partidos, torneos y eventos organizados por el club.</p>
               <p><strong>Finalidad:</strong> Las imágenes podrán ser utilizadas en los canales oficiales del club, incluyendo página web, redes sociales (Instagram, Facebook, Twitter/X), materiales promocionales, prensa local y comunicaciones internas del club.</p>
               <p><strong>Difusión:</strong> Las imágenes se publicarán siempre en el contexto de la actividad deportiva del club, nunca con fines comerciales ajenos al mismo.</p>
-              <p><strong>Revocación:</strong> Esta autorización puede ser revocada en cualquier momento comunicándolo por escrito a cdbustarviejo@gmail.com. La revocación no tendrá carácter retroactivo sobre las publicaciones ya realizadas.</p>
+              <p><strong>Revocación:</strong> Esta autorización puede ser revocada en cualquier momento comunicándolo por escrito a info@cdbustarviejo.com. La revocación no tendrá carácter retroactivo sobre las publicaciones ya realizadas.</p>
               <p><strong>Conservación:</strong> Las imágenes se conservarán mientras dure la vinculación con el club y durante un periodo razonable posterior para fines de archivo histórico.</p>
             </div>
             {!photoScrolled && (

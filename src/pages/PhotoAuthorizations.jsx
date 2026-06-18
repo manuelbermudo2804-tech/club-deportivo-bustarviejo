@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Camera, AlertTriangle, Copy, ShieldOff, Users } from "lucide-react";
+import { Camera, AlertTriangle, Copy, ShieldOff, Users, FileText } from "lucide-react";
 import { toast } from "sonner";
 import { playerPrimaryCategory } from "@/components/utils/playerCategoryFilter";
 
@@ -159,6 +159,23 @@ export default function PhotoAuthorizations() {
           </Card>
         ))
       )}
+
+      {/* Texto oficial de la autorización */}
+      <Card className="border-slate-200">
+        <CardHeader className="py-3">
+          <CardTitle className="text-base flex items-center gap-2 text-slate-700">
+            <FileText className="w-4 h-4" /> Texto de la autorización (formulario de inscripción)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="text-sm text-slate-600 space-y-2">
+          <p className="font-semibold text-slate-900">AUTORIZACIÓN DE IMAGEN — CLUB DEPORTIVO BUSTARVIEJO</p>
+          <p>De conformidad con el derecho a la propia imagen recogido en la Ley Orgánica 1/1982, de 5 de mayo, y en el Reglamento (UE) 2016/679 (RGPD), el Club Deportivo Bustarviejo solicita su autorización para la captación, almacenamiento y publicación de fotografías y vídeos del menor inscrito (o del jugador inscrito, si es mayor de edad) durante entrenamientos, partidos, torneos y eventos organizados por el club.</p>
+          <p><strong>Finalidad:</strong> Las imágenes podrán ser utilizadas en los canales oficiales del club, incluyendo página web, redes sociales (Instagram, Facebook, Twitter/X), materiales promocionales, prensa local y comunicaciones internas del club.</p>
+          <p><strong>Difusión:</strong> Las imágenes se publicarán siempre en el contexto de la actividad deportiva del club, nunca con fines comerciales ajenos al mismo.</p>
+          <p><strong>Revocación:</strong> Esta autorización puede ser revocada en cualquier momento comunicándolo por escrito a info@cdbustarviejo.com. La revocación no tendrá carácter retroactivo sobre las publicaciones ya realizadas.</p>
+          <p><strong>Conservación:</strong> Las imágenes se conservarán mientras dure la vinculación con el club y durante un periodo razonable posterior para fines de archivo histórico.</p>
+        </CardContent>
+      </Card>
     </div>
   );
 }
