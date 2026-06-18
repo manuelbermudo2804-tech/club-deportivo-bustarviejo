@@ -96,14 +96,30 @@ export default function ParentCoordinatorChat() {
     queryKey: ['parentCoordinatorMessages', conversation?.id],
     queryFn: async () => {
       if (!conversation?.id) return [];
-      return await base44.entities.CoordinatorMessage.filter({ conversacion_id: conversation.id }, 'created_date');
+      const msgs = await base44.entities.CoordinatorMessage.filter({ conversacion_id: conversation.id }, 'created_date');
+      // Conservar mensajes recién enviados que el servidor aún no devuelve
+      // (consistencia eventual): evita que un mensaje recién creado desaparezca tras un refetch.
+      const cached = queryClient.getQueryData(['parentCoordinatorMessages', conversation.id]) || [];
+      const serverIds = new Set(msgs.map(m => m.id));
+      const now = Date.now();
+      const pendientes = cached.filter(m =>
+        !serverIds.has(m.id) &&
+        m.autor_email === user?.email &&
+        m.created_date && (now - new Date(m.created_date).getTime() < 30000)
+      );
+      if (pendientes.length > 0) {
+        return [...msgs, ...pendientes].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+      }
+      return msgs;
     },
     enabled: !!conversation?.id,
     refetchInterval: false,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    staleTime: Infinity,
+    // Recargar al entrar, al volver a la ventana y al reconectar para que SIEMPRE
+    // se vea el historial real del servidor (antes quedaba congelado en caché).
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    staleTime: 0,
     gcTime: 300000,
   });
 
