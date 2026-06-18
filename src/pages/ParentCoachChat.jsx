@@ -19,6 +19,7 @@ import EmojiScaler from "../components/chat/EmojiScaler";
 import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
+import ChatMessageActions from "../components/chat/ChatMessageActions";
 
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
@@ -438,16 +439,19 @@ export default function ParentCoachChat() {
                       <div className="bg-white px-4 py-1 rounded-full text-xs text-slate-600 shadow-sm">{dateLabel}</div>
                     </div>
                   )}
-                  <div className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} mb-1.5`}>
+                  <div className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} group mb-1.5`}>
                     {(msg.mensaje || msg.audio_url || msg.archivos_adjuntos?.length > 0) && !msg.encuesta && !msg.poll && !msg.ubicacion && (
                       <div className="max-w-[72%] rounded-2xl px-3 py-2 relative" style={{
                         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                         fontSize: '15px', lineHeight: '1.4', fontWeight: 400, wordWrap: 'break-word', whiteSpace: 'pre-wrap',
                         backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
                       }}>
-                        <div className="flex items-center gap-1 mb-1">
-                          <p className="text-xs font-semibold opacity-70">{isCoach ? '🏃 ' : ''}{msg.remitente_nombre}</p>
-                          {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
+                        <div className="flex items-center justify-between gap-1 mb-1">
+                          <div className="flex items-center gap-1">
+                            <p className="text-xs font-semibold opacity-70">{isCoach ? '🏃 ' : ''}{msg.remitente_nombre}</p>
+                            {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
+                          </div>
+                          <ChatMessageActions message={msg} isMine={isMine} />
                         </div>
                         {msg.mensaje && <p style={{fontSize: '15px', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}><EmojiScaler content={msg.mensaje} /></p>}
                         {msg.audio_url && <div className="mt-1"><ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isMine} /></div>}

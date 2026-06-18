@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Reply, Edit, Trash2, Forward, MapPin } from "lucide-react";
+import { Copy, Edit, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,33 +9,45 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export default function ChatMessageActions({ 
-  message, 
-  isMine, 
-  isStaff,
-  onReply, 
-  onEdit, 
-  onDelete, 
-  onForward,
-  onSendLocation 
+export default function ChatMessageActions({
+  message,
+  isMine,
+  onEdit,
+  onDelete,
 }) {
+  const handleCopy = async () => {
+    const text = message?.mensaje || "";
+    if (!text.trim()) {
+      toast.error("Este mensaje no tiene texto que copiar");
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      toast.success("Mensaje copiado");
+    } catch {
+      toast.error("No se pudo copiar");
+    }
+  };
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          size="sm" 
-          variant="ghost" 
+        <Button
+          size="sm"
+          variant="ghost"
           className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
         >
           <span className="text-lg">⋮</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => onReply(message)}>
-          <Reply className="w-4 h-4 mr-2" />
-          Responder
-        </DropdownMenuItem>
-        
+        {message?.mensaje?.trim() && (
+          <DropdownMenuItem onClick={handleCopy}>
+            <Copy className="w-4 h-4 mr-2" />
+            Copiar
+          </DropdownMenuItem>
+        )}
+
         {isMine && !message.eliminado && (
           <>
             <DropdownMenuItem onClick={() => onEdit(message)}>
@@ -46,13 +59,6 @@ export default function ChatMessageActions({
               Eliminar
             </DropdownMenuItem>
           </>
-        )}
-        
-        {typeof onForward === 'function' && (
-          <DropdownMenuItem onClick={() => onForward(message)}>
-            <Forward className="w-4 h-4 mr-2" />
-            Reenviar
-          </DropdownMenuItem>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

@@ -20,6 +20,7 @@ import EmojiScaler from "../components/chat/EmojiScaler";
 import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
+import ChatMessageActions from "../components/chat/ChatMessageActions";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -487,7 +488,7 @@ export default function ParentCoordinatorChat() {
                 const isImage = (msg.archivos_adjuntos || msg.adjuntos)?.some(f => f.tipo?.startsWith('image/'));
                 
                 return (
-                  <div key={msg.id} className={`flex ${isPadre ? 'justify-end mr-2' : 'justify-start ml-2'} mb-1.5`}>
+                  <div key={msg.id} className={`flex ${isPadre ? 'justify-end mr-2' : 'justify-start ml-2'} group mb-1.5`}>
                     <div className="max-w-[72%] px-3 py-2 relative rounded-2xl" style={{
                       backgroundColor: isPadre ? '#DCF8C6' : '#FFFFFF',
                       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -498,11 +499,14 @@ export default function ParentCoordinatorChat() {
                       whiteSpace: 'pre-wrap',
                       boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
                     }}>
-                      {!isPadre && (
-                        <p className="text-xs font-medium mb-1" style={{color: '#0891B2'}}>
-                          🎓 {msg.autor_nombre}
-                        </p>
-                      )}
+                      <div className="flex items-center justify-between gap-1 mb-1">
+                        {!isPadre ? (
+                          <p className="text-xs font-medium" style={{color: '#0891B2'}}>
+                            🎓 {msg.autor_nombre}
+                          </p>
+                        ) : <span />}
+                        <ChatMessageActions message={msg} isMine={isPadre} />
+                      </div>
                       
                       {msg.audio_url ? (
                         <div className="mt-1">

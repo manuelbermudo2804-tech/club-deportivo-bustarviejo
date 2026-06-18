@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Smile, Check, CheckCheck, MapPin, Reply, Edit, Trash2, Users, Image as ImageIcon, Camera, Dumbbell, Pin } from "lucide-react";
 import ChatInputActions from "../chat/ChatInputActions";
+import ChatMessageActions from "../chat/ChatMessageActions";
 import { format, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
@@ -776,8 +777,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                      <p className="text-xs font-semibold opacity-70">
                        {isCoachMsg ? '🏃 ' : ''}{msg.remitente_nombre}
                      </p>
-                     {isMine && (
-                       <div className="flex gap-1">
+                     <div className="flex items-center gap-0.5">
+                       {isMine && (
                          <Button
                            size="sm"
                            variant="ghost"
@@ -787,37 +788,14 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                          >
                            <Pin className={`w-3 h-3 ${msg.anclado ? 'text-yellow-600 fill-yellow-600' : ''}`} />
                          </Button>
-                         <Button
-                           size="sm"
-                           variant="ghost"
-                           className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                           onClick={() => {
-                             setEditingMessage(msg);
-                             toast.info("Edición próximamente");
-                           }}
-                         >
-                           <Edit className="w-3 h-3" />
-                         </Button>
-                         <Button
-                           size="sm"
-                           variant="ghost"
-                           className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                           onClick={() => deleteMessageMutation.mutate(msg.id)}
-                         >
-                           <Trash2 className="w-3 h-3" />
-                         </Button>
-                       </div>
-                     )}
-                     {!isMine && (
-                       <Button
-                         size="sm"
-                         variant="ghost"
-                         className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                         onClick={() => setReplyingTo(msg)}
-                       >
-                         <Reply className="w-3 h-3" />
-                       </Button>
-                     )}
+                       )}
+                       <ChatMessageActions
+                         message={msg}
+                         isMine={isMine}
+                         onEdit={() => toast.info("Edición próximamente")}
+                         onDelete={(m) => deleteMessageMutation.mutate(m.id)}
+                       />
+                     </div>
                    </div>
 
                    {msg.audio_url ? (
