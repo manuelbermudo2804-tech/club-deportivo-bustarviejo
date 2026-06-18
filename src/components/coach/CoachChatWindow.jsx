@@ -110,10 +110,10 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       return msgs;
     },
     refetchInterval: false,
-    refetchOnMount: 'always',
+    refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
-    staleTime: 0,
+    staleTime: 3000,
     enabled: !!selectedCategory,
   });
 
