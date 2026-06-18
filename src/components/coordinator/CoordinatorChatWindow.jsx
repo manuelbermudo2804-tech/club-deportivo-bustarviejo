@@ -414,6 +414,47 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     }
   };
 
+  // Tareas secundarias tras enviar: actualizar conversación + notificación.
+  // Se ejecutan en segundo plano y NUNCA hacen fallar el envío del mensaje.
+  const runCoordinatorPostSendTasks = async (messageData) => {
+    const fieldNoLeidos = isCoordinator ? 'no_leidos_padre' : 'no_leidos_coordinador';
+    const fieldEscribiendo = isCoordinator ? 'coordinador_escribiendo' : 'padre_escribiendo';
+    try {
+      await base44.entities.CoordinatorConversation.update(conversation.id, {
+        ultimo_mensaje: messageData.mensaje,
+        ultimo_mensaje_fecha: new Date().toISOString(),
+        ultimo_mensaje_autor: isCoordinator ? "coordinador" : "padre",
+        [fieldNoLeidos]: (conversation[fieldNoLeidos] || 0) + 1,
+        [fieldEscribiendo]: false,
+        archivada: false
+      });
+    } catch (e) { console.error("conversación:", e); }
+
+    try {
+      if (!isCoordinator && conversation.coordinador_email) {
+        await base44.entities.AppNotification.create({
+          usuario_email: conversation.coordinador_email,
+          titulo: `💬 Mensaje de ${user.full_name}`,
+          mensaje: (messageData.mensaje || "Mensaje").substring(0, 100),
+          tipo: "importante",
+          icono: "💬",
+          enlace: "CoordinatorChat",
+          vista: false
+        });
+      } else if (isCoordinator && conversation.padre_email) {
+        await base44.entities.AppNotification.create({
+          usuario_email: conversation.padre_email,
+          titulo: `🎓 Mensaje del Coordinador`,
+          mensaje: (messageData.mensaje || "Mensaje").substring(0, 100),
+          tipo: "importante",
+          icono: "🎓",
+          enlace: "ParentCoordinatorChat",
+          vista: false
+        });
+      }
+    } catch (e) { console.error("notificación:", e); }
+  };
+
   const sendMessageMutation = useMutation({
     onMutate: async (messageData) => {
       await queryClient.cancelQueries({ queryKey: ['coordinatorMessages', conversation?.id] });
@@ -475,41 +516,13 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         messagePayload.mensaje_citado = messageData.mensaje_citado;
       }
 
+      // SOLO crear el mensaje. Si esto falla, se revierte el optimista.
       const newMessage = await base44.entities.CoordinatorMessage.create(messagePayload);
 
-      const fieldNoLeidos = isCoordinator ? 'no_leidos_padre' : 'no_leidos_coordinador';
-      const fieldEscribiendo = isCoordinator ? 'coordinador_escribiendo' : 'padre_escribiendo';
-
-      await base44.entities.CoordinatorConversation.update(conversation.id, {
-        ultimo_mensaje: messageData.mensaje,
-        ultimo_mensaje_fecha: new Date().toISOString(),
-        ultimo_mensaje_autor: isCoordinator ? "coordinador" : "padre",
-        [fieldNoLeidos]: (conversation[fieldNoLeidos] || 0) + 1,
-        [fieldEscribiendo]: false,
-        archivada: false
-      });
-
-      if (!isCoordinator && conversation.coordinador_email) {
-        await base44.entities.AppNotification.create({
-          usuario_email: conversation.coordinador_email,
-          titulo: `💬 Mensaje de ${user.full_name}`,
-          mensaje: (messageData.mensaje || "Mensaje").substring(0, 100),
-          tipo: "importante",
-          icono: "💬",
-          enlace: "CoordinatorChat",
-          vista: false
-        });
-      } else if (isCoordinator && conversation.padre_email) {
-        await base44.entities.AppNotification.create({
-          usuario_email: conversation.padre_email,
-          titulo: `🎓 Mensaje del Coordinador`,
-          mensaje: (messageData.mensaje || "Mensaje").substring(0, 100),
-          tipo: "importante",
-          icono: "🎓",
-          enlace: "ParentCoordinatorChat",
-          vista: false
-        });
-      }
+      // Tareas secundarias (actualizar conversación + notificación) en SEGUNDO PLANO.
+      // No se await-ean: si fallan (p.ej. AppNotification que solo admins pueden crear)
+      // NO deben revertir el mensaje ya guardado.
+      runCoordinatorPostSendTasks(messageData);
 
       return newMessage;
     },
