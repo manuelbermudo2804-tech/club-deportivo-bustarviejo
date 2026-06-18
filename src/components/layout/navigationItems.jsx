@@ -4,7 +4,7 @@ import {
   Settings, MessageCircle, Clock, Image, FileText, Clover, UserCircle,
   FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert,
   ClipboardCheck, Star, Trophy, KeyRound, RotateCw, CheckCircle2,
-  User as UserIcon, Share2, ExternalLink, Shirt
+  User as UserIcon, Share2, ExternalLink, Shirt, Camera
 } from "lucide-react";
 
 /**
@@ -91,6 +91,7 @@ export function buildAdminNavigation(ctx) {
 
     { title: "─ PROTECCIÓN DEL MENOR ─", section: true },
     { title: "🛡️ LOPIVI - Incidencias", url: createPageUrl("LopiviAdmin"), icon: ShieldAlert, badge: ctx.pendingLopiviCount > 0 ? ctx.pendingLopiviCount : null, urgentBadge: ctx.pendingLopiviCount > 0, highlight: ctx.pendingLopiviCount > 0 },
+    { title: "📸 Autorización de Imagen", url: createPageUrl("PhotoAuthorizations"), icon: Camera },
 
     { title: "─ CONFIGURACIÓN ─", section: true },
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
