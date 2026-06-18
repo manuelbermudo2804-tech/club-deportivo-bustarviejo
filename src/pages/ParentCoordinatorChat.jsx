@@ -122,13 +122,16 @@ export default function ParentCoordinatorChat() {
     if (!conversation?.id) return;
     
     const unsub = base44.entities.CoordinatorMessage.subscribe((event) => {
-      if (event.data?.conversacion_id === conversation.id) {
+      // Ignorar mis propios mensajes: ya están en caché por la actualización
+      // optimista. Invalidar provocaría un refetch que por consistencia eventual
+      // podría no devolver aún el mensaje y lo borraría hasta salir y volver.
+      if (event.data?.conversacion_id === conversation.id && event.data?.autor_email !== user?.email) {
         queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] });
       }
     });
     
     return unsub;
-  }, [conversation?.id, queryClient]);
+  }, [conversation?.id, user?.email, queryClient]);
 
   // Polling para estado "escribiendo"
   const { data: conversationState } = useQuery({
@@ -317,12 +320,14 @@ export default function ParentCoordinatorChat() {
 
       return newMessage;
     },
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] }),
-        queryClient.invalidateQueries({ queryKey: ['coordinatorConversations'] }),
-        queryClient.refetchQueries({ queryKey: ['parentCoordinatorMessages', conversation.id] }),
-      ]);
+    onSuccess: async (createdMessage) => {
+      // Reemplazar el optimista por el real SIN refetchear (evita que el mensaje
+      // desaparezca hasta salir y volver por consistencia eventual del servidor).
+      queryClient.setQueryData(['parentCoordinatorMessages', conversation?.id], (old = []) => {
+        const replaced = (old || []).map(m => (typeof m.id === 'string' && m.id.startsWith('temp-') ? createdMessage : m));
+        if (!replaced.some(m => m.id === createdMessage.id)) replaced.push(createdMessage);
+        return replaced;
+      });
     }
   });
 

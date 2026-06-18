@@ -126,13 +126,16 @@ export default function StaffChat() {
     if (!conversation?.id) return;
     
     const unsub = base44.entities.StaffMessage.subscribe((event) => {
-      if (event.data?.conversacion_id === conversation.id) {
+      // Ignorar mis propios mensajes: ya están en caché por la actualización
+      // optimista. Invalidar provocaría un refetch que por consistencia eventual
+      // podría no devolver aún el mensaje y lo borraría hasta salir y volver.
+      if (event.data?.conversacion_id === conversation.id && event.data?.autor_email !== user?.email) {
         queryClient.invalidateQueries({ queryKey: ['staffMessages', conversation.id] });
       }
     });
     
     return unsub;
-  }, [conversation?.id, queryClient]);
+  }, [conversation?.id, user?.email, queryClient]);
 
   // Calcular mensajes sin leer (solo para badge local) y recargar contadores independientes
   useEffect(() => {
