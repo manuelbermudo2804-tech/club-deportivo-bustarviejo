@@ -410,7 +410,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       };
       
       queryClient.setQueryData(['coordinatorMessages', conversation?.id], (old = []) => [...old, optimisticMessage]);
-      return { previousMessages };
+      return { previousMessages, tempId: optimisticMessage.id };
     },
     onError: (err, messageData, context) => {
       if (context?.previousMessages) {
@@ -489,8 +489,15 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
       return newMessage;
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['coordinatorMessages', conversation.id] });
+    onSuccess: async (createdMessage, vars, context) => {
+      // Reemplazar el optimista por el real SIN refetchear (evita que el mensaje
+      // desaparezca hasta salir y volver por consistencia eventual del servidor).
+      queryClient.setQueryData(['coordinatorMessages', conversation?.id], (old = []) => {
+        if (!old || old.length === 0) return [createdMessage];
+        const replaced = old.map(m => (m.id === context?.tempId ? createdMessage : m));
+        if (!replaced.some(m => m.id === createdMessage.id)) replaced.push(createdMessage);
+        return replaced;
+      });
     },
   });
 

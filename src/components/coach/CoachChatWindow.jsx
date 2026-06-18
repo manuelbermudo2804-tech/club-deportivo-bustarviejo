@@ -403,7 +403,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       };
       
       queryClient.setQueryData(['coachGroupMessages', selectedCategory], (old = []) => [...old, optimisticMessage]);
-      return { previousMessages };
+      return { previousMessages, tempId: optimisticMessage.id };
     },
     onError: (err, messageData, context) => {
       if (context?.previousMessages) {
@@ -496,12 +496,16 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       }
       return newMessage;
     },
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),
-        queryClient.invalidateQueries({ queryKey: ['photoGalleries'] }),
-        queryClient.refetchQueries({ queryKey: ['coachGroupMessages'] }),
-      ]);
+    onSuccess: async (createdMessage, vars, context) => {
+      // Reemplazar el mensaje optimista por el real en la caché SIN refetchear
+      // del servidor (la consistencia eventual puede no devolver aún el mensaje
+      // recién creado y lo borraría de pantalla hasta salir y volver a entrar).
+      queryClient.setQueryData(['coachGroupMessages', selectedCategory], (old = []) => {
+        if (!old || old.length === 0) return [createdMessage];
+        const replaced = old.map(m => (m.id === context?.tempId ? createdMessage : m));
+        if (!replaced.some(m => m.id === createdMessage.id)) replaced.push(createdMessage);
+        return replaced;
+      });
       setReplyingTo(null);
     },
   });

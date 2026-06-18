@@ -292,13 +292,17 @@ export default function ParentCoachChat() {
     },
     onSuccess: async (createdMessage, vars, context) => {
       const gid = context?.gid || toGroupId(selectedCategory || "");
+      // Reemplazar el mensaje optimista por el real en la caché.
+      // NO invalidamos la query: el refetch del servidor puede no incluir
+      // aún el mensaje recién creado (consistencia eventual) y "borraría"
+      // el mensaje de la pantalla hasta salir y volver a entrar.
       queryClient.setQueryData(['coachParentChatMessages', gid], (old = []) => {
         if (!old || old.length === 0) return [createdMessage];
-        return old.map(m => (m.id === context?.tempId ? createdMessage : m));
+        const replaced = old.map(m => (m.id === context?.tempId ? createdMessage : m));
+        // Si por cualquier motivo no estaba el optimista, añadirlo
+        if (!replaced.some(m => m.id === createdMessage.id)) replaced.push(createdMessage);
+        return replaced;
       });
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', gid] });
-      }, 300);
     },
   });
 

@@ -416,7 +416,7 @@ export default function StaffChat() {
       };
       
       queryClient.setQueryData(['staffMessages', conversation?.id], (old = []) => [...old, optimisticMessage]);
-      return { previousMessages };
+      return { previousMessages, tempId: optimisticMessage.id };
     },
     onError: (err, messageData, context) => {
       if (context?.previousMessages) {
@@ -498,8 +498,15 @@ export default function StaffChat() {
 
       return newMessage;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
+    onSuccess: (createdMessage, vars, context) => {
+      // Reemplazar el optimista por el real SIN refetchear (evita que el mensaje
+      // desaparezca hasta salir y volver por consistencia eventual del servidor).
+      queryClient.setQueryData(['staffMessages', conversation?.id], (old = []) => {
+        if (!old || old.length === 0) return [createdMessage];
+        const replaced = old.map(m => (m.id === context?.tempId ? createdMessage : m));
+        if (!replaced.some(m => m.id === createdMessage.id)) replaced.push(createdMessage);
+        return replaced;
+      });
       setReplyingTo(null);
     },
   });
