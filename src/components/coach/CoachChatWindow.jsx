@@ -194,11 +194,10 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           
           // TODO: Implementar nuevo sistema last_read_at
 
-          await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] }),
-            queryClient.invalidateQueries({ queryKey: ['coachGroupMessagesAll'] }),
-            queryClient.invalidateQueries({ queryKey: ['appNotifications'] }),
-          ]);
+          // NO invalidamos ['coachGroupMessages']: provocaba un refetch del servidor
+          // que, por consistencia eventual, podía no incluir aún el mensaje recién
+          // enviado y lo borraba de pantalla. El estado de leído ya se refleja en caché.
+          await queryClient.invalidateQueries({ queryKey: ['appNotifications'] });
         }
       } catch (e) {
         console.log('Error marcando como leídos mensajes de familias:', e);
