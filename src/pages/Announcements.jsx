@@ -207,8 +207,15 @@ export default function Announcements() {
   const sendAnnouncementEmails = async (announcement, data) => {
     try {
       let recipients = [];
-      
-      if (data.destinatarios_tipo === "Todos") {
+
+      // Si hay usuarios específicos marcados, SOLO se envía a ellos (ignora categoría).
+      const targetedEmails = Array.isArray(data.destinatarios_emails)
+        ? data.destinatarios_emails
+        : (data.destinatarios_emails || "").split(",").map(s => s.trim()).filter(Boolean);
+
+      if (targetedEmails.length > 0) {
+        recipients = targetedEmails;
+      } else if (data.destinatarios_tipo === "Todos") {
         players.forEach(p => {
           if (p.email_padre) recipients.push(p.email_padre);
           if (p.email_tutor_2) recipients.push(p.email_tutor_2);
@@ -309,9 +316,16 @@ Ubicación: Bustarviejo, Madrid
 
   const sendAnnouncementToSystemChat = async (announcement, data) => {
     try {
-      const scopePlayers = data.destinatarios_tipo === "Todos"
-        ? players
-        : players.filter(p => playerInCategory(p, data.destinatarios_tipo));
+      // Si hay usuarios específicos marcados, SOLO se publica a sus familias (ignora categoría).
+      const targetedEmails = Array.isArray(data.destinatarios_emails)
+        ? data.destinatarios_emails
+        : (data.destinatarios_emails || "").split(",").map(s => s.trim()).filter(Boolean);
+
+      const scopePlayers = targetedEmails.length > 0
+        ? players.filter(p => targetedEmails.includes(p.email_padre) || targetedEmails.includes(p.email_tutor_2) || targetedEmails.includes(p.email_jugador))
+        : (data.destinatarios_tipo === "Todos"
+          ? players
+          : players.filter(p => playerInCategory(p, data.destinatarios_tipo)));
       const familiesMap = {};
       scopePlayers.forEach(p => {
         // Incluir email_padre, email_tutor_2 y email_jugador (si no hay padre) — coherencia con email
