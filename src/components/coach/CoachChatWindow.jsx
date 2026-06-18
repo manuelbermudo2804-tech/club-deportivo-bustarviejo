@@ -405,6 +405,62 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     staleTime: 120000,
   });
 
+  // Tareas secundarias tras enviar: galería + log + notificaciones.
+  // Se ejecutan en segundo plano y NUNCA hacen fallar el envío del mensaje.
+  const runPostSendTasks = async (messageData, grupo_id) => {
+    try {
+      const imageFiles = (messageData.adjuntos || messageData.archivos_adjuntos || []).filter(f => f.tipo?.startsWith('image/'));
+      if (imageFiles.length > 0) {
+        const allGalleries = await base44.entities.PhotoGallery.filter({ categoria: selectedCategory });
+        const chatGallery = allGalleries.find(g => g.titulo.includes("Chat Entrenador"));
+        const galleryPhotos = imageFiles.map(img => ({
+          url: img.url,
+          descripcion: messageData.mensaje || "Compartida desde el chat",
+          jugadores_etiquetados: []
+        }));
+        if (chatGallery) {
+          await base44.entities.PhotoGallery.update(chatGallery.id, {
+            fotos: [...(chatGallery.fotos || []), ...galleryPhotos]
+          });
+        } else {
+          await base44.entities.PhotoGallery.create({
+            titulo: `📸 Chat Entrenador - ${selectedCategory}`,
+            descripcion: "Fotos compartidas desde el chat del entrenador",
+            fecha_evento: new Date().toISOString().split('T')[0],
+            categoria: selectedCategory,
+            tipo_evento: "Entrenamiento",
+            fotos: galleryPhotos,
+            visible_para_padres: true,
+            destacado: false
+          });
+        }
+      }
+    } catch (e) { console.error("galería:", e); }
+
+    try {
+      const log = await base44.entities.CoachChatLog.filter({ grupo_id });
+      if (log.length > 0) {
+        await base44.entities.CoachChatLog.update(log[0].id, { entrenador_escribiendo: false });
+      }
+    } catch (e) { console.error("log:", e); }
+
+    try {
+      const parentEmails = [...new Set(categoryPlayers.flatMap(p => [p.email_padre, p.email_tutor_2].filter(Boolean)))];
+      const categoryShort = selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '');
+      for (const email of parentEmails) {
+        await base44.entities.AppNotification.create({
+          usuario_email: email,
+          titulo: `⚽ ${categoryShort}: Nuevo mensaje`,
+          mensaje: `${messageData.mensaje.substring(0, 100)}${messageData.mensaje.length > 100 ? '...' : ''}`,
+          tipo: "importante",
+          icono: "⚽",
+          enlace: "ParentCoachChat",
+          vista: false
+        });
+      }
+    } catch (e) { console.error("notificaciones:", e); }
+  };
+
   const sendMessageMutation = useMutation({
     onMutate: async (messageData) => {
       await queryClient.cancelQueries({ queryKey: ['coachGroupMessages', selectedCategory] });
@@ -437,6 +493,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     mutationFn: async (messageData) => {
       const grupo_id = toGroupId(selectedCategory);
       
+      // SOLO crear el mensaje. Si esto falla, se revierte el optimista.
       const newMessage = await base44.entities.ChatMessage.create({
         grupo_id,
         deporte: selectedCategory,
@@ -456,67 +513,10 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         reacciones: []
       });
 
-      // Si hay imágenes, guardarlas automáticamente en la galería
-      const imageFiles = (messageData.adjuntos || messageData.archivos_adjuntos || []).filter(f => f.tipo?.startsWith('image/'));
-      if (imageFiles.length > 0) {
-        try {
-          const allGalleries = await base44.entities.PhotoGallery.filter({ categoria: selectedCategory });
-          const chatGallery = allGalleries.find(g => g.titulo.includes("Chat Entrenador"));
-          
-          const galleryPhotos = imageFiles.map(img => ({
-            url: img.url,
-            descripcion: messageData.mensaje || "Compartida desde el chat",
-            jugadores_etiquetados: []
-          }));
+      // Tareas secundarias (galería, notificaciones, log) en SEGUNDO PLANO.
+      // No se await-ean: si fallan por rate-limit NO deben revertir el mensaje ya guardado.
+      runPostSendTasks(messageData, grupo_id);
 
-          if (chatGallery) {
-            const updatedPhotos = [...(chatGallery.fotos || []), ...galleryPhotos];
-            await base44.entities.PhotoGallery.update(chatGallery.id, {
-              fotos: updatedPhotos
-            });
-          } else {
-            await base44.entities.PhotoGallery.create({
-              titulo: `📸 Chat Entrenador - ${selectedCategory}`,
-              descripcion: "Fotos compartidas desde el chat del entrenador",
-              fecha_evento: new Date().toISOString().split('T')[0],
-              categoria: selectedCategory,
-              tipo_evento: "Entrenamiento",
-              fotos: galleryPhotos,
-              visible_para_padres: true,
-              destacado: false
-            });
-          }
-        } catch (error) {
-          console.error("Error guardando en galería:", error);
-        }
-      }
-
-      // Marcar como no escribiendo
-      const log = await base44.entities.CoachChatLog.filter({ grupo_id });
-      if (log.length > 0) {
-        await base44.entities.CoachChatLog.update(log[0].id, {
-          entrenador_escribiendo: false
-        });
-      }
-
-      // Crear notificación para cada padre del grupo
-      const parentEmails = [...new Set(categoryPlayers.flatMap(p => 
-        [p.email_padre, p.email_tutor_2].filter(Boolean)
-      ))];
-      
-      const categoryShort = selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '');
-      
-      for (const email of parentEmails) {
-        await base44.entities.AppNotification.create({
-          usuario_email: email,
-          titulo: `⚽ ${categoryShort}: Nuevo mensaje`,
-          mensaje: `${messageData.mensaje.substring(0, 100)}${messageData.mensaje.length > 100 ? '...' : ''}`,
-          tipo: "importante",
-          icono: "⚽",
-          enlace: "ParentCoachChat",
-          vista: false
-        });
-      }
       return newMessage;
     },
     onSuccess: async (createdMessage, vars, context) => {

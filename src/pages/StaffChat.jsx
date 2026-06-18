@@ -413,6 +413,57 @@ export default function StaffChat() {
     toast.success("Encuesta enviada");
   };
 
+  // Tareas secundarias tras enviar: actualizar conversación + notificaciones.
+  // Se ejecutan en segundo plano y NUNCA hacen fallar el envío del mensaje.
+  const runStaffPostSendTasks = async (messageData) => {
+    try {
+      await base44.entities.StaffConversation.update(conversation.id, {
+        ultimo_mensaje: messageData.mensaje,
+        ultimo_mensaje_fecha: new Date().toISOString(),
+        ultimo_mensaje_autor: user.full_name
+      });
+    } catch (e) { console.error("conversación:", e); }
+
+    try {
+      const notifPayload = {
+        titulo: "Nuevo mensaje en Staff",
+        mensaje: (messageData.mensaje || "Archivo/acción en el chat").slice(0, 120),
+        tipo: "mensaje",
+        prioridad: "importante",
+        enlace: "StaffChat",
+        vista: false
+      };
+      const tasks = [];
+      try {
+        const coordSettings = await base44.entities.CoordinatorSettings.list();
+        let coordEmails = Array.from(new Set((coordSettings || []).map(s => s.coordinador_email).filter(Boolean)));
+        if (coordEmails.length === 0 && user.role === 'admin') {
+          try {
+            const coords = await base44.entities.User.filter({ es_coordinador: true });
+            coordEmails = Array.from(new Set(coords.map(u => u.email).filter(Boolean)));
+          } catch {}
+        }
+        coordEmails
+          .filter(email => email && email !== user.email)
+          .forEach(email => tasks.push(base44.entities.AppNotification.create({ usuario_email: email, ...notifPayload })));
+      } catch {}
+      try {
+        const coachSettings = await base44.entities.CoachSettings?.list?.();
+        let coachEmails = Array.from(new Set((coachSettings || []).map(s => s.entrenador_email || s.coach_email).filter(Boolean)));
+        if (coachEmails.length === 0 && user.role === 'admin') {
+          try {
+            const coaches = await base44.entities.User.filter({ es_entrenador: true });
+            coachEmails = Array.from(new Set(coaches.map(u => u.email).filter(Boolean)));
+          } catch {}
+        }
+        coachEmails
+          .filter(email => email && email !== user.email)
+          .forEach(email => tasks.push(base44.entities.AppNotification.create({ usuario_email: email, ...notifPayload })));
+      } catch {}
+      await Promise.all(tasks);
+    } catch (e) { console.error("notificaciones:", e); }
+  };
+
   const sendMessageMutation = useMutation({
     onMutate: async (messageData) => {
       await queryClient.cancelQueries({ queryKey: ['staffMessages', conversation?.id] });
@@ -447,6 +498,7 @@ export default function StaffChat() {
        const autorRol = user.role === "admin" ? "admin" : user.es_coordinador ? "coordinador" : "entrenador";
        const displayName = user.role === "admin" ? "Administrador" : user.full_name;
 
+       // SOLO crear el mensaje. Si esto falla, se revierte el optimista.
        const newMessage = await base44.entities.StaffMessage.create({
          conversacion_id: conversation.id,
          autor_email: user.email,
@@ -463,57 +515,9 @@ export default function StaffChat() {
          leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }]
        });
 
-      await base44.entities.StaffConversation.update(conversation.id, {
-        ultimo_mensaje: messageData.mensaje,
-        ultimo_mensaje_fecha: new Date().toISOString(),
-        ultimo_mensaje_autor: user.full_name
-      });
-
-      // Crear notificaciones sin depender de listar usuarios (respeta permisos)
-      try {
-        const notifPayload = {
-          titulo: "Nuevo mensaje en Staff",
-          mensaje: (messageData.mensaje || "Archivo/acción en el chat").slice(0, 120),
-          tipo: "mensaje",
-          prioridad: "importante",
-          enlace: "StaffChat",
-          vista: false
-        };
-
-        const tasks = [];
-
-        // Notificar a coordinadores (con fallback por Usuarios)
-        try {
-          const coordSettings = await base44.entities.CoordinatorSettings.list();
-          let coordEmails = Array.from(new Set((coordSettings || []).map(s => s.coordinador_email).filter(Boolean)));
-          if (coordEmails.length === 0 && user.role === 'admin') {
-            try {
-              const coords = await base44.entities.User.filter({ es_coordinador: true });
-              coordEmails = Array.from(new Set(coords.map(u => u.email).filter(Boolean)));
-            } catch {}
-          }
-          coordEmails
-            .filter(email => email && email !== user.email)
-            .forEach(email => tasks.push(base44.entities.AppNotification.create({ usuario_email: email, ...notifPayload })));
-        } catch {}
-
-        // Notificar a entrenadores (con fallback por Usuarios)
-        try {
-          const coachSettings = await base44.entities.CoachSettings?.list?.();
-          let coachEmails = Array.from(new Set((coachSettings || []).map(s => s.entrenador_email || s.coach_email).filter(Boolean)));
-          if (coachEmails.length === 0 && user.role === 'admin') {
-            try {
-              const coaches = await base44.entities.User.filter({ es_entrenador: true });
-              coachEmails = Array.from(new Set(coaches.map(u => u.email).filter(Boolean)));
-            } catch {}
-          }
-          coachEmails
-            .filter(email => email && email !== user.email)
-            .forEach(email => tasks.push(base44.entities.AppNotification.create({ usuario_email: email, ...notifPayload })));
-        } catch {}
-
-        await Promise.all(tasks);
-      } catch {}
+      // Tareas secundarias (actualizar conversación + notificaciones) en SEGUNDO PLANO.
+      // No se await-ean: si fallan por rate-limit NO deben revertir el mensaje ya guardado.
+      runStaffPostSendTasks(messageData);
 
       return newMessage;
     },
