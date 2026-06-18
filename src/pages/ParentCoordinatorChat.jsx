@@ -182,6 +182,58 @@ export default function ParentCoordinatorChat() {
   // Filtrar todos los archivos compartidos
   const allSharedFiles = messages.flatMap(m => m.archivos_adjuntos || m.adjuntos || []);
 
+  // Tareas secundarias tras enviar: update conversación + log + notificación.
+  // Se ejecutan en segundo plano y NUNCA hacen fallar el envío del mensaje.
+  const runParentCoordPostSendTasks = async (messageData, palabraUrgente) => {
+    const currentSeason = (() => {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = now.getMonth() + 1;
+      return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+    })();
+
+    try {
+      const updateData = {
+        ultimo_mensaje: messageData.mensaje,
+        ultimo_mensaje_fecha: new Date().toISOString(),
+        ultimo_mensaje_autor: "padre",
+        no_leidos_coordinador: (conversation.no_leidos_coordinador || 0) + 1,
+        archivada: false
+      };
+      if (palabraUrgente) updateData.prioritaria = true;
+      await base44.entities.CoordinatorConversation.update(conversation.id, updateData);
+    } catch (e) { console.error("conversación:", e); }
+
+    try {
+      await base44.entities.CoordinatorChatLog.create({
+        conversacion_id: conversation.id,
+        padre_email: user.email,
+        padre_nombre: user.full_name,
+        accion: palabraUrgente ? "palabra_urgente_detectada" : "mensaje_enviado",
+        autor: "padre",
+        detalles: palabraUrgente ? `Palabra urgente: "${palabraUrgente}"` : "Mensaje enviado correctamente",
+        palabra_urgente: palabraUrgente,
+        temporada: currentSeason
+      });
+    } catch (e) { console.error("log:", e); }
+
+    try {
+      const allSettings = await base44.entities.CoordinatorSettings.list();
+      const coordinatorEmails = Array.from(new Set(allSettings.map(s => s.coordinador_email).filter(Boolean)));
+      await Promise.all(coordinatorEmails
+        .filter(email => email !== user.email)
+        .map(email => base44.entities.AppNotification.create({
+          usuario_email: email,
+          titulo: `💬 Mensaje de ${user.full_name}`,
+          mensaje: (messageData.mensaje || "Mensaje").substring(0, 100) + ((messageData.mensaje || "").length > 100 ? '...' : ''),
+          tipo: "importante",
+          icono: "💬",
+          enlace: "CoordinatorChat",
+          vista: false
+        })));
+    } catch (e) { console.error("notificación:", e); }
+  };
+
   const sendMessageMutation = useMutation({
     onMutate: async (messageData) => {
       await queryClient.cancelQueries({ queryKey: ['parentCoordinatorMessages', conversation?.id] });
@@ -249,6 +301,11 @@ export default function ParentCoordinatorChat() {
       const palabrasUrgentes = ["urgente", "grave", "lesión", "lesion", "accidente", "hospital", "ambulancia", "emergencia"];
       const palabraUrgente = palabrasUrgentes.find(p => mensajeLower.includes(p));
 
+      if (palabraUrgente) {
+        toast.warning("⚠️ Tu mensaje contiene una palabra urgente. Se ha marcado como prioritario para el coordinador.");
+      }
+
+      // SOLO crear el mensaje. Si esto falla, se revierte el optimista.
       const newMessage = await base44.entities.CoordinatorMessage.create({
         conversacion_id: conversation.id,
         autor: "padre",
@@ -263,62 +320,9 @@ export default function ParentCoordinatorChat() {
         fecha_leido_padre: new Date().toISOString()
       });
 
-      console.log('✅ [PADRE COORDINADOR] Mensaje creado:', newMessage.id);
-
-      // Marcar conversación como prioritaria si contiene palabra urgente
-      const updateData = {
-        ultimo_mensaje: messageData.mensaje,
-        ultimo_mensaje_fecha: new Date().toISOString(),
-        ultimo_mensaje_autor: "padre",
-        no_leidos_coordinador: (conversation.no_leidos_coordinador || 0) + 1,
-        archivada: false
-      };
-
-      if (palabraUrgente) {
-        updateData.prioritaria = true;
-        toast.warning("⚠️ Tu mensaje contiene una palabra urgente. Se ha marcado como prioritario para el coordinador.");
-      }
-
-      await base44.entities.CoordinatorConversation.update(conversation.id, updateData);
-
-      // Registrar mensaje enviado
-      const currentSeason = (() => {
-        const now = new Date();
-        const year = now.getFullYear();
-        const month = now.getMonth() + 1;
-        return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
-      })();
-      
-      await base44.entities.CoordinatorChatLog.create({
-        conversacion_id: conversation.id,
-        padre_email: user.email,
-        padre_nombre: user.full_name,
-        accion: palabraUrgente ? "palabra_urgente_detectada" : "mensaje_enviado",
-        autor: "padre",
-        detalles: palabraUrgente ? `Palabra urgente: "${palabraUrgente}"` : "Mensaje enviado correctamente",
-        palabra_urgente: palabraUrgente,
-        temporada: currentSeason
-      });
-
-      // Crear AppNotification para el coordinador
-      try {
-        const allSettings = await base44.entities.CoordinatorSettings.list();
-        const coordinatorEmails = Array.from(new Set(allSettings.map(s => s.coordinador_email).filter(Boolean)));
-        await Promise.all(coordinatorEmails
-          .filter(email => email !== user.email)
-          .map(email => base44.entities.AppNotification.create({
-            usuario_email: email,
-            titulo: `💬 Mensaje de ${user.full_name}`,
-            mensaje: (messageData.mensaje || "Mensaje").substring(0, 100) + ((messageData.mensaje || "").length > 100 ? '...' : ''),
-            tipo: "importante",
-            icono: "💬",
-            enlace: "CoordinatorChat",
-            vista: false
-          })));
-      } catch (_) {}
-
-       // Configuración del coordinador (respuestas automáticas)
-       // TODO: Implementar respuestas automáticas
+      // Tareas secundarias (update conversación + log + notificación) en SEGUNDO PLANO.
+      // No se await-ean: si fallan por permisos/rate-limit NO deben revertir el mensaje ya guardado.
+      runParentCoordPostSendTasks(messageData, palabraUrgente);
 
       return newMessage;
     },
