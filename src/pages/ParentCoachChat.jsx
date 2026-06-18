@@ -147,10 +147,12 @@ export default function ParentCoachChat() {
     },
     enabled: !!user && !!selectedCategory,
     refetchInterval: false,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    staleTime: Infinity,
+    // Recargar al entrar/cambiar de categoría y al reconectar: así aparecen
+    // los mensajes que pudieran haberse perdido (app en segundo plano, sin red…).
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    staleTime: 0,
   });
 
   // REAL-TIME: Suscripción a mensajes del grupo activo
@@ -294,10 +296,10 @@ export default function ParentCoachChat() {
     },
     onSuccess: async (createdMessage, vars, context) => {
       const gid = context?.gid || toGroupId(selectedCategory || "");
+      // Cancelar cualquier refetch en vuelo para que no pise el merge de abajo
+      // (un refetch que termine después borraría el mensaje recién enviado).
+      await queryClient.cancelQueries({ queryKey: ['coachParentChatMessages', gid] });
       // Reemplazar el mensaje optimista por el real en la caché.
-      // NO invalidamos la query: el refetch del servidor puede no incluir
-      // aún el mensaje recién creado (consistencia eventual) y "borraría"
-      // el mensaje de la pantalla hasta salir y volver a entrar.
       queryClient.setQueryData(['coachParentChatMessages', gid], (old = []) => {
         if (!old || old.length === 0) return [createdMessage];
         const replaced = old.map(m => (m.id === context?.tempId ? createdMessage : m));

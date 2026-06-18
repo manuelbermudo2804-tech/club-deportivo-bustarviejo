@@ -94,10 +94,10 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       return await base44.entities.ChatMessage.filter({ grupo_id: gid }, 'created_date', 200);
     },
     refetchInterval: false,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    staleTime: Infinity,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    staleTime: 0,
     enabled: !!selectedCategory,
   });
 
@@ -498,9 +498,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       return newMessage;
     },
     onSuccess: async (createdMessage, vars, context) => {
-      // Reemplazar el mensaje optimista por el real en la caché SIN refetchear
-      // del servidor (la consistencia eventual puede no devolver aún el mensaje
-      // recién creado y lo borraría de pantalla hasta salir y volver a entrar).
+      // Cancelar refetch en vuelo para que no pise el merge del optimista.
+      await queryClient.cancelQueries({ queryKey: ['coachGroupMessages', selectedCategory] });
       queryClient.setQueryData(['coachGroupMessages', selectedCategory], (old = []) => {
         if (!old || old.length === 0) return [createdMessage];
         const replaced = old.map(m => (m.id === context?.tempId ? createdMessage : m));

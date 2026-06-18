@@ -57,10 +57,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     },
     enabled: !!conversation?.id,
     refetchInterval: false,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    staleTime: Infinity,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    staleTime: 0,
     gcTime: 300000,
   });
 
@@ -500,8 +500,8 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       return newMessage;
     },
     onSuccess: async (createdMessage, vars, context) => {
-      // Reemplazar el optimista por el real SIN refetchear (evita que el mensaje
-      // desaparezca hasta salir y volver por consistencia eventual del servidor).
+      // Cancelar refetch en vuelo para que no pise el merge del optimista.
+      await queryClient.cancelQueries({ queryKey: ['coordinatorMessages', conversation?.id] });
       queryClient.setQueryData(['coordinatorMessages', conversation?.id], (old = []) => {
         if (!old || old.length === 0) return [createdMessage];
         const replaced = old.map(m => (m.id === context?.tempId ? createdMessage : m));

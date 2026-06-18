@@ -115,10 +115,10 @@ export default function StaffChat() {
       return await base44.entities.StaffMessage.filter({ conversacion_id: conversation.id }, 'created_date');
     },
     refetchInterval: false,
-    refetchOnWindowFocus: false,
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    staleTime: Infinity,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
+    staleTime: 0,
     gcTime: 300000,
     enabled: !!conversation?.id,
   });
@@ -503,9 +503,9 @@ export default function StaffChat() {
 
       return newMessage;
     },
-    onSuccess: (createdMessage, vars, context) => {
-      // Reemplazar el optimista por el real SIN refetchear (evita que el mensaje
-      // desaparezca hasta salir y volver por consistencia eventual del servidor).
+    onSuccess: async (createdMessage, vars, context) => {
+      // Cancelar refetch en vuelo para que no pise el merge del optimista.
+      await queryClient.cancelQueries({ queryKey: ['staffMessages', conversation?.id] });
       queryClient.setQueryData(['staffMessages', conversation?.id], (old = []) => {
         if (!old || old.length === 0) return [createdMessage];
         const replaced = old.map(m => (m.id === context?.tempId ? createdMessage : m));
