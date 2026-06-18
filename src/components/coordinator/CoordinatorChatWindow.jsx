@@ -465,7 +465,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         mensaje: messageData.mensaje,
         autor: isCoordinator ? "coordinador" : "padre",
         autor_email: user.email,
-        autor_nombre: isCoordinator ? "Coordinador" : (user.full_name || "Padre"),
+        autor_nombre: user.full_name || (isCoordinator ? "Coordinador" : "Padre"),
         adjuntos: messageData.adjuntos || [],
         audio_url: messageData.audio_url,
         audio_duracion: messageData.audio_duracion,
@@ -494,9 +494,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         conversacion_id: conversation.id,
         autor: isCoordinator ? "coordinador" : "padre",
         autor_email: user.email,
-        // El coordinador siempre firma como "Coordinador" (anonimato institucional);
-        // la familia firma con su nombre real.
-        autor_nombre: isCoordinator ? "Coordinador" : (user.full_name || "Padre"),
+        autor_nombre: user.full_name || (isCoordinator ? "Coordinador" : "Padre"),
         mensaje: (messageData.mensaje || '').trim(),
         leido_coordinador: isCoordinator,
         leido_padre: !isCoordinator,
