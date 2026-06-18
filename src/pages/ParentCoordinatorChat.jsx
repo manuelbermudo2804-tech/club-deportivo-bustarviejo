@@ -20,6 +20,7 @@ import EmojiScaler from "../components/chat/EmojiScaler";
 import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
+import MessageQuickActions from "../components/chat/MessageQuickActions";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -396,6 +397,20 @@ export default function ParentCoordinatorChat() {
     setShowReactions(null);
   };
 
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (messageId) => {
+      await base44.entities.CoordinatorMessage.delete(messageId);
+      return messageId;
+    },
+    onSuccess: (messageId) => {
+      queryClient.setQueryData(['parentCoordinatorMessages', conversation?.id], (old = []) =>
+        (old || []).filter(m => m.id !== messageId)
+      );
+      toast.success("Mensaje borrado");
+    },
+    onError: () => toast.error("No se pudo borrar el mensaje"),
+  });
+
   const reportConversationMutation = useMutation({
     mutationFn: async () => {
       await base44.entities.CoordinatorConversation.update(conversation.id, {
@@ -487,7 +502,7 @@ export default function ParentCoordinatorChat() {
                 const isImage = (msg.archivos_adjuntos || msg.adjuntos)?.some(f => f.tipo?.startsWith('image/'));
                 
                 return (
-                  <div key={msg.id} className={`flex ${isPadre ? 'justify-end mr-2' : 'justify-start ml-2'} mb-1.5`}>
+                  <div key={msg.id} className={`flex ${isPadre ? 'justify-end mr-2' : 'justify-start ml-2'} group mb-1.5`}>
                     <div className="max-w-[72%] px-3 py-2 relative rounded-2xl" style={{
                       backgroundColor: isPadre ? '#DCF8C6' : '#FFFFFF',
                       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -498,12 +513,20 @@ export default function ParentCoordinatorChat() {
                       whiteSpace: 'pre-wrap',
                       boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
                     }}>
-                      {!isPadre && (
-                        <p className="text-xs font-medium mb-1" style={{color: '#0891B2'}}>
-                          🎓 Coordinador
-                        </p>
-                      )}
-                      
+                      <div className="flex items-start justify-between gap-2">
+                        {!isPadre ? (
+                          <p className="text-xs font-medium mb-1" style={{color: '#0891B2'}}>
+                            🎓 Coordinador
+                          </p>
+                        ) : <span />}
+                        <MessageQuickActions
+                          text={msg.mensaje}
+                          isMine={isPadre}
+                          dark={isPadre}
+                          onDelete={() => deleteMessageMutation.mutate(msg.id)}
+                        />
+                      </div>
+
                       {msg.audio_url ? (
                         <div className="mt-1">
                           <ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isPadre} />

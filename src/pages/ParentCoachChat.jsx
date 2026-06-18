@@ -19,6 +19,7 @@ import EmojiScaler from "../components/chat/EmojiScaler";
 import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
+import MessageQuickActions from "../components/chat/MessageQuickActions";
 
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
@@ -335,6 +336,21 @@ export default function ParentCoachChat() {
     },
   });
 
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (messageId) => {
+      await base44.entities.ChatMessage.delete(messageId);
+      return messageId;
+    },
+    onSuccess: (messageId) => {
+      const gid = toGroupId(selectedCategory || "");
+      queryClient.setQueryData(['coachParentChatMessages', gid], (old = []) =>
+        (old || []).filter(m => m.id !== messageId)
+      );
+      toast.success("Mensaje borrado");
+    },
+    onError: () => toast.error("No se pudo borrar el mensaje"),
+  });
+
   const addReaction = async (messageId, emoji) => {
     const message = messages.find(m => m.id === messageId);
     const existingReactions = message.reacciones || [];
@@ -445,9 +461,17 @@ export default function ParentCoachChat() {
                         fontSize: '15px', lineHeight: '1.4', fontWeight: 400, wordWrap: 'break-word', whiteSpace: 'pre-wrap',
                         backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
                       }}>
-                        <div className="flex items-center gap-1 mb-1">
-                          <p className="text-xs font-semibold opacity-70">{isCoach ? '🏃 ' : ''}{msg.remitente_nombre}</p>
-                          {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <div className="flex items-center gap-1">
+                            <p className="text-xs font-semibold opacity-70">{isCoach ? '🏃 ' : ''}{msg.remitente_nombre}</p>
+                            {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
+                          </div>
+                          <MessageQuickActions
+                            text={msg.mensaje}
+                            isMine={isMine}
+                            dark={isMine}
+                            onDelete={() => deleteMessageMutation.mutate(msg.id)}
+                          />
                         </div>
                         {msg.mensaje && <p style={{fontSize: '15px', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}><EmojiScaler content={msg.mensaje} /></p>}
                         {msg.audio_url && <div className="mt-1"><ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isMine} /></div>}
