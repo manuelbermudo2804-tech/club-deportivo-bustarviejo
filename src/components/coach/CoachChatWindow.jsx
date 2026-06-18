@@ -95,7 +95,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     },
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    staleTime: 30000,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
     enabled: !!selectedCategory,
   });
 

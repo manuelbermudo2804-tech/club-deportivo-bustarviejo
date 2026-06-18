@@ -148,7 +148,9 @@ export default function ParentCoachChat() {
     enabled: !!user && !!selectedCategory,
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    staleTime: 30000,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
   });
 
   // REAL-TIME: Suscripción a mensajes del grupo activo

@@ -100,7 +100,9 @@ export default function ParentCoordinatorChat() {
     enabled: !!conversation?.id,
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    staleTime: 30000,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
+    staleTime: Infinity,
     gcTime: 300000,
   });
 
