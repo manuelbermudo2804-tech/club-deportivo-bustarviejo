@@ -87,11 +87,27 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
       // Query by deporte (original category name) — works for both old and new messages
       // grupo_id may vary (with/without accents) but deporte is always the original name
-      const msgs = await base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date', 200);
-      if (msgs.length > 0) return msgs;
-      // Fallback: try normalized grupo_id for messages that only have grupo_id set
       const gid = toGroupId(selectedCategory);
-      return await base44.entities.ChatMessage.filter({ grupo_id: gid }, 'created_date', 200);
+      let msgs = await base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date', 200);
+      if (msgs.length === 0) {
+        // Fallback: try normalized grupo_id for messages that only have grupo_id set
+        msgs = await base44.entities.ChatMessage.filter({ grupo_id: gid }, 'created_date', 200);
+      }
+      // Conservar mensajes recién enviados que el servidor aún no devuelve
+      // (consistencia eventual): evita que un mensaje recién creado desaparezca
+      // tras un refetch hasta que el servidor lo indexe.
+      const cached = queryClient.getQueryData(['coachGroupMessages', selectedCategory]) || [];
+      const serverIds = new Set(msgs.map(m => m.id));
+      const now = Date.now();
+      const pendientes = cached.filter(m =>
+        !serverIds.has(m.id) &&
+        m.remitente_email === user?.email &&
+        m.created_date && (now - new Date(m.created_date).getTime() < 30000)
+      );
+      if (pendientes.length > 0) {
+        return [...msgs, ...pendientes].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+      }
+      return msgs;
     },
     refetchInterval: false,
     refetchOnMount: 'always',
@@ -106,6 +122,12 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     if (!selectedCategory) return;
     
     const unsub = base44.entities.ChatMessage.subscribe((event) => {
+      // Ignorar mis propios mensajes: ya están en caché por la actualización
+      // optimista. Invalidar aquí dispararía un refetch que, por consistencia
+      // eventual, podría no devolver aún el mensaje recién enviado y lo borraría
+      // de pantalla hasta salir y volver a entrar.
+      const eventAuthor = event.data?.remitente_email;
+      if (eventAuthor && eventAuthor === user?.email) return;
       const gid = toGroupId(selectedCategory);
       const eventGid = toGroupId(event.data?.grupo_id || event.data?.deporte || '');
       if (eventGid === gid || selectedCategory === "Todas las categorías") {
@@ -114,7 +136,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     });
     
     return unsub;
-  }, [selectedCategory, queryClient]);
+  }, [selectedCategory, user?.email, queryClient]);
 
   const { data: chatState } = useQuery({
     queryKey: ['coachChatState', selectedCategory],
