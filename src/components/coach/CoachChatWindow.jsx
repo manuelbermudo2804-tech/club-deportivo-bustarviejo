@@ -82,17 +82,16 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     queryFn: async () => {
       if (!selectedCategory) return [];
 
-      if (selectedCategory === "Todas las categorías") {
-        return await base44.entities.ChatMessage.list('-created_date', 200);
-      }
-
-      // Query by deporte (original category name) — works for both old and new messages
-      // grupo_id may vary (with/without accents) but deporte is always the original name
       const gid = toGroupId(selectedCategory);
-      let msgs = await base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date', 200);
-      if (msgs.length === 0) {
-        // Fallback: try normalized grupo_id for messages that only have grupo_id set
-        msgs = await base44.entities.ChatMessage.filter({ grupo_id: gid }, 'created_date', 200);
+
+      let msgs;
+      if (selectedCategory === "Todas las categorías") {
+        msgs = await base44.entities.ChatMessage.list('-created_date', 200);
+      } else {
+        // Leer vía backend service-role: el RLS de ChatMessage depende de campos de usuario
+        // (categorias_entrena) desincronizados con el grupo_id real, lo que impedía leer.
+        const { data } = await base44.functions.invoke('chatGetTeamMessages', { categoria: selectedCategory });
+        msgs = data?.messages || [];
       }
       // Conservar mensajes recién enviados que el servidor aún no devuelve
       // (consistencia eventual): evita que un mensaje recién creado desaparezca

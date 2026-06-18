@@ -139,12 +139,25 @@ export default function ParentCoachChat() {
     queryKey: ['coachParentChatMessages', categoryKey],
     queryFn: async () => {
       if (!user || !selectedCategory) return [];
-      // Query by deporte (original category name) — works for both old and new messages
-      const msgs = await base44.entities.ChatMessage.filter({ deporte: selectedCategory }, 'created_date', 200);
-      if (msgs.length > 0) return msgs;
-      // Fallback: try normalized grupo_id for messages that only have grupo_id set
+      // Leer vía backend service-role: el RLS de ChatMessage depende de campos de usuario
+      // (categorias_hijos/categorias_entrena) desincronizados con el grupo_id real, lo que
+      // impedía leer. El backend resuelve el acceso con los jugadores/categorías reales.
+      const { data } = await base44.functions.invoke('chatGetTeamMessages', { categoria: selectedCategory });
+      const server = data?.messages || [];
+      // Conservar mensajes recién enviados que el servidor aún no devuelve (consistencia eventual)
       const gid = toGroupId(selectedCategory);
-      return await base44.entities.ChatMessage.filter({ grupo_id: gid }, 'created_date', 200);
+      const cached = queryClient.getQueryData(['coachParentChatMessages', gid]) || [];
+      const serverIds = new Set(server.map(m => m.id));
+      const now = Date.now();
+      const pendientes = cached.filter(m =>
+        !serverIds.has(m.id) &&
+        m.remitente_email === user?.email &&
+        m.created_date && (now - new Date(m.created_date).getTime() < 30000)
+      );
+      if (pendientes.length > 0) {
+        return [...server, ...pendientes].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+      }
+      return server;
     },
     enabled: !!user && !!selectedCategory,
     refetchInterval: false,
