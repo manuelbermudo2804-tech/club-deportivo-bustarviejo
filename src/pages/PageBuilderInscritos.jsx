@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Download, Loader2, Search, Mail, Phone, Users, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, Loader2, Search, Mail, Phone, Users, Trash2, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import SubmissionDataView from "@/components/page-builder/SubmissionDataView";
+import { buildInscritosText } from "@/components/page-builder/inscritosShareText";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
@@ -128,6 +129,15 @@ export default function PageBuilderInscritos() {
     toast.success("CSV descargado");
   };
 
+  const shareWhatsApp = () => {
+    if (!filtered.length) {
+      toast.error("No hay inscritos para compartir");
+      return;
+    }
+    const text = buildInscritosText(filtered, page);
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
   const filtered = submissions.filter((s) => {
     if (filterEstado !== "todos" && s.estado !== filterEstado) return false;
     if (!search) return true;
@@ -181,6 +191,9 @@ export default function PageBuilderInscritos() {
           </h1>
           <p className="text-sm text-slate-500">{stats.total} inscripciones recibidas</p>
         </div>
+        <Button onClick={shareWhatsApp} size="sm" className="gap-2 bg-green-600 hover:bg-green-700">
+          <MessageCircle className="w-4 h-4" /> WhatsApp
+        </Button>
         <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2">
           <Download className="w-4 h-4" /> Exportar CSV
         </Button>
