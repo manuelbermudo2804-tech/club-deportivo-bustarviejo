@@ -14,29 +14,42 @@ function ResultadoBotones({ partido, equipos, onChange }) {
   const local = equipos.find(e => e.codigo === partido.equipo_local_codigo);
   const visit = equipos.find(e => e.codigo === partido.equipo_visitante_codigo);
 
+  const nombreLocal = local?.nombre || partido.equipo_local_placeholder;
+  const nombreVisit = visit?.nombre || partido.equipo_visitante_placeholder;
+
   return (
-    <div className="flex items-center gap-2 py-1.5 px-2 hover:bg-slate-50 rounded">
-      <div className="flex-1 flex items-center gap-2 text-sm min-w-0">
-        <span className="text-lg">{local?.bandera_emoji || '🏳️'}</span>
-        <span className="font-medium truncate">{local?.nombre || partido.equipo_local_placeholder}</span>
-        <span className="text-slate-400">vs</span>
-        <span className="text-lg">{visit?.bandera_emoji || '🏳️'}</span>
-        <span className="font-medium truncate">{visit?.nombre || partido.equipo_visitante_placeholder}</span>
+    <div className="py-2 px-2 hover:bg-slate-50 rounded">
+      {/* Equipos en líneas completas (sin cortar) + botones 1/X/2 debajo */}
+      <div className="space-y-1 mb-2 text-sm">
+        <div className="flex items-center gap-2">
+          <span className="text-lg flex-shrink-0">{local?.bandera_emoji || '🏳️'}</span>
+          <span className="font-semibold text-slate-800 leading-tight">{nombreLocal}</span>
+          <span className="ml-auto text-[10px] font-bold text-slate-400 flex-shrink-0">1</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-lg flex-shrink-0">{visit?.bandera_emoji || '🏳️'}</span>
+          <span className="font-semibold text-slate-800 leading-tight">{nombreVisit}</span>
+          <span className="ml-auto text-[10px] font-bold text-slate-400 flex-shrink-0">2</span>
+        </div>
       </div>
-      <div className="flex gap-1">
-        {['1', 'X', '2'].map(r => (
-          <button
-            key={r}
-            onClick={() => onChange(partido.id, r)}
-            className={`w-8 h-8 rounded text-xs font-bold transition-all ${
-              partido.resultado_real === r
-                ? 'bg-green-600 text-white shadow scale-110'
-                : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
-            }`}
-          >
-            {r}
-          </button>
-        ))}
+      <div className="grid grid-cols-3 gap-1.5">
+        {['1', 'X', '2'].map(r => {
+          const etiqueta = r === '1' ? `Gana ${nombreLocal}` : r === '2' ? `Gana ${nombreVisit}` : 'Empate';
+          return (
+            <button
+              key={r}
+              onClick={() => onChange(partido.id, r)}
+              className={`h-11 rounded-lg text-sm font-black transition-all flex flex-col items-center justify-center leading-none ${
+                partido.resultado_real === r
+                  ? 'bg-green-600 text-white shadow'
+                  : 'bg-slate-200 hover:bg-slate-300 text-slate-700'
+              }`}
+            >
+              <span>{r}</span>
+              <span className={`text-[9px] font-medium mt-0.5 truncate max-w-full px-1 ${partido.resultado_real === r ? 'text-green-100' : 'text-slate-500'}`}>{etiqueta}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
