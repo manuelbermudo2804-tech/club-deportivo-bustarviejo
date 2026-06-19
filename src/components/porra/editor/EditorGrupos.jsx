@@ -138,37 +138,39 @@ export default function EditorGrupos({ participante, partidos, equipos, isBlocke
                       const partidoStats = stats?.grupos?.[p.id];
                       const showStats = !!partidoStats && partidoStats.total >= 5;
                       return (
-                        <div key={p.id} className="p-2 rounded-lg hover:bg-slate-50">
-                          {/* Móvil: equipos arriba en 2 filas, botones debajo. Desktop: todo en una fila */}
-                          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                            <div className="flex-1 min-w-0 grid grid-cols-[auto_1fr] sm:flex sm:items-center gap-x-2 gap-y-1 text-sm">
-                              <div className="flex items-center gap-1.5 min-w-0">
-                                <span className="text-xl flex-shrink-0">{local?.bandera_emoji || '🏳️'}</span>
-                                <span className="font-medium truncate">{local?.nombre}</span>
-                              </div>
-                              <span className="hidden sm:inline text-slate-300 mx-0.5 flex-shrink-0">vs</span>
-                              <span className="sm:hidden text-[10px] text-slate-400 col-start-2 -my-1">vs</span>
-                              <div className="flex items-center gap-1.5 min-w-0 col-start-1 col-span-2 sm:col-auto">
-                                <span className="text-xl flex-shrink-0">{visit?.bandera_emoji || '🏳️'}</span>
-                                <span className="font-medium truncate">{visit?.nombre}</span>
-                              </div>
+                        <div key={p.id} className="p-2.5 rounded-lg border border-slate-100 bg-white hover:bg-slate-50">
+                          {/* Equipos en filas completas (sin cortar) + botones 1/X/2 a lo ancho debajo */}
+                          <div className="space-y-1 mb-2 text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl flex-shrink-0">{local?.bandera_emoji || '🏳️'}</span>
+                              <span className="font-semibold text-slate-800 leading-tight">{local?.nombre}</span>
+                              <span className="ml-auto text-[10px] font-bold text-slate-400 flex-shrink-0">1</span>
                             </div>
-                            <div className="flex gap-1 justify-end sm:justify-start flex-shrink-0">
-                              {['1', 'X', '2'].map(r => (
+                            <div className="flex items-center gap-2">
+                              <span className="text-xl flex-shrink-0">{visit?.bandera_emoji || '🏳️'}</span>
+                              <span className="font-semibold text-slate-800 leading-tight">{visit?.nombre}</span>
+                              <span className="ml-auto text-[10px] font-bold text-slate-400 flex-shrink-0">2</span>
+                            </div>
+                          </div>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {['1', 'X', '2'].map(r => {
+                              const etiqueta = r === '1' ? `Gana ${local?.nombre || 'local'}` : r === '2' ? `Gana ${visit?.nombre || 'visitante'}` : 'Empate';
+                              return (
                                 <button
                                   key={r}
                                   disabled={isBlocked}
                                   onClick={() => onSetResultado(p.id, r)}
-                                  className={`w-10 h-10 sm:w-9 sm:h-9 rounded-lg font-black text-sm transition-all disabled:opacity-50 ${
+                                  className={`h-11 rounded-lg font-black text-sm transition-all disabled:opacity-50 flex flex-col items-center justify-center leading-none ${
                                     pred === r
-                                      ? 'bg-gradient-to-br from-red-600 to-orange-600 text-white shadow-lg scale-105'
+                                      ? 'bg-gradient-to-br from-red-600 to-orange-600 text-white shadow-lg'
                                       : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
                                   }`}
                                 >
-                                  {r}
+                                  <span>{r}</span>
+                                  <span className={`text-[9px] font-medium mt-0.5 truncate max-w-full px-1 ${pred === r ? 'text-orange-100' : 'text-slate-400'}`}>{etiqueta}</span>
                                 </button>
-                              ))}
-                            </div>
+                              );
+                            })}
                           </div>
                           {showStats && (
                             <div className="mt-1.5 ml-1 flex items-center gap-2 text-[10px] text-slate-500">
