@@ -3,14 +3,14 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { RefreshCw, Save } from "lucide-react";
+import { RefreshCw, Save, X } from "lucide-react";
 import { toast } from "sonner";
 import EliminatoriaPartidoRow from "@/components/porra/admin/EliminatoriaPartidoRow";
 
 const GRUPOS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L'];
 
 // Botones 1/X/2 inline para meter resultado real
-function ResultadoBotones({ partido, equipos, onChange }) {
+function ResultadoBotones({ partido, equipos, onChange, onClear }) {
   const local = equipos.find(e => e.codigo === partido.equipo_local_codigo);
   const visit = equipos.find(e => e.codigo === partido.equipo_visitante_codigo);
 
@@ -51,6 +51,15 @@ function ResultadoBotones({ partido, equipos, onChange }) {
           );
         })}
       </div>
+      {partido.resultado_real && (
+        <button
+          onClick={() => onClear(partido.id)}
+          className="mt-2 w-full flex items-center justify-center gap-1.5 text-xs font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 py-1.5 rounded-lg transition-all"
+        >
+          <X className="w-3.5 h-3.5" />
+          Borrar resultado (lo marqué por error)
+        </button>
+      )}
     </div>
   );
 }
@@ -177,6 +186,19 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpda
     }
   };
 
+  const handleClear = async (partidoId) => {
+    try {
+      await base44.entities.PorraPartido.update(partidoId, {
+        resultado_real: '',
+        finalizado: false,
+      });
+      toast.success('Resultado borrado');
+      onUpdate?.();
+    } catch (e) {
+      toast.error('Error: ' + e.message);
+    }
+  };
+
   const regenerarPartidos = async () => {
     // ⚠️ Aviso reforzado: si hay predicciones, se quedan huérfanas al regenerar (cambian los IDs)
     try {
@@ -241,7 +263,7 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpda
                     </div>
                     <div className="divide-y">
                       {ps.map(p => (
-                        <ResultadoBotones key={p.id} partido={p} equipos={equipos} onChange={handleResultado} />
+                        <ResultadoBotones key={p.id} partido={p} equipos={equipos} onChange={handleResultado} onClear={handleClear} />
                       ))}
                     </div>
                   </div>
