@@ -26,6 +26,7 @@ const CATEGORIAS = [
   "Fútbol Juvenil",
   "Fútbol Aficionado",
   "Fútbol Femenino",
+  "Fútbol Alevín Femenino",
 ];
 
 export default function DorsalManagement() {
