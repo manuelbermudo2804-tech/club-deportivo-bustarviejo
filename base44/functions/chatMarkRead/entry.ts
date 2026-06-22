@@ -22,18 +22,22 @@ Deno.serve(async (req) => {
 
       case 'coordinatorForFamily': {
         // chatId = CoordinatorConversation id
-        // Padre marca como leído
+        // Padre marca como leído: actualiza el timestamp Y pone a 0 el contador
+        // numérico (no_leidos_padre) para que ambos contadores queden sincronizados
+        // y no reaparezcan avisos de mensajes ya leídos.
         await base44.asServiceRole.entities.CoordinatorConversation.update(chatId, {
-          last_read_padre_at: now
+          last_read_padre_at: now,
+          no_leidos_padre: 0
         });
         break;
       }
 
       case 'coordinatorForStaff': {
         // chatId = CoordinatorConversation id
-        // Coordinador marca como leído
+        // Coordinador marca como leído: timestamp + contador numérico a 0.
         await base44.asServiceRole.entities.CoordinatorConversation.update(chatId, {
-          last_read_coordinador_at: now
+          last_read_coordinador_at: now,
+          no_leidos_coordinador: 0
         });
         break;
       }
