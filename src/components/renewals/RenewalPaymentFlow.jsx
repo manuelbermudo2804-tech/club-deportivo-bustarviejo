@@ -7,21 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { CheckCircle2, CreditCard, Gift, Info, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import DebtAlertBanner from "@/components/debts/DebtAlertBanner";
+import { getCuotasFromConfig as getCuotasShared } from "@/lib/cuotasConfig";
 
-const getCuotasFromConfig = (categoria, categoryConfigs) => {
+// Usa el helper compartido (filtra por temporada y aplica fallback) para no
+// coger precios de temporadas antiguas cuando hay varias CategoryConfig activas.
+const getCuotasFromConfig = (categoria, categoryConfigs, temporada) => {
   if (!categoryConfigs || categoryConfigs.length === 0) return null;
-  
-  const categoryConfig = categoryConfigs.find(c => c.nombre === categoria && c.activa);
-  
-  if (categoryConfig) {
-    return {
-      inscripcion: categoryConfig.cuota_inscripcion,
-      segunda: categoryConfig.cuota_segunda,
-      tercera: categoryConfig.cuota_tercera,
-      total: categoryConfig.cuota_total
-    };
-  }
-  return null;
+  const result = getCuotasShared(categoria, categoryConfigs, temporada);
+  if (result.inscripcion === 0 && result.segunda === 0 && result.tercera === 0 && result.total === 0) return null;
+  return result;
 };
 
 export default function RenewalPaymentFlow({ 
@@ -39,7 +33,7 @@ export default function RenewalPaymentFlow({
   const [debtState, setDebtState] = useState({ has_debt: false, total: 0, accepted: false, deudas: [] });
 
   const categoria = newCategory || player.deporte;
-  const cuotas = getCuotasFromConfig(categoria, categoryConfigs);
+  const cuotas = getCuotasFromConfig(categoria, categoryConfigs, seasonConfig?.temporada);
 
   // Calcular descuento por hermano
   useEffect(() => {
