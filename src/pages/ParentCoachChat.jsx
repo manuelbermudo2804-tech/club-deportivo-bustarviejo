@@ -149,10 +149,12 @@ export default function ParentCoachChat() {
       const cached = queryClient.getQueryData(['coachParentChatMessages', gid]) || [];
       const serverIds = new Set(server.map(m => m.id));
       const now = Date.now();
+      // Conservar mis mensajes recientes hasta 5 min (como WhatsApp): aunque el
+      // servidor aún no los devuelva por consistencia eventual, no deben desaparecer.
       const pendientes = cached.filter(m =>
         !serverIds.has(m.id) &&
         m.remitente_email === user?.email &&
-        m.created_date && (now - new Date(m.created_date).getTime() < 30000)
+        m.created_date && (now - new Date(m.created_date).getTime() < 300000)
       );
       if (pendientes.length > 0) {
         return [...server, ...pendientes].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));

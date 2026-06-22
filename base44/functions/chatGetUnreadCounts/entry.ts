@@ -49,6 +49,7 @@ Deno.serve(async (req) => {
               const unread = allChatMessages.filter(m =>
                 normalizeGid(m.grupo_id || m.deporte) === gid &&
                 m.remitente_email !== email &&
+                !m.eliminado &&
                 m.created_date > lastRead
               ).length;
               if (unread > 0) result.team_chats[gid] = unread;
@@ -74,6 +75,7 @@ Deno.serve(async (req) => {
               const unread = allChatMessages.filter(m =>
                 normalizeGid(m.grupo_id || m.deporte) === gid &&
                 m.remitente_email !== email &&
+                !m.eliminado &&
                 m.created_date > lastRead
               ).length;
               if (unread > 0) result.team_chats[gid] = unread;
@@ -101,7 +103,7 @@ Deno.serve(async (req) => {
             for (const conv of convs) {
               const lastRead = conv.last_read_coordinador_at || '1970-01-01T00:00:00.000Z';
               const msgs = msgsByConv[conv.id] || [];
-              result.coordinator += msgs.filter(m => m.created_date > lastRead).length;
+              result.coordinator += msgs.filter(m => !m.eliminado && m.created_date > lastRead).length;
             }
           }
         } catch (e) { console.error('Error coordinator:', e.message); }
@@ -122,7 +124,7 @@ Deno.serve(async (req) => {
             for (const conv of convs) {
               const lastRead = conv.last_read_padre_at || '1970-01-01T00:00:00.000Z';
               const msgs = msgsByConv[conv.id] || [];
-              result.coordinator += msgs.filter(m => m.created_date > lastRead).length;
+              result.coordinator += msgs.filter(m => !m.eliminado && m.created_date > lastRead).length;
             }
           }
         } catch (e) { console.error('Error coordinator (family):', e.message); }

@@ -121,7 +121,7 @@ export default function StaffChat() {
       const pendientes = cached.filter(m =>
         !serverIds.has(m.id) &&
         m.autor_email === user?.email &&
-        m.created_date && (now - new Date(m.created_date).getTime() < 30000)
+        m.created_date && (now - new Date(m.created_date).getTime() < 300000)
       );
       if (pendientes.length > 0) {
         return [...msgs, ...pendientes].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
