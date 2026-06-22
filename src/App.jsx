@@ -58,6 +58,7 @@ import GuiaEventos from '@/pages/GuiaEventos';
 import Privacidad from '@/pages/Privacidad';
 import ShareReceiver from '@/pages/ShareReceiver';
 import PhotoAuthorizations from '@/pages/PhotoAuthorizations';
+import HealthCheck from '@/pages/HealthCheck';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -207,6 +208,7 @@ const AuthenticatedApp = () => {
       <Route path="/DorsalManagement" element={<LayoutWrapper currentPageName="DorsalManagement"><DorsalManagement /></LayoutWrapper>} />
       <Route path="/GuiaEventos" element={<LayoutWrapper currentPageName="GuiaEventos"><GuiaEventos /></LayoutWrapper>} />
       <Route path="/PhotoAuthorizations" element={<LayoutWrapper currentPageName="PhotoAuthorizations"><PhotoAuthorizations /></LayoutWrapper>} />
+      <Route path="/HealthCheck" element={<LayoutWrapper currentPageName="HealthCheck"><HealthCheck /></LayoutWrapper>} />
       <Route path="/ShareReceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
       <Route path="/sharereceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
       {/* Versiones INTERNAS (con layout/menú) de PorraMiPorra y PorraRanking — activadas

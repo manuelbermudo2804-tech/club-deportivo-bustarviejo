@@ -4,7 +4,7 @@ import {
   Settings, MessageCircle, Clock, Image, FileText, Clover, UserCircle,
   FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert,
   ClipboardCheck, Star, Trophy, KeyRound, RotateCw, CheckCircle2,
-  User as UserIcon, Share2, ExternalLink, Shirt, Camera
+  User as UserIcon, Share2, ExternalLink, Shirt, Camera, HeartPulse
 } from "lucide-react";
 
 /**
@@ -94,6 +94,7 @@ export function buildAdminNavigation(ctx) {
     { title: "📸 Autorización de Imagen", url: createPageUrl("PhotoAuthorizations"), icon: Camera },
 
     { title: "─ CONFIGURACIÓN ─", section: true },
+    { title: "🩺 Panel de Salud", url: createPageUrl("HealthCheck"), icon: HeartPulse },
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "📊 Estadísticas Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
