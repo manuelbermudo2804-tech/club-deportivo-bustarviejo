@@ -15,6 +15,9 @@ import { useActiveSeason } from "../components/season/SeasonProvider";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import SelectiveReminderDialog from "../components/reminders/SelectiveReminderDialog";
 import { buildWhatsAppReminderMessage, openWhatsAppReminder } from "../components/reminders/whatsappReminderMessage";
+import { registrarRecordatorioEnviado } from "../components/reminders/recordatorioTracking";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -377,13 +380,36 @@ export default function PaymentReminders() {
       });
     });
 
+    // Mapa de datos de recordatorios por jugador (fecha + nº veces)
+    const reminderByPlayer = {};
+    players.forEach(p => {
+      reminderByPlayer[p.id] = {
+        fecha: p.ultimo_recordatorio_pago_fecha || null,
+        veces: p.recordatorios_pago_enviados || 0
+      };
+    });
+
     return Object.values(familyMap)
       .filter(f => f.jugadores.some(j => j.hasPendingPayments))
-      .map(family => ({
-        ...family,
-        totalFamilyDue: family.jugadores.reduce((sum, j) => sum + j.totalDue, 0),
-        totalPendingPayments: family.jugadores.reduce((sum, j) => sum + j.pendingMonths.length, 0)
-      }))
+      .map(family => {
+        // Para la familia: fecha más reciente y máximo de veces enviado entre sus jugadores
+        let ultimaFecha = null;
+        let vecesEnviado = 0;
+        family.jugadores.forEach(j => {
+          const r = reminderByPlayer[j.id];
+          if (r) {
+            if (r.fecha && (!ultimaFecha || new Date(r.fecha) > new Date(ultimaFecha))) ultimaFecha = r.fecha;
+            if (r.veces > vecesEnviado) vecesEnviado = r.veces;
+          }
+        });
+        return {
+          ...family,
+          totalFamilyDue: family.jugadores.reduce((sum, j) => sum + j.totalDue, 0),
+          totalPendingPayments: family.jugadores.reduce((sum, j) => sum + j.pendingMonths.length, 0),
+          recordatorioUltimaFecha: ultimaFecha,
+          recordatorioVeces: vecesEnviado
+        };
+      })
       .sort((a, b) => b.totalFamilyDue - a.totalFamilyDue);
   }, [players, payments, categoryConfigs, effectiveSeason, customPlans, allUsers]);
 
@@ -529,11 +555,14 @@ export default function PaymentReminders() {
         });
         }
 
+        await registrarRecordatorioEnviado(family);
+
         sent++;
         console.log(`✅ Recordatorio enviado a ${family.email}`);
         await new Promise(resolve => setTimeout(resolve, 1000));
       }
 
+      await refetchPlayers();
       setSuccessMessage(`✅ ${sent} recordatorio${sent > 1 ? 's' : ''} enviado${sent > 1 ? 's' : ''}`);
       setShowSuccess(true);
       setTimeout(() => toast.success(`${sent} recordatorios enviados por Email + Chat`), 2000);
@@ -672,6 +701,8 @@ export default function PaymentReminders() {
         });
       }
 
+      await registrarRecordatorioEnviado(family);
+      await refetchPlayers();
       toast.dismiss(`selective-${family.email}`);
       setSuccessMessage(`✅ Recordatorio enviado a ${family.nombre_tutor}`);
       setShowSuccess(true);
@@ -986,6 +1017,13 @@ export default function PaymentReminders() {
                        )}
                      </div>
                      <p className="text-xs text-slate-600">{family.email}</p>
+                     {family.recordatorioVeces > 0 ? (
+                       <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 inline-block mt-1">
+                         📨 Último recordatorio: {family.recordatorioUltimaFecha ? format(new Date(family.recordatorioUltimaFecha), "d MMM yyyy 'a las' HH:mm", { locale: es }) : "—"} · {family.recordatorioVeces} {family.recordatorioVeces === 1 ? "vez" : "veces"}
+                       </p>
+                     ) : (
+                       <p className="text-[11px] text-slate-400 mt-1">Sin recordatorios enviados</p>
+                     )}
                      {family.telefono && (
                        <div className="flex items-center gap-2 flex-wrap">
                          <p className="text-xs text-slate-500">📱 {family.telefono}</p>
@@ -1169,6 +1207,8 @@ export default function PaymentReminders() {
                           });
                         }
 
+                        await registrarRecordatorioEnviado(family);
+                        await refetchPlayers();
                         console.log(`✅ Recordatorio enviado a ${family.email}`);
                         toast.dismiss(`reminder-${family.email}`);
                         setSuccessMessage(`✅ Recordatorio enviado a ${family.nombre_tutor}`);

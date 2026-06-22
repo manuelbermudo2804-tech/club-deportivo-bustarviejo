@@ -425,6 +425,16 @@
     "acceso_menor_revocado": {
       "type": "boolean",
       "default": false
+    },
+    "ultimo_recordatorio_pago_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del \u00faltimo recordatorio de pago enviado manualmente a la familia"
+    },
+    "recordatorios_pago_enviados": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero de veces que se ha enviado un recordatorio de pago manual a la familia de este jugador"
     }
   },
   "required": [
