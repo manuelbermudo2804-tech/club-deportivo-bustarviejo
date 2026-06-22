@@ -41,6 +41,7 @@ import ActiveBanner from "./components/announcements/ActiveBanner";
 import AutoPushSubscriber from "./components/notifications/AutoPushSubscriber";
 import PushPermissionBanner from "./components/notifications/PushPermissionBanner";
 import SponsorRecruitBanner from "./components/sponsors/SponsorRecruitBanner";
+import MandatoryReadModal from "./components/announcements/MandatoryReadModal";
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
 
 
@@ -528,6 +529,7 @@ export default function Layout({ children, currentPageName }) {
               <GlobalErrorHandler />
               <ChatCountsBridge onCounts={setChatCounts} />
               <AutoPushSubscriber user={user} />
+              {user && user.role !== 'admin' && <MandatoryReadModal user={user} />}
               <style>{`html, body { overscroll-behavior-y: none; }`}</style>
 
               <InstallInstructionsModal

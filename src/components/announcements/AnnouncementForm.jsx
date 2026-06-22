@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, Pin, Clock, AlertCircle, Sparkles, Bell } from "lucide-react";
+import { Loader2, Mail, Pin, Clock, AlertCircle, Sparkles, Bell, ShieldAlert } from "lucide-react";
 
 export default function AnnouncementForm({ announcement, onSubmit, onCancel, isSubmitting }) {
   const [currentAnnouncement, setCurrentAnnouncement] = useState(announcement || {
@@ -25,6 +25,7 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
     fecha_expiracion: "",
     enviar_email: false,
     enviar_chat: false,
+    requiere_confirmacion: false,
     email_enviado: false,
     fecha_publicacion: new Date().toISOString(),
     leido_por: [],
@@ -448,6 +449,24 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                   checked={currentAnnouncement.enviar_chat === true}
                   onCheckedChange={(checked) => setCurrentAnnouncement({ ...currentAnnouncement, enviar_chat: checked })}
                   className="data-[state=checked]:bg-orange-600"
+                />
+              </div>
+
+              {/* Requiere confirmación de lectura (acuse de recibo obligatorio) */}
+              <div className="flex items-center justify-between p-4 rounded-lg bg-red-50 border-2 border-red-200">
+                <div className="flex items-center gap-3">
+                  <ShieldAlert className="w-5 h-5 text-red-700" />
+                  <div>
+                    <Label className="text-base font-medium text-red-900">Requiere confirmación de lectura</Label>
+                    <p className="text-sm text-red-700">
+                      Aparecerá como modal bloqueante hasta que la familia confirme "He leído". Úsalo solo en avisos críticos.
+                    </p>
+                  </div>
+                </div>
+                <Switch
+                  checked={currentAnnouncement.requiere_confirmacion === true}
+                  onCheckedChange={(checked) => setCurrentAnnouncement({ ...currentAnnouncement, requiere_confirmacion: checked })}
+                  className="data-[state=checked]:bg-red-600"
                 />
               </div>
             </div>

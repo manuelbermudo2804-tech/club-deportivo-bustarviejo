@@ -93,6 +93,30 @@
         }
       }
     },
+    "requiere_confirmacion": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es TRUE, las familias destinatarias deben confirmar su lectura mediante un modal bloqueante al abrir la app"
+    },
+    "confirmado_por": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "description": "Familias que han confirmado deliberadamente la lectura (acuse de recibo)"
+    },
     "destinatarios_emails": {
       "type": "array",
       "items": {

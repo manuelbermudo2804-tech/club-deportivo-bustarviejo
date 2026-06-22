@@ -3,10 +3,11 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Pin, Clock, Trash2, Eye, ChevronDown, ChevronUp } from "lucide-react";
+import { Edit, Pin, Clock, Trash2, Eye, ChevronDown, ChevronUp, ShieldAlert } from "lucide-react";
 import { format, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
 import ShareButtons from "../social/ShareButtons";
+import ReadConfirmationPanel from "./ReadConfirmationPanel";
 
 export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdmin, onMarkAsRead, userEmail }) {
   const priorityConfig = {
@@ -126,7 +127,18 @@ export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdm
                 Expira pronto
               </Badge>
             )}
+
+            {announcement.requiere_confirmacion && (
+              <Badge className="bg-red-600 text-white text-[10px] px-1.5 py-0">
+                <ShieldAlert className="w-2 h-2 mr-1" />
+                Confirmación obligatoria
+              </Badge>
+            )}
           </div>
+
+          {isAdmin && announcement.requiere_confirmacion && (
+            <ReadConfirmationPanel announcement={announcement} />
+          )}
 
           <div className="mt-3 pt-2 border-t border-slate-200">
             <ShareButtons 
