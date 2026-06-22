@@ -46,6 +46,28 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
     refetchOnWindowFocus: false,
   });
 
+  // Categorías reales desde CategoryConfig (no hardcodeadas) para que las categorías
+  // nuevas aparezcan automáticamente como destinatarios.
+  const { data: categoryConfigs = [] } = useQuery({
+    queryKey: ['announcementCategories'],
+    queryFn: () => base44.entities.CategoryConfig.list(),
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
+  });
+  const categoriasActivas = Array.from(
+    new Set((categoryConfigs || []).filter(c => c.activa).map(c => c.nombre).filter(Boolean))
+  ).sort((a, b) => a.localeCompare(b));
+  // Asegura que la categoría guardada en un anuncio existente siga apareciendo aunque
+  // se haya desactivado en CategoryConfig.
+  const opcionesDestinatarios = (() => {
+    const set = new Set(categoriasActivas);
+    if (currentAnnouncement.destinatarios_tipo && currentAnnouncement.destinatarios_tipo !== 'Todos') {
+      set.add(currentAnnouncement.destinatarios_tipo);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  })();
+  const iconoCategoria = (nombre) => (/baloncesto/i.test(nombre) ? '🏀' : '⚽');
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const emails = Array.isArray(currentAnnouncement.destinatarios_emails)
@@ -128,15 +150,9 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="Todos">🏃 Todos los grupos</SelectItem>
-                    <SelectItem value="Fútbol Pre-Benjamín (Mixto)">⚽ Fútbol Pre-Benjamín (Mixto)</SelectItem>
-                    <SelectItem value="Fútbol Benjamín (Mixto)">⚽ Fútbol Benjamín (Mixto)</SelectItem>
-                    <SelectItem value="Fútbol Alevín (Mixto)">⚽ Fútbol Alevín (Mixto)</SelectItem>
-                    <SelectItem value="Fútbol Infantil (Mixto)">⚽ Fútbol Infantil (Mixto)</SelectItem>
-                    <SelectItem value="Fútbol Cadete">⚽ Fútbol Cadete</SelectItem>
-                    <SelectItem value="Fútbol Juvenil">⚽ Fútbol Juvenil</SelectItem>
-                    <SelectItem value="Fútbol Aficionado">⚽ Fútbol Aficionado</SelectItem>
-                    <SelectItem value="Fútbol Femenino">⚽ Fútbol Femenino</SelectItem>
-                    <SelectItem value="Baloncesto (Mixto)">🏀 Baloncesto (Mixto)</SelectItem>
+                    {opcionesDestinatarios.map((nombre) => (
+                      <SelectItem key={nombre} value={nombre}>{iconoCategoria(nombre)} {nombre}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <div className="space-y-1">
