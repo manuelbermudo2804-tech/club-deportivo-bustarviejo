@@ -21,6 +21,7 @@ import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 import ChatMessageActions from "../components/chat/ChatMessageActions";
+import ReadTicks from "../components/chat/ReadTicks";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -521,9 +522,24 @@ export default function ParentCoordinatorChat() {
                             🎓 {msg.autor_nombre}
                           </p>
                         ) : <span />}
-                        <ChatMessageActions message={msg} isMine={isPadre} />
+                        <div className="flex items-center gap-1">
+                          <Button size="sm" variant="ghost" className="opacity-50 hover:opacity-100 h-5 w-5 p-0" onClick={() => setShowReactions(showReactions === msg.id ? null : msg.id)}>
+                            <Smile className="w-3 h-3" />
+                          </Button>
+                          <ChatMessageActions message={msg} isMine={isPadre} />
+                        </div>
                       </div>
-                      
+
+                      {showReactions === msg.id && (
+                        <div className="absolute -top-9 right-0 bg-white rounded-full shadow-lg px-2 py-1 flex gap-1 z-20 border">
+                          {REACTIONS.map((emoji) => (
+                            <button key={emoji} onClick={() => addReaction(msg.id, emoji)} className="hover:scale-125 transition-transform text-lg leading-none">
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+
                       {msg.audio_url ? (
                         <div className="mt-1">
                           <ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isPadre} />
@@ -550,19 +566,18 @@ export default function ParentCoordinatorChat() {
                           </>
                         );
                       })()}
+                      {msg.reacciones && msg.reacciones.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {msg.reacciones.map((r, ri) => (
+                            <span key={ri} className="text-xs bg-slate-100 rounded-full px-1.5 py-0.5" title={r.user_nombre}>{r.emoji}</span>
+                          ))}
+                        </div>
+                      )}
                       <div className="flex items-center gap-1 justify-end mt-1">
                         <p className="text-[11px]" style={{color: '#667781'}}>
                           {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                         </p>
-                        {isPadre && (
-                          <div className="flex items-center">
-                            {msg.leido_coordinador ? (
-                              <CheckCheck className="w-3 h-3 text-white opacity-70" />
-                            ) : (
-                              <Check className="w-3 h-3 opacity-50" />
-                            )}
-                          </div>
-                        )}
+                        {isPadre && <ReadTicks message={msg} senderEmail={user.email} read={msg.leido_coordinador} />}
                       </div>
                     </div>
                   </div>
