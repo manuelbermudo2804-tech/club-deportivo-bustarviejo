@@ -321,13 +321,13 @@ export function useUnifiedNotifications(user, options = {}) {
         // Tesorero solo necesita clothing+members; admin necesita todo
         const isFullAdmin = user.role === 'admin';
         const [inv, secInv, clothing, lottery, members, delReqSolicitada, delReqRevision] = await Promise.all([
-          isFullAdmin ? base44.entities.InvitationRequest.filter({ estado: "Pendiente" }) : Promise.resolve([]),
-          isFullAdmin ? base44.entities.SecondParentInvitation.filter({ estado: "pendiente" }) : Promise.resolve([]),
-          base44.entities.ClothingOrder.list('-updated_date', 80),
-          isFullAdmin ? base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false }) : Promise.resolve([]),
-          base44.entities.ClubMember.filter({ estado_pago: "Pendiente" }),
-          isFullAdmin ? base44.entities.AccountDeletionRequest.filter({ status: "solicitada" }) : Promise.resolve([]),
-          isFullAdmin ? base44.entities.AccountDeletionRequest.filter({ status: "en_revision" }) : Promise.resolve([]),
+          isFullAdmin ? run(() => base44.entities.InvitationRequest.filter({ estado: "Pendiente" })) : Promise.resolve([]),
+          isFullAdmin ? run(() => base44.entities.SecondParentInvitation.filter({ estado: "pendiente" })) : Promise.resolve([]),
+          run(() => base44.entities.ClothingOrder.list('-updated_date', 80)),
+          isFullAdmin ? run(() => base44.entities.LotteryOrder.filter({ estado: "Solicitado", pagado: false })) : Promise.resolve([]),
+          run(() => base44.entities.ClubMember.filter({ estado_pago: "Pendiente" })),
+          isFullAdmin ? run(() => base44.entities.AccountDeletionRequest.filter({ status: "solicitada" })) : Promise.resolve([]),
+          isFullAdmin ? run(() => base44.entities.AccountDeletionRequest.filter({ status: "en_revision" })) : Promise.resolve([]),
         ]);
         setRawData(prev => ({ 
           ...prev, 
