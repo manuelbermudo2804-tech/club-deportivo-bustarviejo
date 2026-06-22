@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 Deno.serve(async (req) => {
   try {
@@ -13,8 +13,12 @@ Deno.serve(async (req) => {
     switch (chatType) {
       case 'team': {
         // chatId = grupo_id (e.g. "futbol_alevin")
-        // Update user's chat_last_read object
-        const chatLastRead = user.chat_last_read || {};
+        // CRÍTICO: leer el usuario FRESCO del servidor antes de mezclar.
+        // El objeto `user` del token puede estar desactualizado; si usáramos
+        // ese, marcar un chat machacaría los timestamps de los demás chats
+        // (race condition) y reaparecerían contadores ya leídos.
+        const freshUser = await base44.asServiceRole.entities.User.filter({ id: user.id });
+        const chatLastRead = { ...((freshUser[0]?.chat_last_read) || {}) };
         chatLastRead[chatId] = now;
         await base44.asServiceRole.entities.User.update(user.id, { chat_last_read: chatLastRead });
         break;

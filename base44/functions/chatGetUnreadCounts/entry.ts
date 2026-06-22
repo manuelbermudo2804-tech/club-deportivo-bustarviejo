@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.21';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 Deno.serve(async (req) => {
   try {
@@ -40,8 +40,15 @@ Deno.serve(async (req) => {
       if (cats.length > 0) {
         promises.push((async () => {
           try {
+            // Filtrar por timestamp en la query: solo mensajes posteriores al
+            // last_read MÁS ANTIGUO entre las categorías del usuario. Así no
+            // perdemos no-leídos antiguos por el cap de 500 (categorías poco activas).
+            const oldestLastRead = cats.reduce((min, cat) => {
+              const lr = chatLastRead[toGroupId(cat)] || '1970-01-01T00:00:00.000Z';
+              return lr < min ? lr : min;
+            }, '9999-12-31T23:59:59.999Z');
             const allChatMessages = await base44.asServiceRole.entities.ChatMessage.filter(
-              { tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] } }, '-created_date', 500
+              { tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo'] }, created_date: { $gt: oldestLastRead } }, '-created_date', 1000
             );
             for (const cat of cats) {
               const gid = toGroupId(cat);
@@ -66,8 +73,12 @@ Deno.serve(async (req) => {
           });
           const myCats = [...new Set(myPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
           if (myCats.length > 0) {
+            const oldestLastRead = myCats.reduce((min, cat) => {
+              const lr = chatLastRead[toGroupId(cat)] || '1970-01-01T00:00:00.000Z';
+              return lr < min ? lr : min;
+            }, '9999-12-31T23:59:59.999Z');
             const allChatMessages = await base44.asServiceRole.entities.ChatMessage.filter(
-              { tipo: { $in: ['entrenador_a_grupo', 'padre_a_grupo'] } }, '-created_date', 500
+              { tipo: { $in: ['entrenador_a_grupo', 'padre_a_grupo'] }, created_date: { $gt: oldestLastRead } }, '-created_date', 1000
             );
             for (const cat of myCats) {
               const gid = toGroupId(cat);
