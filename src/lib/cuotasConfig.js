@@ -12,6 +12,8 @@ export const CUOTAS_FALLBACK = {
   "Fútbol Cadete": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
   "Fútbol Infantil (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
   "Fútbol Alevín (Mixto)": { inscripcion: 115, segunda: 83, tercera: 83, total: 281 },
+  "Fútbol Alevín Femenino": { inscripcion: 115, segunda: 88, tercera: 88, total: 291 },
+  "Alevin Femenino": { inscripcion: 115, segunda: 88, tercera: 88, total: 291 },
   "Fútbol Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
   "Fútbol Pre-Benjamín (Mixto)": { inscripcion: 100, segunda: 75, tercera: 75, total: 250 },
   "Fútbol Femenino": { inscripcion: 135, segunda: 100, tercera: 95, total: 330 },
