@@ -20,6 +20,7 @@ import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
 import CoachChatInput from "../chat/CoachChatInput";
 import EmojiScaler from "../chat/EmojiScaler";
+import ReadTicks from "../chat/ReadTicks";
 import ChatImageBubble from "../chat/ChatImageBubble";
 import ChatAudioBubble from "../chat/ChatAudioBubble";
 import { useImageUpload } from "../utils/useImageUpload";
@@ -848,15 +849,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                        {format(new Date(msg.created_date), "HH:mm", { locale: es })}
                      </p>
 
-                     {isMine && (
-                       <div className="flex items-center">
-                         {msg.leido_por && msg.leido_por.length > 0 ? (
-                           <CheckCheck className="w-3 h-3 text-white opacity-70" />
-                         ) : (
-                           <Check className="w-3 h-3 opacity-50" />
-                         )}
-                       </div>
-                     )}
+                     {isMine && <ReadTicks message={msg} senderEmail={user?.email} />}
 
                      <Button
                        size="sm"

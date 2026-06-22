@@ -20,6 +20,7 @@ import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 import ChatMessageActions from "../components/chat/ChatMessageActions";
+import ReadTicks from "../components/chat/ReadTicks";
 
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
@@ -490,6 +491,7 @@ export default function ParentCoachChat() {
                         {msg.reacciones?.length > 0 && <EmojiScaler reactions={msg.reacciones} />}
                         <div className="flex items-center gap-1 justify-end mt-1">
                           <p style={{fontSize: '11px', opacity: 0.6}}>{format(new Date(msg.created_date), "HH:mm", { locale: es })}</p>
+                          {isMine && <ReadTicks message={msg} senderEmail={user.email} />}
                           <Button size="sm" variant="ghost" className={`opacity-50 hover:opacity-100 h-5 w-5 p-0 ${isMine ? 'text-white' : 'text-slate-600'}`} onClick={() => setShowReactions(msg.id)}>
                             <Smile className="w-3 h-3" />
                           </Button>
