@@ -57,11 +57,16 @@ export function isPaymentOverdue(payment) {
  */
 export function getActiveCustomPlan(jugadorId, customPlans, temporada) {
   if (!customPlans || customPlans.length === 0) return null;
-  
-  return customPlans.find(plan => 
+
+  // Normalizar temporada para comparar sin importar si usa guiones o barras
+  // ("2026-2027" vs "2026/2027")
+  const normSeason = (t) => (t ? String(t).replace(/-/g, "/").trim() : "");
+  const target = normSeason(temporada);
+
+  return customPlans.find(plan =>
     plan.jugador_id === jugadorId &&
     plan.estado === "Activo" &&
-    (!temporada || plan.temporada === temporada)
+    (!target || normSeason(plan.temporada) === target)
   );
 }
 
