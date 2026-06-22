@@ -119,6 +119,30 @@ Deno.serve(async (req) => {
       duplicadas
     );
 
+    // === CHECK 8: Categorías de la temporada activa sin config propia de esa temporada ===
+    // Si una categoría en uso no tiene CategoryConfig de la temporada activa, las cuotas
+    // caen al fallback de precios antiguos del código en lugar de los precios del club.
+    if (temporadasActivas.length === 1) {
+      const temp = temporadasActivas[0].temporada;
+      const configsTemporada = new Set(
+        categoryConfigs.filter(c => c.activa && c.temporada === temp).map(c => norm(c.nombre))
+      );
+      const categoriasEnUso = [...new Set(
+        players.map(p => p.categoria_principal || p.deporte).filter(Boolean)
+      )];
+      const sinConfigTemporada = categoriasEnUso.filter(cat => !configsTemporada.has(norm(cat)));
+      add(
+        'categorias_sin_config_temporada',
+        'Categorías sin precios para la temporada activa',
+        'warning',
+        sinConfigTemporada.length === 0,
+        sinConfigTemporada.length === 0
+          ? `Todas las categorías en uso tienen precios configurados para ${temp}.`
+          : `${sinConfigTemporada.length} categorías en uso no tienen precios para la temporada ${temp}, por lo que usan precios antiguos por defecto: ${sinConfigTemporada.join(', ')}.`,
+        sinConfigTemporada
+      );
+    }
+
     // Resumen
     const errores = checks.filter(c => !c.ok && c.severidad === 'error').length;
     const avisos = checks.filter(c => !c.ok && c.severidad === 'warning').length;
