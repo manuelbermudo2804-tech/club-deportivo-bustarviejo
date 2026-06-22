@@ -25,6 +25,7 @@ export const CATEGORY_NAME_MAPPING = {
   "Fútbol Cadete": "CADETE",
   "Fútbol Infantil (Mixto)": "INFANTIL",
   "Fútbol Alevín (Mixto)": "ALEVIN",
+  "Fútbol Alevín Femenino": "Alevin Femenino",
   "Fútbol Benjamín (Mixto)": "BENJAMIN",
   "Fútbol Pre-Benjamín (Mixto)": "PRE-BENJAMIN",
   "Fútbol Femenino": "FEMENINO",
