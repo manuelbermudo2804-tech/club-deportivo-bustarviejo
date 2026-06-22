@@ -15,7 +15,8 @@ import { Textarea as DialogTextarea } from "@/components/ui/textarea";
 import ChatInputActions from "../components/chat/ChatInputActions";
 import SocialLinks from "../components/SocialLinks";
 import ChatTermsDialog from "../components/chat/ChatTermsDialog";
-import ParentChatInput from "../components/chat/ParentChatInput";
+import UnifiedChatInput from "../components/chat/UnifiedChatInput";
+import { useImageUpload } from "../components/utils/useImageUpload";
 import EmojiScaler from "../components/chat/EmojiScaler";
 import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
@@ -27,6 +28,7 @@ export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
   const [myPlayers, setMyPlayers] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadingImage, uploadFile] = useImageUpload();
   const [conversation, setConversation] = useState(null);
   const [showGallery, setShowGallery] = useState(false);
   const [showImagePreview, setShowImagePreview] = useState(null);
@@ -370,6 +372,49 @@ export default function ParentCoordinatorChat() {
     sendMessageMutation.mutate(messageData);
   }, [termsAccepted, user?.chat_bloqueado, sendMessageMutation]);
 
+  // Subida de imágenes/archivos (lo que antes faltaba en el lado familia)
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    setUploading(true);
+    try {
+      const uploaded = [];
+      for (const file of files) {
+        const isImage = file.type?.startsWith('image/') || /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name || '');
+        if (isImage) {
+          const url = await uploadFile(file);
+          if (url) uploaded.push({ url, nombre: file.name, tipo: 'image/jpeg', tamano: file.size });
+        } else {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          uploaded.push({ url: file_url, nombre: file.name, tipo: file.type, tamano: file.size });
+        }
+      }
+      if (uploaded.length > 0) toast.success("Archivos adjuntados");
+      return uploaded;
+    } catch (error) {
+      toast.error("Error al subir archivos");
+      return [];
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleCameraCapture = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return null;
+    setUploading(true);
+    try {
+      const url = await uploadFile(file);
+      if (!url) return null;
+      toast.success("Foto capturada");
+      return { url, nombre: file.name, tipo: 'image/jpeg', tamano: file.size };
+    } catch (error) {
+      toast.error("Error al capturar foto");
+      return null;
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const togglePlayAudio = async (audioUrl) => {
     try {
       if (playingAudio === audioUrl) {
@@ -600,9 +645,12 @@ export default function ParentCoordinatorChat() {
             </div>
           )}
 
-          <ParentChatInput
+          <UnifiedChatInput
              onSendMessage={handleSendMessage}
-             uploading={uploading}
+             onFileUpload={handleFileUpload}
+             onCameraCapture={handleCameraCapture}
+             uploading={uploading || uploadingImage}
+             disabled={user?.chat_bloqueado}
              placeholder={user?.chat_bloqueado ? "Chat bloqueado" : "Escribe tu mensaje..."}
            />
         </CardContent>

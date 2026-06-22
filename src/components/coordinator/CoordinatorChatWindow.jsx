@@ -16,7 +16,7 @@ import PollMessage from "../chat/PollMessage";
 import LocationMessage from "../chat/LocationMessage";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
-import CoordinatorChatInput from "../chat/CoordinatorChatInput";
+import UnifiedChatInput from "../chat/UnifiedChatInput";
 import EmojiScaler from "../chat/EmojiScaler";
 import ChatImageBubble from "../chat/ChatImageBubble";
 import ChatAudioBubble from "../chat/ChatAudioBubble";
@@ -846,7 +846,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
       {/* Input Bar */}
       <div className="border-t bg-white flex-shrink-0 sticky bottom-0 z-10">
-         <CoordinatorChatInput
+         <UnifiedChatInput
            onSendMessage={handleSendMessage}
            onFileUpload={handleFileUpload}
            onCameraCapture={handleCameraCapture}

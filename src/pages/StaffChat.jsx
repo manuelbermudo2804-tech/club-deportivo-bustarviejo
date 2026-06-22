@@ -24,7 +24,7 @@ import NewMessageButton from "../components/chat/NewMessageButton";
 import SocialLinks from "../components/SocialLinks";
 import { sendWithQueue } from "../components/utils/messageQueue";
 import PinnedMessagesBanner from "../components/chat/PinnedMessagesBanner";
-import StaffChatInput from "../components/chat/StaffChatInput";
+import UnifiedChatInput from "../components/chat/UnifiedChatInput";
 import EmojiScaler from "../components/chat/EmojiScaler";
 import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
@@ -996,15 +996,13 @@ export default function StaffChat() {
             <div ref={messagesEndRef} />
           </div>
 
-          <StaffChatInput
+          <UnifiedChatInput
             onSendMessage={handleSendMessage}
             onFileUpload={handleFileUpload}
             onCameraCapture={handleCameraCapture}
             onLocationClick={() => setShowLocationDialog(true)}
             onPollClick={() => setShowPollDialog(true)}
-            onExerciseClick={() => setShowQuickReplies(!showQuickReplies)}
             uploading={uploading || uploadingImage}
-            showExercise={false}
             placeholder="Escribe un mensaje..."
           />
         </CardContent>
