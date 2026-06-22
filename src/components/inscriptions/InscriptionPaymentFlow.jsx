@@ -300,6 +300,20 @@ export default function InscriptionPaymentFlow({
               })()}
             </SelectContent>
           </Select>
+
+          {tipoPago === "Único" && (
+            <Alert className="bg-blue-50 border-2 border-blue-400">
+              <Info className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-900">
+                <p className="font-bold text-sm mb-1">💡 Has elegido pagar TODO de una vez ({importeTotal}€ en junio)</p>
+                <p className="text-xs leading-relaxed">
+                  ¿Prefieres repartirlo? Puedes pagar en <strong>3 veces (junio, septiembre y diciembre)</strong> sin
+                  ningún coste extra — solo elige <strong>"Tres Pagos"</strong> arriba.
+                  <span className="block mt-1 font-semibold text-blue-800">⚠️ La modalidad elegida no se puede cambiar después de finalizar la inscripción.</span>
+                </p>
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         {seasonConfig?.fondo_solidario_activo && Array.isArray(seasonConfig?.fondo_solidario_importes) && seasonConfig.fondo_solidario_importes.length > 0 && (
