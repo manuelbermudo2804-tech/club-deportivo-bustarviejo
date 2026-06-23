@@ -42,12 +42,6 @@ export default function UserFilters({
       count: filterCounts.unvalidated || 0,
       highlight: (filterCounts.unvalidated || 0) > 0,
     },
-    {
-      key: "suspicious",
-      label: "🕵️ Sospechosos",
-      count: filterCounts.suspicious || 0,
-      highlight: (filterCounts.suspicious || 0) > 0,
-    },
   ];
 
   return (

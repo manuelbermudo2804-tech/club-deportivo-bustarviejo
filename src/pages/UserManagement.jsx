@@ -645,27 +645,6 @@ export default function UserManagement() {
     return true;
   };
   const unvalidatedVisitors = useMemo(() => users.filter(isUnvalidatedVisitor), [users]);
-
-  // SOSPECHOSOS: usuarios sin NINGÚN rol especial (entrenador, coordinador, tesorero,
-  // junta, admin), que NO son jugador ni juvenil, y que NO tienen ningún jugador
-  // vinculado a su email (ni activo ni inactivo). Son los curiosos / accesos por la porra.
-  const isSuspiciousUser = (u) => {
-    if (u.eliminado === true) return false;
-    if (u.role === "admin") return false;
-    if (u.es_entrenador || u.es_coordinador || u.es_tesorero || u.es_junta) return false;
-    if (u.es_jugador || u.es_menor) return false;
-    const email = (u.email || "").trim().toLowerCase();
-    if (!email) return false;
-    const tienePlayer = players.some(
-      (p) =>
-        (p.email_padre && p.email_padre.trim().toLowerCase() === email) ||
-        (p.email_tutor_2 && p.email_tutor_2.trim().toLowerCase() === email) ||
-        (p.email_jugador && p.email_jugador.trim().toLowerCase() === email) ||
-        (p.acceso_menor_email && p.acceso_menor_email.trim().toLowerCase() === email)
-    );
-    return !tienePlayer;
-  };
-  const suspiciousUsers = useMemo(() => users.filter(isSuspiciousUser), [users, players]);
   const unvalidatedEmails = useMemo(
     () => new Set(unvalidatedVisitors.map((u) => (u.email || "").toLowerCase())),
     [unvalidatedVisitors]
@@ -704,8 +683,7 @@ export default function UserManagement() {
       if (!showDeleted && user.eliminado === true) return false;
 
       // Ocultar visitantes sin código validado de TODAS las vistas excepto su filtro propio
-      // (y excepto la vista de sospechosos, que incluye a los visitantes)
-      if (roleFilter !== "unvalidated" && roleFilter !== "suspicious" && isUnvalidatedVisitor(user)) return false;
+      if (roleFilter !== "unvalidated" && isUnvalidatedVisitor(user)) return false;
 
       if (roleFilter !== "all") {
         if (roleFilter === "admin" && user.role !== "admin") return false;
@@ -723,7 +701,6 @@ export default function UserManagement() {
         if (roleFilter === "inactive_parents" && !usersWithoutActivePlayers.some((u) => u.id === user.id)) return false;
         if (roleFilter === "inactive_minors" && !minorsWithoutActivePlayer.some((u) => u.id === user.id)) return false;
         if (roleFilter === "unvalidated" && !isUnvalidatedVisitor(user)) return false;
-        if (roleFilter === "suspicious" && !isSuspiciousUser(user)) return false;
       }
 
       if (!searchTerm) return true;
@@ -740,7 +717,6 @@ export default function UserManagement() {
   const filterCounts = {
     all: users.filter((u) => !u.eliminado && !isUnvalidatedVisitor(u)).length,
     unvalidated: unvalidatedVisitors.length,
-    suspicious: suspiciousUsers.length,
     parent: parents.length,
     inactive_parents: usersWithoutActivePlayers.length,
     staff: staffUsers.length,
