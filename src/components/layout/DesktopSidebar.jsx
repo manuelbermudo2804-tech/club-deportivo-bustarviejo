@@ -9,6 +9,7 @@ import ThemeToggle from "../ThemeToggle";
 import LanguageSelector from "../LanguageSelector";
 
 const GlobalSearch = React.lazy(() => import("../GlobalSearch"));
+import CollapsibleNavList from "./CollapsibleNavList";
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg`;
 
@@ -59,7 +60,9 @@ export default function DesktopSidebar({
           </button>
         )}
 
-        {navigationItems.map((item) => {
+        {isAdmin ? (
+          <CollapsibleNavList navigationItems={navigationItems} />
+        ) : navigationItems.map((item) => {
           if (item.section) {
             return (
               <div key={item.title} className="px-2 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider border-t border-slate-700/50">
