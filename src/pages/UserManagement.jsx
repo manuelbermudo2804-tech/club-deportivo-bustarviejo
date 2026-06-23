@@ -78,6 +78,17 @@ export default function UserManagement() {
     initialData: [],
   });
 
+  // Emails que participaron en la porra (para distinguir curiosos que entraron por ahí)
+  const { data: porraParticipantes } = useQuery({
+    queryKey: ["porraParticipantesEmails"],
+    queryFn: () => base44.entities.PorraParticipante.list("-created_date", 5000),
+    initialData: [],
+  });
+  const porraEmails = useMemo(
+    () => new Set(porraParticipantes.map((p) => (p.email || "").trim().toLowerCase()).filter(Boolean)),
+    [porraParticipantes]
+  );
+
   // ===== MUTATIONS =====
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, userData }) => {
@@ -120,6 +131,31 @@ export default function UserManagement() {
     onError: (error) => {
       toast.error("Error reactivando acceso: " + (error?.message || ""));
     },
+  });
+
+  const deactivateVisitorsMutation = useMutation({
+    mutationFn: async (visitors) => {
+      let ok = 0;
+      for (const u of visitors) {
+        try {
+          await base44.entities.User.update(u.id, {
+            acceso_activo: false,
+            motivo_restriccion: "Registro sin código de acceso (curioso) - Desactivado por admin",
+            fecha_restriccion: new Date().toISOString(),
+          });
+          ok++;
+        } catch (e) {
+          console.error("Error desactivando visitante", u.email, e);
+        }
+        await new Promise((r) => setTimeout(r, 150));
+      }
+      return ok;
+    },
+    onSuccess: (ok) => {
+      queryClient.invalidateQueries({ queryKey: ["allUsers"] });
+      toast.success(`✅ ${ok} usuario(s) sin código desactivados`);
+    },
+    onError: (error) => toast.error("Error desactivando: " + (error?.message || "")),
   });
 
   const pairParentsMutation = useMutation({
@@ -769,8 +805,16 @@ export default function UserManagement() {
         pendingPlayerAccessUsers={pendingPlayerAccessUsers}
         usersWithoutActivePlayers={usersWithoutActivePlayers}
         minorsWithoutActivePlayer={minorsWithoutActivePlayer}
+        unvalidatedVisitors={unvalidatedVisitors}
+        porraEmails={porraEmails}
         onBulkInstallReminders={sendBulkInstallReminders}
         onBulkRenewalReminders={sendBulkRenewalReminders}
+        onDeactivateVisitors={() => {
+          if (window.confirm(`¿Desactivar el acceso a ${unvalidatedVisitors.length} usuario(s) que se registraron sin código de acceso?\n\nNo se eliminan: podrás reactivarlos si hace falta.`)) {
+            deactivateVisitorsMutation.mutate(unvalidatedVisitors);
+          }
+        }}
+        isDeactivating={deactivateVisitorsMutation.isPending}
         onSetFilter={setRoleFilter}
       />
 
@@ -820,6 +864,7 @@ export default function UserManagement() {
               users={filteredUsers}
               players={players}
               pairByEmail={pairByEmail}
+              porraEmails={porraEmails}
               onCoachToggle={handleCoachToggle}
               onCoordinatorToggle={handleCoordinatorToggle}
               onTreasurerToggle={handleTreasurerToggle}

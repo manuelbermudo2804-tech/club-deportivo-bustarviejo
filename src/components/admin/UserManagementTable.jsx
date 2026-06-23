@@ -35,6 +35,7 @@ export default function UserManagementTable({
   onDeleteUser,
   onSendInstallReminder,
   onActivateAccess,
+  porraEmails,
 }) {
   const [expandedUser, setExpandedUser] = useState(null);
 
@@ -194,6 +195,9 @@ export default function UserManagementTable({
                       </div>
                       {user.es_menor === true && (
                         <Badge className="bg-teal-600 text-[10px] px-1.5 py-0">🧒 Juvenil</Badge>
+                      )}
+                      {porraEmails && porraEmails.has((user.email || "").trim().toLowerCase()) && (
+                        <Badge className="bg-amber-500 text-[10px] px-1.5 py-0">🎟️ Porra</Badge>
                       )}
                       {hasAnomalies && (
                         <AlertTriangle className="w-4 h-4 text-orange-500 flex-shrink-0" />

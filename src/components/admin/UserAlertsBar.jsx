@@ -1,26 +1,59 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Smartphone, User, AlertTriangle, Send } from "lucide-react";
+import { Smartphone, User, AlertTriangle, Send, Ghost, Loader2 } from "lucide-react";
 
 export default function UserAlertsBar({
   usersWithoutApp,
   pendingPlayerAccessUsers,
   usersWithoutActivePlayers,
   minorsWithoutActivePlayer,
+  unvalidatedVisitors = [],
+  porraEmails,
   onBulkInstallReminders,
   onBulkRenewalReminders,
+  onDeactivateVisitors,
+  isDeactivating,
   onSetFilter,
 }) {
+  const porraCount = unvalidatedVisitors.filter(
+    (u) => porraEmails && porraEmails.has((u.email || "").trim().toLowerCase())
+  ).length;
+
   const showAny =
     usersWithoutApp.length > 5 ||
     pendingPlayerAccessUsers.length > 0 ||
     usersWithoutActivePlayers.length > 0 ||
-    minorsWithoutActivePlayer.length > 0;
+    minorsWithoutActivePlayer.length > 0 ||
+    unvalidatedVisitors.length > 0;
 
   if (!showAny) return null;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+      {unvalidatedVisitors.length > 0 && (
+        <div className="bg-slate-50 border border-slate-300 rounded-lg p-3 flex items-center gap-3">
+          <Ghost className="w-5 h-5 text-slate-500 flex-shrink-0" />
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-slate-900">👻 {unvalidatedVisitors.length} registrados sin código</p>
+            <p className="text-xs text-slate-600">
+              Curiosos sin hijos{porraCount > 0 ? ` · 🎟️ ${porraCount} desde la porra` : ""}
+            </p>
+          </div>
+          <div className="flex gap-1">
+            <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => onSetFilter("unvalidated")}>
+              Ver
+            </Button>
+            <Button
+              size="sm"
+              className="bg-slate-700 hover:bg-slate-800 text-xs h-7"
+              onClick={onDeactivateVisitors}
+              disabled={isDeactivating}
+            >
+              {isDeactivating ? <Loader2 className="w-3 h-3 animate-spin" /> : "Desactivar todos"}
+            </Button>
+          </div>
+        </div>
+      )}
       {usersWithoutApp.length > 5 && (
         <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 flex items-center gap-3">
           <Smartphone className="w-5 h-5 text-amber-600 flex-shrink-0" />
