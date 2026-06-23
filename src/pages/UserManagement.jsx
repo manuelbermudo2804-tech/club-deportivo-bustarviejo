@@ -567,6 +567,7 @@ export default function UserManagement() {
     () =>
       users.filter((user) => {
         if (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_tesorero) return false;
+        if (user.es_menor === true) return false;
         if (user.eliminado === true) return false;
         const email = (user.email || "").trim().toLowerCase();
         const activePlayers = players.filter((p) => {
