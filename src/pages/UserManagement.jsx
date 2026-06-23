@@ -78,17 +78,6 @@ export default function UserManagement() {
     initialData: [],
   });
 
-  // Emails que participaron en la porra (para distinguir curiosos que entraron por ahí)
-  const { data: porraParticipantes } = useQuery({
-    queryKey: ["porraParticipantesEmails"],
-    queryFn: () => base44.entities.PorraParticipante.list("-created_date", 5000),
-    initialData: [],
-  });
-  const porraEmails = useMemo(
-    () => new Set(porraParticipantes.map((p) => (p.email || "").trim().toLowerCase()).filter(Boolean)),
-    [porraParticipantes]
-  );
-
   // ===== MUTATIONS =====
   const updateUserMutation = useMutation({
     mutationFn: async ({ userId, userData }) => {
@@ -131,31 +120,6 @@ export default function UserManagement() {
     onError: (error) => {
       toast.error("Error reactivando acceso: " + (error?.message || ""));
     },
-  });
-
-  const deactivateVisitorsMutation = useMutation({
-    mutationFn: async (visitors) => {
-      let ok = 0;
-      for (const u of visitors) {
-        try {
-          await base44.entities.User.update(u.id, {
-            acceso_activo: false,
-            motivo_restriccion: "Registro sin código de acceso (curioso) - Desactivado por admin",
-            fecha_restriccion: new Date().toISOString(),
-          });
-          ok++;
-        } catch (e) {
-          console.error("Error desactivando visitante", u.email, e);
-        }
-        await new Promise((r) => setTimeout(r, 150));
-      }
-      return ok;
-    },
-    onSuccess: (ok) => {
-      queryClient.invalidateQueries({ queryKey: ["allUsers"] });
-      toast.success(`✅ ${ok} usuario(s) sin código desactivados`);
-    },
-    onError: (error) => toast.error("Error desactivando: " + (error?.message || "")),
   });
 
   const pairParentsMutation = useMutation({
@@ -672,29 +636,15 @@ export default function UserManagement() {
 
   // Usuarios "visitantes" — han iniciado sesión pero no validaron código de acceso
   // y no tienen rol ni tipo_panel asignado (son curiosos / accesos no autorizados)
-  // Set de emails que tienen al menos una ficha de jugador vinculada (padre/tutor2/jugador/menor)
-  const emailsWithPlayers = useMemo(() => {
-    const set = new Set();
-    players.forEach((p) => {
-      [p.email_padre, p.email_tutor_2, p.email_jugador, p.acceso_menor_email].forEach((e) => {
-        if (e) set.add(e.trim().toLowerCase());
-      });
-    });
-    return set;
-  }, [players]);
-
   const isUnvalidatedVisitor = (u) => {
     if (u.eliminado === true) return false;
     if (u.role === "admin") return false;
     if (u.codigo_acceso_validado === true) return false;
     if (u.tipo_panel) return false;
     if (u.es_entrenador || u.es_coordinador || u.es_tesorero || u.es_jugador || u.es_menor) return false;
-    if (u.tiene_hijos_jugando === true) return false;
-    // Usuario antiguo legítimo: tiene jugadores vinculados aunque le falte el flag de código validado
-    if (emailsWithPlayers.has((u.email || "").trim().toLowerCase())) return false;
     return true;
   };
-  const unvalidatedVisitors = useMemo(() => users.filter(isUnvalidatedVisitor), [users, emailsWithPlayers]);
+  const unvalidatedVisitors = useMemo(() => users.filter(isUnvalidatedVisitor), [users]);
   const unvalidatedEmails = useMemo(
     () => new Set(unvalidatedVisitors.map((u) => (u.email || "").toLowerCase())),
     [unvalidatedVisitors]
@@ -702,7 +652,7 @@ export default function UserManagement() {
 
   const activeUsersWithoutDeleted = useMemo(
     () => users.filter((u) => u.eliminado !== true && !isUnvalidatedVisitor(u)),
-    [users, emailsWithPlayers]
+    [users]
   );
   const activeUsers = activeUsersWithoutDeleted.filter((u) => u.acceso_activo !== false && u.role === "user");
   // Padres: usuarios con el switch "tiene_hijos_jugando" activado O con panel de familia
@@ -762,7 +712,7 @@ export default function UserManagement() {
         user.telefono?.toLowerCase().includes(term)
       );
     });
-  }, [users, showDeleted, roleFilter, searchTerm, pendingPlayerAccessUsers, usersWithoutActivePlayers, minorsWithoutActivePlayer, emailsWithPlayers]);
+  }, [users, showDeleted, roleFilter, searchTerm, pendingPlayerAccessUsers, usersWithoutActivePlayers, minorsWithoutActivePlayer]);
 
   const filterCounts = {
     all: users.filter((u) => !u.eliminado && !isUnvalidatedVisitor(u)).length,
@@ -819,16 +769,8 @@ export default function UserManagement() {
         pendingPlayerAccessUsers={pendingPlayerAccessUsers}
         usersWithoutActivePlayers={usersWithoutActivePlayers}
         minorsWithoutActivePlayer={minorsWithoutActivePlayer}
-        unvalidatedVisitors={unvalidatedVisitors}
-        porraEmails={porraEmails}
         onBulkInstallReminders={sendBulkInstallReminders}
         onBulkRenewalReminders={sendBulkRenewalReminders}
-        onDeactivateVisitors={() => {
-          if (window.confirm(`¿Desactivar el acceso a ${unvalidatedVisitors.length} usuario(s) que se registraron sin código de acceso?\n\nNo se eliminan: podrás reactivarlos si hace falta.`)) {
-            deactivateVisitorsMutation.mutate(unvalidatedVisitors);
-          }
-        }}
-        isDeactivating={deactivateVisitorsMutation.isPending}
         onSetFilter={setRoleFilter}
       />
 
@@ -878,7 +820,6 @@ export default function UserManagement() {
               users={filteredUsers}
               players={players}
               pairByEmail={pairByEmail}
-              porraEmails={porraEmails}
               onCoachToggle={handleCoachToggle}
               onCoordinatorToggle={handleCoordinatorToggle}
               onTreasurerToggle={handleTreasurerToggle}
