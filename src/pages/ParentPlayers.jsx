@@ -353,10 +353,30 @@ export default function ParentPlayers() {
 
       // ===== OPERACIONES SECUNDARIAS =====
 
-      // AUTO-CREAR SOCIO (padre automático)
+      // AUTO-CREAR SOCIO (padre automático, o el propio jugador si es adulto)
       try {
+        // Si el jugador es mayor de edad y se inscribe a sí mismo, el socio es el propio jugador
+        const calcEdadSocio = (f) => {
+          if (!f) return null;
+          const h = new Date(), n = new Date(f);
+          let e = h.getFullYear() - n.getFullYear();
+          const m = h.getMonth() - n.getMonth();
+          if (m < 0 || (m === 0 && h.getDate() < n.getDate())) e--;
+          return e;
+        };
+        const esJugadorAdulto = newPlayer.es_mayor_edad === true || (calcEdadSocio(newPlayer.fecha_nacimiento) ?? 0) >= 18;
+        const socioEmail = esJugadorAdulto
+          ? (newPlayer.email_jugador || dataWithParentEmail.email_padre)
+          : dataWithParentEmail.email_padre;
+        const socioNombre = esJugadorAdulto
+          ? newPlayer.nombre
+          : (dataWithParentEmail.nombre_tutor_legal || currentUser?.full_name || "");
+        const socioDni = esJugadorAdulto
+          ? (newPlayer.dni_jugador || dataWithParentEmail.dni_tutor_legal || "")
+          : (dataWithParentEmail.dni_tutor_legal || "");
+
         const existingMember = await base44.entities.ClubMember.filter({
-          email: dataWithParentEmail.email_padre,
+          email: socioEmail,
           temporada: seasonConfig?.temporada
         });
 
@@ -378,9 +398,9 @@ export default function ParentPlayers() {
 
           await base44.entities.ClubMember.create({
             numero_socio: numeroSocio,
-            email: dataWithParentEmail.email_padre,
-            nombre_completo: dataWithParentEmail.nombre_tutor_legal || currentUser?.full_name || "",
-            dni: dataWithParentEmail.dni_tutor_legal || "",
+            email: socioEmail,
+            nombre_completo: socioNombre,
+            dni: socioDni,
             telefono: dataWithParentEmail.telefono || "",
             direccion: dataWithParentEmail.direccion || "",
             municipio: dataWithParentEmail.municipio || "",
