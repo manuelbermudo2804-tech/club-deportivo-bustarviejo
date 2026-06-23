@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { MessageCircle, Smartphone, RotateCw, UserX, LogOut, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import CollapsibleNavListMobile from "./CollapsibleNavListMobile";
 
 export default function MobileMenu({
   isAdmin, isAppInstalled, navigationItems, location,
@@ -49,7 +50,9 @@ export default function MobileMenu({
             </button>
           )}
 
-          {navigationItems.map((item) => {
+          {isAdmin ? (
+            <CollapsibleNavListMobile navigationItems={navigationItems} location={location} onClose={onClose} />
+          ) : navigationItems.map((item) => {
             if (item.section) {
               return (
                 <div key={item.title} className="px-2 py-3 text-xs font-semibold text-white/50 uppercase tracking-wider">
