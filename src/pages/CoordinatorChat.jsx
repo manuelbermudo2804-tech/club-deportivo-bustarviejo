@@ -46,9 +46,16 @@ export default function CoordinatorChat({ embedded = false }) {
     fetchUser();
   }, [userLoaded]);
 
+  const isAdmin = user?.role === "admin";
   const { data: conversations = [] } = useQuery({
-    queryKey: ['coordinatorConversations'],
+    queryKey: ['coordinatorConversations', isAdmin ? 'admin' : 'self'],
     queryFn: async () => {
+      // Admin necesita ver TODAS las conversaciones (no las creó él, así que
+      // el listado normal devuelve vacío). Pasamos por backend con service role.
+      if (isAdmin) {
+        const res = await base44.functions.invoke('getCoordinatorConversationsForAdmin', {});
+        return res?.data?.conversations || [];
+      }
       return await base44.entities.CoordinatorConversation.list('-ultimo_mensaje_fecha');
     },
     enabled: isCoordinator,
@@ -118,7 +125,7 @@ export default function CoordinatorChat({ embedded = false }) {
 
 
    return (
-       <div className="fixed inset-0 lg:inset-auto lg:absolute lg:top-0 lg:left-0 lg:right-0 lg:bottom-0 flex flex-col lg:flex-row overflow-hidden pt-[100px] lg:pt-0">
+       <div className="fixed inset-0 lg:static flex flex-col lg:flex-row overflow-hidden pt-[100px] lg:pt-0 lg:h-[calc(100vh-2rem)]">
       {/* Modal de configuración */}
       {showSettings && (
         <div className="absolute inset-0 z-50 bg-black/50 flex items-center justify-center p-4">

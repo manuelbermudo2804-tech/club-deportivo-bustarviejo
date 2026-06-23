@@ -48,6 +48,10 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const scrollContainerRef = useRef(null);
 
   const isCoordinator = user?.es_coordinador || user?.role === "admin";
+  const isAdminActingAsCoord = user?.role === "admin" && !user?.es_coordinador;
+  // Anonimato institucional: si quien escribe es admin (cubriendo al coordinador),
+  // la familia ve "Coordinador" en lugar del nombre real del admin.
+  const displayAuthorName = isAdminActingAsCoord ? "Coordinador" : (user?.full_name || "Coordinador");
 
   const { data: messages = [] } = useQuery({
     queryKey: ['coordinatorMessages', conversation?.id],
@@ -465,7 +469,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         mensaje: messageData.mensaje,
         autor: isCoordinator ? "coordinador" : "padre",
         autor_email: user.email,
-        autor_nombre: user.full_name || (isCoordinator ? "Coordinador" : "Padre"),
+        autor_nombre: isCoordinator ? displayAuthorName : (user.full_name || "Padre"),
         adjuntos: messageData.adjuntos || [],
         audio_url: messageData.audio_url,
         audio_duracion: messageData.audio_duracion,
@@ -494,7 +498,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
         conversacion_id: conversation.id,
         autor: isCoordinator ? "coordinador" : "padre",
         autor_email: user.email,
-        autor_nombre: user.full_name || (isCoordinator ? "Coordinador" : "Padre"),
+        autor_nombre: isCoordinator ? displayAuthorName : (user.full_name || "Padre"),
         mensaje: (messageData.mensaje || '').trim(),
         leido_coordinador: isCoordinator,
         leido_padre: !isCoordinator,
