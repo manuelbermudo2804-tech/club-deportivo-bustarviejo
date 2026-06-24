@@ -101,7 +101,7 @@ function LinkCard({ page }) {
 
   const handleWhatsApp = () => {
     const text = page.id === "colabora"
-      ? `⚽ ¡Apoya al CD Bustarviejo y dale visibilidad a tu negocio! 💪\n\nCon tu colaboración ayudas a más de 200 niños y niñas del pueblo a seguir jugando, y tu comercio aparece en nuestra web, redes y campo. 🟠🟢\n\n✅ Eliges el importe\n✅ Subes tu logo\n✅ Pagas online en 1 minuto\n\n👉 ${fullUrl}\n\n¡Gracias por ser parte del club! 🙌`
+      ? `⚽ ¡Apoya al CD Bustarviejo y dale visibilidad a tu negocio! 💪\n\nCon tu colaboración ayudas al deporte base del pueblo y tu comercio aparece en nuestra web, app y redes sociales. 🟠🟢\n\n✅ Eliges el importe\n✅ Subes tu logo y el enlace a tu página web\n✅ Pagas online en 1 minuto — rápido y sencillo\n\n👉 ${fullUrl}\n\n¡Gracias por ser parte del club! 🙌`
       : `${page.nombre} — CD Bustarviejo: ${fullUrl}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
