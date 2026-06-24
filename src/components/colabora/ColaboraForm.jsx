@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Loader2, Upload, CreditCard, CheckCircle2 } from "lucide-react";
 import { NIVELES } from "./ColaboraNiveles";
+import { useImageUpload } from "@/components/utils/useImageUpload";
 
 export default function ColaboraForm({ nivelId, otraCantidad, onOtraCantidadChange }) {
   const [form, setForm] = useState({
@@ -12,7 +13,7 @@ export default function ColaboraForm({ nivelId, otraCantidad, onOtraCantidadChan
     website_url: "",
   });
   const [logoUrl, setLogoUrl] = useState("");
-  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingLogo, uploadFile] = useImageUpload();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [honeypot, setHoneypot] = useState("");
@@ -26,18 +27,10 @@ export default function ColaboraForm({ nivelId, otraCantidad, onOtraCantidadChan
   const handleLogo = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    setUploadingLogo(true);
     setError("");
-    try {
-      const fd = new FormData();
-      fd.append("file", file);
-      const res = await base44.functions.invoke("landingUploadFile", fd);
-      if (res?.data?.file_url) setLogoUrl(res.data.file_url);
-      else setError("No se pudo subir el logo, inténtalo de nuevo.");
-    } catch {
-      setError("No se pudo subir el logo, inténtalo de nuevo.");
-    }
-    setUploadingLogo(false);
+    const url = await uploadFile(file);
+    if (url) setLogoUrl(url);
+    // El propio hook muestra el error con toast si falla
   };
 
   const handlePay = async () => {
