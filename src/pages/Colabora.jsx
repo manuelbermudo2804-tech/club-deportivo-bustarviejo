@@ -72,7 +72,7 @@ export default function Colabora() {
 
       <ColaboraHero />
 
-      <div className="max-w-3xl mx-auto px-4 -mt-8 pb-20 space-y-6">
+      <div className="max-w-3xl mx-auto px-4 pt-8 pb-20 space-y-6">
         <ConocerClubBanner />
         <div>
           <h2 className="text-xl font-black text-slate-900 mb-4">1. Elige tu colaboración</h2>
