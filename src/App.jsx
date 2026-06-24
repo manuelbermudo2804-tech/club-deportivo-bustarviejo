@@ -28,6 +28,7 @@ import PublicMemberCard from '@/pages/PublicMemberCard';
 import SocialHub from '@/pages/SocialHub';
 import PublicAccessRequest from '@/pages/PublicAccessRequest';
 import PublicSponsors from '@/pages/PublicSponsors';
+import Colabora from '@/pages/Colabora';
 import BudgetPlanner from '@/pages/BudgetPlanner';
 import SanIsidroAdmin from '@/pages/SanIsidroAdmin';
 import SanIsidroInscripcion from '@/pages/SanIsidroInscripcion';
@@ -73,7 +74,7 @@ const AppRouter = () => {
   
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').replace(/^\/+/, '/').toLowerCase();
-  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/propuestagvcgaesco', '/privacidad'];
+  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/propuestagvcgaesco', '/privacidad', '/colabora'];
   // Constructor de páginas: cualquier URL que empiece por /l/ es pública
   const isLandingPath = cleanPath.startsWith('/l/');
   // Si la URL incluye ?from=app, el usuario viene de la app interna autenticada:
@@ -99,6 +100,8 @@ const AppRouter = () => {
         <Route path="/SOLICITARACCESO" element={<PublicAccessRequest />} />
         <Route path="/Patrocinadores" element={<PublicSponsors />} />
         <Route path="/patrocinadores" element={<PublicSponsors />} />
+        <Route path="/Colabora" element={<Colabora />} />
+        <Route path="/colabora" element={<Colabora />} />
         <Route path="/SanIsidro" element={<SanIsidroInscripcion />} />
         <Route path="/sanisidro" element={<SanIsidroInscripcion />} />
         <Route path="/Sanisidro" element={<SanIsidroInscripcion />} />
