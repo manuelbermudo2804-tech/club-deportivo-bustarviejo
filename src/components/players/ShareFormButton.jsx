@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Share2, Copy, Check, UserPlus, Users, Monitor, Smartphone } from "lucide-react";
+import { Share2, Copy, Check, UserPlus, Users, Monitor, Smartphone, Handshake } from "lucide-react";
 import { toast } from "sonner";
 
 const ALL_SHARE_LINKS = [
@@ -44,6 +44,16 @@ const ALL_SHARE_LINKS = [
     desc: "Para que nuevas familias pidan su código de acceso",
     getUrl: () => `${window.location.origin}/SolicitarAcceso`,
     whatsappText: "📲 Solicita tu acceso a la App del CD Bustarviejo",
+  },
+  {
+    id: "colabora",
+    icon: Handshake,
+    color: "text-emerald-600",
+    bg: "bg-emerald-50",
+    label: "Colabora (comercios)",
+    desc: "Para que comercios colaboren y paguen online en 1 minuto",
+    getUrl: () => `${window.location.origin}/Colabora`,
+    whatsappText: "⚽ ¡Apoya al CD Bustarviejo y dale visibilidad a tu negocio! 💪\n\nCon tu colaboración ayudas al deporte base del pueblo y tu comercio aparece en nuestra web, app y redes sociales. 🟠🟢\n\n✅ Eliges el importe\n✅ Subes tu logo y el enlace a tu web\n✅ Pagas online en 1 minuto",
   },
 ];
 
