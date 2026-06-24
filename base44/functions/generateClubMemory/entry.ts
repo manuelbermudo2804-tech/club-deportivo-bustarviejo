@@ -14,6 +14,9 @@ Deno.serve(async (req) => {
     const modo = body.modo || 'temporada';
     const temporada = body.temporada || null; // ej "2025-2026"
     const anio = body.anio || null;            // ej 2025
+    // secciones: objeto { jugadores: true, socios: true, ... }. Si no se envía, se incluye todo.
+    const sec = body.secciones || null;
+    const incluir = (clave) => (sec ? !!sec[clave] : true);
 
     const sr = base44.asServiceRole;
 
@@ -46,99 +49,159 @@ Deno.serve(async (req) => {
     };
 
     // ===== JUGADORES =====
-    const jugadores = await sr.entities.Player.filter({ activo: true }, '-created_date', 2000);
-    const totalJugadores = jugadores.length;
-    const porCategoria = {};
-    let jugadorasFemenino = 0;
-    jugadores.forEach(p => {
-      const cat = p.categoria_principal || p.deporte || 'Sin categoría';
-      porCategoria[cat] = (porCategoria[cat] || 0) + 1;
-      const cats = (p.categorias || []).join(' ') + ' ' + (cat || '');
-      if (/femenino/i.test(cats)) jugadorasFemenino++;
-    });
-    const categoriasArray = Object.entries(porCategoria)
-      .map(([nombre, count]) => ({ nombre, count }))
-      .sort((a, b) => b.count - a.count);
-    const totalEquipos = categoriasArray.length;
+    let totalJugadores = 0, totalEquipos = 0, jugadorasFemenino = 0, categoriasArray = [];
+    if (incluir('jugadores')) {
+      const jugadores = await sr.entities.Player.filter({ activo: true }, '-created_date', 2000);
+      totalJugadores = jugadores.length;
+      const porCategoria = {};
+      jugadores.forEach(p => {
+        const cat = p.categoria_principal || p.deporte || 'Sin categoría';
+        porCategoria[cat] = (porCategoria[cat] || 0) + 1;
+        const cats = (p.categorias || []).join(' ') + ' ' + (cat || '');
+        if (/femenino/i.test(cats)) jugadorasFemenino++;
+      });
+      categoriasArray = Object.entries(porCategoria)
+        .map(([nombre, count]) => ({ nombre, count }))
+        .sort((a, b) => b.count - a.count);
+      totalEquipos = categoriasArray.length;
+    }
 
     // ===== SOCIOS =====
     let totalSocios = 0;
     let sociosPagados = 0;
-    try {
-      const socios = await sr.entities.ClubMember.list('-created_date', 3000);
-      totalSocios = socios.length;
-      sociosPagados = socios.filter(s => s.estado_pago === 'Pagado' || s.estado_pago === 'pagado').length;
-    } catch { /* sin socios */ }
+    if (incluir('socios')) {
+      try {
+        const socios = await sr.entities.ClubMember.list('-created_date', 3000);
+        totalSocios = socios.length;
+        sociosPagados = socios.filter(s => s.estado_pago === 'Pagado' || s.estado_pago === 'pagado').length;
+      } catch { /* sin socios */ }
+    }
 
     // ===== INGRESOS =====
     let ingresosTotales = 0;
     let ingresosCuotas = 0;
     let numPagos = 0;
-    try {
-      const pagos = await sr.entities.Payment.filter({ estado: 'Pagado', is_deleted: { $ne: true } }, '-fecha_pago', 5000);
-      pagos.forEach(p => {
-        const fechaRef = p.fecha_pago || p.created_date;
-        if (enRango(fechaRef)) {
-          ingresosTotales += (p.cantidad || 0);
-          ingresosCuotas += (p.cantidad || 0);
-          numPagos++;
-        }
-      });
-    } catch { /* sin pagos */ }
+    if (incluir('ingresos')) {
+      try {
+        const pagos = await sr.entities.Payment.filter({ estado: 'Pagado', is_deleted: { $ne: true } }, '-fecha_pago', 5000);
+        pagos.forEach(p => {
+          const fechaRef = p.fecha_pago || p.created_date;
+          if (enRango(fechaRef)) {
+            ingresosTotales += (p.cantidad || 0);
+            ingresosCuotas += (p.cantidad || 0);
+            numPagos++;
+          }
+        });
+      } catch { /* sin pagos */ }
+    }
 
     // Patrocinios (importe anual de sponsors activos)
     let ingresosPatrocinio = 0;
     let patrocinadores = [];
-    try {
-      const sponsors = await sr.entities.Sponsor.filter({ activo: true }, '-created_date', 500);
-      patrocinadores = sponsors.map(s => ({
-        nombre: s.nombre,
-        logo_url: s.logo_url || null,
-        nivel: s.nivel_patrocinio || s.paquete || null,
-        importe: s.precio_anual || 0,
-      }));
-      ingresosPatrocinio = sponsors.reduce((sum, s) => sum + (s.precio_anual || 0), 0);
-    } catch { /* sin sponsors */ }
-    ingresosTotales += ingresosPatrocinio;
+    if (incluir('patrocinadores')) {
+      try {
+        const sponsors = await sr.entities.Sponsor.filter({ activo: true }, '-created_date', 500);
+        patrocinadores = sponsors.map(s => ({
+          nombre: s.nombre,
+          logo_url: s.logo_url || null,
+          nivel: s.nivel_patrocinio || s.paquete || null,
+          importe: s.precio_anual || 0,
+        }));
+        ingresosPatrocinio = sponsors.reduce((sum, s) => sum + (s.precio_anual || 0), 0);
+      } catch { /* sin sponsors */ }
+      if (incluir('ingresos')) ingresosTotales += ingresosPatrocinio;
+    }
 
     // ===== EVENTOS =====
     let eventos = [];
-    try {
-      const evs = await sr.entities.Event.filter({ publicado: true }, '-fecha', 1000);
-      eventos = evs
-        .filter(e => enRango(e.fecha))
-        .map(e => ({ titulo: e.titulo, tipo: e.tipo, fecha: e.fecha, ubicacion: e.ubicacion || null, importante: !!e.importante }));
-    } catch { /* sin eventos */ }
+    if (incluir('eventos')) {
+      try {
+        const evs = await sr.entities.Event.filter({ publicado: true }, '-fecha', 1000);
+        eventos = evs
+          .filter(e => enRango(e.fecha))
+          .map(e => ({ titulo: e.titulo, tipo: e.tipo, fecha: e.fecha, ubicacion: e.ubicacion || null, importante: !!e.importante }));
+      } catch { /* sin eventos */ }
+    }
     const totalEventos = eventos.length;
+
+    // ===== SAN ISIDRO =====
+    let sanIsidro = null;
+    if (incluir('sanisidro')) {
+      try {
+        const inscritos = await sr.entities.SanIsidroRegistration.list('-created_date', 3000);
+        const enPeriodo = inscritos.filter(r => enRango(r.created_date));
+        let voluntarios = 0;
+        try {
+          const vols = await sr.entities.SanIsidroVoluntario.list('-created_date', 1000);
+          voluntarios = vols.filter(v => enRango(v.created_date)).length;
+        } catch { /* sin voluntarios */ }
+        sanIsidro = { inscritos: enPeriodo.length, voluntarios };
+      } catch { /* sin san isidro */ }
+    }
+
+    // ===== PORRA / TORNEO =====
+    let porra = null;
+    if (incluir('porra')) {
+      try {
+        const participantes = await sr.entities.PorraParticipante.list('-created_date', 5000);
+        const enPeriodo = participantes.filter(p => enRango(p.created_date));
+        const pagados = enPeriodo.filter(p => p.estado_pago === 'pagado');
+        const recaudado = pagados.reduce((s, p) => s + (p.cantidad_pagada || 0), 0);
+        porra = { participantes: enPeriodo.length, pagados: pagados.length, recaudado: Math.round(recaudado) };
+      } catch { /* sin porra */ }
+    }
+
+    // ===== MERCADILLO =====
+    let mercadillo = null;
+    if (incluir('mercadillo')) {
+      try {
+        const anuncios = await sr.entities.MarketListing.list('-created_date', 3000);
+        const enPeriodo = anuncios.filter(a => enRango(a.created_date));
+        mercadillo = { anuncios: enPeriodo.length };
+      } catch { /* sin mercadillo */ }
+    }
+
+    // ===== VOLUNTARIADO =====
+    let voluntariado = null;
+    if (incluir('voluntariado')) {
+      try {
+        const signups = await sr.entities.VolunteerSignup.list('-created_date', 3000);
+        const enPeriodo = signups.filter(v => enRango(v.created_date));
+        const personas = new Set(enPeriodo.map(v => v.email || v.created_by_id)).size;
+        voluntariado = { inscripciones: enPeriodo.length, personas };
+      } catch { /* sin voluntariado */ }
+    }
 
     // ===== FOTOS =====
     let totalAlbumes = 0;
     let totalFotos = 0;
     let fotosDestacadas = [];
-    try {
-      const galerias = await sr.entities.PhotoGallery.list('-fecha_evento', 1000);
-      const enPeriodo = galerias.filter(g => enRango(g.fecha_evento));
-      totalAlbumes = enPeriodo.length;
-      enPeriodo.forEach(g => {
-        const fotos = g.fotos || [];
-        totalFotos += fotos.length;
-        if (g.destacado && fotos[0]?.url && fotosDestacadas.length < 6) {
-          fotosDestacadas.push(fotos[0].url);
-        }
-      });
-      // Si no hay suficientes destacadas, rellenar con primeras fotos
-      if (fotosDestacadas.length < 6) {
-        for (const g of enPeriodo) {
-          for (const f of (g.fotos || [])) {
-            if (f.url && !fotosDestacadas.includes(f.url)) {
-              fotosDestacadas.push(f.url);
-              if (fotosDestacadas.length >= 6) break;
-            }
+    if (incluir('fotos')) {
+      try {
+        const galerias = await sr.entities.PhotoGallery.list('-fecha_evento', 1000);
+        const enPeriodo = galerias.filter(g => enRango(g.fecha_evento));
+        totalAlbumes = enPeriodo.length;
+        enPeriodo.forEach(g => {
+          const fotos = g.fotos || [];
+          totalFotos += fotos.length;
+          if (g.destacado && fotos[0]?.url && fotosDestacadas.length < 6) {
+            fotosDestacadas.push(fotos[0].url);
           }
-          if (fotosDestacadas.length >= 6) break;
+        });
+        // Si no hay suficientes destacadas, rellenar con primeras fotos
+        if (fotosDestacadas.length < 6) {
+          for (const g of enPeriodo) {
+            for (const f of (g.fotos || [])) {
+              if (f.url && !fotosDestacadas.includes(f.url)) {
+                fotosDestacadas.push(f.url);
+                if (fotosDestacadas.length >= 6) break;
+              }
+            }
+            if (fotosDestacadas.length >= 6) break;
+          }
         }
-      }
-    } catch { /* sin galería */ }
+      } catch { /* sin galería */ }
+    }
 
     // ===== LOGROS (eventos importantes tipo torneo/fin temporada) =====
     const logros = eventos
@@ -173,12 +236,17 @@ Deno.serve(async (req) => {
         lista: eventos.slice(0, 40),
       },
       patrocinadores,
+      sanIsidro,
+      porra,
+      mercadillo,
+      voluntariado,
       fotos: {
         albumes: totalAlbumes,
         total: totalFotos,
         destacadas: fotosDestacadas,
       },
       logros,
+      secciones: sec || null,
       generado: new Date().toISOString(),
     });
   } catch (error) {

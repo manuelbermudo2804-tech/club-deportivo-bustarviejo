@@ -82,14 +82,22 @@ export async function generateClubMemoryPDF(data, logoUrl) {
   doc.addPage();
   y = drawSectionHeader(doc, "El club en números", marginX, pageW);
 
-  const kpis = [
-    { label: "Jugadores", value: data.jugadores?.total ?? 0, color: ORANGE },
-    { label: "Equipos", value: data.jugadores?.equipos ?? 0, color: GREEN },
-    { label: "Jugadoras femenino", value: data.jugadores?.femenino ?? 0, color: [219, 39, 119] },
-    { label: "Socios", value: data.socios?.total ?? 0, color: [37, 99, 235] },
-    { label: "Eventos", value: data.eventos?.total ?? 0, color: [124, 58, 237] },
-    { label: "Patrocinadores", value: (data.patrocinadores || []).length, color: [13, 148, 136] },
-  ];
+  const sec = data.secciones || null;
+  const inc = (k) => (sec ? sec[k] !== false : true);
+
+  const kpis = [];
+  if (inc("jugadores")) {
+    kpis.push({ label: "Jugadores", value: data.jugadores?.total ?? 0, color: ORANGE });
+    kpis.push({ label: "Equipos", value: data.jugadores?.equipos ?? 0, color: GREEN });
+    kpis.push({ label: "Jugadoras femenino", value: data.jugadores?.femenino ?? 0, color: [219, 39, 119] });
+  }
+  if (inc("socios")) kpis.push({ label: "Socios", value: data.socios?.total ?? 0, color: [37, 99, 235] });
+  if (inc("eventos")) kpis.push({ label: "Eventos", value: data.eventos?.total ?? 0, color: [124, 58, 237] });
+  if (inc("patrocinadores")) kpis.push({ label: "Patrocinadores", value: (data.patrocinadores || []).length, color: [13, 148, 136] });
+  if (data.sanIsidro) kpis.push({ label: "San Isidro (inscritos)", value: data.sanIsidro.inscritos ?? 0, color: ORANGE });
+  if (data.porra) kpis.push({ label: "Porra (apuestas)", value: data.porra.pagados ?? 0, color: GREEN });
+  if (data.mercadillo) kpis.push({ label: "Mercadillo (anuncios)", value: data.mercadillo.anuncios ?? 0, color: [37, 99, 235] });
+  if (data.voluntariado) kpis.push({ label: "Voluntariado (personas)", value: data.voluntariado.personas ?? 0, color: [219, 39, 119] });
 
   const cardW = (pageW - marginX * 2 - 12) / 3;
   const cardH = 30;
@@ -111,28 +119,51 @@ export async function generateClubMemoryPDF(data, logoUrl) {
     doc.setTextColor(...GRAY);
     doc.text(k.label, x + cardW / 2, cy + 23, { align: "center" });
   });
-  y += 2 * (cardH + 6) + 8;
+  const kpiRows = Math.ceil(kpis.length / 3);
+  y += kpiRows * (cardH + 6) + 8;
 
   // ===== INGRESOS =====
-  y = drawSubHeader(doc, "Ingresos del periodo", marginX, y, pageW);
-  doc.setFillColor(...GREEN);
-  doc.roundedRect(marginX, y, pageW - marginX * 2, 22, 2, 2, "F");
-  doc.setFont("times", "bold");
-  doc.setFontSize(26);
-  doc.setTextColor(255, 255, 255);
-  doc.text(eur(data.ingresos?.total), marginX + 8, y + 14);
-  doc.setFont("times", "normal");
-  doc.setFontSize(9);
-  doc.text("Total ingresos registrados", marginX + 8, y + 19.5);
-  y += 28;
+  if (inc("ingresos")) {
+    y = drawSubHeader(doc, "Ingresos del periodo", marginX, y, pageW);
+    doc.setFillColor(...GREEN);
+    doc.roundedRect(marginX, y, pageW - marginX * 2, 22, 2, 2, "F");
+    doc.setFont("times", "bold");
+    doc.setFontSize(26);
+    doc.setTextColor(255, 255, 255);
+    doc.text(eur(data.ingresos?.total), marginX + 8, y + 14);
+    doc.setFont("times", "normal");
+    doc.setFontSize(9);
+    doc.text("Total ingresos registrados", marginX + 8, y + 19.5);
+    y += 28;
 
-  doc.setFont("times", "normal");
-  doc.setFontSize(11);
-  doc.setTextColor(...DARK);
-  doc.text(`· Cuotas y pagos: ${eur(data.ingresos?.cuotas)}  (${data.ingresos?.num_pagos || 0} pagos)`, marginX + 4, y);
-  y += 7;
-  doc.text(`· Patrocinios: ${eur(data.ingresos?.patrocinio)}`, marginX + 4, y);
-  y += 12;
+    doc.setFont("times", "normal");
+    doc.setFontSize(11);
+    doc.setTextColor(...DARK);
+    doc.text(`· Cuotas y pagos: ${eur(data.ingresos?.cuotas)}  (${data.ingresos?.num_pagos || 0} pagos)`, marginX + 4, y);
+    y += 7;
+    doc.text(`· Patrocinios: ${eur(data.ingresos?.patrocinio)}`, marginX + 4, y);
+    y += 12;
+  }
+
+  // ===== ACTIVIDADES DEL CLUB (San Isidro, Porra, Mercadillo, Voluntariado) =====
+  const actividades = [];
+  if (data.sanIsidro) actividades.push(`· San Isidro: ${data.sanIsidro.inscritos} inscritos · ${data.sanIsidro.voluntarios} voluntarios`);
+  if (data.porra) actividades.push(`· Porra/Torneo: ${data.porra.pagados} apuestas pagadas · ${eur(data.porra.recaudado)} recaudados`);
+  if (data.mercadillo) actividades.push(`· Mercadillo solidario: ${data.mercadillo.anuncios} anuncios publicados`);
+  if (data.voluntariado) actividades.push(`· Voluntariado: ${data.voluntariado.personas} personas · ${data.voluntariado.inscripciones} inscripciones`);
+  if (actividades.length) {
+    if (y > pageH - 50) { doc.addPage(); y = 25; }
+    y = drawSubHeader(doc, "Actividades y eventos del club", marginX, y, pageW);
+    doc.setFont("times", "normal");
+    doc.setFontSize(11);
+    doc.setTextColor(...DARK);
+    actividades.forEach((line) => {
+      if (y > pageH - 18) { doc.addPage(); y = 25; }
+      doc.text(line, marginX + 4, y);
+      y += 7;
+    });
+    y += 6;
+  }
 
   // ===== CATEGORIAS =====
   if ((data.jugadores?.categorias || []).length) {

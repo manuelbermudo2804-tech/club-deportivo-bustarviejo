@@ -5,11 +5,28 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   FileText, Download, Users, Trophy, Heart, CreditCard, Calendar,
   Handshake, Image as ImageIcon, Loader2, Sparkles, ShieldCheck,
+  PartyPopper, Ticket, ShoppingBag, HandHeart,
 } from "lucide-react";
 import { generateClubMemoryPDF } from "@/components/memory/clubMemoryPdfGenerator";
+
+const SECCIONES = [
+  { key: "jugadores", label: "Jugadores y categorías", icon: Users },
+  { key: "socios", label: "Socios", icon: Users },
+  { key: "ingresos", label: "Ingresos y cuotas", icon: CreditCard },
+  { key: "patrocinadores", label: "Patrocinadores", icon: Handshake },
+  { key: "eventos", label: "Eventos", icon: Calendar },
+  { key: "sanisidro", label: "San Isidro", icon: PartyPopper },
+  { key: "porra", label: "Porra / Torneo", icon: Ticket },
+  { key: "mercadillo", label: "Mercadillo", icon: ShoppingBag },
+  { key: "voluntariado", label: "Voluntariado", icon: HandHeart },
+  { key: "fotos", label: "Galería de fotos", icon: ImageIcon },
+];
+
+const DEFAULT_SECCIONES = SECCIONES.reduce((acc, s) => ({ ...acc, [s.key]: true }), {});
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
@@ -47,6 +64,9 @@ export default function ClubMemory() {
   const [generating, setGenerating] = useState(false);
   const [data, setData] = useState(null);
   const [isAdmin, setIsAdmin] = useState(true);
+  const [secciones, setSecciones] = useState(DEFAULT_SECCIONES);
+
+  const toggleSeccion = (key) => setSecciones(prev => ({ ...prev, [key]: !prev[key] }));
 
   useEffect(() => {
     base44.auth.me().then(u => setIsAdmin(u?.role === "admin")).catch(() => setIsAdmin(false));
@@ -63,7 +83,8 @@ export default function ClubMemory() {
     setLoading(true);
     setData(null);
     try {
-      const payload = modo === "natural" ? { modo, anio } : { modo, temporada };
+      const base = modo === "natural" ? { modo, anio } : { modo, temporada };
+      const payload = { ...base, secciones };
       const res = await base44.functions.invoke("generateClubMemory", payload);
       setData(res.data);
     } catch (e) {
@@ -73,7 +94,7 @@ export default function ClubMemory() {
     }
   };
 
-  useEffect(() => { loadData(); }, [modo, temporada, anio]);
+  useEffect(() => { loadData(); }, [modo, temporada, anio, secciones]);
 
   const handleDownload = async () => {
     if (!data) return;
@@ -148,6 +169,24 @@ export default function ClubMemory() {
               Generar memoria PDF
             </Button>
           </div>
+
+          {/* Selección de secciones a incluir */}
+          <div className="pt-2 border-t border-slate-100">
+            <p className="text-sm font-semibold text-slate-700 mb-3">¿Qué quieres incluir en la memoria?</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              {SECCIONES.map(({ key, label, icon: SecIcon }) => (
+                <label
+                  key={key}
+                  htmlFor={`sec-${key}`}
+                  className={`flex items-center gap-2.5 rounded-xl border p-2.5 cursor-pointer transition-colors ${secciones[key] ? "border-orange-300 bg-orange-50" : "border-slate-200 bg-white hover:bg-slate-50"}`}
+                >
+                  <Checkbox id={`sec-${key}`} checked={!!secciones[key]} onCheckedChange={() => toggleSeccion(key)} />
+                  <SecIcon className={`w-4 h-4 ${secciones[key] ? "text-orange-500" : "text-slate-400"}`} />
+                  <span className="text-sm text-slate-700">{label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
         </CardContent>
       </Card>
 
@@ -166,8 +205,12 @@ export default function ClubMemory() {
             <Kpi icon={Trophy} label="Equipos" value={data.jugadores?.equipos} color="green" />
             <Kpi icon={Heart} label="Fútbol femenino" value={data.jugadores?.femenino} color="pink" sub="jugadoras" />
             <Kpi icon={Users} label="Socios" value={data.socios?.total} color="blue" />
-            <Kpi icon={Calendar} label="Eventos" value={data.eventos?.total} color="purple" />
-            <Kpi icon={Handshake} label="Patrocinadores" value={(data.patrocinadores || []).length} color="teal" />
+            {data.secciones?.eventos !== false && <Kpi icon={Calendar} label="Eventos" value={data.eventos?.total} color="purple" />}
+            {(data.patrocinadores || []).length > 0 && <Kpi icon={Handshake} label="Patrocinadores" value={(data.patrocinadores || []).length} color="teal" />}
+            {data.sanIsidro && <Kpi icon={PartyPopper} label="San Isidro" value={data.sanIsidro.inscritos} color="orange" sub="inscritos" />}
+            {data.porra && <Kpi icon={Ticket} label="Porra" value={data.porra.pagados} color="green" sub="apuestas" />}
+            {data.mercadillo && <Kpi icon={ShoppingBag} label="Mercadillo" value={data.mercadillo.anuncios} color="blue" sub="anuncios" />}
+            {data.voluntariado && <Kpi icon={HandHeart} label="Voluntariado" value={data.voluntariado.personas} color="pink" sub="personas" />}
           </div>
 
           {/* Ingresos */}
