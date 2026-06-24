@@ -98,7 +98,7 @@ export default function SubvencionesPanel() {
           </div>
           <div className="flex-1">
             <h1 className="text-2xl lg:text-3xl font-bold">Vigilancia de Subvenciones</h1>
-            <p className="text-emerald-100 text-sm">Detecta ayudas nuevas desde feeds RSS y Alertas de Google</p>
+            <p className="text-emerald-100 text-sm">Detecta ayudas nuevas desde la Base de Datos Nacional de Subvenciones (BDNS) y te avisa de los plazos</p>
           </div>
         </div>
       </div>

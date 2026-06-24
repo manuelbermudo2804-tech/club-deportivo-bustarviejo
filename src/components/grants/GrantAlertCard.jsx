@@ -4,7 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ExternalLink, Trash2, Calendar, Sparkles } from "lucide-react";
+import { ExternalLink, Trash2, Calendar, Sparkles, CalendarClock } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import GrantAnalysisModal from "./GrantAnalysisModal";
@@ -36,6 +37,14 @@ export default function GrantAlertCard({ alert, onChanged }) {
     if (!alert.leida) await base44.entities.GrantAlert.update(alert.id, { leida: true });
   };
 
+  const updateFechaLimite = async (fecha) => {
+    await base44.entities.GrantAlert.update(alert.id, {
+      fecha_limite: fecha || null,
+      avisos_plazo_enviados: [],
+    });
+    onChanged?.();
+  };
+
   return (
     <Card className={`rounded-2xl border ${alert.leida ? "border-slate-200" : "border-orange-300 bg-orange-50/30"}`}>
       <CardContent className="p-4 space-y-2">
@@ -62,6 +71,23 @@ export default function GrantAlertCard({ alert, onChanged }) {
             </span>
           )}
         </div>
+
+        {/* Fecha límite de solicitud — activa los avisos automáticos de cierre (7/3/1 días) */}
+        <div className="flex items-center gap-2 bg-slate-50 rounded-lg p-2.5">
+          <CalendarClock className="w-4 h-4 text-emerald-600 flex-shrink-0" />
+          <label className="text-xs font-medium text-slate-600 flex-shrink-0">Fecha límite:</label>
+          <Input
+            type="date"
+            value={alert.fecha_limite || ""}
+            onChange={(e) => updateFechaLimite(e.target.value)}
+            className="h-8 text-xs flex-1 min-w-0"
+          />
+        </div>
+        {alert.fecha_limite && (
+          <p className="text-[11px] text-emerald-600 pl-1">
+            ✓ Te avisaremos automáticamente 7, 3 y 1 días antes del cierre.
+          </p>
+        )}
 
         <div className="flex items-center gap-2 pt-1 flex-wrap">
           <Button
