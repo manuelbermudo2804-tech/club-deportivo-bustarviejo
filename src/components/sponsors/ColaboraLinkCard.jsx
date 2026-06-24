@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link as LinkIcon, Copy, Check, Share2, ExternalLink } from "lucide-react";
+import { Link as LinkIcon, Copy, Check, Share2, ExternalLink, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -18,15 +18,23 @@ export default function ColaboraLinkCard() {
     }
   };
 
+  const text = `Colabora con el CD Bustarviejo y consigue visibilidad para tu negocio: ${url}`;
+
   const handleShare = async () => {
-    const text = `Colabora con el CD Bustarviejo y consigue visibilidad para tu negocio: ${url}`;
     if (navigator.share) {
       try {
         await navigator.share({ title: "Colabora con el CD Bustarviejo", text, url });
-      } catch {}
-    } else {
-      window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+        return;
+      } catch (e) {
+        // Si el usuario cancela o no es válido, caemos a WhatsApp
+        if (e?.name === "AbortError") return;
+      }
     }
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
+  const handleWhatsApp = () => {
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   return (
@@ -48,9 +56,12 @@ export default function ColaboraLinkCard() {
             {copied ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
             {copied ? "Copiado" : "Copiar"}
           </Button>
-          <Button onClick={handleShare} className="bg-green-600 hover:bg-green-700">
-            <Share2 className="w-4 h-4 mr-2" />
-            Compartir
+          <Button onClick={handleWhatsApp} className="bg-green-600 hover:bg-green-700">
+            <MessageCircle className="w-4 h-4 mr-2" />
+            WhatsApp
+          </Button>
+          <Button onClick={handleShare} variant="outline" className="border-slate-300 text-slate-700 hover:bg-slate-50">
+            <Share2 className="w-4 h-4" />
           </Button>
         </div>
       </div>
