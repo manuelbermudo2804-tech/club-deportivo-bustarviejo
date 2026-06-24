@@ -21,10 +21,13 @@ const getCurrentSeason = () => {
   return `${inicio}-${inicio + 1}`;
 };
 
-const seasonOptions = () => {
-  const current = parseInt(getCurrentSeason().split("-")[0], 10);
+const seasonOptions = (activeSeason) => {
+  // Tomar como año tope el mayor entre el cálculo por fecha y la temporada activa real
+  const byDate = parseInt(getCurrentSeason().split("-")[0], 10);
+  const byActive = activeSeason ? parseInt(activeSeason.split("-")[0], 10) : byDate;
+  const top = Math.max(byDate, byActive);
   const opts = [];
-  for (let y = current; y >= current - 4; y--) opts.push(`${y}-${y + 1}`);
+  for (let y = top; y >= top - 5; y--) opts.push(`${y}-${y + 1}`);
   return opts;
 };
 
@@ -38,6 +41,7 @@ const yearOptions = () => {
 export default function ClubMemory() {
   const [modo, setModo] = useState("temporada");
   const [temporada, setTemporada] = useState(getCurrentSeason());
+  const [activeSeason, setActiveSeason] = useState(null);
   const [anio, setAnio] = useState(new Date().getFullYear());
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -46,6 +50,13 @@ export default function ClubMemory() {
 
   useEffect(() => {
     base44.auth.me().then(u => setIsAdmin(u?.role === "admin")).catch(() => setIsAdmin(false));
+    // Cargar la temporada activa real del club para usarla por defecto
+    base44.entities.SeasonConfig.filter({ activa: true }, "-created_date", 1)
+      .then((rows) => {
+        const t = rows?.[0]?.temporada;
+        if (t) { setActiveSeason(t); setTemporada(t); }
+      })
+      .catch(() => {});
   }, []);
 
   const loadData = async () => {
@@ -116,7 +127,7 @@ export default function ClubMemory() {
               <Select value={temporada} onValueChange={setTemporada}>
                 <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {seasonOptions().map(s => <SelectItem key={s} value={s}>Temporada {s}</SelectItem>)}
+                  {seasonOptions(activeSeason).map(s => <SelectItem key={s} value={s}>Temporada {s}{s === activeSeason ? " (activa)" : ""}</SelectItem>)}
                 </SelectContent>
               </Select>
             ) : (
