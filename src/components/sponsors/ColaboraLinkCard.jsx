@@ -20,11 +20,11 @@ export default function ColaboraLinkCard() {
 
   const text = `⚽ ¡Apoya al CD Bustarviejo y dale visibilidad a tu negocio! 💪
 
-Con tu colaboración ayudas a más de 200 niños y niñas del pueblo a seguir jugando, y tu comercio aparece en nuestra web, redes y campo. 🟠🟢
+Con tu colaboración ayudas al deporte base del pueblo y tu comercio aparece en nuestra web, app y redes sociales. 🟠🟢
 
 ✅ Eliges el importe
-✅ Subes tu logo
-✅ Pagas online en 1 minuto
+✅ Subes tu logo y el enlace a tu página web
+✅ Pagas online en 1 minuto — rápido y sencillo
 
 👉 ${url}
 
