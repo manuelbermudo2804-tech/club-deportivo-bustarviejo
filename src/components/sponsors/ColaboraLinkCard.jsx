@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 export default function ColaboraLinkCard() {
   const [copied, setCopied] = useState(false);
-  const url = `${window.location.origin}/Colabora`;
+  const url = "https://app.cdbustarviejo.com/Colabora";
 
   const handleCopy = async () => {
     try {
