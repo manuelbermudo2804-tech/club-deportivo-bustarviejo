@@ -69,6 +69,18 @@
       "type": "string",
       "format": "date-time",
       "description": "Fecha en que se gener\u00f3 el an\u00e1lisis IA"
+    },
+    "avisos_plazo_enviados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Umbrales de d\u00edas (ej: '7','3','1') ya notificados antes del cierre, para no duplicar avisos"
+    },
+    "plazo_abierto_notificado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya se avis\u00f3 de que se public\u00f3 el extracto y se abri\u00f3 el periodo de solicitud"
     }
   },
   "required": [
