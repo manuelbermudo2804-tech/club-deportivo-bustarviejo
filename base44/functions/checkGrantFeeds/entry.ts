@@ -1,44 +1,41 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 import webpush from 'npm:web-push@3.6.7';
 
-// Parser RSS/Atom mínimo sin dependencias externas
-function parseFeed(xml) {
-  const items = [];
-  // RSS <item> o Atom <entry>
-  const blocks = xml.match(/<(item|entry)\b[\s\S]*?<\/\1>/gi) || [];
-  for (const block of blocks) {
-    const pick = (tag) => {
-      const m = block.match(new RegExp(`<${tag}\\b[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'));
-      if (!m) return '';
-      return m[1]
-        .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
-        .replace(/<[^>]+>/g, '')
-        .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
-        .replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&nbsp;/g, ' ')
-        .trim();
-    };
-    // Enlace: RSS usa <link>texto</link>, Atom usa <link href="...">
-    let link = pick('link');
-    if (!link) {
-      const lm = block.match(/<link\b[^>]*href=["']([^"']+)["']/i);
-      if (lm) link = lm[1];
-    }
-    const guid = pick('guid') || pick('id') || link || pick('title');
-    items.push({
-      titulo: pick('title'),
-      resumen: pick('description') || pick('summary') || pick('content'),
-      enlace: link,
-      guid,
-      fecha: pick('pubDate') || pick('published') || pick('updated') || '',
-    });
-  }
-  return items;
+// Fuente oficial: Base de Datos Nacional de Subvenciones (BDNS / infosubvenciones)
+// Es el registro donde POR LEY se publican todas las convocatorias de España.
+const BDNS_BASE = 'https://www.infosubvenciones.es/bdnstrans';
+
+// Búsquedas que lanzamos contra la BDNS (cubren los intereses del club)
+const BUSQUEDAS = ['deporte', 'deportivo', 'club deportivo', 'asociaciones deportivas', 'escuela deportiva'];
+
+// Municipios/ámbitos relevantes para CD Bustarviejo (Madrid + cercanos + estatal)
+const AMBITOS_RELEVANTES = [
+  'MADRID', 'COMUNIDAD DE MADRID', 'BUSTARVIEJO', 'COLMENAR VIEJO', 'TRES CANTOS',
+  'SOTO DEL REAL', 'MIRAFLORES', 'GUADALIX', 'CABRERA',
+];
+
+function normaliza(s) {
+  return (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
 }
 
-function matchesKeywords(item, keywords) {
-  if (!keywords || keywords.length === 0) return true;
-  const hay = `${item.titulo} ${item.resumen}`.toLowerCase();
-  return keywords.some((k) => hay.includes(String(k).toLowerCase()));
+// Decide si una convocatoria es relevante para el club según su ámbito territorial
+function esRelevante(conv) {
+  const n1 = normaliza(conv.nivel1); // ESTATAL / AUTONOMICO / LOCAL
+  const n2 = normaliza(conv.nivel2);
+  const n3 = normaliza(conv.nivel3);
+  // Ámbito estatal: siempre relevante (CSD, ministerios, fundaciones nacionales)
+  if (n1.includes('ESTATAL')) return true;
+  // Autonómico o local: solo si menciona Madrid o un municipio cercano
+  const texto = `${n2} ${n3}`;
+  return AMBITOS_RELEVANTES.some((a) => texto.includes(normaliza(a)));
+}
+
+async function buscarBDNS(termino) {
+  const url = `${BDNS_BASE}/api/convocatorias/busqueda?page=0&pageSize=50&descripcion=${encodeURIComponent(termino)}&order=fechaRecepcion&direccion=desc`;
+  const res = await fetch(url, { headers: { 'Accept': 'application/json', 'User-Agent': 'CD-Bustarviejo-GrantWatcher/1.0' } });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
+  return Array.isArray(json.content) ? json.content : [];
 }
 
 Deno.serve(async (req) => {
@@ -57,67 +54,54 @@ Deno.serve(async (req) => {
       }
     } catch (_) { /* scheduled run, no user */ }
 
-    const allSources = await base44.asServiceRole.entities.GrantSource.filter({ activa: true });
-    // Solo se revisan automáticamente las fuentes con feed RSS; las de seguimiento manual se ignoran
-    const sources = allSources.filter((s) => s.tipo !== 'manual' && (s.rss_url || '').trim());
-    const summary = { fuentes_revisadas: 0, nuevas: 0, errores: 0, detalles: [] };
+    const summary = { busquedas: BUSQUEDAS.length, revisadas: 0, relevantes: 0, nuevas: 0, errores: 0, detalles: [] };
     const nuevasAlertas = [];
+    const vistos = new Set();
 
-    for (const source of sources) {
-      summary.fuentes_revisadas++;
+    for (const termino of BUSQUEDAS) {
       try {
-        const res = await fetch(source.rss_url, {
-          headers: { 'User-Agent': 'CD-Bustarviejo-GrantWatcher/1.0', 'Accept': 'application/rss+xml, application/xml, text/xml, */*' },
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const xml = await res.text();
-        const items = parseFeed(xml).filter((it) => it.titulo);
+        const convocatorias = await buscarBDNS(termino);
+        let nuevasTermino = 0;
+        for (const conv of convocatorias) {
+          summary.revisadas++;
+          const guid = `bdns-${conv.numeroConvocatoria || conv.id}`;
+          if (vistos.has(guid)) continue; // ya procesada en esta misma ejecución
+          if (!esRelevante(conv)) continue;
+          summary.relevantes++;
+          vistos.add(guid);
 
-        let nuevasFuente = 0;
-        for (const item of items) {
-          if (!matchesKeywords(item, source.palabras_clave)) continue;
-          // Evitar duplicados por guid
-          const existing = await base44.asServiceRole.entities.GrantAlert.filter({ guid: item.guid });
+          // Evitar duplicados en BD por guid
+          const existing = await base44.asServiceRole.entities.GrantAlert.filter({ guid });
           if (existing.length > 0) continue;
 
+          const ambito = [conv.nivel3, conv.nivel2].filter(Boolean).join(' · ');
           let fechaPub = null;
-          if (item.fecha) {
-            const d = new Date(item.fecha);
+          if (conv.fechaRecepcion) {
+            const d = new Date(conv.fechaRecepcion);
             if (!isNaN(d.getTime())) fechaPub = d.toISOString();
           }
 
           const alerta = await base44.asServiceRole.entities.GrantAlert.create({
-            titulo: item.titulo.slice(0, 300),
-            resumen: (item.resumen || '').slice(0, 1500),
-            enlace: item.enlace || '',
-            fuente_id: source.id,
-            fuente_nombre: source.nombre,
-            categoria: source.categoria || 'Otra',
+            titulo: (conv.descripcion || 'Convocatoria de subvención').replace(/\s+/g, ' ').trim().slice(0, 300),
+            resumen: `Ámbito: ${ambito || conv.nivel1 || 'No especificado'} · Nº ${conv.numeroConvocatoria || conv.id}`,
+            enlace: `https://www.infosubvenciones.es/bdnstrans/GE/es/convocatoria/${conv.numeroConvocatoria || conv.id}`,
+            fuente_nombre: 'BDNS · Base de Datos Nacional de Subvenciones',
+            categoria: conv.nivel1 && normaliza(conv.nivel1).includes('LOCAL') ? 'Ayuntamiento'
+              : conv.nivel1 && normaliza(conv.nivel1).includes('AUTONOMICO') ? 'Comunidad de Madrid'
+              : 'BOE / BOCM',
             fecha_publicacion: fechaPub,
-            guid: item.guid,
+            guid,
             estado: 'nueva',
             leida: false,
           });
           nuevasAlertas.push(alerta);
-          nuevasFuente++;
+          nuevasTermino++;
         }
-
-        await base44.asServiceRole.entities.GrantSource.update(source.id, {
-          ultima_revision: new Date().toISOString(),
-          ultimo_error: '',
-          total_encontradas: (source.total_encontradas || 0) + nuevasFuente,
-        });
-        summary.nuevas += nuevasFuente;
-        summary.detalles.push({ fuente: source.nombre, nuevas: nuevasFuente });
+        summary.nuevas += nuevasTermino;
+        summary.detalles.push({ busqueda: termino, nuevas: nuevasTermino });
       } catch (err) {
         summary.errores++;
-        summary.detalles.push({ fuente: source.nombre, error: err.message });
-        try {
-          await base44.asServiceRole.entities.GrantSource.update(source.id, {
-            ultima_revision: new Date().toISOString(),
-            ultimo_error: err.message,
-          });
-        } catch (_) {}
+        summary.detalles.push({ busqueda: termino, error: err.message });
       }
     }
 
