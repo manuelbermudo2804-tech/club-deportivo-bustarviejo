@@ -54,6 +54,8 @@ export const ALL_ADMIN_BUTTONS = [
   // --- FAMILIA (condicional) ---
   { id: "confirmar_hijos", title: "👨‍👩‍👧 Confirmar Mis Hijos", icon: ClipboardCheck, url: createPageUrl("ParentCallups"), gradient: "from-yellow-600 to-yellow-700", priority: 34, conditional: true, conditionKey: "hasPlayers" },
 
+  { id: "memoria", title: "🧾 Memoria del Club", icon: FileText, url: createPageUrl("ClubMemory"), gradient: "from-slate-700 to-slate-800", priority: 32.5 },
+
   // --- CONFIGURACIÓN ---
   { id: "configuracion", title: "⚙️ Temporadas y Categorías", icon: Settings, url: createPageUrl("SeasonManagement"), gradient: "from-slate-600 to-slate-700", priority: 35 },
   { id: "notificaciones", title: "🔔 Preferencias Notif.", icon: Settings, url: createPageUrl("NotificationPreferences"), gradient: "from-slate-600 to-slate-700", priority: 36 },
