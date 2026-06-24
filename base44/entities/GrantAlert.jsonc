@@ -1,0 +1,93 @@
+{
+  "name": "GrantAlert",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo de la subvenci\u00f3n / ayuda detectada"
+    },
+    "resumen": {
+      "type": "string",
+      "description": "Resumen o descripci\u00f3n extra\u00edda del feed"
+    },
+    "enlace": {
+      "type": "string",
+      "description": "URL al detalle oficial de la convocatoria"
+    },
+    "fuente_id": {
+      "type": "string",
+      "description": "ID de la GrantSource de la que proviene"
+    },
+    "fuente_nombre": {
+      "type": "string",
+      "description": "Nombre de la fuente (denormalizado)"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda de la fuente (denormalizado)"
+    },
+    "fecha_publicacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de publicaci\u00f3n seg\u00fan el feed"
+    },
+    "guid": {
+      "type": "string",
+      "description": "Identificador \u00fanico del item del feed (para evitar duplicados)"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "nueva",
+        "revisando",
+        "interesa",
+        "solicitada",
+        "descartada"
+      ],
+      "default": "nueva",
+      "description": "Estado de seguimiento de la subvenci\u00f3n"
+    },
+    "leida": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si un admin ya la ha visto en el panel"
+    },
+    "fecha_limite": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha l\u00edmite de solicitud (rellenada manualmente si se conoce)"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas internas del seguimiento"
+    }
+  },
+  "required": [
+    "titulo"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "guid"
+      ]
+    }
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

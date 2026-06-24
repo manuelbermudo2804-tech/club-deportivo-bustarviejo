@@ -1,0 +1,83 @@
+{
+  "name": "GrantSource",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre descriptivo de la fuente (ej: Alerta Google - subvenciones deporte Madrid)"
+    },
+    "rss_url": {
+      "type": "string",
+      "description": "URL del feed RSS a vigilar"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "Comunidad de Madrid",
+        "Ayuntamiento",
+        "BOE / BOCM",
+        "Deporte base / Federaciones",
+        "Google Alerts",
+        "Otra"
+      ],
+      "default": "Otra",
+      "description": "Tipo de fuente"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la fuente se revisa autom\u00e1ticamente"
+    },
+    "palabras_clave": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Palabras que deben aparecer para considerar la subvenci\u00f3n relevante (vac\u00edo = todas)"
+    },
+    "ultima_revision": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha de la \u00faltima vez que se revis\u00f3 este feed"
+    },
+    "ultimo_error": {
+      "type": "string",
+      "description": "\u00daltimo error al leer el feed (si lo hubo)"
+    },
+    "total_encontradas": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de subvenciones detectadas desde esta fuente"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas internas sobre la fuente"
+    }
+  },
+  "required": [
+    "nombre",
+    "rss_url"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

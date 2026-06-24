@@ -4,7 +4,7 @@ import {
   Settings, MessageCircle, Clock, Image, FileText, Clover, UserCircle,
   FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert,
   ClipboardCheck, Star, Trophy, KeyRound, RotateCw, CheckCircle2,
-  User as UserIcon, Share2, ExternalLink, Shirt, Camera, HeartPulse
+  User as UserIcon, Share2, ExternalLink, Shirt, Camera, HeartPulse, Landmark
 } from "lucide-react";
 
 /**
@@ -48,6 +48,7 @@ export function buildAdminNavigation(ctx) {
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerFinancialPanel"), icon: BarChart3 },
     { title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
+    { title: "🏛️ Subvenciones", url: createPageUrl("SubvencionesPanel"), icon: Landmark },
 
     { title: "─ DEPORTIVO ─", section: true },
     { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
