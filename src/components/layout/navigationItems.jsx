@@ -94,6 +94,7 @@ export function buildAdminNavigation(ctx) {
     { title: "📸 Autorización de Imagen", url: createPageUrl("PhotoAuthorizations"), icon: Camera },
 
     { title: "─ CONFIGURACIÓN ─", section: true },
+    { title: "🧾 Memoria del Club", url: createPageUrl("ClubMemory"), icon: FileText },
     { title: "🩺 Panel de Salud", url: createPageUrl("HealthCheck"), icon: HeartPulse },
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
