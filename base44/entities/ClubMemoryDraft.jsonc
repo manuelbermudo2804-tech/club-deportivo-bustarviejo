@@ -1,0 +1,115 @@
+{
+  "name": "ClubMemoryDraft",
+  "type": "object",
+  "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Temporada de la memoria (ej: 2024-2025)"
+    },
+    "introduccion": {
+      "type": "string",
+      "description": "Texto de la secci\u00f3n Introducci\u00f3n"
+    },
+    "disciplinas_intro": {
+      "type": "string",
+      "description": "Texto introductorio de la secci\u00f3n Disciplinas deportivas y grupos"
+    },
+    "grupos": {
+      "type": "array",
+      "description": "Grupos/equipos con sus datos para la memoria",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "responsables": {
+            "type": "string"
+          },
+          "colaboradores": {
+            "type": "string"
+          },
+          "competicion": {
+            "type": "string"
+          },
+          "posicion": {
+            "type": "string"
+          },
+          "integrantes": {
+            "type": "number"
+          },
+          "texto": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "voluntariado": {
+      "type": "string",
+      "description": "Texto de la secci\u00f3n Programa de voluntariado"
+    },
+    "voluntariado_objetivos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de objetivos del programa de voluntariado"
+    },
+    "otras_actividades": {
+      "type": "array",
+      "description": "Lista de actividades (cabalgata, jornadas, San Isidro, fiesta, verano...)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "titulo": {
+            "type": "string"
+          },
+          "texto": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "conclusiones": {
+      "type": "string",
+      "description": "Texto de la secci\u00f3n Conclusiones"
+    },
+    "aspectos_mejorar": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Lista de aspectos a mejorar"
+    },
+    "firmante_cargo": {
+      "type": "string",
+      "default": "LA PRESIDENTA",
+      "description": "Cargo de quien firma la memoria"
+    }
+  },
+  "required": [
+    "temporada"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -1,13 +1,12 @@
 import jsPDF from "jspdf";
-import { format, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
 
 const ORANGE = [234, 88, 12];
-const ORANGE_LIGHT = [251, 146, 60];
-const GREEN = [21, 128, 61];
-const DARK = [15, 23, 42];
-const GRAY = [100, 116, 139];
-const LIGHT_BG = [255, 247, 237];
+const RED = [200, 30, 30];
+const DARK = [30, 30, 30];
+const GRAY = [90, 90, 90];
+
+const CIF = "G-80877673";
+const CONTACTO = "C.D.BUSTARVIEJO@HOTMAIL.ES";
 
 const loadImageAsDataUrl = async (url) => {
   if (!url) return null;
@@ -25,279 +24,202 @@ const loadImageAsDataUrl = async (url) => {
   }
 };
 
-const fmtFecha = (f) => {
-  try { return format(parseISO(f), "d MMM yyyy", { locale: es }); } catch { return f || ""; }
-};
-
-const eur = (n) => `${(n || 0).toLocaleString("es-ES")} €`;
-
-export async function generateClubMemoryPDF(data, logoUrl) {
+// Genera la Memoria institucional narrativa (formato oficial CD Bustarviejo).
+// draft = textos editables; data = datos agregados; logoUrl = escudo del club.
+export async function generateClubMemoryPDF(draft, data, logoUrl) {
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageW = 210;
   const pageH = 297;
-  const marginX = 18;
+  const marginX = 22;
+  const contentW = pageW - marginX * 2;
   const logoData = await loadImageAsDataUrl(logoUrl);
+  const temporadaTxt = data?.periodo?.etiqueta?.replace("Temporada ", "") || "";
 
   let y = 0;
+  let firstContentDrawn = false;
 
-  // ============ PORTADA ============
-  doc.setFillColor(...DARK);
-  doc.rect(0, 0, pageW, pageH, "F");
-  // Banda naranja superior
-  doc.setFillColor(...ORANGE);
-  doc.rect(0, 0, pageW, 6, "F");
-  doc.setFillColor(...GREEN);
-  doc.rect(0, pageH - 6, pageW, 6, "F");
-
-  if (logoData) {
-    try { doc.addImage(logoData, "JPEG", pageW / 2 - 25, 55, 50, 50); }
-    catch { try { doc.addImage(logoData, "PNG", pageW / 2 - 25, 55, 50, 50); } catch {} }
-  }
-
-  doc.setFont("times", "bold");
-  doc.setFontSize(34);
-  doc.setTextColor(255, 255, 255);
-  doc.text("MEMORIA ANUAL", pageW / 2, 135, { align: "center" });
-
-  doc.setFontSize(18);
-  doc.setTextColor(...ORANGE_LIGHT);
-  doc.text("CD BUSTARVIEJO", pageW / 2, 150, { align: "center" });
-
-  // Caja periodo
-  doc.setDrawColor(...ORANGE);
-  doc.setLineWidth(0.6);
-  doc.roundedRect(pageW / 2 - 45, 165, 90, 18, 3, 3, "S");
-  doc.setFont("times", "bold");
-  doc.setFontSize(16);
-  doc.setTextColor(255, 255, 255);
-  doc.text(data.periodo?.etiqueta || "", pageW / 2, 177, { align: "center" });
-
-  doc.setFont("times", "italic");
-  doc.setFontSize(10);
-  doc.setTextColor(148, 163, 184);
-  doc.text("Club Deportivo · Bustarviejo · Madrid", pageW / 2, 270, { align: "center" });
-  doc.text(`Generada el ${format(new Date(), "d 'de' MMMM 'de' yyyy", { locale: es })}`, pageW / 2, 277, { align: "center" });
-
-  // ============ PÁGINA 2: RESUMEN EN NÚMEROS ============
-  doc.addPage();
-  y = drawSectionHeader(doc, "El club en números", marginX, pageW);
-
-  const sec = data.secciones || null;
-  const inc = (k) => (sec ? sec[k] !== false : true);
-
-  const kpis = [];
-  if (inc("jugadores")) {
-    kpis.push({ label: "Jugadores", value: data.jugadores?.total ?? 0, color: ORANGE });
-    kpis.push({ label: "Equipos", value: data.jugadores?.equipos ?? 0, color: GREEN });
-    kpis.push({ label: "Jugadoras femenino", value: data.jugadores?.femenino ?? 0, color: [219, 39, 119] });
-  }
-  if (inc("socios")) kpis.push({ label: "Socios", value: data.socios?.total ?? 0, color: [37, 99, 235] });
-  if (inc("eventos")) kpis.push({ label: "Eventos", value: data.eventos?.total ?? 0, color: [124, 58, 237] });
-  if (inc("patrocinadores")) kpis.push({ label: "Patrocinadores", value: (data.patrocinadores || []).length, color: [13, 148, 136] });
-  if (data.sanIsidro) kpis.push({ label: "San Isidro (inscritos)", value: data.sanIsidro.inscritos ?? 0, color: ORANGE });
-  if (data.porra) kpis.push({ label: "Porra (apuestas)", value: data.porra.pagados ?? 0, color: GREEN });
-  if (data.mercadillo) kpis.push({ label: "Mercadillo (anuncios)", value: data.mercadillo.anuncios ?? 0, color: [37, 99, 235] });
-  if (data.voluntariado) kpis.push({ label: "Voluntariado (personas)", value: data.voluntariado.personas ?? 0, color: [219, 39, 119] });
-
-  const cardW = (pageW - marginX * 2 - 12) / 3;
-  const cardH = 30;
-  kpis.forEach((k, i) => {
-    const col = i % 3;
-    const row = Math.floor(i / 3);
-    const x = marginX + col * (cardW + 6);
-    const cy = y + row * (cardH + 6);
-    doc.setFillColor(...LIGHT_BG);
-    doc.setDrawColor(...k.color);
-    doc.setLineWidth(0.4);
-    doc.roundedRect(x, cy, cardW, cardH, 2, 2, "FD");
-    doc.setFont("times", "bold");
-    doc.setFontSize(24);
-    doc.setTextColor(...k.color);
-    doc.text(String(k.value), x + cardW / 2, cy + 14, { align: "center" });
-    doc.setFont("times", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(...GRAY);
-    doc.text(k.label, x + cardW / 2, cy + 23, { align: "center" });
-  });
-  const kpiRows = Math.ceil(kpis.length / 3);
-  y += kpiRows * (cardH + 6) + 8;
-
-  // ===== INGRESOS =====
-  if (inc("ingresos")) {
-    y = drawSubHeader(doc, "Ingresos del periodo", marginX, y, pageW);
-    doc.setFillColor(...GREEN);
-    doc.roundedRect(marginX, y, pageW - marginX * 2, 22, 2, 2, "F");
-    doc.setFont("times", "bold");
-    doc.setFontSize(26);
+  // ---- Cabecera (escudo + banda naranja) en cada página ----
+  const drawHeader = () => {
+    if (logoData) {
+      try { doc.addImage(logoData, "JPEG", marginX - 6, 8, 26, 26); }
+      catch { try { doc.addImage(logoData, "PNG", marginX - 6, 8, 26, 26); } catch {} }
+    }
+    doc.setFillColor(...ORANGE);
+    doc.rect(marginX + 26, 14, contentW - 26, 13, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
     doc.setTextColor(255, 255, 255);
-    doc.text(eur(data.ingresos?.total), marginX + 8, y + 14);
-    doc.setFont("times", "normal");
-    doc.setFontSize(9);
-    doc.text("Total ingresos registrados", marginX + 8, y + 19.5);
-    y += 28;
+    doc.text("CLUB DEPORTIVO BUSTARVIEJO", marginX + 32, 22.5);
+  };
 
-    doc.setFont("times", "normal");
-    doc.setFontSize(11);
-    doc.setTextColor(...DARK);
-    doc.text(`· Cuotas y pagos: ${eur(data.ingresos?.cuotas)}  (${data.ingresos?.num_pagos || 0} pagos)`, marginX + 4, y);
-    y += 7;
-    doc.text(`· Patrocinios: ${eur(data.ingresos?.patrocinio)}`, marginX + 4, y);
-    y += 12;
-  }
-
-  // ===== ACTIVIDADES DEL CLUB (San Isidro, Porra, Mercadillo, Voluntariado) =====
-  const actividades = [];
-  if (data.sanIsidro) actividades.push(`· San Isidro: ${data.sanIsidro.inscritos} inscritos · ${data.sanIsidro.voluntarios} voluntarios`);
-  if (data.porra) actividades.push(`· Porra/Torneo: ${data.porra.pagados} apuestas pagadas · ${eur(data.porra.recaudado)} recaudados`);
-  if (data.mercadillo) actividades.push(`· Mercadillo solidario: ${data.mercadillo.anuncios} anuncios publicados`);
-  if (data.voluntariado) actividades.push(`· Voluntariado: ${data.voluntariado.personas} personas · ${data.voluntariado.inscripciones} inscripciones`);
-  if (actividades.length) {
-    if (y > pageH - 50) { doc.addPage(); y = 25; }
-    y = drawSubHeader(doc, "Actividades y eventos del club", marginX, y, pageW);
-    doc.setFont("times", "normal");
-    doc.setFontSize(11);
-    doc.setTextColor(...DARK);
-    actividades.forEach((line) => {
-      if (y > pageH - 18) { doc.addPage(); y = 25; }
-      doc.text(line, marginX + 4, y);
-      y += 7;
-    });
-    y += 6;
-  }
-
-  // ===== CATEGORIAS =====
-  if ((data.jugadores?.categorias || []).length) {
-    y = drawSubHeader(doc, "Jugadores por categoría", marginX, y, pageW);
-    data.jugadores.categorias.forEach((c) => {
-      if (y > pageH - 25) { doc.addPage(); y = 25; }
-      doc.setFont("times", "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(...DARK);
-      doc.text(c.nombre, marginX + 4, y);
-      // barra
-      const maxBar = 70;
-      const maxCount = data.jugadores.categorias[0].count || 1;
-      const barW = Math.max(2, (c.count / maxCount) * maxBar);
-      doc.setFillColor(...ORANGE_LIGHT);
-      doc.roundedRect(pageW - marginX - maxBar - 12, y - 3.5, barW, 4.5, 1, 1, "F");
-      doc.setFont("times", "bold");
-      doc.setTextColor(...ORANGE);
-      doc.text(String(c.count), pageW - marginX - 6, y, { align: "right" });
-      y += 7;
-    });
-    y += 6;
-  }
-
-  // ============ PATROCINADORES ============
-  const sponsors = data.patrocinadores || [];
-  if (sponsors.length) {
-    if (y > pageH - 60) { doc.addPage(); y = 25; }
-    y = drawSubHeader(doc, "Patrocinadores y colaboradores", marginX, y, pageW);
-    for (const s of sponsors) {
-      if (y > pageH - 22) { doc.addPage(); y = 25; }
-      const logoSp = await loadImageAsDataUrl(s.logo_url);
-      if (logoSp) {
-        try { doc.addImage(logoSp, "JPEG", marginX + 2, y - 5, 16, 12); }
-        catch { try { doc.addImage(logoSp, "PNG", marginX + 2, y - 5, 16, 12); } catch {} }
-      }
-      doc.setFont("times", "bold");
-      doc.setFontSize(11);
-      doc.setTextColor(...DARK);
-      doc.text(s.nombre || "", marginX + 22, y);
-      if (s.nivel) {
-        doc.setFont("times", "italic");
-        doc.setFontSize(9);
-        doc.setTextColor(...GRAY);
-        doc.text(s.nivel, marginX + 22, y + 4.5);
-      }
-      y += 14;
-    }
-    y += 4;
-  }
-
-  // ============ EVENTOS Y LOGROS ============
-  const eventos = data.eventos?.lista || [];
-  if (eventos.length) {
-    if (y > pageH - 50) { doc.addPage(); y = 25; }
-    y = drawSubHeader(doc, "Eventos del periodo", marginX, y, pageW);
-    eventos.forEach((e) => {
-      if (y > pageH - 18) { doc.addPage(); y = 25; }
-      doc.setFont("times", e.importante ? "bold" : "normal");
-      doc.setFontSize(10);
-      doc.setTextColor(...(e.importante ? ORANGE : DARK));
-      const fechaTxt = fmtFecha(e.fecha);
-      doc.text(`${fechaTxt}  ·  ${e.titulo}`, marginX + 4, y);
-      doc.setFont("times", "italic");
-      doc.setFontSize(8);
-      doc.setTextColor(...GRAY);
-      doc.text(e.tipo || "", pageW - marginX - 4, y, { align: "right" });
-      y += 6.5;
-    });
-    y += 6;
-  }
-
-  // ============ GALERÍA ============
-  const fotos = data.fotos?.destacadas || [];
-  if (fotos.length) {
-    doc.addPage();
-    y = drawSectionHeader(doc, "Galería del año", marginX, pageW);
-    const gW = (pageW - marginX * 2 - 8) / 2;
-    const gH = 55;
-    let idx = 0;
-    for (const url of fotos) {
-      const col = idx % 2;
-      const row = Math.floor(idx / 2);
-      const x = marginX + col * (gW + 8);
-      const cy = y + row * (gH + 8);
-      if (cy > pageH - gH - 10) break;
-      const imgData = await loadImageAsDataUrl(url);
-      if (imgData) {
-        try {
-          doc.setDrawColor(...ORANGE_LIGHT);
-          doc.setLineWidth(0.5);
-          doc.roundedRect(x, cy, gW, gH, 2, 2, "S");
-          doc.addImage(imgData, "JPEG", x + 1, cy + 1, gW - 2, gH - 2);
-        } catch {
-          try { doc.addImage(imgData, "PNG", x + 1, cy + 1, gW - 2, gH - 2); } catch {}
-        }
-      }
-      idx++;
-    }
-  }
-
-  // Pie en todas las páginas (excepto portada)
-  const totalPages = doc.getNumberOfPages();
-  for (let p = 2; p <= totalPages; p++) {
-    doc.setPage(p);
-    doc.setFont("times", "italic");
-    doc.setFontSize(7);
+  // ---- Pie (CIF + contacto) en cada página ----
+  const drawFooter = () => {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(10);
+    doc.setTextColor(...RED);
+    doc.text("CLUB DEPORTIVO BUSTARVIEJO", pageW / 2, pageH - 16, { align: "center" });
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(7.5);
     doc.setTextColor(...GRAY);
-    doc.text("CD Bustarviejo · Memoria Anual · www.cdbustarviejo.com", pageW / 2, pageH - 8, { align: "center" });
-    doc.text(`${p - 1}`, pageW - marginX, pageH - 8, { align: "right" });
+    doc.text(`CIF: ${CIF}`, pageW / 2, pageH - 12, { align: "center" });
+    doc.text(`Contacto: ${CONTACTO}`, pageW / 2, pageH - 8.5, { align: "center" });
+  };
+
+  const newPage = () => {
+    doc.addPage();
+    drawHeader();
+    drawFooter();
+    y = 40;
+  };
+
+  const ensureSpace = (h) => {
+    if (y + h > pageH - 24) newPage();
+  };
+
+  // Texto justificado multilínea
+  const writeParagraph = (text, opts = {}) => {
+    if (!text) return;
+    const fontSize = opts.fontSize || 11;
+    doc.setFont("helvetica", opts.bold ? "bold" : "normal");
+    doc.setFontSize(fontSize);
+    doc.setTextColor(...(opts.color || DARK));
+    const lines = doc.splitTextToSize(text, contentW);
+    const lineH = fontSize * 0.42 + 1.4;
+    lines.forEach((ln) => {
+      ensureSpace(lineH);
+      doc.text(ln, marginX, y, { align: "justify", maxWidth: contentW });
+      y += lineH;
+    });
+    y += 2.5;
+  };
+
+  // Encabezado de sección romano (I., II., ...)
+  const sectionTitle = (text) => {
+    ensureSpace(16);
+    y += 3;
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(...DARK);
+    doc.text(text.toUpperCase(), marginX, y);
+    doc.setDrawColor(...ORANGE);
+    doc.setLineWidth(0.5);
+    doc.line(marginX, y + 1.5, marginX + contentW, y + 1.5);
+    y += 9;
+  };
+
+  // Subtítulo (grupo, actividad)
+  const subTitle = (text) => {
+    ensureSpace(10);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(...ORANGE);
+    doc.text(text, marginX, y);
+    y += 6;
+  };
+
+  const bullet = (text) => {
+    if (!text) return;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10.5);
+    doc.setTextColor(...DARK);
+    const lines = doc.splitTextToSize(text, contentW - 6);
+    const lineH = 10.5 * 0.42 + 1.4;
+    lines.forEach((ln, i) => {
+      ensureSpace(lineH);
+      if (i === 0) {
+        doc.setFillColor(...ORANGE);
+        doc.circle(marginX + 1.5, y - 1.4, 0.9, "F");
+      }
+      doc.text(ln, marginX + 6, y);
+      y += lineH;
+    });
+    y += 1;
+  };
+
+  // ============ PÁGINA 1: cabecera + título ============
+  drawHeader();
+  drawFooter();
+  y = 48;
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(18);
+  doc.setTextColor(...DARK);
+  doc.text(`Memoria temporada ${temporadaTxt}`, pageW / 2, y, { align: "center" });
+  y += 16;
+
+  // ---- INTRODUCCIÓN ----
+  if (draft.introduccion) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.setTextColor(...DARK);
+    doc.text("INTRODUCCIÓN", pageW / 2, y, { align: "center" });
+    doc.setDrawColor(...DARK);
+    doc.setLineWidth(0.3);
+    const tw = doc.getTextWidth("INTRODUCCIÓN");
+    doc.line(pageW / 2 - tw / 2, y + 1, pageW / 2 + tw / 2, y + 1);
+    y += 9;
+    writeParagraph(draft.introduccion);
+    firstContentDrawn = true;
   }
 
-  const filename = `Memoria_CD_Bustarviejo_${(data.periodo?.etiqueta || "").replace(/\s+/g, "_")}.pdf`;
+  // ---- I. DISCIPLINAS DEPORTIVAS Y GRUPOS ----
+  const grupos = draft.grupos || [];
+  if (draft.disciplinas_intro || grupos.length) {
+    sectionTitle("I. Disciplinas deportivas y grupos");
+    if (draft.disciplinas_intro) writeParagraph(draft.disciplinas_intro);
+    grupos.forEach((g) => {
+      subTitle(g.nombre);
+      const meta = [];
+      if (g.responsables) meta.push(`Responsables: ${g.responsables}`);
+      if (g.colaboradores) meta.push(`Colaboradores: ${g.colaboradores}`);
+      if (g.competicion) meta.push(g.competicion);
+      if (g.posicion) meta.push(`Posición final: ${g.posicion}`);
+      if (typeof g.integrantes === "number") meta.push(`${g.integrantes} integrantes`);
+      if (meta.length) writeParagraph(meta.join("  ·  "), { fontSize: 10, color: GRAY });
+      if (g.texto) writeParagraph(g.texto);
+    });
+  }
+
+  // ---- II. PROGRAMA DE VOLUNTARIADO ----
+  if (draft.voluntariado || (draft.voluntariado_objetivos || []).length) {
+    sectionTitle("II. Programa de voluntariado");
+    if (draft.voluntariado) writeParagraph(draft.voluntariado);
+    (draft.voluntariado_objetivos || []).forEach((o) => bullet(o));
+  }
+
+  // ---- III. OTRAS ACTIVIDADES ----
+  const actividades = draft.otras_actividades || [];
+  if (actividades.length) {
+    sectionTitle("III. Otras actividades");
+    actividades.forEach((a) => {
+      if (a.titulo) subTitle(`• ${a.titulo}`);
+      if (a.texto) writeParagraph(a.texto);
+    });
+  }
+
+  // ---- IV. CONCLUSIONES ----
+  if (draft.conclusiones || (draft.aspectos_mejorar || []).length) {
+    sectionTitle("IV. Conclusiones");
+    if (draft.conclusiones) writeParagraph(draft.conclusiones);
+    if ((draft.aspectos_mejorar || []).length) {
+      subTitle("Aspectos a mejorar:");
+      (draft.aspectos_mejorar || []).forEach((a) => bullet(a));
+    }
+  }
+
+  // ---- FIRMA ----
+  ensureSpace(30);
+  y += 8;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(11);
+  doc.setTextColor(...DARK);
+  doc.text("En Bustarviejo, a fecha firma.", pageW - marginX, y, { align: "right" });
+  y += 8;
+  doc.setFont("helvetica", "bold");
+  doc.text(draft.firmante_cargo || "LA PRESIDENTA", pageW - marginX, y, { align: "right" });
+
+  void firstContentDrawn;
+
+  const filename = `Memoria_CD_Bustarviejo_${temporadaTxt.replace(/[/\s]+/g, "_")}.pdf`;
   doc.save(filename);
   return filename;
-}
-
-function drawSectionHeader(doc, title, marginX, pageW) {
-  doc.setFillColor(...ORANGE);
-  doc.rect(0, 0, pageW, 20, "F");
-  doc.setFont("times", "bold");
-  doc.setFontSize(18);
-  doc.setTextColor(255, 255, 255);
-  doc.text(title, marginX, 13);
-  return 32;
-}
-
-function drawSubHeader(doc, title, marginX, y, pageW) {
-  doc.setFont("times", "bold");
-  doc.setFontSize(13);
-  doc.setTextColor(...ORANGE);
-  doc.text(title, marginX, y);
-  doc.setDrawColor(...ORANGE_LIGHT);
-  doc.setLineWidth(0.5);
-  doc.line(marginX, y + 2, pageW - marginX, y + 2);
-  return y + 10;
 }

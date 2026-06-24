@@ -1,32 +1,18 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
-  FileText, Download, Users, Trophy, Heart, CreditCard, Calendar,
-  Handshake, Image as ImageIcon, Loader2, Sparkles, ShieldCheck,
-  PartyPopper, Ticket, ShoppingBag, HandHeart,
+  FileText, Download, BookOpen, HandHeart, Flag, Loader2, Sparkles,
+  ShieldCheck, Save, Target, ListChecks,
 } from "lucide-react";
 import { generateClubMemoryPDF } from "@/components/memory/clubMemoryPdfGenerator";
-
-const SECCIONES = [
-  { key: "jugadores", label: "Jugadores y categorías", icon: Users },
-  { key: "socios", label: "Socios", icon: Users },
-  { key: "ingresos", label: "Ingresos y cuotas", icon: CreditCard },
-  { key: "patrocinadores", label: "Patrocinadores", icon: Handshake },
-  { key: "eventos", label: "Eventos", icon: Calendar },
-  { key: "sanisidro", label: "San Isidro", icon: PartyPopper },
-  { key: "porra", label: "Porra / Torneo", icon: Ticket },
-  { key: "mercadillo", label: "Mercadillo", icon: ShoppingBag },
-  { key: "voluntariado", label: "Voluntariado", icon: HandHeart },
-  { key: "fotos", label: "Galería de fotos", icon: ImageIcon },
-];
-
-const DEFAULT_SECCIONES = SECCIONES.reduce((acc, s) => ({ ...acc, [s.key]: true }), {});
+import EditableSection from "@/components/memory/EditableSection";
+import GruposEditor from "@/components/memory/GruposEditor";
+import ActividadesEditor from "@/components/memory/ActividadesEditor";
+import BulletListEditor from "@/components/memory/BulletListEditor";
 
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
@@ -39,38 +25,45 @@ const getCurrentSeason = () => {
 };
 
 const seasonOptions = (activeSeason) => {
-  // Tomar como año tope el mayor entre el cálculo por fecha y la temporada activa real
   const byDate = parseInt(getCurrentSeason().split("-")[0], 10);
   const byActive = activeSeason ? parseInt(activeSeason.split("-")[0], 10) : byDate;
   const top = Math.max(byDate, byActive);
   const opts = [];
-  for (let y = top; y >= top - 5; y--) opts.push(`${y}-${y + 1}`);
+  for (let y = top; y >= top - 6; y--) opts.push(`${y}-${y + 1}`);
   return opts;
 };
 
-const yearOptions = () => {
-  const cy = new Date().getFullYear();
-  const opts = [];
-  for (let y = cy; y >= cy - 4; y--) opts.push(y);
-  return opts;
-};
+const emptyDraft = (temporada) => ({
+  temporada,
+  introduccion: "",
+  disciplinas_intro: "",
+  grupos: [],
+  voluntariado: "",
+  voluntariado_objetivos: [],
+  otras_actividades: [],
+  conclusiones: "",
+  aspectos_mejorar: [],
+  firmante_cargo: "LA PRESIDENTA",
+});
 
 export default function ClubMemory() {
-  const [modo, setModo] = useState("temporada");
   const [temporada, setTemporada] = useState(getCurrentSeason());
   const [activeSeason, setActiveSeason] = useState(null);
-  const [anio, setAnio] = useState(new Date().getFullYear());
+  const [isAdmin, setIsAdmin] = useState(true);
+
+  const [data, setData] = useState(null);          // datos agregados (autorrelleno)
+  const [draft, setDraft] = useState(emptyDraft(getCurrentSeason()));
+  const [draftId, setDraftId] = useState(null);
+
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
-  const [data, setData] = useState(null);
-  const [isAdmin, setIsAdmin] = useState(true);
-  const [secciones, setSecciones] = useState(DEFAULT_SECCIONES);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const toggleSeccion = (key) => setSecciones(prev => ({ ...prev, [key]: !prev[key] }));
+  const setField = (field, value) => setDraft((prev) => ({ ...prev, [field]: value }));
 
   useEffect(() => {
     base44.auth.me().then(u => setIsAdmin(u?.role === "admin")).catch(() => setIsAdmin(false));
-    // Cargar la temporada activa real del club para usarla por defecto
     base44.entities.SeasonConfig.filter({ activa: true }, "-created_date", 1)
       .then((rows) => {
         const t = rows?.[0]?.temporada;
@@ -79,29 +72,102 @@ export default function ClubMemory() {
       .catch(() => {});
   }, []);
 
-  const loadData = async () => {
+  // Cargar datos agregados + borrador guardado al cambiar de temporada
+  const load = useCallback(async () => {
     setLoading(true);
-    setData(null);
     try {
-      const base = modo === "natural" ? { modo, anio } : { modo, temporada };
-      const payload = { ...base, secciones };
-      const res = await base44.functions.invoke("generateClubMemory", payload);
+      const res = await base44.functions.invoke("generateClubMemory", {
+        modo: "temporada",
+        temporada,
+        secciones: { jugadores: true, grupos: true, eventos: true, voluntariado: true, sanisidro: true, socios: true },
+      });
       setData(res.data);
+
+      // Borrador guardado de esta temporada
+      const saved = await base44.entities.ClubMemoryDraft.filter({ temporada }, "-created_date", 1);
+      if (saved?.[0]) {
+        setDraftId(saved[0].id);
+        const s = saved[0];
+        setDraft({ ...emptyDraft(temporada), ...s });
+      } else {
+        setDraftId(null);
+        // Borrador vacío con grupos autorrellenados desde los datos
+        setDraft({ ...emptyDraft(temporada), grupos: res.data?.grupos || [] });
+      }
     } catch (e) {
       toast.error("No se pudieron cargar los datos");
     } finally {
       setLoading(false);
     }
+  }, [temporada]);
+
+  useEffect(() => { load(); }, [load]);
+
+  // Reautorrellenar grupos desde datos del club (sin perder textos manuales)
+  const autofillGrupos = () => {
+    const base = data?.grupos || [];
+    const prevByName = Object.fromEntries((draft.grupos || []).map(g => [g.nombre, g]));
+    const merged = base.map(g => ({ ...g, ...prevByName[g.nombre], nombre: g.nombre, integrantes: g.integrantes, responsables: prevByName[g.nombre]?.responsables || g.responsables, posicion: prevByName[g.nombre]?.posicion || g.posicion }));
+    setField("grupos", merged);
+    toast.success("Grupos actualizados con los datos del club");
   };
 
-  useEffect(() => { loadData(); }, [modo, temporada, anio, secciones]);
+  const runAI = async () => {
+    if (!data) return;
+    setAiLoading(true);
+    try {
+      const res = await base44.functions.invoke("generateMemoryDraft", { data, temporada });
+      const raw = res.data?.draft;
+      const d = raw?.introduccion ? raw : (raw?.response || raw);
+      if (!d) throw new Error("Sin respuesta");
+      // Fusionar textos IA con grupos autorrellenados (la IA aporta el texto por grupo)
+      const textosPorNombre = Object.fromEntries((d.grupos_textos || []).map(g => [g.nombre, g.texto]));
+      const gruposActuales = (draft.grupos?.length ? draft.grupos : (data.grupos || []));
+      const grupos = gruposActuales.map(g => ({ ...g, texto: g.texto || textosPorNombre[g.nombre] || "" }));
+      setDraft((prev) => ({
+        ...prev,
+        introduccion: prev.introduccion || d.introduccion || "",
+        disciplinas_intro: prev.disciplinas_intro || d.disciplinas_intro || "",
+        grupos,
+        voluntariado: prev.voluntariado || d.voluntariado || "",
+        voluntariado_objetivos: prev.voluntariado_objetivos?.length ? prev.voluntariado_objetivos : (d.voluntariado_objetivos || []),
+        otras_actividades: prev.otras_actividades?.length ? prev.otras_actividades : (d.otras_actividades || []),
+        conclusiones: prev.conclusiones || d.conclusiones || "",
+        aspectos_mejorar: prev.aspectos_mejorar?.length ? prev.aspectos_mejorar : (d.aspectos_mejorar || []),
+      }));
+      toast.success("Borrador redactado con IA. Revísalo y edítalo antes de descargar.");
+    } catch (e) {
+      toast.error("No se pudo generar el borrador con IA");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  const save = async () => {
+    setSaving(true);
+    try {
+      const payload = { ...draft, temporada };
+      delete payload.id; delete payload.created_date; delete payload.updated_date; delete payload.created_by_id;
+      if (draftId) {
+        await base44.entities.ClubMemoryDraft.update(draftId, payload);
+      } else {
+        const created = await base44.entities.ClubMemoryDraft.create(payload);
+        setDraftId(created.id);
+      }
+      toast.success("Memoria guardada");
+    } catch (e) {
+      toast.error("No se pudo guardar");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleDownload = async () => {
     if (!data) return;
     setGenerating(true);
     try {
-      await generateClubMemoryPDF(data, CLUB_LOGO_URL);
-      toast.success("Memoria generada y descargada");
+      await generateClubMemoryPDF(draft, data, CLUB_LOGO_URL);
+      toast.success("Memoria PDF descargada");
     } catch (e) {
       toast.error("Error al generar el PDF");
     } finally {
@@ -119,7 +185,7 @@ export default function ClubMemory() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-4 lg:p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-4 lg:p-6 space-y-5">
       {/* Header */}
       <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 lg:p-8 text-white">
         <div className="flex items-center gap-3 mb-2">
@@ -128,214 +194,112 @@ export default function ClubMemory() {
           </div>
           <div>
             <h1 className="text-2xl lg:text-3xl font-bold">Memoria del Club</h1>
-            <p className="text-slate-300 text-sm">PDF listo para Ayuntamiento, subvenciones y asamblea</p>
+            <p className="text-slate-300 text-sm">Memoria institucional editable · formato oficial</p>
           </div>
         </div>
       </div>
 
       {/* Controles */}
-      <Card className="rounded-2xl border-slate-200">
-        <CardContent className="p-4 lg:p-6 space-y-4">
-          <Tabs value={modo} onValueChange={setModo}>
-            <TabsList className="grid grid-cols-2 w-full max-w-xs">
-              <TabsTrigger value="temporada">Por temporada</TabsTrigger>
-              <TabsTrigger value="natural">Año natural</TabsTrigger>
-            </TabsList>
-          </Tabs>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {modo === "temporada" ? (
-              <Select value={temporada} onValueChange={setTemporada}>
-                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {seasonOptions(activeSeason).map(s => <SelectItem key={s} value={s}>Temporada {s}{s === activeSeason ? " (activa)" : ""}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            ) : (
-              <Select value={String(anio)} onValueChange={(v) => setAnio(parseInt(v, 10))}>
-                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {yearOptions().map(y => <SelectItem key={y} value={String(y)}>Año {y}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            )}
-
-            <Button
-              onClick={handleDownload}
-              disabled={!data || generating || loading}
-              className="bg-orange-600 hover:bg-orange-700 ml-auto"
-            >
-              {generating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
-              Generar memoria PDF
-            </Button>
-          </div>
-
-          {/* Selección de secciones a incluir */}
-          <div className="pt-2 border-t border-slate-100">
-            <p className="text-sm font-semibold text-slate-700 mb-3">¿Qué quieres incluir en la memoria?</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
-              {SECCIONES.map(({ key, label, icon: SecIcon }) => (
-                <label
-                  key={key}
-                  htmlFor={`sec-${key}`}
-                  className={`flex items-center gap-2.5 rounded-xl border p-2.5 cursor-pointer transition-colors ${secciones[key] ? "border-orange-300 bg-orange-50" : "border-slate-200 bg-white hover:bg-slate-50"}`}
-                >
-                  <Checkbox id={`sec-${key}`} checked={!!secciones[key]} onCheckedChange={() => toggleSeccion(key)} />
-                  <SecIcon className={`w-4 h-4 ${secciones[key] ? "text-orange-500" : "text-slate-400"}`} />
-                  <span className="text-sm text-slate-700">{label}</span>
-                </label>
+      <Card className="rounded-2xl border-slate-200 sticky top-2 z-10 shadow-sm">
+        <CardContent className="p-4 flex flex-wrap items-center gap-3">
+          <Select value={temporada} onValueChange={setTemporada}>
+            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              {seasonOptions(activeSeason).map(s => (
+                <SelectItem key={s} value={s}>Temporada {s}{s === activeSeason ? " (activa)" : ""}</SelectItem>
               ))}
-            </div>
-          </div>
+            </SelectContent>
+          </Select>
+
+          <Button variant="outline" onClick={runAI} disabled={aiLoading || loading} className="rounded-lg">
+            {aiLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2 text-orange-500" />}
+            Redactar con IA
+          </Button>
+
+          <Button variant="outline" onClick={save} disabled={saving || loading} className="rounded-lg">
+            {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
+            Guardar
+          </Button>
+
+          <Button onClick={handleDownload} disabled={!data || generating || loading} className="bg-orange-600 hover:bg-orange-700 ml-auto">
+            {generating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
+            Descargar PDF
+          </Button>
         </CardContent>
       </Card>
 
-      {/* Vista previa */}
-      {loading && (
+      {loading ? (
         <div className="flex items-center justify-center py-16">
           <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
         </div>
-      )}
-
-      {!loading && data && (
-        <div className="space-y-6">
-          {/* KPIs */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            <Kpi icon={Users} label="Jugadores" value={data.jugadores?.total} color="orange" />
-            <Kpi icon={Trophy} label="Equipos" value={data.jugadores?.equipos} color="green" />
-            <Kpi icon={Heart} label="Fútbol femenino" value={data.jugadores?.femenino} color="pink" sub="jugadoras" />
-            <Kpi icon={Users} label="Socios" value={data.socios?.total} color="blue" />
-            {data.secciones?.eventos !== false && <Kpi icon={Calendar} label="Eventos" value={data.eventos?.total} color="purple" />}
-            {(data.patrocinadores || []).length > 0 && <Kpi icon={Handshake} label="Patrocinadores" value={(data.patrocinadores || []).length} color="teal" />}
-            {data.sanIsidro && <Kpi icon={PartyPopper} label="San Isidro" value={data.sanIsidro.inscritos} color="orange" sub="inscritos" />}
-            {data.porra && <Kpi icon={Ticket} label="Porra" value={data.porra.pagados} color="green" sub="apuestas" />}
-            {data.mercadillo && <Kpi icon={ShoppingBag} label="Mercadillo" value={data.mercadillo.anuncios} color="blue" sub="anuncios" />}
-            {data.voluntariado && <Kpi icon={HandHeart} label="Voluntariado" value={data.voluntariado.personas} color="pink" sub="personas" />}
-          </div>
-
-          {/* Ingresos */}
-          <Card className="rounded-2xl border-slate-200 overflow-hidden">
-            <div className="bg-gradient-to-r from-green-600 to-emerald-600 p-5 text-white">
-              <div className="flex items-center gap-2 text-sm opacity-90"><CreditCard className="w-4 h-4" /> Ingresos del periodo</div>
-              <p className="text-3xl font-bold mt-1">{(data.ingresos?.total || 0).toLocaleString("es-ES")} €</p>
-            </div>
-            <CardContent className="p-4 grid grid-cols-2 gap-3 text-sm">
-              <div className="bg-slate-50 rounded-xl p-3">
-                <p className="text-slate-500">Cuotas y pagos</p>
-                <p className="font-bold text-slate-800 text-lg">{(data.ingresos?.cuotas || 0).toLocaleString("es-ES")} €</p>
-                <p className="text-xs text-slate-400">{data.ingresos?.num_pagos || 0} pagos</p>
-              </div>
-              <div className="bg-slate-50 rounded-xl p-3">
-                <p className="text-slate-500">Patrocinios</p>
-                <p className="font-bold text-slate-800 text-lg">{(data.ingresos?.patrocinio || 0).toLocaleString("es-ES")} €</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Categorías */}
-          {(data.jugadores?.categorias || []).length > 0 && (
-            <Card className="rounded-2xl border-slate-200">
-              <CardContent className="p-4">
-                <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Users className="w-4 h-4 text-orange-500" /> Jugadores por categoría</h3>
-                <div className="space-y-2">
-                  {data.jugadores.categorias.map((c) => {
-                    const max = data.jugadores.categorias[0].count || 1;
-                    return (
-                      <div key={c.nombre} className="flex items-center gap-3">
-                        <span className="text-sm text-slate-600 w-44 truncate">{c.nombre}</span>
-                        <div className="flex-1 bg-slate-100 rounded-full h-2.5 overflow-hidden">
-                          <div className="bg-orange-500 h-full rounded-full" style={{ width: `${(c.count / max) * 100}%` }} />
-                        </div>
-                        <span className="text-sm font-bold text-slate-800 w-8 text-right">{c.count}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Patrocinadores */}
-          {(data.patrocinadores || []).length > 0 && (
-            <Card className="rounded-2xl border-slate-200">
-              <CardContent className="p-4">
-                <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Handshake className="w-4 h-4 text-teal-500" /> Patrocinadores</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {data.patrocinadores.map((s, i) => (
-                    <div key={i} className="flex items-center gap-2 bg-slate-50 rounded-xl p-2.5">
-                      {s.logo_url
-                        ? <img src={s.logo_url} alt={s.nombre} className="w-10 h-10 object-contain rounded bg-white" />
-                        : <div className="w-10 h-10 rounded bg-slate-200 flex items-center justify-center"><Handshake className="w-4 h-4 text-slate-400" /></div>}
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-slate-800 truncate">{s.nombre}</p>
-                        {s.nivel && <p className="text-xs text-slate-400">{s.nivel}</p>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Eventos */}
-          {(data.eventos?.lista || []).length > 0 && (
-            <Card className="rounded-2xl border-slate-200">
-              <CardContent className="p-4">
-                <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><Calendar className="w-4 h-4 text-purple-500" /> Eventos del periodo</h3>
-                <div className="space-y-1.5">
-                  {data.eventos.lista.slice(0, 15).map((e, i) => (
-                    <div key={i} className="flex items-center gap-3 text-sm py-1.5 border-b border-slate-100 last:border-0">
-                      <span className="text-slate-400 text-xs w-24 flex-shrink-0">{e.fecha}</span>
-                      <span className={`flex-1 truncate ${e.importante ? "font-semibold text-orange-600" : "text-slate-700"}`}>{e.titulo}</span>
-                      <span className="text-xs text-slate-400">{e.tipo}</span>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Galería */}
-          {(data.fotos?.destacadas || []).length > 0 && (
-            <Card className="rounded-2xl border-slate-200">
-              <CardContent className="p-4">
-                <h3 className="font-bold text-slate-800 mb-3 flex items-center gap-2"><ImageIcon className="w-4 h-4 text-indigo-500" /> Galería destacada <span className="text-xs font-normal text-slate-400">({data.fotos.albumes} álbumes · {data.fotos.total} fotos)</span></h3>
-                <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
-                  {data.fotos.destacadas.map((url, i) => (
-                    <img key={i} src={url} alt="" className="w-full aspect-square object-cover rounded-lg" />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          <div className="flex items-center gap-2 text-xs text-slate-400 justify-center pt-2">
+      ) : (
+        <div className="space-y-5">
+          <p className="text-xs text-slate-400 flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5" />
-            Esta vista previa muestra los datos que se incluirán en el PDF
+            Edita cualquier texto libremente. Pulsa "Redactar con IA" para un borrador automático, o rellena tú mismo. Recuerda guardar.
+          </p>
+
+          <EditableSection
+            icon={BookOpen}
+            title="Introducción"
+            value={draft.introduccion}
+            onChange={(v) => setField("introduccion", v)}
+            rows={7}
+            placeholder="Comenzamos una nueva temporada con nuevos retos…"
+          />
+
+          <EditableSection
+            icon={Flag}
+            title="I. Disciplinas deportivas y grupos — introducción"
+            hint="Texto general antes del detalle de cada equipo."
+            value={draft.disciplinas_intro}
+            onChange={(v) => setField("disciplinas_intro", v)}
+            rows={3}
+            placeholder="El Club ofrece dos disciplinas deportivas: fútbol y baloncesto…"
+          />
+
+          <div className="flex justify-end -mt-2">
+            <Button variant="ghost" size="sm" onClick={autofillGrupos} className="text-orange-600 text-xs">
+              Volver a autorrellenar grupos con los datos del club
+            </Button>
           </div>
+          <GruposEditor grupos={draft.grupos || []} onChange={(v) => setField("grupos", v)} />
+
+          <EditableSection
+            icon={HandHeart}
+            title="II. Programa de voluntariado"
+            value={draft.voluntariado}
+            onChange={(v) => setField("voluntariado", v)}
+            rows={5}
+            placeholder="Continuamos con nuestro programa de voluntariado deportivo…"
+          />
+          <BulletListEditor
+            icon={Target}
+            title="Objetivos del voluntariado"
+            items={draft.voluntariado_objetivos || []}
+            onChange={(v) => setField("voluntariado_objetivos", v)}
+            placeholder="Ej: Expandir los valores del deporte en grupo"
+          />
+
+          <ActividadesEditor actividades={draft.otras_actividades || []} onChange={(v) => setField("otras_actividades", v)} />
+
+          <EditableSection
+            icon={FileText}
+            title="IV. Conclusiones"
+            value={draft.conclusiones}
+            onChange={(v) => setField("conclusiones", v)}
+            rows={6}
+            placeholder="La Junta Directiva estamos contentos del resultado del trabajo realizado…"
+          />
+          <BulletListEditor
+            icon={ListChecks}
+            title="Aspectos a mejorar"
+            items={draft.aspectos_mejorar || []}
+            onChange={(v) => setField("aspectos_mejorar", v)}
+            placeholder="Ej: Mejorar el problema de impagos"
+          />
         </div>
       )}
-    </div>
-  );
-}
-
-const COLORS = {
-  orange: "bg-orange-50 text-orange-600",
-  green: "bg-green-50 text-green-600",
-  pink: "bg-pink-50 text-pink-600",
-  blue: "bg-blue-50 text-blue-600",
-  purple: "bg-purple-50 text-purple-600",
-  teal: "bg-teal-50 text-teal-600",
-};
-
-function Kpi({ icon: Icon, label, value, color, sub }) {
-  return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-col items-center text-center">
-      <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-2 ${COLORS[color]}`}>
-        <Icon className="w-5 h-5" />
-      </div>
-      <p className="text-2xl font-bold text-slate-800">{value ?? 0}</p>
-      <p className="text-xs text-slate-500">{label}{sub ? ` · ${sub}` : ""}</p>
     </div>
   );
 }

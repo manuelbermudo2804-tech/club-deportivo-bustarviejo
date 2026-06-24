@@ -66,6 +66,59 @@ Deno.serve(async (req) => {
       totalEquipos = categoriasArray.length;
     }
 
+    // ===== GRUPOS / EQUIPOS (autorrelleno para memoria institucional) =====
+    // Solo se calcula si se pide explícitamente (incluir('grupos')) para no recargar el resto.
+    let grupos = [];
+    if (incluir('grupos') || incluir('jugadores')) {
+      try {
+        const jugadoresAll = await sr.entities.Player.filter({ activo: true }, '-created_date', 2000);
+        // Contar integrantes por categoría
+        const countPorCat = {};
+        jugadoresAll.forEach(p => {
+          const cat = p.categoria_principal || p.deporte || 'Sin categoría';
+          countPorCat[cat] = (countPorCat[cat] || 0) + 1;
+        });
+
+        // Entrenadores por categoría (CoachSettings)
+        const entrenadoresPorCat = {};
+        try {
+          const coaches = await sr.entities.CoachSettings.list('-created_date', 500);
+          coaches.forEach(c => {
+            (c.categorias_entrena || []).forEach(cat => {
+              if (!entrenadoresPorCat[cat]) entrenadoresPorCat[cat] = [];
+              if (c.entrenador_nombre) entrenadoresPorCat[cat].push(c.entrenador_nombre);
+            });
+          });
+        } catch { /* sin coaches */ }
+
+        // Posición RFFM final por categoría (última jornada de la temporada)
+        const posicionPorCat = {};
+        try {
+          const clas = await sr.entities.Clasificacion.filter({ temporada }, '-jornada', 3000);
+          clas.forEach(c => {
+            const esBustar = /bustarviejo/i.test(c.nombre_equipo || '');
+            if (!esBustar) return;
+            // Quedarse con la jornada más alta por categoría
+            if (!posicionPorCat[c.categoria] || c.jornada > posicionPorCat[c.categoria].jornada) {
+              posicionPorCat[c.categoria] = { posicion: c.posicion, jornada: c.jornada };
+            }
+          });
+        } catch { /* sin clasificación */ }
+
+        grupos = Object.keys(countPorCat)
+          .sort()
+          .map(cat => ({
+            nombre: cat,
+            responsables: (entrenadoresPorCat[cat] || []).join(', '),
+            colaboradores: '',
+            competicion: '',
+            posicion: posicionPorCat[cat] ? `${posicionPorCat[cat].posicion}º` : '',
+            integrantes: countPorCat[cat],
+            texto: '',
+          }));
+      } catch { /* sin grupos */ }
+    }
+
     // ===== SOCIOS =====
     let totalSocios = 0;
     let sociosPagados = 0;
@@ -221,6 +274,7 @@ Deno.serve(async (req) => {
         femenino: jugadorasFemenino,
         categorias: categoriasArray,
       },
+      grupos,
       socios: {
         total: totalSocios,
         pagados: sociosPagados,
