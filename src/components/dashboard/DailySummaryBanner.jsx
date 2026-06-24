@@ -6,13 +6,15 @@ import {
   Sparkles, ChevronDown, ChevronUp, ChevronRight, CheckCircle2,
   UserPlus, CreditCard, KeyRound, Users, Shirt, Clover, Mail, ClipboardList,
   MessageSquare, Globe, PartyPopper, Hash, Handshake, Briefcase, FileText,
-  Trophy, Heart, ShieldAlert, AlertTriangle, Bell,
+  Trophy, Heart, ShieldAlert, AlertTriangle, Bell, ShoppingBag, HandHeart,
+  UserMinus, FileSignature, RefreshCw,
 } from "lucide-react";
 
 const ICONS = {
   UserPlus, CreditCard, KeyRound, Users, Shirt, Clover, Mail, ClipboardList,
   MessageSquare, Globe, PartyPopper, Hash, Handshake, Briefcase, FileText,
-  Trophy, Heart, ShieldAlert, AlertTriangle, Bell,
+  Trophy, Heart, ShieldAlert, AlertTriangle, Bell, ShoppingBag, HandHeart,
+  UserMinus, FileSignature, RefreshCw,
 };
 
 const LS_KEY = "admin_daily_summary_last_visit";

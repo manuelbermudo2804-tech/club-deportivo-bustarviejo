@@ -62,6 +62,10 @@ Deno.serve(async (req) => {
       nuevasInscripcionesPorra,
       nuevoInteresFemenino,
       nuevasIncidenciasLopivi,
+      nuevosAnunciosMercadillo,
+      nuevosVoluntarios,
+      nuevasBajasCuenta,
+      nuevasReservasMercadillo,
     ] = await Promise.all([
       countNew('Player'),
       countNew('Payment', { is_deleted: { $ne: true } }),
@@ -81,6 +85,10 @@ Deno.serve(async (req) => {
       countNew('PorraParticipante'),
       countNew('FemeninoInterest'),
       countNew('LopiviIncidencia'),
+      countNew('MarketListing'),
+      countNew('VolunteerSignup'),
+      countNew('AccountDeletionRequest'),
+      countNew('MarketReservation'),
     ]);
 
     const novedades = [
@@ -102,6 +110,10 @@ Deno.serve(async (req) => {
       { id: 'porra', label: 'Nuevas porras', count: nuevasInscripcionesPorra, page: 'PorraAdmin', icon: 'Trophy' },
       { id: 'femenino', label: 'Interés fútbol femenino', count: nuevoInteresFemenino, page: 'FemeninoInterests', icon: 'Heart' },
       { id: 'lopivi', label: 'Incidencias LOPIVI', count: nuevasIncidenciasLopivi, page: 'LopiviAdmin', icon: 'ShieldAlert' },
+      { id: 'mercadillo', label: 'Nuevos anuncios en el mercadillo', count: nuevosAnunciosMercadillo, page: 'Mercadillo', icon: 'ShoppingBag' },
+      { id: 'mercadillo_reservas', label: 'Nuevas reservas en el mercadillo', count: nuevasReservasMercadillo, page: 'Mercadillo', icon: 'ShoppingBag' },
+      { id: 'voluntarios', label: 'Nuevas inscripciones de voluntarios', count: nuevosVoluntarios, page: 'Voluntariado', icon: 'HandHeart' },
+      { id: 'bajas_cuenta', label: 'Nuevas solicitudes de baja de cuenta', count: nuevasBajasCuenta, page: 'UserManagement', icon: 'UserMinus' },
     ].filter(n => n.count > 0);
 
     // === REQUIERE ATENCIÓN (pendientes acumulados, independientemente de la fecha) ===
@@ -113,6 +125,8 @@ Deno.serve(async (req) => {
       contactosSinResponder,
       accesoPendiente,
       incidenciasLopiviAbiertas,
+      bajasCuentaPendientes,
+      categoriasARevisar,
     ] = await Promise.all([
       countAll('Payment', { estado: 'En revisión', is_deleted: { $ne: true } }),
       countAll('ClothingOrder', { estado: 'Pendiente' }),
@@ -121,7 +135,29 @@ Deno.serve(async (req) => {
       countAll('ContactForm', { estado: 'pendiente' }),
       countAll('AccessRequest', { estado: 'pendiente' }),
       countAll('LopiviIncidencia', { estado: 'abierta' }),
+      countAll('AccountDeletionRequest', { status: 'solicitada' }),
+      countAll('Player', { activo: true, categoria_requiere_revision: true }),
     ]);
+
+    // Firmas federativas pendientes y renovaciones (requiere recorrer jugadores activos)
+    let firmasPendientes = 0;
+    let renovacionesPendientes = 0;
+    try {
+      const calcEdad = (f) => {
+        if (!f) return null;
+        const h = new Date(), n = new Date(f);
+        let e = h.getFullYear() - n.getFullYear();
+        const m = h.getMonth() - n.getMonth();
+        if (m < 0 || (m === 0 && h.getDate() < n.getDate())) e--;
+        return e;
+      };
+      const activos = await sr.entities.Player.filter({ activo: true }, '-updated_date', 1000);
+      activos.forEach(p => {
+        if (p.enlace_firma_jugador && !p.firma_jugador_completada) firmasPendientes++;
+        if (p.enlace_firma_tutor && !p.firma_tutor_completada && calcEdad(p.fecha_nacimiento) < 18) firmasPendientes++;
+        if (p.estado_renovacion === 'pendiente') renovacionesPendientes++;
+      });
+    } catch { /* sin datos */ }
 
     const atencion = [
       { id: 'pagos_revision', label: 'Pagos en revisión', count: pagosEnRevision, page: 'Payments', icon: 'CreditCard' },
@@ -131,6 +167,10 @@ Deno.serve(async (req) => {
       { id: 'contactos_pendientes', label: 'Contactos web sin responder', count: contactosSinResponder, page: 'WebContacts', icon: 'MessageSquare' },
       { id: 'acceso_pendiente', label: 'Solicitudes de acceso sin gestionar', count: accesoPendiente, page: 'AdminAccessCodes', icon: 'KeyRound' },
       { id: 'lopivi_abiertas', label: 'Incidencias LOPIVI abiertas', count: incidenciasLopiviAbiertas, page: 'LopiviAdmin', icon: 'ShieldAlert' },
+      { id: 'firmas_pendientes', label: 'Firmas federativas pendientes', count: firmasPendientes, page: 'FederationSignaturesAdmin', icon: 'FileSignature' },
+      { id: 'renovaciones_pendientes', label: 'Renovaciones pendientes', count: renovacionesPendientes, page: 'RenewalDashboard', icon: 'RefreshCw' },
+      { id: 'categorias_revisar', label: 'Jugadores con categoría a revisar', count: categoriasARevisar, page: 'Players', icon: 'AlertTriangle' },
+      { id: 'bajas_cuenta_pendientes', label: 'Solicitudes de baja sin procesar', count: bajasCuentaPendientes, page: 'UserManagement', icon: 'UserMinus' },
     ].filter(a => a.count > 0);
 
     // === ERRORES / EVENTOS CRÍTICOS (diagnóstico, desde la última visita) ===
