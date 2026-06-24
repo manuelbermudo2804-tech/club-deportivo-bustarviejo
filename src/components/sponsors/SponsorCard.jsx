@@ -2,9 +2,9 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2, FileText, Calendar, Euro, Building2, Phone, Mail, Power, MousePointer } from "lucide-react";
+import { Pencil, Trash2, FileText, Calendar, Building2, Phone, Mail, Power, MousePointer, ExternalLink } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { format } from "date-fns";
+import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 
 const nivelColors = {
@@ -17,53 +17,48 @@ const nivelColors = {
 
 export default function SponsorCard({ sponsor, onEdit, onDelete, onToggleActive }) {
   const clicks = sponsor.clicks_totales || 0;
-  const isExpiringSoon = () => {
-    if (!sponsor.fecha_fin) return false;
-    const endDate = new Date(sponsor.fecha_fin);
-    const today = new Date();
-    const diffDays = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
-    return diffDays > 0 && diffDays <= 30;
-  };
 
-  const isExpired = () => {
-    if (!sponsor.fecha_fin) return false;
-    return new Date(sponsor.fecha_fin) < new Date();
-  };
+  const diasRestantes = sponsor.fecha_fin
+    ? differenceInDays(new Date(sponsor.fecha_fin), new Date())
+    : null;
+  const isExpired = diasRestantes !== null && diasRestantes < 0;
+  const isExpiringSoon = diasRestantes !== null && diasRestantes >= 0 && diasRestantes <= 30;
 
   return (
     <Card className={`border-none shadow-lg overflow-hidden transition-all hover:shadow-xl ${
       !sponsor.activo ? 'opacity-60' : ''
-    }`}>
+    } ${isExpired ? 'ring-2 ring-red-300' : isExpiringSoon ? 'ring-2 ring-orange-200' : ''}`}>
       <div className={`h-2 ${nivelColors[sponsor.nivel_patrocinio] || 'bg-slate-400'}`} />
       <CardContent className="p-5">
         <div className="flex items-start justify-between gap-3 mb-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 min-w-0">
             {sponsor.logo_url ? (
               <img 
                 src={sponsor.logo_url} 
                 alt={sponsor.nombre} 
-                className="w-14 h-14 object-contain rounded-lg border bg-white p-1"
+                className="w-14 h-14 object-contain rounded-lg border bg-white p-1 shrink-0"
               />
             ) : (
-              <div className="w-14 h-14 rounded-lg bg-amber-100 flex items-center justify-center">
+              <div className="w-14 h-14 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
                 <Building2 className="w-7 h-7 text-amber-600" />
               </div>
             )}
-            <div>
-              <h3 className="font-bold text-lg text-slate-900">{sponsor.nombre}</h3>
-              <div className="flex items-center gap-2 mt-1">
+            <div className="min-w-0">
+              <h3 className="font-bold text-lg text-slate-900 truncate">{sponsor.nombre}</h3>
+              <div className="flex items-center flex-wrap gap-2 mt-1">
                 <Badge className={nivelColors[sponsor.nivel_patrocinio]}>
                   {sponsor.nivel_patrocinio}
                 </Badge>
-                {isExpiringSoon() && (
-                  <Badge className="bg-orange-500 text-white animate-pulse">
-                    ⚠️ Próximo a vencer
-                  </Badge>
+                {sponsor.website_url && (
+                  <a href={sponsor.website_url} target="_blank" rel="noopener noreferrer"
+                    className="text-xs text-blue-600 hover:underline flex items-center gap-0.5">
+                    <ExternalLink className="w-3 h-3" /> Web
+                  </a>
                 )}
               </div>
             </div>
           </div>
-          <div className="flex gap-1">
+          <div className="flex gap-1 shrink-0">
             <Button size="icon" variant="ghost" onClick={() => onEdit(sponsor)}>
               <Pencil className="w-4 h-4 text-slate-600" />
             </Button>
@@ -73,49 +68,56 @@ export default function SponsorCard({ sponsor, onEdit, onDelete, onToggleActive 
           </div>
         </div>
 
-        {/* Switch para activar/desactivar aparición en banner */}
-        <div className="mb-4 p-3 bg-slate-50 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Power className={`w-5 h-5 ${sponsor.activo ? 'text-green-600' : 'text-slate-400'}`} />
-              <div>
-                <p className="font-semibold text-slate-900">Mostrar en Banner</p>
-                <p className="text-xs text-slate-500">
-                  {sponsor.activo ? '✅ Aparece en el banner de la app' : '⏸️ No aparece en el banner'}
-                </p>
-              </div>
+        {/* Aviso de vencimiento destacado */}
+        {(isExpired || isExpiringSoon) && (
+          <div className={`mb-3 px-3 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 ${
+            isExpired ? 'bg-red-100 text-red-700' : 'bg-orange-100 text-orange-700'
+          }`}>
+            <Calendar className="w-4 h-4 shrink-0" />
+            {isExpired
+              ? `Patrocinio vencido hace ${Math.abs(diasRestantes)} días`
+              : `Vence en ${diasRestantes} días`}
+          </div>
+        )}
+
+        {/* Importe destacado */}
+        {sponsor.precio_anual ? (
+          <div className="mb-4 flex items-baseline gap-2">
+            <span className="text-3xl font-bold text-green-600">
+              {sponsor.precio_anual.toLocaleString('es-ES')}€
+            </span>
+            <span className="text-sm text-slate-400">/año</span>
+          </div>
+        ) : null}
+
+        {/* Switch banner + clicks en una fila compacta */}
+        <div className="mb-4 grid grid-cols-2 gap-2">
+          <div className="p-3 bg-slate-50 rounded-lg flex items-center justify-between">
+            <div className="flex items-center gap-2 min-w-0">
+              <Power className={`w-5 h-5 shrink-0 ${sponsor.activo ? 'text-green-600' : 'text-slate-400'}`} />
+              <span className="text-xs font-medium text-slate-700 truncate">
+                {sponsor.activo ? 'En banner' : 'Oculto'}
+              </span>
             </div>
             <Switch
               checked={sponsor.activo}
               onCheckedChange={() => onToggleActive(sponsor)}
             />
           </div>
-        </div>
-
-        {/* Métrica de clicks en el banner */}
-        <div className={`flex items-center gap-2 mb-3 p-2 rounded-lg ${clicks > 0 ? 'bg-green-50' : 'bg-slate-50'}`}>
-          <MousePointer className={`w-4 h-4 ${clicks > 0 ? 'text-green-600' : 'text-slate-400'}`} />
-          <span className={`text-sm font-bold ${clicks > 0 ? 'text-green-800' : 'text-slate-500'}`}>{clicks}</span>
-          <span className={`text-xs ${clicks > 0 ? 'text-green-600' : 'text-slate-400'}`}>clicks en el banner</span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 text-sm">
-          {sponsor.precio_anual && (
-            <div className="flex items-center gap-2 text-slate-600">
-              <Euro className="w-4 h-4" />
-              <span className="font-bold text-lg text-green-600">
-                {sponsor.precio_anual?.toLocaleString('es-ES')}€
-              </span>
-              <span className="text-xs text-slate-400">/año</span>
-            </div>
-          )}
-          <div className="flex items-center gap-2 text-slate-600">
-            <Calendar className="w-4 h-4" />
-            <span>
-              {format(new Date(sponsor.fecha_inicio), "MMM yyyy", { locale: es })}
-              {sponsor.fecha_fin && ` - ${format(new Date(sponsor.fecha_fin), "MMM yyyy", { locale: es })}`}
-            </span>
+          <div className={`p-3 rounded-lg flex items-center gap-2 ${clicks > 0 ? 'bg-green-50' : 'bg-slate-50'}`}>
+            <MousePointer className={`w-4 h-4 shrink-0 ${clicks > 0 ? 'text-green-600' : 'text-slate-400'}`} />
+            <span className={`text-sm font-bold ${clicks > 0 ? 'text-green-800' : 'text-slate-500'}`}>{clicks}</span>
+            <span className={`text-xs ${clicks > 0 ? 'text-green-600' : 'text-slate-400'}`}>clicks</span>
           </div>
+        </div>
+
+        {/* Fechas */}
+        <div className="flex items-center gap-2 text-sm text-slate-600 mb-1">
+          <Calendar className="w-4 h-4 shrink-0" />
+          <span>
+            {format(new Date(sponsor.fecha_inicio), "MMM yyyy", { locale: es })}
+            {sponsor.fecha_fin && ` — ${format(new Date(sponsor.fecha_fin), "MMM yyyy", { locale: es })}`}
+          </span>
         </div>
 
         {sponsor.contacto_nombre && (
