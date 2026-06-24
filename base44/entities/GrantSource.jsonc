@@ -8,7 +8,32 @@
     },
     "rss_url": {
       "type": "string",
-      "description": "URL del feed RSS a vigilar"
+      "description": "URL del feed RSS a vigilar (vac\u00edo si es una fuente de seguimiento manual)"
+    },
+    "web_oficial": {
+      "type": "string",
+      "description": "URL de la web oficial de la fuente, para revisarla manualmente"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "rss",
+        "manual"
+      ],
+      "default": "rss",
+      "description": "'rss' = se revisa autom\u00e1ticamente con feed; 'manual' = solo enlace a revisar a mano"
+    },
+    "prioridad": {
+      "type": "number",
+      "enum": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "default": 3,
+      "description": "Prioridad de la fuente de 1 a 5 estrellas"
     },
     "categoria": {
       "type": "string",
@@ -17,6 +42,7 @@
         "Ayuntamiento",
         "BOE / BOCM",
         "Deporte base / Federaciones",
+        "Fundaciones",
         "Google Alerts",
         "Otra"
       ],
@@ -55,8 +81,7 @@
     }
   },
   "required": [
-    "nombre",
-    "rss_url"
+    "nombre"
   ],
   "rls": {
     "create": {

@@ -57,7 +57,9 @@ Deno.serve(async (req) => {
       }
     } catch (_) { /* scheduled run, no user */ }
 
-    const sources = await base44.asServiceRole.entities.GrantSource.filter({ activa: true });
+    const allSources = await base44.asServiceRole.entities.GrantSource.filter({ activa: true });
+    // Solo se revisan automáticamente las fuentes con feed RSS; las de seguimiento manual se ignoran
+    const sources = allSources.filter((s) => s.tipo !== 'manual' && (s.rss_url || '').trim());
     const summary = { fuentes_revisadas: 0, nuevas: 0, errores: 0, detalles: [] };
     const nuevasAlertas = [];
 

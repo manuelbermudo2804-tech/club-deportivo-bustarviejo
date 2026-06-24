@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  Landmark, RefreshCw, Plus, Rss, Loader2, ShieldCheck, AlertTriangle, Pencil, Inbox,
+  Landmark, RefreshCw, Plus, Rss, Loader2, ShieldCheck, AlertTriangle, Pencil, Inbox, Star, ExternalLink, Eye,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -161,18 +161,32 @@ export default function SubvencionesPanel() {
               </Button>
             </div>
           ) : (
-            sources.map((src) => (
+            [...sources].sort((a, b) => (b.prioridad || 0) - (a.prioridad || 0)).map((src) => {
+              const esManual = src.tipo === "manual" || !(src.rss_url || "").trim();
+              return (
               <Card key={src.id} className="rounded-2xl border-slate-200">
                 <CardContent className="p-4 flex items-center gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold text-slate-800 truncate">{src.nombre}</h3>
                       <Badge variant="outline" className="text-xs">{src.categoria}</Badge>
+                      <Badge className={`text-xs ${esManual ? "bg-slate-100 text-slate-600" : "bg-emerald-100 text-emerald-700"}`}>
+                        {esManual ? <><Eye className="w-3 h-3 mr-1 inline" />Revisión manual</> : <><Rss className="w-3 h-3 mr-1 inline" />Automática</>}
+                      </Badge>
                     </div>
-                    <p className="text-xs text-slate-400 truncate">{src.rss_url}</p>
+                    <div className="flex items-center gap-0.5 mt-1">
+                      {[1, 2, 3, 4, 5].map((n) => (
+                        <Star key={n} className={`w-3.5 h-3.5 ${n <= (src.prioridad || 0) ? "fill-amber-400 text-amber-400" : "text-slate-200"}`} />
+                      ))}
+                    </div>
                     <div className="flex items-center gap-3 text-xs text-slate-400 mt-1 flex-wrap">
-                      {src.ultima_revision && <span>Revisado {formatDistanceToNow(new Date(src.ultima_revision), { addSuffix: true, locale: es })}</span>}
-                      <span>{src.total_encontradas || 0} encontradas</span>
+                      {src.web_oficial && (
+                        <a href={src.web_oficial} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-emerald-600 hover:underline">
+                          <ExternalLink className="w-3 h-3" /> Abrir web oficial
+                        </a>
+                      )}
+                      {!esManual && src.ultima_revision && <span>Revisado {formatDistanceToNow(new Date(src.ultima_revision), { addSuffix: true, locale: es })}</span>}
+                      {!esManual && <span>{src.total_encontradas || 0} encontradas</span>}
                       {src.ultimo_error && (
                         <span className="flex items-center gap-1 text-red-500">
                           <AlertTriangle className="w-3 h-3" /> {src.ultimo_error}
@@ -186,7 +200,8 @@ export default function SubvencionesPanel() {
                   </Button>
                 </CardContent>
               </Card>
-            ))
+              );
+            })
           )}
         </TabsContent>
       </Tabs>
