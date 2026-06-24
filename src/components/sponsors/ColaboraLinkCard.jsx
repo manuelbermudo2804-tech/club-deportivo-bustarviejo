@@ -18,7 +18,17 @@ export default function ColaboraLinkCard() {
     }
   };
 
-  const text = `Colabora con el CD Bustarviejo y consigue visibilidad para tu negocio: ${url}`;
+  const text = `⚽ ¡Apoya al CD Bustarviejo y dale visibilidad a tu negocio! 💪
+
+Con tu colaboración ayudas a más de 200 niños y niñas del pueblo a seguir jugando, y tu comercio aparece en nuestra web, redes y campo. 🟠🟢
+
+✅ Eliges el importe
+✅ Subes tu logo
+✅ Pagas online en 1 minuto
+
+👉 ${url}
+
+¡Gracias por ser parte del club! 🙌`;
 
   const handleShare = async () => {
     if (navigator.share) {
