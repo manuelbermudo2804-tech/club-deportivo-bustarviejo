@@ -1,5 +1,5 @@
 import React from "react";
-import { CheckCircle2, Flag, Hand, Sparkles } from "lucide-react";
+import { CheckCircle2, Hand, Sparkles } from "lucide-react";
 
 // Niveles fijos de colaboración (sin Patrocinador Principal, según el club).
 // El club puede ajustar precios/textos aquí fácilmente.
@@ -18,23 +18,11 @@ export const NIVELES = [
       "Publicación en redes sociales",
     ],
   },
-  {
-    id: "pancarta",
-    nombre: "Pancarta en el campo",
-    precio: 150,
-    sub: "Incluye la cuota de colaborador",
-    icon: Flag,
-    incluye: [
-      "Todo lo del nivel Colaborador",
-      "Pancarta con tu logo en el campo del club",
-      "Visibilidad en partidos y eventos",
-    ],
-  },
 ];
 
 export default function ColaboraNiveles({ selected, onSelect }) {
   return (
-    <div className="grid sm:grid-cols-2 gap-4">
+    <div className="grid gap-4">
       {NIVELES.map((n) => {
         const isSel = selected === n.id;
         return (
@@ -80,7 +68,7 @@ export default function ColaboraNiveles({ selected, onSelect }) {
       <button
         type="button"
         onClick={() => onSelect("otra")}
-        className={`sm:col-span-2 text-left bg-white rounded-2xl p-5 border-2 transition-all ${
+        className={`text-left bg-white rounded-2xl p-5 border-2 transition-all ${
           selected === "otra"
             ? "border-orange-500 ring-2 ring-orange-200 shadow-lg"
             : "border-dashed border-slate-300 hover:border-orange-300"
