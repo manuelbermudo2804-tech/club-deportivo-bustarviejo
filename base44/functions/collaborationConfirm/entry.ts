@@ -94,6 +94,20 @@ Deno.serve(async (req) => {
       sponsor_id: sponsor.id,
     });
 
+    // Traza auditable en el Centro de Diagnóstico ("Registro de errores y eventos")
+    try {
+      await base44.asServiceRole.entities.UploadDiagnostic.create({
+        event_type: 'diagnostic_report',
+        context: 'collaborationConfirm',
+        user_email: record.email || 'anónimo',
+        page_path: '/Colabora',
+        severity: 'info',
+        extra_data: { fase: 'pago_confirmado', record_id: recordId, sponsor_id: sponsor.id, nombre_comercio: record.nombre_comercio, importe: record.importe },
+      });
+    } catch (e) {
+      console.warn('[collaborationConfirm] log event failed:', e?.message);
+    }
+
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
     if (RESEND_API_KEY) {
       // Email al colaborador
