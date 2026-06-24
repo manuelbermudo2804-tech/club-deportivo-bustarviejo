@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Building2, FileText, Receipt, ClipboardList } from "lucide-react";
+import { Plus, Search, Building2, FileText, Receipt, ClipboardList, Handshake } from "lucide-react";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -125,6 +125,12 @@ export default function Sponsorships() {
           <p className="text-slate-600 mt-1">Administra los patrocinadores del club</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          <Link to="/SponsorCRM">
+            <Button className="bg-slate-800 hover:bg-slate-900 text-white">
+              <Handshake className="w-4 h-4 mr-2" />
+              CRM / Pipeline
+            </Button>
+          </Link>
           <Link to="/PresupuestoGenerator">
             <Button variant="outline" className="border-blue-400 text-blue-700 hover:bg-blue-50">
               <ClipboardList className="w-4 h-4 mr-2" />

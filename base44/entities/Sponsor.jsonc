@@ -134,11 +134,84 @@
     "notas": {
       "type": "string",
       "description": "Notas internas del club"
+    },
+    "etapa_crm": {
+      "type": "string",
+      "enum": [
+        "prospecto",
+        "contactado",
+        "reunion",
+        "propuesta",
+        "negociacion",
+        "ganado",
+        "perdido"
+      ],
+      "default": "prospecto",
+      "description": "Etapa del pipeline comercial del CRM de patrocinadores"
+    },
+    "importe_potencial": {
+      "type": "number",
+      "description": "Importe potencial estimado del patrocinio en euros (mientras est\u00e1 en negociaci\u00f3n)"
+    },
+    "sector": {
+      "type": "string",
+      "description": "Sector o tipo de negocio (ej: restaurante, ferreter\u00eda, inmobiliaria)"
+    },
+    "interes": {
+      "type": "string",
+      "description": "Qu\u00e9 le interesa patrocinar (ej: equipaci\u00f3n benjam\u00edn, torneo, banner web)"
+    },
+    "fecha_ultimo_contacto": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha del \u00faltimo contacto comercial registrado"
+    },
+    "proxima_accion_fecha": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha en la que hay que hacer el pr\u00f3ximo seguimiento"
+    },
+    "proxima_accion_texto": {
+      "type": "string",
+      "description": "Descripci\u00f3n de la pr\u00f3xima acci\u00f3n (ej: Llamar para confirmar dossier)"
+    },
+    "motivo_perdido": {
+      "type": "string",
+      "description": "Motivo por el que se marc\u00f3 como cerrado perdido"
+    },
+    "historial_crm": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "tipo": {
+            "type": "string",
+            "enum": [
+              "llamada",
+              "email",
+              "whatsapp",
+              "reunion",
+              "propuesta",
+              "nota",
+              "cambio_etapa"
+            ]
+          },
+          "descripcion": {
+            "type": "string"
+          },
+          "autor": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Cronolog\u00eda de interacciones comerciales con la empresa"
     }
   },
   "required": [
-    "nombre",
-    "nivel_patrocinio",
-    "fecha_inicio"
+    "nombre"
   ]
 }
