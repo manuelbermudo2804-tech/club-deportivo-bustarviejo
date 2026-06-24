@@ -60,6 +60,15 @@
     "notas": {
       "type": "string",
       "description": "Notas internas del seguimiento"
+    },
+    "analisis_ia": {
+      "type": "string",
+      "description": "An\u00e1lisis IA de las bases (JSON serializado con documentos, proyecto y pasos)"
+    },
+    "analisis_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se gener\u00f3 el an\u00e1lisis IA"
     }
   },
   "required": [

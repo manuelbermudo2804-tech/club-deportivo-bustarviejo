@@ -1,12 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ExternalLink, Trash2, Calendar } from "lucide-react";
+import { ExternalLink, Trash2, Calendar, Sparkles } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import GrantAnalysisModal from "./GrantAnalysisModal";
 
 const ESTADO_COLORS = {
   nueva: "bg-blue-100 text-blue-700",
@@ -19,6 +20,8 @@ const ESTADO_COLORS = {
 const ESTADOS = ["nueva", "revisando", "interesa", "solicitada", "descartada"];
 
 export default function GrantAlertCard({ alert, onChanged }) {
+  const [showAnalysis, setShowAnalysis] = useState(false);
+
   const updateEstado = async (estado) => {
     await base44.entities.GrantAlert.update(alert.id, { estado, leida: true });
     onChanged?.();
@@ -60,7 +63,15 @@ export default function GrantAlertCard({ alert, onChanged }) {
           )}
         </div>
 
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex items-center gap-2 pt-1 flex-wrap">
+          <Button
+            size="sm"
+            className="rounded-lg bg-orange-600 hover:bg-orange-700"
+            onClick={() => { markRead(); setShowAnalysis(true); }}
+          >
+            <Sparkles className="w-3.5 h-3.5 mr-1" />
+            {alert.analisis_ia ? "Ver cómo presentarla" : "¿Cómo la presento?"}
+          </Button>
           {alert.enlace && (
             <a href={alert.enlace} target="_blank" rel="noopener noreferrer" onClick={markRead}>
               <Button variant="outline" size="sm" className="rounded-lg">
@@ -76,6 +87,13 @@ export default function GrantAlertCard({ alert, onChanged }) {
           </Select>
         </div>
       </CardContent>
+
+      <GrantAnalysisModal
+        alert={alert}
+        open={showAnalysis}
+        onOpenChange={setShowAnalysis}
+        onAnalyzed={onChanged}
+      />
     </Card>
   );
 }
