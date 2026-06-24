@@ -66,7 +66,7 @@ export default function Sponsorships() {
   });
 
   const handleSubmit = (data) => {
-    if (editingSponsor) {
+    if (editingSponsor?.id) {
       updateMutation.mutate({ id: editingSponsor.id, data });
     } else {
       createMutation.mutate(data);
@@ -91,6 +91,55 @@ export default function Sponsorships() {
       data: { activo: newStatus } 
     });
     toast.success(newStatus ? `✅ ${sponsor.nombre} activado - aparecerá en el banner` : `⏸️ ${sponsor.nombre} desactivado - no aparecerá en el banner`);
+  };
+
+  // Renovar patrocinio 1 año: desplaza fecha_fin (y opcionalmente fecha_inicio) un año
+  const [renewingId, setRenewingId] = useState(null);
+  const handleRenew = async (sponsor) => {
+    const addYear = (dateStr) => {
+      const d = dateStr ? new Date(dateStr) : new Date();
+      d.setFullYear(d.getFullYear() + 1);
+      return d.toISOString().split('T')[0];
+    };
+    setRenewingId(sponsor.id);
+    try {
+      await base44.entities.Sponsor.update(sponsor.id, {
+        fecha_inicio: sponsor.fecha_fin || new Date().toISOString().split('T')[0],
+        fecha_fin: addYear(sponsor.fecha_fin),
+      });
+      queryClient.invalidateQueries({ queryKey: ['sponsors'] });
+      toast.success(`✅ Patrocinio de ${sponsor.nombre} renovado 1 año`);
+    } catch {
+      toast.error("Error al renovar");
+    } finally {
+      setRenewingId(null);
+    }
+  };
+
+  // Avisar al patrocinador por email de la renovación
+  const [notifyingId, setNotifyingId] = useState(null);
+  const handleNotifyRenewal = async (sponsor) => {
+    setNotifyingId(sponsor.id);
+    try {
+      const res = await base44.functions.invoke('notifySponsorRenewal', { sponsorId: sponsor.id });
+      if (res.data?.success) {
+        queryClient.invalidateQueries({ queryKey: ['sponsors'] });
+        toast.success(`📧 Email de renovación enviado a ${sponsor.contacto_email}`);
+      } else {
+        toast.error(res.data?.error || "No se pudo enviar el email");
+      }
+    } catch {
+      toast.error("Error al enviar el email");
+    } finally {
+      setNotifyingId(null);
+    }
+  };
+
+  // Convertir una solicitud/propuesta aceptada en patrocinador (acción 3)
+  const handleConvertToSponsor = (prefill) => {
+    setEditingSponsor(prefill);
+    setShowForm(true);
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   };
 
   const filteredSponsors = sponsors.filter(s => {
@@ -173,13 +222,19 @@ export default function Sponsorships() {
       </AnimatePresence>
 
       {/* Propuestas premium (GVC Gaesco y otras empresas) */}
-      <PropuestasPatrocinioPanel />
+      <PropuestasPatrocinioPanel onConvertToSponsor={handleConvertToSponsor} />
 
       {/* Solicitudes de patrocinio en camiseta */}
-      <SponsorInterestPanel />
+      <SponsorInterestPanel onConvertToSponsor={handleConvertToSponsor} />
 
       {/* Dashboard KPIs */}
-      <SponsorDashboard sponsors={sponsors} />
+      <SponsorDashboard
+        sponsors={sponsors}
+        onRenew={handleRenew}
+        onNotifyRenewal={handleNotifyRenewal}
+        renewingId={renewingId}
+        notifyingId={notifyingId}
+      />
 
       {/* Filtros */}
       <div className="flex flex-wrap gap-3">

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Handshake, Phone, Mail, Building2, User, Trash2, ChevronDown, ChevronUp, Package, Euro, MessageSquare, ExternalLink, StickyNote } from "lucide-react";
+import { Handshake, Phone, Mail, Building2, User, Trash2, ChevronDown, ChevronUp, Package, Euro, MessageSquare, ExternalLink, StickyNote, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 const STATUS_COLORS = {
@@ -23,7 +23,7 @@ const STATUS_LABELS = {
   descartada: "❌ Descartada",
 };
 
-function PropuestaCard({ propuesta, onUpdate, onDelete }) {
+function PropuestaCard({ propuesta, onUpdate, onDelete, onConvertToSponsor }) {
   const [expanded, setExpanded] = useState(propuesta.estado === "nueva");
   const [notasEdit, setNotasEdit] = useState(propuesta.notas_internas || "");
   const [editingNotes, setEditingNotes] = useState(false);
@@ -190,13 +190,31 @@ function PropuestaCard({ propuesta, onUpdate, onDelete }) {
               <ExternalLink className="w-3 h-3" /> Ver propuesta que recibieron
             </a>
           )}
+
+          {/* Convertir propuesta aceptada en patrocinador */}
+          {propuesta.estado === "aceptada" && onConvertToSponsor && (
+            <Button
+              className="w-full bg-green-600 hover:bg-green-700"
+              onClick={() => onConvertToSponsor({
+                nombre: propuesta.empresa,
+                contacto_nombre: propuesta.contacto_nombre,
+                contacto_email: propuesta.contacto_email,
+                contacto_telefono: propuesta.contacto_telefono || "",
+                precio_anual: Number(propuesta.total_estimado || 0),
+                nivel_patrocinio: "Principal",
+                beneficios_acordados: paquetes.map((p) => p.nombre).join(", "),
+              })}
+            >
+              <UserPlus className="w-4 h-4 mr-2" /> Crear patrocinador con estos datos
+            </Button>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-export default function PropuestasPatrocinioPanel() {
+export default function PropuestasPatrocinioPanel({ onConvertToSponsor }) {
   const queryClient = useQueryClient();
   const [filterEstado, setFilterEstado] = useState("all");
 
@@ -286,6 +304,7 @@ export default function PropuestasPatrocinioPanel() {
                 propuesta={propuesta}
                 onUpdate={(data) => updateMutation.mutate({ id: propuesta.id, data })}
                 onDelete={() => deleteMutation.mutate(propuesta.id)}
+                onConvertToSponsor={onConvertToSponsor}
               />
             ))
           )}

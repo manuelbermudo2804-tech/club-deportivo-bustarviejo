@@ -156,7 +156,7 @@ export default function SponsorForm({ sponsor, players, onSubmit, onCancel, isSu
       <Card className="border-none shadow-xl mb-6">
         <CardHeader className="bg-gradient-to-r from-amber-600 to-amber-700 text-white rounded-t-xl">
           <CardTitle className="flex items-center gap-2">
-            💰 {sponsor ? "Editar Patrocinador" : "Nuevo Patrocinador"}
+            💰 {sponsor?.id ? "Editar Patrocinador" : "Nuevo Patrocinador"}
           </CardTitle>
         </CardHeader>
         <CardContent className="p-6">
@@ -425,7 +425,7 @@ export default function SponsorForm({ sponsor, players, onSubmit, onCancel, isSu
                 Cancelar
               </Button>
               <Button type="submit" className="bg-amber-600 hover:bg-amber-700" disabled={isSubmitting}>
-                {isSubmitting ? "Guardando..." : sponsor ? "Actualizar" : "Crear Patrocinador"}
+                {isSubmitting ? "Guardando..." : sponsor?.id ? "Actualizar" : "Crear Patrocinador"}
               </Button>
             </div>
           </form>

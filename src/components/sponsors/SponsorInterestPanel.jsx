@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shirt, Phone, Mail, Building2, User, Trash2 } from "lucide-react";
+import { Shirt, Phone, Mail, Building2, User, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 const STATUS_COLORS = {
@@ -15,7 +15,7 @@ const STATUS_COLORS = {
   descartado: "bg-slate-100 text-slate-500",
 };
 
-export default function SponsorInterestPanel() {
+export default function SponsorInterestPanel({ onConvertToSponsor }) {
   const queryClient = useQueryClient();
 
   const { data: interests = [], isLoading } = useQuery({
@@ -103,6 +103,22 @@ export default function SponsorInterestPanel() {
                         <SelectItem value="descartado">Descartado</SelectItem>
                       </SelectContent>
                     </Select>
+                    {interest.estado === "adjudicado" && onConvertToSponsor && (
+                      <Button
+                        size="sm"
+                        className="h-8 text-xs bg-green-600 hover:bg-green-700"
+                        onClick={() => onConvertToSponsor({
+                          nombre: interest.nombre_comercio,
+                          contacto_nombre: interest.nombre_contacto,
+                          contacto_email: interest.email,
+                          contacto_telefono: interest.telefono,
+                          nivel_patrocinio: "Colaborador",
+                          beneficios_acordados: `Patrocinio en camiseta: ${interest.posicion}`,
+                        })}
+                      >
+                        <UserPlus className="w-3.5 h-3.5 mr-1" /> Crear patrocinador
+                      </Button>
+                    )}
                     <Button
                       size="icon"
                       variant="ghost"

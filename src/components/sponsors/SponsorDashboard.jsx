@@ -1,11 +1,12 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Euro, Users, AlertTriangle, Building2, TrendingUp, Crown, Calendar, BarChart3 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Euro, Users, AlertTriangle, Building2, TrendingUp, Crown, Calendar, BarChart3, RefreshCw, Mail } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
 
-export default function SponsorDashboard({ sponsors }) {
+export default function SponsorDashboard({ sponsors, onRenew, onNotifyRenewal, renewingId, notifyingId }) {
   const activeSponsors = sponsors.filter(s => s.activo === true);
   const inactiveSponsors = sponsors.filter(s => s.activo === false);
 
@@ -133,14 +134,40 @@ export default function SponsorDashboard({ sponsors }) {
                         <p className="text-xs text-slate-600">{s.nivel_patrocinio} • {(s.precio_anual || 0).toLocaleString('es-ES')}€/año</p>
                       </div>
                     </div>
-                    <div className="text-right shrink-0 ml-2">
-                      <Badge className={vencido ? "bg-red-600 text-white" : "bg-orange-500 text-white"}>
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {format(new Date(s.fecha_fin), "d MMM yyyy", { locale: es })}
-                      </Badge>
-                      <p className={`text-xs mt-1 font-medium ${vencido ? 'text-red-700' : 'text-orange-600'}`}>
-                        {vencido ? `Venció hace ${Math.abs(dias)} días` : `Quedan ${dias} días`}
-                      </p>
+                    <div className="flex flex-col items-end gap-2 shrink-0 ml-2">
+                      <div className="text-right">
+                        <Badge className={vencido ? "bg-red-600 text-white" : "bg-orange-500 text-white"}>
+                          <Calendar className="w-3 h-3 mr-1" />
+                          {format(new Date(s.fecha_fin), "d MMM yyyy", { locale: es })}
+                        </Badge>
+                        <p className={`text-xs mt-1 font-medium ${vencido ? 'text-red-700' : 'text-orange-600'}`}>
+                          {vencido ? `Venció hace ${Math.abs(dias)} días` : `Quedan ${dias} días`}
+                        </p>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 text-xs border-green-300 text-green-700 hover:bg-green-50"
+                          onClick={() => onRenew?.(s)}
+                          disabled={renewingId === s.id}
+                        >
+                          <RefreshCw className={`w-3 h-3 mr-1 ${renewingId === s.id ? 'animate-spin' : ''}`} />
+                          Renovar 1 año
+                        </Button>
+                        {s.contacto_email && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-7 text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                            onClick={() => onNotifyRenewal?.(s)}
+                            disabled={notifyingId === s.id}
+                          >
+                            <Mail className={`w-3 h-3 mr-1 ${notifyingId === s.id ? 'animate-pulse' : ''}`} />
+                            Avisar
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
