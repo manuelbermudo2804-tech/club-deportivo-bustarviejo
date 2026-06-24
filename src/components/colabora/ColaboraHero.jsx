@@ -17,7 +17,7 @@ export default function ColaboraHero() {
       <div className="absolute -top-24 -right-24 w-72 h-72 bg-white/10 rounded-full blur-3xl" />
       <div className="absolute -bottom-32 -left-20 w-80 h-80 bg-green-400/20 rounded-full blur-3xl" />
 
-      <div className="relative px-4 pt-20 pb-16 text-center max-w-3xl mx-auto">
+      <div className="relative px-4 pt-24 pb-20 lg:pt-28 lg:pb-24 text-center max-w-3xl mx-auto flex flex-col items-center">
         <img
           src={CLUB_LOGO}
           alt="Escudo CD Bustarviejo"
