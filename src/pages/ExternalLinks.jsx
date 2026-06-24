@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ExternalLink, Copy, Check, Globe, Users, CreditCard, Trophy, Megaphone, QrCode, Target, Handshake, Sparkles, ArrowRight } from "lucide-react";
+import { ExternalLink, Copy, Check, Globe, Users, CreditCard, Trophy, Megaphone, QrCode, Target, Handshake, Sparkles, ArrowRight, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import PropuestaGenerator from "@/components/external-links/PropuestaGenerator";
@@ -64,6 +64,15 @@ const EXTERNAL_PAGES = [
     color: "bg-yellow-500",
   },
   {
+    id: "colabora",
+    nombre: "Colabora (Pago Online)",
+    descripcion: "Página pública para que comercios colaboren: eligen importe, suben su logo y pagan con tarjeta en 1 minuto. El registro queda pendiente de tu aprobación.",
+    path: "/Colabora",
+    icon: Handshake,
+    color: "bg-emerald-500",
+    nota: "Compártela por WhatsApp para captar comercios fácilmente",
+  },
+  {
     id: "propuesta-gvc",
     nombre: "Propuesta GVC Gaesco",
     descripcion: "Propuesta de patrocinio personalizable. Por defecto se renderiza para GVC Gaesco — usa el generador de abajo para crear versiones para otras empresas.",
@@ -88,6 +97,13 @@ function LinkCard({ page }) {
 
   const handleOpen = () => {
     window.open(fullUrl, "_blank");
+  };
+
+  const handleWhatsApp = () => {
+    const text = page.id === "colabora"
+      ? `⚽ ¡Apoya al CD Bustarviejo y dale visibilidad a tu negocio! 💪\n\nCon tu colaboración ayudas a más de 200 niños y niñas del pueblo a seguir jugando, y tu comercio aparece en nuestra web, redes y campo. 🟠🟢\n\n✅ Eliges el importe\n✅ Subes tu logo\n✅ Pagas online en 1 minuto\n\n👉 ${fullUrl}\n\n¡Gracias por ser parte del club! 🙌`
+      : `${page.nombre} — CD Bustarviejo: ${fullUrl}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
   };
 
   return (
@@ -117,6 +133,9 @@ function LinkCard({ page }) {
         <Button size="sm" className="flex-1 gap-2 bg-slate-800 hover:bg-slate-700" onClick={handleOpen}>
           <ExternalLink className="w-4 h-4" />
           Abrir
+        </Button>
+        <Button size="sm" className="gap-2 bg-green-600 hover:bg-green-700" onClick={handleWhatsApp}>
+          <MessageCircle className="w-4 h-4" />
         </Button>
       </div>
     </div>
