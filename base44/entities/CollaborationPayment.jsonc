@@ -1,0 +1,94 @@
+{
+  "name": "CollaborationPayment",
+  "type": "object",
+  "properties": {
+    "nombre_comercio": {
+      "type": "string",
+      "description": "Nombre del negocio/comercio colaborador"
+    },
+    "contacto_nombre": {
+      "type": "string",
+      "description": "Nombre de la persona de contacto"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email de contacto del colaborador"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto"
+    },
+    "website_url": {
+      "type": "string",
+      "description": "Web del negocio (para enlazar el banner)"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL del logo subido por el colaborador"
+    },
+    "nivel_nombre": {
+      "type": "string",
+      "description": "Nombre del nivel elegido (ej: Colaborador, Pancarta en el campo, Otra cantidad)"
+    },
+    "importe": {
+      "type": "number",
+      "description": "Importe pagado en euros"
+    },
+    "estado_pago": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "pagado",
+        "fallido"
+      ],
+      "default": "pendiente",
+      "description": "Estado del pago con Stripe"
+    },
+    "stripe_session_id": {
+      "type": "string",
+      "description": "ID de la sesi\u00f3n de Stripe Checkout"
+    },
+    "stripe_payment_intent": {
+      "type": "string",
+      "description": "ID del payment intent de Stripe"
+    },
+    "fecha_pago": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que se complet\u00f3 el pago"
+    },
+    "sponsor_id": {
+      "type": "string",
+      "description": "ID del Sponsor creado tras el pago"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas internas"
+    }
+  },
+  "required": [
+    "nombre_comercio",
+    "email",
+    "nivel_nombre",
+    "importe"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

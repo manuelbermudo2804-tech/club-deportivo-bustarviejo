@@ -9,6 +9,7 @@ import SponsorPackages from "../components/sponsors-public/SponsorPackages";
 import ContactCTA from "../components/sponsors-public/ContactCTA";
 import SponsorFooter from "../components/sponsors-public/SponsorFooter";
 import TournamentSponsorshipBanner from "../components/sponsors-public/TournamentSponsorshipBanner";
+import ColaboraOnlineBanner from "../components/sponsors-public/ColaboraOnlineBanner";
 import usePublicPageTracker from "../components/public/usePublicPageTracker";
 
 export default function PublicSponsors() {
@@ -52,6 +53,7 @@ export default function PublicSponsors() {
       <ClubHistorySection />
       <ImpactSection />
       <SponsorPackages />
+      <ColaboraOnlineBanner />
       <ContactCTA />
       <SponsorFooter />
     </div>
