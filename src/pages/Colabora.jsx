@@ -3,6 +3,7 @@ import { ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import ColaboraNiveles from "../components/colabora/ColaboraNiveles";
 import ColaboraForm from "../components/colabora/ColaboraForm";
+import ConocerClubBanner from "../components/colabora/ConocerClubBanner";
 import SponsorFooter from "../components/sponsors-public/SponsorFooter";
 
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
@@ -16,10 +17,11 @@ export default function Colabora() {
   // Al volver de Stripe (?pago=ok&sid=...) confirmamos el pago en el backend
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("pago") === "ok" && params.get("sid")) {
+    const sid = params.get("session_id");
+    if (sid) {
       setConfirming(true);
       base44.functions
-        .invoke("collaborationConfirm", { session_id: params.get("sid") })
+        .invoke("collaborationConfirm", { session_id: sid })
         .then((res) => {
           if (res?.data?.ok) setPaid(true);
         })
@@ -94,6 +96,7 @@ export default function Colabora() {
       </div>
 
       <div className="max-w-3xl mx-auto px-4 -mt-8 pb-20 space-y-6">
+        <ConocerClubBanner />
         <div>
           <h2 className="text-xl font-black text-slate-900 mb-4">1. Elige tu colaboración</h2>
           <ColaboraNiveles selected={nivelId} onSelect={setNivelId} />
