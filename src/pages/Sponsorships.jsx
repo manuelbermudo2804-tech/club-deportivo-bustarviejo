@@ -13,6 +13,7 @@ import SponsorCard from "../components/sponsors/SponsorCard";
 import SponsorDashboard from "../components/sponsors/SponsorDashboard";
 import SponsorInterestPanel from "../components/sponsors/SponsorInterestPanel";
 import PropuestasPatrocinioPanel from "../components/sponsors/PropuestasPatrocinioPanel";
+import ColaboraLinkCard from "../components/sponsors/ColaboraLinkCard";
 
 export default function Sponsorships() {
   const [showForm, setShowForm] = useState(false);
@@ -220,6 +221,9 @@ export default function Sponsorships() {
           />
         )}
       </AnimatePresence>
+
+      {/* Enlace de colaboración para compartir */}
+      <ColaboraLinkCard />
 
       {/* Propuestas premium (GVC Gaesco y otras empresas) */}
       <PropuestasPatrocinioPanel onConvertToSponsor={handleConvertToSponsor} />
