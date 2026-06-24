@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { ArrowLeft, Loader2, CheckCircle2, Heart } from "lucide-react";
+import { ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import ColaboraNiveles from "../components/colabora/ColaboraNiveles";
 import ColaboraForm from "../components/colabora/ColaboraForm";
+import SponsorFooter from "../components/sponsors-public/SponsorFooter";
+
+const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
 export default function Colabora() {
   const [nivelId, setNivelId] = useState("colaborador");
@@ -68,13 +71,25 @@ export default function Colabora() {
 
       {/* Hero */}
       <div className="bg-gradient-to-br from-orange-600 via-orange-500 to-green-600 text-white pt-20 pb-16 px-4 text-center">
-        <div className="w-16 h-16 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center mx-auto mb-4">
-          <Heart className="w-8 h-8 text-white" />
-        </div>
+        <img
+          src={CLUB_LOGO}
+          alt="Escudo CD Bustarviejo"
+          className="w-24 h-24 rounded-2xl object-cover mx-auto mb-4 shadow-2xl ring-4 ring-white/40 bg-white"
+        />
+        <p className="text-white/80 text-sm font-bold tracking-widest uppercase mb-2">Club Deportivo Bustarviejo · Sierra Norte de Madrid</p>
         <h1 className="text-3xl lg:text-5xl font-black mb-3">Colabora con el CD Bustarviejo</h1>
         <p className="text-white/90 max-w-2xl mx-auto text-lg">
           Apoya al club, gana visibilidad real entre las familias del pueblo y la sierra.
           Elige tu colaboración y paga online en 1 minuto.
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 mt-5 text-white/90 text-sm font-semibold">
+          <a href="https://www.cdbustarviejo.com" target="_blank" rel="noopener noreferrer" className="hover:text-white underline underline-offset-2">🌐 cdbustarviejo.com</a>
+          <a href="https://www.instagram.com/cdbustarviejo" target="_blank" rel="noopener noreferrer" className="hover:text-white underline underline-offset-2">📸 Instagram</a>
+          <a href="https://www.facebook.com/cdbustarviejo" target="_blank" rel="noopener noreferrer" className="hover:text-white underline underline-offset-2">👍 Facebook</a>
+          <a href="https://t.me/cdbustarviejo" target="_blank" rel="noopener noreferrer" className="hover:text-white underline underline-offset-2">✈️ Telegram</a>
+        </div>
+        <p className="text-white/70 text-xs mt-4 max-w-xl mx-auto">
+          🔒 Pago seguro con tarjeta a través de Stripe. Entidad sin ánimo de lucro registrada.
         </p>
       </div>
 
@@ -92,6 +107,8 @@ export default function Colabora() {
           />
         </div>
       </div>
+
+      <SponsorFooter />
     </div>
   );
 }
