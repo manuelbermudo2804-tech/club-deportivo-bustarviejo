@@ -19,6 +19,7 @@ import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHead
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 import PorraPromoBanner from "../components/porra/PorraPromoBanner";
+import DailySummaryBanner from "../components/dashboard/DailySummaryBanner";
 
 
 export default function Home() {
@@ -659,6 +660,9 @@ export default function Home() {
         )}
 
 
+
+        {/* Resumen del Día - Solo Admin */}
+        {isAdmin && <DailySummaryBanner />}
 
         {/* ÚNICO BANNER CONSOLIDADO DE ALERTAS - Incluye TODO */}
         {(isAdmin || hasPlayers) && (
