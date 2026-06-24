@@ -41,6 +41,7 @@ Responde en español, de forma sencilla para alguien sin experiencia en trámite
           que_cubre: { type: 'string', description: 'Qué gastos cubre (equipaciones, material, escuelas, eventos...)' },
           importe: { type: 'string', description: 'Importe aproximado o cómo se calcula. Si no se sabe, indicarlo.' },
           fecha_limite: { type: 'string', description: 'Plazo o fecha límite si se conoce. Si no, indicarlo.' },
+          fecha_limite_iso: { type: 'string', description: 'La fecha límite de solicitud EXACTA en formato AAAA-MM-DD (ej: 2026-07-15). Déjalo VACÍO si no encuentras una fecha de cierre concreta y oficial.' },
           documentos: {
             type: 'array',
             description: 'Lista de documentos concretos que hay que presentar',
@@ -60,10 +61,18 @@ Responde en español, de forma sencilla para alguien sin experiencia en trámite
     });
 
     // Guardar el análisis en la alerta para no repetir la consulta
-    await base44.asServiceRole.entities.GrantAlert.update(alertId, {
+    const updates = {
       analisis_ia: JSON.stringify(analisis),
       analisis_fecha: new Date().toISOString(),
-    });
+    };
+    // Si la IA detectó una fecha límite concreta y la alerta aún no la tiene, rellenarla
+    // automáticamente para activar los avisos de cierre (7/3/1 días).
+    const iso = (analisis.fecha_limite_iso || '').trim();
+    if (!alert.fecha_limite && /^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+      updates.fecha_limite = iso;
+      updates.avisos_plazo_enviados = [];
+    }
+    await base44.asServiceRole.entities.GrantAlert.update(alertId, updates);
 
     return Response.json({ success: true, analisis });
   } catch (error) {
