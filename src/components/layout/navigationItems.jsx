@@ -4,7 +4,7 @@ import {
   Settings, MessageCircle, Clock, Image, FileText, Clover, UserCircle,
   FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert,
   ClipboardCheck, Star, Trophy, KeyRound, RotateCw, CheckCircle2,
-  User as UserIcon, Share2, ExternalLink, Shirt, Camera, HeartPulse, Handshake
+  User as UserIcon, Share2, ExternalLink, Shirt, Camera, HeartPulse
 } from "lucide-react";
 
 /**
@@ -78,7 +78,6 @@ export function buildAdminNavigation(ctx) {
     ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover, badge: pendingLotteryOrders > 0 ? pendingLotteryOrders : null }] : []),
     { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users, badge: pendingMemberRequests > 0 ? pendingMemberRequests : null },
     { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
-    { title: "🤝 CRM Patrocinadores", url: createPageUrl("SponsorCRM"), icon: Handshake },
     { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },
     { title: "📋 Contactos Web", url: createPageUrl("WebContacts"), icon: Users },
 
