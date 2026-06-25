@@ -52,30 +52,22 @@ export default function PageBuilderInscritos() {
     }
     (async () => {
       try {
-        const me = await base44.auth.me();
-        const p = await base44.entities.LandingPage.get(pageId);
-
-        // Validar acceso: admin O email en panel_gestion.emails_autorizados
-        const isAdmin = me?.role === "admin";
-        const authorized = (p?.panel_gestion?.emails_autorizados || [])
-          .map((e) => (e || "").toLowerCase().trim());
-        const myEmail = (me?.email || "").toLowerCase().trim();
-        if (!isAdmin && !authorized.includes(myEmail)) {
+        const { data } = await base44.functions.invoke("getLandingSubmissions", { landing_page_id: pageId });
+        if (data?.error) {
           setAccessDenied(true);
           setLoading(false);
           return;
         }
-
-        setPage(p);
-        const subs = await base44.entities.LandingSubmission.filter(
-          { landing_page_id: pageId },
-          "-created_date",
-          500
-        );
-        setSubmissions(subs || []);
+        setPage(data.page);
+        setSubmissions(data.submissions || []);
       } catch (err) {
         console.error(err);
-        toast.error("Error cargando inscritos");
+        // 403 → acceso denegado; otros errores → mensaje genérico
+        if (err?.response?.status === 403) {
+          setAccessDenied(true);
+        } else {
+          toast.error("Error cargando inscritos");
+        }
       } finally {
         setLoading(false);
       }
@@ -84,7 +76,7 @@ export default function PageBuilderInscritos() {
 
   const updateEstado = async (subId, estado) => {
     try {
-      await base44.entities.LandingSubmission.update(subId, { estado });
+      await base44.functions.invoke("manageLandingSubmission", { action: "update_estado", submission_id: subId, estado });
       setSubmissions((prev) => prev.map((s) => s.id === subId ? { ...s, estado } : s));
       if (selected?.id === subId) setSelected({ ...selected, estado });
       toast.success("Estado actualizado");
@@ -95,7 +87,7 @@ export default function PageBuilderInscritos() {
 
   const handleDelete = async (subId) => {
     try {
-      await base44.entities.LandingSubmission.delete(subId);
+      await base44.functions.invoke("manageLandingSubmission", { action: "delete", submission_id: subId });
       setSubmissions((prev) => prev.filter((s) => s.id !== subId));
       if (selected?.id === subId) setSelected(null);
       toast.success("Inscripción eliminada");
