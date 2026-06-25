@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Plus, X, Filter, ShoppingBag, Gift, Tag } from "lucide-react";
+import { toast } from "sonner";
 import ListingForm from "../components/market/ListingForm";
 
 const CATEGORIES = ['Fútbol','Baloncesto','Equipación','Calzado','Protecciones','Accesorios','Otro Deportivo'];
@@ -44,7 +45,7 @@ export default function Mercadillo() {
   useEffect(() => { setVisibleCount(20); }, [filter, category, priceMin, priceMax, q, listings]);
 
   const reserve = async (item) => {
-    if (!user) { alert('Debes estar conectado para reservar'); return; }
+    if (!user) { toast.error('Debes estar conectado para reservar'); return; }
     const comprador_nombre = user.full_name || user.email;
     await base44.entities.MarketReservation.create({
       listing_id: item.id, comprador_nombre, comprador_email: user.email,
@@ -70,7 +71,7 @@ export default function Mercadillo() {
       to: user.email, subject: `Has reservado: ${item.titulo}`,
       body: `Hemos avisado al vendedor (${item.vendedor_nombre || item.vendedor_email}).\nAnuncio: ${item.titulo} · ${Number(item.precio||0).toFixed(2)} €\n\nCD Bustarviejo`
     });
-    alert('¡Reserva enviada! Hemos avisado al vendedor.');
+    toast.success('¡Reserva enviada! Hemos avisado al vendedor.');
     await load();
   };
 
@@ -315,6 +316,16 @@ export default function Mercadillo() {
           <li>El vendedor puede editar o retirar su anuncio en cualquier momento.</li>
         </ul>
       </div>
+
+      {/* Botón flotante para publicar (móvil) */}
+      <button
+        onClick={() => { setEditing(null); setShowForm(true); }}
+        className="sm:hidden fixed bottom-24 right-4 z-40 bg-orange-600 hover:bg-orange-700 text-white rounded-full shadow-2xl px-5 py-3.5 flex items-center gap-2 font-bold active:scale-95 transition-transform"
+        aria-label="Publicar anuncio"
+      >
+        <Plus className="w-5 h-5" />
+        Publicar
+      </button>
 
       {/* Modal formulario */}
       <ListingForm
