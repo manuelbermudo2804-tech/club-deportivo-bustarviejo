@@ -22,25 +22,55 @@ Deno.serve(async (req) => {
     } catch { /* sin body */ }
     if (!since) since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-    const sinceFilter = { created_date: { $gte: since } };
+    const sinceMs = new Date(since).getTime();
 
-    // Helper: cuenta segura (nunca rompe el resumen completo si una entidad falla)
-    const countNew = async (entityName, extra = {}) => {
-      try {
-        const rows = await sr.entities[entityName].filter({ ...sinceFilter, ...extra }, '-created_date', 200);
-        return rows.length;
-      } catch {
-        return 0;
-      }
+    // Cuenta cuántos registros recientes son posteriores a `since`.
+    // El filtro por rango de fechas en servidor ($gte sobre created_date) no es
+    // fiable en esta plataforma, así que traemos los más recientes y filtramos
+    // la fecha aquí, en código.
+    const countNewerThanSince = (rows) => {
+      if (!Array.isArray(rows)) return 0;
+      return rows.filter((r) => {
+        const t = new Date(r.created_date).getTime();
+        return !isNaN(t) && t >= sinceMs;
+      }).length;
     };
-    const countAll = async (entityName, query = {}) => {
-      try {
-        const rows = await sr.entities[entityName].filter(query, '-created_date', 200);
-        return rows.length;
-      } catch {
-        return 0;
+
+    // Ejecuta una lista de funciones-promesa en lotes pequeños para no superar
+    // el límite de peticiones simultáneas (rate limit 429) de la base de datos.
+    const runInBatches = async (tasks, batchSize = 5) => {
+      const results = [];
+      for (let i = 0; i < tasks.length; i += batchSize) {
+        const batch = tasks.slice(i, i + batchSize);
+        const part = await Promise.all(batch.map((fn) => fn()));
+        results.push(...part);
+        // pequeña pausa entre lotes para repartir la carga
+        if (i + batchSize < tasks.length) await new Promise((r) => setTimeout(r, 120));
       }
+      return results;
     };
+
+    // Trae registros (reintenta una vez ante un 429) y aplica un mapeo opcional.
+    const safeFetch = async (entityName, query, map) => {
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const rows = await sr.entities[entityName].filter(query, '-created_date', 200);
+          return map ? map(rows) : rows.length;
+        } catch (err) {
+          const msg = (err?.message || '').toLowerCase();
+          if (attempt === 0 && (msg.includes('rate limit') || msg.includes('429'))) {
+            await new Promise((r) => setTimeout(r, 400));
+            continue;
+          }
+          return map ? 0 : 0;
+        }
+      }
+      return 0;
+    };
+    // Novedades: trae lo más reciente y cuenta lo posterior a `since` en código.
+    const countNew = (entityName, extra = {}) => () => safeFetch(entityName, extra, countNewerThanSince);
+    // Pendientes acumulados por estado: el filtro por estado sí es fiable.
+    const countAll = (entityName, query = {}) => () => safeFetch(entityName, query);
 
     // === NOVEDADES (desde la última visita) ===
     const [
@@ -66,7 +96,7 @@ Deno.serve(async (req) => {
       nuevosVoluntarios,
       nuevasBajasCuenta,
       nuevasReservasMercadillo,
-    ] = await Promise.all([
+    ] = await runInBatches([
       countNew('Player'),
       countNew('Payment', { is_deleted: { $ne: true } }),
       countNew('AccessRequest'),
@@ -127,7 +157,7 @@ Deno.serve(async (req) => {
       incidenciasLopiviAbiertas,
       bajasCuentaPendientes,
       categoriasARevisar,
-    ] = await Promise.all([
+    ] = await runInBatches([
       countAll('Payment', { estado: 'En revisión', is_deleted: { $ne: true } }),
       countAll('ClothingOrder', { estado: 'Pendiente' }),
       countAll('ClubMember', { estado_pago: 'Pendiente' }),
@@ -177,9 +207,9 @@ Deno.serve(async (req) => {
     let erroresDiagnostico = 0;
     try {
       const errs = await sr.entities.UploadDiagnostic.filter(
-        { ...sinceFilter, severity: 'critical' }, '-created_date', 100
+        { severity: 'critical' }, '-created_date', 200
       );
-      erroresDiagnostico = errs.length;
+      erroresDiagnostico = countNewerThanSince(errs);
     } catch { erroresDiagnostico = 0; }
     if (erroresDiagnostico > 0) {
       atencion.push({ id: 'errores_criticos', label: 'Errores críticos registrados', count: erroresDiagnostico, page: 'UploadDiagnostics', icon: 'AlertTriangle' });
