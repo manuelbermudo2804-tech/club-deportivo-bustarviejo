@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { base44 } from "@/api/base44Client";
 import {
-  Sparkles, ChevronDown, ChevronUp, ChevronRight, CheckCircle2,
+  Sparkles, ChevronDown, ChevronUp, ChevronRight, CheckCircle2, Check,
   UserPlus, CreditCard, KeyRound, Users, Shirt, Clover, Mail, ClipboardList,
   MessageSquare, Globe, PartyPopper, Hash, Handshake, Briefcase, FileText,
   Trophy, Heart, ShieldAlert, AlertTriangle, Bell, ShoppingBag, HandHeart,
@@ -42,13 +42,16 @@ export default function DailySummaryBanner() {
     return () => { cancelled = true; };
   }, []);
 
-  // Al desplegar por primera vez, marcamos "visto ahora" para la próxima sesión
-  const handleToggle = () => {
-    const next = !expanded;
-    setExpanded(next);
-    if (next) {
-      try { localStorage.setItem(LS_KEY, new Date().toISOString()); } catch {}
-    }
+  // Solo abrir/cerrar el desplegable. NO marca "visto" — así visitar una novedad
+  // no borra el resto del resumen. El admin marca todo como visto manualmente.
+  const handleToggle = () => setExpanded((v) => !v);
+
+  // Marca "visto ahora": en la próxima carga, el resumen arrancará limpio.
+  const handleMarkAllSeen = (e) => {
+    e.stopPropagation();
+    try { localStorage.setItem(LS_KEY, new Date().toISOString()); } catch {}
+    setData({ ...data, novedades: [], atencion: [], totales: { novedades: 0, atencion: 0 } });
+    setExpanded(false);
   };
 
   if (loading) {
@@ -116,6 +119,13 @@ export default function DailySummaryBanner() {
           {data.novedades?.length > 0 && (
             <Section title="🆕 Novedades desde tu última visita" items={data.novedades} accent="indigo" />
           )}
+          <button
+            onClick={handleMarkAllSeen}
+            className="w-full flex items-center justify-center gap-2 bg-slate-700/60 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold rounded-lg py-2 transition-colors"
+          >
+            <Check className="w-4 h-4" />
+            Marcar todo como visto
+          </button>
         </div>
       )}
       {expanded && nada && (
