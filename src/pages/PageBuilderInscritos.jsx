@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Download, Loader2, Search, Mail, Phone, Users, Trash2, MessageCircle } from "lucide-react";
+import { ArrowLeft, Download, Loader2, Search, Mail, Phone, Users, Trash2, MessageCircle, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import SubmissionDataView from "@/components/page-builder/SubmissionDataView";
 import { buildInscritosText } from "@/components/page-builder/inscritosShareText";
@@ -191,6 +191,9 @@ export default function PageBuilderInscritos() {
           </h1>
           <p className="text-sm text-slate-500">{stats.total} inscripciones recibidas</p>
         </div>
+        <Button onClick={() => navigate(`/PageBuilderPreInscritos?id=${pageId}`)} size="sm" variant="outline" className="gap-2 border-amber-300 text-amber-700 hover:bg-amber-50">
+          <AlertTriangle className="w-4 h-4" /> Sin completar
+        </Button>
         <Button onClick={shareWhatsApp} size="sm" className="gap-2 bg-green-600 hover:bg-green-700">
           <MessageCircle className="w-4 h-4" /> WhatsApp
         </Button>

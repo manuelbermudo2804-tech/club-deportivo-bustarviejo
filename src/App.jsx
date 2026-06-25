@@ -52,6 +52,7 @@ import PublicLanding from '@/pages/PublicLanding';
 import PageBuilder from '@/pages/PageBuilder';
 import PageBuilderEditor from '@/pages/PageBuilderEditor';
 import PageBuilderInscritos from '@/pages/PageBuilderInscritos';
+import PageBuilderPreInscritos from '@/pages/PageBuilderPreInscritos';
 import PageBuilderAnalytics from '@/pages/PageBuilderAnalytics';
 import PageBuilderGuia from '@/pages/PageBuilderGuia';
 import DorsalManagement from '@/pages/DorsalManagement';
@@ -208,6 +209,7 @@ const AuthenticatedApp = () => {
       <Route path="/PageBuilder" element={<LayoutWrapper currentPageName="PageBuilder"><PageBuilder /></LayoutWrapper>} />
       <Route path="/PageBuilderEditor" element={<LayoutWrapper currentPageName="PageBuilderEditor"><PageBuilderEditor /></LayoutWrapper>} />
       <Route path="/PageBuilderInscritos" element={<LayoutWrapper currentPageName="PageBuilderInscritos"><PageBuilderInscritos /></LayoutWrapper>} />
+      <Route path="/PageBuilderPreInscritos" element={<LayoutWrapper currentPageName="PageBuilderPreInscritos"><PageBuilderPreInscritos /></LayoutWrapper>} />
       <Route path="/PageBuilderAnalytics" element={<LayoutWrapper currentPageName="PageBuilderAnalytics"><PageBuilderAnalytics /></LayoutWrapper>} />
       <Route path="/PageBuilderGuia" element={<LayoutWrapper currentPageName="PageBuilderGuia"><PageBuilderGuia /></LayoutWrapper>} />
       <Route path="/DorsalManagement" element={<LayoutWrapper currentPageName="DorsalManagement"><DorsalManagement /></LayoutWrapper>} />

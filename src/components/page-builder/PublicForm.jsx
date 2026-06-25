@@ -64,7 +64,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
   }, [paymentSuccess]);
 
   // Red de seguridad: page_view, form_started, form_abandoned, snapshot
-  const { trackEvent, logFormStartedOnce, saveDraft, clearDraft } = usePublicFormTracker({
+  const { trackEvent, logFormStartedOnce, saveDraft, clearDraft, savePreRegistro } = usePublicFormTracker({
     landingSlug,
     landingId,
     getValues: () => values,
@@ -74,7 +74,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
   // Snapshot del borrador en cuanto cambian valores (debounced suave)
   useEffect(() => {
     if (success || waitlistSuccess) return;
-    const t = setTimeout(() => { saveDraft(); }, 800);
+    const t = setTimeout(() => { saveDraft(); savePreRegistro(false); }, 800);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values]);
@@ -288,6 +288,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
             sessionStorage.setItem(`landing_payment_${landingId}`, JSON.stringify({ values, ts: Date.now() }));
           } catch {}
           trackEvent("payment_redirect", { session_id: res.data.session_id, importe: importeTotal });
+          savePreRegistro(false);
           window.location.href = res.data.url;
           return;
         }
@@ -311,6 +312,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
       if (res?.data?.error) throw new Error(res.data.error);
 
       trackEvent("submit_success", { submission_id: res?.data?.submission_id, form_data: values });
+      savePreRegistro(true);
       clearDraft();
       setSuccess(true);
     } catch (err) {

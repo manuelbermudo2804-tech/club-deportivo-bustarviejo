@@ -1,0 +1,83 @@
+{
+  "name": "PreInscripcion",
+  "type": "object",
+  "properties": {
+    "landing_slug": {
+      "type": "string",
+      "description": "Slug de la landing donde se empez\u00f3 a rellenar"
+    },
+    "landing_page_id": {
+      "type": "string",
+      "description": "ID de la LandingPage"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "ID de sesi\u00f3n del navegador (para identificar y actualizar el mismo borrador en vez de duplicar)"
+    },
+    "nombre_equipo": {
+      "type": "string",
+      "description": "Nombre del equipo / inscripci\u00f3n escrito por el usuario"
+    },
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del responsable / persona de contacto"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email de contacto"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto"
+    },
+    "datos": {
+      "type": "object",
+      "description": "Snapshot de todos los campos rellenos hasta el momento"
+    },
+    "completada": {
+      "type": "boolean",
+      "default": false,
+      "description": "TRUE si finalmente complet\u00f3 la inscripci\u00f3n real (LandingSubmission)"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "contactado",
+        "recuperado",
+        "descartado"
+      ],
+      "default": "pendiente",
+      "description": "Seguimiento manual del admin sobre el pre-registro"
+    }
+  },
+  "required": [
+    "landing_slug"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "session_id"
+      ]
+    },
+    {
+      "fields": [
+        "landing_page_id"
+      ]
+    }
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {},
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

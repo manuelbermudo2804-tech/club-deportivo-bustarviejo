@@ -125,11 +125,52 @@ export default function usePublicFormTracker({ landingSlug, landingId, getValues
     trackEvent("form_started");
   };
 
+  // ---- Pre-registro: guarda el equipo en cuanto hay nombre de equipo + contacto ----
+  // Así nunca se pierde un equipo que empezó a apuntarse aunque no termine el formulario.
+  const preRegistroSavedRef = useRef(false);
+
+  const pickByKeyword = (v, keywords) => {
+    for (const [k, val] of Object.entries(v || {})) {
+      if (val === undefined || val === null || String(val).trim() === "") continue;
+      const lk = k.toLowerCase();
+      if (keywords.some((kw) => lk.includes(kw))) return String(val).trim();
+    }
+    return "";
+  };
+
+  const savePreRegistro = (completada = false) => {
+    if (typeof window === "undefined") return;
+    const v = valuesRef.current || {};
+    const nombre_equipo = v.nombre_equipo || pickByKeyword(v, ["equipo"]) || "";
+    const email = v.email || pickByKeyword(v, ["email", "correo"]) || "";
+    const telefono = v.telefono || pickByKeyword(v, ["telefono", "teléfono", "movil", "móvil", "tel"]) || "";
+    const nombre = v.nombre || v.responsable || pickByKeyword(v, ["responsable", "nombre"]) || "";
+    const contacto = email || telefono;
+    // Solo guardamos si hay algo identificable + un dato de contacto
+    if (!completada && (!(nombre_equipo || nombre) || !contacto)) return;
+    if (preRegistroSavedRef.current && !completada) {
+      // Ya guardado: solo re-guardamos al completar o periódicamente desde saveDraft
+    }
+    preRegistroSavedRef.current = true;
+    safeFetch(`${window.location.origin}/functions/savePreInscripcion`, {
+      landing_slug: landingSlug,
+      landing_page_id: landingId,
+      session_id: sessionIdRef.current,
+      nombre_equipo,
+      nombre,
+      email,
+      telefono,
+      datos: v,
+      completada,
+    });
+  };
+
   return {
     trackEvent,
     logFormStartedOnce,
     saveDraft,
     clearDraft,
+    savePreRegistro,
     sessionId: sessionIdRef.current,
   };
 }
