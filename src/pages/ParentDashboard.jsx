@@ -24,6 +24,7 @@ import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
 import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 import PorraPromoBanner from "../components/porra/PorraPromoBanner";
 import IncompleteDocsBanner from "../components/players/IncompleteDocsBanner";
+import MercadilloBanner from "../components/market/MercadilloBanner";
 
 
 
@@ -559,6 +560,9 @@ export default function ParentDashboard() {
 
         {/* Banner promocional Porra Mundial 2026 */}
         <PorraPromoBanner />
+
+        {/* Banner de novedades del Mercadillo (solo si hay anuncios nuevos) */}
+        <MercadilloBanner />
 
         {/* HAZTE SOCIO BANNER - COMPACTO */}
         <Link to={createPageUrl("ClubMembership")}>
