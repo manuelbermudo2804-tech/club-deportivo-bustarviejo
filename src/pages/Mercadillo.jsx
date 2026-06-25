@@ -317,16 +317,6 @@ export default function Mercadillo() {
         </ul>
       </div>
 
-      {/* Botón flotante para publicar (móvil) */}
-      <button
-        onClick={() => { setEditing(null); setShowForm(true); }}
-        className="sm:hidden fixed bottom-24 right-4 z-40 bg-orange-600 hover:bg-orange-700 text-white rounded-full shadow-2xl px-5 py-3.5 flex items-center gap-2 font-bold active:scale-95 transition-transform"
-        aria-label="Publicar anuncio"
-      >
-        <Plus className="w-5 h-5" />
-        Publicar
-      </button>
-
       {/* Modal formulario */}
       <ListingForm
         listing={editing}
