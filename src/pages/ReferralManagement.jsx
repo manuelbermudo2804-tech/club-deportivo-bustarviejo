@@ -13,7 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
-  Users, Gift, Shirt, Ticket, Hotel, Trophy, Search, 
+  Users, Gift, Ticket, Hotel, Trophy, Search, 
   CheckCircle2, Clock, Crown, Star, Sparkles, Download,
   Eye, Award, PartyPopper, Dices, Play, History, Package,
   Plus, HelpCircle, Info, UserPlus, AlertCircle, Brain, BarChart3
@@ -151,34 +151,27 @@ export default function ReferralManagement() {
         referrer_name: referrer.full_name,
         referred_member_id: `manual_${Date.now()}`,
         referred_member_name: referredName,
-        temporada: seasonConfig?.temporada,
-        clothing_credit_earned: seasonConfig?.referidos_premio_1 || 5
+        temporada: seasonConfig?.temporada
       });
 
       // Calcular nuevos valores
       const newCount = (referrer.referrals_count || 0) + 1;
-      let newCredit = (referrer.clothing_credit_balance || 0) + (seasonConfig?.referidos_premio_1 || 5);
       let newRaffles = referrer.raffle_entries_total || 0;
 
-      // Bonificaciones por niveles
+      // Bonificaciones por niveles (solo papeletas de sorteo)
       if (newCount === 3) {
-        newCredit += (seasonConfig?.referidos_premio_3 || 15) - (seasonConfig?.referidos_premio_1 || 5);
         newRaffles += seasonConfig?.referidos_sorteo_3 || 1;
       } else if (newCount === 5) {
-        newCredit += (seasonConfig?.referidos_premio_5 || 25) - (seasonConfig?.referidos_premio_3 || 15);
         newRaffles += (seasonConfig?.referidos_sorteo_5 || 3) - (seasonConfig?.referidos_sorteo_3 || 1);
       } else if (newCount === 10) {
-        newCredit += (seasonConfig?.referidos_premio_10 || 50) - (seasonConfig?.referidos_premio_5 || 25);
         newRaffles += (seasonConfig?.referidos_sorteo_10 || 5) - (seasonConfig?.referidos_sorteo_5 || 3);
       } else if (newCount === 15) {
-        newCredit += (seasonConfig?.referidos_premio_15 || 50) - (seasonConfig?.referidos_premio_10 || 50);
         newRaffles += (seasonConfig?.referidos_sorteo_15 || 10) - (seasonConfig?.referidos_sorteo_10 || 5);
       }
 
       // Actualizar usuario
       await base44.entities.User.update(referrer.id, {
         referrals_count: newCount,
-        clothing_credit_balance: newCredit,
         raffle_entries_total: newRaffles
       });
 
@@ -205,7 +198,6 @@ export default function ReferralManagement() {
       return {
         ...u,
         referrals_count: userReferrals.length,
-        clothing_credit_balance: userReferrals.reduce((sum, r) => sum + (r.credito_otorgado || 0), 0),
         raffle_entries_total: userReferrals.reduce((sum, r) => sum + (r.sorteos_otorgados || 0), 0)
       };
     })
@@ -220,7 +212,6 @@ export default function ReferralManagement() {
 
   // Estadísticas generales
   const totalReferrals = usersWithReferrals.reduce((sum, u) => sum + (u.referrals_count || 0), 0);
-  const totalCredit = usersWithReferrals.reduce((sum, u) => sum + (u.clothing_credit_balance || 0), 0);
   const totalRaffleEntries = usersWithReferrals.reduce((sum, u) => sum + (u.raffle_entries_total || 0), 0);
   const diamondUsers = usersWithReferrals.filter(u => (u.referrals_count || 0) >= 15).length;
 
@@ -300,14 +291,13 @@ export default function ReferralManagement() {
       nombre: u.full_name,
       email: u.email,
       referidos: u.referrals_count || 0,
-      credito_ropa: u.clothing_credit_balance || 0,
       participaciones_sorteo: u.raffle_entries_total || 0,
       nivel: getTierForCount(u.referrals_count || 0)?.label || "Sin nivel"
     }));
 
     const csv = [
-      ["Nombre", "Email", "Referidos", "Crédito Ropa (€)", "Participaciones Sorteo", "Nivel"],
-      ...data.map(d => [d.nombre, d.email, d.referidos, d.credito_ropa, d.participaciones_sorteo, d.nivel])
+      ["Nombre", "Email", "Referidos", "Participaciones Sorteo", "Nivel"],
+      ...data.map(d => [d.nombre, d.email, d.referidos, d.participaciones_sorteo, d.nivel])
     ].map(row => row.join(",")).join("\n");
 
     const blob = new Blob([csv], { type: "text/csv" });
@@ -370,17 +360,17 @@ export default function ReferralManagement() {
                   </p>
                   <p className="flex items-start gap-2 text-slate-700">
                     <span className="text-lg">3️⃣</span>
-                    <span>El sistema <strong>suma automáticamente</strong> crédito en ropa y participaciones en sorteos</span>
+                    <span>El sistema <strong>suma automáticamente</strong> participaciones en los sorteos</span>
                   </p>
                 </div>
                 <div className="bg-white rounded-xl p-3 border border-purple-200">
                   <p className="font-semibold text-purple-800 mb-2">📊 Premios por amigos:</p>
                     <div className="space-y-1 text-xs">
-                      <p>🎁 <strong>1 amigo:</strong> 5€ en ropa</p>
-                      <p>⭐ <strong>3 amigos:</strong> 15€ + 1 participación sorteo</p>
-                      <p>🏆 <strong>5 amigos:</strong> 25€ + 3 participaciones</p>
-                      <p>👑 <strong>10 amigos:</strong> 50€ + 5 participaciones</p>
-                      <p>🏨 <strong>15 amigos:</strong> 50€ + 10 participaciones + HOTEL</p>
+                      <p>🎁 <strong>1 amigo:</strong> ¡entras en el sorteo!</p>
+                      <p>⭐ <strong>3 amigos:</strong> 1 participación sorteo</p>
+                      <p>🏆 <strong>5 amigos:</strong> 3 participaciones</p>
+                      <p>👑 <strong>10 amigos:</strong> 5 participaciones</p>
+                      <p>🏨 <strong>15 amigos:</strong> 10 participaciones + HOTEL</p>
                     </div>
                 </div>
               </div>
@@ -423,7 +413,7 @@ export default function ReferralManagement() {
         <TabsContent value="ranking" className="space-y-6 mt-6">
 
       {/* Estadísticas */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white">
           <CardContent className="p-4 text-center">
             <Users className="w-8 h-8 mx-auto mb-2 opacity-80" />
@@ -436,13 +426,6 @@ export default function ReferralManagement() {
             <Trophy className="w-8 h-8 mx-auto mb-2 opacity-80" />
             <p className="text-3xl font-bold">{totalReferrals}</p>
             <p className="text-sm opacity-80">Total Referidos</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white">
-          <CardContent className="p-4 text-center">
-            <Shirt className="w-8 h-8 mx-auto mb-2 opacity-80" />
-            <p className="text-3xl font-bold">{totalCredit}€</p>
-            <p className="text-sm opacity-80">Crédito Total</p>
           </CardContent>
         </Card>
         <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white">
@@ -496,7 +479,6 @@ export default function ReferralManagement() {
                     <TableHead>Usuario</TableHead>
                     <TableHead className="text-center">Amigos</TableHead>
                     <TableHead className="text-center">Nivel</TableHead>
-                    <TableHead className="text-center">Crédito Ropa</TableHead>
                     <TableHead className="text-center">Sorteos</TableHead>
                     <TableHead className="text-center">Acciones</TableHead>
                   </TableRow>
@@ -528,11 +510,6 @@ export default function ReferralManagement() {
                               {tier.emoji} {tier.label}
                             </Badge>
                           )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <span className="font-semibold text-green-600">
-                            {user.clothing_credit_balance || 0}€
-                          </span>
                         </TableCell>
                         <TableCell className="text-center">
                           <span className="font-semibold text-orange-600">
@@ -589,7 +566,6 @@ export default function ReferralManagement() {
                         <TableHead>Quién Refirió</TableHead>
                         <TableHead>Nuevo Socio</TableHead>
                         <TableHead>Temporada</TableHead>
-                        <TableHead className="text-center">Crédito</TableHead>
                         <TableHead>Fecha</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -611,13 +587,6 @@ export default function ReferralManagement() {
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline">{ref.temporada}</Badge>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {ref.limite_alcanzado ? (
-                              <Badge className="bg-slate-400">Límite</Badge>
-                            ) : (
-                              <Badge className="bg-green-600">+{ref.clothing_credit_earned || 0}€</Badge>
-                            )}
                           </TableCell>
                           <TableCell className="text-xs text-slate-500">
                             {new Date(ref.created_date).toLocaleDateString('es-ES')}
@@ -959,7 +928,7 @@ export default function ReferralManagement() {
             {newReferral.referrer_email && (
               <div className="bg-green-50 rounded-xl p-3 border border-green-200">
                 <p className="text-sm text-green-800">
-                  <strong>Premio que recibirá:</strong> +{seasonConfig?.referidos_premio_1 || 5}€ en crédito de ropa
+                  <strong>Premio:</strong> suma un amigo y participaciones en el sorteo según su nivel
                 </p>
               </div>
             )}
@@ -996,16 +965,11 @@ export default function ReferralManagement() {
           {selectedUser && (
             <div className="space-y-4">
               {/* Resumen */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="bg-purple-50 rounded-xl p-4 text-center border-2 border-purple-200">
                   <Users className="w-6 h-6 mx-auto mb-1 text-purple-600" />
                   <p className="text-2xl font-bold text-purple-700">{selectedUser.referrals_count || 0}</p>
                   <p className="text-xs text-purple-600">Referidos</p>
-                </div>
-                <div className="bg-green-50 rounded-xl p-4 text-center border-2 border-green-200">
-                  <Shirt className="w-6 h-6 mx-auto mb-1 text-green-600" />
-                  <p className="text-2xl font-bold text-green-700">{selectedUser.clothing_credit_balance || 0}€</p>
-                  <p className="text-xs text-green-600">Crédito Ropa</p>
                 </div>
                 <div className="bg-orange-50 rounded-xl p-4 text-center border-2 border-orange-200">
                   <Ticket className="w-6 h-6 mx-auto mb-1 text-orange-600" />
@@ -1047,9 +1011,10 @@ export default function ReferralManagement() {
                         </div>
                       </div>
                       <div className="text-right text-xs">
-                       <p className="text-green-600">+{ref.credito_otorgado || 0}€</p>
-                       {ref.sorteos_otorgados > 0 && (
+                       {ref.sorteos_otorgados > 0 ? (
                          <p className="text-orange-600">+{ref.sorteos_otorgados} sorteo(s)</p>
+                       ) : (
+                         <p className="text-slate-400">—</p>
                        )}
                       </div>
                     </div>

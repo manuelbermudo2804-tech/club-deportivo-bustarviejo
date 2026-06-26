@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Gift, Star, Trophy, Hotel, Shirt, Ticket, Sparkles, Heart, Users, Crown, Zap, PartyPopper, Share2, MessageCircle, Copy, Bot, Brain } from "lucide-react";
+import { Gift, Star, Trophy, Hotel, Ticket, Sparkles, Heart, Users, Crown, Zap, PartyPopper, Share2, MessageCircle, Copy, Bot, Brain } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -18,7 +18,7 @@ const REWARD_TIERS = [
   { count: 15, color: "from-pink-500 to-pink-600", bgColor: "bg-pink-50", borderColor: "border-pink-300", title: "15 Socios", emoji: "🏨" }
 ];
 
-export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userCredit = 0, userRaffleEntries = 0, userFemeninoReferrals = 0, userEmail = "", userName = "", hasPlayersInClub = false }) {
+export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userRaffleEntries = 0, userFemeninoReferrals = 0, userEmail = "", userName = "", hasPlayersInClub = false }) {
   // AI Assistant State — must be before any early returns (React hooks rules)
   const [showAiModal, setShowAiModal] = useState(false);
   const [targetType, setTargetType] = useState("");
@@ -102,12 +102,12 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
 
   const getRewardForTier = (count) => {
     switch (count) {
-      case 1: return { credit: seasonConfig.referidos_premio_1 || 5, raffles: 0, special: null };
-      case 3: return { credit: seasonConfig.referidos_premio_3 || 15, raffles: seasonConfig.referidos_sorteo_3 || 1, special: null };
-      case 5: return { credit: seasonConfig.referidos_premio_5 || 25, raffles: seasonConfig.referidos_sorteo_5 || 3, special: null };
-      case 10: return { credit: seasonConfig.referidos_premio_10 || 50, raffles: seasonConfig.referidos_sorteo_10 || 5, special: "Reconocimiento en la web" };
-      case 15: return { credit: seasonConfig.referidos_premio_15 || 50, raffles: seasonConfig.referidos_sorteo_15 || 10, special: seasonConfig.referidos_premio_hotel ? "🏨 ¡NOCHE DE HOTEL PARA DOS!" : null };
-      default: return { credit: 0, raffles: 0, special: null };
+      case 1: return { raffles: 0, special: "¡Entras en el sorteo!" };
+      case 3: return { raffles: seasonConfig.referidos_sorteo_3 || 1, special: null };
+      case 5: return { raffles: seasonConfig.referidos_sorteo_5 || 3, special: null };
+      case 10: return { raffles: seasonConfig.referidos_sorteo_10 || 5, special: "Reconocimiento en la web" };
+      case 15: return { raffles: seasonConfig.referidos_sorteo_15 || 10, special: seasonConfig.referidos_premio_hotel ? "🏨 ¡NOCHE DE HOTEL PARA DOS!" : null };
+      default: return { raffles: 0, special: null };
     }
   };
 
@@ -287,10 +287,6 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
               </p>
               <div className="flex justify-center gap-3 mt-2">
                 <div className="bg-white/30 backdrop-blur-sm rounded-xl px-3 py-2">
-                  <p className="text-white font-bold text-lg">+{seasonConfig.bonus_femenino_credito || 10}€</p>
-                  <p className="text-white/80 text-xs">extra en ropa</p>
-                </div>
-                <div className="bg-white/30 backdrop-blur-sm rounded-xl px-3 py-2">
                   <p className="text-white font-bold text-lg">+{seasonConfig.bonus_femenino_sorteos || 2}</p>
                   <p className="text-white/80 text-xs">sorteos extra</p>
                 </div>
@@ -343,17 +339,10 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
               <Badge className="bg-purple-600 text-white text-lg px-3">{userReferrals}</Badge>
             </div>
             
-            <div className="grid grid-cols-2 gap-3">
-              <div className="bg-green-50 rounded-xl p-3 text-center border-2 border-green-200">
-                <Shirt className="w-6 h-6 text-green-600 mx-auto mb-1" />
-                <p className="text-2xl font-bold text-green-700">{userCredit}€</p>
-                <p className="text-xs text-green-600">Crédito en ropa</p>
-              </div>
-              <div className="bg-orange-50 rounded-xl p-3 text-center border-2 border-orange-200">
-                <Ticket className="w-6 h-6 text-orange-600 mx-auto mb-1" />
-                <p className="text-2xl font-bold text-orange-700">{userRaffleEntries}</p>
-                <p className="text-xs text-orange-600">Participaciones sorteo</p>
-              </div>
+            <div className="bg-orange-50 rounded-xl p-3 text-center border-2 border-orange-200">
+              <Ticket className="w-6 h-6 text-orange-600 mx-auto mb-1" />
+              <p className="text-2xl font-bold text-orange-700">{userRaffleEntries}</p>
+              <p className="text-xs text-orange-600">Participaciones en sorteos</p>
             </div>
 
             {nextTier && (
@@ -405,12 +394,13 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
                       <div>
                         <p className="font-bold text-slate-900">{tier.title}</p>
                         <div className="flex flex-wrap gap-1 mt-1">
-                          <Badge variant="outline" className="text-xs bg-green-50 text-green-700 border-green-300">
-                            <Shirt className="w-3 h-3 mr-1" /> {reward.credit}€ ropa
-                          </Badge>
-                          {reward.raffles > 0 && (
+                          {reward.raffles > 0 ? (
                             <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-300">
                               <Ticket className="w-3 h-3 mr-1" /> {reward.raffles} sorteo(s)
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-300">
+                              <Sparkles className="w-3 h-3 mr-1" /> ¡Entras en el sorteo!
                             </Badge>
                           )}
                         </div>
@@ -437,7 +427,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
             <h4 className="text-xl font-bold text-pink-800 mb-1">¡PREMIO ESTRELLA!</h4>
             <p className="text-pink-700 font-medium">Trae <strong>15 socios amigos</strong> y gana una</p>
             <p className="text-2xl font-bold text-pink-900 mt-1">🌙 NOCHE DE HOTEL PARA DOS 🌙</p>
-            <p className="text-xs text-pink-600 mt-2">+ 50€ en ropa + 10 participaciones en sorteos</p>
+            <p className="text-xs text-pink-600 mt-2">+ 10 participaciones en los sorteos</p>
           </div>
         )}
 
@@ -482,7 +472,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
         )}
 
             <p className="text-center text-xs text-white/70">
-              * Los premios se pueden usar en pedidos de ropa del club. Los sorteos se realizan al final de la temporada.
+              * Los sorteos se realizan al final de la temporada entre todos los participantes.
             </p>
           </>
         )}

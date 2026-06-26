@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Gift, Shirt, Ticket, Hotel, Save, ChevronDown, ChevronUp, Sparkles, Trophy, Plus, Trash2, CheckCircle2 } from "lucide-react";
+import { Gift, Ticket, Hotel, Save, ChevronDown, ChevronUp, Sparkles, Trophy, Plus, Trash2, CheckCircle2 } from "lucide-react";
 
 const DEFAULT_PRIZES = [
   { nombre: "Cena para dos", descripcion: "Cena en restaurante local", emoji: "🍽️" },
@@ -28,19 +28,13 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
     tier_5_activo: sc?.tier_5_activo ?? true,
     tier_10_activo: sc?.tier_10_activo ?? true,
     tier_15_activo: sc?.tier_15_activo ?? true,
-    referidos_premio_1: sc?.referidos_premio_1 ?? 5,
-    referidos_premio_3: sc?.referidos_premio_3 ?? 15,
     referidos_sorteo_3: sc?.referidos_sorteo_3 ?? 1,
-    referidos_premio_5: sc?.referidos_premio_5 ?? 25,
     referidos_sorteo_5: sc?.referidos_sorteo_5 ?? 3,
-    referidos_premio_10: sc?.referidos_premio_10 ?? 50,
     referidos_sorteo_10: sc?.referidos_sorteo_10 ?? 5,
-    referidos_premio_15: sc?.referidos_premio_15 ?? 50,
     referidos_sorteo_15: sc?.referidos_sorteo_15 ?? 10,
     referidos_premio_hotel: sc?.referidos_premio_hotel ?? true,
     sorteo_premios: sc?.sorteo_premios || DEFAULT_PRIZES,
     bonus_femenino_activo: sc?.bonus_femenino_activo ?? false,
-    bonus_femenino_credito: sc?.bonus_femenino_credito ?? 10,
     bonus_femenino_sorteos: sc?.bonus_femenino_sorteos ?? 2
   });
 
@@ -135,9 +129,8 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
             </div>
             {localConfig.tier_1_activo && (
               <div className="flex items-center gap-3">
-                <Shirt className="w-5 h-5 text-green-600" />
-                <Label className="text-sm">Crédito en ropa (€):</Label>
-                <Input type="number" value={localConfig.referidos_premio_1} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_1: Number(e.target.value) }))} className="w-20" />
+                <Sparkles className="w-5 h-5 text-purple-600" />
+                <Label className="text-sm">Al traer 1 amigo, ¡entra en el sorteo de fin de temporada!</Label>
               </div>
             )}
           </div>
@@ -152,17 +145,10 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
               </div>
             </div>
             {localConfig.tier_3_activo && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="flex items-center gap-3">
-                  <Shirt className="w-5 h-5 text-green-600" />
-                  <Label className="text-sm">Crédito (€):</Label>
-                  <Input type="number" value={localConfig.referidos_premio_3} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_3: Number(e.target.value) }))} className="w-20" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <Ticket className="w-5 h-5 text-orange-600" />
-                  <Label className="text-sm">Sorteos:</Label>
-                  <Input type="number" value={localConfig.referidos_sorteo_3} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_3: Number(e.target.value) }))} className="w-20" />
-                </div>
+              <div className="flex items-center gap-3">
+                <Ticket className="w-5 h-5 text-orange-600" />
+                <Label className="text-sm">Participaciones en sorteo:</Label>
+                <Input type="number" value={localConfig.referidos_sorteo_3} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_3: Number(e.target.value) }))} className="w-20" />
               </div>
             )}
           </div>
@@ -177,17 +163,10 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
               </div>
             </div>
             {localConfig.tier_5_activo && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="flex items-center gap-3">
-                  <Shirt className="w-5 h-5 text-green-600" />
-                  <Label className="text-sm">Crédito (€):</Label>
-                  <Input type="number" value={localConfig.referidos_premio_5} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_5: Number(e.target.value) }))} className="w-20" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <Ticket className="w-5 h-5 text-orange-600" />
-                  <Label className="text-sm">Sorteos:</Label>
-                  <Input type="number" value={localConfig.referidos_sorteo_5} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_5: Number(e.target.value) }))} className="w-20" />
-                </div>
+              <div className="flex items-center gap-3">
+                <Ticket className="w-5 h-5 text-orange-600" />
+                <Label className="text-sm">Participaciones en sorteo:</Label>
+                <Input type="number" value={localConfig.referidos_sorteo_5} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_5: Number(e.target.value) }))} className="w-20" />
               </div>
             )}
           </div>
@@ -205,17 +184,10 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
               </div>
             </div>
             {localConfig.tier_10_activo && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="flex items-center gap-3">
-                  <Shirt className="w-5 h-5 text-green-600" />
-                  <Label className="text-sm">Crédito (€):</Label>
-                  <Input type="number" value={localConfig.referidos_premio_10} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_10: Number(e.target.value) }))} className="w-20" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <Ticket className="w-5 h-5 text-orange-600" />
-                  <Label className="text-sm">Sorteos:</Label>
-                  <Input type="number" value={localConfig.referidos_sorteo_10} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_10: Number(e.target.value) }))} className="w-20" />
-                </div>
+              <div className="flex items-center gap-3">
+                <Ticket className="w-5 h-5 text-orange-600" />
+                <Label className="text-sm">Participaciones en sorteo:</Label>
+                <Input type="number" value={localConfig.referidos_sorteo_10} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_10: Number(e.target.value) }))} className="w-20" />
               </div>
             )}
           </div>
@@ -231,17 +203,10 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
             </div>
             {localConfig.tier_15_activo && (
               <div className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="flex items-center gap-3">
-                    <Shirt className="w-5 h-5 text-green-600" />
-                    <Label className="text-sm">Crédito (€):</Label>
-                    <Input type="number" value={localConfig.referidos_premio_15} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_premio_15: Number(e.target.value) }))} className="w-20" />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Ticket className="w-5 h-5 text-orange-600" />
-                    <Label className="text-sm">Sorteos:</Label>
-                    <Input type="number" value={localConfig.referidos_sorteo_15} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_15: Number(e.target.value) }))} className="w-20" />
-                  </div>
+                <div className="flex items-center gap-3">
+                  <Ticket className="w-5 h-5 text-orange-600" />
+                  <Label className="text-sm">Participaciones en sorteo:</Label>
+                  <Input type="number" value={localConfig.referidos_sorteo_15} onChange={(e) => setLocalConfig(prev => ({ ...prev, referidos_sorteo_15: Number(e.target.value) }))} className="w-20" />
                 </div>
                 <div className="flex items-center gap-3 pt-2 border-t border-pink-200">
                   <Hotel className="w-5 h-5 text-pink-600" />
@@ -257,7 +222,7 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
                 <Badge className={localConfig.bonus_femenino_activo ? "bg-pink-600" : "bg-slate-400"}>⚽👧 Bonus Fútbol Femenino</Badge>
-                <span className="text-xs text-pink-700 font-medium">¡Doble premio!</span>
+                <span className="text-xs text-pink-700 font-medium">¡Sorteos extra!</span>
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-xs text-slate-600">Activar</Label>
@@ -267,22 +232,15 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating 
             {localConfig.bonus_femenino_activo && (
               <>
                 <p className="text-xs text-pink-800 mb-3 bg-white/80 rounded-lg p-2">
-                  💡 <strong>¡Incentivo especial!</strong> Los padres que inscriban jugadoras en el fútbol femenino reciben crédito EXTRA además del premio normal.
+                  💡 <strong>¡Incentivo especial!</strong> Los socios que traigan jugadoras al fútbol femenino reciben participaciones EXTRA en los sorteos.
                 </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="flex items-center gap-3">
-                    <Shirt className="w-5 h-5 text-pink-600" />
-                    <Label className="text-sm">Crédito Extra (€):</Label>
-                    <Input type="number" value={localConfig.bonus_femenino_credito} onChange={(e) => setLocalConfig(prev => ({ ...prev, bonus_femenino_credito: Number(e.target.value) }))} className="w-20" />
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Ticket className="w-5 h-5 text-fuchsia-600" />
-                    <Label className="text-sm">Sorteos Extra:</Label>
-                    <Input type="number" value={localConfig.bonus_femenino_sorteos} onChange={(e) => setLocalConfig(prev => ({ ...prev, bonus_femenino_sorteos: Number(e.target.value) }))} className="w-20" />
-                  </div>
+                <div className="flex items-center gap-3">
+                  <Ticket className="w-5 h-5 text-fuchsia-600" />
+                  <Label className="text-sm">Participaciones de sorteo extra:</Label>
+                  <Input type="number" value={localConfig.bonus_femenino_sorteos} onChange={(e) => setLocalConfig(prev => ({ ...prev, bonus_femenino_sorteos: Number(e.target.value) }))} className="w-20" />
                 </div>
                 <p className="text-xs text-slate-600 mt-2 italic">
-                  Ejemplo: Si traes 1 jugadora femenina → {localConfig.referidos_premio_1}€ (normal) + {localConfig.bonus_femenino_credito}€ (bonus) = {(localConfig.referidos_premio_1 || 5) + (localConfig.bonus_femenino_credito || 10)}€ total
+                  Ejemplo: por cada jugadora referida al fútbol femenino, suma {localConfig.bonus_femenino_sorteos || 2} participaciones extra en los sorteos.
                 </p>
               </>
             )}

@@ -12,10 +12,18 @@ import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimat
 const CUOTA_SOCIO = 25;
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
+const getCurrentSeason = () => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth() + 1;
+  return m >= 9 ? `${y}-${y + 1}` : `${y - 1}-${y}`;
+};
+
 export default function JoinReferral() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [referralCode, setReferralCode] = useState("");
+  const temporadaActual = getCurrentSeason();
   
   const [formData, setFormData] = useState({
     nombre_completo: "",
@@ -66,7 +74,7 @@ export default function JoinReferral() {
           direccion: formData.direccion,
           municipio: formData.municipio,
           referral_code: referralCode, // Importante para atribuir el premio
-          temporada: "2024-2025" // Podríamos hacerlo dinámico si es necesario
+          temporada: temporadaActual
         }
       });
 
@@ -246,7 +254,7 @@ export default function JoinReferral() {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <p className="font-bold text-slate-900">Cuota de Socio Anual</p>
-                        <p className="text-xs text-slate-500">Temporada 2024/2025</p>
+                        <p className="text-xs text-slate-500">Temporada {temporadaActual.replace('-', '/')}</p>
                       </div>
                       <div className="text-right">
                         <span className="text-2xl font-black text-slate-900">{CUOTA_SOCIO}€</span>

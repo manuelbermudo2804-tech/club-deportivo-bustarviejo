@@ -398,64 +398,36 @@ export default function ClubMembership() {
                 referred_member_id: membership.id,
                 referred_member_name: data.nombre_completo,
                 temporada: seasonConfig?.temporada,
-                clothing_credit_earned: 0,
                 limite_alcanzado: true
               });
             } else {
-              // Registrar la referencia con premio
-              const creditEarned = seasonConfig.referidos_premio_1 || 5;
+              // Registrar la referencia
               await base44.entities.ReferralReward.create({
                 referrer_email: referrer.email,
                 referrer_name: referrer.full_name,
                 referred_member_id: membership.id,
                 referred_member_name: data.nombre_completo,
-                temporada: seasonConfig?.temporada,
-                clothing_credit_earned: creditEarned
+                temporada: seasonConfig?.temporada
               });
-
-              // REGISTRAR GANANCIA DE CRÉDITO EN HISTÓRICO
-              try {
-                const saldoAntes = referrer.clothing_credit_balance || 0;
-                await base44.entities.CreditoRopaHistorico.create({
-                  user_email: referrer.email,
-                  user_nombre: referrer.full_name,
-                  tipo: "ganado",
-                  cantidad: creditEarned,
-                  concepto: `Socio referido: ${data.nombre_completo}`,
-                  temporada: seasonConfig?.temporada || "",
-                  referido_nombre: data.nombre_completo,
-                  saldo_antes: saldoAntes,
-                  saldo_despues: saldoAntes + creditEarned,
-                  fecha_movimiento: new Date().toISOString()
-                });
-              } catch (error) {
-                console.error("Error registrando crédito ganado:", error);
-              }
 
               // Actualizar contador del usuario (máximo 15)
               const newCount = Math.min(currentCount + 1, 15);
-              let newCredit = (referrer.clothing_credit_balance || 0) + (seasonConfig.referidos_premio_1 || 5);
               let newRaffles = referrer.raffle_entries_total || 0;
 
-              // Calcular bonificaciones por niveles
+              // Calcular bonificaciones por niveles (solo papeletas de sorteo)
               if (newCount === 3) {
-                newCredit += (seasonConfig.referidos_premio_3 || 15) - (seasonConfig.referidos_premio_1 || 5);
                 newRaffles += seasonConfig.referidos_sorteo_3 || 1;
               } else if (newCount === 5) {
-                newCredit += (seasonConfig.referidos_premio_5 || 25) - (seasonConfig.referidos_premio_3 || 15);
                 newRaffles += (seasonConfig.referidos_sorteo_5 || 3) - (seasonConfig.referidos_sorteo_3 || 1);
               } else if (newCount === 10) {
-                newCredit += (seasonConfig.referidos_premio_10 || 50) - (seasonConfig.referidos_premio_5 || 25);
-                newRaffles += (seasonConfig.referidos_sorteo_10 || 5) - (seasonConfig.referids_sorteo_5 || 3);
+                newRaffles += (seasonConfig.referidos_sorteo_10 || 5) - (seasonConfig.referidos_sorteo_5 || 3);
               } else if (newCount === 15) {
-                newCredit += (seasonConfig.referidos_premio_15 || 50) - (seasonConfig.referidos_premio_10 || 50);
                 newRaffles += (seasonConfig.referidos_sorteo_15 || 10) - (seasonConfig.referidos_sorteo_10 || 5);
               }
 
               // Usar updateMe en lugar de User.update para el usuario actual (no requiere permisos de admin)
               await base44.auth.updateMe({
                 referrals_count: newCount,
-                clothing_credit_balance: newCredit,
                 raffle_entries_total: newRaffles
               });
 
@@ -478,7 +450,7 @@ export default function ClubMembership() {
             referido_nombre: data.nombre_completo,
             referido_id: membership.id,
             estado: "activo",
-            credito_otorgado: referrer ? (seasonConfig.referidos_premio_1 || 5) : 0,
+            credito_otorgado: 0,
             sorteos_otorgados: 0,
             fecha_referido: new Date().toISOString()
           });
@@ -764,18 +736,14 @@ export default function ClubMembership() {
           {currentUser && myPlayers.length > 0 && seasonConfig?.programa_referidos_activo && (
             <div className="border-t border-white/30 pt-4 mt-4">
               <p className="text-center text-sm font-semibold text-white mb-3">🎁 Tu Programa "Trae un Socio Amigo"</p>
-              <div className="grid grid-cols-3 gap-3 text-center">
+              <div className="grid grid-cols-2 gap-3 text-center">
                 <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3 border border-white/20">
                   <p className="text-2xl font-bold text-white">{currentUser.referrals_count || 0}</p>
                   <p className="text-xs text-white/80">Amigos referidos</p>
                 </div>
                 <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3 border border-white/20">
-                  <p className="text-2xl font-bold text-white">{currentUser.clothing_credit_balance || 0}€</p>
-                  <p className="text-xs text-white/80">Crédito en ropa</p>
-                </div>
-                <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3 border border-white/20">
                   <p className="text-2xl font-bold text-white">{currentUser.raffle_entries_total || 0}</p>
-                  <p className="text-xs text-white/80">Participaciones</p>
+                  <p className="text-xs text-white/80">Participaciones en sorteos</p>
                 </div>
               </div>
               {(currentUser.referrals_count || 0) > 0 && (
@@ -949,7 +917,6 @@ export default function ClubMembership() {
         <ReferralProgramCard 
           seasonConfig={seasonConfig}
           userReferrals={currentUser?.referrals_count || 0}
-          userCredit={currentUser?.clothing_credit_balance || 0}
           userRaffleEntries={currentUser?.raffle_entries_total || 0}
           userFemeninoReferrals={currentUser?.femenino_referrals_count || 0}
           userEmail={currentUser?.email || ""}
