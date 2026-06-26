@@ -37,7 +37,9 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
   
   // Enlace de alta: si el programa de referidos está ACTIVO usamos el alta interna /AltaSocio
   // (atribución automática de papeleta); si está INACTIVO seguimos usando la página de Vercel.
-  const programaReferidosActivo = seasonConfig?.programa_referidos_activo;
+  // Solo apuntamos a Vercel si el programa está EXPLÍCITAMENTE desactivado (=== false).
+  // Si seasonConfig aún no cargó (undefined/null), usamos /AltaSocio para no caer a Vercel por error.
+  const programaReferidosActivo = seasonConfig?.programa_referidos_activo !== false;
   const referralLink = programaReferidosActivo
     ? (userRefCode ? `${window.location.origin}/AltaSocio?ref=${userRefCode}` : `${window.location.origin}/AltaSocio`)
     : (userRefCode ? `https://alta-socio.vercel.app/alta-socio.html?ref=${userRefCode}` : "https://alta-socio.vercel.app/alta-socio.html");
