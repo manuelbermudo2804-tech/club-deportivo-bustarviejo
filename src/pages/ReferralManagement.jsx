@@ -13,44 +13,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
-  Users, Gift, Ticket, Hotel, Trophy, Search, 
-  CheckCircle2, Clock, Crown, Star, Sparkles, Download,
+  Users, Gift, Ticket, Trophy, Search, 
+  CheckCircle2, Clock, Sparkles, Download,
   Eye, Award, PartyPopper, Dices, Play, History, Package,
-  Plus, HelpCircle, Info, UserPlus, AlertCircle, Brain, BarChart3
+  HelpCircle, Info, UserPlus, AlertCircle, Brain, BarChart3
 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import { toast } from "sonner";
 import { generatePapeletaNumber } from "../components/referrals/generatePapeletaNumber";
-
-const TIER_CONFIG = [
-  { count: 1, emoji: "🎁", label: "Bronce", color: "bg-blue-500" },
-  { count: 3, emoji: "⭐", label: "Plata", color: "bg-green-500" },
-  { count: 5, emoji: "🏆", label: "Oro", color: "bg-orange-500" },
-  { count: 10, emoji: "👑", label: "Platino", color: "bg-purple-500" },
-  { count: 15, emoji: "🏨", label: "Diamante", color: "bg-pink-500" }
-];
-
-const getTierForCount = (count) => {
-  if (count >= 15) return TIER_CONFIG[4];
-  if (count >= 10) return TIER_CONFIG[3];
-  if (count >= 5) return TIER_CONFIG[2];
-  if (count >= 3) return TIER_CONFIG[1];
-  if (count >= 1) return TIER_CONFIG[0];
-  return null;
-};
-
-// Generar código único para renovación
-const generateRenewalCode = (memberId) => {
-  let hash = 0;
-  const str = memberId + "renewal";
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
-  }
-  return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
-};
-
 
 
 export default function ReferralManagement() {
@@ -218,7 +188,6 @@ export default function ReferralManagement() {
   // Estadísticas generales
   const totalReferrals = usersWithReferrals.reduce((sum, u) => sum + (u.referrals_count || 0), 0);
   const totalRaffleEntries = usersWithReferrals.reduce((sum, u) => sum + (u.raffle_entries_total || 0), 0);
-  const diamondUsers = usersWithReferrals.filter(u => (u.referrals_count || 0) >= 15).length;
 
   // Referidos de un usuario específico (desde ReferralHistory)
   const getUserReferrals = (email) => {
@@ -230,15 +199,16 @@ export default function ReferralManagement() {
   // Usuarios elegibles para sorteo (con participaciones)
   const eligibleUsers = usersWithReferrals.filter(u => (u.raffle_entries_total || 0) > 0);
 
-  // Función para hacer el sorteo
-  const performDraw = async (prize) => {
-    if (eligibleUsers.length === 0) {
-      toast.error("No hay participantes con papeletas para el sorteo");
-      return;
-    }
+  // Todas las papeletas repartidas esta temporada (cada una con su número y dueño)
+  const papeletasTemporada = (seasonConfig?.temporada
+    ? referralHistory.filter(r => r.temporada === seasonConfig.temporada)
+    : referralHistory
+  ).filter(r => r.numero_papeleta);
 
-    if (eligibleUsers.length < 2) {
-      toast.error("Se necesitan al menos 2 participantes para realizar el sorteo");
+  // Función para hacer el sorteo POR NÚMERO DE PAPELETA
+  const performDraw = async (prize) => {
+    if (papeletasTemporada.length === 0) {
+      toast.error("No hay papeletas repartidas para el sorteo");
       return;
     }
 
@@ -252,40 +222,31 @@ export default function ReferralManagement() {
     setIsDrawing(true);
     setWinner(null);
 
-    // Crear pool de participaciones
-    const pool = [];
-    eligibleUsers.forEach(user => {
-      const entries = user.raffle_entries_total || 0;
-      for (let i = 0; i < entries; i++) {
-        pool.push(user);
-      }
-    });
-
-    // Animación de sorteo
+    // Animación: ir mostrando números aleatorios
     let iterations = 0;
     const maxIterations = 20;
     const interval = setInterval(() => {
-      const randomUser = pool[Math.floor(Math.random() * pool.length)];
-      setWinner(randomUser);
+      const randomPapeleta = papeletasTemporada[Math.floor(Math.random() * papeletasTemporada.length)];
+      setWinner(randomPapeleta);
       iterations++;
 
       if (iterations >= maxIterations) {
         clearInterval(interval);
-        // Seleccionar ganador final
-        const finalWinner = pool[Math.floor(Math.random() * pool.length)];
-        setWinner(finalWinner);
+        // Sacar la papeleta ganadora final
+        const finalPapeleta = papeletasTemporada[Math.floor(Math.random() * papeletasTemporada.length)];
+        setWinner(finalPapeleta);
         setIsDrawing(false);
 
-        // Guardar el sorteo
+        // Guardar el sorteo (el ganador es el dueño de la papeleta)
         createDrawMutation.mutate({
           temporada: seasonConfig?.temporada,
           premio_nombre: prize.nombre,
           premio_emoji: prize.emoji,
           premio_descripcion: prize.descripcion,
-          ganador_email: finalWinner.email,
-          ganador_nombre: finalWinner.full_name,
-          participaciones_ganador: finalWinner.raffle_entries_total || 0,
-          total_participaciones: pool.length,
+          numero_ganador: finalPapeleta.numero_papeleta,
+          ganador_email: finalPapeleta.referidor_email,
+          ganador_nombre: finalPapeleta.referidor_nombre,
+          total_participaciones: papeletasTemporada.length,
           fecha_sorteo: new Date().toISOString()
         });
       }
@@ -308,13 +269,12 @@ export default function ReferralManagement() {
       nombre: u.full_name,
       email: u.email,
       referidos: u.referrals_count || 0,
-      participaciones_sorteo: u.raffle_entries_total || 0,
-      nivel: getTierForCount(u.referrals_count || 0)?.label || "Sin nivel"
+      papeletas: u.raffle_entries_total || 0
     }));
 
     const csv = [
-      ["Nombre", "Email", "Referidos", "Participaciones Sorteo", "Nivel"],
-      ...data.map(d => [d.nombre, d.email, d.referidos, d.participaciones_sorteo, d.nivel])
+      ["Nombre", "Email", "Amigos", "Papeletas"],
+      ...data.map(d => [d.nombre, d.email, d.referidos, d.papeletas])
     ].map(row => row.join(",")).join("\n");
 
     const blob = new Blob([csv], { type: "text/csv" });
@@ -377,7 +337,7 @@ export default function ReferralManagement() {
                   </p>
                   <p className="flex items-start gap-2 text-slate-700">
                     <span className="text-lg">3️⃣</span>
-                    <span>El sistema <strong>suma automáticamente</strong> participaciones en los sorteos</span>
+                    <span>El sistema le asigna <strong>1 papeleta con número único</strong> para el sorteo</span>
                   </p>
                 </div>
                 <div className="bg-white rounded-xl p-3 border border-purple-200">
@@ -385,14 +345,14 @@ export default function ReferralManagement() {
                     <div className="space-y-1 text-xs">
                       <p className="font-bold text-purple-700">🎟️ Cada amigo que traes = 1 papeleta para el sorteo</p>
                       <p className="text-slate-600">Quien trae 5 amigos tiene 5 veces más posibilidades que quien trae 1.</p>
-                      <p className="mt-2">🏨 <strong>15 amigos:</strong> premio especial (noche de hotel)</p>
+                      <p className="mt-2">🎲 En el sorteo se saca un <strong>número de papeleta al azar</strong> y gana su dueño.</p>
                     </div>
                 </div>
               </div>
               <Alert className="bg-blue-50 border-blue-200">
                 <Info className="w-4 h-4 text-blue-600" />
                 <AlertDescription className="text-blue-800 text-sm">
-                  <strong>¿Dónde lo ve el usuario?</strong> En su panel de "Hacerse Socio" aparece una tarjeta con su progreso, crédito acumulado y participaciones en sorteos.
+                  <strong>¿Dónde lo ve el usuario?</strong> En su panel de "Hacerse Socio" aparece una tarjeta con sus amigos traídos y los números de papeleta que tiene para el sorteo.
                 </AlertDescription>
               </Alert>
             </div>
@@ -452,9 +412,9 @@ export default function ReferralManagement() {
         </Card>
         <Card className="bg-gradient-to-br from-pink-500 to-pink-600 text-white">
           <CardContent className="p-4 text-center">
-            <Hotel className="w-8 h-8 mx-auto mb-2 opacity-80" />
-            <p className="text-3xl font-bold">{diamondUsers}</p>
-            <p className="text-sm opacity-80">Nivel Diamante</p>
+            <Ticket className="w-8 h-8 mx-auto mb-2 opacity-80" />
+            <p className="text-3xl font-bold">{papeletasTemporada.length}</p>
+            <p className="text-sm opacity-80">Papeletas repartidas</p>
           </CardContent>
         </Card>
       </div>
@@ -493,14 +453,12 @@ export default function ReferralManagement() {
                     <TableHead className="w-12">#</TableHead>
                     <TableHead>Usuario</TableHead>
                     <TableHead className="text-center">Amigos</TableHead>
-                    <TableHead className="text-center">Nivel</TableHead>
-                    <TableHead className="text-center">Sorteos</TableHead>
+                    <TableHead className="text-center">Papeletas</TableHead>
                     <TableHead className="text-center">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {filteredUsers.map((user, index) => {
-                    const tier = getTierForCount(user.referrals_count || 0);
                     const isTop3 = index < 3;
                     
                     return (
@@ -518,13 +476,6 @@ export default function ReferralManagement() {
                           <Badge className="bg-purple-600 text-lg px-3">
                             {user.referrals_count || 0}
                           </Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {tier && (
-                            <Badge className={`${tier.color} text-white`}>
-                              {tier.emoji} {tier.label}
-                            </Badge>
-                          )}
                         </TableCell>
                         <TableCell className="text-center">
                           <span className="font-semibold text-orange-600">
@@ -794,7 +745,12 @@ export default function ReferralManagement() {
                           <div>
                             <p className="font-bold text-lg text-slate-900">{draw.premio_nombre}</p>
                             <p className="text-sm text-slate-600">{draw.premio_descripcion}</p>
-                            <div className="mt-2">
+                            <div className="mt-2 flex flex-wrap gap-2">
+                              {draw.numero_ganador && (
+                                <Badge variant="outline" className="font-mono bg-orange-50 text-orange-700 border-orange-300">
+                                  🎟️ #{draw.numero_ganador}
+                                </Badge>
+                              )}
                               <Badge className="bg-purple-600">
                                 🏆 Ganador: {draw.ganador_nombre}
                               </Badge>
@@ -803,7 +759,7 @@ export default function ReferralManagement() {
                               {new Date(draw.fecha_sorteo).toLocaleDateString('es-ES', { 
                                 day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' 
                               })}
-                              {" • "}{draw.participaciones_ganador} de {draw.total_participaciones} papeletas
+                              {" • "}sorteo entre {draw.total_participaciones} papeletas
                             </p>
                           </div>
                         </div>
@@ -894,7 +850,7 @@ export default function ReferralManagement() {
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center justify-center gap-2">
               <Dices className={`w-6 h-6 text-purple-600 ${isDrawing ? 'animate-spin' : ''}`} />
-              {isDrawing ? "¡Sorteando!" : "🎉 ¡Tenemos Ganador!"}
+              {isDrawing ? "¡Sorteando número!" : "🎉 ¡Número Ganador!"}
             </DialogTitle>
           </DialogHeader>
           
@@ -907,16 +863,18 @@ export default function ReferralManagement() {
                 <p className="text-slate-600">{selectedPrize.descripcion}</p>
               </div>
 
-              {/* Ganador */}
+              {/* Número ganador y su dueño */}
               {winner && (
                 <div className={`bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-6 border-2 border-purple-300 ${isDrawing ? 'animate-pulse' : ''}`}>
-                  <PartyPopper className="w-12 h-12 mx-auto mb-3 text-purple-600" />
-                  <p className="text-2xl font-bold text-purple-900">{winner.full_name}</p>
-                  <p className="text-purple-600">{winner.email}</p>
-                  <Badge className="mt-2 bg-orange-500">
-                    <Ticket className="w-3 h-3 mr-1" />
-                    {winner.raffle_entries_total || 0} papeletas
-                  </Badge>
+                  <p className="text-xs uppercase tracking-wide text-purple-500 mb-1">Número de papeleta</p>
+                  <p className="text-5xl font-bold font-mono text-purple-900 mb-3">🎟️ #{winner.numero_papeleta}</p>
+                  {!isDrawing && (
+                    <>
+                      <PartyPopper className="w-10 h-10 mx-auto mb-2 text-purple-600" />
+                      <p className="text-xl font-bold text-purple-900">{winner.referidor_nombre}</p>
+                      <p className="text-purple-600 text-sm">{winner.referidor_email}</p>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -987,7 +945,7 @@ export default function ReferralManagement() {
             {newReferral.referrer_email && (
               <div className="bg-green-50 rounded-xl p-3 border border-green-200">
                 <p className="text-sm text-green-800">
-                  <strong>Premio:</strong> suma un amigo y participaciones en el sorteo según su nivel
+                  <strong>Premio:</strong> suma 1 amigo y 1 papeleta (con número único) para el sorteo
                 </p>
               </div>
             )}
@@ -1033,26 +991,7 @@ export default function ReferralManagement() {
                 <div className="bg-orange-50 rounded-xl p-4 text-center border-2 border-orange-200">
                   <Ticket className="w-6 h-6 mx-auto mb-1 text-orange-600" />
                   <p className="text-2xl font-bold text-orange-700">{selectedUser.raffle_entries_total || 0}</p>
-                  <p className="text-xs text-orange-600">Sorteos</p>
-                </div>
-              </div>
-
-              {/* Niveles alcanzados */}
-              <div>
-                <h4 className="font-semibold mb-2">Niveles Alcanzados</h4>
-                <div className="flex flex-wrap gap-2">
-                  {TIER_CONFIG.map((tier) => {
-                    const achieved = (selectedUser.referrals_count || 0) >= tier.count;
-                    return (
-                      <Badge
-                        key={tier.count}
-                        className={achieved ? `${tier.color} text-white` : "bg-slate-200 text-slate-500"}
-                      >
-                        {achieved ? <CheckCircle2 className="w-3 h-3 mr-1" /> : <Clock className="w-3 h-3 mr-1" />}
-                        {tier.emoji} {tier.count} - {tier.label}
-                      </Badge>
-                    );
-                  })}
+                  <p className="text-xs text-orange-600">Papeletas</p>
                 </div>
               </div>
 
@@ -1088,15 +1027,6 @@ export default function ReferralManagement() {
                   )}
                 </div>
               </div>
-
-              {/* Premio hotel si aplica */}
-              {(selectedUser.referrals_count || 0) >= 15 && seasonConfig?.referidos_premio_hotel && (
-                <div className="bg-gradient-to-r from-pink-100 to-purple-100 rounded-xl p-4 border-2 border-pink-300 text-center">
-                  <Hotel className="w-10 h-10 mx-auto mb-2 text-pink-600" />
-                  <p className="font-bold text-pink-800 text-lg">🏨 ¡PREMIO HOTEL DESBLOQUEADO!</p>
-                  <p className="text-sm text-pink-700">Este usuario ha ganado una noche de hotel para dos</p>
-                </div>
-              )}
             </div>
           )}
 
