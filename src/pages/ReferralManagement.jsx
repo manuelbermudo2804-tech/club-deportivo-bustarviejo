@@ -154,20 +154,21 @@ export default function ReferralManagement() {
         temporada: seasonConfig?.temporada
       });
 
-      // Calcular nuevos valores
-      const newCount = (referrer.referrals_count || 0) + 1;
-      let newRaffles = referrer.raffle_entries_total || 0;
+      // Registrar también en histórico (fuente de verdad del ranking) — 1 papeleta por amigo
+      await base44.entities.ReferralHistory.create({
+        temporada: seasonConfig?.temporada || "",
+        referidor_email: referrer.email,
+        referidor_nombre: referrer.full_name,
+        referido_nombre: referredName,
+        estado: "activo",
+        credito_otorgado: 0,
+        sorteos_otorgados: 1,
+        fecha_referido: new Date().toISOString()
+      });
 
-      // Bonificaciones por niveles (solo papeletas de sorteo)
-      if (newCount === 3) {
-        newRaffles += seasonConfig?.referidos_sorteo_3 || 1;
-      } else if (newCount === 5) {
-        newRaffles += (seasonConfig?.referidos_sorteo_5 || 3) - (seasonConfig?.referidos_sorteo_3 || 1);
-      } else if (newCount === 10) {
-        newRaffles += (seasonConfig?.referidos_sorteo_10 || 5) - (seasonConfig?.referidos_sorteo_5 || 3);
-      } else if (newCount === 15) {
-        newRaffles += (seasonConfig?.referidos_sorteo_15 || 10) - (seasonConfig?.referidos_sorteo_10 || 5);
-      }
+      // Calcular nuevos valores — 1 amigo = 1 papeleta
+      const newCount = (referrer.referrals_count || 0) + 1;
+      const newRaffles = (referrer.raffle_entries_total || 0) + 1;
 
       // Actualizar usuario
       await base44.entities.User.update(referrer.id, {
@@ -180,6 +181,7 @@ export default function ReferralManagement() {
     onSuccess: ({ referrer, newCount }) => {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
       queryClient.invalidateQueries({ queryKey: ['referralRewards'] });
+      queryClient.invalidateQueries({ queryKey: ['referralHistory'] });
       toast.success(`🎉 ¡Referido añadido! ${referrer.full_name} ahora tiene ${newCount} referidos`);
       setShowAddReferralDialog(false);
       setNewReferral({ referrer_email: "", referred_name: "" });
@@ -364,13 +366,11 @@ export default function ReferralManagement() {
                   </p>
                 </div>
                 <div className="bg-white rounded-xl p-3 border border-purple-200">
-                  <p className="font-semibold text-purple-800 mb-2">📊 Premios por amigos:</p>
+                  <p className="font-semibold text-purple-800 mb-2">📊 Papeletas por amigos:</p>
                     <div className="space-y-1 text-xs">
-                      <p>🎁 <strong>1 amigo:</strong> ¡entras en el sorteo!</p>
-                      <p>⭐ <strong>3 amigos:</strong> 1 participación sorteo</p>
-                      <p>🏆 <strong>5 amigos:</strong> 3 participaciones</p>
-                      <p>👑 <strong>10 amigos:</strong> 5 participaciones</p>
-                      <p>🏨 <strong>15 amigos:</strong> 10 participaciones + HOTEL</p>
+                      <p className="font-bold text-purple-700">🎟️ Cada amigo que traes = 1 papeleta para el sorteo</p>
+                      <p className="text-slate-600">Quien trae 5 amigos tiene 5 veces más posibilidades que quien trae 1.</p>
+                      <p className="mt-2">🏨 <strong>15 amigos:</strong> premio especial (noche de hotel)</p>
                     </div>
                 </div>
               </div>

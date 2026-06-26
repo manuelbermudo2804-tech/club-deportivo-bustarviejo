@@ -412,18 +412,8 @@ export default function ClubMembership() {
 
               // Actualizar contador del usuario (máximo 15)
               const newCount = Math.min(currentCount + 1, 15);
-              let newRaffles = referrer.raffle_entries_total || 0;
-
-              // Calcular bonificaciones por niveles (solo papeletas de sorteo)
-              if (newCount === 3) {
-                newRaffles += seasonConfig.referidos_sorteo_3 || 1;
-              } else if (newCount === 5) {
-                newRaffles += (seasonConfig.referidos_sorteo_5 || 3) - (seasonConfig.referidos_sorteo_3 || 1);
-              } else if (newCount === 10) {
-                newRaffles += (seasonConfig.referidos_sorteo_10 || 5) - (seasonConfig.referidos_sorteo_5 || 3);
-              } else if (newCount === 15) {
-                newRaffles += (seasonConfig.referidos_sorteo_15 || 10) - (seasonConfig.referidos_sorteo_10 || 5);
-              }
+              // 1 amigo = 1 papeleta: cada referido suma exactamente una participación
+              const newRaffles = (referrer.raffle_entries_total || 0) + 1;
 
               // Usar updateMe en lugar de User.update para el usuario actual (no requiere permisos de admin)
               await base44.auth.updateMe({
@@ -451,7 +441,7 @@ export default function ClubMembership() {
             referido_id: membership.id,
             estado: "activo",
             credito_otorgado: 0,
-            sorteos_otorgados: 0,
+            sorteos_otorgados: referrer ? 1 : 0,
             fecha_referido: new Date().toISOString()
           });
           

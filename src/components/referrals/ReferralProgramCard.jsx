@@ -100,13 +100,14 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
 
   const hasReachedLimit = userReferrals >= 15;
 
+  // 1 amigo = 1 papeleta: las papeletas equivalen al nº de amigos del nivel
   const getRewardForTier = (count) => {
     switch (count) {
-      case 1: return { raffles: 0, special: "¡Entras en el sorteo!" };
-      case 3: return { raffles: seasonConfig.referidos_sorteo_3 || 1, special: null };
-      case 5: return { raffles: seasonConfig.referidos_sorteo_5 || 3, special: null };
-      case 10: return { raffles: seasonConfig.referidos_sorteo_10 || 5, special: "Reconocimiento en la web" };
-      case 15: return { raffles: seasonConfig.referidos_sorteo_15 || 10, special: seasonConfig.referidos_premio_hotel ? "🏨 ¡NOCHE DE HOTEL PARA DOS!" : null };
+      case 1: return { raffles: 1, special: null };
+      case 3: return { raffles: 3, special: null };
+      case 5: return { raffles: 5, special: null };
+      case 10: return { raffles: 10, special: "Reconocimiento en la web" };
+      case 15: return { raffles: 15, special: seasonConfig.referidos_premio_hotel ? "🏨 ¡NOCHE DE HOTEL PARA DOS!" : null };
       default: return { raffles: 0, special: null };
     }
   };
@@ -202,8 +203,8 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
       <CardContent className="relative space-y-4">
         {programaActivo ? (
           <div className="bg-white/20 backdrop-blur-sm rounded-2xl p-4 text-center">
-            <p className="text-lg font-semibold mb-1">🔥 ¡Cuantos más amigos traigas, más premios ganas! 🔥</p>
-            <p className="text-sm text-white/90">Invita a familiares, amigos, vecinos... ¡Cada nuevo socio cuenta!</p>
+            <p className="text-lg font-semibold mb-1">🎟️ Cada amigo que traes = 1 papeleta</p>
+            <p className="text-sm text-white/90">Cuantos más socios traigas, más papeletas y más posibilidades de ganar en el sorteo.</p>
           </div>
         ) : (
           <div className="bg-white/15 backdrop-blur-sm rounded-2xl p-4 border border-white/20">
@@ -427,7 +428,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
             <h4 className="text-xl font-bold text-pink-800 mb-1">¡PREMIO ESTRELLA!</h4>
             <p className="text-pink-700 font-medium">Trae <strong>15 socios amigos</strong> y gana una</p>
             <p className="text-2xl font-bold text-pink-900 mt-1">🌙 NOCHE DE HOTEL PARA DOS 🌙</p>
-            <p className="text-xs text-pink-600 mt-2">+ 10 participaciones en los sorteos</p>
+            <p className="text-xs text-pink-600 mt-2">+ tus 15 papeletas acumuladas en los sorteos</p>
           </div>
         )}
 
@@ -439,7 +440,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
           <ol className="text-sm space-y-1 text-white/95">
             <li>1️⃣ Invita a amigos y familiares a hacerse socios</li>
             <li>2️⃣ Cuando se registren, diles que pongan tu nombre como referido</li>
-            <li>3️⃣ ¡Tus premios se acumulan con cada nuevo socio!</li>
+            <li>3️⃣ Cada amigo que se haga socio te da 1 papeleta para el sorteo</li>
           </ol>
         </div>
 
