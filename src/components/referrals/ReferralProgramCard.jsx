@@ -11,14 +11,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import MainPrizeShowcase from "./MainPrizeShowcase";
 
-const REWARD_TIERS = [
-  { count: 1, color: "from-blue-500 to-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-300", title: "1 Socio", emoji: "🎁" },
-  { count: 3, color: "from-green-500 to-green-600", bgColor: "bg-green-50", borderColor: "border-green-300", title: "3 Socios", emoji: "⭐" },
-  { count: 5, color: "from-orange-500 to-orange-600", bgColor: "bg-orange-50", borderColor: "border-orange-300", title: "5 Socios", emoji: "🏆" },
-  { count: 10, color: "from-purple-500 to-purple-600", bgColor: "bg-purple-50", borderColor: "border-purple-300", title: "10 Socios", emoji: "👑" },
-  { count: 15, color: "from-pink-500 to-pink-600", bgColor: "bg-pink-50", borderColor: "border-pink-300", title: "15 Socios", emoji: "🏨" }
-];
-
 export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, userRaffleEntries = 0, userFemeninoReferrals = 0, userEmail = "", userName = "", hasPlayersInClub = false }) {
   // AI Assistant State — must be before any early returns (React hooks rules)
   const [showAiModal, setShowAiModal] = useState(false);
@@ -98,32 +90,6 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
     }
     window.open(whatsappUrlFemenino, '_blank');
   };
-
-  const hasReachedLimit = userReferrals >= 15;
-
-  // 1 amigo = 1 papeleta: las papeletas equivalen al nº de amigos del nivel
-  const getRewardForTier = (count) => {
-    switch (count) {
-      case 1: return { raffles: 1, special: null };
-      case 3: return { raffles: 3, special: null };
-      case 5: return { raffles: 5, special: null };
-      case 10: return { raffles: 10, special: "Reconocimiento en la web" };
-      case 15: return { raffles: 15, special: seasonConfig.referidos_premio_hotel ? "🏨 ¡NOCHE DE HOTEL PARA DOS!" : null };
-      default: return { raffles: 0, special: null };
-    }
-  };
-
-  const getNextTier = () => {
-    if (userReferrals >= 15) return null;
-    if (userReferrals >= 10) return 15;
-    if (userReferrals >= 5) return 10;
-    if (userReferrals >= 3) return 5;
-    if (userReferrals >= 1) return 3;
-    return 1;
-  };
-
-  const nextTier = getNextTier();
-  const referralsToNext = nextTier ? nextTier - userReferrals : 0;
 
   const handleGenerateMessage = async () => {
     if (!targetType) return;
@@ -347,92 +313,8 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
             <div className="bg-orange-50 rounded-xl p-3 text-center border-2 border-orange-200">
               <Ticket className="w-6 h-6 text-orange-600 mx-auto mb-1" />
               <p className="text-2xl font-bold text-orange-700">{userRaffleEntries}</p>
-              <p className="text-xs text-orange-600">Participaciones en sorteos</p>
+              <p className="text-xs text-orange-600">Papeletas para el sorteo</p>
             </div>
-
-            {nextTier && (
-              <div className="mt-3 bg-gradient-to-r from-purple-100 to-pink-100 rounded-xl p-3 text-center border-2 border-purple-200">
-                <p className="text-sm text-purple-800">
-                  <Zap className="w-4 h-4 inline mr-1" />
-                  ¡Te faltan solo <strong className="text-purple-900">{referralsToNext}</strong> amigo(s) para el siguiente nivel!
-                </p>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="bg-white rounded-2xl p-4 text-slate-900">
-          <h3 className="font-bold text-lg mb-3 flex items-center gap-2 text-purple-700">
-            <Gift className="w-5 h-5" />
-            Tabla de Premios
-          </h3>
-          
-          <div className="space-y-2">
-            {REWARD_TIERS.filter(tier => {
-              if (tier.count === 1 && seasonConfig.tier_1_activo === false) return false;
-              if (tier.count === 3 && seasonConfig.tier_3_activo === false) return false;
-              if (tier.count === 5 && seasonConfig.tier_5_activo === false) return false;
-              if (tier.count === 10 && seasonConfig.tier_10_activo === false) return false;
-              if (tier.count === 15 && seasonConfig.tier_15_activo === false) return false;
-              return true;
-            }).map((tier) => {
-              const reward = getRewardForTier(tier.count);
-              const isAchieved = userReferrals >= tier.count;
-              const isNext = nextTier === tier.count;
-
-              return (
-                <div
-                  key={tier.count}
-                  className={`rounded-xl p-3 border-2 transition-all ${
-                    isAchieved 
-                      ? `${tier.bgColor} ${tier.borderColor} ring-2 ring-offset-1 ring-green-400`
-                      : isNext 
-                        ? `${tier.bgColor} ${tier.borderColor} animate-pulse`
-                        : "bg-slate-50 border-slate-200"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${tier.color} flex items-center justify-center text-white shadow-lg`}>
-                        <span className="text-lg">{tier.emoji}</span>
-                      </div>
-                      <div>
-                        <p className="font-bold text-slate-900">{tier.title}</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {reward.raffles > 0 ? (
-                            <Badge variant="outline" className="text-xs bg-orange-50 text-orange-700 border-orange-300">
-                              <Ticket className="w-3 h-3 mr-1" /> {reward.raffles} sorteo(s)
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline" className="text-xs bg-purple-50 text-purple-700 border-purple-300">
-                              <Sparkles className="w-3 h-3 mr-1" /> ¡Entras en el sorteo!
-                            </Badge>
-                          )}
-                        </div>
-                        {reward.special && (
-                          <p className={`text-xs mt-1 font-bold ${tier.count === 15 ? "text-pink-600" : "text-purple-600"}`}>
-                            {reward.special}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    {isAchieved && (
-                      <Badge className="bg-green-500 text-white">✓ ¡Conseguido!</Badge>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {seasonConfig.referidos_premio_hotel && (
-          <div className="bg-gradient-to-r from-pink-100 via-purple-100 to-pink-100 rounded-2xl p-4 text-center border-4 border-pink-300 relative overflow-hidden">
-            <div className="text-5xl mb-2">🏨✨</div>
-            <h4 className="text-xl font-bold text-pink-800 mb-1">¡PREMIO ESTRELLA!</h4>
-            <p className="text-pink-700 font-medium">Trae <strong>15 socios amigos</strong> y gana una</p>
-            <p className="text-2xl font-bold text-pink-900 mt-1">🌙 NOCHE DE HOTEL PARA DOS 🌙</p>
-            <p className="text-xs text-pink-600 mt-2">+ tus 15 papeletas acumuladas en los sorteos</p>
           </div>
         )}
 
@@ -447,16 +329,6 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
             <li>3️⃣ Cada amigo que se haga socio te da 1 papeleta para el sorteo</li>
           </ol>
         </div>
-
-        {hasReachedLimit && (
-          <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-4 text-center border-2 border-yellow-300">
-            <Trophy className="w-10 h-10 mx-auto mb-2 text-yellow-600" />
-            <p className="font-bold text-yellow-900 text-lg">🎉 ¡ENHORABUENA!</p>
-            <p className="text-yellow-800 text-sm">
-              Has alcanzado el máximo de <strong>15 socios invitados</strong>. ¡Eres un/a campeón/a del programa!
-            </p>
-          </div>
-        )}
 
         {seasonConfig.sorteo_premios && seasonConfig.sorteo_premios.filter(p => p.activo !== false).length > 0 && (
           <div className="bg-white rounded-2xl p-4 text-slate-900">
