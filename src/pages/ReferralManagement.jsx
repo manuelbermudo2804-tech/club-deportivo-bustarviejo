@@ -285,6 +285,25 @@ export default function ReferralManagement() {
     a.click();
   };
 
+  // Exportar listado completo de números de papeleta del sorteo
+  const exportPapeletas = () => {
+    const rows = [...papeletasTemporada]
+      .sort((a, b) => String(a.numero_papeleta).localeCompare(String(b.numero_papeleta)))
+      .map((p) => [p.numero_papeleta, p.referidor_nombre, p.referidor_email, p.referido_nombre]);
+
+    const csv = [
+      ["Numero", "Socio (dueno)", "Email", "Amigo referido"],
+      ...rows
+    ].map(row => row.map(c => `"${String(c ?? "").replace(/"/g, '""')}"`).join(",")).join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `numeros_sorteo_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
+
   if (loadingUsers || loadingRewards) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -682,6 +701,41 @@ export default function ReferralManagement() {
               </CardContent>
             </Card>
           )}
+
+          {/* Listado COMPLETO de números de papeleta (para el sorteo) */}
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                <CardTitle className="flex items-center gap-2">
+                  <Ticket className="w-5 h-5 text-orange-500" />
+                  Todos los números del sorteo ({papeletasTemporada.length})
+                </CardTitle>
+                <Button onClick={exportPapeletas} variant="outline" size="sm" className="gap-2">
+                  <Download className="w-4 h-4" />
+                  Exportar números
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {papeletasTemporada.length === 0 ? (
+                <p className="text-center text-slate-500 py-8">Todavía no hay números repartidos</p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 max-h-[28rem] overflow-y-auto">
+                  {[...papeletasTemporada]
+                    .sort((a, b) => String(a.numero_papeleta).localeCompare(String(b.numero_papeleta)))
+                    .map((p) => (
+                      <div key={p.id} className="flex flex-col bg-slate-50 rounded-lg p-2 border border-slate-200">
+                        <span className="inline-flex items-center gap-1 font-mono font-bold text-orange-600 text-sm">
+                          <Ticket className="w-3.5 h-3.5" /> #{p.numero_papeleta}
+                        </span>
+                        <span className="text-xs text-slate-700 font-medium truncate" title={p.referidor_nombre}>{p.referidor_nombre}</span>
+                        <span className="text-[10px] text-slate-400 truncate" title={p.referido_nombre}>← {p.referido_nombre}</span>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Lista de participantes */}
           <Card>
