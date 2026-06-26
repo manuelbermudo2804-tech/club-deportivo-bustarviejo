@@ -1058,6 +1058,63 @@ Deno.serve(async (req) => {
             console.error('[stripe-webhook] Error enviando email Socio:', emailErr?.message || emailErr);
           }
 
+          // ===== PROGRAMA "TRAE UN AMIGO": generar papeleta del referido =====
+          // Solo si el programa está activo, hay un referidor y este socio aún no tiene papeleta.
+          try {
+            const referidorEmail = metadata.referidor_email || '';
+            const referidorNombre = metadata.referidor_nombre || '';
+            const referidoEmail = member?.email || email;
+            if (referidorEmail && referidoEmail && referidorEmail.toLowerCase() !== referidoEmail.toLowerCase()) {
+              // Comprobar que el programa esté activo
+              let programaActivo = false;
+              try {
+                const seasonConfigs = await base44.asServiceRole.entities.SeasonConfig.list();
+                const activeConfig = seasonConfigs.find(c => c.activa === true);
+                programaActivo = activeConfig?.programa_referidos_activo === true;
+              } catch {}
+
+              if (programaActivo) {
+                // Evitar duplicados: ¿ya existe un ReferralHistory para este referido esta temporada?
+                let yaExiste = [];
+                try {
+                  yaExiste = await base44.asServiceRole.entities.ReferralHistory.filter({ temporada, referido_email: referidoEmail });
+                } catch {}
+
+                if (!yaExiste || yaExiste.length === 0) {
+                  // Generar número de papeleta único de 4 dígitos
+                  let usados = new Set();
+                  try {
+                    const existentes = await base44.asServiceRole.entities.ReferralHistory.filter({ temporada });
+                    usados = new Set(existentes.map(r => r.numero_papeleta).filter(Boolean));
+                  } catch {}
+                  let numeroPapeleta = null;
+                  for (let i = 0; i < 50; i++) {
+                    const n = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+                    if (!usados.has(n)) { numeroPapeleta = n; break; }
+                  }
+                  if (!numeroPapeleta) numeroPapeleta = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
+
+                  await base44.asServiceRole.entities.ReferralHistory.create({
+                    temporada,
+                    referidor_email: referidorEmail,
+                    referidor_nombre: referidorNombre || referidorEmail.split('@')[0],
+                    referido_email: referidoEmail,
+                    referido_nombre: member?.nombre_completo || metadata.nombre_completo || '',
+                    referido_id: member?.id || null,
+                    estado: 'activo',
+                    credito_otorgado: 0,
+                    sorteos_otorgados: 1,
+                    numero_papeleta: numeroPapeleta,
+                    fecha_referido: new Date().toISOString(),
+                  });
+                  console.log('[stripe-webhook] Papeleta de referido creada', { referidor: referidorEmail, referido: referidoEmail, numero: numeroPapeleta });
+                }
+              }
+            }
+          } catch (refErr) {
+            console.error('[stripe-webhook] Error creando papeleta de referido:', refErr?.message || refErr);
+          }
+
           }
         }
     }

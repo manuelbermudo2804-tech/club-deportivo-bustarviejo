@@ -63,6 +63,7 @@ import PhotoAuthorizations from '@/pages/PhotoAuthorizations';
 import HealthCheck from '@/pages/HealthCheck';
 import ClubMemory from '@/pages/ClubMemory';
 import SubvencionesPanel from '@/pages/SubvencionesPanel';
+import AltaSocio from '@/pages/AltaSocio';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -77,7 +78,7 @@ const AppRouter = () => {
   
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').replace(/^\/+/, '/').toLowerCase();
-  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/propuestagvcgaesco', '/privacidad', '/colabora'];
+  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/propuestagvcgaesco', '/privacidad', '/colabora', '/altasocio'];
   // Constructor de páginas: cualquier URL que empiece por /l/ es pública
   const isLandingPath = cleanPath.startsWith('/l/');
   // Si la URL incluye ?from=app, el usuario viene de la app interna autenticada:
@@ -124,6 +125,8 @@ const AppRouter = () => {
         <Route path="/propuestagvcgaesco" element={<PropuestaGVCGaesco />} />
         <Route path="/Privacidad" element={<Privacidad />} />
         <Route path="/privacidad" element={<Privacidad />} />
+        <Route path="/AltaSocio" element={<AltaSocio />} />
+        <Route path="/altasocio" element={<AltaSocio />} />
       </Routes>
     );
   }
