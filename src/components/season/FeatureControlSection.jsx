@@ -11,7 +11,6 @@ import {
   Shield, Lock, Trash2, Info, ChevronDown, ChevronUp
 } from "lucide-react";
 import SolidarityFundConfig from "./SolidarityFundConfig";
-import RafflePrizeConfig from "./RafflePrizeConfig";
 
 export default function FeatureControlSection({
   activeSeason,
@@ -261,14 +260,6 @@ export default function FeatureControlSection({
             toggleFeature={toggleFeature}
             updateSeasonMutation={updateSeasonMutation}
           />
-
-          {/* Premio principal del sorteo de referidos */}
-          {activeSeason.programa_referidos_activo && (
-            <RafflePrizeConfig
-              activeSeason={activeSeason}
-              updateSeasonMutation={updateSeasonMutation}
-            />
-          )}
 
           {/* Programa de Socios */}
           <FeatureRow icon={<Users className="w-5 h-5 text-green-600" />} title="Programa de Socios" subtitle="Carnets digitales con descuentos en comercios" checked={activeSeason.programa_socios_activo || false} onChange={(v) => toggleFeature('programa_socios_activo', v)} />

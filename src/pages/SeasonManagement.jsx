@@ -938,6 +938,7 @@ export default function SeasonManagement() {
           seasonConfig={activeSeason}
           onUpdate={(data) => updateSeasonMutation.mutate({ id: activeSeason.id, data })}
           isUpdating={updateSeasonMutation.isPending}
+          updateSeasonMutation={updateSeasonMutation}
         />
       )}
 
