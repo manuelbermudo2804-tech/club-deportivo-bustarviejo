@@ -21,8 +21,8 @@ const ALL_SHARE_LINKS = [
     color: "text-emerald-600",
     bg: "bg-emerald-50",
     label: "Hacerse socio del club",
-    desc: "Página para nuevos socios (pago online)",
-    getUrl: () => `${window.location.origin}/AltaSocio`,
+    desc: "Página web para nuevos socios",
+    url: "https://alta-socio.vercel.app/socios.html",
     whatsappText: "🤝 Hazte Socio del CD Bustarviejo",
   },
   {
