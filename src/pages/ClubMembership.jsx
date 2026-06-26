@@ -731,20 +731,20 @@ export default function ClubMembership() {
           
           {/* Stats de referidos del usuario - Solo para padres con hijos */}
           {currentUser && myPlayers.length > 0 && seasonConfig?.programa_referidos_activo && (
-            <div className="border-t border-white/30 pt-4 mt-4">
-              <p className="text-center text-sm font-semibold text-white mb-3">🎁 Tu Programa "Trae un Socio Amigo"</p>
+            <div className="border-t border-slate-200 pt-4 mt-4">
+              <p className="text-center text-sm font-semibold text-slate-700 mb-3">🎁 Tu Programa "Trae un Socio Amigo"</p>
               <div className="grid grid-cols-2 gap-3 text-center">
-                <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3 border border-white/20">
-                  <p className="text-2xl font-bold text-white">{currentUser.referrals_count || 0}</p>
-                  <p className="text-xs text-white/80">Amigos referidos</p>
+                <div className="bg-orange-50 rounded-xl p-3 border border-orange-100">
+                  <p className="text-2xl font-bold text-orange-700">{currentUser.referrals_count || 0}</p>
+                  <p className="text-xs text-slate-600">Amigos referidos</p>
                 </div>
-                <div className="bg-white/15 backdrop-blur-sm rounded-xl p-3 border border-white/20">
-                  <p className="text-2xl font-bold text-white">{currentUser.raffle_entries_total || 0}</p>
-                  <p className="text-xs text-white/80">Participaciones en sorteos</p>
+                <div className="bg-orange-50 rounded-xl p-3 border border-orange-100">
+                  <p className="text-2xl font-bold text-orange-700">{currentUser.raffle_entries_total || 0}</p>
+                  <p className="text-xs text-slate-600">Papeletas para el sorteo</p>
                 </div>
               </div>
               {(currentUser.referrals_count || 0) > 0 && (
-                <p className="text-center text-xs text-white/90 mt-3 font-medium">
+                <p className="text-center text-xs text-slate-500 mt-3 font-medium">
                   ¡Gracias por hacer crecer al club! 💪
                 </p>
               )}

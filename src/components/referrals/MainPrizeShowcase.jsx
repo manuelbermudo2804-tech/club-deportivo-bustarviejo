@@ -28,8 +28,9 @@ export default function MainPrizeShowcase({ seasonConfig, userEmail }) {
     return () => { cancelled = true; };
   }, [userEmail, seasonConfig?.temporada]);
 
-  // Sin premio configurado: no mostramos nada
-  if (!premioNombre && !premioFoto) return null;
+  // Sin premio configurado Y sin papeletas: no mostramos nada.
+  // Si el usuario tiene papeletas, las mostramos aunque no haya premio configurado.
+  if (!premioNombre && !premioFoto && papeletas.length === 0) return null;
 
   return (
     <div className="bg-white rounded-2xl overflow-hidden text-slate-900 shadow-lg border-2 border-amber-200">
