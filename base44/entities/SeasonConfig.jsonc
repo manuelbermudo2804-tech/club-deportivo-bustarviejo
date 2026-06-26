@@ -250,6 +250,16 @@
       "type": "string",
       "description": "Texto descriptivo del premio principal (condiciones, fecha del sorteo, etc.)"
     },
+    "sorteo_premio_valor": {
+      "type": "number",
+      "default": 0,
+      "description": "Valor estimado del premio principal en euros. Sirve para calcular cu\u00e1ntas papeletas se necesitan antes de poder sortear (rentabilidad)."
+    },
+    "sorteo_valor_papeleta": {
+      "type": "number",
+      "default": 25,
+      "description": "Valor en euros que aporta cada papeleta/amigo referido (normalmente la cuota de socio). Con el valor del premio se calcula el umbral m\u00ednimo de papeletas para que el sorteo sea rentable."
+    },
     "sorteo_premios": {
       "type": "array",
       "items": {

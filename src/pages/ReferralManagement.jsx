@@ -242,6 +242,11 @@ export default function ReferralManagement() {
       return;
     }
 
+    if (!umbralAlcanzado) {
+      toast.error(`Aún no se puede sortear: faltan ${papeletasFaltantes} papeletas para cubrir el valor del premio (${valorPremio}€).`);
+      return;
+    }
+
     setSelectedPrize(prize);
     setShowRaffleDialog(true);
     setIsDrawing(true);
@@ -289,6 +294,13 @@ export default function ReferralManagement() {
 
   // Sorteos de la temporada actual
   const currentSeasonDraws = raffleDraws.filter(d => d.temporada === seasonConfig?.temporada);
+
+  // Umbral de rentabilidad: papeletas mínimas necesarias para cubrir el valor del premio
+  const valorPremio = seasonConfig?.sorteo_premio_valor || 0;
+  const valorPapeleta = seasonConfig?.sorteo_valor_papeleta || 25;
+  const umbralPapeletas = valorPremio > 0 && valorPapeleta > 0 ? Math.ceil(valorPremio / valorPapeleta) : 0;
+  const umbralAlcanzado = umbralPapeletas === 0 || totalRaffleEntries >= umbralPapeletas;
+  const papeletasFaltantes = Math.max(0, umbralPapeletas - totalRaffleEntries);
 
   // Exportar datos
   const exportData = () => {
@@ -621,6 +633,45 @@ export default function ReferralManagement() {
             </CardContent>
           </Card>
 
+          {/* Umbral de rentabilidad */}
+          {umbralPapeletas > 0 && (
+            <Card className={`border-2 ${umbralAlcanzado ? "border-emerald-300 bg-emerald-50" : "border-amber-300 bg-amber-50"}`}>
+              <CardContent className="pt-6 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    {umbralAlcanzado ? (
+                      <CheckCircle2 className="w-7 h-7 text-emerald-600" />
+                    ) : (
+                      <Clock className="w-7 h-7 text-amber-600" />
+                    )}
+                    <div>
+                      <h3 className={`font-bold text-lg ${umbralAlcanzado ? "text-emerald-900" : "text-amber-900"}`}>
+                        {umbralAlcanzado ? "✅ Sorteo desbloqueado" : "🔒 Sorteo bloqueado"}
+                      </h3>
+                      <p className={`text-sm ${umbralAlcanzado ? "text-emerald-700" : "text-amber-700"}`}>
+                        {umbralAlcanzado
+                          ? `Ya hay papeletas suficientes para cubrir el premio (${valorPremio}€).`
+                          : `Faltan ${papeletasFaltantes} papeletas para cubrir el premio de ${valorPremio}€.`}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-2xl font-bold ${umbralAlcanzado ? "text-emerald-700" : "text-amber-700"}`}>
+                      {totalRaffleEntries}/{umbralPapeletas}
+                    </p>
+                    <p className="text-xs text-slate-500">papeletas</p>
+                  </div>
+                </div>
+                <div className="w-full bg-white rounded-full h-3 overflow-hidden border border-slate-200">
+                  <div
+                    className={`h-full rounded-full transition-all ${umbralAlcanzado ? "bg-emerald-500" : "bg-amber-500"}`}
+                    style={{ width: `${Math.min(100, Math.round((totalRaffleEntries / umbralPapeletas) * 100))}%` }}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Premios para sortear */}
           {(seasonConfig?.sorteo_premios || []).length > 0 ? (
             <Card>
@@ -650,6 +701,11 @@ export default function ReferralManagement() {
                           <Badge className="bg-slate-500">
                             <CheckCircle2 className="w-3 h-3 mr-1" />
                             Ya sorteado
+                          </Badge>
+                        ) : !umbralAlcanzado ? (
+                          <Badge className="bg-amber-500">
+                            <Clock className="w-3 h-3 mr-1" />
+                            Faltan {papeletasFaltantes} papeletas
                           </Badge>
                         ) : (
                           <Button 

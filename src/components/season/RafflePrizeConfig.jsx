@@ -14,6 +14,10 @@ export default function RafflePrizeConfig({ activeSeason, updateSeasonMutation }
 
   const update = (data) => updateSeasonMutation.mutate({ id: activeSeason.id, data });
 
+  const valorPremio = activeSeason.sorteo_premio_valor || 0;
+  const valorPapeleta = activeSeason.sorteo_valor_papeleta || 25;
+  const umbralPapeletas = valorPremio > 0 && valorPapeleta > 0 ? Math.ceil(valorPremio / valorPapeleta) : 0;
+
   const handleFotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -123,6 +127,66 @@ export default function RafflePrizeConfig({ activeSeason, updateSeasonMutation }
           className="mt-1 h-20 text-sm"
         />
         <p className="text-xs text-slate-500 mt-1">Se guarda al salir del campo.</p>
+      </div>
+
+      {/* Umbral de rentabilidad para poder sortear */}
+      <div className="border-t border-amber-200 pt-4 space-y-3">
+        <p className="font-semibold text-amber-900 text-sm">🎯 ¿Cuándo se puede hacer el sorteo?</p>
+        <p className="text-xs text-slate-600">
+          El sorteo no se desbloquea hasta reunir suficientes papeletas para cubrir el valor del premio.
+          Así te aseguras de que el sorteo es rentable para el club.
+        </p>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label className="text-sm font-medium">💰 Valor del premio (€)</Label>
+            <Input
+              key={`premio-valor-${activeSeason.id}`}
+              type="number"
+              min="0"
+              defaultValue={activeSeason.sorteo_premio_valor ?? 0}
+              onBlur={(e) => {
+                const v = Number(e.target.value) || 0;
+                if (v !== (activeSeason.sorteo_premio_valor || 0)) {
+                  update({ sorteo_premio_valor: v });
+                }
+              }}
+              placeholder="Ej: 500"
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium">🎟️ Valor por papeleta (€)</Label>
+            <Input
+              key={`premio-papeleta-${activeSeason.id}`}
+              type="number"
+              min="1"
+              defaultValue={activeSeason.sorteo_valor_papeleta ?? 25}
+              onBlur={(e) => {
+                const v = Number(e.target.value) || 0;
+                if (v !== (activeSeason.sorteo_valor_papeleta || 0)) {
+                  update({ sorteo_valor_papeleta: v });
+                }
+              }}
+              placeholder="Ej: 25"
+              className="mt-1"
+            />
+          </div>
+        </div>
+
+        {umbralPapeletas > 0 ? (
+          <Alert className="bg-emerald-50 border-emerald-300">
+            <Info className="w-4 h-4 text-emerald-600" />
+            <AlertDescription className="text-emerald-800 ml-2 text-sm">
+              Se necesitarán <strong>{umbralPapeletas} papeletas</strong> (= {umbralPapeletas} amigos referidos)
+              para poder hacer el sorteo. {valorPremio}€ ÷ {valorPapeleta}€ por papeleta.
+            </AlertDescription>
+          </Alert>
+        ) : (
+          <p className="text-xs text-slate-500">
+            Pon un valor de premio mayor que 0 para activar el umbral. Si lo dejas en 0, el sorteo se puede hacer en cualquier momento.
+          </p>
+        )}
       </div>
     </div>
   );
