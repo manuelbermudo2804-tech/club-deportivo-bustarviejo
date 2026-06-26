@@ -238,6 +238,18 @@
       "type": "boolean",
       "default": true
     },
+    "sorteo_premio_principal_nombre": {
+      "type": "string",
+      "description": "Nombre del premio principal del sorteo de referidos (ej: PlayStation 5)"
+    },
+    "sorteo_premio_principal_foto": {
+      "type": "string",
+      "description": "URL de la foto del premio principal del sorteo de referidos"
+    },
+    "sorteo_premio_principal_texto": {
+      "type": "string",
+      "description": "Texto descriptivo del premio principal (condiciones, fecha del sorteo, etc.)"
+    },
     "sorteo_premios": {
       "type": "array",
       "items": {

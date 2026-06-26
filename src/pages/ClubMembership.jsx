@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift, Share2, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
+import { generatePapeletaNumber } from "../components/referrals/generatePapeletaNumber";
 import { toast } from "sonner";
 import InvitationPWAGuide from "../components/pwa/InvitationPWAGuide";
 import { Link } from "react-router-dom";
@@ -432,6 +433,11 @@ export default function ClubMembership() {
       // REGISTRAR EN HISTÓRICO DE REFERIDOS (después de procesar el programa)
       if ((data.referido_por || referrer) && seasonConfig?.programa_referidos_activo) {
         try {
+          // Asignar número de papeleta único solo si hay referidor real (suma sorteo)
+          let numeroPapeleta = "";
+          if (referrer) {
+            numeroPapeleta = await generatePapeletaNumber(seasonConfig?.temporada || "");
+          }
           await base44.entities.ReferralHistory.create({
             temporada: seasonConfig?.temporada || "",
             referidor_email: referrer?.email || "",
@@ -442,6 +448,7 @@ export default function ClubMembership() {
             estado: "activo",
             credito_otorgado: 0,
             sorteos_otorgados: referrer ? 1 : 0,
+            numero_papeleta: numeroPapeleta,
             fecha_referido: new Date().toISOString()
           });
           

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
+import MainPrizeShowcase from "./MainPrizeShowcase";
 
 const REWARD_TIERS = [
   { count: 1, color: "from-blue-500 to-blue-600", bgColor: "bg-blue-50", borderColor: "border-blue-300", title: "1 Socio", emoji: "🎁" },
@@ -329,6 +330,9 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
             </div>
           </div>
         )}
+
+        {/* Premio principal del sorteo + papeletas con número del usuario */}
+        <MainPrizeShowcase seasonConfig={seasonConfig} userEmail={userEmail} />
 
         {userReferrals > 0 && (
           <div className="bg-white rounded-2xl p-4 text-slate-900">

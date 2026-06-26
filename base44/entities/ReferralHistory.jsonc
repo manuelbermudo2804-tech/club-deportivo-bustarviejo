@@ -44,6 +44,10 @@
       "type": "number",
       "description": "Participaciones en sorteo otorgadas"
     },
+    "numero_papeleta": {
+      "type": "string",
+      "description": "N\u00famero de papeleta aleatorio y \u00fanico asignado a este referido para el sorteo (ej: 0427)"
+    },
     "es_femenino": {
       "type": "boolean",
       "default": false,

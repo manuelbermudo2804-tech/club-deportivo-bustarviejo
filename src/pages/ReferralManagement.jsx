@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import { toast } from "sonner";
+import { generatePapeletaNumber } from "../components/referrals/generatePapeletaNumber";
 
 const TIER_CONFIG = [
   { count: 1, emoji: "🎁", label: "Bronce", color: "bg-blue-500" },
@@ -155,6 +156,7 @@ export default function ReferralManagement() {
       });
 
       // Registrar también en histórico (fuente de verdad del ranking) — 1 papeleta por amigo
+      const numeroPapeleta = await generatePapeletaNumber(seasonConfig?.temporada || "");
       await base44.entities.ReferralHistory.create({
         temporada: seasonConfig?.temporada || "",
         referidor_email: referrer.email,
@@ -163,6 +165,7 @@ export default function ReferralManagement() {
         estado: "activo",
         credito_otorgado: 0,
         sorteos_otorgados: 1,
+        numero_papeleta: numeroPapeleta,
         fecha_referido: new Date().toISOString()
       });
 
@@ -1011,6 +1014,11 @@ export default function ReferralManagement() {
                         </div>
                       </div>
                       <div className="text-right text-xs">
+                       {ref.numero_papeleta && (
+                         <Badge variant="outline" className="font-mono bg-orange-50 text-orange-700 border-orange-300 mb-1">
+                           🎟️ #{ref.numero_papeleta}
+                         </Badge>
+                       )}
                        {ref.sorteos_otorgados > 0 ? (
                          <p className="text-orange-600">+{ref.sorteos_otorgados} sorteo(s)</p>
                        ) : (
