@@ -51,9 +51,12 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
   const esElegible = edad >= 13 && edad < 18;
 
   const handleSubmit = async () => {
-    if (!email || !consentimiento) return;
-    if (!email.includes("@")) {
+    if (!email || !email.includes("@")) {
       toast.error("Introduce un email válido");
+      return;
+    }
+    if (!consentimiento) {
+      toast.error("Debes marcar la casilla de autorización");
       return;
     }
 
