@@ -577,9 +577,11 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                 size="sm"
                 onClick={async (e) => {
                   e.stopPropagation();
-                  const u = await base44.auth.me();
+                  const u = parentUser || await base44.auth.me();
                   setParentUser(u);
-                  setShowMinorAccess(true);
+                  // Esperar a que el diálogo esté montado con parentUser antes de abrirlo,
+                  // para que Radix detecte la transición de apertura (si no, no aparece).
+                  setTimeout(() => setShowMinorAccess(true), 0);
                 }}
                 className="w-full bg-green-600 hover:bg-green-700 text-white text-xs h-8"
               >
