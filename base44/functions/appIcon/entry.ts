@@ -1,14 +1,15 @@
-// Proxy/compositor del icono PWA — sirve el PNG desde app.cdbustarviejo.com
-// para evitar bloqueos de redes/firewalls al dominio media.base44.com.
+// Compositor del icono PWA — sirve el escudo sobre fondo VERDE SÓLIDO desde
+// app.cdbustarviejo.com (evita bloqueos a media.base44.com).
 //
-// - variant "any":      escudo a sangre completa (se ve dentro de un cuadrado/redondeado).
-// - variant "maskable": escudo REDUCIDO y CENTRADO sobre fondo verde, con margen de
-//   seguridad (~17%) para que Android pueda recortarlo a círculo/squircle sin cortar
-//   el escudo ni mostrar el icono genérico con la inicial ("C").
+// El PNG de origen del escudo tiene FONDO TRANSPARENTE. Android, al recortar un
+// icono con transparencia, muestra el icono genérico con la inicial ("C"). Por eso
+// AMBAS variantes se componen sobre fondo verde sólido (sin transparencia):
+//   - "any":      escudo grande (94%) — para lanzadores que no recortan.
+//   - "maskable": escudo reducido (66%) con safe-zone para recorte a círculo/squircle.
 import { Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
 
 const ICON_SRC = "https://media.base44.com/images/public/6992c6be619d2da592897991/e4665760a_image.png";
-const GREEN = 0x15803dff; // #15803d (theme verde del club), RGBA
+const GREEN = 0x15803dff; // #15803d (verde del club), RGBA
 
 Deno.serve(async (req) => {
   try {
@@ -21,28 +22,15 @@ Deno.serve(async (req) => {
     }
     const bytes = new Uint8Array(await upstream.arrayBuffer());
 
-    // El icono "any" se sirve tal cual (escudo a sangre).
-    if (variant === "any") {
-      return new Response(bytes, {
-        status: 200,
-        headers: {
-          "Content-Type": "image/png",
-          "Cache-Control": "public, max-age=86400, immutable",
-          "Access-Control-Allow-Origin": "*"
-        }
-      });
-    }
-
-    // variant "maskable": componer escudo reducido sobre fondo verde con safe-zone.
     const SIZE = 512;
-    const SAFE = 0.66; // el escudo ocupa el 66% → ~17% de margen por cada lado
+    const SCALE = variant === "maskable" ? 0.66 : 0.94;
 
     const crest = await Image.decode(bytes);
-    const target = Math.round(SIZE * SAFE);
-    crest.resize(target, target); // mantiene proporción (la fuente es cuadrada)
+    const target = Math.round(SIZE * SCALE);
+    crest.resize(target, target); // la fuente es cuadrada → mantiene proporción
 
     const canvas = new Image(SIZE, SIZE);
-    canvas.fill(GREEN);
+    canvas.fill(GREEN); // fondo verde SÓLIDO: elimina la transparencia que causaba la "C"
     const offset = Math.round((SIZE - target) / 2);
     canvas.composite(crest, offset, offset);
 
