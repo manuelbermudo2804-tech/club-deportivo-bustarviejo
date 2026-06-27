@@ -3,8 +3,8 @@
 Deno.serve(async (req) => {
   const url = new URL(req.url);
   const origin = `${url.protocol}//${url.host}`;
-  const ICON_ANY = `${origin}/functions/appIcon?v=any`;
-  const ICON_MASKABLE = `${origin}/functions/appIcon?v=maskable`;
+  const ICON_ANY = `${origin}/functions/appIcon?v=any&r=3`;
+  const ICON_MASKABLE = `${origin}/functions/appIcon?v=maskable&r=3`;
 
   const manifest = {
     name: "CD Bustarviejo",
