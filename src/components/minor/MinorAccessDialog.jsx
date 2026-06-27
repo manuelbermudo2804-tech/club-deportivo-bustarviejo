@@ -59,23 +59,16 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
 
     setLoading(true);
     try {
-      // 1. Guardar consentimiento en el Player
-      await base44.entities.Player.update(player.id, {
-        acceso_menor_email: email,
-        acceso_menor_autorizado: true,
-        acceso_menor_fecha_consentimiento: new Date().toISOString(),
-        acceso_menor_padre_email: parentUser.email,
-        acceso_menor_texto_version: CONSENTIMIENTO_VERSION,
-        acceso_menor_user_agent: navigator.userAgent,
-      });
-
-      // 2. Generar código de acceso directamente (sin pasar por admin)
+      // Generar código de acceso. El backend guarda el consentimiento en el Player
+      // con service-role (la RLS no permite a los padres editar esos campos directamente).
       const { data } = await base44.functions.invoke("generateAccessCode", {
         email: email.trim().toLowerCase(),
         tipo: "juvenil",
         nombre_destino: player.nombre?.split(" ")[0] || "",
         jugador_id: player.id,
-        jugador_nombre: player.nombre
+        jugador_nombre: player.nombre,
+        consentimiento_version: CONSENTIMIENTO_VERSION,
+        user_agent: navigator.userAgent,
       });
 
       if (data.success) {

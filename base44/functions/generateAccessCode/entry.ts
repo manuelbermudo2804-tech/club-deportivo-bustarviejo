@@ -710,6 +710,24 @@ Deno.serve(async (req) => {
     }
 
     const result = await generateSingleCode(base44, user, { email, tipo, nombre_destino, jugador_id, jugador_nombre, mensaje_personalizado, categorias_asignadas });
+
+    // Para acceso juvenil: guardar el consentimiento en el Player con service-role
+    // (la RLS no permite a los padres editar estos campos directamente desde el frontend)
+    if (tipo === 'juvenil' && jugador_id) {
+      try {
+        await base44.asServiceRole.entities.Player.update(jugador_id, {
+          acceso_menor_email: email.trim().toLowerCase(),
+          acceso_menor_autorizado: true,
+          acceso_menor_fecha_consentimiento: new Date().toISOString(),
+          acceso_menor_padre_email: user.email,
+          acceso_menor_texto_version: body.consentimiento_version || 'v1.0',
+          acceso_menor_user_agent: body.user_agent || ''
+        });
+      } catch (e) {
+        console.error('[generateAccessCode] Error guardando consentimiento menor:', e.message);
+      }
+    }
+
     return Response.json(result);
 
   } catch (error) {
