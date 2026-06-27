@@ -77,9 +77,9 @@ export default function EquipacionSection({ clothingUrl }) {
             <div className="flex items-start gap-2.5">
               <AlertTriangle className="w-6 h-6 text-pink-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-extrabold text-pink-900 text-sm uppercase">⚠️ Tallaje femenino entallado</p>
+                <p className="font-extrabold text-pink-900 text-sm uppercase">⚠️ Camiseta femenina 1ª equipación</p>
                 <p className="text-pink-900 text-sm mt-1 leading-relaxed">
-                  Las prendas de tallaje femenino tienen un <strong>corte ajustado y entallado</strong>, por lo que <strong>quedan más pequeñas de lo habitual</strong>. <strong>Ten muy en cuenta la talla que vas a pedir y, si dudas, elige una talla más grande.</strong>
+                  La camiseta de la <strong>primera equipación femenina</strong> puede pedirse con <strong>corte entallado</strong>. Las opiniones son variadas (a unas personas les queda bien y a otras algo justa), pero en general <strong>talla un poquito menos</strong>. <strong>Ten en cuenta la talla que vas a pedir y, si dudas, elige una talla más grande.</strong>
                 </p>
               </div>
             </div>
