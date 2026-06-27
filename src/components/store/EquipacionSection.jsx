@@ -92,7 +92,7 @@ export default function EquipacionSection({ clothingUrl }) {
               <div>
                 <p className="font-extrabold text-red-900 text-sm uppercase">⚠️ Diferencia de talla entre equipaciones</p>
                 <p className="text-red-900 text-sm mt-1 leading-relaxed">
-                  La camiseta de la <strong>segunda equipación talla normal</strong>, igual que el resto de la ropa. La diferencia es que la <strong>primera equipación (corte normal) da algo más de talla</strong>. Tenlo en cuenta al elegir: si te guías por cómo te queda la primera, la segunda te resultará un poco más ajustada.
+                  La camiseta de la <strong>segunda equipación talla normal</strong>, igual que el resto de la ropa. La diferencia es que la <strong>primera equipación (corte normal) da algo más de talla</strong>. Por ejemplo: si la <strong>M de la primera</strong> te queda bien, ten en cuenta que la <strong>M de la segunda te quedará un poco más pequeña</strong>.
                 </p>
               </div>
             </div>
