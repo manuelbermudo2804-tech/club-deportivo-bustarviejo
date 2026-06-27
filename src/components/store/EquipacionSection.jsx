@@ -90,9 +90,9 @@ export default function EquipacionSection({ clothingUrl }) {
             <div className="flex items-start gap-2.5">
               <Shirt className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-extrabold text-red-900 text-sm uppercase">⚠️ Diferencia de talla entre equipaciones</p>
+                <p className="font-extrabold text-red-900 text-sm uppercase">⚠️ Camiseta de entrenamiento (negra): da menos talla</p>
                 <p className="text-red-900 text-sm mt-1 leading-relaxed">
-                  La camiseta de la <strong>segunda equipación talla normal</strong>, igual que el resto de la ropa. La diferencia es que la <strong>primera equipación (corte normal) da algo más de talla</strong>. Por ejemplo: si la <strong>M de la primera</strong> te queda bien, ten en cuenta que la <strong>M de la segunda te quedará un poco más pequeña</strong>.
+                  Las camisetas de <strong>primera y segunda equipación tallan igual</strong> (van un poco más grandes). La de <strong>entrenamiento (negra)</strong> tiene un <strong>corte más ajustado y es algo más corta</strong>, pensada para entrenar, por lo que <strong>da menos talla</strong>. Por ejemplo: la <strong>M de entrenamiento queda un pelín más pequeña</strong> que la M de las de jugar. Tenlo en cuenta y, si dudas, elige una talla más grande.
                 </p>
               </div>
             </div>
