@@ -90,9 +90,9 @@ export default function EquipacionSection({ clothingUrl }) {
             <div className="flex items-start gap-2.5">
               <Shirt className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-extrabold text-red-900 text-sm uppercase">⚠️ Segunda equipación: da menos talla</p>
+                <p className="font-extrabold text-red-900 text-sm uppercase">⚠️ Diferencia de talla entre equipaciones</p>
                 <p className="text-red-900 text-sm mt-1 leading-relaxed">
-                  La camiseta de la <strong>segunda equipación talla más pequeña</strong> que la de la primera. Si pides la segunda equipación, <strong>considera pedir una talla más grande</strong> de la que usas normalmente.
+                  La camiseta de la <strong>segunda equipación talla normal</strong>, igual que el resto de la ropa. La diferencia es que la <strong>primera equipación (corte normal) da algo más de talla</strong>. Tenlo en cuenta al elegir: si te guías por cómo te queda la primera, la segunda te resultará un poco más ajustada.
                 </p>
               </div>
             </div>
