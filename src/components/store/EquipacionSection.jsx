@@ -73,20 +73,20 @@ export default function EquipacionSection({ clothingUrl }) {
           </p>
 
           {/* AVISO IMPORTANTE 1: tallaje femenino entallado */}
-          <div className="bg-pink-50 border-2 border-pink-400 rounded-xl p-4">
+          <div className="bg-pink-50 border-2 border-pink-400 rounded-xl p-4 animate-pulse-strong">
             <div className="flex items-start gap-2.5">
               <AlertTriangle className="w-6 h-6 text-pink-600 flex-shrink-0 mt-0.5" />
               <div>
                 <p className="font-extrabold text-pink-900 text-sm uppercase">⚠️ Tallaje femenino entallado</p>
                 <p className="text-pink-900 text-sm mt-1 leading-relaxed">
-                  Las prendas de tallaje femenino son <strong>ajustadas y entalladas</strong>, por lo que <strong>quedan más pequeñas de lo habitual</strong>. Hemos recibido varias quejas por este motivo. <strong>Ten muy en cuenta la talla que vas a pedir y, si dudas, elige una talla más grande.</strong>
+                  Las prendas de tallaje femenino tienen un <strong>corte ajustado y entallado</strong>, por lo que <strong>quedan más pequeñas de lo habitual</strong>. <strong>Ten muy en cuenta la talla que vas a pedir y, si dudas, elige una talla más grande.</strong>
                 </p>
               </div>
             </div>
           </div>
 
           {/* AVISO IMPORTANTE 2: segunda equipación da menos talla */}
-          <div className="bg-red-50 border-2 border-red-400 rounded-xl p-4">
+          <div className="bg-red-50 border-2 border-red-400 rounded-xl p-4 animate-pulse-strong">
             <div className="flex items-start gap-2.5">
               <Shirt className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
               <div>
