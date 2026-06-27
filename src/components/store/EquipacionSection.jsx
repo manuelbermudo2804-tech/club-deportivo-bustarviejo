@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Star, Ruler, Package, Ban, UserPlus } from "lucide-react";
+import { ExternalLink, Star, Ruler, Package, Ban, UserPlus, AlertTriangle, Shirt } from "lucide-react";
 import useEquipacionAccess from "@/hooks/useEquipacionAccess";
 import EquipacionLocked from "./EquipacionLocked";
 
@@ -71,6 +71,32 @@ export default function EquipacionSection({ clothingUrl }) {
           <p className="text-[11px] text-slate-500 text-center -mt-1">
             La equipación se fabrica personalizada · elige bien tu talla
           </p>
+
+          {/* AVISO IMPORTANTE 1: tallaje femenino entallado */}
+          <div className="bg-pink-50 border-2 border-pink-400 rounded-xl p-4">
+            <div className="flex items-start gap-2.5">
+              <AlertTriangle className="w-6 h-6 text-pink-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-extrabold text-pink-900 text-sm uppercase">⚠️ Tallaje femenino entallado</p>
+                <p className="text-pink-900 text-sm mt-1 leading-relaxed">
+                  Las prendas de tallaje femenino son <strong>ajustadas y entalladas</strong>, por lo que <strong>quedan más pequeñas de lo habitual</strong>. Hemos recibido varias quejas por este motivo. <strong>Ten muy en cuenta la talla que vas a pedir y, si dudas, elige una talla más grande.</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* AVISO IMPORTANTE 2: segunda equipación da menos talla */}
+          <div className="bg-red-50 border-2 border-red-400 rounded-xl p-4">
+            <div className="flex items-start gap-2.5">
+              <Shirt className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-extrabold text-red-900 text-sm uppercase">⚠️ Segunda equipación: da menos talla</p>
+                <p className="text-red-900 text-sm mt-1 leading-relaxed">
+                  La camiseta de la <strong>segunda equipación talla más pequeña</strong> que la de la primera. Si pides la segunda equipación, <strong>considera pedir una talla más grande</strong> de la que usas normalmente.
+                </p>
+              </div>
+            </div>
+          </div>
 
           {/* Aviso pegado al botón: web externa + registro */}
           {clothingUrl ? (
