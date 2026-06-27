@@ -15,6 +15,11 @@ Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const variant = url.searchParams.get("v") === "maskable" ? "maskable" : "any";
+    // Tamaño solicitado (el manifest pide 192 y 512). Generamos REALMENTE ese
+    // tamaño: si el PNG no coincide con el "sizes" declarado, Android lo descarta
+    // y cae al icono genérico ("C").
+    const reqSize = parseInt(url.searchParams.get("s"), 10);
+    const SIZE = reqSize === 192 ? 192 : 512;
 
     const upstream = await fetch(ICON_SRC);
     if (!upstream.ok) {
@@ -22,7 +27,6 @@ Deno.serve(async (req) => {
     }
     const bytes = new Uint8Array(await upstream.arrayBuffer());
 
-    const SIZE = 512;
     const SCALE = variant === "maskable" ? 0.66 : 0.94;
 
     const crest = await Image.decode(bytes);
