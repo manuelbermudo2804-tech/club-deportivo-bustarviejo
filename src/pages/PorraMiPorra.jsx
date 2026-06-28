@@ -136,7 +136,10 @@ export default function PorraMiPorra() {
   // 🎟️ Excepción puntual: usuarios con permiso especial de Terceros (p.ej. Carlos
   //    Molina) pueden navegar libremente al Bracket aunque sus Terceros no estén
   //    al 100% — para no quedarse atrapados sin poder confirmar el bracket.
-  const tieneExcepcion = isTercerosBlocked === false && isBlocked === true;
+  // Si la porra ya está bloqueada (plazo cerrado), todas las pestañas son libremente
+  // navegables en modo solo-lectura: el usuario debe poder ver sus predicciones (bracket
+  // incluido) aunque no las completara. El bloqueo secuencial solo aplica mientras edita.
+  const tieneExcepcion = (isTercerosBlocked === false && isBlocked === true) || isBlocked;
   const ordenPrereq = tieneExcepcion ? {
     grupos: null, terceros: null, bracket: null, especiales: null,
   } : {
