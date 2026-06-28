@@ -47,7 +47,7 @@ export default function MiDesglosePuntos({ token }) {
   const filas = [
     { k: 'grupos', label: '⚽ Fase de Grupos', pts: resumen.grupos, sub: `${grupos.aciertos}/${grupos.partidos_jugados} aciertos · ${grupos.puntos_por_acierto} pts/acierto` },
     { k: 'terceros', label: '🥉 Mejores Terceros', pts: resumen.terceros, sub: mejores_terceros.hay_datos ? `${mejores_terceros.num_aciertos}/8 aciertos · ${mejores_terceros.puntos_por_acierto} pts/acierto` : 'Aún sin resolver' },
-    { k: 'elim_16', label: '⚔️ 16avos de final', pts: eliminatorias['16avos'].puntos_total, sub: eliminatorias['16avos'].hay_datos ? `${eliminatorias['16avos'].num_aciertos} aciertos · ${eliminatorias['16avos'].puntos_por_acierto} pts/equipo` : 'Aún sin jugar' },
+    { k: 'elim_16', label: '⚔️ Clasificación a 16avos', pts: eliminatorias['16avos'].puntos_total, sub: eliminatorias['16avos'].hay_datos ? `${eliminatorias['16avos'].num_aciertos} equipos clasificados acertados · ${eliminatorias['16avos'].puntos_por_acierto} pts/equipo` : 'Aún sin jugar' },
     { k: 'elim_8', label: '⚔️ 8avos de final', pts: eliminatorias['8vos'].puntos_total, sub: eliminatorias['8vos'].hay_datos ? `${eliminatorias['8vos'].num_aciertos} aciertos · ${eliminatorias['8vos'].puntos_por_acierto} pts/equipo` : 'Aún sin jugar' },
     { k: 'elim_4', label: '⚔️ Cuartos de final', pts: eliminatorias['4tos'].puntos_total, sub: eliminatorias['4tos'].hay_datos ? `${eliminatorias['4tos'].num_aciertos} aciertos · ${eliminatorias['4tos'].puntos_por_acierto} pts/equipo` : 'Aún sin jugar' },
     { k: 'elim_semis', label: '⚔️ Semifinales', pts: eliminatorias['semis'].puntos_total, sub: eliminatorias['semis'].hay_datos ? `${eliminatorias['semis'].num_aciertos} aciertos · ${eliminatorias['semis'].puntos_por_acierto} pts/equipo` : 'Aún sin jugar' },
@@ -123,7 +123,7 @@ function DetalleSeccion({ claveSeccion, data }) {
   if (claveSeccion === 'terceros') return <DetalleTerceros t={data.mejores_terceros} />;
   if (claveSeccion.startsWith('elim_')) {
     const map = { elim_16: '16avos', elim_8: '8vos', elim_4: '4tos', elim_semis: 'semis', elim_final: 'final' };
-    return <DetalleEliminatoria fase={data.eliminatorias[map[claveSeccion]]} />;
+    return <DetalleEliminatoria fase={data.eliminatorias[map[claveSeccion]]} esClasificacion16={claveSeccion === 'elim_16'} />;
   }
   if (claveSeccion === 'campeon') return <DetalleCampeon c={data.campeon} />;
   if (claveSeccion === 'tercero') return <DetalleTercerPuesto t={data.tercer_puesto} />;
@@ -180,12 +180,17 @@ function DetalleTerceros({ t }) {
   );
 }
 
-function DetalleEliminatoria({ fase }) {
+function DetalleEliminatoria({ fase, esClasificacion16 }) {
   if (!fase.hay_datos) {
     return <p className="text-sm text-slate-500 italic text-center py-3 flex items-center justify-center gap-2"><Clock className="w-4 h-4" /> Aún no se ha jugado esta fase.</p>;
   }
   return (
     <div className="space-y-2 text-xs">
+      {esClasificacion16 && (
+        <p className="text-blue-900 bg-blue-50 border border-blue-200 rounded p-2">
+          Estos puntos son por <strong>acertar qué equipos clasifican a la ronda de 16avos</strong> (según los resultados reales de la fase de grupos), no por ganar partidos de eliminatoria.
+        </p>
+      )}
       <p className="text-slate-700"><strong>Equipos reales en esta fase:</strong> {fase.equipos_reales.map(e => e.nombre).join(', ') || '—'}</p>
       <p className="font-bold text-slate-800 mt-2">Tus predicciones:</p>
       <div className="grid grid-cols-2 gap-1.5">
