@@ -165,6 +165,10 @@ function DetalleTerceros({ t }) {
   }
   return (
     <div className="space-y-2 text-xs">
+      <p className="text-green-900 bg-green-50 border border-green-200 rounded p-2 flex items-start gap-2">
+        <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
+        <span>Los 8 mejores terceros ya son <strong>oficiales</strong>: estos puntos ya están calculados y son <strong>definitivos</strong>.</span>
+      </p>
       <p className="text-slate-700"><strong>Reales:</strong> {t.reales.map(r => r.nombre).join(', ')}</p>
       <p className="font-bold text-slate-800 mt-2">Tus 8 predicciones:</p>
       <div className="grid grid-cols-2 gap-1.5">
