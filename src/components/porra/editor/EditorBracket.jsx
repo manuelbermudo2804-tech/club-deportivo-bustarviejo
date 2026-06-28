@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Crown, Lock, Sparkles } from "lucide-react";
 import { resolverCruces16avos } from "@/lib/porraBracket";
 import PorraCrucesFifaInfo from "@/components/porra/PorraCrucesFifaInfo";
-import BracketRealVsPrediccion from "@/components/porra/editor/BracketRealVsPrediccion";
 
 // Bracket auto-completable: el ganador de cada partido aparece como candidato en el siguiente
 // El usuario NO arrastra equipos: solo elige ganador entre los DOS contendientes ya definidos
@@ -276,13 +275,6 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
                   </div>
                 );
               })}
-
-              <BracketRealVsPrediccion
-                faseKey={faseKey}
-                partidos={partidos}
-                equipos={equipos}
-                prediccionesUsuario={participante.predicciones_eliminatorias}
-              />
             </CardContent>
           </Card>
         );

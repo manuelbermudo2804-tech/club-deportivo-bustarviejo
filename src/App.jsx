@@ -64,7 +64,6 @@ import HealthCheck from '@/pages/HealthCheck';
 import ClubMemory from '@/pages/ClubMemory';
 import SubvencionesPanel from '@/pages/SubvencionesPanel';
 import AltaSocio from '@/pages/AltaSocio';
-import PorraBracketDemo from '@/pages/PorraBracketDemo';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -222,7 +221,6 @@ const AuthenticatedApp = () => {
       <Route path="/HealthCheck" element={<LayoutWrapper currentPageName="HealthCheck"><HealthCheck /></LayoutWrapper>} />
       <Route path="/ClubMemory" element={<LayoutWrapper currentPageName="ClubMemory"><ClubMemory /></LayoutWrapper>} />
       <Route path="/SubvencionesPanel" element={<LayoutWrapper currentPageName="SubvencionesPanel"><SubvencionesPanel /></LayoutWrapper>} />
-      <Route path="/PorraBracketDemo" element={<PorraBracketDemo />} />
 
       <Route path="/ShareReceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
       <Route path="/sharereceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
