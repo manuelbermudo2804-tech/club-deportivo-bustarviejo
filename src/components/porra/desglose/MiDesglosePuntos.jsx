@@ -77,6 +77,14 @@ export default function MiDesglosePuntos({ token }) {
         </p>
       </div>
 
+      {/* Aviso: fases eliminatorias se puntúan según se juegan */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2 text-xs">
+        <Clock className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+        <p className="text-amber-900">
+          <strong>16avos y siguientes fases:</strong> tus puntos se irán sumando <strong>según vayan terminando los partidos</strong>. Necesitamos los resultados reales para saber qué equipos pasan a cada ronda, así que estos puntos se actualizan poco a poco a medida que avanza el torneo.
+        </p>
+      </div>
+
       {/* Resumen tabular con expansión */}
       <div className="space-y-2">
         {filas.map(f => (
