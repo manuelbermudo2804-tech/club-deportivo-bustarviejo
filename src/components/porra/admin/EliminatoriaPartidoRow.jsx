@@ -24,6 +24,16 @@ export default function EliminatoriaPartidoRow({ partido, equipos, equiposUsados
     });
   };
 
+  // El equipo GUARDADO en el partido debe tener SIEMPRE su <option>, aunque el filtro de
+  // equipos disponibles aún no lo incluya (p.ej. justo al recargar el panel al volver de pestaña,
+  // antes de que carguen config/grupos). Sin esto, el <select> tiene un value sin option y
+  // el navegador muestra el placeholder vacío, dando la falsa sensación de que "se borró".
+  const optionEquipoGuardado = (codigo) => {
+    if (!codigo) return null;
+    if (equipos.some(eq => eq.codigo === codigo)) return null; // ya está en la lista
+    return <option value={codigo}>{codigo}</option>;
+  };
+
   const handleSetEquipo = async (campo, codigo) => {
     setSaving(true);
     const previo = local[campo];
@@ -99,6 +109,7 @@ export default function EliminatoriaPartidoRow({ partido, equipos, equiposUsados
             className="flex-1 px-2 py-1.5 border rounded text-sm bg-white"
           >
             <option value="">— {local.equipo_local_placeholder || "Local"} —</option>
+            {optionEquipoGuardado(local.equipo_local_codigo)}
             {getOpciones(local.equipo_local_codigo).map(eq => (
               <option key={eq.codigo} value={eq.codigo}>
                 {eq.bandera_emoji} {eq.nombre}
@@ -118,6 +129,7 @@ export default function EliminatoriaPartidoRow({ partido, equipos, equiposUsados
             className="flex-1 px-2 py-1.5 border rounded text-sm bg-white"
           >
             <option value="">— {local.equipo_visitante_placeholder || "Visitante"} —</option>
+            {optionEquipoGuardado(local.equipo_visitante_codigo)}
             {getOpciones(local.equipo_visitante_codigo).map(eq => (
               <option key={eq.codigo} value={eq.codigo}>
                 {eq.bandera_emoji} {eq.nombre}
