@@ -64,7 +64,7 @@ function ResultadoBotones({ partido, equipos, onChange, onClear }) {
   );
 }
 
-export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpdate }) {
+export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpdate, config = null }) {
   const [regenerando, setRegenerando] = useState(false);
   // Estado local de eliminatorias para no recargar todo el panel admin al editar.
   // Sincronizamos con la prop cada vez que cambia "de verdad" el contenido:
@@ -128,15 +128,24 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpda
     });
     const primeros = GRUPOS.map(g => tablas[g][0]?.codigo).filter(Boolean);
     const segundos = GRUPOS.map(g => tablas[g][1]?.codigo).filter(Boolean);
-    const tercerosOrdenados = GRUPOS.map(g => tablas[g][2]).filter(Boolean)
-      .sort((a, b) => {
-        if (b.pts !== a.pts) return b.pts - a.pts;
-        if (b.victorias !== a.victorias) return b.victorias - a.victorias;
-        return a.codigo.localeCompare(b.codigo);
-      });
-    const mejoresTerceros = tercerosOrdenados.slice(0, 8).map(t => t.codigo);
+    // Mejores terceros: usar SIEMPRE la lista que el admin marcó a mano en el panel
+    // (config.mejores_terceros_reales), que es la fuente de verdad para puntuar.
+    // Solo si no hay lista marcada, calcular por puntos/victorias como fallback.
+    const tercerosMarcados = config?.mejores_terceros_reales || [];
+    let mejoresTerceros;
+    if (tercerosMarcados.length > 0) {
+      mejoresTerceros = tercerosMarcados;
+    } else {
+      const tercerosOrdenados = GRUPOS.map(g => tablas[g][2]).filter(Boolean)
+        .sort((a, b) => {
+          if (b.pts !== a.pts) return b.pts - a.pts;
+          if (b.victorias !== a.victorias) return b.victorias - a.victorias;
+          return a.codigo.localeCompare(b.codigo);
+        });
+      mejoresTerceros = tercerosOrdenados.slice(0, 8).map(t => t.codigo);
+    }
     return new Set([...primeros, ...segundos, ...mejoresTerceros]);
-  }, [grupos, equipos]);
+  }, [grupos, equipos, config]);
 
   // Equipos disponibles para elegir en cada fase eliminatoria
   // - 16avos: los 32 clasificados según resultados reales de grupos (si hay resultados); si no, todos

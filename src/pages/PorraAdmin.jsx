@@ -179,7 +179,7 @@ export default function PorraAdmin() {
           </TabsContent>
           <TabsContent value="partidos" className="space-y-4">
             <PorraAdminMejoresTercerosReales config={config} partidos={partidos} equipos={equipos} onUpdate={cargarTodo} />
-            <PorraAdminPartidos partidos={partidos} equipos={equipos} onUpdate={cargarTodo} />
+            <PorraAdminPartidos partidos={partidos} equipos={equipos} config={config} onUpdate={cargarTodo} />
           </TabsContent>
           <TabsContent value="resultados">
             <PorraAdminResultadosFinales config={config} equipos={equipos} onUpdate={cargarTodo} />
