@@ -183,6 +183,8 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], todosL
   };
 
   const handleResultado = async (partidoId, resultado) => {
+    // Actualizar estado local INMEDIATAMENTE para que la marca se vea al instante y no dependa del recargo
+    setElimiLocal(prev => prev.map(p => p.id === partidoId ? { ...p, resultado_real: resultado, finalizado: true } : p));
     try {
       await base44.entities.PorraPartido.update(partidoId, { 
         resultado_real: resultado,
@@ -191,11 +193,14 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], todosL
       toast.success(`Resultado guardado: ${resultado}`);
       onUpdate?.();
     } catch (e) {
+      // Revertir si falla la escritura
+      setElimiLocal(prev => prev.map(p => p.id === partidoId ? { ...p, resultado_real: '', finalizado: false } : p));
       toast.error('Error: ' + e.message);
     }
   };
 
   const handleClear = async (partidoId) => {
+    setElimiLocal(prev => prev.map(p => p.id === partidoId ? { ...p, resultado_real: '', finalizado: false } : p));
     try {
       await base44.entities.PorraPartido.update(partidoId, {
         resultado_real: '',

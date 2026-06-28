@@ -8,8 +8,30 @@ export default function EliminatoriaPartidoRow({ partido, equipos, todosLosEquip
   const [saving, setSaving] = useState(false);
   const [local, setLocal] = useState(partido);
 
-  // Sincronizar si la prop cambia externamente
-  useEffect(() => { setLocal(partido); }, [partido.id, partido.updated_date]);
+  // Sincronizar si la prop cambia externamente, PERO sin perder nunca un resultado/equipo
+  // que ya marcamos localmente y que la prop entrante aún no refleja (props con datos viejos
+  // que llegan justo después de marcar, antes de que la BD recargue). Así un resultado marcado
+  // jamás "desaparece" de la pantalla.
+  useEffect(() => {
+    setLocal(prev => {
+      // Si la prop trae un resultado o ganador y el local no, o coinciden → usar la prop (datos frescos)
+      const propTieneResultado = !!partido.resultado_real || !!partido.ganador_codigo;
+      const localTieneResultado = !!prev?.resultado_real || !!prev?.ganador_codigo;
+      // Si el local tiene un resultado marcado y la prop viene VACÍA (dato viejo), conservar el local
+      if (localTieneResultado && !propTieneResultado && prev?.id === partido.id) {
+        return prev;
+      }
+      // Igual para equipos asignados: no dejar que una prop vacía borre equipos ya puestos localmente
+      const merged = { ...partido };
+      if (!partido.equipo_local_codigo && prev?.equipo_local_codigo && prev.id === partido.id) {
+        merged.equipo_local_codigo = prev.equipo_local_codigo;
+      }
+      if (!partido.equipo_visitante_codigo && prev?.equipo_visitante_codigo && prev.id === partido.id) {
+        merged.equipo_visitante_codigo = prev.equipo_visitante_codigo;
+      }
+      return merged;
+    });
+  }, [partido.id, partido.updated_date, partido.resultado_real, partido.ganador_codigo, partido.equipo_local_codigo, partido.equipo_visitante_codigo]);
 
   const equiposOrdenados = [...equipos].sort((a, b) => a.nombre.localeCompare(b.nombre));
 
