@@ -13,6 +13,7 @@ const PASOS = [
 
 const PUNTOS = [
   { tipo: "Acertar 1/X/2 de un partido de grupos", pts: 3 },
+  { tipo: "🥉 Cada uno de tus 8 mejores terceros acertado", pts: 8 },
   { tipo: "Cada equipo que acertaste que llega a 16avos", pts: 4 },
   { tipo: "Cada equipo que acertaste que llega a 8vos", pts: 6 },
   { tipo: "Cada equipo que acertaste que llega a cuartos", pts: 10 },
