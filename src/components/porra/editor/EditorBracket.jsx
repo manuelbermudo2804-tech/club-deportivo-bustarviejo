@@ -86,22 +86,15 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
     return codigos;
   }, [participante]);
 
-  // Cruces de 16avos según el BRACKET OFICIAL FIFA Mundial 2026 (Match 73-88).
-  // Si el admin ya fijó equipos reales en BD (equipo_local_codigo/visitante_codigo)
-  // los usamos. Si no, resolvemos los cruces a partir de las predicciones del
-  // usuario (clasificación de grupos + 8 mejores terceros) aplicando el Anexo C.
+  // Cruces de 16avos del cuadro del USUARIO según el BRACKET OFICIAL FIFA Mundial 2026 (Match 73-88).
+  // ⚠️ SIEMPRE se resuelven a partir de las predicciones del propio usuario
+  // (clasificación de grupos + 8 mejores terceros) aplicando el Anexo C.
+  // NO se usan los equipos reales que el admin mete en BD: el bracket de cada
+  // persona es SU predicción, no la realidad. (Si se usaran los códigos reales,
+  // al meter los partidos de 16avos se "colarían" en el cuadro de toda la gente.)
   const cruces16avos = useMemo(() => {
-    const partidos16 = partidos.filter(p => p.fase === '16avos').sort((a, b) => a.numero_partido - b.numero_partido);
-
-    // Si los partidos de BD ya tienen códigos directos → usar esos
-    const tienenCodigosReales = partidos16.length > 0 && partidos16.every(p => p.equipo_local_codigo && p.equipo_visitante_codigo);
-    if (tienenCodigosReales) {
-      return partidos16.map(p => [p.equipo_local_codigo, p.equipo_visitante_codigo]);
-    }
-
-    // Resolución según bracket oficial FIFA + Anexo C
     return resolverCruces16avos(participante);
-  }, [participante, partidos]);
+  }, [participante]);
 
   // Devuelve los DOS contendientes de un partido eliminatoria:
   // - 16avos: 2 equipos según el bracket real o secuencial (ver arriba)
