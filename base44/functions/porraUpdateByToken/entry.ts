@@ -97,8 +97,8 @@ Deno.serve(async (req) => {
     // - Fase de grupos, mejores terceros y especiales: BLOQUEADOS desde el inicio del Mundial.
     //   El partido inaugural ya se ha jugado, por lo que nadie puede modificar predicciones
     //   de grupos / terceros / especiales (sería trampa con información a posteriori).
-    // - Bracket (eliminatorias + tercer puesto): editable hasta el 28-jun-2026 18:00 Madrid (CEST=UTC+2)
-    //   → 16:00 UTC. Pasada esa fecha, queda bloqueado por completo.
+    // - Bracket (eliminatorias + tercer puesto): editable hasta el 28-jun-2026 19:00 Madrid (CEST=UTC+2)
+    //   → 17:00 UTC. Pasada esa fecha, queda bloqueado por completo.
     const BRACKET_ONLY_FIELDS = new Set([
       'predicciones_eliminatorias',
       'prediccion_tercer_puesto',
@@ -136,8 +136,8 @@ Deno.serve(async (req) => {
       }, { status: 403 });
     }
 
-    // Fecha de cierre del bracket: 28 jun 2026 16:00 UTC (= 18:00 Europe/Madrid CEST)
-    const BRACKET_DEADLINE_MS = Date.UTC(2026, 5, 28, 16, 0, 0);
+    // Fecha de cierre del bracket: 28 jun 2026 17:00 UTC (= 19:00 Europe/Madrid CEST)
+    const BRACKET_DEADLINE_MS = Date.UTC(2026, 5, 28, 17, 0, 0);
     if (Date.now() > BRACKET_DEADLINE_MS) {
       if (!participante.bloqueada) {
         try {

@@ -22,9 +22,9 @@ export default function usePorraEditor(token) {
 
   // 🔒 Mundial 2026 EN MARCHA:
   // - Grupos, mejores terceros y especiales: BLOQUEADOS para todo el mundo (el Mundial ya empezó).
-  // - Bracket: editable hasta el 28-jun 18:00 Madrid (16:00 UTC), salvo que el usuario ya
+  // - Bracket: editable hasta el 28-jun 19:00 Madrid (17:00 UTC), salvo que el usuario ya
   //   haya confirmado su re-edición (entonces queda bloqueado también).
-  const BRACKET_DEADLINE_MS = Date.UTC(2026, 5, 28, 16, 0, 0);
+  const BRACKET_DEADLINE_MS = Date.UTC(2026, 5, 28, 17, 0, 0);
   // 🎟️ Excepción puntual: participantes a los que admin permite editar mejores terceros
   // aunque el Mundial ya haya empezado. Solo afecta a la pestaña Terceros (el backend
   // también lo blinda — ver functions/porraUpdateByToken).
