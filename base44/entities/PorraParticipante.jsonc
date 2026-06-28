@@ -74,6 +74,16 @@
       "type": "object",
       "description": "Map { 'partido_id': 'codigo_ganador' } para cada eliminatoria"
     },
+    "cruces_16avos_guardados": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "description": "Parejas de 16avos CONGELADAS del usuario: array de 16 pares [codigoLocal, codigoVisitante] en orden de partido. Se guarda una sola vez para que el cuadro se muestre siempre igual sin recalcular."
+    },
     "prediccion_tercer_puesto": {
       "type": "object",
       "properties": {

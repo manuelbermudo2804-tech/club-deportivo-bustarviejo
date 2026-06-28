@@ -93,6 +93,13 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
   // persona es SU predicción, no la realidad. (Si se usaran los códigos reales,
   // al meter los partidos de 16avos se "colarían" en el cuadro de toda la gente.)
   const cruces16avos = useMemo(() => {
+    // ✅ Si el participante tiene las parejas de 16avos CONGELADAS (guardadas en BD),
+    // las usamos tal cual → cada uno ve SIEMPRE el cuadro que dejó, sin recalcular.
+    // Solo recalculamos como fallback para participantes antiguos sin congelar.
+    const guardadas = participante?.cruces_16avos_guardados;
+    if (Array.isArray(guardadas) && guardadas.length === 16) {
+      return guardadas;
+    }
     return resolverCruces16avos(participante);
   }, [participante]);
 
