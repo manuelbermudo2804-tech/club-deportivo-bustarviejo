@@ -74,7 +74,11 @@ Deno.serve(async (req) => {
     };
 
     // ---------- MEJORES TERCEROS ----------
-    const tercerosReales = config?.mejores_terceros_reales || [];
+    // Solo se cuentan cuando la fase de 16avos ya está abierta oficialmente
+    // (al menos un partido de 16avos finalizado). Así el admin puede tener
+    // cargados los terceros reales en config sin que sumen antes de tiempo.
+    const dieciseisavosAbiertos = partidos.some(m => m.fase === '16avos' && m.finalizado);
+    const tercerosReales = dieciseisavosAbiertos ? (config?.mejores_terceros_reales || []) : [];
     const tercerosPredichos = p.mejores_terceros || [];
     const tercerosAcertados = tercerosPredichos.filter(c => tercerosReales.includes(c));
     const tieneDatosTerceros = tercerosReales.length > 0;
@@ -93,8 +97,12 @@ Deno.serve(async (req) => {
 
     const equiposRealesPorFase = (fase) => {
       const set = new Set();
+      // Solo se consideran equipos "reales" de una fase cuando el admin ha marcado
+      // sus partidos como finalizados. Así puede meter los equipos reales con
+      // antelación sin que el desglose empiece a comparar/sumar antes de tiempo.
       partidos.forEach(m => {
         if (m.fase !== fase) return;
+        if (!m.finalizado) return;
         if (m.equipo_local_codigo) set.add(m.equipo_local_codigo);
         if (m.equipo_visitante_codigo) set.add(m.equipo_visitante_codigo);
       });
