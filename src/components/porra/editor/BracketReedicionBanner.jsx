@@ -20,6 +20,10 @@ export default function BracketReedicionBanner({ participante, onConfirmar, savi
   const [confirming, setConfirming] = useState(false);
   const yaCerrado = !!participante?.bracket_reeditado;
 
+  // Porras ya bloqueadas: no mostrar el banner de "acción obligatoria / confirmar bracket".
+  return null;
+
+  // eslint-disable-next-line no-unreachable
   if (yaCerrado) {
     return (
       <Card className="border-2 border-green-300 bg-green-50 mb-3">

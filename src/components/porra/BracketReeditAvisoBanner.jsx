@@ -14,6 +14,9 @@ import CountdownTimer from "@/components/porra/CountdownTimer";
  *           | "light" (sobre fondo claro, p.ej. PorraRanking) — default "light"
  */
 export default function BracketReeditAvisoBanner({ fechaLimiteBracket, variant = "light" }) {
+  // Porras ya bloqueadas: no mostrar ningún aviso de bracket pendiente.
+  return null;
+  // eslint-disable-next-line no-unreachable
   if (!fechaLimiteBracket) return null;
   const limiteMs = new Date(fechaLimiteBracket).getTime();
   if (Number.isNaN(limiteMs) || Date.now() >= limiteMs) return null;

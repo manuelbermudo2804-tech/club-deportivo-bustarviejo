@@ -126,12 +126,9 @@ export default function PorraMiPorra() {
     );
   }
 
-  // Si el bracket está pendiente de re-confirmar tras el rediseño FIFA 2026,
-  // NO podemos mostrar 100%: el usuario aún tiene que revisar el bracket.
-  // Visualmente lo cap­amos al 75% (3 de 4 secciones) hasta que confirme.
-  const bracketPendienteReedit = isBlocked && !participante.bracket_reeditado;
-  const completadoRaw = participante.porcentaje_completado || 0;
-  const completado = bracketPendienteReedit ? Math.min(completadoRaw, 75) : completadoRaw;
+  // Porras ya bloqueadas: el porcentaje real es el definitivo, sin avisos de bracket pendiente.
+  const bracketPendienteReedit = false;
+  const completado = participante.porcentaje_completado || 0;
   const fechaLimite = config?.fecha_limite_predicciones ? new Date(config.fecha_limite_predicciones) : null;
 
   // Bloqueo secuencial: Grupos → Terceros → Bracket → Especiales.
@@ -183,12 +180,7 @@ export default function PorraMiPorra() {
                   <Loader2 className="w-3 h-3 animate-spin" /> Guardando
                 </span>
               )}
-              {!saving && bracketPendienteReedit && (
-                <span className="text-xs bg-amber-500/40 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1 font-bold">
-                  ⚠️ Bracket pendiente
-                </span>
-              )}
-              {!saving && !bracketPendienteReedit && completado > 0 && (
+              {!saving && completado > 0 && (
                 <span className="text-xs bg-green-500/30 backdrop-blur-sm px-2 py-1 rounded-full flex items-center gap-1">
                   <Save className="w-3 h-3" /> {completado}%
                 </span>
@@ -207,22 +199,7 @@ export default function PorraMiPorra() {
             2) Porra completada y cerrada (verde) — incluye tras confirmar bracket
             3) Bloqueada sin completar (rojo) */}
         {isBlocked && (
-          !participante.bracket_reeditado ? (
-            <Card className="border-2 border-amber-400 bg-amber-50 animate-pulse-strong">
-              <CardContent className="p-4 flex items-start gap-3">
-                <AlertCircle className="w-6 h-6 text-amber-600 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-amber-900">✏️ Porra actualizada — Bracket pendiente de modificar</p>
-                  <p className="text-sm text-amber-800 mt-1">
-                    Hemos actualizado los cruces del bracket a los <strong>oficiales FIFA 2026</strong>. Tienes hasta el inicio de los <strong>16avos de final</strong> para revisar tus eliminatorias y pulsar <strong>"Confirmar y cerrar bracket"</strong>.
-                  </p>
-                  <p className="text-xs text-amber-700 mt-2">
-                    👉 Ve a la pestaña <strong>🏆 Bracket</strong> para revisar y confirmar.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          ) : completado === 100 ? (
+          completado === 100 ? (
             <Card className="border-2 border-green-300 bg-green-50">
               <CardContent className="p-4 flex items-start gap-3">
                 <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
