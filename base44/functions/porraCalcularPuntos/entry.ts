@@ -49,12 +49,10 @@ function calcularPuntosParticipante(participante, partidos, config) {
   });
 
   // 2) Mejores terceros (pts por cada acierto entre los 8 elegidos)
-  // Solo cuentan cuando la fase de 16avos ya está abierta oficialmente (al menos
-  // un partido de 16avos finalizado). Así el admin puede tener cargados los terceros
-  // reales en config con antelación sin que sumen antes de tiempo.
-  const dieciseisavosAbiertos = partidos.some(p => p.fase === '16avos' && p.finalizado);
+  // Cuentan en cuanto el admin ha cargado los terceros reales oficiales en config
+  // (la fase de grupos ya ha terminado cuando se conocen los 8 mejores terceros).
   const ptsTercero = config?.puntos_mejor_tercero ?? 10;
-  const tercerosReales = dieciseisavosAbiertos ? (config?.mejores_terceros_reales || []) : [];
+  const tercerosReales = config?.mejores_terceros_reales || [];
   const tercerosPredichos = participante.mejores_terceros || [];
   if (tercerosReales.length > 0 && tercerosPredichos.length > 0) {
     tercerosPredichos.forEach(codigo => {

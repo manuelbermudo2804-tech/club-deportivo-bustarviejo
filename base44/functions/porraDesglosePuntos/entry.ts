@@ -74,11 +74,9 @@ Deno.serve(async (req) => {
     };
 
     // ---------- MEJORES TERCEROS ----------
-    // Solo se cuentan cuando la fase de 16avos ya está abierta oficialmente
-    // (al menos un partido de 16avos finalizado). Así el admin puede tener
-    // cargados los terceros reales en config sin que sumen antes de tiempo.
-    const dieciseisavosAbiertos = partidos.some(m => m.fase === '16avos' && m.finalizado);
-    const tercerosReales = dieciseisavosAbiertos ? (config?.mejores_terceros_reales || []) : [];
+    // Cuentan en cuanto el admin ha cargado los terceros reales oficiales en config
+    // (la fase de grupos ya ha terminado cuando se conocen los 8 mejores terceros).
+    const tercerosReales = config?.mejores_terceros_reales || [];
     const tercerosPredichos = p.mejores_terceros || [];
     const tercerosAcertados = tercerosPredichos.filter(c => tercerosReales.includes(c));
     const tieneDatosTerceros = tercerosReales.length > 0;
