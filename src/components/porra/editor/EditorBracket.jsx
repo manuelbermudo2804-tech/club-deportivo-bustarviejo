@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Crown, Lock, Sparkles } from "lucide-react";
 import { resolverCruces16avos } from "@/lib/porraBracket";
 import PorraCrucesFifaInfo from "@/components/porra/PorraCrucesFifaInfo";
+import BracketRealVsPrediccion from "@/components/porra/editor/BracketRealVsPrediccion";
 
 // Bracket auto-completable: el ganador de cada partido aparece como candidato en el siguiente
 // El usuario NO arrastra equipos: solo elige ganador entre los DOS contendientes ya definidos
@@ -174,6 +175,9 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
         <p className="text-amber-900 text-xs leading-relaxed">
           Los puntos se ganan por <strong>cada equipo que aciertes que llega a cada fase</strong> (octavos, cuartos, semis, final, campeón). <strong>NO importa contra quién juegue en tu cuadro.</strong> Si predices que España llega a semis y llega → cobras los puntos, da igual el cruce.
         </p>
+        <p className="text-amber-900 text-xs mt-2 leading-relaxed">
+          🥉 <strong>También ganas puntos por acertar tus 8 mejores terceros</strong> que se clasifican a 16avos ({config?.puntos_mejor_tercero ?? 3} pts cada uno).
+        </p>
         <p className="text-amber-800 text-xs mt-2">
           🏆 Acertar al campeón da <strong>+{config?.puntos_campeon ?? 15} pts extra</strong>.
         </p>
@@ -272,6 +276,13 @@ export default function EditorBracket({ participante, partidos, equipos, isBlock
                   </div>
                 );
               })}
+
+              <BracketRealVsPrediccion
+                faseKey={faseKey}
+                partidos={partidos}
+                equipos={equipos}
+                prediccionesUsuario={participante.predicciones_eliminatorias}
+              />
             </CardContent>
           </Card>
         );
