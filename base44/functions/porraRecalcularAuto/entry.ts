@@ -33,10 +33,17 @@ function calcularPuntosParticipante(participante, partidos, config) {
     'final':  config?.puntos_final  ?? 20,
   };
 
+  // Solo cuentan los equipos que han alcanzado una fase a través de partidos YA FINALIZADOS.
+  // Un equipo "llega" a una fase si ganó su partido en la fase anterior (partido finalizado).
+  // Para 16avos: el equipo llega si ganó su partido de 16avos (la fase previa a 8vos es 16avos),
+  // pero como 16avos es la primera ronda, un equipo "está en 16avos" cuando su partido de grupos
+  // lo clasificó. Para no premiar por estar colocado en el cuadro sin jugar, contamos por
+  // partido finalizado: un equipo puntúa en una fase si APARECE en un partido de esa fase que esté finalizado.
   const equiposRealesPorFase = (fase) => {
     const set = new Set();
     partidos.forEach(p => {
       if (p.fase !== fase) return;
+      if (!p.finalizado) return; // ← clave: solo partidos finalizados suman
       if (p.equipo_local_codigo) set.add(p.equipo_local_codigo);
       if (p.equipo_visitante_codigo) set.add(p.equipo_visitante_codigo);
     });
