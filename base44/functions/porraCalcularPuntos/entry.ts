@@ -49,8 +49,12 @@ function calcularPuntosParticipante(participante, partidos, config) {
   });
 
   // 2) Mejores terceros (pts por cada acierto entre los 8 elegidos)
+  // Solo cuentan cuando la fase de 16avos ya está abierta oficialmente (al menos
+  // un partido de 16avos finalizado). Así el admin puede tener cargados los terceros
+  // reales en config con antelación sin que sumen antes de tiempo.
+  const dieciseisavosAbiertos = partidos.some(p => p.fase === '16avos' && p.finalizado);
   const ptsTercero = config?.puntos_mejor_tercero ?? 10;
-  const tercerosReales = config?.mejores_terceros_reales || [];
+  const tercerosReales = dieciseisavosAbiertos ? (config?.mejores_terceros_reales || []) : [];
   const tercerosPredichos = participante.mejores_terceros || [];
   if (tercerosReales.length > 0 && tercerosPredichos.length > 0) {
     tercerosPredichos.forEach(codigo => {
@@ -77,8 +81,12 @@ function calcularPuntosParticipante(participante, partidos, config) {
   // (vienen como local/visitante en los partidos de esa fase en BD)
   const equiposRealesPorFase = (fase) => {
     const set = new Set();
+    // Solo se consideran equipos "reales" de una fase cuando sus partidos están
+    // marcados como finalizados. Así el admin puede meter los equipos reales con
+    // antelación sin que el recálculo empiece a sumar antes de tiempo.
     partidos.forEach(p => {
       if (p.fase !== fase) return;
+      if (!p.finalizado) return;
       if (p.equipo_local_codigo) set.add(p.equipo_local_codigo);
       if (p.equipo_visitante_codigo) set.add(p.equipo_visitante_codigo);
     });
