@@ -51,10 +51,19 @@ export default function PorraAdminMejoresTercerosReales({ config, partidos, equi
         else { local.pts += 1; visit.pts += 1; }
       });
 
+      const yaSeleccionados = config?.mejores_terceros_reales || [];
       const ordenados = Object.values(tabla).sort((a, b) => {
         if (b.pts !== a.pts) return b.pts - a.pts;
         if ((b.gf - b.gc) !== (a.gf - a.gc)) return (b.gf - b.gc) - (a.gf - a.gc);
-        return b.gf - a.gf;
+        if (b.gf !== a.gf) return b.gf - a.gf;
+        // Empate total (frecuente cuando no hay goles metidos): priorizar como 3º
+        // al equipo que el admin YA tiene marcado en su lista de mejores terceros,
+        // para que aparezca en el cuadro y se pueda mantener/marcar.
+        const aMarcado = yaSeleccionados.includes(a.codigo);
+        const bMarcado = yaSeleccionados.includes(b.codigo);
+        if (aMarcado && !bMarcado) return 1;  // 'a' marcado → empújalo hacia 3º
+        if (bMarcado && !aMarcado) return -1;
+        return 0;
       });
 
       return { grupo: g, codigo: ordenados[2]?.codigo, pts: ordenados[2]?.pts, dg: (ordenados[2]?.gf || 0) - (ordenados[2]?.gc || 0), gf: ordenados[2]?.gf || 0, completo: true };
