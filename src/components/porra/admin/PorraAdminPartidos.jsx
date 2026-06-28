@@ -64,7 +64,7 @@ function ResultadoBotones({ partido, equipos, onChange, onClear }) {
   );
 }
 
-export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpdate, config = null }) {
+export default function PorraAdminPartidos({ partidos = [], equipos = [], todosLosEquipos = [], onUpdate, config = null }) {
   const [regenerando, setRegenerando] = useState(false);
   // Estado local de eliminatorias para no recargar todo el panel admin al editar.
   // Sincronizamos con la prop cada vez que cambia "de verdad" el contenido:
@@ -310,15 +310,20 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], onUpda
                     <div>
                       {ps.map(p => {
                         const disponibles = equiposDisponiblesPorFase[fase];
-                        // Si disponibles es null (16avos) → todos los equipos; si no → filtrar
+                        // Equipos ya asignados en ESTE partido (deben aparecer SIEMPRE en el desplegable,
+                        // aunque el cálculo de clasificados aún no los incluya tras volver de pestaña).
+                        const asignadosEnPartido = new Set([p.equipo_local_codigo, p.equipo_visitante_codigo].filter(Boolean));
+                        // Si disponibles es null (16avos sin clasificados calculados) → todos los equipos;
+                        // si no → filtrar por disponibles + los que ya estén guardados en el partido.
                         const equiposFase = disponibles === null
                           ? equipos
-                          : equipos.filter(eq => disponibles.has(eq.codigo) || eq.codigo === p.equipo_local_codigo || eq.codigo === p.equipo_visitante_codigo);
+                          : equipos.filter(eq => disponibles.has(eq.codigo) || asignadosEnPartido.has(eq.codigo));
                         return (
                           <EliminatoriaPartidoRow
                             key={p.id}
                             partido={p}
                             equipos={equiposFase}
+                            todosLosEquipos={todosLosEquipos.length ? todosLosEquipos : equipos}
                             equiposUsadosEnFase={equiposUsadosPorFase[fase] || new Set()}
                             onLocalChange={handleLocalChange}
                           />

@@ -4,7 +4,7 @@ import { toast } from "sonner";
 
 // Fila de partido eliminatorio con selectores de equipos + botones 1/X/2
 // Mantiene estado local para no recargar todo el panel admin al guardar
-export default function EliminatoriaPartidoRow({ partido, equipos, equiposUsadosEnFase = new Set(), onLocalChange }) {
+export default function EliminatoriaPartidoRow({ partido, equipos, todosLosEquipos = [], equiposUsadosEnFase = new Set(), onLocalChange }) {
   const [saving, setSaving] = useState(false);
   const [local, setLocal] = useState(partido);
 
@@ -31,7 +31,9 @@ export default function EliminatoriaPartidoRow({ partido, equipos, equiposUsados
   const optionEquipoGuardado = (codigo) => {
     if (!codigo) return null;
     if (equipos.some(eq => eq.codigo === codigo)) return null; // ya está en la lista
-    return <option value={codigo}>{codigo}</option>;
+    // Buscar el equipo completo para mostrar bandera + nombre (no solo el código)
+    const eq = todosLosEquipos.find(e => e.codigo === codigo);
+    return <option value={codigo}>{eq ? `${eq.bandera_emoji} ${eq.nombre}` : codigo}</option>;
   };
 
   const handleSetEquipo = async (campo, codigo) => {
@@ -84,8 +86,9 @@ export default function EliminatoriaPartidoRow({ partido, equipos, equiposUsados
     }
   };
 
-  const localEq = equipos.find(e => e.codigo === local.equipo_local_codigo);
-  const visitEq = equipos.find(e => e.codigo === local.equipo_visitante_codigo);
+  const buscarEq = (codigo) => equipos.find(e => e.codigo === codigo) || todosLosEquipos.find(e => e.codigo === codigo);
+  const localEq = buscarEq(local.equipo_local_codigo);
+  const visitEq = buscarEq(local.equipo_visitante_codigo);
 
   return (
     <div className="p-3 hover:bg-slate-50 border-b last:border-b-0">
