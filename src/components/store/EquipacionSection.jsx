@@ -79,7 +79,7 @@ export default function EquipacionSection({ clothingUrl }) {
               <div>
                 <p className="font-extrabold text-pink-900 text-sm uppercase">⚠️ Camiseta femenina 1ª equipación</p>
                 <p className="text-pink-900 text-sm mt-1 leading-relaxed">
-                  La camiseta de la <strong>primera equipación femenina</strong> puede pedirse con <strong>corte entallado</strong>. Las opiniones son variadas (a unas personas les queda bien y a otras algo justa), pero en general <strong>talla un poquito menos</strong>. <strong>Ten en cuenta la talla que vas a pedir y, si dudas, elige una talla más grande.</strong>
+                  La camiseta de la <strong>primera equipación femenina</strong> puede pedirse con <strong>corte entallado</strong>. Las opiniones son variadas (a unas personas les queda bien y a otras algo justa), pero en general <strong>talla un poquito menos</strong>. <strong>Fíjate bien en la tabla de tallas de las camisetas (incluye tallaje femenino y normal)</strong> y, si dudas, elige una talla más grande.
                 </p>
               </div>
             </div>
@@ -92,7 +92,7 @@ export default function EquipacionSection({ clothingUrl }) {
               <div>
                 <p className="font-extrabold text-red-900 text-sm uppercase">⚠️ Camiseta de entrenamiento (negra): da menos talla</p>
                 <p className="text-red-900 text-sm mt-1 leading-relaxed">
-                  Las camisetas de <strong>primera y segunda equipación tallan igual</strong> (van un poco más grandes). La de <strong>entrenamiento (negra)</strong> tiene un <strong>corte más ajustado y es algo más corta</strong>, pensada para entrenar, por lo que <strong>da menos talla</strong>. Por ejemplo: la <strong>M de entrenamiento queda un pelín más pequeña</strong> que la M de las de jugar. Tenlo en cuenta y, si dudas, elige una talla más grande.
+                  Las camisetas de <strong>primera y segunda equipación tallan igual</strong> (van un poco más grandes). La de <strong>entrenamiento (negra)</strong> tiene un <strong>corte más ajustado y es algo más corta</strong>, pensada para entrenar, por lo que <strong>da menos talla</strong>. Por ejemplo: la <strong>M de entrenamiento queda un pelín más pequeña</strong> que la M de las de jugar. <strong>Fíjate bien en la tabla de tallas de las camisetas (incluye tallaje femenino y normal)</strong> y, si dudas, elige una talla más grande.
                 </p>
               </div>
             </div>
