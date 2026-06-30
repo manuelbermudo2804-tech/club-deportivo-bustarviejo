@@ -76,6 +76,7 @@ export default function PageBuilderPreInscritos() {
   };
 
   const filtered = items.filter((s) => {
+    if (filterEstado === "envio_fallido" && !s.envio_fallido) return false;
     if (filterEstado === "sin_completar" && s.completada) return false;
     if (filterEstado === "completadas" && !s.completada) return false;
     if (["pendiente", "contactado", "recuperado", "descartado"].includes(filterEstado) && s.estado !== filterEstado) return false;
@@ -90,6 +91,7 @@ export default function PageBuilderPreInscritos() {
   });
 
   const sinCompletar = items.filter((s) => !s.completada).length;
+  const envioFallidoCount = items.filter((s) => s.envio_fallido && !s.completada).length;
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-8 h-8 animate-spin text-slate-400" /></div>;
@@ -120,13 +122,25 @@ export default function PageBuilderPreInscritos() {
         </div>
       </div>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-5 flex items-start gap-3">
+      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-3 flex items-start gap-3">
         <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-amber-800">
           Aquí aparecen los equipos que escribieron su nombre y contacto pero <strong>cerraron la página antes de enviar</strong>.
           No son inscripciones reales — contáctalos para que terminen.
         </p>
       </div>
+
+      {envioFallidoCount > 0 && (
+        <button
+          onClick={() => setFilterEstado("envio_fallido")}
+          className="w-full text-left bg-red-50 border-2 border-red-300 rounded-2xl p-4 mb-5 flex items-start gap-3 hover:bg-red-100 transition-colors"
+        >
+          <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+          <p className="text-sm text-red-800">
+            <strong>{envioFallidoCount} {envioFallidoCount === 1 ? "equipo completó el formulario" : "equipos completaron el formulario"} pero el envío falló.</strong> Rellenaron todo y pulsaron Enviar, pero hubo un error de conexión. Son inscripciones válidas — contáctalos y pásalos a la lista oficial. (Pulsa para filtrar)
+          </p>
+        </button>
+      )}
 
       <div className="flex gap-2 mb-4 flex-wrap">
         <div className="relative flex-1 min-w-[200px]">
@@ -136,6 +150,7 @@ export default function PageBuilderPreInscritos() {
         <Select value={filterEstado} onValueChange={setFilterEstado}>
           <SelectTrigger className="w-[200px]"><SelectValue /></SelectTrigger>
           <SelectContent>
+            <SelectItem value="envio_fallido">🚨 Envío fallido</SelectItem>
             <SelectItem value="sin_completar">⚠️ Sin completar</SelectItem>
             <SelectItem value="completadas">✅ Sí completaron</SelectItem>
             <SelectItem value="todos">Todos</SelectItem>
@@ -156,12 +171,14 @@ export default function PageBuilderPreInscritos() {
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
           <div className="divide-y divide-slate-100">
             {filtered.map((s) => (
-              <div key={s.id} onClick={() => setSelected(s)} className="p-4 hover:bg-slate-50 cursor-pointer transition-colors">
+              <div key={s.id} onClick={() => setSelected(s)} className={`p-4 cursor-pointer transition-colors ${s.envio_fallido && !s.completada ? "bg-red-50 hover:bg-red-100" : "hover:bg-slate-50"}`}>
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="min-w-0 flex-1">
                     <div className="font-bold text-slate-900 flex items-center gap-2">
                       {s.nombre_equipo || s.nombre || "Sin nombre"}
-                      {!s.completada && <ShieldQuestion className="w-4 h-4 text-amber-500" />}
+                      {s.envio_fallido && !s.completada
+                        ? <AlertTriangle className="w-4 h-4 text-red-500" />
+                        : !s.completada && <ShieldQuestion className="w-4 h-4 text-amber-500" />}
                     </div>
                     <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
                       {s.nombre && s.nombre_equipo && <span>👤 {s.nombre}</span>}
@@ -173,7 +190,9 @@ export default function PageBuilderPreInscritos() {
                   <div className="flex items-center gap-2 flex-wrap">
                     {s.completada
                       ? <Badge className="bg-green-100 text-green-700">✅ Completó</Badge>
-                      : <Badge className={ESTADOS[s.estado]?.class}>{ESTADOS[s.estado]?.label || s.estado}</Badge>}
+                      : s.envio_fallido
+                        ? <Badge className="bg-red-100 text-red-700">🚨 Envío fallido</Badge>
+                        : <Badge className={ESTADOS[s.estado]?.class}>{ESTADOS[s.estado]?.label || s.estado}</Badge>}
                   </div>
                 </div>
               </div>

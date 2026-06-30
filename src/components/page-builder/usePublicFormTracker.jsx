@@ -138,7 +138,7 @@ export default function usePublicFormTracker({ landingSlug, landingId, getValues
     return "";
   };
 
-  const savePreRegistro = (completada = false) => {
+  const savePreRegistro = (completada = false, opts = {}) => {
     if (typeof window === "undefined") return;
     const v = valuesRef.current || {};
     const nombre_equipo = v.nombre_equipo || pickByKeyword(v, ["equipo"]) || "";
@@ -146,11 +146,9 @@ export default function usePublicFormTracker({ landingSlug, landingId, getValues
     const telefono = v.telefono || pickByKeyword(v, ["telefono", "teléfono", "movil", "móvil", "tel"]) || "";
     const nombre = v.nombre || v.responsable || pickByKeyword(v, ["responsable", "nombre"]) || "";
     const contacto = email || telefono;
-    // Solo guardamos si hay algo identificable + un dato de contacto
-    if (!completada && (!(nombre_equipo || nombre) || !contacto)) return;
-    if (preRegistroSavedRef.current && !completada) {
-      // Ya guardado: solo re-guardamos al completar o periódicamente desde saveDraft
-    }
+    // Si es un envío fallido, guardamos SIEMPRE (el formulario ya estaba validado y completo).
+    // En caso contrario, solo si hay algo identificable + un dato de contacto.
+    if (!completada && !opts.envio_fallido && (!(nombre_equipo || nombre) || !contacto)) return;
     preRegistroSavedRef.current = true;
     safeFetch(`${window.location.origin}/functions/savePreInscripcion`, {
       landing_slug: landingSlug,
@@ -162,6 +160,7 @@ export default function usePublicFormTracker({ landingSlug, landingId, getValues
       telefono,
       datos: v,
       completada,
+      ...(typeof opts.envio_fallido === "boolean" ? { envio_fallido: opts.envio_fallido } : {}),
     });
   };
 

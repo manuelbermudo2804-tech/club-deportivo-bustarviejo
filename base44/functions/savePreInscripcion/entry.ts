@@ -20,6 +20,7 @@ Deno.serve(async (req) => {
       telefono,
       datos,
       completada,
+      envio_fallido,
     } = body || {};
 
     if (!landing_slug || !session_id) {
@@ -41,6 +42,9 @@ Deno.serve(async (req) => {
     if (typeof completada === 'boolean') {
       payload.completada = completada;
       if (completada) payload.estado = 'recuperado';
+    }
+    if (typeof envio_fallido === 'boolean') {
+      payload.envio_fallido = envio_fallido;
     }
 
     // Buscar si ya existe un borrador de esta sesión

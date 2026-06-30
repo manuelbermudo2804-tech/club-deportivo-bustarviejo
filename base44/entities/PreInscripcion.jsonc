@@ -39,6 +39,11 @@
       "default": false,
       "description": "TRUE si finalmente complet\u00f3 la inscripci\u00f3n real (LandingSubmission)"
     },
+    "envio_fallido": {
+      "type": "boolean",
+      "default": false,
+      "description": "TRUE si el usuario puls\u00f3 Enviar con el formulario V\u00c1LIDO y completo pero el env\u00edo al servidor fall\u00f3. Estas inscripciones est\u00e1n listas para recuperar con 1 clic (no son borradores a medias)."
+    },
     "estado": {
       "type": "string",
       "enum": [

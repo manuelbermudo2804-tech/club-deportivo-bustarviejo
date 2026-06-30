@@ -295,7 +295,10 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
         throw new Error("No se pudo iniciar el pago");
       }
 
-      const res = await base44.functions.invoke("landingPublic", {
+      // Envío con reintento automático (hasta 3 intentos) para sobrevivir a
+      // fallos de red transitorios. Así una inscripción válida no se pierde
+      // por un corte momentáneo de conexión.
+      const submitPayload = {
         action: "submit",
         landing_page_id: landingId,
         landing_slug: landingSlug,
@@ -308,8 +311,21 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
         user_agent: navigator.userAgent,
         referrer: document.referrer || "directo",
         ...utms,
-      });
-      if (res?.data?.error) throw new Error(res.data.error);
+      };
+      let res = null;
+      let lastErr = null;
+      for (let intento = 1; intento <= 3; intento++) {
+        try {
+          res = await base44.functions.invoke("landingPublic", submitPayload);
+          if (res?.data?.error) throw new Error(res.data.error);
+          lastErr = null;
+          break;
+        } catch (e) {
+          lastErr = e;
+          if (intento < 3) await new Promise((r) => setTimeout(r, intento * 1200));
+        }
+      }
+      if (lastErr) throw lastErr;
 
       trackEvent("submit_success", { submission_id: res?.data?.submission_id, form_data: values });
       savePreRegistro(true);
@@ -318,7 +334,11 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
     } catch (err) {
       console.error(err);
       const msg = err?.message || "Hubo un problema. Inténtalo de nuevo en unos segundos.";
-      toast.error(msg);
+      // RED DE SEGURIDAD: el formulario estaba validado y completo pero el envío
+      // falló tras los reintentos. Guardamos la pre-inscripción marcada como
+      // "envío fallido" para que el club pueda recuperarla con 1 clic y NUNCA se pierda.
+      savePreRegistro(false, { envio_fallido: true });
+      toast.error("No hemos podido completar el envío, pero hemos guardado tus datos. El club se pondrá en contacto contigo. Si puedes, inténtalo de nuevo en unos minutos.");
       trackEvent("submit_error", { mensaje: msg, pago_activo: pagoActivo, form_data: values }, "error");
     } finally {
       setSubmitting(false);
