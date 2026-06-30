@@ -65,6 +65,7 @@ import ClubMemory from '@/pages/ClubMemory';
 import SubvencionesPanel from '@/pages/SubvencionesPanel';
 import AltaSocio from '@/pages/AltaSocio';
 import GrowthMap from '@/pages/GrowthMap';
+import ClubIA from '@/pages/ClubIA';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -223,6 +224,7 @@ const AuthenticatedApp = () => {
       <Route path="/ClubMemory" element={<LayoutWrapper currentPageName="ClubMemory"><ClubMemory /></LayoutWrapper>} />
       <Route path="/SubvencionesPanel" element={<LayoutWrapper currentPageName="SubvencionesPanel"><SubvencionesPanel /></LayoutWrapper>} />
       <Route path="/GrowthMap" element={<LayoutWrapper currentPageName="GrowthMap"><GrowthMap /></LayoutWrapper>} />
+      <Route path="/ClubIA" element={<LayoutWrapper currentPageName="ClubIA"><ClubIA /></LayoutWrapper>} />
 
       <Route path="/ShareReceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
       <Route path="/sharereceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />

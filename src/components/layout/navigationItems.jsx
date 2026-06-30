@@ -4,7 +4,7 @@ import {
   Settings, MessageCircle, Clock, Image, FileText, Clover, UserCircle,
   FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert,
   ClipboardCheck, Star, Trophy, KeyRound, RotateCw, CheckCircle2,
-  User as UserIcon, Share2, ExternalLink, Shirt, Camera, HeartPulse, Landmark, MapPin
+  User as UserIcon, Share2, ExternalLink, Shirt, Camera, HeartPulse, Landmark, MapPin, Brain
 } from "lucide-react";
 
 /**
@@ -97,6 +97,7 @@ export function buildAdminNavigation(ctx) {
     { title: "─ CONFIGURACIÓN ─", section: true },
     { title: "🧾 Memoria del Club", url: createPageUrl("ClubMemory"), icon: FileText },
     { title: "🗺️ Mapa de Crecimiento", url: createPageUrl("GrowthMap"), icon: MapPin },
+    { title: "🧠 Club IA", url: createPageUrl("ClubIA"), icon: Brain },
     { title: "🩺 Panel de Salud", url: createPageUrl("HealthCheck"), icon: HeartPulse },
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
