@@ -101,11 +101,11 @@ export default function PlayerDashboard() {
     queryKey: ['myPlayerProfile', user?.player_id, user?.email],
     queryFn: async () => {
       if (!user) return null;
-      // Fast path: si ya tenemos player_id, buscar directamente
+      // Fast path: si ya tenemos player_id, buscar directamente con get() (lectura por clave, instantánea)
       if (user.player_id) {
         try {
-          const byId = await base44.entities.Player.filter({ id: user.player_id }, '-updated_date', 1);
-          if (byId?.[0]) return byId[0];
+          const byId = await base44.entities.Player.get(user.player_id);
+          if (byId) return byId;
         } catch {}
       }
       // Fallback: buscar por email
@@ -127,6 +127,18 @@ export default function PlayerDashboard() {
     staleTime: 60000,
     gcTime: 5 * 60000,
   });
+
+  // Si el usuario llega cacheado SIN player_id (típico tras varios días sin abrir),
+  // refrescamos me() una vez para recuperar el player_id real y mostrar la ficha al instante.
+  useEffect(() => {
+    if (user && !user.player_id) {
+      base44.auth.me().then((fresh) => {
+        if (fresh?.player_id && fresh.player_id !== user.player_id) {
+          setUser(fresh);
+        }
+      }).catch(() => {});
+    }
+  }, [user?.email]);
 
   // Mostrar "Crear perfil" solo cuando la query ya terminó y no encontró nada
   // NO auto-abrir el formulario — mostrar dashboard con banner para evitar confusión

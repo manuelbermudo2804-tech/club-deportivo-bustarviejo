@@ -40,11 +40,11 @@ export default function PlayerProfile() {
     enabled: !!user,
     queryFn: async () => {
       if (!user) return null;
-      // Fast path: buscar por player_id directamente
+      // Fast path: buscar por player_id directamente con get() (lectura por clave, instantánea)
       if (user.player_id) {
         try {
-          const byId = await base44.entities.Player.filter({ id: user.player_id }, "-updated_date", 1);
-          if (byId?.[0]) return byId[0];
+          const byId = await base44.entities.Player.get(user.player_id);
+          if (byId) return byId;
         } catch {}
       }
       // Fallback: buscar por email
