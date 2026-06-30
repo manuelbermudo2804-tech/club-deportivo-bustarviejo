@@ -213,11 +213,31 @@ export default function PageBuilderPreInscritos() {
             </div>
 
             <div className="p-6 space-y-4">
+              {selected.envio_fallido && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm text-red-800">
+                  🚨 <strong>Inscripción válida.</strong> Rellenaron todo el formulario y pulsaron Enviar, pero falló la conexión. Todos sus datos están aquí abajo — contáctalos y pásalos a la lista oficial.
+                </div>
+              )}
+
               <div className="grid grid-cols-1 gap-2 text-sm">
                 {selected.nombre && <div><span className="text-slate-500">Responsable:</span> <strong className="text-slate-900">{selected.nombre}</strong></div>}
                 {selected.email && <div><span className="text-slate-500">Email:</span> <strong className="text-slate-900">{selected.email}</strong></div>}
                 {selected.telefono && <div><span className="text-slate-500">Teléfono:</span> <strong className="text-slate-900">{selected.telefono}</strong></div>}
               </div>
+
+              {selected.datos && Object.keys(selected.datos).length > 0 && (
+                <div>
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">Datos que rellenaron</label>
+                  <div className="mt-1 bg-slate-50 rounded-xl p-3 space-y-1.5 text-sm">
+                    {Object.entries(selected.datos).map(([k, v]) => (
+                      <div key={k} className="flex gap-2">
+                        <span className="text-slate-500 break-all">{k}:</span>
+                        <strong className="text-slate-900 break-all">{typeof v === "object" ? JSON.stringify(v) : String(v)}</strong>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {!selected.completada && (
                 <div>
