@@ -664,8 +664,8 @@ export default function Home() {
         {/* Resumen del Día - Solo Admin */}
         {isAdmin && <DailySummaryBanner />}
 
-        {/* ÚNICO BANNER CONSOLIDADO DE ALERTAS - Incluye TODO */}
-        {(isAdmin || hasPlayers) && (
+        {/* Banner de alertas para familias (NO admin: el admin ya ve el "Resumen del día") */}
+        {!isAdmin && hasPlayers && (
           <AlertCenter 
             pendingCallups={stats.pendingCallups}
             pendingDocuments={0}
