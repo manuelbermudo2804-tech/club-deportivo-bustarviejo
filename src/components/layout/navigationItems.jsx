@@ -53,6 +53,7 @@ export function buildAdminNavigation(ctx) {
     { title: "─ DEPORTIVO ─", section: true },
     { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
+    { title: "🚨 Riesgo de Abandono", url: createPageUrl("RiesgoAbandono"), icon: ShieldAlert },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
     { title: "⏱️ Control Minutos", url: createPageUrl("MatchMinutesTracker"), icon: Clock },
     { title: "👕 Gestión de Dorsales", url: createPageUrl("DorsalManagement"), icon: Shirt, badge: ctx.pendingDorsalCount > 0 ? ctx.pendingDorsalCount : null, urgentBadge: ctx.pendingDorsalCount > 0 },
@@ -211,6 +212,7 @@ export function buildCoordinatorNavigation(ctx) {
     ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
 
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
+    { title: "🚨 Riesgo de Abandono", url: createPageUrl("RiesgoAbandono"), icon: ShieldAlert },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
