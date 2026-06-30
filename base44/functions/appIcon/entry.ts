@@ -11,6 +11,12 @@ import { Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
 const ICON_SRC = "https://media.base44.com/images/public/6992c6be619d2da592897991/e4665760a_image.png";
 const GREEN = 0x15803dff; // #15803d (verde del club), RGBA
 
+// Caché en memoria del PNG ya compuesto por variante+tamaño. Así el escudo solo
+// se descarga y procesa UNA vez por isolate; las siguientes peticiones son
+// instantáneas. Esto evita que Android descarte el icono (mostrando la "C" gris)
+// y no ofrezca instalar cuando la generación tardaba ~3s.
+const CACHE = new Map<string, Uint8Array>();
+
 Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
@@ -21,24 +27,30 @@ Deno.serve(async (req) => {
     const reqSize = parseInt(url.searchParams.get("s"), 10);
     const SIZE = reqSize === 192 ? 192 : 512;
 
-    const upstream = await fetch(ICON_SRC);
-    if (!upstream.ok) {
-      return new Response("Icon fetch failed", { status: 502 });
+    const cacheKey = `${variant}-${SIZE}`;
+    let out = CACHE.get(cacheKey);
+
+    if (!out) {
+      const upstream = await fetch(ICON_SRC);
+      if (!upstream.ok) {
+        return new Response("Icon fetch failed", { status: 502 });
+      }
+      const bytes = new Uint8Array(await upstream.arrayBuffer());
+
+      const SCALE = variant === "maskable" ? 0.66 : 0.94;
+
+      const crest = await Image.decode(bytes);
+      const target = Math.round(SIZE * SCALE);
+      crest.resize(target, target); // la fuente es cuadrada → mantiene proporción
+
+      const canvas = new Image(SIZE, SIZE);
+      canvas.fill(GREEN); // fondo verde SÓLIDO: elimina la transparencia que causaba la "C"
+      const offset = Math.round((SIZE - target) / 2);
+      canvas.composite(crest, offset, offset);
+
+      out = await canvas.encode();
+      CACHE.set(cacheKey, out);
     }
-    const bytes = new Uint8Array(await upstream.arrayBuffer());
-
-    const SCALE = variant === "maskable" ? 0.66 : 0.94;
-
-    const crest = await Image.decode(bytes);
-    const target = Math.round(SIZE * SCALE);
-    crest.resize(target, target); // la fuente es cuadrada → mantiene proporción
-
-    const canvas = new Image(SIZE, SIZE);
-    canvas.fill(GREEN); // fondo verde SÓLIDO: elimina la transparencia que causaba la "C"
-    const offset = Math.round((SIZE - target) / 2);
-    canvas.composite(crest, offset, offset);
-
-    const out = await canvas.encode();
 
     return new Response(out, {
       status: 200,
