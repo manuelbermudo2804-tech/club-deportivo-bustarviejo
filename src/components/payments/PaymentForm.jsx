@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Upload, X, Loader2 } from "lucide-react";
+import { Upload, X, Loader2, Info } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Función para obtener la temporada actual
 const getCurrentSeason = () => {
@@ -95,6 +96,19 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
 
   const [uploadingFile, setUploadingFile] = useState(false);
   const [selectedPlayer, setSelectedPlayer] = useState(null);
+  // Planes especiales activos — para impedir registrar pagos sueltos a jugadores que tienen plan
+  const [customPlans, setCustomPlans] = useState([]);
+
+  useEffect(() => {
+    base44.entities.CustomPaymentPlan.filter({ estado: "Activo" })
+      .then(setCustomPlans)
+      .catch(() => setCustomPlans([]));
+  }, []);
+
+  // Plan especial activo del jugador seleccionado (si lo tiene)
+  const activePlan = selectedPlayer
+    ? customPlans.find(p => p.jugador_id === selectedPlayer.id && p.estado === "Activo")
+    : null;
 
   useEffect(() => {
     if (currentPayment.jugador_id) {
@@ -107,12 +121,41 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
     const player = players.find(p => p.id === playerId);
     if (player) {
       setSelectedPlayer(player);
+
+      // Si el jugador tiene un plan especial activo, forzar el pago como cuota del plan
+      const plan = customPlans.find(p => p.jugador_id === player.id && p.estado === "Activo");
+      if (plan && plan.cuotas) {
+        const primeraPendiente = plan.cuotas.find(c => !c.pagada) || plan.cuotas[0];
+        setCurrentPayment({
+          ...currentPayment,
+          jugador_id: player.id,
+          jugador_nombre: player.nombre,
+          tipo_pago: "Plan Especial",
+          plan_especial_id: plan.id,
+          mes: `Cuota ${primeraPendiente.numero}`,
+          cantidad: primeraPendiente.cantidad
+        });
+        return;
+      }
+
       setCurrentPayment({
         ...currentPayment,
         jugador_id: player.id,
         jugador_nombre: player.nombre
       });
     }
+  };
+
+  // Al cambiar de cuota en el plan especial, ajustar mes e importe
+  const handleCuotaPlanChange = (value) => {
+    if (!activePlan) return;
+    const numero = parseInt(value.replace('Cuota ', ''), 10);
+    const cuota = (activePlan.cuotas || []).find(c => c.numero === numero);
+    setCurrentPayment(prev => ({
+      ...prev,
+      mes: value,
+      cantidad: cuota?.cantidad ?? prev.cantidad
+    }));
   };
 
   const handleFileUpload = async (e) => {
@@ -140,6 +183,13 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
     
     if (!currentPayment.jugador_id) {
       toast.error("Selecciona un jugador");
+      return;
+    }
+
+    // 🔒 Protección plan especial: si el jugador tiene un plan activo, el pago DEBE
+    // registrarse como cuota del plan (nunca como "Único"/"Tres meses" suelto).
+    if (activePlan && currentPayment.tipo_pago !== "Plan Especial") {
+      toast.error("Este jugador tiene un plan de pago especial. Selecciona la cuota del plan que está pagando.");
       return;
     }
 
@@ -202,6 +252,15 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
         </CardHeader>
         <CardContent className="pt-6">
           <form onSubmit={handleSubmit} className="space-y-6">
+            {activePlan && (
+              <Alert className="bg-purple-50 border-2 border-purple-300">
+                <Info className="h-4 w-4 text-purple-600" />
+                <AlertDescription className="text-purple-900">
+                  <p className="font-bold">Este jugador tiene un plan de pago especial ({activePlan.numero_cuotas} cuotas).</p>
+                  <p className="text-sm mt-1">El pago se registrará vinculado a la cuota del plan que selecciones. No se pueden registrar pagos sueltos "Único" o "Tres meses" para este jugador.</p>
+                </AlertDescription>
+              </Alert>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Selector de Jugador */}
               <div className="space-y-2">
@@ -226,43 +285,69 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
                 </Select>
               </div>
 
-              {/* Tipo de Pago */}
-              <div className="space-y-2">
-                <Label htmlFor="tipo_pago">Tipo de Pago *</Label>
-                <Select
-                  value={currentPayment.tipo_pago}
-                  onValueChange={(value) => setCurrentPayment({...currentPayment, tipo_pago: value})}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Único">Pago Único</SelectItem>
-                    <SelectItem value="Tres meses">Tres Pagos (Junio, Sept, Dic)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Mes */}
-              {currentPayment.tipo_pago !== "Tres meses" && (
-                <div className="space-y-2">
-                  <Label htmlFor="mes">Mes del Pago *</Label>
+              {/* Plan especial activo → selector de cuota del plan (bloquea modo estándar) */}
+              {activePlan ? (
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="cuota_plan">💰 Cuota del Plan Especial *</Label>
                   <Select
                     value={currentPayment.mes}
-                    onValueChange={(value) => setCurrentPayment({...currentPayment, mes: value})}
+                    onValueChange={handleCuotaPlanChange}
                     required
                   >
                     <SelectTrigger>
-                      <SelectValue />
+                      <SelectValue placeholder="Selecciona la cuota" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Junio">Junio</SelectItem>
-                      <SelectItem value="Septiembre">Septiembre</SelectItem>
-                      <SelectItem value="Diciembre">Diciembre</SelectItem>
+                      {(activePlan.cuotas || []).map(cuota => (
+                        <SelectItem key={cuota.numero} value={`Cuota ${cuota.numero}`}>
+                          Cuota {cuota.numero} - {Number(cuota.cantidad).toFixed(2)}€
+                          {cuota.pagada ? " (ya pagada)" : ""}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
+              ) : (
+                <>
+                  {/* Tipo de Pago */}
+                  <div className="space-y-2">
+                    <Label htmlFor="tipo_pago">Tipo de Pago *</Label>
+                    <Select
+                      value={currentPayment.tipo_pago}
+                      onValueChange={(value) => setCurrentPayment({...currentPayment, tipo_pago: value})}
+                      required
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Único">Pago Único</SelectItem>
+                        <SelectItem value="Tres meses">Tres Pagos (Junio, Sept, Dic)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Mes */}
+                  {currentPayment.tipo_pago !== "Tres meses" && (
+                    <div className="space-y-2">
+                      <Label htmlFor="mes">Mes del Pago *</Label>
+                      <Select
+                        value={currentPayment.mes}
+                        onValueChange={(value) => setCurrentPayment({...currentPayment, mes: value})}
+                        required
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Junio">Junio</SelectItem>
+                          <SelectItem value="Septiembre">Septiembre</SelectItem>
+                          <SelectItem value="Diciembre">Diciembre</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </>
               )}
 
               {/* Temporada */}
