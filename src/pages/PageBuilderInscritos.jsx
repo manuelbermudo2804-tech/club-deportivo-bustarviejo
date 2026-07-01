@@ -183,8 +183,8 @@ export default function PageBuilderInscritos() {
           </h1>
           <p className="text-sm text-slate-500">{stats.total} inscripciones recibidas</p>
         </div>
-        <Button onClick={() => navigate(`/PageBuilderPreInscritos?id=${pageId}`)} size="sm" variant="outline" className="gap-2 border-amber-300 text-amber-700 hover:bg-amber-50">
-          <AlertTriangle className="w-4 h-4" /> Sin completar
+        <Button onClick={() => navigate(`/PageBuilderPreInscritos?id=${pageId}`)} size="sm" className="gap-2 bg-amber-500 hover:bg-amber-600 text-white">
+          <AlertTriangle className="w-4 h-4" /> Pre-inscritos (sin completar)
         </Button>
         <Button onClick={shareWhatsApp} size="sm" className="gap-2 bg-green-600 hover:bg-green-700">
           <MessageCircle className="w-4 h-4" /> WhatsApp
