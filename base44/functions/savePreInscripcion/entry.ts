@@ -47,15 +47,49 @@ Deno.serve(async (req) => {
       payload.envio_fallido = envio_fallido;
     }
 
+    // RED DE SEGURIDAD DEFINITIVA:
+    // Si el envío normal falló (envio_fallido) pero el formulario estaba validado
+    // y completo, creamos DIRECTAMENTE la inscripción real (LandingSubmission) para
+    // que salte a la página de Inscritos sin intervención manual. Nunca se pierde
+    // una inscripción por un corte de red. Evitamos duplicados por session_id.
+    let submissionRescatada = null;
+    if (envio_fallido === true && landing_page_id) {
+      try {
+        const yaExiste = await base44.asServiceRole.entities.LandingSubmission.filter({
+          landing_page_id,
+          device_fingerprint: payload.session_id,
+        });
+        if (!yaExiste || yaExiste.length === 0) {
+          submissionRescatada = await base44.asServiceRole.entities.LandingSubmission.create({
+            landing_page_id,
+            landing_slug: payload.landing_slug,
+            nombre: payload.nombre || payload.nombre_equipo || 'Sin nombre',
+            email: payload.email || '',
+            telefono: payload.telefono || '',
+            datos: payload.datos || {},
+            estado: 'nuevo',
+            device_fingerprint: payload.session_id,
+            notas_admin: 'Rescatada automáticamente: el envío falló por red pero los datos estaban completos.',
+          });
+          // El pre-registro pasa a "recuperado" porque ya es una inscripción real
+          payload.completada = true;
+          payload.estado = 'recuperado';
+          payload.envio_fallido = false;
+        }
+      } catch (e) {
+        console.error('savePreInscripcion rescate error:', e?.message);
+      }
+    }
+
     // Buscar si ya existe un borrador de esta sesión
     const existentes = await base44.asServiceRole.entities.PreInscripcion.filter({ session_id: payload.session_id });
     if (existentes && existentes.length > 0) {
       await base44.asServiceRole.entities.PreInscripcion.update(existentes[0].id, payload);
-      return Response.json({ ok: true, id: existentes[0].id, updated: true });
+      return Response.json({ ok: true, id: existentes[0].id, updated: true, submission_id: submissionRescatada?.id || null });
     }
 
     const rec = await base44.asServiceRole.entities.PreInscripcion.create(payload);
-    return Response.json({ ok: true, id: rec.id, created: true });
+    return Response.json({ ok: true, id: rec.id, created: true, submission_id: submissionRescatada?.id || null });
   } catch (error) {
     console.error('savePreInscripcion error:', error?.message);
     return Response.json({ ok: false, error: error?.message }, { status: 500 });
