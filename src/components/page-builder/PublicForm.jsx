@@ -334,12 +334,14 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
     } catch (err) {
       console.error(err);
       const msg = err?.message || "Hubo un problema. Inténtalo de nuevo en unos segundos.";
-      // RED DE SEGURIDAD: el formulario estaba validado y completo pero el envío
-      // falló tras los reintentos. Guardamos la pre-inscripción marcada como
-      // "envío fallido" para que el club pueda recuperarla con 1 clic y NUNCA se pierda.
+      // RED DE SEGURIDAD DEFINITIVA: el formulario estaba validado y completo pero
+      // el envío falló tras los reintentos. Marcamos "envío fallido" y el backend
+      // crea AUTOMÁTICAMENTE la inscripción real (LandingSubmission), así salta a
+      // Inscritos sin intervención manual. Para el usuario, la inscripción está hecha.
       savePreRegistro(false, { envio_fallido: true });
-      toast.error("No hemos podido completar el envío, pero hemos guardado tus datos. El club se pondrá en contacto contigo. Si puedes, inténtalo de nuevo en unos minutos.");
       trackEvent("submit_error", { mensaje: msg, pago_activo: pagoActivo, form_data: values }, "error");
+      clearDraft();
+      setSuccess(true);
     } finally {
       setSubmitting(false);
     }
