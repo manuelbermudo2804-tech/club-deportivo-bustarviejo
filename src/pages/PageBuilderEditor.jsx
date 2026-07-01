@@ -356,6 +356,22 @@ export default function PageBuilderEditor() {
                   <p className="text-xs text-slate-500 mt-1">Cuando se llene, no se aceptarán más inscripciones automáticamente.</p>
                 </div>
                 <div>
+                  <Label>Plazas ya ocupadas (reservas fuera de la web)</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    value={page.config?.limites?.plazas_reservadas_manual ?? ""}
+                    onChange={(e) => updateConfig("limites", {
+                      ...(page.config?.limites || {}),
+                      plazas_reservadas_manual: e.target.value === "" ? null : parseInt(e.target.value) || 0,
+                    })}
+                    placeholder="Ej: 15 (gente apuntada por teléfono)"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">
+                    Se suma al contador de ocupadas. Úsalo para reservar plazas de quien se apuntó por fuera (teléfono, en persona…) sin crear inscritos ficticios. Ej: 16 plazas − 15 reservadas = solo 1 disponible online.
+                  </p>
+                </div>
+                <div>
                   <Label>Mostrar contador de plazas a los usuarios</Label>
                   <Select
                     value={page.config?.limites?.mostrar_plazas ? "si" : "no"}

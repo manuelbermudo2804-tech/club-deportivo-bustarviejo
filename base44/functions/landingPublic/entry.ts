@@ -56,6 +56,9 @@ Deno.serve(async (req) => {
           }).length;
         } catch {}
       }
+      // Sumar plazas reservadas manualmente (gente apuntada por fuera: teléfono, en persona…)
+      const reservadasManual = parseInt(page?.config?.limites?.plazas_reservadas_manual) || 0;
+      plazas_ocupadas += reservadasManual;
       return Response.json({ page, plazas_ocupadas });
     }
 
@@ -95,7 +98,8 @@ Deno.serve(async (req) => {
       const plazasMax = parseInt(page?.config?.limites?.plazas_maximas) || 0;
       if (plazasMax > 0) {
         const subs = await base44.asServiceRole.entities.LandingSubmission.filter({ landing_page_id: pageId });
-        const ocupadas = (subs || []).filter(s => s.estado !== 'cancelado' && s.estado !== 'lista_espera').length;
+        const reservadasManual = parseInt(page?.config?.limites?.plazas_reservadas_manual) || 0;
+        const ocupadas = (subs || []).filter(s => s.estado !== 'cancelado' && s.estado !== 'lista_espera').length + reservadasManual;
         if (ocupadas >= plazasMax) {
           return Response.json({
             error: page?.config?.limites?.mensaje_plazas_agotadas || 'Lo sentimos, ya no quedan plazas disponibles.',
