@@ -1,55 +1,35 @@
-// Compositor del icono PWA — sirve el escudo sobre fondo VERDE SÓLIDO desde
-// app.cdbustarviejo.com (evita bloqueos a media.base44.com).
+// Sirve el icono PWA ya PRE-COMPUESTO (escudo sobre fondo verde sólido) desde
+// app.cdbustarviejo.com. A diferencia de la versión anterior, NO compone la imagen
+// en caliente (no descarga el escudo transparente ni lo pinta sobre verde con
+// imagescript). Los PNG ya vienen con el fondo verde sólido y el margen correcto:
+//   - "any":      escudo grande (~92%) — para lanzadores que no recortan.
+//   - "maskable": escudo con safe-zone (~70%) — para recorte a círculo/squircle.
 //
-// El PNG de origen del escudo tiene FONDO TRANSPARENTE. Android, al recortar un
-// icono con transparencia, muestra el icono genérico con la inicial ("C"). Por eso
-// AMBAS variantes se componen sobre fondo verde sólido (sin transparencia):
-//   - "any":      escudo grande (94%) — para lanzadores que no recortan.
-//   - "maskable": escudo reducido (66%) con safe-zone para recorte a círculo/squircle.
-import { Image } from "https://deno.land/x/imagescript@1.2.17/mod.ts";
+// Esto elimina la latencia de arranque en frío + procesado (~3s) que hacía que
+// Samsung (One UI) y otros launchers estrictos descartaran el icono y mostraran
+// la inicial genérica ("C"). Cada variante se descarga una sola vez por isolate y
+// se cachea en memoria; las siguientes peticiones son instantáneas.
 
-const ICON_SRC = "https://media.base44.com/images/public/6992c6be619d2da592897991/e4665760a_image.png";
-const GREEN = 0x15803dff; // #15803d (verde del club), RGBA
+const ICON_ANY = "https://media.base44.com/images/public/6992c6be619d2da592897991/eeae2fcaa_generated_image.png";
+const ICON_MASKABLE = "https://media.base44.com/images/public/6992c6be619d2da592897991/7670c0e03_generated_image.png";
 
-// Caché en memoria del PNG ya compuesto por variante+tamaño. Así el escudo solo
-// se descarga y procesa UNA vez por isolate; las siguientes peticiones son
-// instantáneas. Esto evita que Android descarte el icono (mostrando la "C" gris)
-// y no ofrezca instalar cuando la generación tardaba ~3s.
+// Caché en memoria del PNG por variante (los bytes ya listos para servir).
 const CACHE = new Map<string, Uint8Array>();
 
 Deno.serve(async (req) => {
   try {
     const url = new URL(req.url);
     const variant = url.searchParams.get("v") === "maskable" ? "maskable" : "any";
-    // Tamaño solicitado (el manifest pide 192 y 512). Generamos REALMENTE ese
-    // tamaño: si el PNG no coincide con el "sizes" declarado, Android lo descarta
-    // y cae al icono genérico ("C").
-    const reqSize = parseInt(url.searchParams.get("s"), 10);
-    const SIZE = reqSize === 192 ? 192 : 512;
 
-    const cacheKey = `${variant}-${SIZE}`;
-    let out = CACHE.get(cacheKey);
-
+    let out = CACHE.get(variant);
     if (!out) {
-      const upstream = await fetch(ICON_SRC);
+      const src = variant === "maskable" ? ICON_MASKABLE : ICON_ANY;
+      const upstream = await fetch(src);
       if (!upstream.ok) {
         return new Response("Icon fetch failed", { status: 502 });
       }
-      const bytes = new Uint8Array(await upstream.arrayBuffer());
-
-      const SCALE = variant === "maskable" ? 0.66 : 0.94;
-
-      const crest = await Image.decode(bytes);
-      const target = Math.round(SIZE * SCALE);
-      crest.resize(target, target); // la fuente es cuadrada → mantiene proporción
-
-      const canvas = new Image(SIZE, SIZE);
-      canvas.fill(GREEN); // fondo verde SÓLIDO: elimina la transparencia que causaba la "C"
-      const offset = Math.round((SIZE - target) / 2);
-      canvas.composite(crest, offset, offset);
-
-      out = await canvas.encode();
-      CACHE.set(cacheKey, out);
+      out = new Uint8Array(await upstream.arrayBuffer());
+      CACHE.set(variant, out);
     }
 
     return new Response(out, {

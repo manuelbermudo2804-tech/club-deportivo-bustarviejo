@@ -3,10 +3,10 @@
 Deno.serve(async (req) => {
   const url = new URL(req.url);
   const origin = `${url.protocol}//${url.host}`;
-  const ICON_ANY_192 = `${origin}/functions/appIcon?v=any&s=192&r=4`;
-  const ICON_ANY_512 = `${origin}/functions/appIcon?v=any&s=512&r=4`;
-  const ICON_MASKABLE_192 = `${origin}/functions/appIcon?v=maskable&s=192&r=4`;
-  const ICON_MASKABLE_512 = `${origin}/functions/appIcon?v=maskable&s=512&r=4`;
+  const ICON_ANY_192 = `${origin}/functions/appIcon?v=any&s=192&r=5`;
+  const ICON_ANY_512 = `${origin}/functions/appIcon?v=any&s=512&r=5`;
+  const ICON_MASKABLE_192 = `${origin}/functions/appIcon?v=maskable&s=192&r=5`;
+  const ICON_MASKABLE_512 = `${origin}/functions/appIcon?v=maskable&s=512&r=5`;
 
   const manifest = {
     name: "CD Bustarviejo",
