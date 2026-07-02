@@ -64,11 +64,16 @@ Deno.serve(async (req) => {
           console.error('No se pudo crear PushDelivery:', e.message);
         }
 
+        // Normalizar claves a base64url (sin padding, con -/_) — algunas suscripciones
+        // antiguas se guardaron en base64 estándar (con +, /, =) y eso hace que web-push
+        // cifre mal el payload: FCM acepta ("sent") pero el navegador lo descarta en silencio.
+        const toBase64Url = (k) => (k || '').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
         const pushSubscription = {
           endpoint: sub.endpoint,
           keys: {
-            auth: sub.auth_key || (sub.keys && sub.keys.auth),
-            p256dh: sub.p256dh_key || (sub.keys && sub.keys.p256dh)
+            auth: toBase64Url(sub.auth_key || (sub.keys && sub.keys.auth)),
+            p256dh: toBase64Url(sub.p256dh_key || (sub.keys && sub.keys.p256dh))
           }
         };
 
