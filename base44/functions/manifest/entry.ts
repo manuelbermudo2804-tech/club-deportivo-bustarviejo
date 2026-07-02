@@ -1,12 +1,15 @@
 // Manifest PWA. Iconos servidos vía proxy (/functions/appIcon) desde el mismo
 // dominio app.cdbustarviejo.com para evitar bloqueos de media.base44.com.
 Deno.serve(async (req) => {
-  const url = new URL(req.url);
-  const origin = `${url.protocol}//${url.host}`;
-  const ICON_ANY_192 = `${origin}/functions/appIcon?v=any&s=192&r=6`;
-  const ICON_ANY_512 = `${origin}/functions/appIcon?v=any&s=512&r=6`;
-  const ICON_MASKABLE_192 = `${origin}/functions/appIcon?v=maskable&s=192&r=6`;
-  const ICON_MASKABLE_512 = `${origin}/functions/appIcon?v=maskable&s=512&r=6`;
+  // Iconos servidos DIRECTAMENTE desde el almacenamiento estático (respuesta
+  // instantánea). Antes se servían vía /functions/appIcon, pero en arranque en
+  // frío la función tardaba y Chrome/Android descartaba el icono mostrando la "C".
+  const ICON_ANY = "https://media.base44.com/images/public/6992c6be619d2da592897991/eeae2fcaa_generated_image.png?r=7";
+  const ICON_MASKABLE = "https://media.base44.com/images/public/6992c6be619d2da592897991/7670c0e03_generated_image.png?r=7";
+  const ICON_ANY_192 = ICON_ANY;
+  const ICON_ANY_512 = ICON_ANY;
+  const ICON_MASKABLE_192 = ICON_MASKABLE;
+  const ICON_MASKABLE_512 = ICON_MASKABLE;
 
   const manifest = {
     name: "CD Bustarviejo",
