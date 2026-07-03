@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Loader2, Search, Mail, Phone, Trash2, AlertTriangle, ShieldQuestion } from "lucide-react";
+import { ArrowLeft, Loader2, Search, Mail, Phone, Trash2, AlertTriangle, ShieldQuestion, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -64,6 +64,21 @@ export default function PageBuilderPreInscritos() {
       if (selected?.id === id) setSelected({ ...selected, estado });
       toast.success("Estado actualizado");
     } catch { toast.error("Error"); }
+  };
+
+  const [promoting, setPromoting] = useState(false);
+  const promover = async (item) => {
+    setPromoting(true);
+    try {
+      await base44.functions.invoke("manageLandingSubmission", { action: "promote_preinscripcion", preinscripcion_id: item.id });
+      setItems((prev) => prev.map((s) => s.id === item.id ? { ...s, estado: "recuperado", completada: true } : s));
+      setSelected(null);
+      toast.success("Equipo pasado a la lista oficial de inscritos");
+    } catch {
+      toast.error("Error al pasar el equipo");
+    } finally {
+      setPromoting(false);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -252,6 +267,17 @@ export default function PageBuilderPreInscritos() {
                     </SelectContent>
                   </Select>
                 </div>
+              )}
+
+              {!selected.completada && (
+                <Button
+                  onClick={() => promover(selected)}
+                  disabled={promoting}
+                  className="w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {promoting ? <Loader2 className="w-4 h-4 animate-spin" /> : <UserPlus className="w-4 h-4" />}
+                  Pasar a inscritos oficiales
+                </Button>
               )}
 
               <div className="flex gap-2 pt-3 border-t border-slate-100 flex-wrap">
