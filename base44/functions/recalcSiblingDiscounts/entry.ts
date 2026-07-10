@@ -19,20 +19,19 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const body = await req.json().catch(() => ({}));
 
-    // Detectar contexto: automation o llamada manual
-    const automationData = body.data || body.old_data;
-    let emailsAfectados = new Set();
+    // SEGURIDAD: esta función es SOLO manual. Si llega como automation de entidad
+    // (trae body.data / body.old_data / body.event) la rechazamos para evitar
+    // el bucle en cascada que dispararon updates de Player entre hermanos.
+    if (body.event || (body.data && !body.email_padre) || (body.old_data && !body.email_padre)) {
+      return Response.json({ skipped: true, reason: 'automation_disabled_manual_only' });
+    }
 
+    // Solo llamada manual con email_padre explícito
+    let emailsAfectados = new Set();
     if (body.email_padre) {
-      // Llamada manual
       emailsAfectados.add(String(body.email_padre).toLowerCase());
-    } else if (automationData) {
-      // Automation: recoger emails del jugador modificado
-      if (automationData.email_padre) emailsAfectados.add(String(automationData.email_padre).toLowerCase());
-      if (automationData.email_tutor_2) emailsAfectados.add(String(automationData.email_tutor_2).toLowerCase());
-      if (body.old_data?.email_padre) emailsAfectados.add(String(body.old_data.email_padre).toLowerCase());
     } else {
-      return Response.json({ error: 'No data provided' }, { status: 400 });
+      return Response.json({ error: 'email_padre requerido (función solo manual)' }, { status: 400 });
     }
 
     const results = [];
