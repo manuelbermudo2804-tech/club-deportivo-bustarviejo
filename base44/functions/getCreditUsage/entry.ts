@@ -14,9 +14,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden' }, { status: 403 });
     }
 
-    // 1. Count file uploads this month (UploadFile = 1 credit each)
+    // 1. Count file uploads this billing period (UploadFile = 1 credit each)
+    // El ciclo de facturación del club empieza el día 10 de cada mes (no el día 1).
     const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+    const BILLING_DAY = 10;
+    const periodStartDate = now.getDate() >= BILLING_DAY
+      ? new Date(now.getFullYear(), now.getMonth(), BILLING_DAY)
+      : new Date(now.getFullYear(), now.getMonth() - 1, BILLING_DAY);
+    const monthStart = periodStartDate.toISOString();
 
     // Count players created/updated this month (each has foto_url = 1 upload)
     let uploadCredits = 0;
@@ -96,9 +101,13 @@ Deno.serve(async (req) => {
     } catch {}
 
     // Summary
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const daysIntoPeriod = Math.floor((now - periodStartDate) / msPerDay) + 1;
     const result = {
       month: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`,
       day_of_month: now.getDate(),
+      billing_period_start: periodStartDate.toISOString().slice(0, 10),
+      days_into_billing_period: daysIntoPeriod,
       uploads: {
         player_docs: recentPlayers.reduce((s, p) => {
           let c = 0;
