@@ -18,6 +18,7 @@ import DashboardButtonSelector from "../components/dashboard/DashboardButtonSele
 import ShareFormButton from "../components/players/ShareFormButton";
 import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/ParentDashboardButtons";
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
+import { buildWeekAgenda } from "../components/dashboard/miSemanaHelper";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
@@ -197,6 +198,22 @@ export default function ParentDashboard() {
     enabled: !!user && playerCategories.length > 0,
   });
 
+  // Horarios de entrenamiento de las categorías de mis jugadores (para "Mi Semana")
+  const { data: trainingSchedules = [] } = useQuery({
+    queryKey: ['myTrainingSchedules', playerCategories.join(',')],
+    queryFn: async () => {
+      if (!playerCategories.length) return [];
+      const results = await Promise.all(
+        playerCategories.map(cat => base44.entities.TrainingSchedule.filter({ categoria: cat, activo: true }).catch(() => []))
+      );
+      const map = new Map();
+      results.flat().forEach(s => map.set(s.id, s));
+      return Array.from(map.values());
+    },
+    staleTime: 600000,
+    enabled: !!user && playerCategories.length > 0,
+  });
+
   // Chat counts now come from ChatUnreadProvider via useUnifiedNotifications — no need to load conversations here
 
   const { data: customPaymentPlans = [] } = useQuery({
@@ -350,6 +367,12 @@ export default function ParentDashboard() {
     if (hasEnlaceTutor && !firmaTutorOk && !esMayorDeEdad) count++;
     return count;
   }, 0);
+
+  // Agenda de "Mi Semana" (entrenos + partidos + choques entre hermanos)
+  const weekAgenda = useMemo(
+    () => buildWeekAgenda(myPlayers, trainingSchedules, callups),
+    [myPlayers, trainingSchedules, callups]
+  );
 
   // Determinar qué botones mostrar según configuración del usuario (BD > localStorage > default)
   const selectedButtonIds = userButtonConfig?.selected_buttons || cachedParentButtonIds || DEFAULT_PARENT_BUTTONS;
@@ -556,6 +579,7 @@ export default function ParentDashboard() {
             isParent={true}
             userEmail={user?.email}
             userSports={myPlayersSports}
+            weekAgenda={weekAgenda}
           />
 
         {/* Banner promocional Porra Mundial 2026 */}

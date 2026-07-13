@@ -31,6 +31,7 @@ import {
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
+import MiSemanaSection from "./MiSemanaSection";
 
 // CRÍTICO: Este componente NO debe mostrar alertas de CHATS
 // Solo: convocatorias, pagos, firmas, eventos, encuestas, etc.
@@ -72,7 +73,8 @@ export default function AlertCenter({
   isCoordinator = false,
   isTreasurer = false,
   userEmail = null,
-  userSports = []
+  userSports = [],
+  weekAgenda = null
 }) {
   // Queries pesadas ELIMINADAS — los contadores llegan por props desde useUnifiedNotifications
   // Solo mantenemos state local para dismissed alerts y queries ligeras con staleTime alto
@@ -691,11 +693,16 @@ const alerts = [];
     }
   };
 
+  const hasAgenda = weekAgenda && ((weekAgenda.items?.length || 0) > 0 || (weekAgenda.conflicts?.length || 0) > 0);
+
   if (visibleAlerts.length === 0) {
-    // Mostrar barra vacía SIEMPRE (para padres, entrenadores, etc.)
+    // Sin tareas: mostrar la agenda (si la hay) + "Todo al día"
     return (
       <Card className="border-orange-200 shadow-lg overflow-hidden">
-        <CardContent className="p-3 text-sm text-slate-600 text-center">✅ Todo al día</CardContent>
+        <CardContent className="p-3">
+          {hasAgenda && <MiSemanaSection items={weekAgenda.items} conflicts={weekAgenda.conflicts} />}
+          <p className="text-sm text-slate-600 text-center">✅ Todo al día</p>
+        </CardContent>
       </Card>
     );
   }
@@ -717,6 +724,7 @@ const alerts = [];
   return (
     <Card className="border-orange-200 shadow-lg overflow-hidden">
       <CardContent className="p-3">
+        {hasAgenda && <MiSemanaSection items={weekAgenda.items} conflicts={weekAgenda.conflicts} />}
         {rolTitle && (
           <div className="mb-3 pb-3 border-b border-orange-200">
             <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">
