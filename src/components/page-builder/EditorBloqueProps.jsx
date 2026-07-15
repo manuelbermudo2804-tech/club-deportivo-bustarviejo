@@ -398,9 +398,21 @@ export default function EditorBloqueProps({ bloque, onChange }) {
           <Label>Texto del botón</Label>
           <Input value={datos.texto || ""} onChange={(e) => update("texto", e.target.value)} />
         </div>
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1">
+          <Label className="text-amber-800">🏆 Enlazar a la página de un torneo (opcional)</Label>
+          <TorneoSelector
+            value={(datos.url || "").startsWith("/torneo/") ? datos.url.replace("/torneo/", "") : ""}
+            onChange={(slug) => {
+              update("url", `/torneo/${slug}`);
+              if (!datos.texto || datos.texto === "Apuntarme ahora") update("texto", "Ver resultados en directo 🏆");
+            }}
+          />
+          <p className="text-xs text-amber-700">Al elegir un torneo, el botón llevará a su página pública en vivo.</p>
+        </div>
         <div>
           <Label>URL (déjalo en #formulario para ir al form)</Label>
           <Input value={datos.url || ""} onChange={(e) => update("url", e.target.value)} placeholder="#formulario" />
+          <p className="text-xs text-slate-500 mt-1">Puedes escribir cualquier URL a mano, o dejar que se rellene sola al elegir un torneo arriba.</p>
         </div>
       </div>
     );
