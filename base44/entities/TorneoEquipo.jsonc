@@ -1,0 +1,65 @@
+{
+  "name": "TorneoEquipo",
+  "type": "object",
+  "properties": {
+    "torneo_id": {
+      "type": "string",
+      "description": "ID del Torneo"
+    },
+    "categoria_id": {
+      "type": "string",
+      "description": "ID de la TorneoCategoria"
+    },
+    "grupo_id": {
+      "type": "string",
+      "description": "ID del TorneoGrupo asignado (vac\u00edo si a\u00fan no est\u00e1 en grupo)"
+    },
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del equipo (ej: Real Madrid CF)"
+    },
+    "club": {
+      "type": "string",
+      "description": "Club al que pertenece (opcional)"
+    },
+    "escudo_url": {
+      "type": "string",
+      "description": "URL del escudo del equipo"
+    }
+  },
+  "required": [
+    "torneo_id",
+    "categoria_id",
+    "nombre"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "categoria_id"
+      ]
+    },
+    {
+      "fields": [
+        "grupo_id"
+      ]
+    }
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -67,6 +67,8 @@ import AltaSocio from '@/pages/AltaSocio';
 import GrowthMap from '@/pages/GrowthMap';
 import ClubIA from '@/pages/ClubIA';
 import RiesgoAbandono from '@/pages/RiesgoAbandono';
+import TorneosAdmin from '@/pages/TorneosAdmin';
+import TorneoManager from '@/pages/TorneoManager';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -227,6 +229,8 @@ const AuthenticatedApp = () => {
       <Route path="/GrowthMap" element={<LayoutWrapper currentPageName="GrowthMap"><GrowthMap /></LayoutWrapper>} />
       <Route path="/ClubIA" element={<LayoutWrapper currentPageName="ClubIA"><ClubIA /></LayoutWrapper>} />
       <Route path="/RiesgoAbandono" element={<LayoutWrapper currentPageName="RiesgoAbandono"><RiesgoAbandono /></LayoutWrapper>} />
+      <Route path="/TorneosAdmin" element={<LayoutWrapper currentPageName="TorneosAdmin"><TorneosAdmin /></LayoutWrapper>} />
+      <Route path="/TorneoManager" element={<LayoutWrapper currentPageName="TorneoManager"><TorneoManager /></LayoutWrapper>} />
 
       <Route path="/ShareReceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
       <Route path="/sharereceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />

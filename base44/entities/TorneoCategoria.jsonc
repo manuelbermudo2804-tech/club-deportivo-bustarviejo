@@ -1,0 +1,63 @@
+{
+  "name": "TorneoCategoria",
+  "type": "object",
+  "properties": {
+    "torneo_id": {
+      "type": "string",
+      "description": "ID del Torneo al que pertenece"
+    },
+    "nombre": {
+      "type": "string",
+      "description": "Nombre de la categor\u00eda (ej: Alev\u00edn, Benjam\u00edn, Nivel 3)"
+    },
+    "orden": {
+      "type": "number",
+      "default": 0,
+      "description": "Orden de visualizaci\u00f3n"
+    },
+    "fase_actual": {
+      "type": "string",
+      "enum": [
+        "liguilla",
+        "eliminatorias",
+        "finalizada"
+      ],
+      "default": "liguilla",
+      "description": "Fase en la que se encuentra esta categor\u00eda"
+    },
+    "cuadros_generados": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si ya se generaron los cuadros Oro/Plata desde la liguilla"
+    }
+  },
+  "required": [
+    "torneo_id",
+    "nombre"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "torneo_id"
+      ]
+    }
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

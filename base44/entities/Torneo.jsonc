@@ -1,0 +1,157 @@
+{
+  "name": "Torneo",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del torneo (ej: Sierra Norte Madrid Cup 2026)"
+    },
+    "slug": {
+      "type": "string",
+      "description": "Identificador \u00fanico para la URL p\u00fablica (ej: sierra-norte-cup)"
+    },
+    "deporte": {
+      "type": "string",
+      "enum": [
+        "F\u00fatbol",
+        "F\u00fatbol Sala",
+        "P\u00e1del",
+        "Baloncesto",
+        "Voleibol",
+        "Otro"
+      ],
+      "default": "F\u00fatbol",
+      "description": "Deporte del torneo"
+    },
+    "tipo_puntuacion": {
+      "type": "string",
+      "enum": [
+        "goles",
+        "sets"
+      ],
+      "default": "goles",
+      "description": "goles = deportes de goles (f\u00fatbol, futsal, baloncesto). sets = deportes de sets/juegos (p\u00e1del, voleibol)"
+    },
+    "puntos_victoria": {
+      "type": "number",
+      "default": 3,
+      "description": "Puntos por victoria en la liguilla"
+    },
+    "puntos_empate": {
+      "type": "number",
+      "default": 1,
+      "description": "Puntos por empate (0 en deportes sin empate como p\u00e1del)"
+    },
+    "puntos_derrota": {
+      "type": "number",
+      "default": 0,
+      "description": "Puntos por derrota"
+    },
+    "fecha_inicio": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de inicio del torneo"
+    },
+    "fecha_fin": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de fin del torneo"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "borrador",
+        "publicado",
+        "en_curso",
+        "finalizado",
+        "archivado"
+      ],
+      "default": "borrador",
+      "description": "Estado del torneo"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL del logo del torneo"
+    },
+    "imagen_hero_url": {
+      "type": "string",
+      "description": "URL de la imagen de portada/hero"
+    },
+    "color_primario": {
+      "type": "string",
+      "default": "#1e40af",
+      "description": "Color principal de la identidad visual del torneo"
+    },
+    "color_secundario": {
+      "type": "string",
+      "default": "#f59e0b",
+      "description": "Color secundario"
+    },
+    "organizadores": {
+      "type": "string",
+      "description": "Texto libre con los organizadores (ej: AD Miraflores \u00b7 CD Bustarviejo)"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Presentaci\u00f3n / descripci\u00f3n del torneo"
+    },
+    "sedes": {
+      "type": "array",
+      "description": "Lista de sedes/campos del torneo",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "lat": {
+            "type": "number"
+          },
+          "lng": {
+            "type": "number"
+          },
+          "campos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Nombres de los campos dentro de la sede (ej: Campo 1, Campo 2)"
+          }
+        }
+      }
+    },
+    "creado_por": {
+      "type": "string",
+      "description": "Email del admin que cre\u00f3 el torneo"
+    }
+  },
+  "required": [
+    "nombre",
+    "slug",
+    "deporte"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

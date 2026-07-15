@@ -1,0 +1,53 @@
+{
+  "name": "TorneoGrupo",
+  "type": "object",
+  "properties": {
+    "torneo_id": {
+      "type": "string",
+      "description": "ID del Torneo"
+    },
+    "categoria_id": {
+      "type": "string",
+      "description": "ID de la TorneoCategoria a la que pertenece"
+    },
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del grupo (ej: Grupo A, Grupo B)"
+    },
+    "orden": {
+      "type": "number",
+      "default": 0,
+      "description": "Orden de visualizaci\u00f3n"
+    }
+  },
+  "required": [
+    "torneo_id",
+    "categoria_id",
+    "nombre"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "categoria_id"
+      ]
+    }
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

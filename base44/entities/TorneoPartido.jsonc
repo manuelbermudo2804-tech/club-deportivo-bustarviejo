@@ -1,0 +1,131 @@
+{
+  "name": "TorneoPartido",
+  "type": "object",
+  "properties": {
+    "torneo_id": {
+      "type": "string",
+      "description": "ID del Torneo"
+    },
+    "categoria_id": {
+      "type": "string",
+      "description": "ID de la TorneoCategoria"
+    },
+    "fase": {
+      "type": "string",
+      "enum": [
+        "liguilla",
+        "oro",
+        "plata",
+        "bronce"
+      ],
+      "default": "liguilla",
+      "description": "Fase del partido. liguilla = fase de grupos. oro/plata/bronce = cuadros eliminatorios por nivel"
+    },
+    "grupo_id": {
+      "type": "string",
+      "description": "ID del TorneoGrupo (solo en fase liguilla)"
+    },
+    "ronda": {
+      "type": "string",
+      "description": "Ronda eliminatoria (ej: octavos, cuartos, semifinal, final). Solo en fases oro/plata/bronce"
+    },
+    "orden_bracket": {
+      "type": "number",
+      "description": "Posici\u00f3n del partido dentro de su ronda del cuadro (para dibujar el bracket y avanzar ganadores)"
+    },
+    "partido_siguiente_id": {
+      "type": "string",
+      "description": "ID del partido al que avanza el ganador (eliminatorias)"
+    },
+    "sede_id": {
+      "type": "string",
+      "description": "ID de la sede donde se juega"
+    },
+    "sede_nombre": {
+      "type": "string",
+      "description": "Nombre de la sede (denormalizado)"
+    },
+    "campo": {
+      "type": "string",
+      "description": "Campo dentro de la sede (ej: Campo 2)"
+    },
+    "fecha_hora": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora del partido"
+    },
+    "equipo_local_id": {
+      "type": "string",
+      "description": "ID del TorneoEquipo local (vac\u00edo en eliminatorias hasta que se decida)"
+    },
+    "equipo_visitante_id": {
+      "type": "string",
+      "description": "ID del TorneoEquipo visitante"
+    },
+    "equipo_local_placeholder": {
+      "type": "string",
+      "description": "Texto para eliminatorias sin equipo decidido (ej: 1\u00ba Grupo A, Ganador Cuartos 1)"
+    },
+    "equipo_visitante_placeholder": {
+      "type": "string",
+      "description": "Texto placeholder del visitante"
+    },
+    "marcador_local": {
+      "type": "number",
+      "description": "Goles/sets del equipo local"
+    },
+    "marcador_visitante": {
+      "type": "number",
+      "description": "Goles/sets del equipo visitante"
+    },
+    "ganador_id": {
+      "type": "string",
+      "description": "ID del equipo ganador (relevante en eliminatorias)"
+    },
+    "finalizado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el partido ya termin\u00f3 y el resultado es definitivo"
+    }
+  },
+  "required": [
+    "torneo_id",
+    "categoria_id",
+    "fase"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "categoria_id"
+      ]
+    },
+    {
+      "fields": [
+        "grupo_id"
+      ]
+    },
+    {
+      "fields": [
+        "torneo_id"
+      ]
+    }
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
