@@ -50,7 +50,14 @@ export default function GrupoClasificacion({ grupo, equipos, partidos, torneo, p
                       {nivel === "plata" && <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />}
                     </span>
                   </td>
-                  <td className="font-medium text-slate-800 truncate max-w-[120px]">{f.nombre}</td>
+                  <td className="font-medium text-slate-800">
+                    <span className="flex items-center gap-1.5 truncate max-w-[140px]">
+                      {f.escudo_url
+                        ? <img src={f.escudo_url} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
+                        : <span className="w-5 h-5 rounded-full bg-slate-100 flex-shrink-0" />}
+                      <span className="truncate">{f.nombre}</span>
+                    </span>
+                  </td>
                   <td className="text-center text-slate-500">{f.jugados}</td>
                   <td className="text-center text-slate-500">{f.ganados}</td>
                   <td className="text-center text-slate-500">{f.empatados}</td>

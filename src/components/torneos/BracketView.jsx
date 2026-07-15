@@ -60,18 +60,27 @@ function BracketMatchReadOnly({ partido, equipos }) {
   const ganadorL = partido.finalizado && partido.marcador_local > partido.marcador_visitante;
   const ganadorV = partido.finalizado && partido.marcador_visitante > partido.marcador_local;
 
-  const Fila = ({ nombre, marcador, ganador }) => (
-    <div className={`flex items-center justify-between px-2 py-1.5 ${ganador ? "font-bold text-slate-900" : "text-slate-500"}`}>
-      <span className="truncate text-sm">{nombre}</span>
+  // Ubicación del partido (sede + campo), si está informada
+  const ubicacion = [partido.sede_nombre, partido.campo].filter(Boolean).join(" · ");
+
+  const Fila = ({ escudo, nombre, marcador, ganador }) => (
+    <div className={`flex items-center gap-2 px-2 py-1.5 ${ganador ? "font-bold text-slate-900" : "text-slate-500"}`}>
+      {escudo
+        ? <img src={escudo} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
+        : <span className="w-5 h-5 rounded-full bg-slate-100 flex-shrink-0" />}
+      <span className="truncate text-sm flex-1">{nombre}</span>
       <span className="text-sm tabular-nums">{marcador ?? "-"}</span>
     </div>
   );
 
   return (
     <div className="bg-white rounded-lg border overflow-hidden">
-      <Fila nombre={nombreL} marcador={partido.finalizado ? partido.marcador_local : null} ganador={ganadorL} />
+      <Fila escudo={eqL?.escudo_url} nombre={nombreL} marcador={partido.finalizado ? partido.marcador_local : null} ganador={ganadorL} />
       <div className="border-t" />
-      <Fila nombre={nombreV} marcador={partido.finalizado ? partido.marcador_visitante : null} ganador={ganadorV} />
+      <Fila escudo={eqV?.escudo_url} nombre={nombreV} marcador={partido.finalizado ? partido.marcador_visitante : null} ganador={ganadorV} />
+      {ubicacion && (
+        <div className="border-t px-2 py-1 text-[11px] text-slate-400 truncate">📍 {ubicacion}</div>
+      )}
     </div>
   );
 }

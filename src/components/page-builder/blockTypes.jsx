@@ -176,6 +176,16 @@ export const BLOCK_CATALOG = [
     },
   },
   {
+    tipo: "torneo",
+    nombre: "Torneo en vivo",
+    emoji: "🏆",
+    descripcion: "Clasificación de grupos + cuadros Oro/Plata, en directo",
+    datosDefault: {
+      slug: "",
+      titulo: "",
+    },
+  },
+  {
     tipo: "embed",
     nombre: "Embed HTML / iframe",
     emoji: "🔌",

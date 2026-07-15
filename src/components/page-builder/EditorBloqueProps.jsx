@@ -1,10 +1,12 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Trash2 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import ImageUploadInput from "./ImageUploadInput";
 import GalleryUploader from "./GalleryUploader";
 import RichTextEditor from "./RichTextEditor";
@@ -538,6 +540,29 @@ export default function EditorBloqueProps({ bloque, onChange }) {
     );
   }
 
+  // --- TORNEO EN VIVO ---
+  if (bloque.tipo === "torneo") {
+    return (
+      <div className="space-y-3">
+        <div>
+          <Label>Torneo a mostrar</Label>
+          <TorneoSelector value={datos.slug || ""} onChange={(v) => update("slug", v)} />
+          <p className="text-xs text-slate-500 mt-1">
+            Solo aparecen torneos publicados o en curso. Se mostrará la clasificación de grupos y los cuadros Oro/Plata en vivo, con escudos y campos.
+          </p>
+        </div>
+        <div>
+          <Label>Título del bloque (opcional)</Label>
+          <Input
+            value={datos.titulo || ""}
+            onChange={(e) => update("titulo", e.target.value)}
+            placeholder="Si lo dejas vacío se usa el nombre del torneo"
+          />
+        </div>
+      </div>
+    );
+  }
+
   // --- EMBED ---
   if (bloque.tipo === "embed") {
     return (
@@ -572,6 +597,42 @@ export default function EditorBloqueProps({ bloque, onChange }) {
   }
 
   return <p className="text-sm text-slate-500">Tipo de bloque no soportado.</p>;
+}
+
+// Desplegable de torneos publicados / en curso para el bloque "Torneo en vivo".
+function TorneoSelector({ value, onChange }) {
+  const [torneos, setTorneos] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const all = await base44.entities.Torneo.list("-created_date", 100);
+        const visibles = all.filter((t) => ["publicado", "en_curso", "finalizado"].includes(t.estado));
+        if (!cancelled) setTorneos(visibles);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  if (loading) return <p className="text-sm text-slate-400">Cargando torneos…</p>;
+  if (torneos.length === 0) {
+    return <p className="text-sm text-amber-600">No hay torneos publicados. Publica un torneo desde el panel de Torneos para poder mostrarlo aquí.</p>;
+  }
+
+  return (
+    <Select value={value} onValueChange={onChange}>
+      <SelectTrigger><SelectValue placeholder="Elige un torneo" /></SelectTrigger>
+      <SelectContent>
+        {torneos.map((t) => (
+          <SelectItem key={t.id} value={t.slug}>{t.nombre}</SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
 }
 
 // Editor genérico de listas con campos repetibles.

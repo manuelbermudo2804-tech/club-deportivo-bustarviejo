@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ContactoBlock from "./ContactoBlock";
+import TorneoLiveBlock from "./TorneoLiveBlock";
 
 // Hook auxiliar para countdown
 function useCountdown(target) {
@@ -441,6 +442,19 @@ export default function PublicBlockRenderer({ bloque, branding }) {
           ))}
         </div>
       </div>
+    );
+  }
+
+  if (tipo === "torneo") {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-50px" }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <TorneoLiveBlock slug={datos.slug} titulo={datos.titulo} />
+      </motion.div>
     );
   }
 
