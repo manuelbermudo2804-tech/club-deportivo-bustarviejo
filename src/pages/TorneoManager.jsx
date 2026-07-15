@@ -8,10 +8,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Trophy } from "lucide-react";
+import { ArrowLeft, Trophy, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 import CategoriaManager from "@/components/torneos/CategoriaManager";
 import LiguillaResultados from "@/components/torneos/LiguillaResultados";
+import EliminatoriasManager from "@/components/torneos/EliminatoriasManager";
 
 const ESTADOS = ["borrador", "publicado", "en_curso", "finalizado", "archivado"];
 
@@ -67,10 +68,27 @@ export default function TorneoManager() {
         </Select>
       </div>
 
+      {torneo.slug && (
+        <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
+          <ExternalLink className="w-4 h-4 text-blue-500 flex-shrink-0" />
+          <span className="text-xs text-blue-700 flex-1 truncate">
+            Página pública: <code>/torneo/{torneo.slug}</code>
+          </span>
+          <a href={`/torneo/${torneo.slug}`} target="_blank" rel="noreferrer">
+            <Button variant="outline" size="sm" className="h-7">Abrir</Button>
+          </a>
+          <Button variant="outline" size="sm" className="h-7"
+            onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/torneo/${torneo.slug}`); toast.success("Enlace copiado"); }}>
+            Copiar enlace
+          </Button>
+        </div>
+      )}
+
       <Tabs defaultValue="equipos">
         <TabsList className="w-full">
-          <TabsTrigger value="equipos" className="flex-1">Categorías y equipos</TabsTrigger>
-          <TabsTrigger value="liguilla" className="flex-1">Liguilla y resultados</TabsTrigger>
+          <TabsTrigger value="equipos" className="flex-1">Equipos</TabsTrigger>
+          <TabsTrigger value="liguilla" className="flex-1">Liguilla</TabsTrigger>
+          <TabsTrigger value="eliminatorias" className="flex-1">Cuadros</TabsTrigger>
         </TabsList>
 
         <TabsContent value="equipos" className="mt-4">
@@ -82,29 +100,42 @@ export default function TorneoManager() {
           />
         </TabsContent>
 
+        {categoriasOrdenadas.length > 1 && (
+          <div className="mt-3">
+            <Select value={catActiva?.id} onValueChange={setCatSel}>
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {categoriasOrdenadas.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
         <TabsContent value="liguilla" className="mt-4 space-y-3">
-          {categoriasOrdenadas.length === 0 ? (
+          {!catActiva ? (
             <p className="text-center text-slate-400 text-sm py-6">Crea categorías y equipos primero.</p>
           ) : (
-            <>
-              {categoriasOrdenadas.length > 1 && (
-                <Select value={catActiva?.id} onValueChange={setCatSel}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {categoriasOrdenadas.map((c) => <SelectItem key={c.id} value={c.id}>{c.nombre}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              )}
-              {catActiva && (
-                <LiguillaResultados
-                  torneo={torneo}
-                  categoria={catActiva}
-                  grupos={grupos.filter((g) => g.categoria_id === catActiva.id).sort((a, b) => (a.orden || 0) - (b.orden || 0))}
-                  equipos={equipos}
-                  partidos={partidos}
-                />
-              )}
-            </>
+            <LiguillaResultados
+              torneo={torneo}
+              categoria={catActiva}
+              grupos={grupos.filter((g) => g.categoria_id === catActiva.id).sort((a, b) => (a.orden || 0) - (b.orden || 0))}
+              equipos={equipos}
+              partidos={partidos}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="eliminatorias" className="mt-4 space-y-3">
+          {!catActiva ? (
+            <p className="text-center text-slate-400 text-sm py-6">Crea categorías y equipos primero.</p>
+          ) : (
+            <EliminatoriasManager
+              torneo={torneo}
+              categoria={catActiva}
+              grupos={grupos.filter((g) => g.categoria_id === catActiva.id).sort((a, b) => (a.orden || 0) - (b.orden || 0))}
+              equipos={equipos}
+              partidos={partidos}
+            />
           )}
         </TabsContent>
       </Tabs>

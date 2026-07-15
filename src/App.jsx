@@ -49,6 +49,7 @@ import PorraRanking from '@/pages/PorraRanking';
 import SponsorSplash from '@/components/sponsors/SponsorSplash';
 import PropuestaGVCGaesco from '@/pages/PropuestaGVCGaesco';
 import PublicLanding from '@/pages/PublicLanding';
+import PublicTorneo from '@/pages/PublicTorneo';
 import PageBuilder from '@/pages/PageBuilder';
 import PageBuilderEditor from '@/pages/PageBuilderEditor';
 import PageBuilderInscritos from '@/pages/PageBuilderInscritos';
@@ -86,6 +87,8 @@ const AppRouter = () => {
   const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/propuestagvcgaesco', '/privacidad', '/colabora', '/altasocio'];
   // Constructor de páginas: cualquier URL que empiece por /l/ es pública
   const isLandingPath = cleanPath.startsWith('/l/');
+  // Página pública propia de torneo: cualquier URL que empiece por /torneo/
+  const isTorneoPath = cleanPath.startsWith('/torneo/');
   // Si la URL incluye ?from=app, el usuario viene de la app interna autenticada:
   // queremos renderizar con el layout normal (menú lateral, etc.) en vez de tratar
   // /PorraMiPorra y /PorraRanking como páginas 100% públicas sin entorno.
@@ -95,6 +98,13 @@ const AppRouter = () => {
     return (
       <Routes>
         <Route path="/l/:slug" element={<PublicLanding />} />
+      </Routes>
+    );
+  }
+  if (isTorneoPath) {
+    return (
+      <Routes>
+        <Route path="/torneo/:slug" element={<PublicTorneo />} />
       </Routes>
     );
   }
