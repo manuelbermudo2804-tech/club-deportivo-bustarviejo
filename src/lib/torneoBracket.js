@@ -19,6 +19,8 @@ const NOMBRE_RONDA = {
   32: "1/16",
 };
 
+export const RONDA_TERCER_PUESTO = "3er/4º puesto";
+
 function nombreRonda(plazas) {
   return NOMBRE_RONDA[plazas] || `Ronda de ${plazas}`;
 }
@@ -91,6 +93,7 @@ export function construirCuadro(sembrados, fase, torneo, categoria) {
 
   // Rondas siguientes (placeholders enlazados)
   let plazasRonda = plazas / 2;
+  let semifinales = null; // guardamos las semis para enlazar el partido de 3er puesto
   while (plazasRonda >= 2) {
     const nuevos = [];
     for (let i = 0; i < plazasRonda / 2; i++) {
@@ -114,8 +117,33 @@ export function construirCuadro(sembrados, fase, torneo, categoria) {
       partidos.push(p);
       nuevos.push(p);
     }
+    // Las semifinales son la ronda cuyos ganadores alimentan la final (plazasRonda === 2)
+    if (plazasRonda === 2) semifinales = rondaActual;
     rondaActual = nuevos;
     plazasRonda = plazasRonda / 2;
+  }
+
+  // Partido de 3er/4º puesto: perdedores de las dos semifinales.
+  // Solo tiene sentido si hay exactamente 2 semifinales.
+  if (semifinales && semifinales.length === 2) {
+    const tercer = {
+      _ref: ref++,
+      torneo_id: torneo.id,
+      categoria_id: categoria.id,
+      fase,
+      ronda: RONDA_TERCER_PUESTO,
+      orden_bracket: 0,
+      equipo_local_id: "",
+      equipo_visitante_id: "",
+      equipo_local_placeholder: `Perdedor P${semifinales[0]._ref + 1}`,
+      equipo_visitante_placeholder: `Perdedor P${semifinales[1]._ref + 1}`,
+      finalizado: false,
+      _siguiente: null,
+    };
+    // marcamos qué semis alimentan a este partido con su perdedor
+    semifinales[0]._tercerPuesto = tercer._ref;
+    semifinales[1]._tercerPuesto = tercer._ref;
+    partidos.push(tercer);
   }
 
   return partidos;
@@ -128,13 +156,29 @@ export function construirCuadro(sembrados, fase, torneo, categoria) {
  */
 export function avanceGanador(partido, marcadorLocal, marcadorVisitante, partidos) {
   if (marcadorLocal === marcadorVisitante) return { ganadorId: null }; // empate: no avanza (eliminatorias no empatan)
-  const ganadorId = marcadorLocal > marcadorVisitante ? partido.equipo_local_id : partido.equipo_visitante_id;
-  const ganadorNombre = marcadorLocal > marcadorVisitante ? partido.equipo_local_placeholder : partido.equipo_visitante_placeholder;
+  const localGana = marcadorLocal > marcadorVisitante;
+  const ganadorId = localGana ? partido.equipo_local_id : partido.equipo_visitante_id;
+  const ganadorNombre = localGana ? partido.equipo_local_placeholder : partido.equipo_visitante_placeholder;
+  const perdedorId = localGana ? partido.equipo_visitante_id : partido.equipo_local_id;
+  const perdedorNombre = localGana ? partido.equipo_visitante_placeholder : partido.equipo_local_placeholder;
 
-  if (!partido.partido_siguiente_id) return { ganadorId, ganadorNombre, siguiente: null };
+  // Destino del perdedor: partido de 3er puesto (solo semifinales)
+  let tercerPuesto = null;
+  if (partido.partido_tercer_puesto_id) {
+    const tp = partidos.find((p) => p.id === partido.partido_tercer_puesto_id);
+    if (tp) {
+      const alimentadoresTp = partidos
+        .filter((p) => p.partido_tercer_puesto_id === tp.id)
+        .sort((a, b) => (a.orden_bracket || 0) - (b.orden_bracket || 0));
+      const esLocalTp = alimentadoresTp[0]?.id === partido.id;
+      tercerPuesto = { id: tp.id, campo: esLocalTp ? "local" : "visitante", equipoId: perdedorId, placeholder: perdedorNombre };
+    }
+  }
+
+  if (!partido.partido_siguiente_id) return { ganadorId, ganadorNombre, siguiente: null, tercerPuesto };
 
   const sig = partidos.find((p) => p.id === partido.partido_siguiente_id);
-  if (!sig) return { ganadorId, ganadorNombre, siguiente: null };
+  if (!sig) return { ganadorId, ganadorNombre, siguiente: null, tercerPuesto };
 
   // El primer partido que alimenta va a "local", el segundo a "visitante" (por orden_bracket)
   const alimentadores = partidos
@@ -151,6 +195,7 @@ export function avanceGanador(partido, marcadorLocal, marcadorVisitante, partido
       equipoId: ganadorId,
       placeholder: ganadorNombre,
     },
+    tercerPuesto,
   };
 }
 

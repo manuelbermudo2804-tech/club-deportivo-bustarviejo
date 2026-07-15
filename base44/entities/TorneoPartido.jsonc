@@ -37,6 +37,10 @@
       "type": "string",
       "description": "ID del partido al que avanza el ganador (eliminatorias)"
     },
+    "partido_tercer_puesto_id": {
+      "type": "string",
+      "description": "ID del partido de 3er/4\u00ba puesto al que va el PERDEDOR (solo semifinales)"
+    },
     "sede_id": {
       "type": "string",
       "description": "ID de la sede donde se juega"

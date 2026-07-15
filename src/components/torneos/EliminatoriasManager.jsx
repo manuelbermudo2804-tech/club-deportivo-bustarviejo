@@ -30,10 +30,15 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
     // Mapear _ref → id real (bulkCreate mantiene el orden)
     const refToId = {};
     cuadro.forEach((c, i) => { refToId[c._ref] = creados[i].id; });
-    // Actualizar enlaces al siguiente partido
+    // Actualizar enlaces al siguiente partido y al partido de 3er puesto (perdedor de semis)
     const updates = cuadro
-      .filter((c) => c._siguiente != null)
-      .map((c) => ({ id: refToId[c._ref], partido_siguiente_id: refToId[c._siguiente] }));
+      .filter((c) => c._siguiente != null || c._tercerPuesto != null)
+      .map((c) => {
+        const u = { id: refToId[c._ref] };
+        if (c._siguiente != null) u.partido_siguiente_id = refToId[c._siguiente];
+        if (c._tercerPuesto != null) u.partido_tercer_puesto_id = refToId[c._tercerPuesto];
+        return u;
+      });
     if (updates.length > 0) await base44.entities.TorneoPartido.bulkUpdate(updates);
   };
 
@@ -84,6 +89,13 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
             ? { equipo_local_id: avance.siguiente.equipoId, equipo_local_placeholder: avance.siguiente.placeholder }
             : { equipo_visitante_id: avance.siguiente.equipoId, equipo_visitante_placeholder: avance.siguiente.placeholder };
           await base44.entities.TorneoPartido.update(avance.siguiente.id, campo);
+        }
+        // Colocar al PERDEDOR en el partido de 3er/4º puesto (solo semifinales)
+        if (avance.tercerPuesto) {
+          const campoTp = avance.tercerPuesto.campo === "local"
+            ? { equipo_local_id: avance.tercerPuesto.equipoId, equipo_local_placeholder: avance.tercerPuesto.placeholder }
+            : { equipo_visitante_id: avance.tercerPuesto.equipoId, equipo_visitante_placeholder: avance.tercerPuesto.placeholder };
+          await base44.entities.TorneoPartido.update(avance.tercerPuesto.id, campoTp);
         }
       }
     },

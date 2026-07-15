@@ -4,8 +4,9 @@ import React from "react";
 // resultados se hace desde PartidoResultRow en el panel admin.
 // Si onSave se pasa, muestra inputs de resultado inline (modo admin).
 import PartidoResultRow from "./PartidoResultRow";
+import { RONDA_TERCER_PUESTO } from "@/lib/torneoBracket";
 
-const ORDEN_RONDAS = ["1/16", "Octavos", "Cuartos", "Semifinales", "Final"];
+const ORDEN_RONDAS = ["1/16", "Octavos", "Cuartos", "Semifinales", RONDA_TERCER_PUESTO, "Final"];
 
 function ordenarRondas(rondas) {
   return [...rondas].sort((a, b) => {
