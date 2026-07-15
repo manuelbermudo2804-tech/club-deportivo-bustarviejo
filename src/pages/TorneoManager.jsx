@@ -69,18 +69,28 @@ export default function TorneoManager() {
       </div>
 
       {torneo.slug && (
-        <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-2">
-          <ExternalLink className="w-4 h-4 text-blue-500 flex-shrink-0" />
-          <span className="text-xs text-blue-700 flex-1 truncate">
-            Página pública: <code>/torneo/{torneo.slug}</code>
-          </span>
-          <a href={`/torneo/${torneo.slug}`} target="_blank" rel="noreferrer">
-            <Button variant="outline" size="sm" className="h-7">Abrir</Button>
-          </a>
-          <Button variant="outline" size="sm" className="h-7"
-            onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/torneo/${torneo.slug}`); toast.success("Enlace copiado"); }}>
-            Copiar enlace
-          </Button>
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <ExternalLink className="w-4 h-4 text-blue-600 flex-shrink-0" />
+            <span className="text-sm font-semibold text-blue-800 flex-1">Página pública del torneo</span>
+          </div>
+          <p className="text-xs text-blue-600 break-all">
+            {window.location.origin}/torneo/{torneo.slug}
+          </p>
+          <div className="flex items-center gap-2">
+            <a href={`/torneo/${torneo.slug}`} target="_blank" rel="noreferrer" className="flex-1">
+              <Button variant="outline" size="sm" className="w-full bg-white">Abrir página</Button>
+            </a>
+            <Button size="sm" className="flex-1"
+              onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/torneo/${torneo.slug}`); toast.success("Enlace copiado"); }}>
+              Copiar enlace
+            </Button>
+          </div>
+          {torneo.estado === "borrador" && (
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded px-2 py-1">
+              ⚠️ El torneo está en <strong>borrador</strong>: la página aún no es visible al público. Cámbialo a <strong>publicado</strong> o <strong>en curso</strong> (arriba a la derecha).
+            </p>
+          )}
         </div>
       )}
 
