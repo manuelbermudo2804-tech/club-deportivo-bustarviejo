@@ -111,6 +111,7 @@ export function buildAdminNavigation(ctx) {
     { title: "─ EVENTOS ESPECIALES ─", section: true },
     { title: "🎉 Inscripciones San Isidro", url: createPageUrl("SanIsidroAdmin"), icon: Calendar },
     { title: "🏆 Porra Mundial 2026", url: createPageUrl("PorraAdmin"), icon: Trophy },
+    { title: "🏟️ Torneos", url: createPageUrl("TorneosAdmin"), icon: Trophy },
     ...buildLandingItems(landingMenuItems),
 
     { title: "─ DESARROLLO ─", section: true },
