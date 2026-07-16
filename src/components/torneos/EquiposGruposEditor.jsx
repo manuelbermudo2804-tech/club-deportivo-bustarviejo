@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import EscudoUploadButton from "./EscudoUploadButton";
 
 // Editor de equipos y grupos dentro de una categoría
 export default function EquiposGruposEditor({ torneo, categoria, grupos, equipos, onChange }) {
@@ -30,6 +31,12 @@ export default function EquiposGruposEditor({ torneo, categoria, grupos, equipos
   const asignarGrupo = useMutation({
     mutationFn: ({ equipoId, grupoId }) =>
       base44.entities.TorneoEquipo.update(equipoId, { grupo_id: grupoId || "" }),
+    onSuccess: onChange,
+  });
+
+  const guardarEscudo = useMutation({
+    mutationFn: ({ equipoId, escudo_url }) =>
+      base44.entities.TorneoEquipo.update(equipoId, { escudo_url }),
     onSuccess: onChange,
   });
 
@@ -100,6 +107,10 @@ export default function EquiposGruposEditor({ torneo, categoria, grupos, equipos
         ) : (
           equipos.map((e) => (
             <div key={e.id} className="flex items-center gap-2 bg-slate-50 rounded px-2 py-1.5">
+              <EscudoUploadButton
+                value={e.escudo_url}
+                onChange={(url) => guardarEscudo.mutate({ equipoId: e.id, escudo_url: url })}
+              />
               <span className="flex-1 text-sm truncate">{e.nombre}</span>
               {grupos.length > 0 && (
                 <Select value={e.grupo_id || "none"} onValueChange={(v) => asignarGrupo.mutate({ equipoId: e.id, grupoId: v === "none" ? "" : v })}>

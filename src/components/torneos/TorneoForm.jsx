@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import SedesEditor from "./SedesEditor";
 
 // Presets de puntuación por deporte
 const DEPORTE_PRESETS = {
@@ -36,6 +37,7 @@ export default function TorneoForm({ initial, onSave, onCancel, isSaving }) {
     organizadores: initial?.organizadores || "",
     descripcion: initial?.descripcion || "",
     logo_url: initial?.logo_url || "",
+    sedes: initial?.sedes || [],
   }));
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
@@ -128,6 +130,10 @@ export default function TorneoForm({ initial, onSave, onCancel, isSaving }) {
         <div>
           <Label>Descripción / presentación</Label>
           <Textarea value={form.descripcion} onChange={(e) => set("descripcion", e.target.value)} rows={3} />
+        </div>
+
+        <div className="pt-2 border-t">
+          <SedesEditor value={form.sedes} onChange={(sedes) => set("sedes", sedes)} />
         </div>
 
         <div className="flex gap-2 justify-end pt-2">

@@ -16,7 +16,7 @@ function ordenarRondas(rondas) {
   });
 }
 
-export default function BracketView({ partidos, equipos, fase, titulo, color, onSave, isSaving }) {
+export default function BracketView({ partidos, equipos, fase, titulo, color, onSave, onSaveUbicacion, isSaving, torneo }) {
   const partidosFase = partidos.filter((p) => p.fase === fase);
   if (partidosFase.length === 0) return null;
 
@@ -38,7 +38,7 @@ export default function BracketView({ partidos, equipos, fase, titulo, color, on
               <div className="space-y-3 flex flex-col justify-around h-full">
                 {partidosRonda.map((p) =>
                   onSave ? (
-                    <PartidoResultRow key={p.id} partido={p} equipos={equipos} onSave={onSave} isSaving={isSaving} />
+                    <PartidoResultRow key={p.id} partido={p} equipos={equipos} torneo={torneo} onSave={onSave} onSaveUbicacion={onSaveUbicacion} isSaving={isSaving} />
                   ) : (
                     <BracketMatchReadOnly key={p.id} partido={p} equipos={equipos} />
                   )

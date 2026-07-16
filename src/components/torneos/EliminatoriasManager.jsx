@@ -103,6 +103,12 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
     onError: () => toast.error("Error al guardar"),
   });
 
+  const guardarUbicacion = useMutation({
+    mutationFn: ({ partido, patch }) => base44.entities.TorneoPartido.update(partido.id, patch),
+    onSuccess: () => { invalidate(); },
+    onError: () => toast.error("Error al guardar campo/hora"),
+  });
+
   if (!yaGenerados) {
     return (
       <div className="bg-white rounded-xl border p-4 space-y-4">
@@ -141,10 +147,12 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
           <RotateCcw className="w-4 h-4 mr-1" /> Regenerar cuadros
         </Button>
       </div>
-      <BracketView partidos={partidosCat} equipos={equipos} fase="oro" titulo="🥇 Copa Oro" color="#d97706"
-        onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })} isSaving={guardarResultado.isPending} />
-      <BracketView partidos={partidosCat} equipos={equipos} fase="plata" titulo="🥈 Copa Plata" color="#64748b"
-        onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })} isSaving={guardarResultado.isPending} />
+      <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} fase="oro" titulo="🥇 Copa Oro" color="#d97706"
+        onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
+        onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })} isSaving={guardarResultado.isPending} />
+      <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} fase="plata" titulo="🥈 Copa Plata" color="#64748b"
+        onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
+        onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })} isSaving={guardarResultado.isPending} />
     </div>
   );
 }

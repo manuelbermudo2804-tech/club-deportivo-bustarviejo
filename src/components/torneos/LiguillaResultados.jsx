@@ -49,6 +49,13 @@ export default function LiguillaResultados({ torneo, categoria, grupos, equipos,
     onError: () => toast.error("Error al guardar"),
   });
 
+  const guardarUbicacion = useMutation({
+    mutationFn: ({ partido, patch }) =>
+      base44.entities.TorneoPartido.update(partido.id, patch),
+    onSuccess: () => { invalidate(); },
+    onError: () => toast.error("Error al guardar campo/hora"),
+  });
+
   if (grupos.length === 0) {
     return <p className="text-center text-slate-400 text-sm py-6">Crea grupos y reparte los equipos primero.</p>;
   }
@@ -76,7 +83,9 @@ export default function LiguillaResultados({ torneo, categoria, grupos, equipos,
                     key={p.id}
                     partido={p}
                     equipos={equipos}
+                    torneo={torneo}
                     onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
+                    onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })}
                     isSaving={guardarResultado.isPending}
                   />
                 ))}
