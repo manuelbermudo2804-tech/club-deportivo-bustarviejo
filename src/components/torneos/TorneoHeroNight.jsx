@@ -6,6 +6,7 @@ import { format } from "date-fns";
 export default function TorneoHeroNight({ torneo }) {
   const cPrim = torneo.color_primario || "#1e40af";
   const cSec = torneo.color_secundario || "#f59e0b";
+  const orgLogos = (torneo.organizadores_logos || []).filter((o) => o.escudo_url);
 
   return (
     <div className="relative overflow-hidden text-white">
@@ -28,7 +29,20 @@ export default function TorneoHeroNight({ torneo }) {
       <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#0a0e1a] to-transparent" />
 
       <div className="relative px-6 py-16 md:py-20 text-center max-w-4xl mx-auto">
-        {torneo.logo_url && (
+        {orgLogos.length > 0 ? (
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-8 mb-5">
+            {orgLogos.map((org, i) => (
+              <div key={i} className="flex flex-col items-center gap-1.5">
+                <img
+                  src={org.escudo_url}
+                  alt={org.nombre || ""}
+                  className="h-16 md:h-20 object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.25)]"
+                />
+                {org.nombre && <span className="text-[11px] md:text-xs text-white/70">{org.nombre}</span>}
+              </div>
+            ))}
+          </div>
+        ) : torneo.logo_url && (
           <img
             src={torneo.logo_url}
             alt=""

@@ -91,6 +91,21 @@
       "type": "string",
       "description": "Texto libre con los organizadores (ej: AD Miraflores \u00b7 CD Bustarviejo)"
     },
+    "organizadores_logos": {
+      "type": "array",
+      "description": "Clubes organizadores con nombre y escudo, para torneos organizados en com\u00fan por varios clubes. Si est\u00e1 vac\u00edo, se muestra solo el logo del torneo.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "escudo_url": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "descripcion": {
       "type": "string",
       "description": "Presentaci\u00f3n / descripci\u00f3n del torneo"

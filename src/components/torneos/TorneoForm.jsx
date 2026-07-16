@@ -8,6 +8,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import SedesEditor from "./SedesEditor";
+import OrganizadoresEditor from "./OrganizadoresEditor";
 
 // Presets de puntuación por deporte
 const DEPORTE_PRESETS = {
@@ -35,6 +36,7 @@ export default function TorneoForm({ initial, onSave, onCancel, isSaving }) {
     fecha_inicio: initial?.fecha_inicio || "",
     fecha_fin: initial?.fecha_fin || "",
     organizadores: initial?.organizadores || "",
+    organizadores_logos: initial?.organizadores_logos || [],
     descripcion: initial?.descripcion || "",
     logo_url: initial?.logo_url || "",
     sedes: initial?.sedes || [],
@@ -124,8 +126,11 @@ export default function TorneoForm({ initial, onSave, onCancel, isSaving }) {
         </div>
 
         <div>
-          <Label>Organizadores</Label>
+          <Label>Organizadores (texto)</Label>
           <Input value={form.organizadores} onChange={(e) => set("organizadores", e.target.value)} placeholder="AD Miraflores · CD Bustarviejo" />
+        </div>
+        <div className="pt-2 border-t">
+          <OrganizadoresEditor value={form.organizadores_logos} onChange={(v) => set("organizadores_logos", v)} />
         </div>
         <div>
           <Label>Descripción / presentación</Label>
