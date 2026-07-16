@@ -5,10 +5,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Trophy, Calendar, MapPin } from "lucide-react";
-import { format } from "date-fns";
+import { MapPin } from "lucide-react";
 import GrupoClasificacion from "@/components/torneos/GrupoClasificacion";
 import BracketView from "@/components/torneos/BracketView";
+import TorneoHeroNight from "@/components/torneos/TorneoHeroNight";
 
 // Página pública propia de un torneo. Ruta: /torneo/:slug
 export default function PublicTorneo() {
@@ -36,8 +36,8 @@ export default function PublicTorneo() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-900">
-        <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin" />
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0e1a]">
+        <div className="w-12 h-12 border-4 border-white/20 border-t-amber-400 rounded-full animate-spin" />
       </div>
     );
   }
@@ -45,11 +45,11 @@ export default function PublicTorneo() {
   const torneo = data?.torneo;
   if (!torneo) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50 p-6">
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0e1a] p-6">
         <div className="text-center max-w-md">
           <div className="text-7xl mb-4">🏆</div>
-          <h1 className="text-3xl font-black text-slate-900 mb-2">Torneo no encontrado</h1>
-          <p className="text-slate-600">No existe ningún torneo público con esta dirección.</p>
+          <h1 className="text-3xl font-black text-white mb-2">Torneo no encontrado</h1>
+          <p className="text-slate-400">No existe ningún torneo público con esta dirección.</p>
         </div>
       </div>
     );
@@ -62,37 +62,13 @@ export default function PublicTorneo() {
   const partidosCat = catActiva ? partidos.filter((p) => p.categoria_id === catActiva.id) : [];
   const hayCuadros = partidosCat.some((p) => p.fase === "oro" || p.fase === "plata");
 
-  const cPrim = torneo.color_primario || "#1e40af";
-  const cSec = torneo.color_secundario || "#f59e0b";
-
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Hero */}
-      <div className="relative text-white px-6 py-12 text-center"
-        style={{ background: `linear-gradient(135deg, ${cPrim}, ${cSec})` }}>
-        {torneo.imagen_hero_url && (
-          <img src={torneo.imagen_hero_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" />
-        )}
-        <div className="relative">
-          {torneo.logo_url && <img src={torneo.logo_url} alt="" className="h-20 mx-auto mb-4 object-contain" />}
-          <h1 className="text-3xl md:text-5xl font-black">{torneo.nombre}</h1>
-          {torneo.organizadores && <p className="mt-2 text-white/80 text-sm">{torneo.organizadores}</p>}
-          <div className="flex items-center justify-center gap-4 mt-4 text-sm text-white/90">
-            <span className="inline-flex items-center gap-1"><Trophy className="w-4 h-4" /> {torneo.deporte}</span>
-            {torneo.fecha_inicio && (
-              <span className="inline-flex items-center gap-1">
-                <Calendar className="w-4 h-4" />
-                {format(new Date(torneo.fecha_inicio), "dd/MM/yyyy")}
-                {torneo.fecha_fin && ` – ${format(new Date(torneo.fecha_fin), "dd/MM/yyyy")}`}
-              </span>
-            )}
-          </div>
-        </div>
-      </div>
+    <div className="torneo-night min-h-screen">
+      <TorneoHeroNight torneo={torneo} />
 
-      <div className="max-w-4xl mx-auto px-4 py-6 space-y-5">
+      <div className="max-w-4xl mx-auto px-4 pb-10 -mt-6 relative space-y-5">
         {torneo.descripcion && (
-          <p className="text-slate-600 text-center text-sm bg-white rounded-xl p-4 border">{torneo.descripcion}</p>
+          <p className="text-slate-300 text-center text-sm bg-white rounded-xl p-4 border">{torneo.descripcion}</p>
         )}
 
         {cats.length === 0 ? (
@@ -125,18 +101,18 @@ export default function PublicTorneo() {
               </TabsContent>
 
               <TabsContent value="cuadros" className="mt-4 space-y-6">
-                <BracketView partidos={partidosCat} equipos={equipos} fase="oro" titulo="🥇 Copa Oro" color="#d97706" />
-                <BracketView partidos={partidosCat} equipos={equipos} fase="plata" titulo="🥈 Copa Plata" color="#64748b" />
+                <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} fase="oro" titulo="🥇 Copa Oro" color="#fbbf24" />
+                <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} fase="plata" titulo="🥈 Copa Plata" color="#cbd5e1" />
               </TabsContent>
             </Tabs>
           </>
         )}
       </div>
 
-      <footer className="py-8 text-center border-t bg-white">
-        <p className="text-sm text-slate-400">
+      <footer className="py-8 text-center border-t border-white/10">
+        <p className="text-sm text-slate-500">
           <MapPin className="w-4 h-4 inline mb-0.5 mr-1" />
-          Organizado por <strong className="text-slate-600">CD Bustarviejo</strong>
+          Organizado por <strong className="text-slate-300">CD Bustarviejo</strong>
         </p>
       </footer>
     </div>

@@ -18,6 +18,59 @@
 }
 
 
+/* ============================================================
+   TEMA "ESTADIO NOCTURNO" para la página pública de torneos.
+   Solo aplica dentro de .torneo-night, para no afectar al panel
+   admin ni al bloque del constructor (que van sobre fondo blanco).
+   Reviste las tarjetas blancas (tablas de clasificación y cuadros)
+   como paneles oscuros con acento dorado.
+   ============================================================ */
+.torneo-night {
+  background: #0a0e1a;
+  color: #e2e8f0;
+}
+/* Contenedores de clasificación y cuadros (bg-white con borde) */
+.torneo-night .bg-white {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  backdrop-filter: blur(6px);
+}
+/* Cabecera de grupo (bg-slate-800) → acento dorado translúcido */
+.torneo-night .bg-slate-800 {
+  background: linear-gradient(90deg, rgba(245,158,11,0.18), rgba(245,158,11,0.04)) !important;
+  color: #fbbf24 !important;
+  letter-spacing: 0.03em;
+}
+/* Filas resaltadas Oro / Plata en la clasificación */
+.torneo-night .bg-amber-50 {
+  background: rgba(245, 158, 11, 0.12) !important;
+}
+.torneo-night .bg-slate-100 {
+  background: rgba(148, 163, 184, 0.12) !important;
+}
+/* Textos dentro del tema oscuro */
+.torneo-night .text-slate-900,
+.torneo-night .text-slate-800 { color: #f8fafc !important; }
+.torneo-night .text-slate-600,
+.torneo-night .text-slate-500 { color: #94a3b8 !important; }
+.torneo-night .text-slate-400 { color: #64748b !important; }
+/* Bordes de tabla y separadores */
+.torneo-night .border-b,
+.torneo-night .border-t,
+.torneo-night .border { border-color: rgba(255, 255, 255, 0.08) !important; }
+/* Escudos placeholder */
+.torneo-night .bg-slate-100.rounded-full { background: rgba(255,255,255,0.1) !important; }
+/* Selector de categoría y pestañas sobre fondo oscuro */
+.torneo-night [role="tablist"] {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.torneo-night [role="tab"][data-state="active"] {
+  background: rgba(245, 158, 11, 0.9);
+  color: #1a1204;
+}
+
+
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
