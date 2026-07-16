@@ -97,8 +97,8 @@ export default function TorneoLiveBlock({ slug, titulo }) {
             </TabsContent>
 
             <TabsContent value="cuadros" className="mt-4 space-y-6">
-              <BracketView partidos={partidosCat} equipos={equipos} fase="oro" titulo="🥇 Copa Oro" color="#d97706" />
-              <BracketView partidos={partidosCat} equipos={equipos} fase="plata" titulo="🥈 Copa Plata" color="#64748b" />
+              <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} fase="oro" titulo="🥇 Copa Oro" color="#d97706" />
+              <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} fase="plata" titulo="🥈 Copa Plata" color="#64748b" />
             </TabsContent>
           </Tabs>
         </div>
