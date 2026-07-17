@@ -1,0 +1,75 @@
+{
+  "name": "TorneoGol",
+  "type": "object",
+  "properties": {
+    "torneo_id": {
+      "type": "string",
+      "description": "ID del Torneo"
+    },
+    "categoria_id": {
+      "type": "string",
+      "description": "ID de la TorneoCategoria"
+    },
+    "partido_id": {
+      "type": "string",
+      "description": "ID del TorneoPartido en el que se marc\u00f3"
+    },
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del TorneoJugador que marc\u00f3"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador (denormalizado para el ranking)"
+    },
+    "equipo_id": {
+      "type": "string",
+      "description": "ID del TorneoEquipo del jugador"
+    },
+    "equipo_nombre": {
+      "type": "string",
+      "description": "Nombre del equipo (denormalizado)"
+    },
+    "goles": {
+      "type": "number",
+      "default": 1,
+      "description": "N\u00famero de goles marcados por este jugador en este partido"
+    }
+  },
+  "required": [
+    "torneo_id",
+    "categoria_id",
+    "partido_id",
+    "jugador_id"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "partido_id"
+      ]
+    },
+    {
+      "fields": [
+        "torneo_id"
+      ]
+    }
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

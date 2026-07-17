@@ -1,0 +1,62 @@
+{
+  "name": "TorneoJugador",
+  "type": "object",
+  "properties": {
+    "torneo_id": {
+      "type": "string",
+      "description": "ID del Torneo"
+    },
+    "categoria_id": {
+      "type": "string",
+      "description": "ID de la TorneoCategoria"
+    },
+    "equipo_id": {
+      "type": "string",
+      "description": "ID del TorneoEquipo al que pertenece"
+    },
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del jugador"
+    },
+    "dorsal": {
+      "type": "string",
+      "description": "Dorsal del jugador (opcional)"
+    }
+  },
+  "required": [
+    "torneo_id",
+    "categoria_id",
+    "equipo_id",
+    "nombre"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "equipo_id"
+      ]
+    },
+    {
+      "fields": [
+        "torneo_id"
+      ]
+    }
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

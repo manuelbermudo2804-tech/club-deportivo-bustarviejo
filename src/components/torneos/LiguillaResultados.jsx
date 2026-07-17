@@ -1,16 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import PartidoResultRow from "./PartidoResultRow";
 import GrupoClasificacion from "./GrupoClasificacion";
+import GoleadoresDialog from "./GoleadoresDialog";
 
 // Genera y gestiona los partidos de liguilla (todos contra todos) por grupo,
 // muestra resultados editables y la clasificación en vivo.
-export default function LiguillaResultados({ torneo, categoria, grupos, equipos, partidos }) {
+export default function LiguillaResultados({ torneo, categoria, grupos, equipos, partidos, jugadores = [], goles = [] }) {
   const queryClient = useQueryClient();
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["torneo-full", torneo.id] });
+  const [golPartido, setGolPartido] = useState(null);
 
   const partidosCat = partidos.filter((p) => p.categoria_id === categoria.id && p.fase === "liguilla");
 
@@ -87,6 +89,8 @@ export default function LiguillaResultados({ torneo, categoria, grupos, equipos,
                     onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
                     onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })}
                     isSaving={guardarResultado.isPending}
+                    golesCount={goles.filter((g) => g.partido_id === p.id).reduce((s, g) => s + (g.goles || 1), 0)}
+                    onGoleadores={() => setGolPartido(p)}
                   />
                 ))}
               </div>
@@ -94,6 +98,21 @@ export default function LiguillaResultados({ torneo, categoria, grupos, equipos,
           </div>
         );
       })}
+
+      {golPartido && (
+        <GoleadoresDialog
+          open={!!golPartido}
+          onOpenChange={(v) => !v && setGolPartido(null)}
+          partido={golPartido}
+          eqLocal={equipos.find((e) => e.id === golPartido.equipo_local_id)}
+          eqVisit={equipos.find((e) => e.id === golPartido.equipo_visitante_id)}
+          jugadores={jugadores}
+          golesExistentes={goles.filter((g) => g.partido_id === golPartido.id)}
+          torneo={torneo}
+          categoria={categoria}
+          onSaved={invalidate}
+        />
+      )}
     </div>
   );
 }

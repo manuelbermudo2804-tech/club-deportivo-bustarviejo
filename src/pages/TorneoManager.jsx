@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import CategoriaManager from "@/components/torneos/CategoriaManager";
 import LiguillaResultados from "@/components/torneos/LiguillaResultados";
 import EliminatoriasManager from "@/components/torneos/EliminatoriasManager";
+import PlantillasManager from "@/components/torneos/PlantillasManager";
 
 const ESTADOS = ["borrador", "publicado", "en_curso", "finalizado", "archivado"];
 
@@ -24,14 +25,16 @@ export default function TorneoManager() {
   const { data, isLoading } = useQuery({
     queryKey: ["torneo-full", torneoId],
     queryFn: async () => {
-      const [torneo, categorias, grupos, equipos, partidos] = await Promise.all([
+      const [torneo, categorias, grupos, equipos, partidos, jugadores, goles] = await Promise.all([
         base44.entities.Torneo.filter({ id: torneoId }).then((r) => r[0]),
         base44.entities.TorneoCategoria.filter({ torneo_id: torneoId }),
         base44.entities.TorneoGrupo.filter({ torneo_id: torneoId }),
         base44.entities.TorneoEquipo.filter({ torneo_id: torneoId }),
         base44.entities.TorneoPartido.filter({ torneo_id: torneoId }),
+        base44.entities.TorneoJugador.filter({ torneo_id: torneoId }),
+        base44.entities.TorneoGol.filter({ torneo_id: torneoId }),
       ]);
-      return { torneo, categorias, grupos, equipos, partidos };
+      return { torneo, categorias, grupos, equipos, partidos, jugadores, goles };
     },
     enabled: !!torneoId,
   });
@@ -44,7 +47,7 @@ export default function TorneoManager() {
   if (isLoading) return <p className="text-center text-slate-400 py-10">Cargando...</p>;
   if (!data?.torneo) return <p className="text-center text-slate-400 py-10">Torneo no encontrado.</p>;
 
-  const { torneo, categorias, grupos, equipos, partidos } = data;
+  const { torneo, categorias, grupos, equipos, partidos, jugadores = [], goles = [] } = data;
   const categoriasOrdenadas = [...categorias].sort((a, b) => (a.orden || 0) - (b.orden || 0));
   const catActiva = categoriasOrdenadas.find((c) => c.id === catSel) || categoriasOrdenadas[0];
 
@@ -97,6 +100,7 @@ export default function TorneoManager() {
       <Tabs defaultValue="equipos">
         <TabsList className="w-full">
           <TabsTrigger value="equipos" className="flex-1">Equipos</TabsTrigger>
+          <TabsTrigger value="plantillas" className="flex-1">Plantillas</TabsTrigger>
           <TabsTrigger value="liguilla" className="flex-1">Liguilla</TabsTrigger>
           <TabsTrigger value="eliminatorias" className="flex-1">Cuadros</TabsTrigger>
         </TabsList>
@@ -121,6 +125,19 @@ export default function TorneoManager() {
           </div>
         )}
 
+        <TabsContent value="plantillas" className="mt-4 space-y-3">
+          {!catActiva ? (
+            <p className="text-center text-slate-400 text-sm py-6">Crea categorías y equipos primero.</p>
+          ) : (
+            <PlantillasManager
+              torneo={torneo}
+              categoria={catActiva}
+              equipos={equipos}
+              jugadores={jugadores}
+            />
+          )}
+        </TabsContent>
+
         <TabsContent value="liguilla" className="mt-4 space-y-3">
           {!catActiva ? (
             <p className="text-center text-slate-400 text-sm py-6">Crea categorías y equipos primero.</p>
@@ -131,6 +148,8 @@ export default function TorneoManager() {
               grupos={grupos.filter((g) => g.categoria_id === catActiva.id).sort((a, b) => (a.orden || 0) - (b.orden || 0))}
               equipos={equipos}
               partidos={partidos}
+              jugadores={jugadores}
+              goles={goles}
             />
           )}
         </TabsContent>

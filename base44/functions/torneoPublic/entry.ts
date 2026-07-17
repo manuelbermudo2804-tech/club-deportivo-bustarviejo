@@ -17,14 +17,16 @@ Deno.serve(async (req) => {
       return Response.json({ torneo: null, oculto: true }, { status: 200 });
     }
 
-    const [categorias, grupos, equipos, partidos] = await Promise.all([
+    const [categorias, grupos, equipos, partidos, jugadores, goles] = await Promise.all([
       base44.asServiceRole.entities.TorneoCategoria.filter({ torneo_id: torneo.id }),
       base44.asServiceRole.entities.TorneoGrupo.filter({ torneo_id: torneo.id }),
       base44.asServiceRole.entities.TorneoEquipo.filter({ torneo_id: torneo.id }),
       base44.asServiceRole.entities.TorneoPartido.filter({ torneo_id: torneo.id }),
+      base44.asServiceRole.entities.TorneoJugador.filter({ torneo_id: torneo.id }),
+      base44.asServiceRole.entities.TorneoGol.filter({ torneo_id: torneo.id }),
     ]);
 
-    return Response.json({ torneo, categorias, grupos, equipos, partidos });
+    return Response.json({ torneo, categorias, grupos, equipos, partidos, jugadores, goles });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

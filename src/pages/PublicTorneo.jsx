@@ -11,6 +11,7 @@ import BracketView from "@/components/torneos/BracketView";
 import TorneoHeroNight from "@/components/torneos/TorneoHeroNight";
 import MiEquipoBuscador from "@/components/torneos/MiEquipoBuscador";
 import OrdenDeJuego from "@/components/torneos/OrdenDeJuego";
+import BotaDeOro from "@/components/torneos/BotaDeOro";
 
 // Página pública propia de un torneo. Ruta: /torneo/:slug
 export default function PublicTorneo() {
@@ -57,13 +58,15 @@ export default function PublicTorneo() {
     );
   }
 
-  const { categorias, grupos, equipos, partidos } = data;
+  const { categorias, grupos, equipos, partidos, goles = [] } = data;
   const cats = [...categorias].sort((a, b) => (a.orden || 0) - (b.orden || 0));
   const catActiva = cats.find((c) => c.id === catSel) || cats[0];
   const gruposCat = catActiva ? grupos.filter((g) => g.categoria_id === catActiva.id).sort((a, b) => (a.orden || 0) - (b.orden || 0)) : [];
   const partidosCat = catActiva ? partidos.filter((p) => p.categoria_id === catActiva.id) : [];
   const equiposCat = catActiva ? equipos.filter((e) => e.categoria_id === catActiva.id) : [];
+  const golesCat = catActiva ? goles.filter((g) => g.categoria_id === catActiva.id) : [];
   const hayCuadros = partidosCat.some((p) => p.fase === "oro" || p.fase === "plata");
+  const hayGoleadores = golesCat.length > 0;
 
   return (
     <div className="torneo-night min-h-screen">
@@ -92,8 +95,13 @@ export default function PublicTorneo() {
                 <TabsTrigger value="clasificacion" className="flex-1">Clasificación</TabsTrigger>
                 <TabsTrigger value="miequipo" className="flex-1">Mi equipo</TabsTrigger>
                 <TabsTrigger value="orden" className="flex-1">Orden de juego</TabsTrigger>
+                <TabsTrigger value="bota" className="flex-1" disabled={!hayGoleadores}>👟 Bota</TabsTrigger>
                 <TabsTrigger value="cuadros" className="flex-1" disabled={!hayCuadros}>Cuadros</TabsTrigger>
               </TabsList>
+
+              <TabsContent value="bota" className="mt-4">
+                <BotaDeOro goles={golesCat} equipos={equiposCat} />
+              </TabsContent>
 
               <TabsContent value="miequipo" className="mt-4">
                 <MiEquipoBuscador equipos={equiposCat} partidos={partidosCat} grupos={gruposCat} />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, MapPin } from "lucide-react";
+import { Check, Clock, MapPin, Goal } from "lucide-react";
 import { format } from "date-fns";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -26,7 +26,7 @@ function opcionesCampo(torneo) {
 }
 
 // La "pantalla soñada": Campo / Hora / Local [x] Visitante [y] [Guardar]
-export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbicacion, isSaving, torneo }) {
+export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbicacion, isSaving, torneo, onGoleadores, golesCount = 0 }) {
   const eqLocal = equipos.find((e) => e.id === partido.equipo_local_id);
   const eqVisit = equipos.find((e) => e.id === partido.equipo_visitante_id);
   const nombreLocal = eqLocal?.nombre || partido.equipo_local_placeholder || "Por decidir";
@@ -146,6 +146,17 @@ export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbica
           Guardar
         </Button>
       </div>
+
+      {onGoleadores && partido.finalizado && (
+        <div className="mt-2 pt-2 border-t flex items-center justify-between">
+          <span className="text-[11px] text-slate-500 inline-flex items-center gap-1">
+            <Goal className="w-3 h-3" /> {golesCount > 0 ? `${golesCount} gol${golesCount > 1 ? "es" : ""} registrado${golesCount > 1 ? "s" : ""}` : "Sin goleadores"}
+          </span>
+          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => onGoleadores(partido)}>
+            <Goal className="w-3 h-3 mr-1" /> Goleadores
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
