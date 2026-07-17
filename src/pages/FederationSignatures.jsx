@@ -271,42 +271,34 @@ export default function FederationSignatures() {
                     </a>
                   </div>
 
-                  {/* PASO 2: Botón verde - solo se activa después de visitar enlace */}
-                  {visitedLinks[`firma_jugador_visited_${player.id}`] ? (
-                    <div className="relative">
-                      <div className="absolute -top-3 -right-3 z-10 animate-pulse">
-                        <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">
-                          PASO 2
-                        </span>
-                      </div>
-                      <Button
-                        onClick={() => handleMarkSignatureComplete(player, "jugador")}
-                        disabled={processingSignature[`${player.id}_jugador`]}
-                        className="w-full bg-green-600 hover:bg-green-700 shadow-lg"
-                      >
-                        {processingSignature[`${player.id}_jugador`] ? (
-                          <>
-                            <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            Guardando...
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            2️⃣ Ya he firmado - Confirmar
-                          </>
-                        )}
-                      </Button>
+                  {/* PASO 2: Botón verde - SIEMPRE disponible tras firmar */}
+                  <div className="relative">
+                    <div className="absolute -top-3 -right-3 z-10 animate-pulse">
+                      <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">
+                        PASO 2
+                      </span>
                     </div>
-                  ) : (
-                    <div className="bg-slate-100 border-2 border-slate-300 rounded-lg p-4 text-center opacity-50">
-                      <p className="text-sm text-slate-600 mb-2">
-                        🔒 <strong>Primero debes completar el PASO 1</strong>
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        Pulsa el botón azul de arriba para abrir el enlace de firma
-                      </p>
-                    </div>
-                  )}
+                    <p className="text-xs font-semibold text-green-800 bg-green-50 border border-green-200 rounded-md p-2 mb-2 text-center">
+                      👉 Cuando hayas firmado en la web, pulsa este botón. Es <strong>obligatorio</strong> para que quede registrado.
+                    </p>
+                    <Button
+                      onClick={() => handleMarkSignatureComplete(player, "jugador")}
+                      disabled={processingSignature[`${player.id}_jugador`]}
+                      className="w-full bg-green-600 hover:bg-green-700 shadow-lg"
+                    >
+                      {processingSignature[`${player.id}_jugador`] ? (
+                        <>
+                          <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Guardando...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 mr-2" />
+                          2️⃣ Ya he firmado - Confirmar
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
@@ -364,42 +356,34 @@ export default function FederationSignatures() {
                     </a>
                   </div>
 
-                  {/* PASO 2: Botón verde - solo se muestra después de visitar enlace */}
-                  {visitedLinks[`firma_tutor_visited_${player.id}`] ? (
-                    <div className="relative">
-                      <div className="absolute -top-3 -right-3 z-10 animate-pulse">
-                        <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">
-                          PASO 2
-                        </span>
-                      </div>
-                      <Button
-                        onClick={() => handleMarkSignatureComplete(player, "tutor")}
-                        disabled={processingSignature[`${player.id}_tutor`]}
-                        className="w-full bg-green-600 hover:bg-green-700 shadow-lg"
-                      >
-                        {processingSignature[`${player.id}_tutor`] ? (
-                          <>
-                            <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            Guardando...
-                          </>
-                        ) : (
-                          <>
-                            <CheckCircle2 className="w-4 h-4 mr-2" />
-                            2️⃣ Ya he firmado - Confirmar
-                          </>
-                        )}
-                      </Button>
+                  {/* PASO 2: Botón verde - SIEMPRE disponible tras firmar */}
+                  <div className="relative">
+                    <div className="absolute -top-3 -right-3 z-10 animate-pulse">
+                      <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full font-bold shadow-lg">
+                        PASO 2
+                      </span>
                     </div>
-                  ) : (
-                    <div className="bg-slate-100 border-2 border-slate-300 rounded-lg p-4 text-center opacity-50">
-                      <p className="text-sm text-slate-600 mb-2">
-                        🔒 <strong>Primero debes completar el PASO 1</strong>
-                      </p>
-                      <p className="text-xs text-slate-500">
-                        Pulsa el botón azul de arriba para abrir el enlace de firma
-                      </p>
-                    </div>
-                  )}
+                    <p className="text-xs font-semibold text-green-800 bg-green-50 border border-green-200 rounded-md p-2 mb-2 text-center">
+                      👉 Cuando hayas firmado en la web, pulsa este botón. Es <strong>obligatorio</strong> para que quede registrado.
+                    </p>
+                    <Button
+                      onClick={() => handleMarkSignatureComplete(player, "tutor")}
+                      disabled={processingSignature[`${player.id}_tutor`]}
+                      className="w-full bg-green-600 hover:bg-green-700 shadow-lg"
+                    >
+                      {processingSignature[`${player.id}_tutor`] ? (
+                        <>
+                          <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Guardando...
+                        </>
+                      ) : (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 mr-2" />
+                          2️⃣ Ya he firmado - Confirmar
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
