@@ -9,6 +9,8 @@ import { MapPin } from "lucide-react";
 import GrupoClasificacion from "@/components/torneos/GrupoClasificacion";
 import BracketView from "@/components/torneos/BracketView";
 import TorneoHeroNight from "@/components/torneos/TorneoHeroNight";
+import MiEquipoBuscador from "@/components/torneos/MiEquipoBuscador";
+import OrdenDeJuego from "@/components/torneos/OrdenDeJuego";
 
 // Página pública propia de un torneo. Ruta: /torneo/:slug
 export default function PublicTorneo() {
@@ -60,6 +62,7 @@ export default function PublicTorneo() {
   const catActiva = cats.find((c) => c.id === catSel) || cats[0];
   const gruposCat = catActiva ? grupos.filter((g) => g.categoria_id === catActiva.id).sort((a, b) => (a.orden || 0) - (b.orden || 0)) : [];
   const partidosCat = catActiva ? partidos.filter((p) => p.categoria_id === catActiva.id) : [];
+  const equiposCat = catActiva ? equipos.filter((e) => e.categoria_id === catActiva.id) : [];
   const hayCuadros = partidosCat.some((p) => p.fase === "oro" || p.fase === "plata");
 
   return (
@@ -87,8 +90,18 @@ export default function PublicTorneo() {
             <Tabs defaultValue="clasificacion">
               <TabsList className="w-full">
                 <TabsTrigger value="clasificacion" className="flex-1">Clasificación</TabsTrigger>
+                <TabsTrigger value="miequipo" className="flex-1">Mi equipo</TabsTrigger>
+                <TabsTrigger value="orden" className="flex-1">Orden de juego</TabsTrigger>
                 <TabsTrigger value="cuadros" className="flex-1" disabled={!hayCuadros}>Cuadros</TabsTrigger>
               </TabsList>
+
+              <TabsContent value="miequipo" className="mt-4">
+                <MiEquipoBuscador equipos={equiposCat} partidos={partidosCat} grupos={gruposCat} />
+              </TabsContent>
+
+              <TabsContent value="orden" className="mt-4">
+                <OrdenDeJuego equipos={equiposCat} partidos={partidosCat} grupos={gruposCat} />
+              </TabsContent>
 
               <TabsContent value="clasificacion" className="mt-4 space-y-3">
                 {gruposCat.length === 0 ? (
