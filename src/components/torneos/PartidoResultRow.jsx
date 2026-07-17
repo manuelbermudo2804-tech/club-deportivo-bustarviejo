@@ -74,7 +74,7 @@ export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbica
       {/* Fila superior: campo + hora (editables si onSaveUbicacion) */}
       {onSaveUbicacion ? (
         <div className="flex flex-wrap items-center gap-2 mb-2">
-          {campos.length > 0 && (
+          {campos.length > 0 ? (
             <Select value={campoActual || "none"} onValueChange={handleCampo}>
               <SelectTrigger className="h-7 text-xs w-auto min-w-[130px] gap-1">
                 <MapPin className="w-3 h-3 text-slate-400" />
@@ -87,6 +87,10 @@ export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbica
                 ))}
               </SelectContent>
             </Select>
+          ) : (
+            <span className="text-[11px] text-amber-600 inline-flex items-center gap-1">
+              <MapPin className="w-3 h-3" /> Añade sedes en Ajustes del torneo para asignar campo
+            </span>
           )}
           <Input
             type="datetime-local"
