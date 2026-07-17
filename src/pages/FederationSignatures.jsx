@@ -118,27 +118,24 @@ export default function FederationSignatures() {
   const [processingSignature, setProcessingSignature] = useState({});
   
   const updatePlayerMutation = useMutation({
-    mutationFn: async ({ id, data, playerName, signatureType }) => {
-      const result = await base44.entities.Player.update(id, data);
+    mutationFn: async ({ id, playerName, signatureType }) => {
+      const res = await base44.functions.invoke('marcarFirmaCompletada', { playerId: id, tipo: signatureType });
+      if (!res?.data?.ok) throw new Error(res?.data?.error || 'No se pudo guardar la firma');
 
-      // Notificar al admin si las notificaciones están activas
+      // Notificar al admin en segundo plano (no bloquea la confirmación de la firma)
       if (seasonConfig?.notificaciones_admin_email) {
-        try {
-          await base44.functions.invoke('sendEmail', {
-            to: "cdbustarviejo@gmail.com",
-            subject: `✍️ Firma Completada - ${playerName}`,
-            html: `
-              <h2>Firma de Federación Completada</h2>
-              <p><strong>Jugador:</strong> ${playerName}</p>
-              <p><strong>Tipo de firma:</strong> ${signatureType === "jugador" ? "Firma del Jugador" : "Firma del Tutor"}</p>
-              <p><strong>Marcado por:</strong> ${user?.email}</p>
-              <hr>
-              <p style="font-size: 12px; color: #666;">Completado el ${new Date().toLocaleString('es-ES')}</p>
-            `
-          });
-        } catch (error) {
-          console.error("Error sending signature notification:", error);
-        }
+        base44.functions.invoke('sendEmail', {
+          to: "cdbustarviejo@gmail.com",
+          subject: `✍️ Firma Completada - ${playerName}`,
+          html: `
+            <h2>Firma de Federación Completada</h2>
+            <p><strong>Jugador:</strong> ${playerName}</p>
+            <p><strong>Tipo de firma:</strong> ${signatureType === "jugador" ? "Firma del Jugador" : "Firma del Tutor"}</p>
+            <p><strong>Marcado por:</strong> ${user?.email}</p>
+            <hr>
+            <p style="font-size: 12px; color: #666;">Completado el ${new Date().toLocaleString('es-ES')}</p>
+          `
+        }).catch((error) => console.error("Error sending signature notification:", error));
       }
 
       return { id, signatureType };
@@ -176,14 +173,8 @@ export default function FederationSignatures() {
     // Marcar como procesando inmediatamente
     setProcessingSignature(prev => ({ ...prev, [key]: true }));
     
-    const nowIso = new Date().toISOString();
-    const updateData = type === "jugador"
-      ? { firma_jugador_completada: true, firma_jugador_completada_por: user?.email, firma_jugador_completada_fecha: nowIso }
-      : { firma_tutor_completada: true, firma_tutor_completada_por: user?.email, firma_tutor_completada_fecha: nowIso };
-    
     updatePlayerMutation.mutate({ 
       id: player.id, 
-      data: updateData, 
       playerName: player.nombre,
       signatureType: type 
     });
