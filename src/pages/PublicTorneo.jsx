@@ -12,6 +12,7 @@ import TorneoHeroNight from "@/components/torneos/TorneoHeroNight";
 import MiEquipoBuscador from "@/components/torneos/MiEquipoBuscador";
 import OrdenDeJuego from "@/components/torneos/OrdenDeJuego";
 import BotaDeOro from "@/components/torneos/BotaDeOro";
+import Palmares from "@/components/torneos/Palmares";
 
 // Página pública propia de un torneo. Ruta: /torneo/:slug
 export default function PublicTorneo() {
@@ -67,6 +68,7 @@ export default function PublicTorneo() {
   const golesCat = catActiva ? goles.filter((g) => g.categoria_id === catActiva.id) : [];
   const hayCuadros = partidosCat.some((p) => p.fase === "oro" || p.fase === "plata");
   const hayGoleadores = golesCat.length > 0;
+  const hayPalmares = partidosCat.some((p) => p.ronda === "Final" && p.finalizado && p.ganador_id);
 
   return (
     <div className="torneo-night min-h-screen">
@@ -97,7 +99,12 @@ export default function PublicTorneo() {
                 <TabsTrigger value="orden" className="flex-1">Orden de juego</TabsTrigger>
                 <TabsTrigger value="bota" className="flex-1" disabled={!hayGoleadores}>👟 Bota</TabsTrigger>
                 <TabsTrigger value="cuadros" className="flex-1" disabled={!hayCuadros}>Cuadros</TabsTrigger>
+                <TabsTrigger value="palmares" className="flex-1" disabled={!hayPalmares}>🏆 Palmarés</TabsTrigger>
               </TabsList>
+
+              <TabsContent value="palmares" className="mt-4">
+                <Palmares partidos={partidosCat} equipos={equipos} goles={golesCat} />
+              </TabsContent>
 
               <TabsContent value="bota" className="mt-4">
                 <BotaDeOro goles={golesCat} equipos={equiposCat} />
