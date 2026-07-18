@@ -9,6 +9,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileSignature, ExternalLink, CheckCircle2, Clock, AlertCircle, User, Search, Save, Loader2, Mail, Filter, Send } from "lucide-react";
 import { toast } from "sonner";
+import PlayerDocsForFederation from "@/components/federation/PlayerDocsForFederation";
 
 export default function FederationSignaturesAdmin() {
   const [user, setUser] = useState(null);
@@ -440,6 +441,9 @@ export default function FederationSignaturesAdmin() {
                           )}
                         </div>
                       )}
+
+                      {/* Documentación que la Federación necesita adjuntar */}
+                      <PlayerDocsForFederation player={player} esMayorDeEdad={esMayorDeEdad} />
                     </div>
 
                     {/* Acciones */}
