@@ -52,6 +52,7 @@ export default function CategoryConfigAdmin() {
     cuota_segunda: 0,
     cuota_tercera: 0,
     es_actividad_complementaria: false,
+    disponible_como_extra: false,
     incluye_preparacion_fisica: false,
     suplemento_prep_fisica: 0,
     deporte: "Fútbol"
@@ -185,7 +186,7 @@ export default function CategoryConfigAdmin() {
       queryClient.invalidateQueries({ queryKey: ['categoryConfig'] });
       toast.success("✅ Categoría creada");
       setShowDialog(false);
-      setFormData({ nombre: "", cuota_inscripcion: 0, cuota_segunda: 0, cuota_tercera: 0, es_actividad_complementaria: false, incluye_preparacion_fisica: false, suplemento_prep_fisica: 0, deporte: "Fútbol" });
+      setFormData({ nombre: "", cuota_inscripcion: 0, cuota_segunda: 0, cuota_tercera: 0, es_actividad_complementaria: false, disponible_como_extra: false, incluye_preparacion_fisica: false, suplemento_prep_fisica: 0, deporte: "Fútbol" });
     },
     onError: (error) => {
       toast.error("Error: " + error.message);
@@ -212,6 +213,7 @@ export default function CategoryConfigAdmin() {
       cuota_segunda: category.cuota_segunda,
       cuota_tercera: category.cuota_tercera,
       es_actividad_complementaria: category.es_actividad_complementaria || false,
+      disponible_como_extra: category.disponible_como_extra || false,
       incluye_preparacion_fisica: category.incluye_preparacion_fisica || false,
       suplemento_prep_fisica: category.suplemento_prep_fisica || 0,
       deporte: category.deporte || "Fútbol"
@@ -260,6 +262,7 @@ export default function CategoryConfigAdmin() {
             cuota_tercera: formData.cuota_tercera,
             cuota_total: formData.cuota_inscripcion + formData.cuota_segunda + formData.cuota_tercera,
             es_actividad_complementaria: formData.es_actividad_complementaria,
+            disponible_como_extra: formData.disponible_como_extra,
             incluye_preparacion_fisica: formData.incluye_preparacion_fisica,
             suplemento_prep_fisica: formData.suplemento_prep_fisica,
             deporte: formData.deporte,
@@ -393,6 +396,7 @@ export default function CategoryConfigAdmin() {
                 <tr>
                   <th className="px-3 py-2 text-left font-bold text-slate-900">Categoría</th>
                   <th className="px-2 py-2 text-center font-bold text-slate-900">Tipo</th>
+                  <th className="px-2 py-2 text-center font-bold text-slate-900">Extra</th>
                   <th className="px-2 py-2 text-center font-bold text-slate-900">Liga</th>
                   <th className="px-2 py-2 text-center font-bold text-slate-900">Prep.Fís.</th>
                   <th className="px-2 py-2 text-center font-bold text-slate-900">📲</th>
@@ -416,6 +420,14 @@ export default function CategoryConfigAdmin() {
                         className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${cat.es_actividad_complementaria ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
                       >
                         {cat.es_actividad_complementaria ? '🏓 Compl.' : '⚽ Compet.'}
+                      </button>
+                    </td>
+                    <td className="px-2 py-3 text-center">
+                      <button
+                        onClick={() => updateCategoryMutation.mutate({ id: cat.id, data: { disponible_como_extra: !cat.disponible_como_extra } })}
+                        className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${cat.disponible_como_extra ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                      >
+                        {cat.disponible_como_extra ? '➕ Sí' : 'No'}
                       </button>
                     </td>
                     <td className="px-2 py-3 text-center">
@@ -501,6 +513,7 @@ export default function CategoryConfigAdmin() {
                   <tr>
                     <th className="px-3 py-2 text-left font-bold text-slate-900">Categoría</th>
                     <th className="px-2 py-2 text-center font-bold text-slate-900">Tipo</th>
+                    <th className="px-2 py-2 text-center font-bold text-slate-900">Extra</th>
                     <th className="px-2 py-2 text-center font-bold text-slate-900">Liga</th>
                     <th className="px-2 py-2 text-center font-bold text-slate-900">Prep.Fís.</th>
                     <th className="px-2 py-2 text-center font-bold text-slate-900">📲</th>
@@ -525,6 +538,14 @@ export default function CategoryConfigAdmin() {
                           className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${cat.es_actividad_complementaria ? 'bg-purple-100 text-purple-700 hover:bg-purple-200' : 'bg-blue-100 text-blue-700 hover:bg-blue-200'}`}
                         >
                           {cat.es_actividad_complementaria ? '🏓 Compl.' : '⚽ Compet.'}
+                        </button>
+                      </td>
+                      <td className="px-2 py-3 text-center">
+                        <button
+                          onClick={() => updateCategoryMutation.mutate({ id: cat.id, data: { disponible_como_extra: !cat.disponible_como_extra } })}
+                          className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${cat.disponible_como_extra ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+                        >
+                          {cat.disponible_como_extra ? '➕ Sí' : 'No'}
                         </button>
                       </td>
                       <td className="px-2 py-3 text-center">
@@ -667,6 +688,20 @@ export default function CategoryConfigAdmin() {
                   </AlertDescription>
                 </Alert>
               )}
+            </div>
+
+            {/* Disponible como categoría extra */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-bold text-blue-900">¿Disponible como actividad extra?</Label>
+                  <p className="text-xs text-blue-700">Los jugadores YA inscritos podrán apuntarse a esta categoría desde su perfil (ej: Fútbol Sala)</p>
+                </div>
+                <Switch
+                  checked={formData.disponible_como_extra}
+                  onCheckedChange={(v) => setFormData({ ...formData, disponible_como_extra: v })}
+                />
+              </div>
             </div>
 
             {/* Preparación Física incluida */}

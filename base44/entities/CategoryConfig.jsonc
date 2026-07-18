@@ -25,6 +25,11 @@
       "default": false,
       "description": "Si es una actividad complementaria (p\u00e1del, voleibol, prep. f\u00edsica, multideporte) - no compite, sin convocatorias, sin clasificaci\u00f3n"
     },
+    "disponible_como_extra": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si un jugador YA inscrito puede apuntarse a esta categor\u00eda como actividad adicional desde su perfil (ej: F\u00fatbol Sala). Solo las marcadas aparecen en el selector 'Apuntarme a otra actividad'."
+    },
     "compite_en_liga": {
       "type": "boolean",
       "default": false,

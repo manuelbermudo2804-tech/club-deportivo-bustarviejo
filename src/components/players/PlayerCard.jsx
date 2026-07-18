@@ -65,7 +65,7 @@ const getSuggestedCategory = (edad, deporteActual) => {
   return deporteActual;
 };
 
-export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null, onMarkNotRenewing = null, onDelete = null, customPlans = [], evaluations = [], attendanceRecords = [], categoryConfigs = [] }) {
+export default function PlayerCard({ player, onEdit, onViewProfile, isParent = false, readOnly = false, schedules = [], isCoachOrCoordinator = false, payments = [], seasonConfig = null, callups = [], onRenew = null, onMarkNotRenewing = null, onDelete = null, onAddExtra = null, customPlans = [], evaluations = [], attendanceRecords = [], categoryConfigs = [] }) {
   const [showDetail, setShowDetail] = useState(false);
   const [showMinorAccess, setShowMinorAccess] = useState(false);
   const [showInjuryDialog, setShowInjuryDialog] = useState(false);
@@ -392,6 +392,18 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                 className="w-full h-8 text-xs text-red-600 border-red-200 hover:bg-red-50 hover:border-red-400"
               >
                 🏥 Reportar lesión
+              </Button>
+            )}
+
+            {/* ═══════ APUNTARSE A OTRA ACTIVIDAD ═══════ */}
+            {isParent && player.activo && onAddExtra && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => { e.stopPropagation(); onAddExtra(player); }}
+                className="w-full h-8 text-xs text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-400"
+              >
+                ➕ Apuntar a otra actividad
               </Button>
             )}
 

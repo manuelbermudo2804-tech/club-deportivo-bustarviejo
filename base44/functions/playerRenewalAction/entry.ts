@@ -87,6 +87,54 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, player: updated });
     }
 
+    // ============ ADD EXTRA CATEGORY ============
+    // Un jugador YA inscrito se apunta a una categoría adicional (ej: Fútbol Sala).
+    // Reutiliza su ficha: solo añade la categoría a categorias[] y crea las cuotas.
+    if (action === 'add_extra_category') {
+      if (!playerId) return Response.json({ error: 'Falta playerId' }, { status: 400 });
+      const { categoria } = body;
+      if (!categoria) return Response.json({ error: 'Falta categoria' }, { status: 400 });
+
+      const player = await verifyOwnership(playerId);
+
+      // Verificar que la categoría está marcada como disponible como extra
+      const configs = await base44.asServiceRole.entities.CategoryConfig.filter({
+        nombre: categoria,
+        disponible_como_extra: true,
+      });
+      if (!configs || configs.length === 0) {
+        return Response.json({ error: 'Esta categoría no está disponible como actividad extra' }, { status: 400 });
+      }
+
+      const norm = (s) => (s == null ? '' : String(s).trim().toLowerCase());
+      const existing = Array.isArray(player.categorias) ? player.categorias : [];
+      const yaTiene =
+        existing.some((c) => norm(c) === norm(categoria)) ||
+        norm(player.categoria_principal) === norm(categoria) ||
+        norm(player.deporte) === norm(categoria);
+
+      let updated = player;
+      if (!yaTiene) {
+        updated = await base44.asServiceRole.entities.Player.update(playerId, {
+          categorias: [...existing, categoria],
+        });
+      }
+
+      const createdPayments = [];
+      if (Array.isArray(payments) && payments.length > 0) {
+        for (const p of payments) {
+          const created = await base44.asServiceRole.entities.Payment.create({
+            ...p,
+            jugador_id: updated.id,
+            jugador_nombre: updated.nombre,
+          });
+          createdPayments.push(created);
+        }
+      }
+
+      return Response.json({ success: true, player: updated, payments: createdPayments });
+    }
+
     // ============ CREATE WITH PAYMENTS ============
     if (action === 'create_with_payments') {
       if (!playerData) return Response.json({ error: 'Falta playerData' }, { status: 400 });

@@ -21,6 +21,7 @@ import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymen
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 import ShareFormButton from "../components/players/ShareFormButton";
 import MinorAccessBanner from "../components/minor/MinorAccessBanner";
+import AddExtraActivityDialog from "../components/players/AddExtraActivityDialog";
 
 
 export default function ParentPlayers() {
@@ -35,6 +36,7 @@ export default function ParentPlayers() {
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   const [isAdultPlayerSelfRegistration, setIsAdultPlayerSelfRegistration] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [extraActivityPlayer, setExtraActivityPlayer] = useState(null);
   
   const queryClient = useQueryClient();
   
@@ -889,6 +891,19 @@ Email: info@cdbustarviejo.com
         </div>
       )}
 
+      {/* Diálogo: apuntar jugador existente a una categoría extra */}
+      {extraActivityPlayer && (
+        <AddExtraActivityDialog
+          player={extraActivityPlayer}
+          open={!!extraActivityPlayer}
+          onOpenChange={(v) => { if (!v) setExtraActivityPlayer(null); }}
+          onDone={() => {
+            queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
+            queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+          }}
+        />
+      )}
+
       {/* Pantalla de éxito inscripción */}
       {showInscriptionSuccess && inscriptionSuccessData && (
         <InscriptionSuccessScreen
@@ -1201,6 +1216,7 @@ Email: info@cdbustarviejo.com
                       onEdit={handleEdit}
                       onRenew={handleRenew}
                       onMarkNotRenewing={handleMarkNotRenewing}
+                      onAddExtra={setExtraActivityPlayer}
                       isParent={true}
                       schedules={schedules}
                       payments={payments}
@@ -1235,6 +1251,7 @@ Email: info@cdbustarviejo.com
                       onEdit={handleEdit}
                       onRenew={handleRenew}
                       onMarkNotRenewing={handleMarkNotRenewing}
+                      onAddExtra={setExtraActivityPlayer}
                       isParent={true}
                       schedules={schedules}
                       payments={payments}
@@ -1269,6 +1286,7 @@ Email: info@cdbustarviejo.com
                       onEdit={handleEdit}
                       onRenew={handleRenew}
                       onMarkNotRenewing={handleMarkNotRenewing}
+                      onAddExtra={setExtraActivityPlayer}
                       isParent={true}
                       schedules={schedules}
                       payments={payments}
@@ -1303,6 +1321,7 @@ Email: info@cdbustarviejo.com
                       onEdit={handleEdit}
                       onRenew={handleRenew}
                       onMarkNotRenewing={handleMarkNotRenewing}
+                      onAddExtra={setExtraActivityPlayer}
                       isParent={true}
                       schedules={schedules}
                       payments={payments}
