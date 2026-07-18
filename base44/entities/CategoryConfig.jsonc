@@ -30,6 +30,14 @@
       "default": false,
       "description": "Si un jugador YA inscrito puede apuntarse a esta categor\u00eda como actividad adicional desde su perfil (ej: F\u00fatbol Sala). Solo las marcadas aparecen en el selector 'Apuntarme a otra actividad'."
     },
+    "edad_minima_extra": {
+      "type": "number",
+      "description": "Edad m\u00ednima (a\u00f1os) que debe tener el jugador para poder apuntarse a esta actividad extra. Vac\u00edo = sin m\u00ednimo."
+    },
+    "edad_maxima_extra": {
+      "type": "number",
+      "description": "Edad m\u00e1xima (a\u00f1os) que puede tener el jugador para poder apuntarse a esta actividad extra. Vac\u00edo = sin m\u00e1ximo."
+    },
     "compite_en_liga": {
       "type": "boolean",
       "default": false,

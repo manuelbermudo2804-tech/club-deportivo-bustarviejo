@@ -53,6 +53,8 @@ export default function CategoryConfigAdmin() {
     cuota_tercera: 0,
     es_actividad_complementaria: false,
     disponible_como_extra: false,
+    edad_minima_extra: "",
+    edad_maxima_extra: "",
     incluye_preparacion_fisica: false,
     suplemento_prep_fisica: 0,
     deporte: "Fútbol"
@@ -214,6 +216,8 @@ export default function CategoryConfigAdmin() {
       cuota_tercera: category.cuota_tercera,
       es_actividad_complementaria: category.es_actividad_complementaria || false,
       disponible_como_extra: category.disponible_como_extra || false,
+      edad_minima_extra: category.edad_minima_extra ?? "",
+      edad_maxima_extra: category.edad_maxima_extra ?? "",
       incluye_preparacion_fisica: category.incluye_preparacion_fisica || false,
       suplemento_prep_fisica: category.suplemento_prep_fisica || 0,
       deporte: category.deporte || "Fútbol"
@@ -283,6 +287,8 @@ export default function CategoryConfigAdmin() {
 
     const dataToSave = {
       ...formData,
+      edad_minima_extra: formData.edad_minima_extra === "" ? null : Number(formData.edad_minima_extra),
+      edad_maxima_extra: formData.edad_maxima_extra === "" ? null : Number(formData.edad_maxima_extra),
       cuota_total: formData.cuota_inscripcion + formData.cuota_segunda + formData.cuota_tercera,
       // Si es complementaria, nunca compite en liga
       compite_en_liga: formData.es_actividad_complementaria ? false : undefined
@@ -702,6 +708,34 @@ export default function CategoryConfigAdmin() {
                   onCheckedChange={(v) => setFormData({ ...formData, disponible_como_extra: v })}
                 />
               </div>
+              {formData.disponible_como_extra && (
+                <div className="mt-3 pt-3 border-t border-blue-200">
+                  <Label className="text-xs font-bold text-blue-900">Rango de edad permitido (opcional)</Label>
+                  <p className="text-xs text-blue-700 mb-2">Solo los jugadores dentro de este rango verán la actividad. Déjalo vacío para que la vean todos (ej: 15-99 para una senior).</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs font-medium text-blue-800">Edad mínima</Label>
+                      <Input
+                        type="number"
+                        value={formData.edad_minima_extra}
+                        onChange={(e) => setFormData({ ...formData, edad_minima_extra: e.target.value })}
+                        placeholder="Sin mínimo"
+                        className="mt-1"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-blue-800">Edad máxima</Label>
+                      <Input
+                        type="number"
+                        value={formData.edad_maxima_extra}
+                        onChange={(e) => setFormData({ ...formData, edad_maxima_extra: e.target.value })}
+                        placeholder="Sin máximo"
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Preparación Física incluida */}

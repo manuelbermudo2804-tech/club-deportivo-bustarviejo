@@ -27,11 +27,29 @@ export default function AddExtraActivityDialog({ player, open, onOpenChange, onD
     enabled: open,
   });
 
-  // Categorías extra a las que el jugador AÚN no pertenece
+  // Edad actual del jugador (para filtrar actividades por rango de edad)
+  const edadJugador = (() => {
+    if (!player?.fecha_nacimiento) return null;
+    const hoy = new Date();
+    const nac = new Date(player.fecha_nacimiento);
+    let edad = hoy.getFullYear() - nac.getFullYear();
+    const m = hoy.getMonth() - nac.getMonth();
+    if (m < 0 || (m === 0 && hoy.getDate() < nac.getDate())) edad--;
+    return edad;
+  })();
+
+  // Categorías extra a las que el jugador AÚN no pertenece y que además
+  // encajan en el rango de edad configurado por el admin.
   const currentCats = playerAllCategories(player).map(c => (c || '').trim().toLowerCase());
-  const availableExtras = categoryConfigs.filter(
-    (c) => !currentCats.includes((c.nombre || '').trim().toLowerCase())
-  );
+  const availableExtras = categoryConfigs.filter((c) => {
+    if (currentCats.includes((c.nombre || '').trim().toLowerCase())) return false;
+    // Filtrado por edad: si el jugador no tiene edad conocida, no se filtra.
+    if (edadJugador != null) {
+      if (c.edad_minima_extra != null && edadJugador < c.edad_minima_extra) return false;
+      if (c.edad_maxima_extra != null && edadJugador > c.edad_maxima_extra) return false;
+    }
+    return true;
+  });
 
   const handleSelect = (cat) => {
     setSelectedCategory(cat);
