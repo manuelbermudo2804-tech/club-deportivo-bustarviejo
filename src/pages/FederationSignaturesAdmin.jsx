@@ -291,16 +291,18 @@ export default function FederationSignaturesAdmin() {
           </div>
           
           <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-            <TabsList className="bg-white shadow-sm">
-              <TabsTrigger value="all">Todos ({players.length})</TabsTrigger>
-              <TabsTrigger value="sin_enlaces">Sin enlaces ({sinEnlacesCount})</TabsTrigger>
-              <TabsTrigger value="pendiente" className="data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-700">
-                Pendientes ({pendienteCount})
-              </TabsTrigger>
-              <TabsTrigger value="completado" className="data-[state=active]:bg-green-100 data-[state=active]:text-green-700">
-                Completados ({completadoCount})
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto -mx-1 px-1">
+              <TabsList className="bg-white shadow-sm w-max">
+                <TabsTrigger value="all" className="whitespace-nowrap">Todos ({players.length})</TabsTrigger>
+                <TabsTrigger value="sin_enlaces" className="whitespace-nowrap">Sin enlaces ({sinEnlacesCount})</TabsTrigger>
+                <TabsTrigger value="pendiente" className="whitespace-nowrap data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-700">
+                  Pendientes ({pendienteCount})
+                </TabsTrigger>
+                <TabsTrigger value="completado" className="whitespace-nowrap data-[state=active]:bg-green-100 data-[state=active]:text-green-700">
+                  Completados ({completadoCount})
+                </TabsTrigger>
+              </TabsList>
+            </div>
           </Tabs>
         </CardContent>
       </Card>
