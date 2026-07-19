@@ -11,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet, AlertTriangle, Calendar, Filter, RefreshCw, Settings2, ShieldAlert } from "lucide-react";
+import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet, AlertTriangle, Calendar, Filter, RefreshCw, Settings2, ShieldAlert, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
@@ -52,6 +52,16 @@ const getDefaultSeason = (payments) => {
   const seasons = [...new Set(payments.map(p => p.temporada).filter(Boolean))];
   // Si hay pagos, usar la temporada más reciente
   return seasons.sort().reverse()[0] || getCurrentSeason();
+};
+
+// Genera un enlace de WhatsApp con un recordatorio de pago listo para enviar al padre.
+const buildPaymentReminderWhatsApp = (player, pendingCount, totalPending) => {
+  const tel = (player?.telefono || '').replace(/\D/g, '');
+  if (!tel) return null;
+  const telInternacional = tel.startsWith('34') ? tel : `34${tel}`;
+  const cuotasTxt = pendingCount === 1 ? '1 cuota pendiente' : `${pendingCount} cuotas pendientes`;
+  const msg = `Hola 👋 Te escribimos del CD Bustarviejo. Te recordamos que ${player.nombre} tiene ${cuotasTxt} por un total de ${totalPending.toFixed(2)}€. Puedes subir el justificante desde la app o contactarnos para cualquier duda. ¡Muchas gracias! 💚`;
+  return `https://wa.me/${telInternacional}?text=${encodeURIComponent(msg)}`;
 };
 
 const calculateDaysOverdue = (mes) => {
@@ -1368,6 +1378,23 @@ export default function Payments() {
                                   <Badge className="bg-red-500 text-white text-xs">
                                     {totalPaymentsDue} Pendiente{totalPaymentsDue > 1 ? 's' : ''}
                                   </Badge>
+                                )}
+                                {isAdmin && totalPaymentsDue > 0 && buildPaymentReminderWhatsApp(player, totalPaymentsDue, totalPending) && (
+                                  <a
+                                    href={buildPaymentReminderWhatsApp(player, totalPaymentsDue, totalPending)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    title="Enviar recordatorio por WhatsApp"
+                                  >
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      className="h-7 px-2 text-[10px] lg:text-xs border-green-400 text-green-700 hover:bg-green-50"
+                                    >
+                                      <MessageCircle className="w-3 h-3 mr-1" />
+                                      Recordar WhatsApp
+                                    </Button>
+                                  </a>
                                 )}
                                 {reviewPayments.length > 0 && (
                                   <Badge className="bg-orange-500 text-white text-xs">
