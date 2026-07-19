@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Mail, Lock, CheckCircle, Loader2, Send, Phone } from "lucide-react";
+import { Trophy, Mail, Lock, CheckCircle, Loader2, Send, Phone, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 
 // Pestaña de cierre de la porra: muestra podio, reparto del bote y permite
@@ -18,10 +18,26 @@ export default function PorraAdminCierre({ config, participantes, onUpdate }) {
     [participantes]
   );
 
+  // Orden por posición del ranking (ya trae los desempates resueltos). Si algún
+  // participante no tuviera posición, cae al final ordenado por puntos.
   const top3 = useMemo(
-    () => [...pagados].sort((a, b) => (b.puntos_total || 0) - (a.puntos_total || 0)).slice(0, 3),
+    () => [...pagados].sort((a, b) => {
+      const pa = a.posicion_ranking || 9999;
+      const pb = b.posicion_ranking || 9999;
+      if (pa !== pb) return pa - pb;
+      return (b.puntos_total || 0) - (a.puntos_total || 0);
+    }).slice(0, 3),
     [pagados]
   );
+
+  // Construye el enlace de WhatsApp con un mensaje personalizado para cada ganador.
+  const whatsappLink = (p, premio) => {
+    const tel = (p.telefono || '').replace(/\D/g, '');
+    if (!tel) return null;
+    const telInternacional = tel.startsWith('34') ? tel : `34${tel}`;
+    const msg = `¡Hola ${p.nombre}! 🎉 Has quedado ${premio.pos}º (${premio.label}) en la ${config?.nombre_torneo || 'Porra'} con ${p.puntos_total || 0} puntos. Tu premio es de ${premio.importe.toFixed(2)}€. Escríbenos para coordinar el pago. ¡Enhorabuena! — CD Bustarviejo`;
+    return `https://wa.me/${telInternacional}?text=${encodeURIComponent(msg)}`;
+  };
 
   const recaudado = pagados.length * (config?.precio_entrada || 15);
   const comision = recaudado * (config?.comision_club_porcentaje || 10) / 100;
@@ -113,6 +129,15 @@ export default function PorraAdminCierre({ config, participantes, onUpdate }) {
                       <div className="flex items-center gap-1"><Phone className="w-3 h-3" /> {p.telefono}</div>
                     )}
                   </div>
+                  {whatsappLink(p, premio) ? (
+                    <a href={whatsappLink(p, premio)} target="_blank" rel="noopener noreferrer" className="block mt-3">
+                      <div className="bg-green-600 hover:bg-green-700 transition-colors rounded-lg py-2 px-3 flex items-center justify-center gap-2 text-sm font-bold">
+                        <MessageCircle className="w-4 h-4" /> Avisar por WhatsApp
+                      </div>
+                    </a>
+                  ) : (
+                    <div className="mt-3 text-center text-xs bg-white/20 rounded-lg py-2">Sin teléfono para WhatsApp</div>
+                  )}
                 </div>
               );
             })}
