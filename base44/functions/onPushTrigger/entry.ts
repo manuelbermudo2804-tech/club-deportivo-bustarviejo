@@ -40,11 +40,9 @@ async function sendPushToEmails(base44, emails, title, body, url, tag) {
 
   let sent = 0, failed = 0;
   for (const [email, subs] of Object.entries(subsByEmail)) {
-    let badgeCount = 1;
-    try {
-      const unread = await base44.asServiceRole.entities.AppNotification.filter({ usuario_email: email, vista: false });
-      badgeCount = Math.max(1, (unread || []).length + 1);
-    } catch { badgeCount = 1; }
+    // Badge fijo a 1: evita una query de AppNotification POR CADA destinatario,
+    // que en chats de grupo (decenas de familias) disparaba el rate limit.
+    const badgeCount = 1;
 
     const payload = JSON.stringify({
       title, body, tag: tag || 'notification', badgeCount, renotify: true, requireInteraction: false,
