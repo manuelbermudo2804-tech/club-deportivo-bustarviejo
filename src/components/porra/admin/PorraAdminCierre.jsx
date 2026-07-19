@@ -18,17 +18,38 @@ export default function PorraAdminCierre({ config, participantes, onUpdate }) {
     [participantes]
   );
 
-  // Orden por posición del ranking (ya trae los desempates resueltos). Si algún
-  // participante no tuviera posición, cae al final ordenado por puntos.
-  const top3 = useMemo(
-    () => [...pagados].sort((a, b) => {
-      const pa = a.posicion_ranking || 9999;
-      const pb = b.posicion_ranking || 9999;
-      if (pa !== pb) return pa - pb;
-      return (b.puntos_total || 0) - (a.puntos_total || 0);
-    }).slice(0, 3),
-    [pagados]
-  );
+  // Orden EXACTO igual que el ranking oficial (porraRanking): 7 reglas de desempate
+  // en cascada, incluyendo el acierto del campeón y el tramo final del bracket.
+  const top3 = useMemo(() => {
+    const tramoFinal = (p) => (p.puntos_campeon || 0) + (p.puntos_tercer_puesto || 0);
+    const comparar = (a, b) => {
+      // 1. Puntos totales
+      const dTotal = (b.puntos_total || 0) - (a.puntos_total || 0);
+      if (dTotal !== 0) return dTotal;
+      // 2. Acertó campeón
+      const aCampeon = (a.puntos_campeon || 0) > 0 ? 1 : 0;
+      const bCampeon = (b.puntos_campeon || 0) > 0 ? 1 : 0;
+      if (bCampeon !== aCampeon) return bCampeon - aCampeon;
+      // 3. Tramo final (campeón + 3er puesto)
+      const dFinal = tramoFinal(b) - tramoFinal(a);
+      if (dFinal !== 0) return dFinal;
+      // 4. Especiales
+      const dEsp = (b.puntos_especiales || 0) - (a.puntos_especiales || 0);
+      if (dEsp !== 0) return dEsp;
+      // 5. Resto de eliminatorias
+      const dElim = (b.puntos_eliminatorias || 0) - (a.puntos_eliminatorias || 0);
+      if (dElim !== 0) return dElim;
+      // 6. Grupos (+ mejores terceros)
+      const aG = (a.puntos_grupos || 0) + (a.puntos_terceros || 0);
+      const bG = (b.puntos_grupos || 0) + (b.puntos_terceros || 0);
+      if (bG !== aG) return bG - aG;
+      // 7. Inscripción más temprana
+      const fA = a.created_date ? new Date(a.created_date).getTime() : Infinity;
+      const fB = b.created_date ? new Date(b.created_date).getTime() : Infinity;
+      return fA - fB;
+    };
+    return [...pagados].sort(comparar).slice(0, 3);
+  }, [pagados]);
 
   // Construye el enlace de WhatsApp con un mensaje personalizado para cada ganador.
   const whatsappLink = (p, premio) => {
