@@ -172,6 +172,9 @@ Deno.serve(async (req) => {
     // Firmas federativas pendientes y renovaciones (requiere recorrer jugadores activos)
     let firmasPendientes = 0;
     let renovacionesPendientes = 0;
+    // Aviso descuento hermanos: familias con 2+ hijos activos donde algún hijo se
+    // renovó/inscribió desde la última visita → conviene pulsar "Recalcular ahora".
+    let familiasHermanosRecalcular = 0;
     try {
       const calcEdad = (f) => {
         if (!f) return null;
@@ -182,10 +185,25 @@ Deno.serve(async (req) => {
         return e;
       };
       const activos = await sr.entities.Player.filter({ activo: true }, '-updated_date', 1000);
+      const porFamilia = {};
       activos.forEach(p => {
         if (p.enlace_firma_jugador && !p.firma_jugador_completada) firmasPendientes++;
         if (p.enlace_firma_tutor && !p.firma_tutor_completada && calcEdad(p.fecha_nacimiento) < 18) firmasPendientes++;
         if (p.estado_renovacion === 'pendiente') renovacionesPendientes++;
+        const email = (p.email_padre || '').toLowerCase().trim();
+        if (!email) return;
+        if (!porFamilia[email]) porFamilia[email] = [];
+        porFamilia[email].push(p);
+      });
+      // Cuenta familias con 2+ hijos activos que tuvieron alta/renovación reciente.
+      Object.values(porFamilia).forEach(hijos => {
+        if (hijos.length < 2) return;
+        const reciente = hijos.some(p => {
+          const t = new Date(p.created_date).getTime();
+          const r = p.fecha_renovacion ? new Date(p.fecha_renovacion).getTime() : 0;
+          return (!isNaN(t) && t >= sinceMs) || (r && r >= sinceMs);
+        });
+        if (reciente) familiasHermanosRecalcular++;
       });
     } catch { /* sin datos */ }
 
@@ -199,6 +217,7 @@ Deno.serve(async (req) => {
       { id: 'lopivi_abiertas', label: 'Incidencias LOPIVI abiertas', count: incidenciasLopiviAbiertas, page: 'LopiviAdmin', icon: 'ShieldAlert' },
       { id: 'firmas_pendientes', label: 'Firmas federativas pendientes', count: firmasPendientes, page: 'FederationSignaturesAdmin', icon: 'FileSignature' },
       { id: 'renovaciones_pendientes', label: 'Renovaciones pendientes', count: renovacionesPendientes, page: 'RenewalDashboard', icon: 'RefreshCw' },
+      { id: 'recalcular_hermanos', label: 'Familias con hermanos: pulsa "Recalcular descuentos" en Renovaciones', count: familiasHermanosRecalcular, page: 'RenewalDashboard', icon: 'Users' },
       { id: 'categorias_revisar', label: 'Jugadores con categoría a revisar', count: categoriasARevisar, page: 'Players', icon: 'AlertTriangle' },
       { id: 'bajas_cuenta_pendientes', label: 'Solicitudes de baja sin procesar', count: bajasCuentaPendientes, page: 'UserManagement', icon: 'UserMinus' },
     ].filter(a => a.count > 0);
