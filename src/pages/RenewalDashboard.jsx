@@ -18,6 +18,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import AdultTransitionPanel from "../components/renewals/AdultTransitionPanel";
+import RecalcSiblingDiscountsButton from "../components/renewals/RecalcSiblingDiscountsButton";
 
 export default function RenewalDashboard() {
   const [activeTab, setActiveTab] = useState("overview");
@@ -532,6 +533,8 @@ CD Bustarviejo`
                 </div>
               </CardContent>
             </Card>
+
+            <RecalcSiblingDiscountsButton players={allPlayers} />
           </div>
 
           {/* Panel de transición mayores de edad */}
