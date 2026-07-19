@@ -44,12 +44,13 @@ export default function PorraAdminCierre({ config, participantes, onUpdate }) {
   const bote = recaudado - comision;
   const reparto = config?.reparto_premios || { primero_porcentaje: 60, segundo_porcentaje: 25, tercero_porcentaje: 15 };
 
-  // Importes de premio FIJOS acordados para este cierre.
+  // Bote total de premios acordado para este cierre y reparto 60/25/15%.
+  const BOTE_PREMIOS = 1399;
   const premios = [
-    { pos: 1, emoji: '🥇', color: 'from-yellow-400 to-yellow-600', label: 'Campeón', importe: 839.40 },
-    { pos: 2, emoji: '🥈', color: 'from-slate-300 to-slate-500', label: 'Subcampeón', importe: 349.75 },
-    { pos: 3, emoji: '🥉', color: 'from-orange-400 to-orange-600', label: 'Tercer puesto', importe: 209.85 },
-  ];
+    { pos: 1, emoji: '🥇', color: 'from-yellow-400 to-yellow-600', label: 'Campeón', pct: 60 },
+    { pos: 2, emoji: '🥈', color: 'from-slate-300 to-slate-500', label: 'Subcampeón', pct: 25 },
+    { pos: 3, emoji: '🥉', color: 'from-orange-400 to-orange-600', label: 'Tercer puesto', pct: 15 },
+  ].map(p => ({ ...p, importe: BOTE_PREMIOS * p.pct / 100 }));
 
   const podioListo = top3.length >= 3 && config?.campeon_real;
   const yaFinalizada = config?.estado === 'finalizada';
