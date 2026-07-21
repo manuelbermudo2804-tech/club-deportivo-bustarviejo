@@ -603,7 +603,17 @@ Email: info@cdbustarviejo.com
               const nextEmail2 = (safeData.email_tutor_2 || '').trim().toLowerCase();
               const email2Changed = nextEmail2 && nextEmail2 !== prevEmail2;
 
-              const updated = await base44.entities.Player.update(id, safeData);
+              // Actualizar vía backend (service role) para que también el segundo
+              // progenitor pueda editar la ficha (la RLS de Player no le deja hacerlo directamente).
+              const { data: updRes } = await base44.functions.invoke('playerRenewalAction', {
+                action: 'update_fields',
+                playerId: id,
+                playerData: safeData,
+              });
+              if (!updRes?.success) {
+                throw new Error(updRes?.error || 'Error al actualizar');
+              }
+              const updated = updRes.player;
 
               if (email2Changed) {
                 // Vía inviteSecondParent: si el usuario ya existe, no envía código ni email

@@ -135,6 +135,28 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, player: updated, payments: createdPayments });
     }
 
+    // ============ UPDATE FIELDS ============
+    // Un padre/tutor (incluido el segundo progenitor) edita los datos de la ficha.
+    // Se hace con service role porque la RLS de Player no permite editar al tutor 2.
+    // NO se permite tocar campos sensibles de estado/renovación desde aquí.
+    if (action === 'update_fields') {
+      if (!playerId) return Response.json({ error: 'Falta playerId' }, { status: 400 });
+      if (!playerData) return Response.json({ error: 'Falta playerData' }, { status: 400 });
+      const player = await verifyOwnership(playerId);
+
+      // Campos protegidos que un padre NO puede modificar por esta vía
+      const PROTECTED = [
+        'estado_renovacion', 'activo', 'temporada_renovacion', 'fecha_renovacion',
+        'tiene_descuento_hermano', 'descuento_aplicado', 'exento_bloqueo_impago',
+        'motivo_exencion_bloqueo', 'ajuste_cuota', 'email_padre',
+      ];
+      const safeData = { ...playerData };
+      for (const key of PROTECTED) delete safeData[key];
+
+      const updated = await base44.asServiceRole.entities.Player.update(playerId, safeData);
+      return Response.json({ success: true, player: updated });
+    }
+
     // ============ CREATE WITH PAYMENTS ============
     if (action === 'create_with_payments') {
       if (!playerData) return Response.json({ error: 'Falta playerData' }, { status: 400 });
