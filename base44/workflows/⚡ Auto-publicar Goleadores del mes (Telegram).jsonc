@@ -1,0 +1,41 @@
+{
+  "name": "\u26a1 Auto-publicar Goleadores del mes (Telegram)",
+  "description": "El d\u00eda 1 de cada mes a las 11:00 publica en el canal de Telegram el TOP 3 de goleadores del CD Bustarviejo por categor\u00eda.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 9 1 * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_publicar_goleadores_del_mes_telegram",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "autoPublishMonthlyScorers",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

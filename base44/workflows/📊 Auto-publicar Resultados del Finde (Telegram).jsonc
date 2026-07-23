@@ -1,0 +1,41 @@
+{
+  "name": "\ud83d\udcca Auto-publicar Resultados del Finde (Telegram)",
+  "description": "Cada domingo a las 21:30 publica autom\u00e1ticamente los resultados del fin de semana en el canal de Telegram del CD Bustarviejo. Si no hay resultados cargados, no publica nada.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "30 19 * * 0",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_publicar_resultados_del_finde_telegram",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "autoPublishWeekendResults",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

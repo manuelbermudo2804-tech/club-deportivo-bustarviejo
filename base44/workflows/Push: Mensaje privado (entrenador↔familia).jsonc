@@ -1,0 +1,34 @@
+{
+  "name": "Push: Mensaje privado (entrenador\u2194familia)",
+  "description": "",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "PrivateMessage"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "push_mensaje_privado_entrenador_familia",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "onPushTrigger",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

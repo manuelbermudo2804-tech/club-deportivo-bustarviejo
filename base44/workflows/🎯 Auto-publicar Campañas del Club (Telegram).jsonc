@@ -1,0 +1,41 @@
+{
+  "name": "\ud83c\udfaf Auto-publicar Campa\u00f1as del Club (Telegram)",
+  "description": "Cada mi\u00e9rcoles a las 18:00 publica en el canal de Telegram una campa\u00f1a activa del club (San Isidro, Loter\u00eda o Patrocinadores) rotando entre las que est\u00e9n abiertas. Si no hay ninguna activa, no publica.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 16 * * 3",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_publicar_campa_as_del_club_telegram",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "autoPublishClubCampaigns",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

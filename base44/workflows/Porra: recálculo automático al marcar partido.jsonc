@@ -1,0 +1,34 @@
+{
+  "name": "Porra: rec\u00e1lculo autom\u00e1tico al marcar partido",
+  "description": "Cuando un PorraPartido se marca finalizado o cambia el resultado/ganador, recalcula los puntos de todos los participantes autom\u00e1ticamente.",
+  "trigger": {
+    "condition": "${ ((.trigger.changed_fields | index(\"finalizado\") != null) or (.trigger.changed_fields | index(\"resultado_real\") != null) or (.trigger.changed_fields | index(\"ganador_codigo\") != null)) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "PorraPartido"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "porra_rec_lculo_autom_tico_al_marcar_partido",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "porraRecalcularAuto",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

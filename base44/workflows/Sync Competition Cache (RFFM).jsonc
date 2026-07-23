@@ -1,0 +1,41 @@
+{
+  "name": "Sync Competition Cache (RFFM)",
+  "description": "Despacha en paralelo la sync RFFM (clasificaci\u00f3n, resultados, goleadores) por categor\u00eda. Cada categor\u00eda corre en su propio isolate (evita timeouts). Lunes y mi\u00e9rcoles a las 8:00 (Madrid).",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 4 * * 1,3",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "sync_competition_cache_rffm",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "rffmSyncDispatcher",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "name": "Recordatorios de renovaci\u00f3n (30/15/7/3/1 d\u00edas)",
+  "description": "Cada d\u00eda a las 9:00 (Madrid), env\u00eda recordatorio si quedan 30/15/7/3/1 d\u00edas para la fecha l\u00edmite de renovaci\u00f3n. Marca cada Player con el umbral ya enviado para evitar duplicados.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 7 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "recordatorios_de_renovaci_n_30_15_7_3_1_d_as",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "sendRenewalReminders",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

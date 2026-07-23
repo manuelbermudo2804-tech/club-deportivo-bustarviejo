@@ -1,0 +1,34 @@
+{
+  "name": "Push: Nuevo anuncio",
+  "description": "",
+  "trigger": {
+    "condition": "${ (.trigger.data.publicado == true) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "Announcement"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "push_nuevo_anuncio",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "onPushTrigger",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

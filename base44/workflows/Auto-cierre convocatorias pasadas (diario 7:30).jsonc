@@ -1,0 +1,41 @@
+{
+  "name": "Auto-cierre convocatorias pasadas (diario 7:30)",
+  "description": "Borra borradores de convocatorias de partidos pasados y cierra las publicadas autom\u00e1ticamente cada d\u00eda a las 7:30",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "30 7 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_cierre_convocatorias_pasadas_diario_7_30",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "autoCloseCallups",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

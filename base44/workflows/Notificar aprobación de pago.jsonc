@@ -1,0 +1,34 @@
+{
+  "name": "Notificar aprobaci\u00f3n de pago",
+  "description": "Cuando un pago cambia de \"En revisi\u00f3n\" a \"Pagado\", env\u00eda email y notificaci\u00f3n a los padres autom\u00e1ticamente desde el backend (reemplaza PaymentApprovalNotifier del frontend)",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "Payment"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "notificar_aprobaci_n_de_pago",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "onPaymentApproved",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

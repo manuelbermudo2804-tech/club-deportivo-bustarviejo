@@ -1,0 +1,41 @@
+{
+  "name": "RFFM Monitor Horarios (cada 2h)",
+  "description": "Comprueba cambios de horario/fecha/campo/rival en los pr\u00f3ximos partidos cada 2 horas",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 2,
+      "interval_unit": "hours",
+      "interval_anchor": "2026-02-26T16:43:06.526000",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "rffm_monitor_horarios_cada_2h",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "rffmScheduleMonitor",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

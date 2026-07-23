@@ -1,0 +1,41 @@
+{
+  "name": "Recordatorios convocatorias (-72h / -24h / -6h)",
+  "description": "Cada hora revisa las convocatorias publicadas. Env\u00eda push + email a los jugadores/familias que a\u00fan no han confirmado, en tres ventanas: -72h, -24h y -6h del partido. Solo notifica a los pendientes.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 1,
+      "interval_unit": "hours",
+      "interval_anchor": "2026-05-30T19:05:05.125000",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "recordatorios_convocatorias_72h_24h_6h",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "callupAutoReminder",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

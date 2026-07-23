@@ -1,0 +1,34 @@
+{
+  "name": "Auto-rellenar emails en Payment",
+  "description": "Rellena email_padre y email_tutor_2 desde el Player al crear un Payment, para que el RLS muestre el pago a la familia.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "Payment"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "auto_rellenar_emails_en_payment",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "autoFillPaymentEmails",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

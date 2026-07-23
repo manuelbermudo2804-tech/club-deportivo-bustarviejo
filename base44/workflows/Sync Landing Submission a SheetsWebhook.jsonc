@@ -1,0 +1,35 @@
+{
+  "name": "Sync Landing Submission a Sheets/Webhook",
+  "description": "Sincroniza cada inscripci\u00f3n a Google Sheets y/o webhook configurados en la landing.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update"
+      ],
+      "entity_name": "LandingSubmission"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "sync_landing_submission_a_sheets_webhook",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "landingSyncToSheet",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

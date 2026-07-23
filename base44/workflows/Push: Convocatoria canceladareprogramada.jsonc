@@ -1,0 +1,34 @@
+{
+  "name": "Push: Convocatoria cancelada/reprogramada",
+  "description": "Env\u00eda push cuando se cancela o reprograma una convocatoria",
+  "trigger": {
+    "condition": "${ ((.trigger.changed_fields | index(\"estado_convocatoria\") != null) and (.trigger.data.estado_convocatoria == \"cancelada\" or .trigger.data.estado_convocatoria == \"reprogramada\")) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "Convocatoria"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "push_convocatoria_cancelada_reprogramada",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "onPushTrigger",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

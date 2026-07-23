@@ -1,0 +1,35 @@
+{
+  "name": "Push autom\u00e1tica al publicar anuncio",
+  "description": "Env\u00eda notificaci\u00f3n push a los padres de la categor\u00eda cuando se publica un anuncio",
+  "trigger": {
+    "condition": "${ (.trigger.data.publicado == true) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update"
+      ],
+      "entity_name": "Announcement"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "push_autom_tica_al_publicar_anuncio",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "onAnnouncementPush",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

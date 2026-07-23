@@ -1,0 +1,41 @@
+{
+  "name": "Porra: bloqueo autom\u00e1tico al cierre",
+  "description": "Bloquea todas las porras autom\u00e1ticamente cuando se pasa la fecha l\u00edmite. Se ejecuta cada hora.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 1,
+      "interval_unit": "hours",
+      "interval_anchor": "2026-05-11T08:06:18.286000",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "porra_bloqueo_autom_tico_al_cierre",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "porraBloquear",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

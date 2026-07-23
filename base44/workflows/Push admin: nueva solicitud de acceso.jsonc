@@ -1,0 +1,34 @@
+{
+  "name": "Push admin: nueva solicitud de acceso",
+  "description": "",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "AccessRequest"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "push_admin_nueva_solicitud_de_acceso",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "notifyAdminNewAccessRequest",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

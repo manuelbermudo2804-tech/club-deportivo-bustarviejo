@@ -1,0 +1,41 @@
+{
+  "name": "Alerta convocatorias sin publicar",
+  "description": "Una vez al d\u00eda a las 9:30: si hay partidos en 2 d\u00edas con convocatoria sin publicar, env\u00eda UNA push al entrenador de esa categor\u00eda. Sin emails, sin spam, solo un recordatorio suave.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "30 7 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "alerta_convocatorias_sin_publicar",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "unpublishedCallupAlert",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

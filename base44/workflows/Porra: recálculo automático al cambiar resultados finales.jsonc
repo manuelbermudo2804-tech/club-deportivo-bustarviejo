@@ -1,0 +1,34 @@
+{
+  "name": "Porra: rec\u00e1lculo autom\u00e1tico al cambiar resultados finales",
+  "description": "Cuando admin cambia campe\u00f3n, mejores terceros, tercer puesto o predicciones especiales reales en config, recalcula puntos de todos.",
+  "trigger": {
+    "condition": "${ ((.trigger.changed_fields | index(\"campeon_real\") != null) or (.trigger.changed_fields | index(\"subcampeon_real\") != null) or (.trigger.changed_fields | index(\"tercer_puesto_real\") != null) or (.trigger.changed_fields | index(\"mejores_terceros_reales\") != null) or (.trigger.changed_fields | index(\"resultados_especiales_reales\") != null)) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "update"
+      ],
+      "entity_name": "PorraConfig"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "porra_rec_lculo_autom_tico_al_cambiar_resultados_finales",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "porraRecalcularAuto",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

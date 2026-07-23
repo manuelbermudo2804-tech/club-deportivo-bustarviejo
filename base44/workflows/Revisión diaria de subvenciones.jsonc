@@ -1,0 +1,41 @@
+{
+  "name": "Revisi\u00f3n diaria de subvenciones",
+  "description": "Revisa cada ma\u00f1ana todos los feeds RSS de subvenciones activos, guarda las novedades en el panel y env\u00eda push a los administradores.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 8 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "revisi_n_diaria_de_subvenciones",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "checkGrantFeeds",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

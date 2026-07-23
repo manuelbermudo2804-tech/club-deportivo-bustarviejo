@@ -1,0 +1,41 @@
+{
+  "name": "Aviso acceso juvenil al cumplir 13 a\u00f1os",
+  "description": "Revisa diariamente qu\u00e9 jugadores cumplen 13 a\u00f1os y avisa a sus padres de que pueden activar el acceso juvenil",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "30 8 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "aviso_acceso_juvenil_al_cumplir_13_a_os",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "notifyMinorAccess",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

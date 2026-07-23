@@ -1,0 +1,34 @@
+{
+  "name": "Push: Nueva evaluaci\u00f3n",
+  "description": "",
+  "trigger": {
+    "condition": "${ (.trigger.data.visible_para_padres == true) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "PlayerEvaluation"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "push_nueva_evaluaci_n",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "onPushTrigger",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

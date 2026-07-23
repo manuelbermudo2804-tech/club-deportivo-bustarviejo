@@ -1,0 +1,41 @@
+{
+  "name": "RFFM Sync (L, J, S, D 8AM)",
+  "description": "Sincroniza clasificaciones, resultados y goleadores de todas las categor\u00edas los lunes, jueves, s\u00e1bados y domingos a las 8:00",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 7 * * 1,4,6,0",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "rffm_sync_l_j_s_d_8am",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "rffmSyncDispatcher",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

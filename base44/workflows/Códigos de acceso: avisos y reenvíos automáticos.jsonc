@@ -1,0 +1,41 @@
+{
+  "name": "C\u00f3digos de acceso: avisos y reenv\u00edos autom\u00e1ticos",
+  "description": "Cada d\u00eda a las 9:00 revisa los c\u00f3digos de acceso pendientes. Env\u00eda avisos cuando quedan 3 o 1 d\u00eda para expirar. Cuando expiran, los reenv\u00eda autom\u00e1ticamente con un c\u00f3digo nuevo (hasta 3 veces) o los marca como expirados definitivamente.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 7 * * *",
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "c_digos_de_acceso_avisos_y_reenv_os_autom_ticos",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "expireAccessCodes",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}

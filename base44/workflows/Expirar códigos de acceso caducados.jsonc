@@ -1,0 +1,41 @@
+{
+  "name": "Expirar c\u00f3digos de acceso caducados",
+  "description": "Revisa cada 6 horas los c\u00f3digos pendientes y marca como expirados los que han superado 7 d\u00edas",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "interval",
+      "cron_expression": null,
+      "one_time_date": null,
+      "timezone": "UTC",
+      "interval_value": 6,
+      "interval_unit": "hours",
+      "interval_anchor": "2026-02-22T15:17:42.480000",
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "expirar_c_digos_de_acceso_caducados",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "expireAccessCodes",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
