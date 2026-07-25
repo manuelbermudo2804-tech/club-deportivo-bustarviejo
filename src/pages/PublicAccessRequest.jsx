@@ -43,6 +43,7 @@ const CATEGORIAS = [
   "Fútbol Cadete",
   "Fútbol Juvenil",
   "Fútbol Aficionado",
+  "Fútbol Alevín Femenino",
   "Fútbol Femenino",
   "Baloncesto (Mixto)",
   "No lo sé aún",
