@@ -2,11 +2,10 @@
 // Todos los equipos de la categoría forman una sola tabla.
 // Desempate (según dosier Sierra Norte Madrid Cup):
 //   1) Puntos
-//   2) Enfrentamiento directo (solo entre los equipos empatados a puntos)
-//   3) Diferencia general de goles/sets
-//   4) Goles/sets a favor
-//   5) Menos goles/sets en contra
-//   6) Nombre (alfabético, estable)
+//   2) Diferencia general de goles/sets
+//   3) Goles/sets a favor
+//   4) Menos goles/sets en contra
+//   5) Nombre (alfabético, estable)
 
 function partidosFinalizados(partidos) {
   return partidos.filter(
@@ -49,26 +48,6 @@ function acumular(equipos, partidos, torneo) {
   return stats;
 }
 
-// Puntos que cada equipo del subconjunto sacó SOLO en sus enfrentamientos directos
-function puntosEnfrentamientoDirecto(ids, partidos, torneo) {
-  const setIds = new Set(ids);
-  const mini = partidosFinalizados(partidos).filter(
-    (p) => setIds.has(p.equipo_local_id) && setIds.has(p.equipo_visitante_id)
-  );
-  const pV = torneo?.puntos_victoria ?? 3;
-  const pE = torneo?.puntos_empate ?? 1;
-  const pD = torneo?.puntos_derrota ?? 0;
-  const pts = {};
-  ids.forEach((id) => (pts[id] = 0));
-  mini.forEach((p) => {
-    const ml = p.marcador_local, mv = p.marcador_visitante;
-    if (ml > mv) { pts[p.equipo_local_id] += pV; pts[p.equipo_visitante_id] += pD; }
-    else if (ml < mv) { pts[p.equipo_visitante_id] += pV; pts[p.equipo_local_id] += pD; }
-    else { pts[p.equipo_local_id] += pE; pts[p.equipo_visitante_id] += pE; }
-  });
-  return pts;
-}
-
 /**
  * Clasificación general de un grupo único.
  * @returns {Array} filas ordenadas con { posicion, equipo_id, nombre, ... }
@@ -78,18 +57,15 @@ export function calcularClasificacionGeneral(equipos, partidos, torneo) {
   const filas = Object.values(stats);
 
   const cmp = (a, b) => {
+    // 1) Puntos
     if (b.puntos !== a.puntos) return b.puntos - a.puntos;
-    // 2) enfrentamiento directo entre los empatados a puntos
-    const empatados = filas.filter((f) => f.puntos === a.puntos).map((f) => f.equipo_id);
-    if (empatados.length > 1) {
-      const h2h = puntosEnfrentamientoDirecto(empatados, partidos, torneo);
-      if ((h2h[b.equipo_id] || 0) !== (h2h[a.equipo_id] || 0)) {
-        return (h2h[b.equipo_id] || 0) - (h2h[a.equipo_id] || 0);
-      }
-    }
+    // 2) Diferencia de goles
     if (b.diferencia !== a.diferencia) return b.diferencia - a.diferencia;
+    // 3) Goles a favor
     if (b.favor !== a.favor) return b.favor - a.favor;
+    // 4) Menos goles en contra
     if (a.contra !== b.contra) return a.contra - b.contra;
+    // 5) Alfabético (estable)
     return a.nombre.localeCompare(b.nombre);
   };
 
