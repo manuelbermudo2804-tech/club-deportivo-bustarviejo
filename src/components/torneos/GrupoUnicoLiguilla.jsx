@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import PartidoResultRow from "./PartidoResultRow";
 import ClasificacionGeneral from "./ClasificacionGeneral";
 import GoleadoresDialog from "./GoleadoresDialog";
+import ImportarPartidosDialog from "./ImportarPartidosDialog";
 
 // Liguilla de "grupo único": una sola tabla y partidos añadidos a mano
 // (cada equipo juega N partidos definiendo rival, sede y hora manualmente).
@@ -19,6 +20,7 @@ export default function GrupoUnicoLiguilla({ torneo, categoria, equipos, partido
   const [golPartido, setGolPartido] = useState(null);
   const [nuevoLocal, setNuevoLocal] = useState("");
   const [nuevoVisit, setNuevoVisit] = useState("");
+  const [importarOpen, setImportarOpen] = useState(false);
 
   const equiposCat = equipos.filter((e) => e.categoria_id === categoria.id);
   const partidosCat = partidos
@@ -68,10 +70,19 @@ export default function GrupoUnicoLiguilla({ torneo, categoria, equipos, partido
     <div className="space-y-5">
       <ClasificacionGeneral equipos={equiposCat} partidos={partidosCat} torneo={torneo} />
 
+      {/* Crear partidos desde imagen con IA */}
+      <Button
+        variant="outline"
+        className="w-full border-amber-300 text-amber-700 hover:bg-amber-50"
+        onClick={() => setImportarOpen(true)}
+      >
+        <Sparkles className="w-4 h-4 mr-1.5" /> Crear partidos desde una imagen o texto
+      </Button>
+
       {/* Añadir partido a mano */}
       <div className="bg-slate-50 border rounded-xl p-3 space-y-2">
         <p className="text-sm font-semibold text-slate-700 flex items-center gap-1.5">
-          <Plus className="w-4 h-4" /> Añadir partido
+          <Plus className="w-4 h-4" /> Añadir partido a mano
         </p>
         <div className="flex flex-wrap items-center gap-2">
           <Select value={nuevoLocal} onValueChange={setNuevoLocal}>
@@ -140,6 +151,13 @@ export default function GrupoUnicoLiguilla({ torneo, categoria, equipos, partido
           onSaved={invalidate}
         />
       )}
+
+      <ImportarPartidosDialog
+        open={importarOpen}
+        onOpenChange={setImportarOpen}
+        torneo={torneo}
+        categoria={categoria}
+      />
     </div>
   );
 }
