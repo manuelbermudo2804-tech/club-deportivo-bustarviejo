@@ -1,12 +1,12 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Trophy, Sparkles, RotateCcw } from "lucide-react";
+import { Trophy, Sparkles, RotateCcw, LayoutGrid } from "lucide-react";
 import { toast } from "sonner";
-import { clasificadosPorPosicion, construirCuadro, avanceGanador } from "@/lib/torneoBracket";
-import { semillasFase } from "@/lib/torneoGrupoUnico";
+import { clasificadosPorPosicion, construirCuadro, avanceGanador, rellenarPrimeraRonda } from "@/lib/torneoBracket";
+import { semillasFase, semillasFasePlaceholder, calcularClasificacionGeneral } from "@/lib/torneoGrupoUnico";
 import BracketView from "./BracketView";
 
 const CFG_FASE = {
@@ -94,6 +94,46 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
     onError: (e) => toast.error(e.message),
   });
 
+  // Genera el ESQUELETO del cuadro (en blanco), con placeholders por posición
+  // ("1º clasificado" vs "16º clasificado"…). Permite asignar sede/hora desde ya;
+  // los equipos reales se rellenan solos según avanza la liguilla.
+  const generarGrupoUnicoEnBlanco = useMutation({
+    mutationFn: async () => {
+      if (fasesConfig.length === 0) throw new Error("Configura las fases finales en 'Editar torneo' (ej: Oro 1º-16º, Plata 17º-24º)");
+      let creadoAlguno = false;
+      for (const fase of fasesConfig) {
+        const semillas = semillasFasePlaceholder(fase);
+        if (semillas.length < 2) continue;
+        const cuadro = construirCuadro(semillas, fase.clave, torneo, categoria);
+        await persistirCuadro(cuadro);
+        creadoAlguno = true;
+      }
+      if (!creadoAlguno) throw new Error("Las fases configuradas no tienen suficientes plazas");
+      await base44.entities.TorneoCategoria.update(categoria.id, { fase_actual: "eliminatorias", cuadros_generados: true });
+    },
+    onSuccess: () => { invalidate(); toast.success("Cuadro en blanco generado. Ya puedes asignar sede y hora."); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  // Auto-relleno: cuando el cuadro se generó en blanco (por posiciones), coloca los
+  // equipos reales cuya posición de la clasificación general ya está decidida.
+  const rellenoLanzado = React.useRef(false);
+  useEffect(() => {
+    if (!esGrupoUnico || !yaGenerados) return;
+    const primerasRondas = partidosCat.filter(
+      (p) => (p.fase === "oro" || p.fase === "plata" || p.fase === "bronce") &&
+        (p.equipo_local_pos != null || p.equipo_visitante_pos != null)
+    );
+    if (primerasRondas.length === 0) return;
+    const clasif = calcularClasificacionGeneral(equiposCat, partidosCat, torneo);
+    const updates = rellenarPrimeraRonda(primerasRondas, clasif);
+    if (updates.length === 0 || rellenoLanzado.current) return;
+    rellenoLanzado.current = true;
+    base44.entities.TorneoPartido.bulkUpdate(updates)
+      .then(() => invalidate())
+      .finally(() => { rellenoLanzado.current = false; });
+  }, [partidosCat, esGrupoUnico, yaGenerados]);
+
   const regenerar = useMutation({
     mutationFn: async () => {
       const elim = partidosCat.filter((p) => p.fase === "oro" || p.fase === "plata" || p.fase === "bronce");
@@ -144,11 +184,6 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
         <div className="flex items-center gap-2 text-slate-800 font-semibold">
           <Trophy className="w-5 h-5 text-amber-500" /> Generar cuadros por nivel
         </div>
-        {!liguillaCompleta && (
-          <p className="text-sm text-amber-600 bg-amber-50 rounded-lg p-2">
-            Termina de meter todos los resultados de la liguilla para generar los cuadros con la clasificación general definitiva.
-          </p>
-        )}
         {fasesConfig.length === 0 ? (
           <p className="text-sm text-slate-500 bg-slate-50 rounded-lg p-3">
             No hay fases configuradas. Ve a <strong>Editar torneo</strong> y añade las fases finales (ej: Fase Oro 1º–16º, Fase Plata 17º–24º).
@@ -163,12 +198,38 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
             ))}
           </div>
         )}
-        <Button onClick={() => generarGrupoUnico.mutate()} disabled={generarGrupoUnico.isPending || fasesConfig.length === 0}>
-          <Sparkles className="w-4 h-4 mr-1" /> Generar cuadros
-        </Button>
-        <p className="text-xs text-slate-400">
-          Cada fase toma su tramo de la clasificación general y se siembra automáticamente (1º vs último, 2º vs penúltimo…). El avance de ganadores es automático.
-        </p>
+
+        {/* Opción 1: cuadro en blanco (siempre disponible) */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
+          <p className="text-sm font-semibold text-blue-900 flex items-center gap-1.5">
+            <LayoutGrid className="w-4 h-4" /> Generar cuadro en blanco
+          </p>
+          <p className="text-xs text-blue-800">
+            Crea el esqueleto del cuadro con los huecos (1º clasificado, 2º clasificado…) para que puedas <strong>asignar sede y hora desde ya</strong>. Los equipos irán apareciendo automáticamente según metes los resultados de la liguilla.
+          </p>
+          <Button onClick={() => generarGrupoUnicoEnBlanco.mutate()} disabled={generarGrupoUnicoEnBlanco.isPending || fasesConfig.length === 0} className="bg-blue-600 hover:bg-blue-700">
+            <LayoutGrid className="w-4 h-4 mr-1" /> Generar cuadro en blanco
+          </Button>
+        </div>
+
+        {/* Opción 2: con clasificación real (solo si la liguilla está completa) */}
+        <div className="bg-slate-50 border rounded-lg p-3 space-y-2">
+          <p className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
+            <Sparkles className="w-4 h-4 text-amber-500" /> Generar con la clasificación final
+          </p>
+          {!liguillaCompleta ? (
+            <p className="text-xs text-amber-600">
+              Disponible cuando termines de meter todos los resultados de la liguilla. Sembrará cada equipo directamente en su hueco.
+            </p>
+          ) : (
+            <p className="text-xs text-slate-500">
+              Cada fase toma su tramo de la clasificación general y se siembra automáticamente (1º vs último…).
+            </p>
+          )}
+          <Button variant="outline" onClick={() => generarGrupoUnico.mutate()} disabled={generarGrupoUnico.isPending || fasesConfig.length === 0 || !liguillaCompleta}>
+            <Sparkles className="w-4 h-4 mr-1" /> Generar con clasificación
+          </Button>
+        </div>
       </div>
     );
   }

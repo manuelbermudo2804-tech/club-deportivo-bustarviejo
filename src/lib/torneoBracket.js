@@ -70,7 +70,8 @@ export function construirCuadro(sembrados, fase, torneo, categoria) {
   const partidos = [];
   let ref = 0;
 
-  // Ronda 1 (equipos reales)
+  // Ronda 1. Las semillas pueden ser equipos reales ({equipo_id, nombre})
+  // o placeholders de posición ({posicion, nombre}) para un cuadro "en blanco".
   const paresR1 = emparejarSemilla(participantes);
   let rondaActual = paresR1.map((par, idx) => {
     const p = {
@@ -80,13 +81,16 @@ export function construirCuadro(sembrados, fase, torneo, categoria) {
       fase,
       ronda: nombreRonda(plazas),
       orden_bracket: idx,
-      equipo_local_id: par[0].equipo_id,
-      equipo_visitante_id: par[1].equipo_id,
+      equipo_local_id: par[0].equipo_id || "",
+      equipo_visitante_id: par[1].equipo_id || "",
       equipo_local_placeholder: par[0].nombre,
       equipo_visitante_placeholder: par[1].nombre,
       finalizado: false,
       _siguiente: null,
     };
+    // Guardar la posición de origen si es un cuadro en blanco (para rellenar luego)
+    if (par[0].posicion != null) p.equipo_local_pos = par[0].posicion;
+    if (par[1].posicion != null) p.equipo_visitante_pos = par[1].posicion;
     partidos.push(p);
     return p;
   });
@@ -197,6 +201,36 @@ export function avanceGanador(partido, marcadorLocal, marcadorVisitante, partido
     },
     tercerPuesto,
   };
+}
+
+/**
+ * Rellena los equipos reales de la primera ronda de un cuadro "en blanco"
+ * (generado por posiciones) a partir de la clasificación general actual.
+ * Solo rellena una posición si ya está decidida de forma definitiva.
+ * @param {Array} partidosFase - partidos de la fase (oro/plata/bronce)
+ * @param {Array} clasificacion - filas con { posicion, equipo_id, nombre } (de calcularClasificacionGeneral)
+ * @returns {Array} updates [{ id, equipo_local_id?, equipo_local_placeholder?, ... }] a aplicar
+ */
+export function rellenarPrimeraRonda(partidosFase, clasificacion) {
+  const porPos = {};
+  clasificacion.forEach((f) => { porPos[f.posicion] = f; });
+
+  const updates = [];
+  partidosFase.forEach((p) => {
+    // Solo la primera ronda usa posiciones; los partidos ya jugados no se tocan
+    if (p.finalizado) return;
+    const patch = {};
+    if (p.equipo_local_pos != null && !p.equipo_local_id) {
+      const eq = porPos[p.equipo_local_pos];
+      if (eq) { patch.equipo_local_id = eq.equipo_id; patch.equipo_local_placeholder = eq.nombre; }
+    }
+    if (p.equipo_visitante_pos != null && !p.equipo_visitante_id) {
+      const eq = porPos[p.equipo_visitante_pos];
+      if (eq) { patch.equipo_visitante_id = eq.equipo_id; patch.equipo_visitante_placeholder = eq.nombre; }
+    }
+    if (Object.keys(patch).length > 0) updates.push({ id: p.id, ...patch });
+  });
+  return updates;
 }
 
 export { nombreRonda };

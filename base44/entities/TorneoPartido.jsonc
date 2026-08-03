@@ -41,6 +41,14 @@
       "type": "string",
       "description": "ID del partido de 3er/4\u00ba puesto al que va el PERDEDOR (solo semifinales)"
     },
+    "equipo_local_pos": {
+      "type": "number",
+      "description": "Posici\u00f3n de la clasificaci\u00f3n general que ocupa el LOCAL en la primera ronda de un cuadro generado en blanco (grupo \u00fanico). Se usa para rellenar el equipo real cuando la liguilla termina."
+    },
+    "equipo_visitante_pos": {
+      "type": "number",
+      "description": "Posici\u00f3n de la clasificaci\u00f3n general que ocupa el VISITANTE en la primera ronda de un cuadro generado en blanco (grupo \u00fanico)."
+    },
     "sede_id": {
       "type": "string",
       "description": "ID de la sede donde se juega"

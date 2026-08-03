@@ -84,3 +84,17 @@ export function semillasFase(equipos, partidos, torneo, fase) {
     .filter((f) => f.posicion >= fase.desde && f.posicion <= fase.hasta)
     .map((f) => ({ equipo_id: f.equipo_id, nombre: f.nombre }));
 }
+
+/**
+ * Semillas "en blanco" de una fase final: una entrada por cada posición del rango
+ * [desde, hasta], SIN equipo asignado. Sirve para generar el esqueleto del cuadro
+ * antes de que la liguilla termine. El nombre es la posición ("1º clasificado"…).
+ * @returns {Array} [{ posicion, nombre }] ordenado por semilla (mejor 1º)
+ */
+export function semillasFasePlaceholder(fase) {
+  const semillas = [];
+  for (let pos = fase.desde; pos <= fase.hasta; pos++) {
+    semillas.push({ posicion: pos, nombre: `${pos}º clasificado` });
+  }
+  return semillas;
+}
