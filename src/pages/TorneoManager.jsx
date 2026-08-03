@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import TorneoForm from "@/components/torneos/TorneoForm";
 import CategoriaManager from "@/components/torneos/CategoriaManager";
 import LiguillaResultados from "@/components/torneos/LiguillaResultados";
+import GrupoUnicoLiguilla from "@/components/torneos/GrupoUnicoLiguilla";
 import EliminatoriasManager from "@/components/torneos/EliminatoriasManager";
 import PlantillasManager from "@/components/torneos/PlantillasManager";
 
@@ -163,6 +164,15 @@ export default function TorneoManager() {
         <TabsContent value="liguilla" className="mt-4 space-y-3">
           {!catActiva ? (
             <p className="text-center text-slate-400 text-sm py-6">Crea categorías y equipos primero.</p>
+          ) : torneo.formato_liguilla === "grupo_unico" ? (
+            <GrupoUnicoLiguilla
+              torneo={torneo}
+              categoria={catActiva}
+              equipos={equipos}
+              partidos={partidos}
+              jugadores={jugadores}
+              goles={goles}
+            />
           ) : (
             <LiguillaResultados
               torneo={torneo}
