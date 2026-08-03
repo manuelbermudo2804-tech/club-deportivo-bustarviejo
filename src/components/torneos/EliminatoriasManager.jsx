@@ -6,9 +6,16 @@ import { Input } from "@/components/ui/input";
 import { Trophy, Sparkles, RotateCcw } from "lucide-react";
 import { toast } from "sonner";
 import { clasificadosPorPosicion, construirCuadro, avanceGanador } from "@/lib/torneoBracket";
+import { semillasFase } from "@/lib/torneoGrupoUnico";
 import BracketView from "./BracketView";
 
-// Fase 2: genera cuadros Oro/Plata desde la liguilla y gestiona el avance de ganadores.
+const CFG_FASE = {
+  oro: { titulo: "🥇 Copa Oro", color: "#d97706" },
+  plata: { titulo: "🥈 Copa Plata", color: "#64748b" },
+  bronce: { titulo: "🥉 Copa Bronce", color: "#ea580c" },
+};
+
+// Fase 2: genera cuadros por nivel desde la liguilla y gestiona el avance de ganadores.
 export default function EliminatoriasManager({ torneo, categoria, grupos, equipos, partidos }) {
   const queryClient = useQueryClient();
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["torneo-full", torneo.id] });
@@ -16,9 +23,13 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
   const [plazasOro, setPlazasOro] = useState(1); // nº de posiciones por grupo que van a Oro
   const [plazasPlata, setPlazasPlata] = useState(1);
 
+  const esGrupoUnico = torneo.formato_liguilla === "grupo_unico";
+  const equiposCat = equipos.filter((e) => e.categoria_id === categoria.id);
+  const fasesConfig = (torneo.fases_finales || []).filter((f) => f.clave && f.desde && f.hasta);
+
   const partidosCat = partidos.filter((p) => p.categoria_id === categoria.id);
   const partidosLiguilla = partidosCat.filter((p) => p.fase === "liguilla");
-  const yaGenerados = partidosCat.some((p) => p.fase === "oro" || p.fase === "plata");
+  const yaGenerados = partidosCat.some((p) => p.fase === "oro" || p.fase === "plata" || p.fase === "bronce");
   const liguillaCompleta = partidosLiguilla.length > 0 && partidosLiguilla.every((p) => p.finalizado);
 
   // Persiste un cuadro construido en memoria y resuelve partido_siguiente_id
@@ -59,6 +70,24 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
 
       await persistirCuadro(cuadroOro);
       await persistirCuadro(cuadroPlata);
+      await base44.entities.TorneoCategoria.update(categoria.id, { fase_actual: "eliminatorias", cuadros_generados: true });
+    },
+    onSuccess: () => { invalidate(); toast.success("Cuadros generados"); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const generarGrupoUnico = useMutation({
+    mutationFn: async () => {
+      if (fasesConfig.length === 0) throw new Error("Configura las fases finales en 'Editar torneo' (ej: Oro 1º-16º, Plata 17º-24º)");
+      let creadoAlguno = false;
+      for (const fase of fasesConfig) {
+        const semillas = semillasFase(equiposCat, partidosCat, torneo, fase);
+        if (semillas.length < 2) continue;
+        const cuadro = construirCuadro(semillas, fase.clave, torneo, categoria);
+        await persistirCuadro(cuadro);
+        creadoAlguno = true;
+      }
+      if (!creadoAlguno) throw new Error("No hay suficientes equipos clasificados para ninguna fase");
       await base44.entities.TorneoCategoria.update(categoria.id, { fase_actual: "eliminatorias", cuadros_generados: true });
     },
     onSuccess: () => { invalidate(); toast.success("Cuadros generados"); },
@@ -109,6 +138,41 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
     onError: () => toast.error("Error al guardar campo/hora"),
   });
 
+  if (!yaGenerados && esGrupoUnico) {
+    return (
+      <div className="bg-white rounded-xl border p-4 space-y-4">
+        <div className="flex items-center gap-2 text-slate-800 font-semibold">
+          <Trophy className="w-5 h-5 text-amber-500" /> Generar cuadros por nivel
+        </div>
+        {!liguillaCompleta && (
+          <p className="text-sm text-amber-600 bg-amber-50 rounded-lg p-2">
+            Termina de meter todos los resultados de la liguilla para generar los cuadros con la clasificación general definitiva.
+          </p>
+        )}
+        {fasesConfig.length === 0 ? (
+          <p className="text-sm text-slate-500 bg-slate-50 rounded-lg p-3">
+            No hay fases configuradas. Ve a <strong>Editar torneo</strong> y añade las fases finales (ej: Fase Oro 1º–16º, Fase Plata 17º–24º).
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {fasesConfig.map((f) => (
+              <div key={f.clave} className="flex items-center gap-2 text-sm bg-slate-50 rounded-lg px-3 py-2">
+                <span className="font-semibold text-slate-700">{CFG_FASE[f.clave]?.titulo || f.nombre}</span>
+                <span className="text-slate-500">clasificación general {f.desde}º – {f.hasta}º</span>
+              </div>
+            ))}
+          </div>
+        )}
+        <Button onClick={() => generarGrupoUnico.mutate()} disabled={generarGrupoUnico.isPending || fasesConfig.length === 0}>
+          <Sparkles className="w-4 h-4 mr-1" /> Generar cuadros
+        </Button>
+        <p className="text-xs text-slate-400">
+          Cada fase toma su tramo de la clasificación general y se siembra automáticamente (1º vs último, 2º vs penúltimo…). El avance de ganadores es automático.
+        </p>
+      </div>
+    );
+  }
+
   if (!yaGenerados) {
     return (
       <div className="bg-white rounded-xl border p-4 space-y-4">
@@ -147,12 +211,15 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
           <RotateCcw className="w-4 h-4 mr-1" /> Regenerar cuadros
         </Button>
       </div>
-      <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} fase="oro" titulo="🥇 Copa Oro" color="#d97706"
-        onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
-        onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })} isSaving={guardarResultado.isPending} />
-      <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} fase="plata" titulo="🥈 Copa Plata" color="#64748b"
-        onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
-        onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })} isSaving={guardarResultado.isPending} />
+      {(esGrupoUnico
+        ? fasesConfig.map((f) => ({ fase: f.clave, ...CFG_FASE[f.clave], titulo: CFG_FASE[f.clave]?.titulo || f.nombre }))
+        : [{ fase: "oro", ...CFG_FASE.oro }, { fase: "plata", ...CFG_FASE.plata }]
+      ).map((b) => (
+        <BracketView key={b.fase} partidos={partidosCat} equipos={equipos} torneo={torneo}
+          fase={b.fase} titulo={b.titulo} color={b.color}
+          onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
+          onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })} isSaving={guardarResultado.isPending} />
+      ))}
     </div>
   );
 }

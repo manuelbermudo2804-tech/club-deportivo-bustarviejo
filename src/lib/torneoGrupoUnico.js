@@ -96,3 +96,15 @@ export function calcularClasificacionGeneral(equipos, partidos, torneo) {
   filas.sort(cmp);
   return filas.map((f, i) => ({ ...f, posicion: i + 1 }));
 }
+
+/**
+ * Semillas de una fase final (grupo único): equipos cuya posición general cae
+ * dentro del rango [desde, hasta] de la fase, ya ordenados por semilla (mejor 1º).
+ * @returns {Array} [{ equipo_id, nombre }] listo para construirCuadro
+ */
+export function semillasFase(equipos, partidos, torneo, fase) {
+  const filas = calcularClasificacionGeneral(equipos, partidos, torneo);
+  return filas
+    .filter((f) => f.posicion >= fase.desde && f.posicion <= fase.hasta)
+    .map((f) => ({ equipo_id: f.equipo_id, nombre: f.nombre }));
+}
