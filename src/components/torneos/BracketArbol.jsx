@@ -72,7 +72,7 @@ function MatchCard({ partido, equipos, seedLocal, seedVisitante, lado = "left", 
 // Una columna de una ronda dentro de un lado del árbol
 function ColumnaLado({ partidos, equipos, seedDe, lado, color }) {
   return (
-    <div className="flex flex-col justify-around gap-4 flex-1 min-w-0">
+    <div className="flex flex-col justify-around gap-4 flex-1 min-w-[185px]">
       {partidos.map((p) => (
         <MatchCard
           key={p.id}
@@ -119,7 +119,7 @@ export default function BracketArbol({ partidos, equipos, fase, titulo, color = 
       </h3>
 
       <div className="overflow-x-auto pb-2">
-        <div className="min-w-[720px] flex items-stretch gap-3">
+        <div className="min-w-max flex items-stretch gap-3">
           {/* Lado izquierdo: rondas de fuera hacia dentro */}
           {mitades.map((m) => (
             <ColumnaLado key={`L-${m.ronda}`} partidos={m.left} equipos={equipos} seedDe={seedDe} lado="left" color={color} />

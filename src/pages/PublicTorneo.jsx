@@ -7,6 +7,8 @@ import {
 } from "@/components/ui/select";
 import { MapPin } from "lucide-react";
 import GrupoClasificacion from "@/components/torneos/GrupoClasificacion";
+import ClasificacionGeneral from "@/components/torneos/ClasificacionGeneral";
+import ResultadosLiguilla from "@/components/torneos/ResultadosLiguilla";
 import BracketArbol from "@/components/torneos/BracketArbol";
 import { calcularClasificacionGeneral } from "@/lib/torneoGrupoUnico";
 import { clasificadosPorPosicion } from "@/lib/torneoBracket";
@@ -65,6 +67,7 @@ export default function PublicTorneo() {
   const cats = [...categorias].sort((a, b) => (a.orden || 0) - (b.orden || 0));
   const catActiva = cats.find((c) => c.id === catSel) || cats[0];
   const gruposCat = catActiva ? grupos.filter((g) => g.categoria_id === catActiva.id).sort((a, b) => (a.orden || 0) - (b.orden || 0)) : [];
+  const esGrupoUnico = torneo.formato_liguilla === "grupo_unico";
   const partidosCat = catActiva ? partidos.filter((p) => p.categoria_id === catActiva.id) : [];
   const equiposCat = catActiva ? equipos.filter((e) => e.categoria_id === catActiva.id) : [];
   const golesCat = catActiva ? goles.filter((g) => g.categoria_id === catActiva.id) : [];
@@ -133,11 +136,13 @@ export default function PublicTorneo() {
               </TabsContent>
 
               <TabsContent value="orden" className="mt-4">
-                <OrdenDeJuego equipos={equiposCat} partidos={partidosCat} grupos={gruposCat} />
+                <ResultadosLiguilla equipos={equiposCat} partidos={partidosCat} grupos={gruposCat} />
               </TabsContent>
 
               <TabsContent value="clasificacion" className="mt-4 space-y-3">
-                {gruposCat.length === 0 ? (
+                {esGrupoUnico ? (
+                  <ClasificacionGeneral equipos={equiposCat} partidos={partidosCat} torneo={torneo} />
+                ) : gruposCat.length === 0 ? (
                   <p className="text-center text-slate-400 py-8">Grupos aún no disponibles.</p>
                 ) : (
                   gruposCat.map((g) => (
