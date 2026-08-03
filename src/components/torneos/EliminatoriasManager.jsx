@@ -34,6 +34,15 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
   const yaGenerados = partidosCat.some((p) => p.fase === "oro" || p.fase === "plata" || p.fase === "bronce");
   const liguillaCompleta = partidosLiguilla.length > 0 && partidosLiguilla.every((p) => p.finalizado);
 
+  // Guarda anti-duplicado: relee la BD y aborta si ya existen partidos
+  // eliminatorios para esta categoría (evita doble clic / doble generación).
+  const abortarSiYaExisten = async () => {
+    const existentes = await base44.entities.TorneoPartido.filter({ categoria_id: categoria.id });
+    if (existentes.some((p) => p.fase === "oro" || p.fase === "plata" || p.fase === "bronce")) {
+      throw new Error("Los cuadros ya están generados. Usa 'Regenerar cuadros' si quieres rehacerlos.");
+    }
+  };
+
   // Persiste un cuadro construido en memoria y resuelve partido_siguiente_id
   const persistirCuadro = async (cuadro) => {
     if (cuadro.length === 0) return;
@@ -57,6 +66,7 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
 
   const generar = useMutation({
     mutationFn: async () => {
+      await abortarSiYaExisten();
       const porPos = clasificadosPorPosicion(grupos, equipos, partidosCat, torneo);
 
       // Oro: posiciones 1..plazasOro de cada grupo. Plata: siguientes plazasPlata.
@@ -81,6 +91,7 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
   const generarGrupoUnico = useMutation({
     mutationFn: async () => {
       if (fasesConfig.length === 0) throw new Error("Configura las fases finales en 'Editar torneo' (ej: Oro 1º-16º, Plata 17º-24º)");
+      await abortarSiYaExisten();
       let creadoAlguno = false;
       for (const fase of fasesConfig) {
         const semillas = semillasFase(equiposCat, partidosCat, torneo, fase);
@@ -102,6 +113,7 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
   const generarGrupoUnicoEnBlanco = useMutation({
     mutationFn: async () => {
       if (fasesConfig.length === 0) throw new Error("Configura las fases finales en 'Editar torneo' (ej: Oro 1º-16º, Plata 17º-24º)");
+      await abortarSiYaExisten();
       let creadoAlguno = false;
       for (const fase of fasesConfig) {
         const semillas = semillasFasePlaceholder(fase);
