@@ -196,6 +196,74 @@ export const TEMPLATES = [
     },
   },
   {
+    id: "torneo_informativo",
+    nombre: "Torneo (informativo)",
+    descripcion: "Página de un torneo YA creado. Sin inscripción: solo info, agenda, sedes y clasificación/cuadros en vivo.",
+    emoji: "📣",
+    tema: "stadium",
+    color: "from-amber-500 to-orange-600",
+    config: {
+      hero: {
+        tipo: "imagen",
+        imagen_url: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1600&q=80",
+        titulo: "Nombre del Torneo",
+        subtitulo: "Toda la información, horarios y resultados en directo",
+        badge: "TORNEO",
+        cta_texto: "Ver clasificación",
+        mostrar_cuenta_atras: true,
+        color_primario: "#f59e0b",
+      },
+      bloques: [
+        {
+          id: "b1",
+          tipo: "stats",
+          datos: {
+            items: [
+              { numero: "16", etiqueta: "Equipos" },
+              { numero: "2", etiqueta: "Días" },
+              { numero: "1", etiqueta: "Sede" },
+            ],
+          },
+        },
+        {
+          id: "b2",
+          tipo: "texto",
+          datos: {
+            titulo: "Sobre el torneo",
+            contenido: "Cuenta aquí de qué va el torneo: categorías, formato de juego, quién organiza y qué se van a encontrar los equipos y las familias.",
+          },
+        },
+        {
+          id: "b3",
+          tipo: "horarios",
+          datos: {
+            titulo: "Programa del día",
+            items: [
+              { hora: "09:00", titulo: "Recepción de equipos", descripcion: "" },
+              { hora: "09:30", titulo: "Fase de grupos", descripcion: "" },
+              { hora: "13:00", titulo: "Eliminatorias", descripcion: "" },
+              { hora: "18:00", titulo: "Finales y entrega de trofeos", descripcion: "" },
+            ],
+          },
+        },
+        {
+          id: "b4",
+          tipo: "torneo",
+          datos: {
+            slug: "",
+            titulo: "Clasificación y cuadros en directo",
+          },
+        },
+        {
+          id: "b5",
+          tipo: "mapa",
+          datos: { titulo: "Cómo llegar", direccion: "", embed_url: "" },
+        },
+      ],
+      // Sin formulario: página puramente informativa.
+    },
+  },
+  {
     id: "encuesta",
     nombre: "Encuesta",
     descripcion: "Recoge opiniones de socios, padres o jugadores. Limpio y enfocado.",

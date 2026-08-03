@@ -27,9 +27,48 @@ const TIPOS_CAMPO = [
 ];
 
 // Editor del formulario de la landing.
+// `formulario` puede ser null → la página es puramente informativa (sin inscripción).
 export default function EditorFormulario({ formulario, onChange }) {
-  const update = (k, v) => onChange({ ...formulario, [k]: v });
+  const activo = !!formulario;
+  const update = (k, v) => onChange({ ...(formulario || {}), [k]: v });
   const campos = formulario?.campos || [];
+
+  const toggleFormulario = (on) => {
+    if (on) {
+      onChange({
+        titulo: "Inscríbete",
+        descripcion: "",
+        cta_envio: "Enviar",
+        mensaje_exito: "¡Hemos recibido tu inscripción!",
+        campos: [
+          { id: "nombre", tipo: "texto", etiqueta: "Nombre y apellidos", requerido: true, ancho: "full" },
+          { id: "email", tipo: "email", etiqueta: "Email", requerido: true, ancho: "half" },
+          { id: "telefono", tipo: "telefono", etiqueta: "Teléfono", requerido: true, ancho: "half" },
+        ],
+      });
+    } else {
+      onChange(null);
+    }
+  };
+
+  if (!activo) {
+    return (
+      <div className="space-y-4">
+        <h3 className="font-bold text-slate-900 text-base mb-3">📋 Formulario</h3>
+        <div className="p-4 rounded-xl border border-slate-200 bg-slate-50">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="font-semibold text-slate-800">Página sin inscripción</div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Esta página es solo informativa. Actívalo si quieres recoger inscripciones.
+              </p>
+            </div>
+            <Switch checked={false} onCheckedChange={toggleFormulario} />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const addCampo = () => {
     const id = `campo_${Date.now()}`;
@@ -59,6 +98,13 @@ export default function EditorFormulario({ formulario, onChange }) {
   return (
     <div className="space-y-4">
       <h3 className="font-bold text-slate-900 text-base mb-3">📋 Formulario</h3>
+
+      <div className="p-3 rounded-xl border border-green-200 bg-green-50 flex items-center justify-between gap-3">
+        <div className="text-sm text-slate-700">
+          <span className="font-semibold">Inscripción activada.</span> Desactívala para dejar la página solo informativa.
+        </div>
+        <Switch checked={true} onCheckedChange={toggleFormulario} />
+      </div>
 
       <div>
         <Label>Título del formulario</Label>

@@ -264,7 +264,7 @@ export default function PageBuilderEditor() {
             )}
             {tab === "formulario" && (
               <EditorFormulario
-                formulario={page.config?.formulario || { campos: [] }}
+                formulario={page.config?.formulario ?? null}
                 onChange={(v) => updateConfig("formulario", v)}
               />
             )}
