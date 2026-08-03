@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { clasificadosPorPosicion, construirCuadro, avanceGanador, rellenarPrimeraRonda } from "@/lib/torneoBracket";
 import { semillasFase, semillasFasePlaceholder, calcularClasificacionGeneral } from "@/lib/torneoGrupoUnico";
 import BracketView from "./BracketView";
+import AsignarEquiposRonda1 from "./AsignarEquiposRonda1";
 
 const CFG_FASE = {
   oro: { titulo: "🥇 Copa Oro", color: "#d97706" },
@@ -115,24 +116,30 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
     onError: (e) => toast.error(e.message),
   });
 
-  // Auto-relleno: cuando el cuadro se generó en blanco (por posiciones), coloca los
-  // equipos reales cuya posición de la clasificación general ya está decidida.
-  const rellenoLanzado = React.useRef(false);
-  useEffect(() => {
-    if (!esGrupoUnico || !yaGenerados) return;
-    const primerasRondas = partidosCat.filter(
-      (p) => (p.fase === "oro" || p.fase === "plata" || p.fase === "bronce") &&
-        (p.equipo_local_pos != null || p.equipo_visitante_pos != null)
-    );
-    if (primerasRondas.length === 0) return;
-    const clasif = calcularClasificacionGeneral(equiposCat, partidosCat, torneo);
-    const updates = rellenarPrimeraRonda(primerasRondas, clasif);
-    if (updates.length === 0 || rellenoLanzado.current) return;
-    rellenoLanzado.current = true;
-    base44.entities.TorneoPartido.bulkUpdate(updates)
-      .then(() => invalidate())
-      .finally(() => { rellenoLanzado.current = false; });
-  }, [partidosCat, esGrupoUnico, yaGenerados]);
+  // Relleno MANUAL: cuando el cuadro se generó en blanco (por posiciones), el admin
+  // puede pulsar un botón para colocar automáticamente los equipos según la
+  // clasificación general actual. Ya no es automático — así el admin decide los cruces.
+  const autoRellenar = useMutation({
+    mutationFn: async () => {
+      const primerasRondas = partidosCat.filter(
+        (p) => (p.fase === "oro" || p.fase === "plata" || p.fase === "bronce") &&
+          (p.equipo_local_pos != null || p.equipo_visitante_pos != null)
+      );
+      const clasif = calcularClasificacionGeneral(equiposCat, partidosCat, torneo);
+      const updates = rellenarPrimeraRonda(primerasRondas, clasif);
+      if (updates.length === 0) throw new Error("No hay posiciones decididas todavía para rellenar");
+      await base44.entities.TorneoPartido.bulkUpdate(updates);
+    },
+    onSuccess: () => { invalidate(); toast.success("Equipos colocados según la clasificación"); },
+    onError: (e) => toast.error(e.message),
+  });
+
+  // Asignación manual de un equipo a un partido de la primera ronda
+  const asignarEquipo = useMutation({
+    mutationFn: ({ partido, patch }) => base44.entities.TorneoPartido.update(partido.id, patch),
+    onSuccess: () => { invalidate(); },
+    onError: () => toast.error("Error al asignar equipo"),
+  });
 
   const regenerar = useMutation({
     mutationFn: async () => {
@@ -284,9 +291,34 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
     );
   }
 
+  // Devuelve los partidos de la PRIMERA ronda de una fase (la de más plazas),
+  // aún sin resultado, para poder asignar los cruces manualmente.
+  const partidosPrimeraRonda = (fase) => {
+    const deFase = partidosCat.filter((p) => p.fase === fase);
+    if (deFase.length === 0) return [];
+    // Primera ronda = la que tiene más partidos (mayor nº de plazas)
+    const conteo = {};
+    deFase.forEach((p) => { conteo[p.ronda] = (conteo[p.ronda] || 0) + 1; });
+    const rondaInicial = Object.entries(conteo).sort((a, b) => b[1] - a[1])[0]?.[0];
+    return deFase
+      .filter((p) => p.ronda === rondaInicial && !p.finalizado)
+      .sort((a, b) => (a.orden_bracket || 0) - (b.orden_bracket || 0));
+  };
+
+  // ¿El cuadro se generó en blanco (por posiciones)? → mostrar auto-rellenar
+  const generadoEnBlanco = partidosCat.some(
+    (p) => (p.fase === "oro" || p.fase === "plata" || p.fase === "bronce") &&
+      (p.equipo_local_pos != null || p.equipo_visitante_pos != null)
+  );
+
   return (
     <div className="space-y-6">
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-2">
+        {esGrupoUnico && generadoEnBlanco && (
+          <Button variant="outline" size="sm" onClick={() => autoRellenar.mutate()} disabled={autoRellenar.isPending}>
+            <Sparkles className="w-4 h-4 mr-1" /> Rellenar por clasificación
+          </Button>
+        )}
         <Button variant="outline" size="sm" onClick={() => { if (confirm("¿Eliminar los cuadros y volver a la liguilla? Se perderán los resultados de eliminatorias.")) regenerar.mutate(); }} disabled={regenerar.isPending}>
           <RotateCcw className="w-4 h-4 mr-1" /> Regenerar cuadros
         </Button>
@@ -295,10 +327,18 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
         ? fasesConfig.map((f) => ({ fase: f.clave, ...CFG_FASE[f.clave], titulo: CFG_FASE[f.clave]?.titulo || f.nombre }))
         : [{ fase: "oro", ...CFG_FASE.oro }, { fase: "plata", ...CFG_FASE.plata }]
       ).map((b) => (
-        <BracketView key={b.fase} partidos={partidosCat} equipos={equipos} torneo={torneo} seedPorEquipo={seedPorEquipo}
-          fase={b.fase} titulo={b.titulo} color={b.color}
-          onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
-          onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })} isSaving={guardarResultado.isPending} />
+        <div key={b.fase} className="space-y-3">
+          <AsignarEquiposRonda1
+            partidos={partidosPrimeraRonda(b.fase)}
+            equiposCat={equiposCat}
+            seedPorEquipo={seedPorEquipo}
+            onAsignar={(partido, patch) => asignarEquipo.mutate({ partido, patch })}
+          />
+          <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} seedPorEquipo={seedPorEquipo}
+            fase={b.fase} titulo={b.titulo} color={b.color}
+            onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
+            onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })} isSaving={guardarResultado.isPending} />
+        </div>
       ))}
     </div>
   );
