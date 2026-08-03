@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter, X, Download, AlertTriangle, CheckCircle2, UserX, MessageCircle, Contact } from "lucide-react";
+import { Plus, Search, Filter, X, Download, AlertTriangle, CheckCircle2, UserX, MessageCircle, Contact, Users } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,6 +21,7 @@ import RecalcCuotasDialog from "../components/players/RecalcCuotasDialog";
 import { analyzePaymentChanges } from "../components/players/recalcPaymentsHelper";
 import RenewalStatsPanel from "../components/players/RenewalStatsPanel";
 import CustomPaymentPlanForm from "../components/payments/CustomPaymentPlanForm";
+import BulkCategoryMoveDialog from "../components/players/BulkCategoryMoveDialog";
 
 export default function Players() {
   const [showForm, setShowForm] = useState(false);
@@ -44,6 +45,7 @@ export default function Players() {
   const [recalcPlan, setRecalcPlan] = useState(null);
   const [showRecalcDialog, setShowRecalcDialog] = useState(false);
   const [recalcPlayerName, setRecalcPlayerName] = useState("");
+  const [showBulkMove, setShowBulkMove] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -809,6 +811,17 @@ export default function Players() {
           )}
           {isAdmin && (
             <Button
+              onClick={() => setShowBulkMove(true)}
+              variant="outline"
+              className="border-orange-600 text-orange-700 hover:bg-orange-50 w-full sm:w-auto justify-center min-w-0"
+              title="Mover varios jugadores de una categoría a otra sin cambiar sus cuotas"
+            >
+              <Users className="w-5 h-5 mr-2 flex-shrink-0" />
+              <span className="truncate">Juntar categorías</span>
+            </Button>
+          )}
+          {isAdmin && (
+            <Button
               onClick={() => {
                 setEditingPlayer(null);
                 setShowForm(!showForm);
@@ -1081,6 +1094,13 @@ export default function Players() {
         existingPlan={null}
         onSubmit={(planData) => createCustomPlanMutation.mutate(planData)}
         isSubmitting={createCustomPlanMutation.isPending}
+      />
+
+      <BulkCategoryMoveDialog
+        open={showBulkMove}
+        onOpenChange={setShowBulkMove}
+        players={allPlayers}
+        onDone={() => queryClient.invalidateQueries({ queryKey: ['players'] })}
       />
 
       <RecalcCuotasDialog
