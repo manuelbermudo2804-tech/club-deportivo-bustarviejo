@@ -3,7 +3,7 @@ import React from "react";
 // Bracket visual reutilizable (admin y público). Solo muestra; la edición de
 // resultados se hace desde PartidoResultRow en el panel admin.
 // Si onSave se pasa, muestra inputs de resultado inline (modo admin).
-import PartidoResultRow from "./PartidoResultRow";
+import PartidoResultRow, { SeedBadge } from "./PartidoResultRow";
 import { RONDA_TERCER_PUESTO } from "@/lib/torneoBracket";
 
 const ORDEN_RONDAS = ["1/16", "Octavos", "Cuartos", "Semifinales", RONDA_TERCER_PUESTO, "Final"];
@@ -63,8 +63,9 @@ function BracketMatchReadOnly({ partido, equipos }) {
   // Ubicación del partido (sede + campo), si está informada
   const ubicacion = [partido.sede_nombre, partido.campo].filter(Boolean).join(" · ");
 
-  const Fila = ({ escudo, nombre, marcador, ganador }) => (
+  const Fila = ({ escudo, nombre, marcador, ganador, pos }) => (
     <div className={`flex items-center gap-2 px-2 py-1.5 ${ganador ? "font-bold text-slate-900" : "text-slate-500"}`}>
+      <SeedBadge pos={pos} />
       {escudo
         ? <img src={escudo} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />
         : <span className="w-5 h-5 rounded-full bg-slate-100 flex-shrink-0" />}
@@ -75,9 +76,9 @@ function BracketMatchReadOnly({ partido, equipos }) {
 
   return (
     <div className="bg-white rounded-lg border overflow-hidden">
-      <Fila escudo={eqL?.escudo_url} nombre={nombreL} marcador={partido.finalizado ? partido.marcador_local : null} ganador={ganadorL} />
+      <Fila escudo={eqL?.escudo_url} nombre={nombreL} marcador={partido.finalizado ? partido.marcador_local : null} ganador={ganadorL} pos={partido.equipo_local_pos} />
       <div className="border-t" />
-      <Fila escudo={eqV?.escudo_url} nombre={nombreV} marcador={partido.finalizado ? partido.marcador_visitante : null} ganador={ganadorV} />
+      <Fila escudo={eqV?.escudo_url} nombre={nombreV} marcador={partido.finalizado ? partido.marcador_visitante : null} ganador={ganadorV} pos={partido.equipo_visitante_pos} />
       {ubicacion && (
         <div className="border-t px-2 py-1 text-[11px] text-slate-400 truncate">📍 {ubicacion}</div>
       )}
