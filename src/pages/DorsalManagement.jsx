@@ -15,6 +15,7 @@ import ConflictPreviewPanel from "@/components/dorsales/ConflictPreviewPanel";
 import PendingPlayersPanel from "@/components/dorsales/PendingPlayersPanel";
 import ImportExcelDialog from "@/components/dorsales/ImportExcelDialog";
 import PendingNotificationsPanel from "@/components/dorsales/PendingNotificationsPanel";
+import ExportDorsalesButton from "@/components/dorsales/ExportDorsalesButton";
 import { getNextSeason, loadDorsalData } from "@/components/dorsales/dorsalHelpers";
 
 const CATEGORIAS = [
@@ -148,6 +149,12 @@ export default function DorsalManagement() {
           <h1 className="text-2xl font-bold">Gestión de Dorsales</h1>
           <p className="text-sm text-slate-600">Asigna dorsales por temporada, categoría y previsiones de conflictos</p>
         </div>
+        <ExportDorsalesButton
+          assignments={currentAssignmentsAll.filter((a) => String(a.temporada) === String(temporada))}
+          categorias={CATEGORIAS}
+          temporada={temporada}
+          categoriaActual={categoria}
+        />
         <Button onClick={() => setImportOpen(true)} className="bg-green-600 hover:bg-green-700 gap-2">
           <Upload className="w-4 h-4" />
           <span className="hidden sm:inline">Importar Excel</span>
