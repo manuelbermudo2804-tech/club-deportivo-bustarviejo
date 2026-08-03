@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { clasificadosPorPosicion, construirCuadro, avanceGanador, rellenarPrimeraRonda } from "@/lib/torneoBracket";
 import { semillasFase, semillasFasePlaceholder, calcularClasificacionGeneral } from "@/lib/torneoGrupoUnico";
 import BracketView from "./BracketView";
+import BracketArbol from "./BracketArbol";
 import AsignarEquiposRonda1 from "./AsignarEquiposRonda1";
 
 const CFG_FASE = {
@@ -338,6 +339,13 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
             fase={b.fase} titulo={b.titulo} color={b.color}
             onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
             onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })} isSaving={guardarResultado.isPending} />
+
+          {/* Vista previa del cuadro tal como lo verá el público (árbol simétrico estilo PDF) */}
+          <div className="bg-slate-900 rounded-xl p-4 border border-slate-700 torneo-night">
+            <p className="text-xs text-slate-400 mb-2">👁️ Vista previa del cuadro (así lo verá el público)</p>
+            <BracketArbol partidos={partidosCat} equipos={equipos} seedPorEquipo={seedPorEquipo}
+              fase={b.fase} titulo={b.titulo} color={b.color} />
+          </div>
         </div>
       ))}
     </div>

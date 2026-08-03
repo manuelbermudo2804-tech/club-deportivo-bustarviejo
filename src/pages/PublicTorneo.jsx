@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/select";
 import { MapPin } from "lucide-react";
 import GrupoClasificacion from "@/components/torneos/GrupoClasificacion";
-import BracketView from "@/components/torneos/BracketView";
+import BracketArbol from "@/components/torneos/BracketArbol";
 import { calcularClasificacionGeneral } from "@/lib/torneoGrupoUnico";
 import { clasificadosPorPosicion } from "@/lib/torneoBracket";
 import TorneoHeroNight from "@/components/torneos/TorneoHeroNight";
@@ -147,8 +147,8 @@ export default function PublicTorneo() {
               </TabsContent>
 
               <TabsContent value="cuadros" className="mt-4 space-y-6">
-                <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} seedPorEquipo={seedPorEquipo} fase="oro" titulo="🥇 Copa Oro" color="#fbbf24" />
-                <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} seedPorEquipo={seedPorEquipo} fase="plata" titulo="🥈 Copa Plata" color="#cbd5e1" />
+                <BracketArbol partidos={partidosCat} equipos={equipos} seedPorEquipo={seedPorEquipo} fase="oro" titulo="🥇 Copa Oro" color="#fbbf24" />
+                <BracketArbol partidos={partidosCat} equipos={equipos} seedPorEquipo={seedPorEquipo} fase="plata" titulo="🥈 Copa Plata" color="#cbd5e1" />
               </TabsContent>
             </Tabs>
           </>
