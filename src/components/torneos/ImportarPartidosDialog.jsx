@@ -44,10 +44,11 @@ export default function ImportarPartidosDialog({ open, onOpenChange, torneo, cat
 
   const extraer = useMutation({
     mutationFn: async () => {
-      const { data } = await base44.functions.torneoExtraerPartidos({
+      const res = await base44.functions.invoke("torneoExtraerPartidos", {
         torneo_id: torneo.id, categoria_id: categoria.id,
         image_url: imageUrl || undefined, texto: texto || undefined,
       });
+      const data = res?.data || res;
       if (data?.error) throw new Error(data.error);
       return data;
     },
