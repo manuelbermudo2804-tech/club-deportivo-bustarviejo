@@ -33,12 +33,12 @@ export default function BracketView({ partidos, equipos, fase, titulo, color, on
             .filter((p) => p.ronda === ronda)
             .sort((a, b) => (a.orden_bracket || 0) - (b.orden_bracket || 0));
           return (
-            <div key={ronda} className="flex-shrink-0 w-64 space-y-3">
+            <div key={ronda} className="flex-shrink-0 w-72 space-y-3">
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide text-center">{ronda}</p>
               <div className="space-y-3 flex flex-col justify-around h-full">
                 {partidosRonda.map((p) =>
                   onSave ? (
-                    <PartidoResultRow key={p.id} partido={p} equipos={equipos} torneo={torneo} onSave={onSave} onSaveUbicacion={onSaveUbicacion} isSaving={isSaving} />
+                    <PartidoResultRow key={p.id} partido={p} equipos={equipos} torneo={torneo} onSave={onSave} onSaveUbicacion={onSaveUbicacion} isSaving={isSaving} compacto />
                   ) : (
                     <BracketMatchReadOnly key={p.id} partido={p} equipos={equipos} />
                   )

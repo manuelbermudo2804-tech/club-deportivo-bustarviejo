@@ -26,7 +26,7 @@ function opcionesCampo(torneo) {
 }
 
 // La "pantalla soñada": Campo / Hora / Local [x] Visitante [y] [Guardar]
-export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbicacion, isSaving, torneo, onGoleadores, golesCount = 0, onAnular }) {
+export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbicacion, isSaving, torneo, onGoleadores, golesCount = 0, onAnular, compacto = false }) {
   const eqLocal = equipos.find((e) => e.id === partido.equipo_local_id);
   const eqVisit = equipos.find((e) => e.id === partido.equipo_visitante_id);
   const nombreLocal = eqLocal?.nombre || partido.equipo_local_placeholder || "Por decidir";
@@ -117,39 +117,71 @@ export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbica
         </div>
       )}
 
-      <div className="flex items-center gap-2">
-        <span className="flex-1 flex items-center justify-end gap-1.5 text-sm font-medium truncate">
-          <span className="truncate">{nombreLocal}</span>
-          {escudoL && <img src={escudoL} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />}
-        </span>
-        <Input
-          type="number"
-          className="w-12 text-center px-1"
-          value={local}
-          onChange={(e) => setLocal(e.target.value)}
-          disabled={!eqLocal || !eqVisit}
-        />
-        <span className="text-slate-300">-</span>
-        <Input
-          type="number"
-          className="w-12 text-center px-1"
-          value={visit}
-          onChange={(e) => setVisit(e.target.value)}
-          disabled={!eqLocal || !eqVisit}
-        />
-        <span className="flex-1 flex items-center gap-1.5 text-sm font-medium truncate">
-          {escudoV && <img src={escudoV} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />}
-          <span className="truncate">{nombreVisit}</span>
-        </span>
-        <Button
-          size="sm"
-          className="h-8"
-          disabled={!puedeGuardar || !cambiado || isSaving}
-          onClick={() => onSave(partido, Number(local), Number(visit))}
-        >
-          Guardar
-        </Button>
-      </div>
+      {compacto ? (
+        // Layout vertical para cuadros estrechos: cada equipo en su línea completa
+        // (nombre + escudo) con su marcador al lado, sin truncar el nombre.
+        <div className="space-y-1.5">
+          <div className="flex items-center gap-2">
+            {escudoL && <img src={escudoL} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />}
+            <span className="flex-1 text-sm font-medium break-words leading-tight">{nombreLocal}</span>
+            <Input
+              type="number" className="w-11 h-7 text-center px-1"
+              value={local} onChange={(e) => setLocal(e.target.value)}
+              disabled={!eqLocal || !eqVisit}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            {escudoV && <img src={escudoV} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />}
+            <span className="flex-1 text-sm font-medium break-words leading-tight">{nombreVisit}</span>
+            <Input
+              type="number" className="w-11 h-7 text-center px-1"
+              value={visit} onChange={(e) => setVisit(e.target.value)}
+              disabled={!eqLocal || !eqVisit}
+            />
+          </div>
+          <Button
+            size="sm" className="h-7 w-full text-xs"
+            disabled={!puedeGuardar || !cambiado || isSaving}
+            onClick={() => onSave(partido, Number(local), Number(visit))}
+          >
+            Guardar
+          </Button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          <span className="flex-1 flex items-center justify-end gap-1.5 text-sm font-medium truncate">
+            <span className="truncate">{nombreLocal}</span>
+            {escudoL && <img src={escudoL} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />}
+          </span>
+          <Input
+            type="number"
+            className="w-12 text-center px-1"
+            value={local}
+            onChange={(e) => setLocal(e.target.value)}
+            disabled={!eqLocal || !eqVisit}
+          />
+          <span className="text-slate-300">-</span>
+          <Input
+            type="number"
+            className="w-12 text-center px-1"
+            value={visit}
+            onChange={(e) => setVisit(e.target.value)}
+            disabled={!eqLocal || !eqVisit}
+          />
+          <span className="flex-1 flex items-center gap-1.5 text-sm font-medium truncate">
+            {escudoV && <img src={escudoV} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />}
+            <span className="truncate">{nombreVisit}</span>
+          </span>
+          <Button
+            size="sm"
+            className="h-8"
+            disabled={!puedeGuardar || !cambiado || isSaving}
+            onClick={() => onSave(partido, Number(local), Number(visit))}
+          >
+            Guardar
+          </Button>
+        </div>
+      )}
 
       {partido.finalizado && (onGoleadores || onAnular) && (
         <div className="mt-2 pt-2 border-t flex items-center justify-between gap-2">
