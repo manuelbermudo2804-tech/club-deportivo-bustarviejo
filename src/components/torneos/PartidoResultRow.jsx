@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Check, Clock, MapPin, Goal } from "lucide-react";
+import { Check, Clock, MapPin, Goal, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -26,7 +26,7 @@ function opcionesCampo(torneo) {
 }
 
 // La "pantalla soñada": Campo / Hora / Local [x] Visitante [y] [Guardar]
-export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbicacion, isSaving, torneo, onGoleadores, golesCount = 0 }) {
+export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbicacion, isSaving, torneo, onGoleadores, golesCount = 0, onAnular }) {
   const eqLocal = equipos.find((e) => e.id === partido.equipo_local_id);
   const eqVisit = equipos.find((e) => e.id === partido.equipo_visitante_id);
   const nombreLocal = eqLocal?.nombre || partido.equipo_local_placeholder || "Por decidir";
@@ -151,14 +151,25 @@ export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbica
         </Button>
       </div>
 
-      {onGoleadores && partido.finalizado && (
-        <div className="mt-2 pt-2 border-t flex items-center justify-between">
-          <span className="text-[11px] text-slate-500 inline-flex items-center gap-1">
-            <Goal className="w-3 h-3" /> {golesCount > 0 ? `${golesCount} gol${golesCount > 1 ? "es" : ""} registrado${golesCount > 1 ? "s" : ""}` : "Sin goleadores"}
-          </span>
-          <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => onGoleadores(partido)}>
-            <Goal className="w-3 h-3 mr-1" /> Goleadores
-          </Button>
+      {partido.finalizado && (onGoleadores || onAnular) && (
+        <div className="mt-2 pt-2 border-t flex items-center justify-between gap-2">
+          {onGoleadores ? (
+            <span className="text-[11px] text-slate-500 inline-flex items-center gap-1">
+              <Goal className="w-3 h-3" /> {golesCount > 0 ? `${golesCount} gol${golesCount > 1 ? "es" : ""} registrado${golesCount > 1 ? "s" : ""}` : "Sin goleadores"}
+            </span>
+          ) : <span />}
+          <div className="flex items-center gap-2">
+            {onAnular && (
+              <Button variant="outline" size="sm" className="h-7 text-xs text-red-600 border-red-200 hover:bg-red-50" onClick={() => onAnular(partido)}>
+                <RotateCcw className="w-3 h-3 mr-1" /> Anular resultado
+              </Button>
+            )}
+            {onGoleadores && (
+              <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => onGoleadores(partido)}>
+                <Goal className="w-3 h-3 mr-1" /> Goleadores
+              </Button>
+            )}
+          </div>
         </div>
       )}
     </div>

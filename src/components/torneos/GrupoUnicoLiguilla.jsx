@@ -60,6 +60,14 @@ export default function GrupoUnicoLiguilla({ torneo, categoria, equipos, partido
     onSuccess: () => { invalidate(); toast.success("Partido eliminado"); },
   });
 
+  const anularResultado = useMutation({
+    mutationFn: (partido) => base44.entities.TorneoPartido.update(partido.id, {
+      marcador_local: null, marcador_visitante: null, finalizado: false,
+    }),
+    onSuccess: () => { invalidate(); toast.success("Resultado anulado"); },
+    onError: () => toast.error("Error al anular"),
+  });
+
   if (equiposCat.length < 2) {
     return <p className="text-center text-slate-400 text-sm py-6">Añade al menos 2 equipos en la pestaña Equipos.</p>;
   }
@@ -122,6 +130,7 @@ export default function GrupoUnicoLiguilla({ torneo, categoria, equipos, partido
                 isSaving={guardarResultado.isPending}
                 golesCount={goles.filter((g) => g.partido_id === p.id).reduce((s, g) => s + (g.goles || 1), 0)}
                 onGoleadores={() => setGolPartido(p)}
+                onAnular={(partido) => { if (confirm("¿Anular el resultado? El partido volverá a estar sin jugar.")) anularResultado.mutate(partido); }}
               />
               {!p.finalizado && (
                 <button
