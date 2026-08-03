@@ -8,19 +8,22 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Trophy, ExternalLink } from "lucide-react";
+import { ArrowLeft, Trophy, ExternalLink, Pencil } from "lucide-react";
 import { toast } from "sonner";
+import TorneoForm from "@/components/torneos/TorneoForm";
 import CategoriaManager from "@/components/torneos/CategoriaManager";
 import LiguillaResultados from "@/components/torneos/LiguillaResultados";
 import EliminatoriasManager from "@/components/torneos/EliminatoriasManager";
 import PlantillasManager from "@/components/torneos/PlantillasManager";
 
 const ESTADOS = ["borrador", "publicado", "en_curso", "finalizado", "archivado"];
+const PUBLIC_DOMAIN = "https://app.cdbustarviejo.com";
 
 export default function TorneoManager() {
   const queryClient = useQueryClient();
   const torneoId = new URLSearchParams(window.location.search).get("id");
   const [catSel, setCatSel] = useState("");
+  const [editando, setEditando] = useState(false);
 
   const { data, isLoading } = useQuery({
     queryKey: ["torneo-full", torneoId],
@@ -44,6 +47,12 @@ export default function TorneoManager() {
     onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["torneo-full", torneoId] }); toast.success("Estado actualizado"); },
   });
 
+  const guardarTorneo = useMutation({
+    mutationFn: (data) => base44.entities.Torneo.update(torneoId, data),
+    onSuccess: () => { setEditando(false); queryClient.invalidateQueries({ queryKey: ["torneo-full", torneoId] }); toast.success("Torneo actualizado"); },
+    onError: (e) => toast.error(e?.message?.includes("slug") ? "Ese identificador ya existe" : "Error al guardar"),
+  });
+
   if (isLoading) return <p className="text-center text-slate-400 py-10">Cargando...</p>;
   if (!data?.torneo) return <p className="text-center text-slate-400 py-10">Torneo no encontrado.</p>;
 
@@ -63,6 +72,9 @@ export default function TorneoManager() {
           </h1>
           <p className="text-xs text-slate-400">{torneo.deporte} · {torneo.tipo_puntuacion === "sets" ? "por sets" : "por goles"}</p>
         </div>
+        <Button variant="outline" size="sm" onClick={() => setEditando((v) => !v)}>
+          <Pencil className="w-4 h-4 mr-1" /> {editando ? "Cerrar" : "Editar"}
+        </Button>
         <Select value={torneo.estado} onValueChange={(v) => cambiarEstado.mutate(v)}>
           <SelectTrigger className="w-32"><SelectValue /></SelectTrigger>
           <SelectContent>
@@ -71,21 +83,31 @@ export default function TorneoManager() {
         </Select>
       </div>
 
+      {editando && (
+        <TorneoForm
+          initial={torneo}
+          onSave={(data) => guardarTorneo.mutate(data)}
+          onCancel={() => setEditando(false)}
+          isSaving={guardarTorneo.isPending}
+        />
+      )}
+
       {torneo.slug && (
         <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 space-y-2">
           <div className="flex items-center gap-2">
             <ExternalLink className="w-4 h-4 text-blue-600 flex-shrink-0" />
             <span className="text-sm font-semibold text-blue-800 flex-1">Página pública del torneo</span>
           </div>
-          <p className="text-xs text-blue-600 break-all">
-            {window.location.origin}/torneo/{torneo.slug}
+          <p className="text-sm font-semibold text-blue-800 break-all">
+            {PUBLIC_DOMAIN}/torneo/{torneo.slug}
           </p>
+          <p className="text-xs text-blue-500 -mt-1">{torneo.nombre}</p>
           <div className="flex items-center gap-2">
             <a href={`/torneo/${torneo.slug}`} target="_blank" rel="noreferrer" className="flex-1">
               <Button variant="outline" size="sm" className="w-full bg-white">Abrir página</Button>
             </a>
             <Button size="sm" className="flex-1"
-              onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/torneo/${torneo.slug}`); toast.success("Enlace copiado"); }}>
+              onClick={() => { navigator.clipboard.writeText(`${PUBLIC_DOMAIN}/torneo/${torneo.slug}`); toast.success("Enlace copiado"); }}>
               Copiar enlace
             </Button>
           </div>

@@ -32,6 +32,53 @@
       "default": "goles",
       "description": "goles = deportes de goles (f\u00fatbol, futsal, baloncesto). sets = deportes de sets/juegos (p\u00e1del, voleibol)"
     },
+    "formato_liguilla": {
+      "type": "string",
+      "enum": [
+        "grupos",
+        "grupo_unico"
+      ],
+      "default": "grupos",
+      "description": "grupos = varios grupos todos-contra-todos. grupo_unico = un solo grupo donde cada equipo juega un n\u00famero fijo de partidos (rivales y horarios manuales) y hay una \u00fanica clasificaci\u00f3n general"
+    },
+    "partidos_por_equipo": {
+      "type": "number",
+      "default": 3,
+      "description": "Solo en formato grupo_unico: n\u00ba de partidos que juega cada equipo en la liguilla (informativo)"
+    },
+    "fases_finales": {
+      "type": "array",
+      "description": "Configuraci\u00f3n de las fases finales (cuadros por nivel) para el formato grupo_unico. Cada fase toma un rango de la clasificaci\u00f3n general.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "clave": {
+            "type": "string",
+            "enum": [
+              "oro",
+              "plata",
+              "bronce"
+            ]
+          },
+          "nombre": {
+            "type": "string",
+            "description": "Nombre visible (ej: Fase Oro)"
+          },
+          "desde": {
+            "type": "number",
+            "description": "Posici\u00f3n inicial de la clasificaci\u00f3n general que entra en esta fase (ej: 1)"
+          },
+          "hasta": {
+            "type": "number",
+            "description": "Posici\u00f3n final (ej: 16)"
+          },
+          "sede_id": {
+            "type": "string",
+            "description": "ID de la sede donde se juega esta fase"
+          }
+        }
+      }
+    },
     "puntos_victoria": {
       "type": "number",
       "default": 3,

@@ -30,6 +30,9 @@ export default function TorneoForm({ initial, onSave, onCancel, isSaving }) {
     slug: initial?.slug || "",
     deporte: initial?.deporte || "Fútbol",
     tipo_puntuacion: initial?.tipo_puntuacion || "goles",
+    formato_liguilla: initial?.formato_liguilla || "grupos",
+    partidos_por_equipo: initial?.partidos_por_equipo ?? 3,
+    fases_finales: initial?.fases_finales || [],
     puntos_victoria: initial?.puntos_victoria ?? 3,
     puntos_empate: initial?.puntos_empate ?? 1,
     puntos_derrota: initial?.puntos_derrota ?? 0,
@@ -49,13 +52,31 @@ export default function TorneoForm({ initial, onSave, onCancel, isSaving }) {
     setForm((f) => ({ ...f, deporte, ...preset }));
   };
 
+  // El nombre siempre se edita. El slug solo se autogenera al crear (torneo nuevo);
+  // al editar un torneo existente el slug se toca manualmente en su propio campo.
   const handleNombre = (nombre) => {
     setForm((f) => ({
       ...f,
       nombre,
-      slug: f.slug && initial ? f.slug : slugify(nombre),
+      slug: initial ? f.slug : slugify(nombre),
     }));
   };
+
+  const setFase = (idx, k, v) => {
+    setForm((f) => {
+      const next = [...(f.fases_finales || [])];
+      next[idx] = { ...next[idx], [k]: v };
+      return { ...f, fases_finales: next };
+    });
+  };
+  const addFase = () => {
+    const claves = ["oro", "plata", "bronce"];
+    const usadas = (form.fases_finales || []).map((x) => x.clave);
+    const clave = claves.find((c) => !usadas.includes(c)) || "oro";
+    const nombreFase = { oro: "Fase Oro", plata: "Fase Plata", bronce: "Fase Bronce" }[clave];
+    set("fases_finales", [...(form.fases_finales || []), { clave, nombre: nombreFase, desde: 1, hasta: 8, sede_id: "" }]);
+  };
+  const delFase = (idx) => set("fases_finales", (form.fases_finales || []).filter((_, i) => i !== idx));
 
   const handleSubmit = () => {
     if (!form.nombre.trim()) return;
@@ -112,6 +133,76 @@ export default function TorneoForm({ initial, onSave, onCancel, isSaving }) {
             <Label>Pts derrota</Label>
             <Input type="number" value={form.puntos_derrota} onChange={(e) => set("puntos_derrota", Number(e.target.value))} />
           </div>
+        </div>
+
+        <div className="pt-2 border-t space-y-3">
+          <div>
+            <Label>Formato de la liguilla</Label>
+            <Select value={form.formato_liguilla} onValueChange={(v) => set("formato_liguilla", v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="grupos">Varios grupos (todos contra todos)</SelectItem>
+                <SelectItem value="grupo_unico">Grupo único (partidos y horarios manuales)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-slate-400 mt-1">
+              {form.formato_liguilla === "grupo_unico"
+                ? "Un solo grupo. Cada equipo juega N partidos que defines a mano (rival, sede y hora). Clasificación general única."
+                : "Se crean grupos y todos juegan contra todos dentro de su grupo."}
+            </p>
+          </div>
+
+          {form.formato_liguilla === "grupo_unico" && (
+            <>
+              <div>
+                <Label>Partidos por equipo</Label>
+                <Input type="number" min={1} value={form.partidos_por_equipo}
+                  onChange={(e) => set("partidos_por_equipo", Number(e.target.value))} />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label>Fases finales (cortes de la clasificación)</Label>
+                  <Button variant="outline" size="sm" onClick={addFase}>+ Añadir fase</Button>
+                </div>
+                {(form.fases_finales || []).length === 0 && (
+                  <p className="text-xs text-slate-400">Ej: Oro 1º-16º · Plata 17º-24º</p>
+                )}
+                {(form.fases_finales || []).map((fase, idx) => (
+                  <div key={idx} className="p-2 bg-slate-50 rounded-lg border grid grid-cols-12 gap-2 items-end">
+                    <div className="col-span-4">
+                      <Label className="text-xs">Nombre</Label>
+                      <Input className="h-8 text-sm" value={fase.nombre || ""}
+                        onChange={(e) => setFase(idx, "nombre", e.target.value)} placeholder="Fase Oro" />
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="text-xs">Desde</Label>
+                      <Input className="h-8 text-sm" type="number" min={1} value={fase.desde ?? ""}
+                        onChange={(e) => setFase(idx, "desde", Number(e.target.value))} />
+                    </div>
+                    <div className="col-span-2">
+                      <Label className="text-xs">Hasta</Label>
+                      <Input className="h-8 text-sm" type="number" min={1} value={fase.hasta ?? ""}
+                        onChange={(e) => setFase(idx, "hasta", Number(e.target.value))} />
+                    </div>
+                    <div className="col-span-3">
+                      <Label className="text-xs">Sede</Label>
+                      <Select value={fase.sede_id || "__none__"} onValueChange={(v) => setFase(idx, "sede_id", v === "__none__" ? "" : v)}>
+                        <SelectTrigger className="h-8 text-sm"><SelectValue placeholder="—" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Sin definir</SelectItem>
+                          {(form.sedes || []).map((s) => (
+                            <SelectItem key={s.id} value={s.id}>{s.nombre}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <button onClick={() => delFase(idx)} className="col-span-1 text-red-400 hover:text-red-600 pb-2 text-sm">✕</button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-3">
