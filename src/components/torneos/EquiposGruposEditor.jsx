@@ -15,6 +15,21 @@ export default function EquiposGruposEditor({ torneo, categoria, grupos, equipos
   const [nuevoEquipo, setNuevoEquipo] = useState("");
   const [nGrupos, setNGrupos] = useState(grupos.length || 2);
 
+  // En formato "grupo único" no hay grupos: todos los equipos van a una única
+  // clasificación general y luego se dividen en fase Oro / Plata.
+  const esGrupoUnico = torneo.formato_liguilla === "grupo_unico";
+
+  // Limpieza: si es grupo único pero quedaron grupos creados (por error), permite borrarlos.
+  const eliminarGrupos = useMutation({
+    mutationFn: async () => {
+      await Promise.all(equipos.filter((e) => e.grupo_id).map((e) =>
+        base44.entities.TorneoEquipo.update(e.id, { grupo_id: "" })));
+      await Promise.all(grupos.map((g) => base44.entities.TorneoGrupo.delete(g.id)));
+    },
+    onSuccess: () => { onChange(); toast.success("Grupos eliminados. Ahora es grupo único."); },
+    onError: (e) => toast.error(e.message),
+  });
+
   const addEquipo = useMutation({
     mutationFn: (nombre) =>
       base44.entities.TorneoEquipo.create({
@@ -75,20 +90,33 @@ export default function EquiposGruposEditor({ torneo, categoria, grupos, equipos
 
   return (
     <div className="space-y-4">
-      {/* Grupos */}
-      <div className="flex items-end gap-2">
-        <div>
-          <label className="text-xs text-slate-500">Nº de grupos</label>
-          <Input type="number" min={1} max={12} value={nGrupos}
-            onChange={(e) => setNGrupos(Number(e.target.value))} className="w-20" />
+      {esGrupoUnico ? (
+        // Grupo único: no se gestionan grupos. Aviso + limpieza si quedaron grupos sueltos.
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+          <p className="font-semibold mb-0.5">Formato de grupo único</p>
+          <p className="text-xs">Todos los equipos compiten en una única clasificación general. Luego se dividen en fase Oro y Plata. No hay que crear grupos.</p>
+          {grupos.length > 0 && (
+            <Button variant="outline" size="sm" className="mt-2" onClick={() => eliminarGrupos.mutate()} disabled={eliminarGrupos.isPending}>
+              <Trash2 className="w-4 h-4 mr-1" /> Eliminar los {grupos.length} grupos y dejar grupo único
+            </Button>
+          )}
         </div>
-        <Button variant="outline" size="sm" onClick={() => crearGrupos.mutate(nGrupos)} disabled={crearGrupos.isPending}>
-          Crear grupos
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => repartirAuto.mutate()} disabled={repartirAuto.isPending || grupos.length === 0}>
-          <Shuffle className="w-4 h-4 mr-1" /> Repartir
-        </Button>
-      </div>
+      ) : (
+        /* Grupos (solo en formato "grupos") */
+        <div className="flex items-end gap-2">
+          <div>
+            <label className="text-xs text-slate-500">Nº de grupos</label>
+            <Input type="number" min={1} max={12} value={nGrupos}
+              onChange={(e) => setNGrupos(Number(e.target.value))} className="w-20" />
+          </div>
+          <Button variant="outline" size="sm" onClick={() => crearGrupos.mutate(nGrupos)} disabled={crearGrupos.isPending}>
+            Crear grupos
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => repartirAuto.mutate()} disabled={repartirAuto.isPending || grupos.length === 0}>
+            <Shuffle className="w-4 h-4 mr-1" /> Repartir
+          </Button>
+        </div>
+      )}
 
       {/* Añadir equipo */}
       <div className="flex gap-2">
