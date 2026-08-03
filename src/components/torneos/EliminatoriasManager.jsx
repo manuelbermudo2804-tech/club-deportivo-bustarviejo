@@ -178,6 +178,25 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
     onError: () => toast.error("Error al guardar campo/hora"),
   });
 
+  // Mapa equipo_id → posición en la clasificación general de la liguilla.
+  // Permite mostrar la semilla (1º, 2º…) junto a cada equipo del cuadro, aunque
+  // el partido no tenga guardado equipo_local_pos/equipo_visitante_pos.
+  const seedPorEquipo = React.useMemo(() => {
+    const map = {};
+    if (esGrupoUnico) {
+      // Posición global de la clasificación general (1º, 2º, 3º…)
+      calcularClasificacionGeneral(equiposCat, partidosCat, torneo)
+        .forEach((f) => { if (f.equipo_id) map[f.equipo_id] = String(f.posicion); });
+    } else {
+      // Formato grupos: posición dentro de su grupo (ej: 1ºA, 2ºB)
+      const porPos = clasificadosPorPosicion(grupos, equipos, partidosCat, torneo);
+      Object.entries(porPos).forEach(([pos, arr]) => {
+        arr.forEach((e) => { if (e.equipo_id) map[e.equipo_id] = `${pos}${e.grupo?.replace(/^grupo\s*/i, "") || ""}`; });
+      });
+    }
+    return map;
+  }, [esGrupoUnico, equiposCat, partidosCat, torneo, grupos, equipos]);
+
   if (!yaGenerados && esGrupoUnico) {
     return (
       <div className="bg-white rounded-xl border p-4 space-y-4">
@@ -276,7 +295,7 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
         ? fasesConfig.map((f) => ({ fase: f.clave, ...CFG_FASE[f.clave], titulo: CFG_FASE[f.clave]?.titulo || f.nombre }))
         : [{ fase: "oro", ...CFG_FASE.oro }, { fase: "plata", ...CFG_FASE.plata }]
       ).map((b) => (
-        <BracketView key={b.fase} partidos={partidosCat} equipos={equipos} torneo={torneo}
+        <BracketView key={b.fase} partidos={partidosCat} equipos={equipos} torneo={torneo} seedPorEquipo={seedPorEquipo}
           fase={b.fase} titulo={b.titulo} color={b.color}
           onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
           onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })} isSaving={guardarResultado.isPending} />

@@ -37,7 +37,9 @@ export function SeedBadge({ pos }) {
 }
 
 // La "pantalla soñada": Campo / Hora / Local [x] Visitante [y] [Guardar]
-export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbicacion, isSaving, torneo, onGoleadores, golesCount = 0, onAnular, compacto = false }) {
+export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbicacion, isSaving, torneo, onGoleadores, golesCount = 0, onAnular, compacto = false, seedLocal, seedVisitante }) {
+  const posLocal = seedLocal ?? partido.equipo_local_pos;
+  const posVisitante = seedVisitante ?? partido.equipo_visitante_pos;
   const eqLocal = equipos.find((e) => e.id === partido.equipo_local_id);
   const eqVisit = equipos.find((e) => e.id === partido.equipo_visitante_id);
   const nombreLocal = eqLocal?.nombre || partido.equipo_local_placeholder || "Por decidir";
@@ -133,7 +135,7 @@ export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbica
         // (nombre + escudo) con su marcador al lado, sin truncar el nombre.
         <div className="space-y-1.5">
           <div className="flex items-center gap-2">
-            <SeedBadge pos={partido.equipo_local_pos} />
+            <SeedBadge pos={posLocal} />
             {escudoL && <img src={escudoL} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />}
             <span className="flex-1 text-sm font-medium break-words leading-tight">{nombreLocal}</span>
             <Input
@@ -143,7 +145,7 @@ export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbica
             />
           </div>
           <div className="flex items-center gap-2">
-            <SeedBadge pos={partido.equipo_visitante_pos} />
+            <SeedBadge pos={posVisitante} />
             {escudoV && <img src={escudoV} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />}
             <span className="flex-1 text-sm font-medium break-words leading-tight">{nombreVisit}</span>
             <Input
@@ -163,7 +165,7 @@ export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbica
       ) : (
         <div className="flex items-center gap-2">
           <span className="flex-1 flex items-center justify-end gap-1.5 text-sm font-medium truncate">
-            <SeedBadge pos={partido.equipo_local_pos} />
+            <SeedBadge pos={posLocal} />
             <span className="truncate">{nombreLocal}</span>
             {escudoL && <img src={escudoL} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />}
           </span>
@@ -185,7 +187,7 @@ export default function PartidoResultRow({ partido, equipos, onSave, onSaveUbica
           <span className="flex-1 flex items-center gap-1.5 text-sm font-medium truncate">
             {escudoV && <img src={escudoV} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />}
             <span className="truncate">{nombreVisit}</span>
-            <SeedBadge pos={partido.equipo_visitante_pos} />
+            <SeedBadge pos={posVisitante} />
           </span>
           <Button
             size="sm"

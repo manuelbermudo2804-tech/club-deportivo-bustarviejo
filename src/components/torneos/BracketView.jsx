@@ -16,7 +16,10 @@ function ordenarRondas(rondas) {
   });
 }
 
-export default function BracketView({ partidos, equipos, fase, titulo, color, onSave, onSaveUbicacion, isSaving, torneo }) {
+export default function BracketView({ partidos, equipos, fase, titulo, color, onSave, onSaveUbicacion, isSaving, torneo, seedPorEquipo = {} }) {
+  // Semilla a mostrar para un equipo: primero la del mapa (clasificación actual),
+  // si no, la posición guardada en el partido (cuadros "en blanco" de grupo único).
+  const seedDe = (equipoId, posGuardada) => seedPorEquipo[equipoId] ?? posGuardada ?? null;
   const partidosFase = partidos.filter((p) => p.fase === fase);
   if (partidosFase.length === 0) return null;
 
@@ -38,9 +41,11 @@ export default function BracketView({ partidos, equipos, fase, titulo, color, on
               <div className="space-y-3 flex flex-col justify-around h-full">
                 {partidosRonda.map((p) =>
                   onSave ? (
-                    <PartidoResultRow key={p.id} partido={p} equipos={equipos} torneo={torneo} onSave={onSave} onSaveUbicacion={onSaveUbicacion} isSaving={isSaving} compacto />
+                    <PartidoResultRow key={p.id} partido={p} equipos={equipos} torneo={torneo} onSave={onSave} onSaveUbicacion={onSaveUbicacion} isSaving={isSaving} compacto
+                      seedLocal={seedDe(p.equipo_local_id, p.equipo_local_pos)} seedVisitante={seedDe(p.equipo_visitante_id, p.equipo_visitante_pos)} />
                   ) : (
-                    <BracketMatchReadOnly key={p.id} partido={p} equipos={equipos} />
+                    <BracketMatchReadOnly key={p.id} partido={p} equipos={equipos}
+                      seedLocal={seedDe(p.equipo_local_id, p.equipo_local_pos)} seedVisitante={seedDe(p.equipo_visitante_id, p.equipo_visitante_pos)} />
                   )
                 )}
               </div>
@@ -52,7 +57,7 @@ export default function BracketView({ partidos, equipos, fase, titulo, color, on
   );
 }
 
-function BracketMatchReadOnly({ partido, equipos }) {
+function BracketMatchReadOnly({ partido, equipos, seedLocal, seedVisitante }) {
   const eqL = equipos.find((e) => e.id === partido.equipo_local_id);
   const eqV = equipos.find((e) => e.id === partido.equipo_visitante_id);
   const nombreL = eqL?.nombre || partido.equipo_local_placeholder || "Por decidir";
@@ -76,9 +81,9 @@ function BracketMatchReadOnly({ partido, equipos }) {
 
   return (
     <div className="bg-white rounded-lg border overflow-hidden">
-      <Fila escudo={eqL?.escudo_url} nombre={nombreL} marcador={partido.finalizado ? partido.marcador_local : null} ganador={ganadorL} pos={partido.equipo_local_pos} />
+      <Fila escudo={eqL?.escudo_url} nombre={nombreL} marcador={partido.finalizado ? partido.marcador_local : null} ganador={ganadorL} pos={seedLocal} />
       <div className="border-t" />
-      <Fila escudo={eqV?.escudo_url} nombre={nombreV} marcador={partido.finalizado ? partido.marcador_visitante : null} ganador={ganadorV} pos={partido.equipo_visitante_pos} />
+      <Fila escudo={eqV?.escudo_url} nombre={nombreV} marcador={partido.finalizado ? partido.marcador_visitante : null} ganador={ganadorV} pos={seedVisitante} />
       {ubicacion && (
         <div className="border-t px-2 py-1 text-[11px] text-slate-400 truncate">📍 {ubicacion}</div>
       )}

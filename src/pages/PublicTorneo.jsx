@@ -8,6 +8,8 @@ import {
 import { MapPin } from "lucide-react";
 import GrupoClasificacion from "@/components/torneos/GrupoClasificacion";
 import BracketView from "@/components/torneos/BracketView";
+import { calcularClasificacionGeneral } from "@/lib/torneoGrupoUnico";
+import { clasificadosPorPosicion } from "@/lib/torneoBracket";
 import TorneoHeroNight from "@/components/torneos/TorneoHeroNight";
 import MiEquipoBuscador from "@/components/torneos/MiEquipoBuscador";
 import OrdenDeJuego from "@/components/torneos/OrdenDeJuego";
@@ -70,6 +72,22 @@ export default function PublicTorneo() {
   const hayGoleadores = golesCat.length > 0;
   const hayPalmares = partidosCat.some((p) => p.ronda === "Final" && p.finalizado && p.ganador_id);
 
+  // Semilla (posición) de cada equipo para mostrar junto a su nombre en los cuadros
+  const seedPorEquipo = (() => {
+    const map = {};
+    if (!catActiva) return map;
+    if (torneo.formato_liguilla === "grupo_unico") {
+      calcularClasificacionGeneral(equiposCat, partidosCat, torneo)
+        .forEach((f) => { if (f.equipo_id) map[f.equipo_id] = String(f.posicion); });
+    } else {
+      const porPos = clasificadosPorPosicion(gruposCat, equipos, partidosCat, torneo);
+      Object.entries(porPos).forEach(([pos, arr]) => {
+        arr.forEach((e) => { if (e.equipo_id) map[e.equipo_id] = `${pos}${e.grupo?.replace(/^grupo\s*/i, "") || ""}`; });
+      });
+    }
+    return map;
+  })();
+
   return (
     <div className="torneo-night min-h-screen">
       <TorneoHeroNight torneo={torneo} />
@@ -129,8 +147,8 @@ export default function PublicTorneo() {
               </TabsContent>
 
               <TabsContent value="cuadros" className="mt-4 space-y-6">
-                <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} fase="oro" titulo="🥇 Copa Oro" color="#fbbf24" />
-                <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} fase="plata" titulo="🥈 Copa Plata" color="#cbd5e1" />
+                <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} seedPorEquipo={seedPorEquipo} fase="oro" titulo="🥇 Copa Oro" color="#fbbf24" />
+                <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} seedPorEquipo={seedPorEquipo} fase="plata" titulo="🥈 Copa Plata" color="#cbd5e1" />
               </TabsContent>
             </Tabs>
           </>
