@@ -14,7 +14,8 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Solo administradores' }, { status: 403 });
     }
 
-    const { torneo_id, categoria_id, image_url, texto } = await req.json();
+    const { torneo_id, categoria_id, image_url, texto, fecha_base } = await req.json();
+    const fechaPorDefecto = fecha_base || new Date().toISOString().slice(0, 10);
     if (!torneo_id || !categoria_id) {
       return Response.json({ error: 'Falta torneo_id o categoria_id' }, { status: 400 });
     }
@@ -52,7 +53,7 @@ CAMPOS/SEDES DISPONIBLES (usa EXACTAMENTE estas etiquetas si reconoces el campo)
 Para cada partido devuelve:
 - equipo_local: nombre EXACTO de la lista de equipos (el más parecido)
 - equipo_visitante: nombre EXACTO de la lista de equipos
-- fecha_hora: en formato ISO "YYYY-MM-DDTHH:mm" si aparece hora/fecha, o null si no aparece. Si solo hay hora sin fecha, usa la fecha ${new Date().toISOString().slice(0,10)}.
+- fecha_hora: en formato ISO "YYYY-MM-DDTHH:mm". Si solo aparece la hora sin fecha, usa SIEMPRE la fecha ${fechaPorDefecto}. Si no aparece ni hora ni fecha, devuelve null.
 - campo_etiqueta: la etiqueta EXACTA de la lista de campos que corresponda, o null si no se reconoce.
 
 Ignora líneas que no sean partidos. Si un nombre de equipo no coincide con ninguno de la lista, omite ese partido.`;

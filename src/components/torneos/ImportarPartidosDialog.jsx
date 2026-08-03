@@ -18,12 +18,13 @@ export default function ImportarPartidosDialog({ open, onOpenChange, torneo, cat
   const [imageUrl, setImageUrl] = useState("");
   const [imagePreview, setImagePreview] = useState("");
   const [texto, setTexto] = useState("");
+  const [fechaBase, setFechaBase] = useState("");
   const [uploading, setUploading] = useState(false);
   const [extraidos, setExtraidos] = useState(null); // null = aún no extraído
   const [descartados, setDescartados] = useState([]);
 
   const reset = () => {
-    setImageUrl(""); setImagePreview(""); setTexto("");
+    setImageUrl(""); setImagePreview(""); setTexto(""); setFechaBase("");
     setExtraidos(null); setDescartados([]);
   };
 
@@ -47,6 +48,7 @@ export default function ImportarPartidosDialog({ open, onOpenChange, torneo, cat
       const res = await base44.functions.invoke("torneoExtraerPartidos", {
         torneo_id: torneo.id, categoria_id: categoria.id,
         image_url: imageUrl || undefined, texto: texto || undefined,
+        fecha_base: fechaBase || undefined,
       });
       const data = res?.data || res;
       if (data?.error) throw new Error(data.error);
@@ -119,6 +121,16 @@ export default function ImportarPartidosDialog({ open, onOpenChange, torneo, cat
               onChange={(e) => setTexto(e.target.value)}
               rows={4}
             />
+
+            <div>
+              <label className="text-xs font-medium text-slate-500 block mb-1">Fecha de los partidos (si la imagen solo trae la hora)</label>
+              <input
+                type="date"
+                value={fechaBase}
+                onChange={(e) => setFechaBase(e.target.value)}
+                className="w-full border rounded-lg px-3 py-2 text-sm"
+              />
+            </div>
 
             <Button
               className="w-full"
