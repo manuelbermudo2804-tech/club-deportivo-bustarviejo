@@ -35,7 +35,9 @@ export default function ClasificacionGeneral({ equipos, partidos, torneo }) {
               <th className="w-8 text-center">G</th>
               <th className="w-8 text-center">E</th>
               <th className="w-8 text-center">P</th>
-              <th className="w-10 text-center" title={anot}>+/-</th>
+              <th className="w-8 text-center" title={`${anot} a favor`}>GF</th>
+              <th className="w-8 text-center" title={`${anot} en contra`}>GC</th>
+              <th className="w-10 text-center" title={`Diferencia de ${anot.toLowerCase()}`}>+/-</th>
               <th className="w-10 text-center font-bold">Pts</th>
             </tr>
           </thead>
@@ -63,6 +65,8 @@ export default function ClasificacionGeneral({ equipos, partidos, torneo }) {
                   <td className="text-center text-slate-500">{f.ganados}</td>
                   <td className="text-center text-slate-500">{f.empatados}</td>
                   <td className="text-center text-slate-500">{f.perdidos}</td>
+                  <td className="text-center text-slate-500">{f.favor}</td>
+                  <td className="text-center text-slate-500">{f.contra}</td>
                   <td className={`text-center ${f.diferencia > 0 ? "text-green-600" : f.diferencia < 0 ? "text-red-500" : "text-slate-400"}`}>
                     {f.diferencia > 0 ? `+${f.diferencia}` : f.diferencia}
                   </td>
