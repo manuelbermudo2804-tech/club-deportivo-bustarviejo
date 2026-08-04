@@ -1,5 +1,5 @@
 import React from "react";
-import { Trophy, Goal } from "lucide-react";
+import { Trophy, Goal, Shield } from "lucide-react";
 
 // Tarjeta de cierre del torneo: campeón de cada cuadro (Oro/Plata/Bronce)
 // y máximo goleador. Solo muestra las secciones que ya tienen ganador.
@@ -33,13 +33,37 @@ function maximoGoleador(goles) {
   return orden[0]?.total > 0 ? orden[0] : null;
 }
 
+// Mejor portero = equipo menos goleado en la liguilla (menos goles/sets en contra).
+// Solo cuenta partidos de liguilla finalizados; el ganador es el equipo con GC más bajo
+// entre los que hayan disputado algún partido.
+function mejorPortero(partidos, equipos) {
+  const contra = {};
+  const jugados = {};
+  partidos
+    .filter((p) => p.fase === "liguilla" && p.finalizado && p.marcador_local != null && p.marcador_visitante != null)
+    .forEach((p) => {
+      contra[p.equipo_local_id] = (contra[p.equipo_local_id] || 0) + p.marcador_visitante;
+      contra[p.equipo_visitante_id] = (contra[p.equipo_visitante_id] || 0) + p.marcador_local;
+      jugados[p.equipo_local_id] = (jugados[p.equipo_local_id] || 0) + 1;
+      jugados[p.equipo_visitante_id] = (jugados[p.equipo_visitante_id] || 0) + 1;
+    });
+  const candidatos = Object.keys(jugados);
+  if (candidatos.length === 0) return null;
+  candidatos.sort((a, b) => contra[a] - contra[b]);
+  const ganadorId = candidatos[0];
+  const eq = equipos.find((e) => e.id === ganadorId);
+  if (!eq) return null;
+  return { nombre: eq.nombre, escudo: eq.escudo_url, encajados: contra[ganadorId] };
+}
+
 export default function Palmares({ partidos, equipos, goles }) {
   const campeones = CUADROS
     .map((c) => ({ ...c, campeon: campeonDeFase(partidos, equipos, c.fase) }))
     .filter((c) => c.campeon);
   const pichichi = maximoGoleador(goles);
+  const portero = mejorPortero(partidos, equipos);
 
-  if (campeones.length === 0 && !pichichi) {
+  if (campeones.length === 0 && !pichichi && !portero) {
     return (
       <p className="text-center text-slate-400 py-8 text-sm">
         El palmarés aparecerá cuando se disputen las finales.
@@ -86,6 +110,24 @@ export default function Palmares({ partidos, equipos, goles }) {
             </div>
             <span className="inline-flex items-center gap-1 text-green-600 font-black text-lg">
               <Goal className="w-5 h-5" /> {pichichi.total}
+            </span>
+          </div>
+        )}
+
+        {portero && (
+          <div className="bg-white rounded-xl border p-4 flex items-center gap-3" style={{ borderLeft: "4px solid #3b82f6" }}>
+            <span className="text-3xl">🧤</span>
+            <div className="flex-1">
+              <p className="text-[11px] uppercase tracking-wide text-slate-400">Mejor portero · Equipo menos goleado</p>
+              <div className="flex items-center gap-2 mt-0.5">
+                {portero.escudo && (
+                  <img src={portero.escudo} alt="" className="w-6 h-6 rounded-full object-cover" />
+                )}
+                <span className="font-bold text-slate-900 text-lg">{portero.nombre}</span>
+              </div>
+            </div>
+            <span className="inline-flex items-center gap-1 text-blue-600 font-black text-lg">
+              <Shield className="w-5 h-5" /> {portero.encajados}
             </span>
           </div>
         )}
