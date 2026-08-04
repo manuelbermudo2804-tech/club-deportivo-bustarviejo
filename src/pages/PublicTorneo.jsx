@@ -5,7 +5,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { MapPin } from "lucide-react";
+import { MapPin, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import GrupoClasificacion from "@/components/torneos/GrupoClasificacion";
 import ClasificacionGeneral from "@/components/torneos/ClasificacionGeneral";
 import ResultadosLiguilla from "@/components/torneos/ResultadosLiguilla";
@@ -23,23 +24,25 @@ export default function PublicTorneo() {
   const { slug } = useParams();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [catSel, setCatSel] = useState("");
 
+  const cargarDatos = async () => {
+    setRefreshing(true);
+    try {
+      const res = await base44.functions.invoke("torneoPublic", { slug });
+      setData(res?.data || null);
+      const t = res?.data?.torneo;
+      if (t) document.title = `${t.nombre} · CD Bustarviejo`;
+    } finally {
+      setRefreshing(false);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await base44.functions.invoke("torneoPublic", { slug });
-        if (!cancelled) {
-          setData(res?.data || null);
-          const t = res?.data?.torneo;
-          if (t) document.title = `${t.nombre} · CD Bustarviejo`;
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => { cancelled = true; };
+    cargarDatos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [slug]);
 
   if (loading) {
@@ -112,6 +115,19 @@ export default function PublicTorneo() {
                 </SelectContent>
               </Select>
             )}
+
+            <div className="flex justify-end">
+              <Button
+                onClick={cargarDatos}
+                disabled={refreshing}
+                variant="outline"
+                size="sm"
+                className="gap-2 bg-white/5 border-white/15 text-slate-200 hover:bg-white/10 hover:text-white"
+              >
+                <RefreshCw className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`} />
+                {refreshing ? "Actualizando..." : "Actualizar"}
+              </Button>
+            </div>
 
             <Tabs defaultValue="clasificacion">
               <TabsList className="w-full flex flex-wrap h-auto gap-1">
