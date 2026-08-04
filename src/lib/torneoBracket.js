@@ -97,7 +97,6 @@ export function construirCuadro(sembrados, fase, torneo, categoria) {
 
   // Rondas siguientes (placeholders enlazados)
   let plazasRonda = plazas / 2;
-  let semifinales = null; // guardamos las semis para enlazar el partido de 3er puesto
   while (plazasRonda >= 2) {
     const nuevos = [];
     for (let i = 0; i < plazasRonda / 2; i++) {
@@ -121,33 +120,8 @@ export function construirCuadro(sembrados, fase, torneo, categoria) {
       partidos.push(p);
       nuevos.push(p);
     }
-    // Las semifinales son la ronda cuyos ganadores alimentan la final (plazasRonda === 2)
-    if (plazasRonda === 2) semifinales = rondaActual;
     rondaActual = nuevos;
     plazasRonda = plazasRonda / 2;
-  }
-
-  // Partido de 3er/4º puesto: perdedores de las dos semifinales.
-  // Solo tiene sentido si hay exactamente 2 semifinales.
-  if (semifinales && semifinales.length === 2) {
-    const tercer = {
-      _ref: ref++,
-      torneo_id: torneo.id,
-      categoria_id: categoria.id,
-      fase,
-      ronda: RONDA_TERCER_PUESTO,
-      orden_bracket: 0,
-      equipo_local_id: "",
-      equipo_visitante_id: "",
-      equipo_local_placeholder: `Perdedor P${semifinales[0]._ref + 1}`,
-      equipo_visitante_placeholder: `Perdedor P${semifinales[1]._ref + 1}`,
-      finalizado: false,
-      _siguiente: null,
-    };
-    // marcamos qué semis alimentan a este partido con su perdedor
-    semifinales[0]._tercerPuesto = tercer._ref;
-    semifinales[1]._tercerPuesto = tercer._ref;
-    partidos.push(tercer);
   }
 
   return partidos;
