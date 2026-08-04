@@ -114,13 +114,13 @@ export default function PublicTorneo() {
             )}
 
             <Tabs defaultValue="clasificacion">
-              <TabsList className="w-full">
-                <TabsTrigger value="clasificacion" className="flex-1">Clasificación</TabsTrigger>
-                <TabsTrigger value="miequipo" className="flex-1">Mi equipo</TabsTrigger>
-                <TabsTrigger value="orden" className="flex-1">Orden de juego</TabsTrigger>
-                <TabsTrigger value="bota" className="flex-1" disabled={!hayGoleadores}>👟 Bota</TabsTrigger>
-                <TabsTrigger value="cuadros" className="flex-1" disabled={!hayCuadros}>Cuadros</TabsTrigger>
-                <TabsTrigger value="palmares" className="flex-1" disabled={!hayPalmares}>🏆 Palmarés</TabsTrigger>
+              <TabsList className="w-full flex flex-wrap h-auto gap-1">
+                <TabsTrigger value="clasificacion" className="flex-1 min-w-[30%]">Clasificación</TabsTrigger>
+                <TabsTrigger value="miequipo" className="flex-1 min-w-[30%]">Mi equipo</TabsTrigger>
+                <TabsTrigger value="orden" className="flex-1 min-w-[30%]">Orden de juego</TabsTrigger>
+                <TabsTrigger value="bota" className="flex-1 min-w-[30%]" disabled={!hayGoleadores}>👟 Bota</TabsTrigger>
+                <TabsTrigger value="cuadros" className="flex-1 min-w-[30%]" disabled={!hayCuadros}>Cuadros</TabsTrigger>
+                <TabsTrigger value="palmares" className="flex-1 min-w-[30%]" disabled={!hayPalmares}>🏆 Palmarés</TabsTrigger>
               </TabsList>
 
               <TabsContent value="palmares" className="mt-4">
