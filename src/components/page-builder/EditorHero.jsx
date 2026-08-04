@@ -146,6 +146,18 @@ export default function EditorHero({ hero, onChange }) {
         />
       </div>
 
+      <div>
+        <Label>Enlace del botón (opcional)</Label>
+        <Input
+          value={hero?.cta_url || ""}
+          onChange={(e) => update("cta_url", e.target.value)}
+          placeholder="https://... o déjalo vacío"
+        />
+        <p className="text-xs text-slate-500 mt-1">
+          Si lo dejas vacío, el botón baja al formulario de esta misma página. Escribe una URL completa (con https://) para enlazar a otra web.
+        </p>
+      </div>
+
       <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
         <div>
           <Label className="cursor-pointer">⏰ Cuenta atrás</Label>

@@ -181,20 +181,32 @@ export default function PublicHero({ hero, branding, onCtaClick }) {
           </motion.div>
         )}
 
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-          onClick={onCtaClick}
-          className="inline-flex items-center justify-center px-10 py-5 rounded-full text-lg font-bold text-white shadow-2xl hover:scale-105 transition-transform"
-          style={{
+        {(() => {
+          const estilo = {
             background: `linear-gradient(135deg, ${colorPrimario}, ${colorSecundario})`,
             boxShadow: `0 20px 60px -10px ${colorPrimario}80`,
-          }}
-        >
-          {hero?.cta_texto || "Inscríbete ahora"}
-          <span className="ml-2">→</span>
-        </motion.button>
+          };
+          const clase = "inline-flex items-center justify-center px-10 py-5 rounded-full text-lg font-bold text-white shadow-2xl hover:scale-105 transition-transform";
+          const contenido = <>{hero?.cta_texto || "Inscríbete ahora"}<span className="ml-2">→</span></>;
+          const anim = {
+            initial: { opacity: 0, y: 20 },
+            animate: { opacity: 1, y: 0 },
+            transition: { delay: 0.5 },
+          };
+          // Si hay URL configurada, el botón es un enlace; si no, hace scroll al formulario.
+          if (hero?.cta_url) {
+            return (
+              <motion.a {...anim} href={hero.cta_url} target="_blank" rel="noopener noreferrer" className={clase} style={estilo}>
+                {contenido}
+              </motion.a>
+            );
+          }
+          return (
+            <motion.button {...anim} onClick={onCtaClick} className={clase} style={estilo}>
+              {contenido}
+            </motion.button>
+          );
+        })()}
       </div>
     </section>
   );
