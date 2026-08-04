@@ -10,6 +10,7 @@ import { semillasFase, semillasFasePlaceholder, calcularClasificacionGeneral } f
 import BracketView from "./BracketView";
 import BracketArbol from "./BracketArbol";
 import AsignarEquiposRonda1 from "./AsignarEquiposRonda1";
+import GoleadoresDialog from "./GoleadoresDialog";
 
 const CFG_FASE = {
   oro: { titulo: "🥇 Copa Oro", color: "#d97706" },
@@ -18,12 +19,20 @@ const CFG_FASE = {
 };
 
 // Fase 2: genera cuadros por nivel desde la liguilla y gestiona el avance de ganadores.
-export default function EliminatoriasManager({ torneo, categoria, grupos, equipos, partidos }) {
+export default function EliminatoriasManager({ torneo, categoria, grupos, equipos, partidos, jugadores = [], goles = [] }) {
   const queryClient = useQueryClient();
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["torneo-full", torneo.id] });
 
   const [plazasOro, setPlazasOro] = useState(1); // nº de posiciones por grupo que van a Oro
   const [plazasPlata, setPlazasPlata] = useState(1);
+  const [golPartido, setGolPartido] = useState(null); // partido cuyo diálogo de goleadores está abierto
+
+  // Total de goles registrados por partido, para mostrar el contador en cada cruce.
+  const golesPorPartido = React.useMemo(() => {
+    const map = {};
+    goles.forEach((g) => { map[g.partido_id] = (map[g.partido_id] || 0) + (g.goles || 1); });
+    return map;
+  }, [goles]);
 
   const esGrupoUnico = torneo.formato_liguilla === "grupo_unico";
   const equiposCat = equipos.filter((e) => e.categoria_id === categoria.id);
@@ -350,7 +359,8 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
           <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} seedPorEquipo={seedPorEquipo}
             fase={b.fase} titulo={b.titulo} color={b.color}
             onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
-            onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })} isSaving={guardarResultado.isPending} />
+            onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })} isSaving={guardarResultado.isPending}
+            onGoleadores={(partido) => setGolPartido(partido)} golesPorPartido={golesPorPartido} />
 
           {/* Vista previa del cuadro tal como lo verá el público (árbol simétrico estilo PDF) */}
           <div className="bg-slate-900 rounded-xl p-4 border border-slate-700 torneo-night">
@@ -360,6 +370,21 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
           </div>
         </div>
       ))}
+
+      {golPartido && (
+        <GoleadoresDialog
+          open={!!golPartido}
+          onOpenChange={(v) => !v && setGolPartido(null)}
+          partido={golPartido}
+          eqLocal={equipos.find((e) => e.id === golPartido.equipo_local_id)}
+          eqVisit={equipos.find((e) => e.id === golPartido.equipo_visitante_id)}
+          jugadores={jugadores}
+          golesExistentes={goles.filter((g) => g.partido_id === golPartido.id)}
+          torneo={torneo}
+          categoria={categoria}
+          onSaved={invalidate}
+        />
+      )}
     </div>
   );
 }

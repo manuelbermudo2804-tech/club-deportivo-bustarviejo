@@ -16,7 +16,7 @@ function ordenarRondas(rondas) {
   });
 }
 
-export default function BracketView({ partidos, equipos, fase, titulo, color, onSave, onSaveUbicacion, isSaving, torneo, seedPorEquipo = {} }) {
+export default function BracketView({ partidos, equipos, fase, titulo, color, onSave, onSaveUbicacion, isSaving, torneo, seedPorEquipo = {}, onGoleadores, golesPorPartido = {} }) {
   // Semilla a mostrar para un equipo: primero la del mapa (clasificación actual),
   // si no, la posición guardada en el partido (cuadros "en blanco" de grupo único).
   const seedDe = (equipoId, posGuardada) => seedPorEquipo[equipoId] ?? posGuardada ?? null;
@@ -42,6 +42,7 @@ export default function BracketView({ partidos, equipos, fase, titulo, color, on
                 {partidosRonda.map((p) =>
                   onSave ? (
                     <PartidoResultRow key={p.id} partido={p} equipos={equipos} torneo={torneo} onSave={onSave} onSaveUbicacion={onSaveUbicacion} isSaving={isSaving} compacto
+                      onGoleadores={onGoleadores} golesCount={golesPorPartido[p.id] || 0}
                       seedLocal={seedDe(p.equipo_local_id, p.equipo_local_pos)} seedVisitante={seedDe(p.equipo_visitante_id, p.equipo_visitante_pos)} />
                   ) : (
                     <BracketMatchReadOnly key={p.id} partido={p} equipos={equipos}

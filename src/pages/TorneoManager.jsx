@@ -198,6 +198,8 @@ export default function TorneoManager() {
                 grupos={grupos.filter((g) => g.categoria_id === catActiva.id).sort((a, b) => (a.orden || 0) - (b.orden || 0))}
                 equipos={equipos}
                 partidos={partidos}
+                jugadores={jugadores}
+                goles={goles}
               />
               <PremiosManualesPanel
                 torneo={torneo}
