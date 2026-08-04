@@ -153,6 +153,17 @@ export const BLOCK_CATALOG = [
     },
   },
   {
+    tipo: "patrocinar",
+    nombre: "Quiero patrocinar",
+    emoji: "🤝",
+    descripcion: "Formulario para que empresas se ofrezcan a patrocinar",
+    datosDefault: {
+      titulo: "¿Quieres patrocinar el torneo?",
+      descripcion: "Da visibilidad a tu marca ante cientos de familias y deportistas. Déjanos tus datos y te contamos las opciones.",
+      texto_boton: "Quiero patrocinar",
+    },
+  },
+  {
     tipo: "equipos",
     nombre: "Equipos / Participantes",
     emoji: "🏆",

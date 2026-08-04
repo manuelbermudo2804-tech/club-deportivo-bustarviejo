@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import ContactoBlock from "./ContactoBlock";
 import TorneoLiveBlock from "./TorneoLiveBlock";
+import PatrocinarBlock from "./PatrocinarBlock";
 
 // Hook auxiliar para countdown
 function useCountdown(target) {
@@ -25,7 +26,7 @@ function useCountdown(target) {
 }
 
 // Renderiza los distintos tipos de bloques en la página pública con estética brutal.
-export default function PublicBlockRenderer({ bloque, branding }) {
+export default function PublicBlockRenderer({ bloque, branding, slug, paginaNombre }) {
   const { tipo, datos = {} } = bloque || {};
   const color = branding?.color_principal || "#ea580c";
 
@@ -355,6 +356,10 @@ export default function PublicBlockRenderer({ bloque, branding }) {
 
   if (tipo === "contacto") {
     return <ContactoBlock datos={datos} color={color} branding={branding} wrapper={wrapper} />;
+  }
+
+  if (tipo === "patrocinar") {
+    return <PatrocinarBlock datos={datos} color={color} slug={slug} paginaNombre={paginaNombre} />;
   }
 
   if (tipo === "countdown") {

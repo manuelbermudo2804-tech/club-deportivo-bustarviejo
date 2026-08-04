@@ -185,7 +185,7 @@ export default function PublicLanding() {
       <PublicHero hero={cfg.hero} branding={branding} onCtaClick={scrollToForm} />
 
       {bloques.map((b) => (
-        <PublicBlockRenderer key={b.id} bloque={b} branding={branding} />
+        <PublicBlockRenderer key={b.id} bloque={b} branding={branding} slug={page.slug} paginaNombre={page.nombre} />
       ))}
 
       {cfg.formulario && (

@@ -1,0 +1,74 @@
+{
+  "name": "TorneoPatrocinioSolicitud",
+  "type": "object",
+  "properties": {
+    "landing_slug": {
+      "type": "string",
+      "description": "Slug de la landing del constructor de p\u00e1ginas desde donde se envi\u00f3 la solicitud"
+    },
+    "pagina_nombre": {
+      "type": "string",
+      "description": "Nombre visible de la p\u00e1gina / torneo (denormalizado para identificar la solicitud)"
+    },
+    "nombre_empresa": {
+      "type": "string",
+      "description": "Nombre comercial de la empresa interesada en patrocinar"
+    },
+    "nombre_contacto": {
+      "type": "string",
+      "description": "Nombre de la persona de contacto"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email de contacto"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto"
+    },
+    "mensaje": {
+      "type": "string",
+      "description": "Mensaje libre de la empresa (opcional)"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "contactado",
+        "cerrado",
+        "descartado"
+      ],
+      "default": "pendiente",
+      "description": "Seguimiento manual del admin"
+    },
+    "notas_internas": {
+      "type": "string",
+      "description": "Notas privadas del club"
+    }
+  },
+  "required": [
+    "nombre_empresa",
+    "nombre_contacto",
+    "email",
+    "telefono"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

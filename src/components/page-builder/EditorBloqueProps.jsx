@@ -488,6 +488,29 @@ export default function EditorBloqueProps({ bloque, onChange }) {
     );
   }
 
+  // --- QUIERO PATROCINAR ---
+  if (bloque.tipo === "patrocinar") {
+    return (
+      <div className="space-y-3">
+        <div>
+          <Label>Título</Label>
+          <Input value={datos.titulo || ""} onChange={(e) => update("titulo", e.target.value)} placeholder="¿Quieres patrocinar el torneo?" />
+        </div>
+        <div>
+          <Label>Descripción</Label>
+          <Textarea value={datos.descripcion || ""} onChange={(e) => update("descripcion", e.target.value)} rows={3} placeholder="Explica las ventajas de patrocinar…" />
+        </div>
+        <div>
+          <Label>Texto del botón</Label>
+          <Input value={datos.texto_boton || ""} onChange={(e) => update("texto_boton", e.target.value)} placeholder="Quiero patrocinar" />
+        </div>
+        <p className="text-xs text-slate-500">
+          Las solicitudes de empresas te llegarán por email a info@cdbustarviejo.com y quedarán guardadas en el club.
+        </p>
+      </div>
+    );
+  }
+
   // --- EQUIPOS ---
   if (bloque.tipo === "equipos") {
     const items = datos.items || [];
