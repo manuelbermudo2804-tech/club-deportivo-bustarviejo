@@ -16,6 +16,7 @@ import LiguillaResultados from "@/components/torneos/LiguillaResultados";
 import GrupoUnicoLiguilla from "@/components/torneos/GrupoUnicoLiguilla";
 import EliminatoriasManager from "@/components/torneos/EliminatoriasManager";
 import PlantillasManager from "@/components/torneos/PlantillasManager";
+import PremiosManualesPanel from "@/components/torneos/PremiosManualesPanel";
 
 const ESTADOS = ["borrador", "publicado", "en_curso", "finalizado", "archivado"];
 const PUBLIC_DOMAIN = "https://app.cdbustarviejo.com";
@@ -190,13 +191,21 @@ export default function TorneoManager() {
           {!catActiva ? (
             <p className="text-center text-slate-400 text-sm py-6">Crea categorías y equipos primero.</p>
           ) : (
-            <EliminatoriasManager
-              torneo={torneo}
-              categoria={catActiva}
-              grupos={grupos.filter((g) => g.categoria_id === catActiva.id).sort((a, b) => (a.orden || 0) - (b.orden || 0))}
-              equipos={equipos}
-              partidos={partidos}
-            />
+            <>
+              <EliminatoriasManager
+                torneo={torneo}
+                categoria={catActiva}
+                grupos={grupos.filter((g) => g.categoria_id === catActiva.id).sort((a, b) => (a.orden || 0) - (b.orden || 0))}
+                equipos={equipos}
+                partidos={partidos}
+              />
+              <PremiosManualesPanel
+                torneo={torneo}
+                categoria={catActiva}
+                equipos={equipos}
+                partidos={partidos}
+              />
+            </>
           )}
         </TabsContent>
       </Tabs>

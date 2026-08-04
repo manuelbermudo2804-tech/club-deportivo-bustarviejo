@@ -124,7 +124,7 @@ export default function PublicTorneo() {
               </TabsList>
 
               <TabsContent value="palmares" className="mt-4">
-                <Palmares partidos={partidosCat} equipos={equipos} goles={golesCat} />
+                <Palmares partidos={partidosCat} equipos={equipos} goles={golesCat} categoria={catActiva} />
               </TabsContent>
 
               <TabsContent value="bota" className="mt-4">

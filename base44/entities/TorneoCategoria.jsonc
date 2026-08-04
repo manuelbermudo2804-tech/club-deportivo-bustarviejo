@@ -29,6 +29,32 @@
       "type": "boolean",
       "default": false,
       "description": "Si ya se generaron los cuadros Oro/Plata desde la liguilla"
+    },
+    "premios_manuales": {
+      "type": "object",
+      "description": "Premios que se rellenan a mano (el sistema no los deduce): nombre del portero Zamora de Oro, MVP de Oro y MVP de Plata. El resto de premios del palmar\u00e9s se calculan autom\u00e1ticamente.",
+      "properties": {
+        "zamora_oro_portero": {
+          "type": "string",
+          "description": "Nombre del portero del equipo menos goleado de la fase Oro (el equipo lo calcula el sistema)"
+        },
+        "mvp_oro_nombre": {
+          "type": "string",
+          "description": "Nombre del MVP (mejor jugador) de la fase Oro"
+        },
+        "mvp_oro_equipo": {
+          "type": "string",
+          "description": "Equipo del MVP de la fase Oro"
+        },
+        "mvp_plata_nombre": {
+          "type": "string",
+          "description": "Nombre del MVP (mejor jugador) de la fase Plata"
+        },
+        "mvp_plata_equipo": {
+          "type": "string",
+          "description": "Equipo del MVP de la fase Plata"
+        }
+      }
     }
   },
   "required": [
