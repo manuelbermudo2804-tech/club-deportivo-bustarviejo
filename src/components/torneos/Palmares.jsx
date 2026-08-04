@@ -26,10 +26,12 @@ function finalistas(partidos, equipos, fase) {
   };
 }
 
-// Máximo goleador en los partidos de una fase concreta.
+// Máximo goleador del torneo, sumando los goles de la liguilla y los de la fase indicada.
 function pichichiFase(goles, partidos, fase) {
-  const idsFase = new Set(partidos.filter((p) => p.fase === fase).map((p) => p.id));
-  const enFase = (goles || []).filter((g) => idsFase.has(g.partido_id));
+  const idsValidos = new Set(
+    partidos.filter((p) => p.fase === "liguilla" || p.fase === fase).map((p) => p.id)
+  );
+  const enFase = (goles || []).filter((g) => idsValidos.has(g.partido_id));
   if (enFase.length === 0) return null;
   const porJugador = {};
   enFase.forEach((g) => {
@@ -41,19 +43,27 @@ function pichichiFase(goles, partidos, fase) {
   return orden[0]?.total > 0 ? orden[0] : null;
 }
 
-// Equipo menos goleado en los partidos de una fase (menos goles/sets en contra).
+// Equipo menos goleado del torneo (liguilla + fase indicada), en promedio de goles en contra
+// por partido jugado — así no penaliza a los equipos que juegan más partidos en la fase.
 function equipoMenosGoleado(partidos, equipos, fase) {
   const contra = {};
   const jugados = {};
   partidos
-    .filter((p) => p.fase === fase && p.finalizado && p.marcador_local != null && p.marcador_visitante != null)
+    .filter((p) => (p.fase === "liguilla" || p.fase === fase) && p.finalizado && p.marcador_local != null && p.marcador_visitante != null)
     .forEach((p) => {
       contra[p.equipo_local_id] = (contra[p.equipo_local_id] || 0) + p.marcador_visitante;
       contra[p.equipo_visitante_id] = (contra[p.equipo_visitante_id] || 0) + p.marcador_local;
       jugados[p.equipo_local_id] = (jugados[p.equipo_local_id] || 0) + 1;
       jugados[p.equipo_visitante_id] = (jugados[p.equipo_visitante_id] || 0) + 1;
     });
-  const candidatos = Object.keys(jugados);
+  // Solo optan al Zamora los equipos que llegaron a la fase indicada (ej: oro),
+  // pero contando también los goles que encajaron en la liguilla.
+  const equiposFase = new Set();
+  partidos.filter((p) => p.fase === fase).forEach((p) => {
+    if (p.equipo_local_id) equiposFase.add(p.equipo_local_id);
+    if (p.equipo_visitante_id) equiposFase.add(p.equipo_visitante_id);
+  });
+  const candidatos = Object.keys(jugados).filter((id) => equiposFase.size === 0 || equiposFase.has(id));
   if (candidatos.length === 0) return null;
   candidatos.sort((a, b) => contra[a] - contra[b]);
   const eq = equipos.find((e) => e.id === candidatos[0]);
