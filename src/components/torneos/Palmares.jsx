@@ -43,27 +43,21 @@ function pichichiFase(goles, partidos, fase) {
   return orden[0]?.total > 0 ? orden[0] : null;
 }
 
-// Equipo menos goleado del torneo (liguilla + fase indicada), en promedio de goles en contra
-// por partido jugado — así no penaliza a los equipos que juegan más partidos en la fase.
+// Equipo menos goleado contando SOLO los partidos de la fase indicada (ej: oro).
+// Al Zamora solo optan los equipos que llegaron a esa fase, y solo cuentan los goles
+// que encajaron en ella (no los de la liguilla), porque no todos jugaron los mismos rivales.
 function equipoMenosGoleado(partidos, equipos, fase) {
   const contra = {};
   const jugados = {};
   partidos
-    .filter((p) => (p.fase === "liguilla" || p.fase === fase) && p.finalizado && p.marcador_local != null && p.marcador_visitante != null)
+    .filter((p) => p.fase === fase && p.finalizado && p.marcador_local != null && p.marcador_visitante != null)
     .forEach((p) => {
       contra[p.equipo_local_id] = (contra[p.equipo_local_id] || 0) + p.marcador_visitante;
       contra[p.equipo_visitante_id] = (contra[p.equipo_visitante_id] || 0) + p.marcador_local;
       jugados[p.equipo_local_id] = (jugados[p.equipo_local_id] || 0) + 1;
       jugados[p.equipo_visitante_id] = (jugados[p.equipo_visitante_id] || 0) + 1;
     });
-  // Solo optan al Zamora los equipos que llegaron a la fase indicada (ej: oro),
-  // pero contando también los goles que encajaron en la liguilla.
-  const equiposFase = new Set();
-  partidos.filter((p) => p.fase === fase).forEach((p) => {
-    if (p.equipo_local_id) equiposFase.add(p.equipo_local_id);
-    if (p.equipo_visitante_id) equiposFase.add(p.equipo_visitante_id);
-  });
-  const candidatos = Object.keys(jugados).filter((id) => equiposFase.size === 0 || equiposFase.has(id));
+  const candidatos = Object.keys(jugados);
   if (candidatos.length === 0) return null;
   candidatos.sort((a, b) => contra[a] - contra[b]);
   const eq = equipos.find((e) => e.id === candidatos[0]);
