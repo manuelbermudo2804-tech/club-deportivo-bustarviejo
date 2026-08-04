@@ -45,7 +45,14 @@ function MatchCard({ partido, equipos, seedLocal, seedVisitante, lado = "left", 
         <span className="w-5 h-5 rounded-full bg-white/10 flex-shrink-0" />
       )}
       <span className="truncate text-[11px] flex-1 leading-tight">{nombre}</span>
-      <span className="text-xs tabular-nums w-4 text-center">{fin ? marcador : ""}</span>
+      <span
+        className={`text-sm font-extrabold tabular-nums w-6 h-6 flex items-center justify-center rounded flex-shrink-0 ${
+          fin ? (gana ? "text-white" : "text-slate-200") : "text-transparent"
+        }`}
+        style={fin ? { background: `${color}22` } : undefined}
+      >
+        {fin ? marcador : ""}
+      </span>
     </div>
   );
 

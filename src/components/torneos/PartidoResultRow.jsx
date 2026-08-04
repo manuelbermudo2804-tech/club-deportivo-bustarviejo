@@ -30,7 +30,10 @@ function opcionesCampo(torneo) {
 export function SeedBadge({ pos }) {
   if (pos == null) return null;
   return (
-    <span className="flex-shrink-0 inline-flex items-center justify-center w-5 h-5 rounded bg-slate-100 text-slate-600 text-[11px] font-bold tabular-nums">
+    <span
+      title={`Clasificado ${pos}º`}
+      className="flex-shrink-0 inline-flex items-center justify-center w-5 h-5 rounded-full border border-slate-300 bg-transparent text-slate-400 text-[10px] font-semibold tabular-nums"
+    >
       {pos}
     </span>
   );
