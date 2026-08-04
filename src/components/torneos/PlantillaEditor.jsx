@@ -7,14 +7,23 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Plus, Trash2, Users, ChevronDown, ChevronRight, ClipboardList } from "lucide-react";
 
-// Convierte una línea pegada en { dorsal, nombre }.
-// Soporta: "10 Messi", "10. Messi", "10 - Messi", "10, Messi" o solo "Messi".
+// Convierte una entrada pegada en { dorsal, nombre }.
+// Soporta: "10 Messi", "10. Messi", "10 - Messi", "10) Messi" o solo "Messi".
 function parseLinea(linea) {
   const t = linea.trim();
   if (!t) return null;
-  const m = t.match(/^(\d{1,3})\s*[.\-,)]?\s+(.+)$/);
+  const m = t.match(/^(\d{1,3})\s*[.\-)]?\s+(.+)$/);
   if (m) return { dorsal: m[1], nombre: m[2].trim() };
   return { dorsal: "", nombre: t };
+}
+
+// Separa el texto pegado tanto por saltos de línea como por comas o punto y coma,
+// para que "Messi, Cristiano, Benzema" se interprete como 3 jugadores distintos.
+function separarJugadores(texto) {
+  return texto
+    .split(/[\n,;]+/)
+    .map(parseLinea)
+    .filter(Boolean);
 }
 
 // Editor de la plantilla (jugadores) de un equipo del torneo.
@@ -48,10 +57,7 @@ export default function PlantillaEditor({ torneo, categoria, equipo, jugadores, 
 
   const addMasivo = useMutation({
     mutationFn: () => {
-      const registros = textoMasivo
-        .split("\n")
-        .map(parseLinea)
-        .filter(Boolean)
+      const registros = separarJugadores(textoMasivo)
         .map((r) => ({
           torneo_id: torneo.id,
           categoria_id: categoria.id,
@@ -108,12 +114,12 @@ export default function PlantillaEditor({ torneo, categoria, equipo, jugadores, 
               <Textarea
                 value={textoMasivo}
                 onChange={(e) => setTextoMasivo(e.target.value)}
-                placeholder={"Pega la lista, un jugador por línea:\n10 Messi\n7 Cristiano\nBenzema"}
+                placeholder={"Pega la lista (por líneas o separados por comas):\n10 Messi, 7 Cristiano, Benzema"}
                 rows={6}
                 className="text-sm"
               />
               <p className="text-xs text-slate-400">
-                Un jugador por línea. Opcional: empieza con el dorsal (ej: <strong>10 Messi</strong>).
+                Separa los jugadores por líneas o por comas. Opcional: empieza con el dorsal (ej: <strong>10 Messi</strong>).
               </p>
               <div className="flex gap-2">
                 <Button size="sm" className="h-8 flex-1" onClick={() => addMasivo.mutate()} disabled={addMasivo.isPending}>
