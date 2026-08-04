@@ -85,8 +85,14 @@ export default function PublicBlockRenderer({ bloque, branding, slug, paginaNomb
 
   if (tipo === "stats") {
     const items = datos.items || [];
+    // Centrar el grupo: nunca más de 3 columnas, y las columnas se adaptan al nº
+    // de items para que 1 ó 2 estadísticas queden centradas en vez de pegadas a la izquierda.
+    const cols = Math.min(items.length || 1, 3);
+    const colClass = { 1: "grid-cols-1", 2: "grid-cols-2", 3: "grid-cols-2 md:grid-cols-3" }[cols];
+    // Limitar el ancho para que 1-2 tarjetas no se estiren de lado a lado
+    const maxW = { 1: "max-w-xs", 2: "max-w-2xl", 3: "max-w-none" }[cols];
     return wrapper(
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 lg:gap-8 items-stretch">
+      <div className={`grid ${colClass} gap-4 lg:gap-8 items-stretch mx-auto ${maxW}`}>
         {items.map((item, i) => (
           <div
             key={i}
