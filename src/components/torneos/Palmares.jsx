@@ -44,8 +44,9 @@ function pichichiFase(goles, partidos, fase) {
 }
 
 // Equipo menos goleado contando SOLO los partidos de la fase indicada (ej: oro).
-// Al Zamora solo optan los equipos que llegaron a esa fase, y solo cuentan los goles
-// que encajaron en ella (no los de la liguilla), porque no todos jugaron los mismos rivales.
+// Al Zamora solo optan los equipos que llegaron a esa fase, y el criterio es el
+// PROMEDIO de goles encajados por partido (no el total absoluto), porque no todos
+// juegan el mismo número de partidos en la eliminatoria.
 function equipoMenosGoleado(partidos, equipos, fase) {
   const contra = {};
   const jugados = {};
@@ -59,10 +60,18 @@ function equipoMenosGoleado(partidos, equipos, fase) {
     });
   const candidatos = Object.keys(jugados);
   if (candidatos.length === 0) return null;
-  candidatos.sort((a, b) => contra[a] - contra[b]);
+  const promedio = (id) => contra[id] / jugados[id];
+  candidatos.sort((a, b) => promedio(a) - promedio(b));
   const eq = equipos.find((e) => e.id === candidatos[0]);
   if (!eq) return null;
-  return { nombre: eq.nombre, escudo: eq.escudo_url, encajados: contra[candidatos[0]] };
+  const mejor = candidatos[0];
+  return {
+    nombre: eq.nombre,
+    escudo: eq.escudo_url,
+    encajados: contra[mejor],
+    partidos: jugados[mejor],
+    promedio: promedio(mejor),
+  };
 }
 
 // Tarjeta genérica de un premio.
@@ -96,7 +105,7 @@ export default function Palmares({ partidos, equipos, goles, categoria }) {
   if (plata.campeon) premios.push({ key: "camp_plata", emoji: "🥇", etiqueta: "Campeón · Fase Plata", principal: plata.campeon.nombre, escudo: plata.campeon.escudo, color: "#cbd5e1" });
   if (plata.subcampeon) premios.push({ key: "sub_plata", emoji: "🥈", etiqueta: "Subcampeón · Fase Plata", principal: plata.subcampeon.nombre, escudo: plata.subcampeon.escudo, color: "#cbd5e1" });
   if (pichichi) premios.push({ key: "pichichi", emoji: "👟", etiqueta: "Pichichi · Fase Oro", principal: pichichi.nombre, secundario: pichichi.equipo, valor: pichichi.total, color: "#22c55e" });
-  if (zamoraEquipo) premios.push({ key: "zamora", emoji: "🧤", etiqueta: "Zamora · Fase Oro (menos goleado)", principal: pm.zamora_oro_portero || zamoraEquipo.nombre, secundario: pm.zamora_oro_portero ? zamoraEquipo.nombre : null, escudo: zamoraEquipo.escudo, valor: zamoraEquipo.encajados, color: "#3b82f6" });
+  if (zamoraEquipo) premios.push({ key: "zamora", emoji: "🧤", etiqueta: "Zamora · Fase Oro (menor promedio encajado)", principal: pm.zamora_oro_portero || zamoraEquipo.nombre, secundario: pm.zamora_oro_portero ? zamoraEquipo.nombre : null, escudo: zamoraEquipo.escudo, valor: `${zamoraEquipo.promedio.toFixed(2)}/pj`, color: "#3b82f6" });
   if (pm.mvp_oro_nombre) premios.push({ key: "mvp_oro", emoji: "🌟", etiqueta: "MVP · Fase Oro", principal: pm.mvp_oro_nombre, secundario: pm.mvp_oro_equipo, color: "#a855f7" });
   if (pm.mvp_plata_nombre) premios.push({ key: "mvp_plata", emoji: "🌟", etiqueta: "MVP · Fase Plata", principal: pm.mvp_plata_nombre, secundario: pm.mvp_plata_equipo, color: "#a855f7" });
 
