@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Award } from "lucide-react";
 import { toast } from "sonner";
 
-// Equipo menos goleado en los partidos de la fase Oro (referencia para el Zamora).
+// Equipo con MENOR PROMEDIO de goles encajados por partido en la fase Oro
+// (mismo criterio que el palmarés) — referencia para el Zamora.
 function equipoMenosGoleadoOro(partidos, equipos) {
   const contra = {};
   const jugados = {};
@@ -20,9 +21,10 @@ function equipoMenosGoleadoOro(partidos, equipos) {
     });
   const cand = Object.keys(jugados);
   if (cand.length === 0) return null;
-  cand.sort((a, b) => contra[a] - contra[b]);
+  const promedio = (id) => contra[id] / jugados[id];
+  cand.sort((a, b) => promedio(a) - promedio(b));
   const eq = equipos.find((e) => e.id === cand[0]);
-  return eq ? { nombre: eq.nombre, encajados: contra[cand[0]] } : null;
+  return eq ? { nombre: eq.nombre, encajados: contra[cand[0]], partidos: jugados[cand[0]], promedio: promedio(cand[0]) } : null;
 }
 
 // Panel para rellenar a mano los premios que el sistema no deduce:
@@ -63,7 +65,7 @@ export default function PremiosManualesPanel({ torneo, categoria, equipos, parti
         <label className="text-xs font-semibold text-slate-600">🧤 Portero Zamora (Fase Oro)</label>
         {zamora ? (
           <p className="text-xs text-blue-600 bg-blue-50 rounded px-2 py-1">
-            Equipo menos goleado de Oro: <strong>{zamora.nombre}</strong> ({zamora.encajados} encajados). Escribe el nombre de su portero.
+            Menor promedio encajado en Oro: <strong>{zamora.nombre}</strong> ({zamora.promedio.toFixed(2)} goles/partido · {zamora.encajados} en {zamora.partidos} partidos). Escribe el nombre de su portero.
           </p>
         ) : (
           <p className="text-xs text-slate-400">Aún no hay partidos de Oro finalizados para calcular el equipo menos goleado.</p>
