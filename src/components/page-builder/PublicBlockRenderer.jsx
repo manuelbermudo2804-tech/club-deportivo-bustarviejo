@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Download } from "lucide-react";
 import ContactoBlock from "./ContactoBlock";
 import TorneoLiveBlock from "./TorneoLiveBlock";
 import PatrocinarBlock from "./PatrocinarBlock";
@@ -466,6 +467,55 @@ export default function PublicBlockRenderer({ bloque, branding, slug, paginaNomb
       >
         <TorneoLiveBlock slug={datos.slug} titulo={datos.titulo} />
       </motion.div>
+    );
+  }
+
+  if (tipo === "documentos") {
+    const items = (datos.items || []).filter((d) => d?.url);
+    if (!items.length) return null;
+    const extOf = (name = "", url = "") => {
+      const m = (name || url).match(/\.([a-z0-9]{2,5})(?:\?|$)/i);
+      return m ? m[1].toUpperCase() : "FILE";
+    };
+    return wrapper(
+      <div className="max-w-4xl mx-auto">
+        {datos.titulo && (
+          <h2 className="text-3xl lg:text-4xl font-black text-center mb-2 text-slate-900">{datos.titulo}</h2>
+        )}
+        {datos.subtitulo && (
+          <p className="text-center text-slate-500 mb-10 text-lg">{datos.subtitulo}</p>
+        )}
+        <div className="grid sm:grid-cols-2 gap-4">
+          {items.map((doc, i) => (
+            <motion.a
+              key={i}
+              href={doc.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              download
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.4, delay: i * 0.05 }}
+              className="group flex items-center gap-4 p-5 rounded-2xl bg-white border border-slate-200 shadow-sm hover:shadow-lg hover:border-slate-300 transition-all"
+            >
+              <div
+                className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0 text-white font-bold text-[11px] tracking-wide"
+                style={{ backgroundColor: color }}
+              >
+                {extOf(doc.nombre, doc.url)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-slate-900 truncate">{doc.nombre || "Documento"}</div>
+                {doc.descripcion && (
+                  <div className="text-sm text-slate-500 truncate">{doc.descripcion}</div>
+                )}
+              </div>
+              <Download className="w-5 h-5 text-slate-400 group-hover:text-slate-700 shrink-0 transition-colors" />
+            </motion.a>
+          ))}
+        </div>
+      </div>
     );
   }
 

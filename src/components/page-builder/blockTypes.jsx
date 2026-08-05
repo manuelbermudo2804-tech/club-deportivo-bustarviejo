@@ -197,6 +197,17 @@ export const BLOCK_CATALOG = [
     },
   },
   {
+    tipo: "documentos",
+    nombre: "Documentos descargables",
+    emoji: "📄",
+    descripcion: "Tarjetas para descargar archivos (PDF, Word, etc.)",
+    datosDefault: {
+      titulo: "Documentos",
+      subtitulo: "Descarga toda la información del torneo",
+      items: [],
+    },
+  },
+  {
     tipo: "embed",
     nombre: "Embed HTML / iframe",
     emoji: "🔌",

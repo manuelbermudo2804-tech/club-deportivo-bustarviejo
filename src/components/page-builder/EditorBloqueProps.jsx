@@ -9,6 +9,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import ImageUploadInput from "./ImageUploadInput";
 import GalleryUploader from "./GalleryUploader";
+import DocumentosUploader from "./DocumentosUploader";
 import RichTextEditor from "./RichTextEditor";
 
 // Editor de propiedades de un bloque concreto, según su tipo.
@@ -593,6 +594,26 @@ export default function EditorBloqueProps({ bloque, onChange }) {
             onChange={(e) => update("titulo", e.target.value)}
             placeholder="Si lo dejas vacío se usa el nombre del torneo"
           />
+        </div>
+      </div>
+    );
+  }
+
+  // --- DOCUMENTOS ---
+  if (bloque.tipo === "documentos") {
+    return (
+      <div className="space-y-3">
+        <div>
+          <Label>Título</Label>
+          <Input value={datos.titulo || ""} onChange={(e) => update("titulo", e.target.value)} />
+        </div>
+        <div>
+          <Label>Subtítulo (opcional)</Label>
+          <Input value={datos.subtitulo || ""} onChange={(e) => update("subtitulo", e.target.value)} />
+        </div>
+        <div>
+          <Label>Documentos</Label>
+          <DocumentosUploader items={datos.items || []} onChange={updateItems} />
         </div>
       </div>
     );
