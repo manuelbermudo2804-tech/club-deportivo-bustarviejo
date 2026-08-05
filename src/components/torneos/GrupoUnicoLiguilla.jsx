@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import { Plus, X, Sparkles } from "lucide-react";
+import { Plus, X, Sparkles, GripVertical } from "lucide-react";
 import { toast } from "sonner";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import PartidoResultRow from "./PartidoResultRow";
 import ClasificacionGeneral from "./ClasificacionGeneral";
 import GoleadoresDialog from "./GoleadoresDialog";
@@ -25,7 +26,12 @@ export default function GrupoUnicoLiguilla({ torneo, categoria, equipos, partido
   const equiposCat = equipos.filter((e) => e.categoria_id === categoria.id);
   const partidosCat = partidos
     .filter((p) => p.categoria_id === categoria.id && p.fase === "liguilla")
-    .sort((a, b) => (a.fecha_hora || "\uffff").localeCompare(b.fecha_hora || "\uffff"));
+    .sort((a, b) => {
+      const oa = a.orden_bracket ?? 9999;
+      const ob = b.orden_bracket ?? 9999;
+      if (oa !== ob) return oa - ob;
+      return (a.fecha_hora || "\uffff").localeCompare(b.fecha_hora || "\uffff");
+    });
 
   const crearPartido = useMutation({
     mutationFn: () => {
@@ -59,6 +65,24 @@ export default function GrupoUnicoLiguilla({ torneo, categoria, equipos, partido
     mutationFn: (id) => base44.entities.TorneoPartido.delete(id),
     onSuccess: () => { invalidate(); toast.success("Partido eliminado"); },
   });
+
+  // Reordenar partidos arrastrándolos. Persiste el orden en orden_bracket.
+  const reordenar = useMutation({
+    mutationFn: (ordenados) =>
+      base44.entities.TorneoPartido.bulkUpdate(
+        ordenados.map((p, i) => ({ id: p.id, orden_bracket: i }))
+      ),
+    onSuccess: () => { invalidate(); },
+    onError: () => { invalidate(); toast.error("Error al reordenar"); },
+  });
+
+  const onDragEnd = (result) => {
+    if (!result.destination || result.destination.index === result.source.index) return;
+    const items = Array.from(partidosCat);
+    const [moved] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, moved);
+    reordenar.mutate(items);
+  };
 
   const anularResultado = useMutation({
     mutationFn: (partido) => base44.entities.TorneoPartido.update(partido.id, {
@@ -119,30 +143,56 @@ export default function GrupoUnicoLiguilla({ torneo, categoria, equipos, partido
         {partidosCat.length === 0 ? (
           <p className="text-center text-slate-400 text-sm py-6">Aún no hay partidos. Añade el primero arriba.</p>
         ) : (
-          partidosCat.map((p) => (
-            <div key={p.id} className="relative group">
-              <PartidoResultRow
-                partido={p}
-                equipos={equiposCat}
-                torneo={torneo}
-                onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
-                onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })}
-                isSaving={guardarResultado.isPending}
-                golesCount={goles.filter((g) => g.partido_id === p.id).reduce((s, g) => s + (g.goles || 1), 0)}
-                onGoleadores={() => setGolPartido(p)}
-                onAnular={(partido) => { if (confirm("¿Anular el resultado? El partido volverá a estar sin jugar.")) anularResultado.mutate(partido); }}
-              />
-              {!p.finalizado && (
-                <button
-                  className="absolute -top-1.5 -right-1.5 bg-white border rounded-full w-5 h-5 flex items-center justify-center text-slate-400 hover:text-red-500 shadow-sm"
-                  title="Eliminar partido"
-                  onClick={() => { if (confirm(`¿Eliminar ${nombreEq(p.equipo_local_id)} vs ${nombreEq(p.equipo_visitante_id)}?`)) borrarPartido.mutate(p.id); }}
-                >
-                  <X className="w-3 h-3" />
-                </button>
+          <DragDropContext onDragEnd={onDragEnd}>
+            <Droppable droppableId="partidos-grupo-unico">
+              {(provided) => (
+                <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-2">
+                  {partidosCat.map((p, index) => (
+                    <Draggable key={p.id} draggableId={p.id} index={index}>
+                      {(prov, snapshot) => (
+                        <div
+                          ref={prov.innerRef}
+                          {...prov.draggableProps}
+                          className={`relative group flex items-stretch gap-1 ${snapshot.isDragging ? "opacity-90" : ""}`}
+                        >
+                          <div
+                            {...prov.dragHandleProps}
+                            className="flex items-center px-1 text-slate-300 hover:text-slate-500 cursor-grab active:cursor-grabbing touch-none"
+                            title="Arrastrar para reordenar"
+                          >
+                            <GripVertical className="w-4 h-4" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <PartidoResultRow
+                              partido={p}
+                              equipos={equiposCat}
+                              torneo={torneo}
+                              onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
+                              onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })}
+                              isSaving={guardarResultado.isPending}
+                              golesCount={goles.filter((g) => g.partido_id === p.id).reduce((s, g) => s + (g.goles || 1), 0)}
+                              onGoleadores={() => setGolPartido(p)}
+                              onAnular={(partido) => { if (confirm("¿Anular el resultado? El partido volverá a estar sin jugar.")) anularResultado.mutate(partido); }}
+                            />
+                          </div>
+                          {!p.finalizado && (
+                            <button
+                              className="absolute -top-1.5 -right-1.5 bg-white border rounded-full w-5 h-5 flex items-center justify-center text-slate-400 hover:text-red-500 shadow-sm z-10"
+                              title="Eliminar partido"
+                              onClick={() => { if (confirm(`¿Eliminar ${nombreEq(p.equipo_local_id)} vs ${nombreEq(p.equipo_visitante_id)}?`)) borrarPartido.mutate(p.id); }}
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                </div>
               )}
-            </div>
-          ))
+            </Droppable>
+          </DragDropContext>
         )}
       </div>
 
