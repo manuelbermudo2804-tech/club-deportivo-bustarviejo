@@ -27,6 +27,13 @@ export default function AsignarPosicionesRonda1({ partidos, onAsignar }) {
   });
   const posicionesUnicas = Array.from(new Set(posiciones)).sort((a, b) => a - b);
 
+  // Posiciones ya ocupadas actualmente en cualquier lado de cualquier partido.
+  const usadas = new Set(posiciones);
+
+  // Para un selector concreto, muestra: su propio valor + todas las que estén libres.
+  const opcionesPara = (actual) =>
+    posicionesUnicas.filter((pos) => pos === actual || !usadas.has(pos));
+
   const setPos = (partido, lado, pos) => {
     const n = Number(pos);
     const campo = lado === "local"
@@ -43,7 +50,7 @@ export default function AsignarPosicionesRonda1({ partidos, onAsignar }) {
           <SelectValue placeholder="Elegir posición…" />
         </SelectTrigger>
         <SelectContent>
-          {posicionesUnicas.map((pos) => (
+          {opcionesPara(actual).map((pos) => (
             <SelectItem key={pos} value={String(pos)}>{pos}º clasificado</SelectItem>
           ))}
         </SelectContent>
