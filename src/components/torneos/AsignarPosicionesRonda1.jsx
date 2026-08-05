@@ -8,18 +8,19 @@ import {
 //
 // En vez de elegir equipos, el admin elige QUÉ POSICIÓN de la clasificación
 // se enfrenta a cuál (ej: 1º vs 12º en lugar del 1º vs 16º por defecto).
-// Así el público ve los cruces reales, la sede y la hora aunque no se sepa
-// qué equipo caerá en cada posición.
+// Como todas las posiciones vienen repartidas entre los partidos, elegir una
+// posición que ya está en otro sitio hace un INTERCAMBIO (swap): la posición
+// que ese hueco tenía antes se le pasa al hueco de donde venía la elegida.
+// Así las N posiciones siempre están repartidas y se pueden reorganizar libremente.
 //
 // props:
 //  - partidos: partidos en blanco de la primera ronda (con equipo_*_pos)
 //  - onAsignar(partido, patch): guarda la posición elegida y su placeholder
-export default function AsignarPosicionesRonda1({ partidos, onAsignar }) {
+//  - onSwap([{partido, patch}, ...]): aplica varios patches a la vez (intercambio)
+export default function AsignarPosicionesRonda1({ partidos, onAsignar, onSwap }) {
   if (!partidos || partidos.length === 0) return null;
 
-  // Todas las posiciones que participan en esta fase (las que están repartidas
-  // entre todos los partidos de la ronda). Se muestran completas en cada desplegable
-  // para que el admin pueda emparejar cualquier posición con cualquier otra.
+  // Todas las posiciones que participan en esta fase.
   const posiciones = [];
   partidos.forEach((p) => {
     if (p.equipo_local_pos != null) posiciones.push(p.equipo_local_pos);
@@ -27,30 +28,48 @@ export default function AsignarPosicionesRonda1({ partidos, onAsignar }) {
   });
   const posicionesUnicas = Array.from(new Set(posiciones)).sort((a, b) => a - b);
 
-  // Posiciones ya ocupadas actualmente en cualquier lado de cualquier partido.
-  const usadas = new Set(posiciones);
+  const patchLado = (lado, pos) =>
+    lado === "local"
+      ? { equipo_local_pos: pos, equipo_local_placeholder: `${pos}º clasificado` }
+      : { equipo_visitante_pos: pos, equipo_visitante_placeholder: `${pos}º clasificado` };
 
-  // Para un selector concreto, muestra: su propio valor + todas las que estén libres.
-  const opcionesPara = (actual) =>
-    posicionesUnicas.filter((pos) => pos === actual || !usadas.has(pos));
+  // Localiza dónde está actualmente una posición (partido + lado).
+  const localizar = (pos) => {
+    for (const p of partidos) {
+      if (p.equipo_local_pos === pos) return { partido: p, lado: "local" };
+      if (p.equipo_visitante_pos === pos) return { partido: p, lado: "visitante" };
+    }
+    return null;
+  };
 
-  const setPos = (partido, lado, pos) => {
-    const n = Number(pos);
-    const campo = lado === "local"
-      ? { equipo_local_pos: n, equipo_local_placeholder: `${n}º clasificado` }
-      : { equipo_visitante_pos: n, equipo_visitante_placeholder: `${n}º clasificado` };
-    onAsignar(partido, campo);
+  const elegir = (partido, lado, posStr) => {
+    const nueva = Number(posStr);
+    const actual = lado === "local" ? partido.equipo_local_pos : partido.equipo_visitante_pos;
+    if (nueva === actual) return;
+
+    const origen = localizar(nueva); // dónde estaba la posición que acabo de elegir
+    // Si la posición elegida ya estaba en otro hueco → intercambiar.
+    if (origen && !(origen.partido.id === partido.id && origen.lado === lado)) {
+      const patches = [
+        { partido, patch: patchLado(lado, nueva) },
+        { partido: origen.partido, patch: patchLado(origen.lado, actual) },
+      ];
+      if (onSwap) onSwap(patches);
+      else patches.forEach((x) => onAsignar(x.partido, x.patch));
+    } else {
+      onAsignar(partido, patchLado(lado, nueva));
+    }
   };
 
   const Selector = ({ partido, lado }) => {
     const actual = lado === "local" ? partido.equipo_local_pos : partido.equipo_visitante_pos;
     return (
-      <Select value={actual != null ? String(actual) : ""} onValueChange={(v) => setPos(partido, lado, v)}>
+      <Select value={actual != null ? String(actual) : ""} onValueChange={(v) => elegir(partido, lado, v)}>
         <SelectTrigger className="h-8 text-sm flex-1">
           <SelectValue placeholder="Elegir posición…" />
         </SelectTrigger>
         <SelectContent>
-          {opcionesPara(actual).map((pos) => (
+          {posicionesUnicas.map((pos) => (
             <SelectItem key={pos} value={String(pos)}>{pos}º clasificado</SelectItem>
           ))}
         </SelectContent>
@@ -64,7 +83,7 @@ export default function AsignarPosicionesRonda1({ partidos, onAsignar }) {
         🔀 Cambia los cruces por posición (cuadro en blanco)
       </p>
       <p className="text-[11px] text-blue-800/80 -mt-1">
-        Elige qué clasificado se enfrenta a cuál (ej: 1º vs 12º). El público lo verá al instante, aunque aún no se sepa el equipo.
+        Elige qué clasificado se enfrenta a cuál (ej: 1º vs 12º). Si eliges una posición que ya estaba en otro cruce, se intercambian automáticamente.
       </p>
       <div className="space-y-2">
         {partidos.map((p, idx) => (

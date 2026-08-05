@@ -164,6 +164,16 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
     onError: () => toast.error("Error al asignar equipo"),
   });
 
+  // Intercambio de posiciones: aplica varios patches a la vez (ej: al mover el 12º
+  // a un hueco que tenía el 16º, el 16º pasa al hueco de donde venía el 12º).
+  const intercambiarPosiciones = useMutation({
+    mutationFn: (patches) => Promise.all(
+      patches.map(({ partido, patch }) => base44.entities.TorneoPartido.update(partido.id, patch))
+    ),
+    onSuccess: () => { invalidate(); },
+    onError: () => toast.error("Error al intercambiar posiciones"),
+  });
+
   const regenerar = useMutation({
     mutationFn: async () => {
       const elim = partidosCat.filter((p) => p.fase === "oro" || p.fase === "plata" || p.fase === "bronce");
@@ -363,6 +373,7 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
               <AsignarPosicionesRonda1
                 partidos={primeras}
                 onAsignar={(partido, patch) => asignarEquipo.mutate({ partido, patch })}
+                onSwap={(patches) => intercambiarPosiciones.mutate(patches)}
               />
             ) : (
               <AsignarEquiposRonda1
