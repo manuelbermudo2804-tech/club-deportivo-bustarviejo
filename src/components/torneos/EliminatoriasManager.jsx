@@ -10,6 +10,7 @@ import { semillasFase, semillasFasePlaceholder, calcularClasificacionGeneral } f
 import BracketView from "./BracketView";
 import BracketArbol from "./BracketArbol";
 import AsignarEquiposRonda1 from "./AsignarEquiposRonda1";
+import AsignarPosicionesRonda1 from "./AsignarPosicionesRonda1";
 import GoleadoresDialog from "./GoleadoresDialog";
 
 const CFG_FASE = {
@@ -350,12 +351,28 @@ export default function EliminatoriasManager({ torneo, categoria, grupos, equipo
         : [{ fase: "oro", ...CFG_FASE.oro }, { fase: "plata", ...CFG_FASE.plata }]
       ).map((b) => (
         <div key={b.fase} className="space-y-3">
-          <AsignarEquiposRonda1
-            partidos={partidosPrimeraRonda(b.fase)}
-            equiposCat={equiposCat}
-            seedPorEquipo={seedPorEquipo}
-            onAsignar={(partido, patch) => asignarEquipo.mutate({ partido, patch })}
-          />
+          {(() => {
+            const primeras = partidosPrimeraRonda(b.fase);
+            // Cuadro en blanco: los partidos aún tienen posiciones y no equipos reales.
+            // Mostrar el editor de CRUCES POR POSICIÓN (ej: 1º vs 12º).
+            const enBlanco = primeras.some(
+              (p) => (p.equipo_local_pos != null || p.equipo_visitante_pos != null) &&
+                !p.equipo_local_id && !p.equipo_visitante_id
+            );
+            return enBlanco ? (
+              <AsignarPosicionesRonda1
+                partidos={primeras}
+                onAsignar={(partido, patch) => asignarEquipo.mutate({ partido, patch })}
+              />
+            ) : (
+              <AsignarEquiposRonda1
+                partidos={primeras}
+                equiposCat={equiposCat}
+                seedPorEquipo={seedPorEquipo}
+                onAsignar={(partido, patch) => asignarEquipo.mutate({ partido, patch })}
+              />
+            );
+          })()}
           <BracketView partidos={partidosCat} equipos={equipos} torneo={torneo} seedPorEquipo={seedPorEquipo}
             fase={b.fase} titulo={b.titulo} color={b.color}
             onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
