@@ -17,17 +17,15 @@ import {
 export default function AsignarPosicionesRonda1({ partidos, onAsignar }) {
   if (!partidos || partidos.length === 0) return null;
 
-  // Todas las posiciones que participan en esta fase (las que ya están repartidas
-  // entre todos los partidos de la ronda). Se usan para los desplegables.
+  // Todas las posiciones que participan en esta fase (las que están repartidas
+  // entre todos los partidos de la ronda). Se muestran completas en cada desplegable
+  // para que el admin pueda emparejar cualquier posición con cualquier otra.
   const posiciones = [];
   partidos.forEach((p) => {
     if (p.equipo_local_pos != null) posiciones.push(p.equipo_local_pos);
     if (p.equipo_visitante_pos != null) posiciones.push(p.equipo_visitante_pos);
   });
-  posiciones.sort((a, b) => a - b);
-
-  // Posiciones ya usadas en cualquier lado, para no repetir
-  const usadas = new Set(posiciones);
+  const posicionesUnicas = Array.from(new Set(posiciones)).sort((a, b) => a - b);
 
   const setPos = (partido, lado, pos) => {
     const n = Number(pos);
@@ -35,11 +33,6 @@ export default function AsignarPosicionesRonda1({ partidos, onAsignar }) {
       ? { equipo_local_pos: n, equipo_local_placeholder: `${n}º clasificado` }
       : { equipo_visitante_pos: n, equipo_visitante_placeholder: `${n}º clasificado` };
     onAsignar(partido, campo);
-  };
-
-  const opcionesPara = (actual) => {
-    // El propio valor + todas las posiciones libres
-    return posiciones.filter((pos) => pos === actual || !usadas.has(pos) || pos === actual);
   };
 
   const Selector = ({ partido, lado }) => {
@@ -50,7 +43,7 @@ export default function AsignarPosicionesRonda1({ partidos, onAsignar }) {
           <SelectValue placeholder="Elegir posición…" />
         </SelectTrigger>
         <SelectContent>
-          {opcionesPara(actual).map((pos) => (
+          {posicionesUnicas.map((pos) => (
             <SelectItem key={pos} value={String(pos)}>{pos}º clasificado</SelectItem>
           ))}
         </SelectContent>
