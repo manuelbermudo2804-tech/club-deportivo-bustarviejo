@@ -62,7 +62,14 @@ export default function GrupoUnicoLiguilla({ torneo, categoria, equipos, partido
   });
 
   const borrarPartido = useMutation({
-    mutationFn: (id) => base44.entities.TorneoPartido.delete(id),
+    mutationFn: async (id) => {
+      // Borrar también los goles asociados para no dejar goleadores huérfanos
+      const golesPartido = (goles || []).filter((g) => g.partido_id === id);
+      for (const g of golesPartido) {
+        await base44.entities.TorneoGol.delete(g.id);
+      }
+      return base44.entities.TorneoPartido.delete(id);
+    },
     onSuccess: () => { invalidate(); toast.success("Partido eliminado"); },
   });
 
