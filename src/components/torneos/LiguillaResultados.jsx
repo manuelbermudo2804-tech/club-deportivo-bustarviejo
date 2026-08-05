@@ -3,6 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { GripVertical } from "lucide-react";
 import PartidoResultRow from "./PartidoResultRow";
 import GrupoClasificacion from "./GrupoClasificacion";
 import GoleadoresDialog from "./GoleadoresDialog";
@@ -58,6 +60,24 @@ export default function LiguillaResultados({ torneo, categoria, grupos, equipos,
     onError: () => toast.error("Error al guardar campo/hora"),
   });
 
+  // Reordenar partidos dentro de un grupo (drag & drop). Persiste el orden en orden_bracket.
+  const reordenar = useMutation({
+    mutationFn: (partidosOrdenados) =>
+      base44.entities.TorneoPartido.bulkUpdate(
+        partidosOrdenados.map((p, i) => ({ id: p.id, orden_bracket: i }))
+      ),
+    onSuccess: () => { invalidate(); },
+    onError: () => { invalidate(); toast.error("Error al reordenar"); },
+  });
+
+  const onDragEnd = (result, partidosGrupo) => {
+    if (!result.destination || result.destination.index === result.source.index) return;
+    const items = Array.from(partidosGrupo);
+    const [moved] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, moved);
+    reordenar.mutate(items);
+  };
+
   if (grupos.length === 0) {
     return <p className="text-center text-slate-400 text-sm py-6">Crea grupos y reparte los equipos primero.</p>;
   }
@@ -72,28 +92,58 @@ export default function LiguillaResultados({ torneo, categoria, grupos, equipos,
 
       {grupos.map((grupo) => {
         const partidosGrupo = partidosCat.filter((p) => p.grupo_id === grupo.id)
-          .sort((a, b) => (a.fecha_hora || "").localeCompare(b.fecha_hora || ""));
+          .sort((a, b) => {
+            const oa = a.orden_bracket ?? 9999;
+            const ob = b.orden_bracket ?? 9999;
+            if (oa !== ob) return oa - ob;
+            return (a.fecha_hora || "").localeCompare(b.fecha_hora || "");
+          });
         return (
           <div key={grupo.id} className="space-y-2">
             <GrupoClasificacion
               grupo={grupo} equipos={equipos} partidos={partidosCat} torneo={torneo}
             />
             {partidosGrupo.length > 0 && (
-              <div className="space-y-1.5">
-                {partidosGrupo.map((p) => (
-                  <PartidoResultRow
-                    key={p.id}
-                    partido={p}
-                    equipos={equipos}
-                    torneo={torneo}
-                    onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
-                    onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })}
-                    isSaving={guardarResultado.isPending}
-                    golesCount={goles.filter((g) => g.partido_id === p.id).reduce((s, g) => s + (g.goles || 1), 0)}
-                    onGoleadores={() => setGolPartido(p)}
-                  />
-                ))}
-              </div>
+              <DragDropContext onDragEnd={(r) => onDragEnd(r, partidosGrupo)}>
+                <Droppable droppableId={`grupo-${grupo.id}`}>
+                  {(provided) => (
+                    <div ref={provided.innerRef} {...provided.droppableProps} className="space-y-1.5">
+                      {partidosGrupo.map((p, index) => (
+                        <Draggable key={p.id} draggableId={p.id} index={index}>
+                          {(prov, snapshot) => (
+                            <div
+                              ref={prov.innerRef}
+                              {...prov.draggableProps}
+                              className={`flex items-stretch gap-1 ${snapshot.isDragging ? "opacity-90" : ""}`}
+                            >
+                              <div
+                                {...prov.dragHandleProps}
+                                className="flex items-center px-1 text-slate-300 hover:text-slate-500 cursor-grab active:cursor-grabbing touch-none"
+                                title="Arrastrar para reordenar"
+                              >
+                                <GripVertical className="w-4 h-4" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <PartidoResultRow
+                                  partido={p}
+                                  equipos={equipos}
+                                  torneo={torneo}
+                                  onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
+                                  onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })}
+                                  isSaving={guardarResultado.isPending}
+                                  golesCount={goles.filter((g) => g.partido_id === p.id).reduce((s, g) => s + (g.goles || 1), 0)}
+                                  onGoleadores={() => setGolPartido(p)}
+                                />
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             )}
           </div>
         );
