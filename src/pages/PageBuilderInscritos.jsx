@@ -30,6 +30,18 @@ const PAGO_BADGES = {
   reembolsado: { label: "↩️ Reembolsado", class: "bg-slate-100 text-slate-700 border-slate-200" },
 };
 
+// Devuelve los campos "extra" relevantes de una inscripción (nombre del 2º jugador,
+// categoría, etc.) para mostrarlos de un vistazo en la lista sin abrir el detalle.
+const HEADER_KEYS = new Set(["nombre", "email", "telefono", "nombre_equipo", "responsable", "acepta"]);
+function extraLabels(s, campos) {
+  const datos = s.datos || {};
+  return (campos || [])
+    .filter((c) => !HEADER_KEYS.has(c.id) && !["aceptacion", "archivo", "lista_jugadores", "email", "telefono"].includes(c.tipo))
+    .map((c) => ({ label: c.etiqueta || c.id, value: datos[c.id] }))
+    .filter((x) => x.value !== undefined && x.value !== null && x.value !== "" && typeof x.value !== "boolean")
+    .slice(0, 3);
+}
+
 // Panel de gestión de inscritos de una página.
 export default function PageBuilderInscritos() {
   const [params] = useSearchParams();
@@ -156,6 +168,7 @@ export default function PageBuilderInscritos() {
     );
   });
 
+  const campos = page?.config?.formulario?.campos || [];
   const tienePago = !!page?.config?.pago?.activo;
   const pagadas = submissions.filter((s) => s.pago_estado === "pagado");
   const totalRecaudado = pagadas.reduce((sum, s) => sum + (s.pago_importe_total || 0), 0);
@@ -282,6 +295,12 @@ export default function PageBuilderInscritos() {
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="min-w-0 flex-1">
                     <div className="font-bold text-slate-900">{s.nombre || "Sin nombre"}</div>
+                    {extraLabels(s, campos).map((extra, i) => (
+                      <div key={i} className="text-sm text-slate-700 mt-0.5">
+                        <span className="text-slate-400">{extra.label}: </span>
+                        <span className="font-medium">{extra.value}</span>
+                      </div>
+                    ))}
                     <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
                       {s.email && <span className="inline-flex items-center gap-1"><Mail className="w-3 h-3" /> {s.email}</span>}
                       {s.telefono && <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3" /> {s.telefono}</span>}
