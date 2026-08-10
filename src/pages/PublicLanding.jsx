@@ -14,6 +14,7 @@ export default function PublicLanding() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [page, setPage] = useState(null);
   const [plazasOcupadas, setPlazasOcupadas] = useState(0);
+  const [plazasPorCategoria, setPlazasPorCategoria] = useState(null);
   const [loading, setLoading] = useState(true);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
@@ -78,6 +79,7 @@ export default function PublicLanding() {
         if (cancelled) return;
         setPage(found);
         setPlazasOcupadas(res?.data?.plazas_ocupadas || 0);
+        setPlazasPorCategoria(res?.data?.plazas_por_categoria || null);
 
         // Incrementa visitas (best-effort, no bloquear si falla)
         if (found && found.id) {
@@ -199,6 +201,7 @@ export default function PublicLanding() {
           cupones={cfg.cupones || []}
           listaEspera={cfg.lista_espera || null}
           plazasOcupadas={plazasOcupadas}
+          plazasPorCategoria={plazasPorCategoria}
           paymentSuccess={paymentSuccess}
         />
       )}

@@ -109,25 +109,45 @@ Deno.serve(async (req) => {
     }
 
     // Validar plazas antes de crear la sesión (cuentan submissions pagadas + pendientes recientes)
-    const plazasMax = parseInt(page?.config?.limites?.plazas_maximas) || 0;
-    if (plazasMax > 0) {
+    const limitesCfg = page?.config?.limites || {};
+    const plazasMax = parseInt(limitesCfg.plazas_maximas) || 0;
+    const cupoCatActivo = !!limitesCfg.cupos_categoria_activo && !!limitesCfg.cupos_categoria_campo;
+    if (plazasMax > 0 || cupoCatActivo) {
       const subs = await base44.asServiceRole.entities.LandingSubmission.filter({ landing_page_id });
-      const cuentan = (subs || []).filter((s) => {
+      const cuenta = (s) => {
         if (s.estado === 'cancelado') return false;
-        // Pagadas siempre cuentan
         if (s.pago_estado === 'pagado') return true;
-        // Pendientes recientes (últimos 30 min) bloquean plaza temporalmente
         if (s.pago_estado === 'pendiente') {
           const created = new Date(s.created_date).getTime();
           return Date.now() - created < 30 * 60 * 1000;
         }
         return s.estado !== 'pendiente_pago';
-      }).length;
-      if (cuentan >= plazasMax) {
+      };
+      const cuentan = (subs || []).filter(cuenta).length;
+      const reservadasManual = parseInt(limitesCfg.plazas_reservadas_manual) || 0;
+
+      if (plazasMax > 0 && (cuentan + reservadasManual) >= plazasMax) {
         return Response.json({
-          error: page?.config?.limites?.mensaje_plazas_agotadas || 'Lo sentimos, ya no quedan plazas disponibles.',
+          error: limitesCfg.mensaje_plazas_agotadas || 'Lo sentimos, ya no quedan plazas disponibles.',
           plazas_agotadas: true,
         }, { status: 409 });
+      }
+
+      // Cupo de la categoría concreta elegida
+      if (cupoCatActivo) {
+        const campoId = limitesCfg.cupos_categoria_campo;
+        const categoria = datos?.[campoId];
+        const cupoCat = parseInt(limitesCfg.cupos_categoria?.[categoria]);
+        if (categoria && Number.isFinite(cupoCat) && cupoCat > 0) {
+          const enCategoria = (subs || []).filter((s) => cuenta(s) && s?.datos?.[campoId] === categoria).length;
+          if (enCategoria >= cupoCat) {
+            return Response.json({
+              error: `Lo sentimos, la categoría "${categoria}" ya está completa.`,
+              plazas_agotadas: true,
+              categoria_agotada: categoria,
+            }, { status: 409 });
+          }
+        }
       }
     }
 

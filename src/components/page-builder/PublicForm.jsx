@@ -38,7 +38,7 @@ const getUTMs = () => {
 };
 
 // Formulario público brutal con campos dinámicos según la configuración.
-export default function PublicForm({ landingId, landingSlug, formulario, branding, limites, pago, cupones = [], listaEspera = null, plazasOcupadas = 0, paymentSuccess = false, isPreview = false }) {
+export default function PublicForm({ landingId, landingSlug, formulario, branding, limites, pago, cupones = [], listaEspera = null, plazasOcupadas = 0, plazasPorCategoria = null, paymentSuccess = false, isPreview = false }) {
   const [values, setValues] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(paymentSuccess);
@@ -85,9 +85,23 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
 
   const plazasMax = parseInt(limites?.plazas_maximas) || 0;
   const mostrarPlazas = !!limites?.mostrar_plazas && plazasMax > 0;
-  const plazasAgotadas = plazasMax > 0 && plazasOcupadas >= plazasMax;
+  const plazasGlobalAgotadas = plazasMax > 0 && plazasOcupadas >= plazasMax;
   const plazasRestantes = plazasMax > 0 ? Math.max(0, plazasMax - plazasOcupadas) : null;
   const porcentaje = plazasMax > 0 ? Math.min(100, (plazasOcupadas / plazasMax) * 100) : 0;
+
+  // Cupo por categoría
+  const cupoCatActivo = !!limites?.cupos_categoria_activo && !!limites?.cupos_categoria_campo;
+  const cupoCatCampo = limites?.cupos_categoria_campo || "";
+  const cuposCat = limites?.cupos_categoria || {};
+  const categoriaElegida = cupoCatActivo ? (values[cupoCatCampo] || "") : "";
+  const cupoDeCategoria = cupoCatActivo && categoriaElegida ? parseInt(cuposCat[categoriaElegida]) : NaN;
+  const ocupadasCategoria = cupoCatActivo && categoriaElegida ? (plazasPorCategoria?.[categoriaElegida] || 0) : 0;
+  const categoriaAgotada = Number.isFinite(cupoDeCategoria) && cupoDeCategoria > 0 && ocupadasCategoria >= cupoDeCategoria;
+  // El formulario se bloquea si se agotó el total global O la categoría concreta elegida
+  const plazasAgotadas = plazasGlobalAgotadas || categoriaAgotada;
+  // Campo/opciones de categoría (para el desglose)
+  const campoCategoria = cupoCatActivo ? (campos.find((c) => c.id === cupoCatCampo)) : null;
+  const opcionesCategoria = campoCategoria?.opciones || [];
 
   const opcionElegida = opciones.find((o) => o.id === opcionId) || opciones[0];
   const importeBase = opcionElegida ? Number((opcionElegida.precio * cantidad).toFixed(2)) : 0;
@@ -424,7 +438,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
                 }}
               />
             </div>
-            {!plazasAgotadas && plazasRestantes !== null && (
+            {!plazasGlobalAgotadas && plazasRestantes !== null && (
               <p className="text-xs text-slate-500 mt-2 text-center">
                 {plazasRestantes === 1
                   ? "¡Solo queda 1 plaza!"
@@ -436,12 +450,57 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
           </div>
         )}
 
+        {/* Desglose de cupos por categoría */}
+        {cupoCatActivo && opcionesCategoria.length > 0 && (
+          <div className="mb-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
+            <div className="flex items-center gap-2 text-slate-700 font-semibold mb-3">
+              <Users className="w-5 h-5" style={{ color }} />
+              <span>Plazas por categoría</span>
+            </div>
+            <div className="space-y-2.5">
+              {opcionesCategoria.map((op) => {
+                const cupo = parseInt(cuposCat[op]);
+                const tieneCupo = Number.isFinite(cupo) && cupo > 0;
+                const ocup = plazasPorCategoria?.[op] || 0;
+                const llena = tieneCupo && ocup >= cupo;
+                const rest = tieneCupo ? Math.max(0, cupo - ocup) : null;
+                const pct = tieneCupo ? Math.min(100, (ocup / cupo) * 100) : 0;
+                return (
+                  <div key={op}>
+                    <div className="flex items-center justify-between text-sm mb-1">
+                      <span className="font-medium text-slate-700 truncate pr-2">{op}</span>
+                      <span className="font-bold flex-shrink-0" style={{ color: llena ? "#dc2626" : color }}>
+                        {llena ? "Completa" : tieneCupo ? `${rest} libre${rest === 1 ? "" : "s"}` : "Sin límite"}
+                      </span>
+                    </div>
+                    {tieneCupo && (
+                      <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className="h-full transition-all duration-500"
+                          style={{
+                            width: `${pct}%`,
+                            background: llena ? "linear-gradient(90deg,#dc2626,#b91c1c)" : `linear-gradient(90deg, ${color}, ${colorSec})`,
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {plazasAgotadas && !mostrarListaEspera && (
           <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-2xl p-6 text-center">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
-            <h3 className="text-xl font-black text-red-900 mb-1">Plazas agotadas</h3>
+            <h3 className="text-xl font-black text-red-900 mb-1">
+              {categoriaAgotada && !plazasGlobalAgotadas ? "Categoría completa" : "Plazas agotadas"}
+            </h3>
             <p className="text-red-700">
-              {limites?.mensaje_plazas_agotadas || "Lo sentimos, ya no quedan plazas disponibles."}
+              {categoriaAgotada && !plazasGlobalAgotadas
+                ? `La categoría "${categoriaElegida}" ya está completa. Elige otra categoría con plazas libres.`
+                : (limites?.mensaje_plazas_agotadas || "Lo sentimos, ya no quedan plazas disponibles.")}
             </p>
           </div>
         )}
@@ -494,7 +553,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className={`bg-white rounded-3xl shadow-xl border border-slate-200 p-6 lg:p-10 space-y-5 ${mostrarListaEspera ? "hidden" : ""} ${(plazasAgotadas && !mostrarListaEspera) ? "opacity-50 pointer-events-none" : ""}`}>
+        <form onSubmit={handleSubmit} className={`bg-white rounded-3xl shadow-xl border border-slate-200 p-6 lg:p-10 space-y-5 ${mostrarListaEspera ? "hidden" : ""} ${(plazasGlobalAgotadas && !mostrarListaEspera) ? "opacity-50 pointer-events-none" : ""}`}>
           {/* Honeypot anti-bot — invisible para humanos.
               IMPORTANTE: usamos un name neutro + autoComplete="new-password" para que
               el autocompletado del navegador (sobre todo móviles) NO rellene este campo

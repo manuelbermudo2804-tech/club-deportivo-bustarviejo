@@ -15,6 +15,7 @@ import EditorBranding from "@/components/page-builder/EditorBranding";
 import EditorPanelGestion from "@/components/page-builder/EditorPanelGestion";
 import EditorPago from "@/components/page-builder/EditorPago";
 import EditorAvanzado from "@/components/page-builder/EditorAvanzado";
+import CupoPorCategoriaEditor from "@/components/page-builder/CupoPorCategoriaEditor";
 import ShareDialog from "@/components/page-builder/ShareDialog";
 import { buildLandingUrl } from "@/components/page-builder/landingUrl";
 import ImageUploadInput from "@/components/page-builder/ImageUploadInput";
@@ -398,6 +399,12 @@ export default function PageBuilderEditor() {
                     placeholder="Lo sentimos, ya no quedan plazas disponibles."
                   />
                 </div>
+
+                <CupoPorCategoriaEditor
+                  formulario={page.config?.formulario}
+                  limites={page.config?.limites || {}}
+                  onChange={(v) => updateConfig("limites", { ...(page.config?.limites || {}), ...v })}
+                />
 
                 <div className="pt-3 border-t border-slate-200">
                   <Label className="font-bold">SEO & Compartir</Label>
