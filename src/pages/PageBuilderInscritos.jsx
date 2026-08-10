@@ -170,6 +170,21 @@ export default function PageBuilderInscritos() {
 
   const campos = page?.config?.formulario?.campos || [];
   const tienePago = !!page?.config?.pago?.activo;
+
+  // Campo por el que agrupar: el primer select/radio del formulario (categoría, nivel…).
+  const campoCategoria = campos.find((c) => ["select", "radio"].includes(c.tipo));
+  const getCategoria = (s) => (campoCategoria ? (s.datos?.[campoCategoria.id] || "Sin categoría") : null);
+
+  // Agrupa las inscripciones filtradas por categoría, ordenadas por nº de inscritos.
+  const grupos = campoCategoria
+    ? Object.entries(
+        filtered.reduce((acc, s) => {
+          const cat = getCategoria(s);
+          (acc[cat] = acc[cat] || []).push(s);
+          return acc;
+        }, {})
+      ).sort((a, b) => b[1].length - a[1].length)
+    : [["", filtered]];
   const pagadas = submissions.filter((s) => s.pago_estado === "pagado");
   const totalRecaudado = pagadas.reduce((sum, s) => sum + (s.pago_importe_total || 0), 0);
 
@@ -284,46 +299,56 @@ export default function PageBuilderInscritos() {
           <p className="text-slate-500">{submissions.length === 0 ? "Aún no hay inscritos" : "No hay resultados con esos filtros"}</p>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          <div className="divide-y divide-slate-100">
-            {filtered.map((s) => (
-              <div
-                key={s.id}
-                onClick={() => setSelected(s)}
-                className="p-4 hover:bg-slate-50 cursor-pointer transition-colors"
-              >
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="min-w-0 flex-1">
-                    <div className="font-bold text-slate-900">{s.nombre || "Sin nombre"}</div>
-                    {extraLabels(s, campos).map((extra, i) => (
-                      <div key={i} className="text-sm text-slate-700 mt-0.5">
-                        <span className="text-slate-400">{extra.label}: </span>
-                        <span className="font-medium">{extra.value}</span>
-                      </div>
-                    ))}
-                    <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
-                      {s.email && <span className="inline-flex items-center gap-1"><Mail className="w-3 h-3" /> {s.email}</span>}
-                      {s.telefono && <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3" /> {s.telefono}</span>}
-                      <span>{new Date(s.created_date).toLocaleString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
-                    </div>
-                    {tienePago && s.pago_opcion_nombre && (
-                      <div className="text-xs text-slate-600 mt-1">
-                        🛒 {s.pago_opcion_nombre}
-                        {s.pago_cantidad > 1 && ` × ${s.pago_cantidad}`}
-                        {s.pago_importe_total > 0 && ` · ${s.pago_importe_total.toFixed(2)} €`}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {tienePago && s.pago_estado && PAGO_BADGES[s.pago_estado] && (
-                      <Badge className={`border ${PAGO_BADGES[s.pago_estado].class}`}>{PAGO_BADGES[s.pago_estado].label}</Badge>
-                    )}
-                    <Badge className={ESTADOS[s.estado]?.class}>{ESTADOS[s.estado]?.label || s.estado}</Badge>
-                  </div>
+        <div className="space-y-4">
+          {grupos.map(([cat, items]) => (
+            <div key={cat || "all"} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+              {campoCategoria && (
+                <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-slate-800 text-white">
+                  <span className="font-bold text-sm">{cat}</span>
+                  <Badge className="bg-white/20 text-white border-0">{items.length}</Badge>
                 </div>
+              )}
+              <div className="divide-y divide-slate-100">
+                {items.map((s) => (
+                  <div
+                    key={s.id}
+                    onClick={() => setSelected(s)}
+                    className="p-4 hover:bg-slate-50 cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-slate-900">{s.nombre || "Sin nombre"}</div>
+                        {extraLabels(s, campos).map((extra, i) => (
+                          <div key={i} className="text-sm text-slate-700 mt-0.5">
+                            <span className="text-slate-400">{extra.label}: </span>
+                            <span className="font-medium">{extra.value}</span>
+                          </div>
+                        ))}
+                        <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 flex-wrap">
+                          {s.email && <span className="inline-flex items-center gap-1"><Mail className="w-3 h-3" /> {s.email}</span>}
+                          {s.telefono && <span className="inline-flex items-center gap-1"><Phone className="w-3 h-3" /> {s.telefono}</span>}
+                          <span>{new Date(s.created_date).toLocaleString("es-ES", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}</span>
+                        </div>
+                        {tienePago && s.pago_opcion_nombre && (
+                          <div className="text-xs text-slate-600 mt-1">
+                            🛒 {s.pago_opcion_nombre}
+                            {s.pago_cantidad > 1 && ` × ${s.pago_cantidad}`}
+                            {s.pago_importe_total > 0 && ` · ${s.pago_importe_total.toFixed(2)} €`}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        {tienePago && s.pago_estado && PAGO_BADGES[s.pago_estado] && (
+                          <Badge className={`border ${PAGO_BADGES[s.pago_estado].class}`}>{PAGO_BADGES[s.pago_estado].label}</Badge>
+                        )}
+                        <Badge className={ESTADOS[s.estado]?.class}>{ESTADOS[s.estado]?.label || s.estado}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       )}
 
