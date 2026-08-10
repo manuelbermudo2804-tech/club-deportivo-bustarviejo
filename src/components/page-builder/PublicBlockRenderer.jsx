@@ -389,10 +389,10 @@ export default function PublicBlockRenderer({ bloque, branding, slug, paginaNomb
             {datos.titulo}
           </h2>
         )}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 items-stretch">
+        <div className="flex flex-wrap justify-center gap-5 items-stretch">
           {items.map((sp, i) => {
             const inner = (
-              <div className="bg-white rounded-2xl p-6 h-28 flex items-center justify-center shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all">
+              <div className="bg-white rounded-2xl p-6 h-28 w-44 flex items-center justify-center shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all">
                 {sp.logo_url ? (
                   <img src={sp.logo_url} alt={sp.nombre || ""} className="max-h-full max-w-full object-contain" />
                 ) : (
