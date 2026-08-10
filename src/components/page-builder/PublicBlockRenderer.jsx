@@ -377,20 +377,26 @@ export default function PublicBlockRenderer({ bloque, branding, slug, paginaNomb
     const items = datos.items || [];
     if (items.length === 0) return null;
     return wrapper(
-      <div>
+      <div
+        className="rounded-[2rem] px-6 py-12 lg:py-14 text-center shadow-xl"
+        style={{ background: `linear-gradient(135deg, ${color}, ${branding?.color_secundario || color})` }}
+      >
+        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/20 backdrop-blur text-white text-xs font-black uppercase tracking-widest mb-4">
+          ★ Patrocinadores ★
+        </div>
         {datos.titulo && (
-          <h2 className="text-2xl lg:text-3xl font-black text-center mb-8 text-slate-700 uppercase tracking-wider">
+          <h2 className="text-3xl lg:text-5xl font-black text-center mb-10 text-white tracking-tight">
             {datos.titulo}
           </h2>
         )}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 items-center">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5 items-stretch">
           {items.map((sp, i) => {
             const inner = (
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 h-24 flex items-center justify-center grayscale hover:grayscale-0 transition-all hover:shadow-md">
+              <div className="bg-white rounded-2xl p-6 h-28 flex items-center justify-center shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all">
                 {sp.logo_url ? (
                   <img src={sp.logo_url} alt={sp.nombre || ""} className="max-h-full max-w-full object-contain" />
                 ) : (
-                  <span className="text-slate-700 font-semibold">{sp.nombre}</span>
+                  <span className="text-slate-800 font-black text-lg">{sp.nombre}</span>
                 )}
               </div>
             );
