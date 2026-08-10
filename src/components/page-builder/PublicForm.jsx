@@ -252,9 +252,17 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
     trackEvent("submit_attempt", { pago_activo: pagoActivo, importe: importeTotal, form_data: values });
     setSubmitting(true);
     try {
-      const nombre = values.nombre || values.responsable || values.nombre_equipo || "Sin nombre";
-      const email = values.email || "";
-      const telefono = values.telefono || "";
+      // Detectar nombre / email / teléfono por TIPO de campo (no por id fijo),
+      // porque los ids de los campos son dinámicos (campo_123456...) y el email
+      // real puede no estar en values.email. Así el checkout siempre encuentra
+      // el email aunque el admin haya renombrado o recreado el campo.
+      const findByTipo = (tipo) => {
+        const campo = campos.find((c) => c.tipo === tipo);
+        return campo ? (values[campo.id] || "") : "";
+      };
+      const nombre = values.nombre || values.responsable || values.nombre_equipo || findByTipo("texto") || "Sin nombre";
+      const email = values.email || findByTipo("email") || "";
+      const telefono = values.telefono || findByTipo("telefono") || "";
 
       const utms = getUTMs();
       const archivosArr = Object.entries(archivos).map(([campo_id, info]) => ({ campo_id, ...info }));
