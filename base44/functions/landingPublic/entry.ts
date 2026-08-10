@@ -59,6 +59,11 @@ Deno.serve(async (req) => {
       // Sumar plazas reservadas manualmente (gente apuntada por fuera: teléfono, en persona…)
       const reservadasManual = parseInt(page?.config?.limites?.plazas_reservadas_manual) || 0;
       plazas_ocupadas += reservadasManual;
+      // Sumar también las reservas manuales hechas por categoría al total general
+      const reservasCatTotal = page?.config?.limites?.reservas_categoria || {};
+      for (const n of Object.values(reservasCatTotal)) {
+        plazas_ocupadas += parseInt(n) || 0;
+      }
 
       // Cupo por categoría: contar ocupadas por cada valor de la categoría elegida.
       let plazas_por_categoria = null;
@@ -84,6 +89,12 @@ Deno.serve(async (req) => {
           const val = s?.datos?.[campoId];
           if (val === undefined || val === null || val === '') continue;
           conteo[val] = (conteo[val] || 0) + 1;
+        }
+        // Sumar reservas manuales por categoría (plazas ocupadas fuera de la web)
+        const reservasCat = limitesCfg.reservas_categoria || {};
+        for (const [cat, n] of Object.entries(reservasCat)) {
+          const num = parseInt(n) || 0;
+          if (num > 0) conteo[cat] = (conteo[cat] || 0) + num;
         }
         plazas_por_categoria = conteo;
       }
@@ -132,8 +143,11 @@ Deno.serve(async (req) => {
         const validas = (subsAll || []).filter(s => s.estado !== 'cancelado' && s.estado !== 'lista_espera');
         const reservadasManual = parseInt(limitesSubmit.plazas_reservadas_manual) || 0;
 
+        const reservasCat = limitesSubmit.reservas_categoria || {};
+        const reservasCatTotal = Object.values(reservasCat).reduce((sum, n) => sum + (parseInt(n) || 0), 0);
+
         if (plazasMax > 0) {
-          const ocupadas = validas.length + reservadasManual;
+          const ocupadas = validas.length + reservadasManual + reservasCatTotal;
           if (ocupadas >= plazasMax) {
             return Response.json({
               error: limitesSubmit.mensaje_plazas_agotadas || 'Lo sentimos, ya no quedan plazas disponibles.',
@@ -148,7 +162,8 @@ Deno.serve(async (req) => {
           const categoria = body?.datos?.[campoId];
           const cupoCat = parseInt(limitesSubmit.cupos_categoria?.[categoria]);
           if (categoria && Number.isFinite(cupoCat) && cupoCat > 0) {
-            const enCategoria = validas.filter(s => s?.datos?.[campoId] === categoria).length;
+            const enCategoria = validas.filter(s => s?.datos?.[campoId] === categoria).length
+              + (parseInt(reservasCat[categoria]) || 0);
             if (enCategoria >= cupoCat) {
               return Response.json({
                 error: `Lo sentimos, la categoría "${categoria}" ya está completa.`,

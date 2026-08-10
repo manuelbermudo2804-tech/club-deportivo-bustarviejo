@@ -13,6 +13,7 @@ export default function CupoPorCategoriaEditor({ formulario, limites, onChange }
   );
 
   const cupos = limites?.cupos_categoria || {};
+  const reservas = limites?.reservas_categoria || {};
   const activo = !!limites?.cupos_categoria_activo;
   const campoId = limites?.cupos_categoria_campo || "";
   const campoElegido = camposCategoria.find((c) => c.id === campoId);
@@ -21,6 +22,15 @@ export default function CupoPorCategoriaEditor({ formulario, limites, onChange }
     onChange({
       cupos_categoria: {
         ...cupos,
+        [opcion]: valor === "" ? null : Math.max(0, parseInt(valor) || 0),
+      },
+    });
+  };
+
+  const setReserva = (opcion, valor) => {
+    onChange({
+      reservas_categoria: {
+        ...reservas,
         [opcion]: valor === "" ? null : Math.max(0, parseInt(valor) || 0),
       },
     });
@@ -66,7 +76,14 @@ export default function CupoPorCategoriaEditor({ formulario, limites, onChange }
 
               {campoElegido && (
                 <div className="space-y-2">
-                  <p className="text-xs text-slate-500">Plazas máximas por categoría (deja vacío = sin límite en esa categoría):</p>
+                  <div className="flex items-center gap-2 px-1">
+                    <span className="flex-1" />
+                    <span className="w-24 text-[10px] font-semibold text-slate-400 text-center uppercase">Máx.</span>
+                    <span className="w-24 text-[10px] font-semibold text-slate-400 text-center uppercase">Reservadas</span>
+                  </div>
+                  <p className="text-xs text-slate-500">
+                    <strong>Máx.</strong> = plazas totales de esa categoría (vacío = sin límite). <strong>Reservadas</strong> = plazas ya ocupadas fuera de la web (teléfono, en persona…).
+                  </p>
                   {(campoElegido.opciones || []).map((op) => (
                     <div key={op} className="flex items-center gap-2">
                       <span className="flex-1 text-sm text-slate-700 truncate">{op}</span>
@@ -76,7 +93,15 @@ export default function CupoPorCategoriaEditor({ formulario, limites, onChange }
                         value={cupos[op] ?? ""}
                         onChange={(e) => setCupo(op, e.target.value)}
                         placeholder="Ej: 12"
-                        className="w-28 text-sm h-9"
+                        className="w-24 text-sm h-9"
+                      />
+                      <Input
+                        type="number"
+                        min="0"
+                        value={reservas[op] ?? ""}
+                        onChange={(e) => setReserva(op, e.target.value)}
+                        placeholder="0"
+                        className="w-24 text-sm h-9"
                       />
                     </div>
                   ))}
