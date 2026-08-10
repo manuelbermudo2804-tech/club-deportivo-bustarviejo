@@ -85,6 +85,21 @@ export default function PageBuilderInscritos() {
     }
   };
 
+  const marcarPagado = async (subId, pagar) => {
+    try {
+      await base44.functions.invoke("manageLandingSubmission", {
+        action: "marcar_pagado", submission_id: subId, estado: pagar ? "pagado" : "pendiente",
+      });
+      const nuevoPago = pagar ? "pagado" : "pendiente";
+      const fecha = pagar ? new Date().toISOString() : null;
+      setSubmissions((prev) => prev.map((s) => s.id === subId ? { ...s, pago_estado: nuevoPago, pago_fecha: fecha } : s));
+      if (selected?.id === subId) setSelected({ ...selected, pago_estado: nuevoPago, pago_fecha: fecha });
+      toast.success(pagar ? "Marcada como pagada" : "Pago revertido");
+    } catch {
+      toast.error("Error");
+    }
+  };
+
   const handleDelete = async (subId) => {
     try {
       await base44.functions.invoke("manageLandingSubmission", { action: "delete", submission_id: subId });
@@ -344,6 +359,15 @@ export default function PageBuilderInscritos() {
                       </div>
                     )}
                   </div>
+                  {selected.pago_estado === "pagado" ? (
+                    <Button size="sm" variant="outline" className="w-full mt-3 text-slate-600" onClick={() => marcarPagado(selected.id, false)}>
+                      Revertir pago (marcar pendiente)
+                    </Button>
+                  ) : (
+                    <Button size="sm" className="w-full mt-3 bg-green-600 hover:bg-green-700 gap-2" onClick={() => marcarPagado(selected.id, true)}>
+                      ✅ Marcar como pagada (cuenta plaza)
+                    </Button>
+                  )}
                 </div>
               )}
 

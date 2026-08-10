@@ -60,6 +60,16 @@ Deno.serve(async (req) => {
       return Response.json({ ok: true });
     }
 
+    // Marcar/desmarcar una inscripción como pagada manualmente (para pruebas o pagos fuera de la web)
+    if (action === 'marcar_pagado') {
+      const pagar = estado === 'pagado';
+      await base44.asServiceRole.entities.LandingSubmission.update(submission_id, {
+        pago_estado: pagar ? 'pagado' : 'pendiente',
+        pago_fecha: pagar ? new Date().toISOString() : null,
+      });
+      return Response.json({ ok: true });
+    }
+
     if (action === 'delete') {
       await base44.asServiceRole.entities.LandingSubmission.delete(submission_id);
       return Response.json({ ok: true });
