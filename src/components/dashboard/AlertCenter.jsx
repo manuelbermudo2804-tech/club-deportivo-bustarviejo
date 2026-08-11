@@ -700,7 +700,6 @@ const alerts = [];
     return (
       <Card className="border-orange-200 shadow-lg overflow-hidden">
         <CardContent className="p-3">
-          {hasAgenda && <MiSemanaSection items={weekAgenda.items} conflicts={weekAgenda.conflicts} />}
           <p className="text-sm text-slate-600 text-center">✅ Todo al día</p>
         </CardContent>
       </Card>
@@ -724,7 +723,6 @@ const alerts = [];
   return (
     <Card className="border-orange-200 shadow-lg overflow-hidden">
       <CardContent className="p-3">
-        {hasAgenda && <MiSemanaSection items={weekAgenda.items} conflicts={weekAgenda.conflicts} />}
         {rolTitle && (
           <div className="mb-3 pb-3 border-b border-orange-200">
             <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">
