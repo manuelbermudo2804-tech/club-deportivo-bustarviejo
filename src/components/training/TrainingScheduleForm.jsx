@@ -62,6 +62,7 @@ export default function TrainingScheduleForm({ schedule, onSubmit, onCancel, isS
     dia_semana: "",
     hora_inicio: "",
     hora_fin: "",
+    fecha_inicio: "",
     ubicacion: UBICACION_CAMPO,
     notas: "",
     temporada: getCurrentSeason(),
@@ -179,6 +180,16 @@ export default function TrainingScheduleForm({ schedule, onSubmit, onCancel, isS
                   value={currentSchedule.hora_fin}
                   onChange={(e) => setCurrentSchedule({...currentSchedule, hora_fin: e.target.value})}
                   required
+                />
+              </div>
+
+              {/* Fecha de comienzo de entrenamientos */}
+              <div className="space-y-2">
+                <Label htmlFor="fecha_inicio">Fecha de comienzo</Label>
+                <Input
+                  type="date"
+                  value={currentSchedule.fecha_inicio || ""}
+                  onChange={(e) => setCurrentSchedule({...currentSchedule, fecha_inicio: e.target.value})}
                 />
               </div>
 

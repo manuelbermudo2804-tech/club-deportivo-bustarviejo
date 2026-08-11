@@ -36,6 +36,11 @@
       "type": "string",
       "description": "Hora de fin (ej: 18:45)"
     },
+    "fecha_inicio": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha en la que comienzan los entrenamientos de esta categor\u00eda"
+    },
     "ubicacion": {
       "type": "string",
       "description": "Lugar del entrenamiento"

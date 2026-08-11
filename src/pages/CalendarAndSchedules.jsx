@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Plus, Calendar as CalendarIcon, Bell, Grid, List, ChevronLeft, ChevronRight, Clock, MapPin, Trash2, ExternalLink, Info, Trophy } from "lucide-react";
+import { Plus, Calendar as CalendarIcon, CalendarDays, Bell, Grid, List, ChevronLeft, ChevronRight, Clock, MapPin, Trash2, ExternalLink, Info, Trophy } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import CalendarSyncButton from "../components/calendar/CalendarSyncButton";
 import { toast } from "sonner";
@@ -906,6 +906,15 @@ export default function CalendarAndSchedules() {
                                   {schedule.hora_inicio} - {schedule.hora_fin}
                                 </span>
                               </div>
+
+                              {schedule.fecha_inicio && (
+                                <div className="flex items-center gap-2 text-slate-700">
+                                  <CalendarDays className="w-4 h-4 text-orange-600" />
+                                  <span className="text-xs">
+                                    Comienza el {format(new Date(schedule.fecha_inicio), "d MMM yyyy", { locale: es })}
+                                  </span>
+                                </div>
+                              )}
 
                               <a
                                 href={UBICACION_MAPS_URL}
