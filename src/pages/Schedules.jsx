@@ -99,6 +99,10 @@ export default function Schedules() {
       setEditingSchedule(null);
       toast.success("Horario creado correctamente");
     },
+    onError: (error) => {
+      console.error("Error creando horario:", error);
+      toast.error("No se pudo crear el horario. Revisa que todos los campos estén completos.");
+    },
   });
 
   const updateScheduleMutation = useMutation({
@@ -109,6 +113,10 @@ export default function Schedules() {
       setEditingSchedule(null);
       toast.success("Horario actualizado correctamente");
     },
+    onError: (error) => {
+      console.error("Error actualizando horario:", error);
+      toast.error("No se pudo actualizar el horario. Inténtalo de nuevo.");
+    },
   });
 
   const deleteScheduleMutation = useMutation({
@@ -116,6 +124,10 @@ export default function Schedules() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['trainingSchedules'] });
       toast.success("Horario eliminado correctamente");
+    },
+    onError: (error) => {
+      console.error("Error eliminando horario:", error);
+      toast.error("No se pudo eliminar el horario. Inténtalo de nuevo.");
     },
   });
 
