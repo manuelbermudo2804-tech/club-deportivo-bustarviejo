@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { X, Loader2, MapPin } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
-const CATEGORIAS = [
+// Lista de respaldo por si falla la carga de categorías desde la configuración del club
+const CATEGORIAS_FALLBACK = [
   "Fútbol Pre-Benjamín (Mixto)",
   "Fútbol Benjamín (Mixto)",
   "Fútbol Alevín (Mixto)",
@@ -41,6 +43,20 @@ const getCurrentSeason = () => {
 };
 
 export default function TrainingScheduleForm({ schedule, onSubmit, onCancel, isSubmitting }) {
+  const [categorias, setCategorias] = useState(CATEGORIAS_FALLBACK);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const configs = await base44.entities.CategoryConfig.filter({ activa: true });
+        const nombres = [...new Set(configs.map((c) => c.nombre).filter(Boolean))].sort();
+        if (nombres.length > 0) setCategorias(nombres);
+      } catch {
+        // Si falla, se mantiene la lista de respaldo
+      }
+    })();
+  }, []);
+
   const [currentSchedule, setCurrentSchedule] = useState(schedule || {
     categoria: "",
     dia_semana: "",
@@ -114,7 +130,7 @@ export default function TrainingScheduleForm({ schedule, onSubmit, onCancel, isS
                     <SelectValue placeholder="Selecciona una categoría" />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIAS.map(cat => (
+                    {categorias.map(cat => (
                       <SelectItem key={cat} value={cat}>
                         {cat}
                       </SelectItem>
