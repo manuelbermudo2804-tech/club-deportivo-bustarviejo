@@ -37,9 +37,9 @@ const getCurrentSeason = () => {
   const currentMonth = now.getMonth() + 1;
   
   if (currentMonth <= 8) {
-    return `${currentYear - 1}/${currentYear}`;
+    return `${currentYear - 1}-${currentYear}`;
   }
-  return `${currentYear}/${currentYear + 1}`;
+  return `${currentYear}-${currentYear + 1}`;
 };
 
 export default function TrainingScheduleForm({ schedule, onSubmit, onCancel, isSubmitting }) {
