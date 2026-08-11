@@ -917,7 +917,7 @@ export default function CalendarAndSchedules() {
                               )}
 
                               <a
-                                href={UBICACION_MAPS_URL}
+                                href={schedule.ubicacion && !schedule.ubicacion.includes("Campo Municipal") ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(schedule.ubicacion)}` : UBICACION_MAPS_URL}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={`flex items-start gap-2 text-slate-600 rounded-lg p-2 border hover:bg-green-100 transition-colors cursor-pointer ${
