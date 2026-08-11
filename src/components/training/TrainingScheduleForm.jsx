@@ -69,12 +69,14 @@ export default function TrainingScheduleForm({ schedule, onSubmit, onCancel, isS
     activo: true
   });
 
+  const esBaloncesto = (currentSchedule.categoria || "").toLowerCase().includes("baloncesto");
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Asegurar que la ubicación sea siempre el Campo Municipal
+    // Fútbol siempre en el Campo Municipal; baloncesto usa la ubicación indicada
     const dataToSubmit = {
       ...currentSchedule,
-      ubicacion: UBICACION_CAMPO
+      ubicacion: esBaloncesto ? (currentSchedule.ubicacion || "") : UBICACION_CAMPO
     };
     onSubmit(dataToSubmit);
   };
@@ -102,20 +104,22 @@ export default function TrainingScheduleForm({ schedule, onSubmit, onCancel, isS
           </div>
         </CardHeader>
         <CardContent className="pt-6">
-          <Alert className="mb-6 bg-green-50 border-green-200">
-            <MapPin className="h-4 w-4 text-green-600" />
-            <AlertDescription className="text-green-800">
-              <strong>📍 Ubicación fija:</strong> Todos los entrenamientos se realizan en el{" "}
-              <a 
-                href={UBICACION_MAPS_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold text-green-700 hover:text-green-900 underline"
-              >
-                Campo Municipal de Bustarviejo
-              </a>
-            </AlertDescription>
-          </Alert>
+          {!esBaloncesto && (
+            <Alert className="mb-6 bg-green-50 border-green-200">
+              <MapPin className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                <strong>📍 Ubicación fija:</strong> Los entrenamientos de fútbol se realizan en el{" "}
+                <a 
+                  href={UBICACION_MAPS_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-green-700 hover:text-green-900 underline"
+                >
+                  Campo Municipal de Bustarviejo
+                </a>
+              </AlertDescription>
+            </Alert>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -192,6 +196,19 @@ export default function TrainingScheduleForm({ schedule, onSubmit, onCancel, isS
                   onChange={(e) => setCurrentSchedule({...currentSchedule, fecha_inicio: e.target.value})}
                 />
               </div>
+
+              {/* Ubicación (solo editable en baloncesto) */}
+              {esBaloncesto && (
+                <div className="space-y-2">
+                  <Label htmlFor="ubicacion">Ubicación *</Label>
+                  <Input
+                    value={currentSchedule.ubicacion || ""}
+                    onChange={(e) => setCurrentSchedule({...currentSchedule, ubicacion: e.target.value})}
+                    placeholder="Ej: Polideportivo Municipal"
+                    required
+                  />
+                </div>
+              )}
 
               {/* Temporada */}
               <div className="space-y-2">
