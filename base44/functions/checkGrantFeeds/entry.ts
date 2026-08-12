@@ -29,6 +29,16 @@ function normaliza(s) {
   return (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
 }
 
+// Descarta convocatorias antiguas: solo dejamos pasar las del año en curso.
+// (La BDNS devuelve muchas históricas aunque ordenemos por fecha de recepción.)
+function esDelAnioEnCurso(conv) {
+  const raw = conv.fechaRecepcion || conv.fechaPublicacion || conv.fechaInicioSolicitud;
+  if (!raw) return false; // sin fecha fiable → mejor no colarla
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return false;
+  return d.getFullYear() >= new Date().getFullYear();
+}
+
 // Decide si una convocatoria es relevante para el club según su ámbito territorial
 function esRelevante(conv) {
   const n1 = normaliza(conv.nivel1); // ESTATAL / AUTONOMICO / LOCAL
@@ -77,6 +87,7 @@ Deno.serve(async (req) => {
           summary.revisadas++;
           const guid = `bdns-${conv.numeroConvocatoria || conv.id}`;
           if (vistos.has(guid)) continue; // ya procesada en esta misma ejecución
+          if (!esDelAnioEnCurso(conv)) continue; // descartar convocatorias de años anteriores
           if (!esRelevante(conv)) continue;
           summary.relevantes++;
           vistos.add(guid);
