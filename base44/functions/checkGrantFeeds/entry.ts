@@ -6,7 +6,18 @@ import webpush from 'npm:web-push@3.6.7';
 const BDNS_BASE = 'https://www.infosubvenciones.es/bdnstrans';
 
 // Búsquedas que lanzamos contra la BDNS (cubren los intereses del club)
-const BUSQUEDAS = ['deporte', 'deportivo', 'club deportivo', 'asociaciones deportivas', 'escuela deportiva'];
+// Ampliadas para no perder ninguna línea aprovechable por un club de fútbol base:
+// deporte general, entidades sin ánimo de lucro, infancia/juventud, igualdad y deporte femenino,
+// inclusión/discapacidad, instalaciones y material, y digitalización.
+const BUSQUEDAS = [
+  'deporte', 'deportivo', 'club deportivo', 'asociaciones deportivas', 'escuela deportiva',
+  'deporte base', 'deporte femenino', 'mujer y deporte', 'igualdad deporte',
+  'actividad fisica', 'fomento del deporte', 'eventos deportivos', 'competiciones deportivas',
+  'entidades sin animo de lucro', 'asociaciones juveniles', 'infancia y juventud',
+  'inclusion social', 'deporte inclusivo', 'discapacidad deporte',
+  'instalaciones deportivas', 'material deportivo', 'equipamiento deportivo',
+  'digitalizacion', 'transformacion digital',
+];
 
 // Municipios/ámbitos relevantes para CD Bustarviejo (Madrid + cercanos + estatal)
 const AMBITOS_RELEVANTES = [
