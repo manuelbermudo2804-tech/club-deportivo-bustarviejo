@@ -1,7 +1,8 @@
 import React, { useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home, Bell, CreditCard, MessageCircle, Users } from 'lucide-react';
+import { Home, Bell, CreditCard, MessageCircle, Users, Dumbbell } from 'lucide-react';
+import useMeteoAlerta from '@/hooks/useMeteoAlerta';
 
 // Persist last visited path + scroll per tab across renders
 const tabState = {};
@@ -14,6 +15,13 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
   const isInChat = chatPages.includes(currentPageName);
 
   const familyTotal = (chatBadges?.coachForFamilyCount || 0) + (chatBadges?.coordinatorForFamilyCount || 0) + (chatBadges?.systemMessagesCount || 0);
+
+  // Alerta de tiempo para el acceso "Entrenamiento" (solo staff técnico)
+  const { alerta: meteoAlerta, hayRojo: meteoRojo } = useMeteoAlerta([], !!(isCoach || isCoordinator));
+  const entrenamientoTab = {
+    icon: Dumbbell, label: 'Entrenamiento', url: createPageUrl('EntrenamientoHub'), key: 'training',
+    dot: meteoAlerta ? (meteoRojo ? 'red' : 'amber') : null,
+  };
 
   let tabs = [];
   if (isMinor) {
@@ -37,6 +45,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('CoachCallups'), key: 'callups' },
       { icon: MessageCircle, label: 'Chat', url: createPageUrl('CoordinatorChatsHub'), key: 'chat', badge: totalChatBadge },
       { icon: Users, label: 'Plantillas', url: createPageUrl('TeamRosters'), key: 'rosters' },
+      entrenamientoTab,
     ];
   } else if (isCoach) {
     const totalChatBadge = (chatBadges?.coachCount || 0) + (chatBadges?.staffCount || 0);
@@ -45,6 +54,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('CoachCallups'), key: 'callups' },
       { icon: MessageCircle, label: 'Chat', url: createPageUrl('CoachChatsHub'), key: 'chat', badge: totalChatBadge },
       { icon: Users, label: 'Plantillas', url: createPageUrl('TeamRosters'), key: 'rosters' },
+      entrenamientoTab,
     ];
   } else if (isTreasurer) {
     const treasurerChatBadge = familyTotal + (chatBadges?.staffCount || 0);
@@ -119,7 +129,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-stretch justify-around">
-        {tabs.map(({ icon: Icon, label, url, key, badge }) => {
+        {tabs.map(({ icon: Icon, label, url, key, badge, dot }) => {
           const isActive = activeTabKey === key;
           return (
             <button
@@ -134,7 +144,10 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
                 <div className="absolute top-0 w-8 h-[3px] bg-orange-500 rounded-full" style={{ left: '50%', transform: 'translateX(-50%)' }} />
               )}
               <div className="relative" style={{ transform: isActive ? 'scale(1.1) translateY(-2px)' : 'none' }}>
-                <Icon className={`w-6 h-6 ${isActive ? 'text-orange-600' : 'text-slate-400'}`} />
+                <Icon className={`w-6 h-6 ${dot === 'red' ? 'text-red-500' : dot === 'amber' ? 'text-amber-500' : isActive ? 'text-orange-600' : 'text-slate-400'}`} />
+                {dot && (
+                  <span className={`absolute -top-1 -right-1.5 w-2.5 h-2.5 rounded-full animate-pulse-strong ${dot === 'red' ? 'bg-red-500' : 'bg-amber-500'}`} />
+                )}
                 {badge > 0 && (
                   <div className="absolute -top-1.5 -right-2 bg-red-500 text-white rounded-full font-bold px-1 shadow-sm flex items-center justify-center" style={{ fontSize: '10px', minWidth: '18px', height: '18px' }}>
                     {badge > 99 ? '99+' : badge}
