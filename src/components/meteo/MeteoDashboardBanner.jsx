@@ -47,26 +47,35 @@ export default function MeteoDashboardBanner({ categorias = [] }) {
   });
 
   const avisos = data || [];
-  if (!avisos.length) return null;
-
   const hayRojo = avisos.some((a) => a.nivel === "rojo");
+  const alerta = avisos.length > 0;
   const primero = avisos[0];
 
+  // Botón SIEMPRE visible (sirve para cualquier aviso: tiempo, recoger antes,
+  // cambio de campo...). Parpadea cuando la previsión es ámbar/roja.
+  const estilo = hayRojo
+    ? "border-red-400 bg-red-50 animate-pulse-strong"
+    : alerta
+      ? "border-amber-400 bg-amber-50 animate-pulse-strong"
+      : "border-slate-700/50 bg-slate-800/60";
+
   return (
-    <div className={`rounded-xl border-2 p-3 flex items-center gap-3 ${hayRojo ? "border-red-400 bg-red-50" : "border-amber-400 bg-amber-50"}`}>
-      <CloudSun className={`w-6 h-6 flex-shrink-0 ${hayRojo ? "text-red-600" : "text-amber-600"}`} />
+    <div className={`rounded-xl border-2 p-3 flex items-center gap-3 ${estilo}`}>
+      <CloudSun className={`w-6 h-6 flex-shrink-0 ${hayRojo ? "text-red-600" : alerta ? "text-amber-600" : "text-sky-400"}`} />
       <div className="flex-1 min-w-0">
-        <p className={`font-bold text-sm ${hayRojo ? "text-red-900" : "text-amber-900"}`}>
-          {hayRojo ? "🔴 Condiciones malas hoy" : "🟠 Ojo al tiempo hoy"}
+        <p className={`font-bold text-sm ${hayRojo ? "text-red-900" : alerta ? "text-amber-900" : "text-white"}`}>
+          {hayRojo ? "🔴 Condiciones malas hoy" : alerta ? "🟠 Ojo al tiempo hoy" : "🌦️ Avisar a las familias"}
           {avisos.length > 1 && ` · ${avisos.length} entrenos`}
         </p>
-        <p className={`text-xs truncate ${hayRojo ? "text-red-800" : "text-amber-800"}`}>
-          {primero.categoria} {primero.hora_inicio} · {primero.recomendacion}
+        <p className={`text-xs truncate ${hayRojo ? "text-red-800" : alerta ? "text-amber-800" : "text-slate-400"}`}>
+          {alerta
+            ? `${primero.categoria} ${primero.hora_inicio} · ${primero.recomendacion}`
+            : "Cancelar, cambiar de campo, recoger antes... con confirmación de lectura"}
         </p>
       </div>
       <Link to="/MeteoClub" className="flex-shrink-0">
-        <Button size="sm" className={hayRojo ? "bg-red-600 hover:bg-red-700" : "bg-amber-600 hover:bg-amber-700"}>
-          Decidir y avisar
+        <Button size="sm" className={hayRojo ? "bg-red-600 hover:bg-red-700" : alerta ? "bg-amber-600 hover:bg-amber-700" : "bg-sky-600 hover:bg-sky-700"}>
+          {alerta ? "Decidir y avisar" : "Mandar aviso"}
         </Button>
       </Link>
     </div>

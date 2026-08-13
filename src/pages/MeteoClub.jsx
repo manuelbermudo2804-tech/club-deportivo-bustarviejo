@@ -122,6 +122,7 @@ export default function MeteoClub() {
         prioridad: "Importante",
         destinatarios_tipo: item.categoria,
         publicado: true,
+        requiere_confirmacion: true,
         fecha_publicacion: new Date().toISOString(),
       });
     }
