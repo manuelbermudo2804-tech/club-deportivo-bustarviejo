@@ -5,13 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-const OPCIONES = [
-  { key: "mantener", label: "✅ MANTENER", desc: "Se entrena con normalidad" },
-  { key: "semicubierto", label: "🔄 LLEVAR AL SEMICUBIERTO", desc: "Misma hora, otra instalación" },
-  { key: "modificar", label: "⚠️ MODIFICAR", desc: "Menos tiempo o sesión ligera" },
-  { key: "aplazar", label: "⏰ APLAZAR", desc: "Se cambia la hora" },
-  { key: "cancelar", label: "❌ CANCELAR", desc: "No hay entrenamiento" },
-];
+import { DECISION_OPCIONES as OPCIONES, mensajeAviso } from "./meteoDecisionOptions";
 
 export default function MeteoDecidirDialog({ open, onOpenChange, item, semicubierto, onConfirm }) {
   const [decision, setDecision] = useState(null);
@@ -23,12 +17,13 @@ export default function MeteoDecidirDialog({ open, onOpenChange, item, semicubie
 
   const mensajePropuesto = () => {
     if (!item) return "";
-    const base = `${item.categoria} · hoy ${item.hora_inicio}`;
-    if (decision === "semicubierto") return `🔄 Cambio de instalación. El entrenamiento de ${base} se traslada a ${semicubierto}. Misma hora.`;
-    if (decision === "modificar") return `⚠️ El entrenamiento de ${base} se mantiene con sesión adaptada por el tiempo.`;
-    if (decision === "aplazar") return `⏰ El entrenamiento de ${base} se aplaza${nuevaHora ? ` a las ${nuevaHora}` : ""}.`;
-    if (decision === "cancelar") return `❌ El entrenamiento de ${base} queda cancelado por el tiempo.`;
-    return "";
+    return mensajeAviso({
+      decision,
+      categoria: item.categoria,
+      horaInicio: item.hora_inicio,
+      semicubierto,
+      nuevaHora,
+    });
   };
 
   const guardar = async (avisar) => {

@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { evaluarMeteo, getGrupoCategoria, NIVEL_STYLES } from "@/lib/meteoRules";
 import MeteoEntrenoCard from "./MeteoEntrenoCard";
 import MeteoFamiliaPreview from "./MeteoFamiliaPreview";
+import MeteoSimuladorDecision from "./MeteoSimuladorDecision";
 
 const CATEGORIAS = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -43,6 +44,9 @@ export default function MeteoSimulador({ config }) {
   const [temperatura, setTemperatura] = useState(8);
   const [categoria, setCategoria] = useState(CATEGORIAS[1]);
   const [vista, setVista] = useState("entrenador");
+  const [decisionSim, setDecisionSim] = useState(null);
+  const [nuevaHoraSim, setNuevaHoraSim] = useState("");
+  const semicubierto = config?.instalacion_semicubierta || "Pista semicubierta";
 
   const meteo = { viento, rachas, lluvia, temperatura };
   const grupo = getGrupoCategoria(categoria);
@@ -56,7 +60,9 @@ export default function MeteoSimulador({ config }) {
     ubicacion: "Campo Municipal",
     meteo,
     ...evaluacion,
-    decision: null,
+    decision: decisionSim
+      ? { decision: decisionSim, ubicacion_alternativa: semicubierto, nueva_hora: nuevaHoraSim }
+      : null,
   };
 
   return (
@@ -103,9 +109,22 @@ export default function MeteoSimulador({ config }) {
             >Ver como familia</button>
           </div>
 
-          {vista === "entrenador"
-            ? <MeteoEntrenoCard item={item} readOnly onDecidir={() => {}} />
-            : <MeteoFamiliaPreview item={item} horaLimite={config?.hora_limite_aviso || "16:30"} />}
+          {vista === "entrenador" ? (
+            <>
+              <MeteoEntrenoCard item={item} readOnly onDecidir={() => {}} />
+              <MeteoSimuladorDecision
+                categoria={categoria}
+                horaInicio={item.hora_inicio}
+                semicubierto={semicubierto}
+                decision={decisionSim}
+                onDecision={setDecisionSim}
+                nuevaHora={nuevaHoraSim}
+                onNuevaHora={setNuevaHoraSim}
+              />
+            </>
+          ) : (
+            <MeteoFamiliaPreview item={item} horaLimite={config?.hora_limite_aviso || "16:30"} />
+          )}
         </CardContent>
       </Card>
     </div>
