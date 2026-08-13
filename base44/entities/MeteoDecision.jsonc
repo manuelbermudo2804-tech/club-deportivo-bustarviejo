@@ -30,9 +30,10 @@
         "semicubierto",
         "modificar",
         "aplazar",
-        "cancelar"
+        "cancelar",
+        "otro"
       ],
-      "description": "Decisi\u00f3n tomada por el entrenador/coordinador"
+      "description": "Decisi\u00f3n tomada por el entrenador/coordinador. 'otro' = aviso libre escrito a mano (recoger antes, cambio de campo, etc.)"
     },
     "nivel_recomendado": {
       "type": "string",

@@ -11,25 +11,31 @@ export default function MeteoDecidirDialog({ open, onOpenChange, item, semicubie
   const [decision, setDecision] = useState(null);
   const [motivo, setMotivo] = useState("");
   const [nuevaHora, setNuevaHora] = useState("");
+  const [mensaje, setMensaje] = useState("");
   const [saving, setSaving] = useState(false);
 
-  const reset = () => { setDecision(null); setMotivo(""); setNuevaHora(""); };
+  const reset = () => { setDecision(null); setMotivo(""); setNuevaHora(""); setMensaje(""); };
 
-  const mensajePropuesto = () => {
+  const mensajePropuesto = (dec = decision, hora = nuevaHora) => {
     if (!item) return "";
     return mensajeAviso({
-      decision,
+      decision: dec,
       categoria: item.categoria,
       horaInicio: item.hora_inicio,
       semicubierto,
-      nuevaHora,
+      nuevaHora: hora,
     });
+  };
+
+  const elegir = (key) => {
+    setDecision(key);
+    setMensaje(mensajePropuesto(key, nuevaHora));
   };
 
   const guardar = async (avisar) => {
     setSaving(true);
     try {
-      await onConfirm({ decision, motivo, nuevaHora, avisar, mensaje: avisar ? mensajePropuesto() : "" });
+      await onConfirm({ decision, motivo, nuevaHora, avisar, mensaje: avisar ? mensaje : "" });
       reset();
       onOpenChange(false);
     } finally {
@@ -51,7 +57,7 @@ export default function MeteoDecidirDialog({ open, onOpenChange, item, semicubie
             {OPCIONES.map((o) => (
               <button
                 key={o.key}
-                onClick={() => setDecision(o.key)}
+                onClick={() => elegir(o.key)}
                 className="w-full text-left rounded-xl border border-slate-200 p-3 hover:bg-slate-50"
               >
                 <p className="font-semibold text-slate-900">{o.label}</p>
@@ -68,7 +74,11 @@ export default function MeteoDecidirDialog({ open, onOpenChange, item, semicubie
             {decision === "aplazar" && (
               <div>
                 <Label>Nueva hora</Label>
-                <Input type="time" value={nuevaHora} onChange={(e) => setNuevaHora(e.target.value)} />
+                <Input
+                  type="time"
+                  value={nuevaHora}
+                  onChange={(e) => { setNuevaHora(e.target.value); setMensaje(mensajePropuesto(decision, e.target.value)); }}
+                />
               </div>
             )}
 
@@ -79,15 +89,21 @@ export default function MeteoDecidirDialog({ open, onOpenChange, item, semicubie
 
             {decision !== "mantener" && (
               <div className="bg-slate-50 rounded-xl p-3">
-                <p className="text-sm font-semibold text-slate-700 mb-1">Aviso a las familias</p>
-                <p className="text-sm text-slate-600">{mensajePropuesto()}</p>
+                <Label className="text-sm font-semibold text-slate-700">Aviso a las familias (editable)</Label>
+                <Textarea
+                  value={mensaje}
+                  onChange={(e) => setMensaje(e.target.value)}
+                  rows={3}
+                  className="mt-1 bg-white"
+                  placeholder="Ej: hoy hay que recoger a los niños 15 minutos antes"
+                />
               </div>
             )}
 
             <div className="flex flex-wrap gap-2">
               <Button variant="ghost" onClick={() => setDecision(null)}>Atrás</Button>
               {decision !== "mantener" && (
-                <Button disabled={saving} onClick={() => guardar(true)}>Guardar y avisar</Button>
+                <Button disabled={saving || !mensaje.trim()} onClick={() => guardar(true)}>Guardar y avisar</Button>
               )}
               <Button variant="outline" disabled={saving} onClick={() => guardar(false)}>
                 {decision === "mantener" ? "Guardar" : "Guardar sin avisar"}

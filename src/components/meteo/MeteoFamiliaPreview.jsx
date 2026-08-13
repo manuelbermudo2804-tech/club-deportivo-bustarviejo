@@ -19,6 +19,7 @@ export default function MeteoFamiliaPreview({ item, horaLimite = "16:30" }) {
           {d.decision === "aplazar" && d.nueva_hora && (
             <p className="text-sm text-slate-600">Nueva hora: {d.nueva_hora}.</p>
           )}
+          {d.mensaje_aviso && <p className="text-sm text-slate-700 mt-1">{d.mensaje_aviso}</p>}
           {d.motivo && <p className="text-sm text-slate-600 mt-1">{d.motivo}</p>}
         </>
       ) : item.nivel === "verde" ? (

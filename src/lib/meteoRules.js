@@ -104,4 +104,5 @@ export const DECISION_LABELS = {
   modificar: '⚠️ Sesión modificada',
   aplazar: '⏰ Aplazado',
   cancelar: '❌ Cancelado',
+  otro: 'ℹ️ Aviso del club',
 };
