@@ -71,6 +71,7 @@ import RiesgoAbandono from '@/pages/RiesgoAbandono';
 import TorneosAdmin from '@/pages/TorneosAdmin';
 import TorneoManager from '@/pages/TorneoManager';
 import MeteoClub from '@/pages/MeteoClub';
+import EntrenamientoHub from '@/pages/EntrenamientoHub';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -243,6 +244,7 @@ const AuthenticatedApp = () => {
       <Route path="/TorneosAdmin" element={<LayoutWrapper currentPageName="TorneosAdmin"><TorneosAdmin /></LayoutWrapper>} />
       <Route path="/TorneoManager" element={<LayoutWrapper currentPageName="TorneoManager"><TorneoManager /></LayoutWrapper>} />
       <Route path="/MeteoClub" element={<LayoutWrapper currentPageName="MeteoClub"><MeteoClub /></LayoutWrapper>} />
+      <Route path="/EntrenamientoHub" element={<LayoutWrapper currentPageName="EntrenamientoHub"><EntrenamientoHub /></LayoutWrapper>} />
 
       <Route path="/ShareReceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
       <Route path="/sharereceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />

@@ -64,18 +64,18 @@ export default function MeteoDashboardBanner({ categorias = [] }) {
       <CloudSun className={`w-6 h-6 flex-shrink-0 ${hayRojo ? "text-red-600" : alerta ? "text-amber-600" : "text-sky-400"}`} />
       <div className="flex-1 min-w-0">
         <p className={`font-bold text-sm ${hayRojo ? "text-red-900" : alerta ? "text-amber-900" : "text-white"}`}>
-          {hayRojo ? "🔴 Condiciones malas hoy" : alerta ? "🟠 Ojo al tiempo hoy" : "🌦️ Avisar a las familias"}
+          {hayRojo ? "🔴 Entrenamiento · condiciones malas hoy" : alerta ? "🟠 Entrenamiento · ojo al tiempo hoy" : "🏃 Entrenamiento"}
           {avisos.length > 1 && ` · ${avisos.length} entrenos`}
         </p>
         <p className={`text-xs truncate ${hayRojo ? "text-red-800" : alerta ? "text-amber-800" : "text-slate-400"}`}>
           {alerta
             ? `${primero.categoria} ${primero.hora_inicio} · ${primero.recomendacion}`
-            : "Cancelar, cambiar de campo, recoger antes... con confirmación de lectura"}
+            : "Avisos, asistencia, ejercicios, pizarra y reportes"}
         </p>
       </div>
-      <Link to="/MeteoClub" className="flex-shrink-0">
+      <Link to={alerta ? "/MeteoClub" : "/EntrenamientoHub"} className="flex-shrink-0">
         <Button size="sm" className={hayRojo ? "bg-red-600 hover:bg-red-700" : alerta ? "bg-amber-600 hover:bg-amber-700" : "bg-sky-600 hover:bg-sky-700"}>
-          {alerta ? "Decidir y avisar" : "Mandar aviso"}
+          {alerta ? "Decidir y avisar" : "Abrir"}
         </Button>
       </Link>
     </div>
