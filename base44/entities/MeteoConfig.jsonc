@@ -1,0 +1,115 @@
+{
+  "name": "MeteoConfig",
+  "type": "object",
+  "properties": {
+    "activo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si el sistema Meteo Club est\u00e1 activo"
+    },
+    "instalacion_semicubierta": {
+      "type": "string",
+      "default": "Pista semicubierta",
+      "description": "Nombre de la instalaci\u00f3n alternativa semicubierta"
+    },
+    "hora_limite_aviso": {
+      "type": "string",
+      "default": "16:30",
+      "description": "Hora l\u00edmite a la que el club se compromete a avisar a las familias"
+    },
+    "umbrales": {
+      "type": "object",
+      "description": "Umbrales por grupo de edad. Cada grupo: viento_ambar, viento_rojo, rachas_rojo (km/h), temp_minima (\u00b0C), lluvia_ambar, lluvia_rojo (%)",
+      "properties": {
+        "pequenos": {
+          "type": "object",
+          "properties": {
+            "viento_ambar": {
+              "type": "number"
+            },
+            "viento_rojo": {
+              "type": "number"
+            },
+            "rachas_rojo": {
+              "type": "number"
+            },
+            "temp_minima": {
+              "type": "number"
+            },
+            "lluvia_ambar": {
+              "type": "number"
+            },
+            "lluvia_rojo": {
+              "type": "number"
+            }
+          }
+        },
+        "medianos": {
+          "type": "object",
+          "properties": {
+            "viento_ambar": {
+              "type": "number"
+            },
+            "viento_rojo": {
+              "type": "number"
+            },
+            "rachas_rojo": {
+              "type": "number"
+            },
+            "temp_minima": {
+              "type": "number"
+            },
+            "lluvia_ambar": {
+              "type": "number"
+            },
+            "lluvia_rojo": {
+              "type": "number"
+            }
+          }
+        },
+        "mayores": {
+          "type": "object",
+          "properties": {
+            "viento_ambar": {
+              "type": "number"
+            },
+            "viento_rojo": {
+              "type": "number"
+            },
+            "rachas_rojo": {
+              "type": "number"
+            },
+            "temp_minima": {
+              "type": "number"
+            },
+            "lluvia_ambar": {
+              "type": "number"
+            },
+            "lluvia_rojo": {
+              "type": "number"
+            }
+          }
+        }
+      }
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

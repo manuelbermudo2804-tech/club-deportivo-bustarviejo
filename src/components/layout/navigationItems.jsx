@@ -4,7 +4,8 @@ import {
   Settings, MessageCircle, Clock, Image, FileText, Clover, UserCircle,
   FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert,
   ClipboardCheck, Star, Trophy, KeyRound, RotateCw, CheckCircle2,
-  User as UserIcon, Share2, ExternalLink, Shirt, Camera, HeartPulse, Landmark, MapPin, Brain
+  User as UserIcon, Share2, ExternalLink, Shirt, Camera, HeartPulse, Landmark, MapPin, Brain,
+  CloudSun
 } from "lucide-react";
 
 /**
@@ -60,6 +61,7 @@ export function buildAdminNavigation(ctx) {
 
     { title: "─ CALENDARIO Y EVENTOS ─", section: true },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
+    { title: "🌦️ Meteo Club", url: createPageUrl("MeteoClub"), icon: CloudSun },
     { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
 
@@ -163,6 +165,7 @@ export function buildCoachNavigation(ctx) {
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
+    { title: "🌦️ Meteo Club", url: createPageUrl("MeteoClub"), icon: CloudSun },
     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     ...(ctx.porraActiva ? [{ title: "🏆 Porra Mundial 2026", url: createPageUrl("MiPorra"), icon: Trophy, highlight: true }] : []),
@@ -215,6 +218,7 @@ export function buildCoordinatorNavigation(ctx) {
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "🚨 Riesgo de Abandono", url: createPageUrl("RiesgoAbandono"), icon: ShieldAlert },
     { title: "📅 Calendario y Horarios", url: createPageUrl("CalendarAndSchedules"), icon: Calendar },
+    { title: "🌦️ Meteo Club", url: createPageUrl("MeteoClub"), icon: CloudSun },
     { title: "🤝 Voluntariado", url: createPageUrl("Voluntariado"), icon: Users },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     { title: "📋 Contactos Web", url: createPageUrl("WebContacts"), icon: Users },

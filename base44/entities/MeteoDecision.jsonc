@@ -1,0 +1,118 @@
+{
+  "name": "MeteoDecision",
+  "type": "object",
+  "properties": {
+    "fecha": {
+      "type": "string",
+      "format": "date",
+      "description": "D\u00eda concreto al que afecta la decisi\u00f3n (YYYY-MM-DD)"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda afectada (nombre completo, ej: F\u00fatbol Benjam\u00edn (Mixto))"
+    },
+    "horario_id": {
+      "type": "string",
+      "description": "ID del TrainingSchedule (plantilla semanal) al que corresponde este entrenamiento"
+    },
+    "hora_inicio": {
+      "type": "string",
+      "description": "Hora de inicio del entrenamiento afectado (ej: 18:00)"
+    },
+    "hora_fin": {
+      "type": "string",
+      "description": "Hora de fin del entrenamiento afectado"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "mantener",
+        "semicubierto",
+        "modificar",
+        "aplazar",
+        "cancelar"
+      ],
+      "description": "Decisi\u00f3n tomada por el entrenador/coordinador"
+    },
+    "nivel_recomendado": {
+      "type": "string",
+      "enum": [
+        "verde",
+        "ambar",
+        "rojo"
+      ],
+      "description": "Nivel que hab\u00eda recomendado el sistema en el momento de decidir"
+    },
+    "recomendacion_sistema": {
+      "type": "string",
+      "description": "Texto de la recomendaci\u00f3n que dio el sistema"
+    },
+    "motivo": {
+      "type": "string",
+      "description": "Motivo escrito por quien decide (opcional)"
+    },
+    "ubicacion_alternativa": {
+      "type": "string",
+      "description": "Instalaci\u00f3n alternativa si se traslada (ej: Pista semicubierta)"
+    },
+    "nueva_hora": {
+      "type": "string",
+      "description": "Nueva hora si se aplaza"
+    },
+    "datos_meteo": {
+      "type": "object",
+      "description": "Snapshot de la previsi\u00f3n en la franja del entreno",
+      "properties": {
+        "viento": {
+          "type": "number"
+        },
+        "rachas": {
+          "type": "number"
+        },
+        "lluvia": {
+          "type": "number"
+        },
+        "temperatura": {
+          "type": "number"
+        },
+        "sensacion": {
+          "type": "number"
+        }
+      }
+    },
+    "decidido_por_email": {
+      "type": "string",
+      "description": "Email de quien tom\u00f3 la decisi\u00f3n"
+    },
+    "decidido_por_nombre": {
+      "type": "string",
+      "description": "Nombre de quien tom\u00f3 la decisi\u00f3n"
+    },
+    "aviso_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si se envi\u00f3 aviso a las familias"
+    },
+    "mensaje_aviso": {
+      "type": "string",
+      "description": "Texto del aviso enviado a las familias"
+    }
+  },
+  "required": [
+    "fecha",
+    "categoria",
+    "decision"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "fecha"
+      ]
+    },
+    {
+      "fields": [
+        "categoria"
+      ]
+    }
+  ]
+}
