@@ -1,0 +1,43 @@
+{
+  "name": "FamilyConnection",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre visible de la persona (padre/madre/tutor)"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "Email del usuario due\u00f1o del perfil"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono para contacto por WhatsApp"
+    },
+    "equipo_hijo": {
+      "type": "string",
+      "description": "Categor\u00eda/equipo de su hijo/a, para dar contexto (texto libre)"
+    },
+    "intereses": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Intereses deportivos y de ayuda seleccionados"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Presentaci\u00f3n libre: qu\u00e9 busca, horarios, nivel..."
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si su perfil aparece visible para el resto de familias"
+    }
+  },
+  "required": [
+    "nombre",
+    "email"
+  ]
+}

@@ -14,6 +14,8 @@ import OpportunityForm from "@/components/volunteer/OpportunityForm";
 import OpportunityCard from "@/components/volunteer/OpportunityCard";
 import VolunteerDirectory from "@/components/volunteer/VolunteerDirectory";
 import VolunteerSignupDialog from "@/components/volunteer/VolunteerSignupDialog";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import ConectaTab from "@/components/conecta/ConectaTab";
 
 export default function Voluntariado() {
   const qc = useQueryClient();
@@ -307,6 +309,17 @@ export default function Voluntariado() {
         )}
       </div>
 
+      <Tabs defaultValue="voluntariado" className="space-y-5">
+        <TabsList className="grid grid-cols-2 w-full">
+          <TabsTrigger value="voluntariado">🤝 Voluntariado</TabsTrigger>
+          <TabsTrigger value="conecta">💚 Conecta con familias</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="conecta">
+          <ConectaTab user={user} />
+        </TabsContent>
+
+        <TabsContent value="voluntariado" className="space-y-6">
       {/* 1. Mi perfil de voluntario */}
       <VolunteerProfileCard profile={myProfile} onEdit={openEditMyProfile} />
 
@@ -381,6 +394,9 @@ export default function Voluntariado() {
             })}
         </div>
       </div>
+
+        </TabsContent>
+      </Tabs>
 
       {/* Dialogs */}
       <Dialog open={openProfile} onOpenChange={(v) => { setOpenProfile(v); if (!v) setEditingProfile(null); }}>
