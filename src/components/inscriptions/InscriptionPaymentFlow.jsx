@@ -24,7 +24,7 @@ export default function InscriptionPaymentFlow({
   onContinue,
   userEmail
 }) {
-  const [tipoPago, setTipoPago] = useState("Único");
+  const [tipoPago, setTipoPago] = useState("");
   const [aportacionSolidaria, setAportacionSolidaria] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadedConfigs, setLoadedConfigs] = useState(null);
@@ -249,8 +249,8 @@ export default function InscriptionPaymentFlow({
         <div className="space-y-3">
           <label className="text-sm font-bold text-slate-700">📋 ¿Cómo quieres fraccionar la cuota?</label>
           <Select value={tipoPago} onValueChange={setTipoPago}>
-            <SelectTrigger className="h-14 text-base border-2 border-slate-300 hover:border-blue-500">
-              <SelectValue />
+            <SelectTrigger className={`h-14 text-base border-2 hover:border-blue-500 ${tipoPago ? 'border-slate-300' : 'border-orange-400 bg-orange-50'}`}>
+              <SelectValue placeholder="👉 Pulsa aquí y elige una modalidad" />
             </SelectTrigger>
             <SelectContent className="z-[9999]">
               <SelectItem value="Único" className="cursor-pointer py-3">
@@ -365,6 +365,7 @@ export default function InscriptionPaymentFlow({
           </div>
         )}
 
+        {tipoPago && (
         <div className="bg-orange-50 border-2 border-orange-300 rounded-xl p-4">
           <p className="text-sm font-bold text-orange-900 mb-3">💰 Cuotas que se generarán:</p>
           
@@ -483,6 +484,7 @@ export default function InscriptionPaymentFlow({
             </div>
           )}
         </div>
+        )}
 
         <Alert className="bg-amber-50 border-2 border-amber-400">
           <Info className="h-4 w-4 text-amber-600" />
@@ -497,10 +499,12 @@ export default function InscriptionPaymentFlow({
 
         <Button
           onClick={handleContinue}
-          disabled={isSubmitting}
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-14 text-lg"
+          disabled={isSubmitting || !tipoPago}
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-14 text-lg disabled:opacity-50"
         >
-          {isSubmitting ? (
+          {!tipoPago ? (
+            <>Elige primero una modalidad de pago</>
+          ) : isSubmitting ? (
             <>
               <Loader2 className="w-5 h-5 mr-2 animate-spin" />
               Procesando...
