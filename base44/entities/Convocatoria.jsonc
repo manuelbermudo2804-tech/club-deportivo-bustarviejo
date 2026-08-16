@@ -129,6 +129,32 @@
               "nombre_contacto": {
                 "type": "string",
                 "description": "Nombre del padre/tutor que ofrece/necesita"
+              },
+              "pasajeros": {
+                "type": "array",
+                "description": "Jugadores que se han apuntado a este coche (solo en tipo ofrezco_plazas)",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "jugador_id": {
+                      "type": "string"
+                    },
+                    "jugador_nombre": {
+                      "type": "string"
+                    },
+                    "nombre_contacto": {
+                      "type": "string",
+                      "description": "Nombre del familiar que apunt\u00f3 al jugador"
+                    },
+                    "telefono_contacto": {
+                      "type": "string"
+                    },
+                    "fecha_apunte": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
               }
             }
           }

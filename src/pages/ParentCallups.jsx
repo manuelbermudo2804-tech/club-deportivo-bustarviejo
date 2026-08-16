@@ -177,6 +177,55 @@ export default function ParentCallups() {
     setTransportePlayer(null);
   };
 
+  // Apuntar / bajar a un jugador de un coche ofrecido por otra familia
+  const updatePasajeros = async (callup, updater) => {
+    setSavingTransporte(true);
+    try {
+      const freshCallups = await base44.entities.Convocatoria.filter({ id: callup.id });
+      const freshCallup = freshCallups?.[0] || callup;
+      const updatedJugadores = updater(freshCallup.jugadores_convocados || []);
+      if (!updatedJugadores) return;
+      await base44.entities.Convocatoria.update(freshCallup.id, { jugadores_convocados: updatedJugadores });
+      queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
+    } finally {
+      setSavingTransporte(false);
+    }
+  };
+
+  const handleJoinCoche = (callup, oferta, jugador) => updatePasajeros(callup, (jugadores) => {
+    const conductor = jugadores.find(j => j.jugador_id === oferta.jugador_id);
+    const pasajeros = conductor?.transporte?.pasajeros || [];
+    if ((conductor?.transporte?.plazas || 0) - pasajeros.length <= 0) {
+      alert("Ese coche ya está completo. Prueba con otro.");
+      return null;
+    }
+    return jugadores.map(j => {
+      const listaActual = j.transporte?.pasajeros || [];
+      // Quitarlo de cualquier otro coche primero
+      const limpia = listaActual.filter(p => p.jugador_id !== jugador.jugador_id);
+      if (j.jugador_id === oferta.jugador_id) {
+        return { ...j, transporte: { ...j.transporte, pasajeros: [...limpia, {
+          jugador_id: jugador.jugador_id,
+          jugador_nombre: jugador.jugador_nombre,
+          nombre_contacto: jugador.transporte?.nombre_contacto || user?.full_name || "",
+          telefono_contacto: jugador.transporte?.telefono_contacto || "",
+          fecha_apunte: new Date().toISOString(),
+        }] } };
+      }
+      if (limpia.length !== listaActual.length) {
+        return { ...j, transporte: { ...j.transporte, pasajeros: limpia } };
+      }
+      return j;
+    });
+  });
+
+  const handleLeaveCoche = (callup, oferta, jugadorId) => updatePasajeros(callup, (jugadores) =>
+    jugadores.map(j => j.jugador_id === oferta.jugador_id
+      ? { ...j, transporte: { ...j.transporte, pasajeros: (j.transporte?.pasajeros || []).filter(p => p.jugador_id !== jugadorId) } }
+      : j
+    )
+  );
+
   const getSeasonRange = (s) => {
     if (!s || !s.includes('/')) return { start: new Date(2000,0,1), end: new Date(2999,11,31) };
     const [y1,y2] = s.split('/').map(n=>parseInt(n,10));
@@ -474,7 +523,14 @@ export default function ParentCallups() {
                     {/* Panel de transporte compartido (solo en partidos visitantes) */}
                     {callup.local_visitante === "Visitante" && (
                       <div className="mt-4">
-                        <TransportePanel callup={callup} currentUserEmail={user?.email} />
+                        <TransportePanel
+                          callup={callup}
+                          currentUserEmail={user?.email}
+                          misJugadoresIds={myCallupPlayers.map(p => p.jugador_id)}
+                          onJoin={(oferta, jugador) => handleJoinCoche(callup, oferta, jugador)}
+                          onLeave={(oferta, jugadorId) => handleLeaveCoche(callup, oferta, jugadorId)}
+                          isSaving={savingTransporte}
+                        />
                       </div>
                     )}
                   </div>
