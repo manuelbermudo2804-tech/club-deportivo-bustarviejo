@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 
 function WhatsAppButton({ telefono, nombre }) {
   if (!telefono) return null;
-  const cleanPhone = telefono.replace(/\s+/g, '').replace(/^(\+)?/, '+');
-  const phone34 = cleanPhone.startsWith('+') ? cleanPhone.slice(1) : `34${cleanPhone}`;
+  // Normaliza a formato internacional para wa.me (solo dígitos, con prefijo 34 si falta)
+  const digits = telefono.replace(/\D/g, '');
+  if (digits.length < 9) return null;
+  const phone34 = digits.startsWith('34') && digits.length > 9 ? digits : `34${digits.slice(-9)}`;
   return (
     <a
       href={`https://wa.me/${phone34}`}
