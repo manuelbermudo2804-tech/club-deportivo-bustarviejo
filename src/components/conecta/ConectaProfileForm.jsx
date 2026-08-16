@@ -32,8 +32,11 @@ export default function ConectaProfileForm({ initial, onSubmit, isSaving }) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1.5">
-          <Label>Teléfono (WhatsApp)</Label>
+          <Label>
+            Teléfono (WhatsApp) <span className="text-xs text-slate-500 font-normal">— opcional</span>
+          </Label>
           <Input value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} placeholder="600 000 000" />
+          <p className="text-[11px] text-slate-500">Déjalo solo si quieres que otras familias te escriban directamente.</p>
         </div>
         <div className="space-y-1.5">
           <Label>Equipo de tu hijo/a</Label>

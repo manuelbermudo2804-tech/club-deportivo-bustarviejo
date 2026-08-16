@@ -11,12 +11,14 @@ import ConectaProfileForm from "./ConectaProfileForm";
 import ConectaCard from "./ConectaCard";
 import ConectaFiltroSelect from "./ConectaFiltroSelect";
 import MiPerfilAcciones from "./MiPerfilAcciones";
+import ConectaBuscador from "./ConectaBuscador";
 import { getInteresLabel } from "./conectaIntereses";
 
 export default function ConectaTab({ user }) {
   const qc = useQueryClient();
   const [openForm, setOpenForm] = useState(false);
   const [filtro, setFiltro] = useState(null);
+  const [busqueda, setBusqueda] = useState("");
 
   const { data: profiles = [], isLoading } = useQuery({
     queryKey: ["family_connections"],
@@ -63,6 +65,7 @@ export default function ConectaTab({ user }) {
 
   const otros = visibles
     .filter(p => !filtro || (p.intereses || []).includes(filtro))
+    .filter(p => !busqueda.trim() || (p.nombre || "").toLowerCase().includes(busqueda.trim().toLowerCase()))
     .map(p => ({ ...p, comunes: (p.intereses || []).filter(i => misIntereses.includes(i)).length }))
     .sort((a, b) => b.comunes - a.comunes);
 
@@ -117,6 +120,7 @@ export default function ConectaTab({ user }) {
       {/* Filtro desplegable */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <ConectaFiltroSelect value={filtro} onChange={setFiltro} counts={counts} />
+        <ConectaBuscador value={busqueda} onChange={setBusqueda} />
         <span className="text-xs text-slate-500">{otros.length} familia{otros.length === 1 ? "" : "s"}</span>
       </div>
 
@@ -129,7 +133,11 @@ export default function ConectaTab({ user }) {
           animate={{ opacity: 1 }}
           className="text-center py-8 text-slate-500 bg-white rounded-xl border"
         >
-          {filtro ? "Nadie se ha apuntado todavía a este interés." : "Aún no hay familias apuntadas. ¡Sé la primera y anima al resto!"}
+          {busqueda.trim()
+            ? "Ninguna familia coincide con esa búsqueda."
+            : filtro
+              ? "Nadie se ha apuntado todavía a este interés."
+              : "Aún no hay familias apuntadas. ¡Sé la primera y anima al resto!"}
         </motion.div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
