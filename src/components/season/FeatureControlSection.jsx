@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   Settings, RefreshCw, Smartphone, CreditCard, Clover, Users, Mail, Image,
-  Shield, Lock, Trash2, Info, ChevronDown, ChevronUp
+  Shield, Trash2, Info, ChevronDown, ChevronUp
 } from "lucide-react";
 import SolidarityFundConfig from "./SolidarityFundConfig";
 
