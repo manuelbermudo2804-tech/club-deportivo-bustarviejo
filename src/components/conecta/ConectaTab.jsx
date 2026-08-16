@@ -10,6 +10,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import ConectaProfileForm from "./ConectaProfileForm";
 import ConectaCard from "./ConectaCard";
 import ConectaFiltroSelect from "./ConectaFiltroSelect";
+import MiPerfilAcciones from "./MiPerfilAcciones";
 import { getInteresLabel } from "./conectaIntereses";
 
 export default function ConectaTab({ user }) {
@@ -35,6 +36,24 @@ export default function ConectaTab({ user }) {
       toast.success("Perfil guardado ✅");
     },
     onError: () => toast.error("No se pudo guardar el perfil"),
+  });
+
+  const setVisible = useMutation({
+    mutationFn: (activo) => base44.entities.FamilyConnection.update(myProfile.id, { activo }),
+    onSuccess: (_d, activo) => {
+      qc.invalidateQueries({ queryKey: ["family_connections"] });
+      toast.success(activo ? "Ya vuelves a aparecer 👋" : "Tu perfil está oculto");
+    },
+    onError: () => toast.error("No se pudo cambiar la visibilidad"),
+  });
+
+  const remove = useMutation({
+    mutationFn: () => base44.entities.FamilyConnection.delete(myProfile.id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["family_connections"] });
+      toast.success("Perfil borrado");
+    },
+    onError: () => toast.error("No se pudo borrar el perfil"),
   });
 
   const visibles = profiles.filter(p => p.email !== user?.email && p.activo !== false);
@@ -85,6 +104,14 @@ export default function ConectaTab({ user }) {
             </Button>
           </motion.div>
         </div>
+        {myProfile && (
+          <MiPerfilAcciones
+            visible={myProfile.activo !== false}
+            onToggleVisible={(v) => setVisible.mutate(v)}
+            onDelete={() => remove.mutate()}
+            isBusy={setVisible.isPending || remove.isPending}
+          />
+        )}
       </motion.div>
 
       {/* Filtro desplegable */}
