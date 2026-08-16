@@ -301,7 +301,10 @@ export default function Voluntariado() {
     <div className="max-w-5xl mx-auto p-4 lg:p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl lg:text-3xl font-bold">🤝 Voluntariado</h1>
+        <div>
+          <h1 className="text-2xl lg:text-3xl font-bold">🤝 Comunidad del Club</h1>
+          <p className="text-sm text-slate-500">Voluntariado y conexión entre familias</p>
+        </div>
         {isStaff && (
           <Button size="sm" onClick={() => setOpenOpp(true)} className="bg-green-600 hover:bg-green-700">
             <Plus className="w-4 h-4 mr-1" /> Nueva oportunidad
