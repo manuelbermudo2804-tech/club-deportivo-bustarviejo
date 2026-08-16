@@ -154,11 +154,6 @@
       "type": "number",
       "default": 0,
       "description": "Importe TOTAL (\u20ac) que la familia se comprometi\u00f3 a aportar al Fondo Solidario en esta inscripci\u00f3n"
-    },
-    "aviso_riesgo_convocatoria_enviado": {
-      "type": "boolean",
-      "default": false,
-      "description": "Si ya se envi\u00f3 a la familia el aviso preventivo de que el jugador puede quedar fuera de las convocatorias por esta cuota vencida"
     }
   },
   "required": [
