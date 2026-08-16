@@ -13,9 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Loader2, AlertCircle, Users, Send, Sparkles, MapPin, AlertTriangle, Eye, EyeOff } from "lucide-react";
 import PlayerSuggestionEngine from "./PlayerSuggestionEngine";
-import { getOverduePlayerIds } from "./usePaymentBlockCheck";
 
-export default function CallupForm({ callup, players, coachName, coachEmail, category, onSubmit, onCancel, isSubmitting, userSuggestionsEnabled = true, onToggleSuggestions, payments = [], seasonConfig }) {
+export default function CallupForm({ callup, players, coachName, coachEmail, category, onSubmit, onCancel, isSubmitting, userSuggestionsEnabled = true, onToggleSuggestions }) {
   const getInitialState = () => ({
     titulo: "",
     categoria: category,
@@ -170,10 +169,9 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     }
   }, [currentCallup.local_visitante, currentCallup.rival, manualLocationEdit]);
 
-  // Calcular jugadores morosos (pagos vencidos)
-  const paymentBlockEnabled = seasonConfig?.bloqueo_convocatorias_impago === true;
-  const diasGracia = seasonConfig?.dias_gracia_convocatoria ?? 14;
-  const overduePlayerIds = paymentBlockEnabled ? getOverduePlayerIds(players, payments, diasGracia) : new Set();
+  // Jugadores marcados manualmente por el club como "fuera de convocatorias" por impago
+  const overduePlayerIds = new Set(players.filter(p => p.bloqueo_convocatoria_activo === true).map(p => p.id));
+  const paymentBlockEnabled = overduePlayerIds.size > 0;
 
   // Filtrar jugadores no disponibles (lesionados/sancionados)
   const availablePlayers = players.filter(p => !p.lesionado && !p.sancionado);
@@ -567,8 +565,8 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               <Alert className="bg-red-50 border-red-300">
                 <AlertTriangle className="h-4 w-4 text-red-600" />
                 <AlertDescription className="text-red-800 text-sm">
-                  <strong>💸 {overduePlayerIds.size} jugador(es) con pagos vencidos</strong> (más de {diasGracia} días de gracia).
-                  Aparecen marcados y no están seleccionados por defecto. Puedes incluirlos manualmente si lo consideras necesario.
+                  <strong>💸 {overduePlayerIds.size} jugador(es) marcados por el club como fuera de convocatorias</strong> por cuota pendiente.
+                  No se seleccionan al pulsar "Seleccionar Todos". Puedes incluirlos manualmente si lo consideras necesario.
                 </AlertDescription>
               </Alert>
             )}

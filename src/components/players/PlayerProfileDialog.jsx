@@ -21,7 +21,6 @@ const toWhatsAppUrl = (tel) => {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import FeeAdjustmentDialog from "../payments/FeeAdjustmentDialog";
-import PaymentBlockExemptionCard from "./PaymentBlockExemptionCard";
 
 export default function PlayerProfileDialog({ 
   player, 
@@ -109,16 +108,11 @@ export default function PlayerProfileDialog({
                 </div>
               )}
               {player.nombre}
-              {isAdmin && player.exento_bloqueo_impago && (
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('info')}
-                  title={player.motivo_exencion_bloqueo || 'Excluido del bloqueo por impago'}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-purple-600 text-white text-xs font-bold shadow hover:bg-purple-700 animate-pulse"
-                >
+              {isAdmin && player.bloqueo_convocatoria_activo && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-red-600 text-white text-xs font-bold shadow">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  EXENTO IMPAGO
-                </button>
+                  FUERA DE CONVOCATORIAS
+                </span>
               )}
             </DialogTitle>
             {isAdmin && onEdit && (
@@ -334,11 +328,6 @@ export default function PlayerProfileDialog({
                 </div>
               </CardContent>
             </Card>
-
-            {/* Excepción de bloqueo por impago (solo admin/tesorero) */}
-            {isAdmin && (
-              <PaymentBlockExemptionCard player={player} onUpdated={() => onOpenChange(false)} />
-            )}
 
             {/* Información Médica */}
             {player.ficha_medica && Object.values(player.ficha_medica).some(val => val) && (

@@ -16,6 +16,7 @@ import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import SelectiveReminderDialog from "../components/reminders/SelectiveReminderDialog";
 import { buildWhatsAppReminderMessage, openWhatsAppReminder } from "../components/reminders/whatsappReminderMessage";
 import { registrarRecordatorioEnviado } from "../components/reminders/recordatorioTracking";
+import PlayerPaymentSwitches from "../components/payments/PlayerPaymentSwitches";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -1080,6 +1081,11 @@ export default function PaymentReminders() {
                             </div>
                           </div>
                         )}
+                        <PlayerPaymentSwitches
+                          key={`sw-${jugador.id}-${players.find(p => p.id === jugador.id)?.updated_date || ''}`}
+                          player={players.find(p => p.id === jugador.id) || { id: jugador.id }}
+                          onUpdated={refetchPlayers}
+                        />
                       </div>
                     </div>
                   ))}

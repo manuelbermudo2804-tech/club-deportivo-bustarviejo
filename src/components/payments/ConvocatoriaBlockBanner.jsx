@@ -4,32 +4,25 @@ import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, Clock, CreditCard } from "lucide-react";
-import { getOverduePlayerIds } from "../callups/usePaymentBlockCheck";
 
 /**
- * Banner para familias: avisa de que un jugador puede quedarse fuera de las
- * convocatorias por tener una cuota vencida.
+ * Banner para familias, activado MANUALMENTE por el club jugador a jugador:
  *
- * - ROJO: la cuota ya superó los días de gracia → ya no entra en convocatorias.
- * - ÁMBAR: la cuota está vencida pero aún dentro de los días de gracia (aviso preventivo).
+ * - aviso_impago_activo        → ÁMBAR: recordatorio de que hay cuota pendiente.
+ * - bloqueo_convocatoria_activo → ROJO: no entra en convocatorias hasta estar al corriente.
  *
- * Solo se muestra si el club tiene activado el bloqueo por impago.
+ * Si el jugador está al corriente (ningún interruptor activado) no se muestra nada.
  */
-export default function ConvocatoriaBlockBanner({ players = [], payments = [], seasonConfig }) {
-  if (seasonConfig?.bloqueo_convocatorias_impago !== true) return null;
-  if (!players.length) return null;
+export default function ConvocatoriaBlockBanner({ players = [] }) {
+  const bloqueados = players.filter((p) => p.bloqueo_convocatoria_activo === true);
+  const avisados = players.filter(
+    (p) => p.aviso_impago_activo === true && p.bloqueo_convocatoria_activo !== true
+  );
 
-  const diasGracia = seasonConfig?.dias_gracia_convocatoria ?? 14;
-  const blockedIds = getOverduePlayerIds(players, payments, diasGracia);
-  const vencidosIds = getOverduePlayerIds(players, payments, 0);
-  const enRiesgoIds = new Set([...vencidosIds].filter((id) => !blockedIds.has(id)));
+  if (bloqueados.length === 0 && avisados.length === 0) return null;
 
-  if (blockedIds.size === 0 && enRiesgoIds.size === 0) return null;
-
-  const nombres = (ids) =>
-    players.filter((p) => ids.has(p.id)).map((p) => p.nombre).join(", ");
-
-  const isBlocked = blockedIds.size > 0;
+  const nombres = (list) => list.map((p) => p.nombre).join(", ");
+  const isBlocked = bloqueados.length > 0;
 
   return (
     <Card className={`border-2 shadow-lg ${isBlocked ? "border-red-400 bg-red-50" : "border-amber-400 bg-amber-50"}`}>
@@ -43,23 +36,21 @@ export default function ConvocatoriaBlockBanner({ players = [], payments = [], s
           <div className="flex-1 space-y-3">
             {isBlocked && (
               <div>
-                <h3 className="font-bold text-red-900">Cuota vencida — no entra en las convocatorias</h3>
+                <h3 className="font-bold text-red-900">No entra en las convocatorias</h3>
                 <p className="text-sm text-red-800 mt-1">
-                  <strong>{nombres(blockedIds)}</strong> tiene una cuota vencida, por lo que
-                  de momento <strong>no se le está incluyendo en las convocatorias de partido</strong>.
-                  En cuanto se regularice el pago (o subas el justificante), vuelve a entrar con normalidad.
+                  <strong>{nombres(bloqueados)}</strong>: hasta que no esté al corriente de pago
+                  <strong> no entrará en las convocatorias de partido</strong>. En cuanto se
+                  regularice la cuota, vuelve a entrar con normalidad.
                 </p>
               </div>
             )}
 
-            {enRiesgoIds.size > 0 && (
+            {avisados.length > 0 && (
               <div>
-                <h3 className={`font-bold ${isBlocked ? "text-amber-900" : "text-amber-900"}`}>
-                  Cuota vencida — riesgo de quedarse fuera
-                </h3>
+                <h3 className="font-bold text-amber-900">Recordatorio de cuota pendiente</h3>
                 <p className="text-sm text-amber-800 mt-1">
-                  <strong>{nombres(enRiesgoIds)}</strong> tiene una cuota vencida. Si no se
-                  regulariza en los próximos días, dejará de entrar en las convocatorias de partido.
+                  <strong>{nombres(avisados)}</strong> tiene una cuota pendiente. Por favor,
+                  regularízala para evitar quedarse fuera de las convocatorias.
                 </p>
               </div>
             )}

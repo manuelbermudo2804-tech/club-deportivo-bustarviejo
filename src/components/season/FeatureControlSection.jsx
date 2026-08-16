@@ -167,23 +167,6 @@ export default function FeatureControlSection({
             </div>
           )}
 
-          {/* Bloqueo convocatorias por impago */}
-          <FeatureRow
-            icon={<Lock className="w-5 h-5 text-red-600" />}
-            title="🔒 Bloqueo por impago en convocatorias"
-            subtitle="Los jugadores con pagos vencidos aparecen marcados y excluidos por defecto al crear convocatorias"
-            checked={activeSeason.bloqueo_convocatorias_impago || false}
-            onChange={(v) => toggleFeature('bloqueo_convocatorias_impago', v)}
-          />
-          {activeSeason.bloqueo_convocatorias_impago && (
-            <div className="ml-8 flex items-center gap-2 p-3 bg-red-50 rounded-lg border-2 border-red-200">
-              <Label className="text-sm font-medium">⏰ Días de gracia tras vencimiento:</Label>
-              <Input type="number" min={0} max={60} value={activeSeason.dias_gracia_convocatoria ?? 14} onChange={(e) => update({ dias_gracia_convocatoria: Number(e.target.value) })} className="w-20" />
-              <span className="text-xs text-slate-600">días</span>
-              <Info className="w-4 h-4 text-slate-400" title="Tras este periodo el jugador aparece marcado como moroso" />
-            </div>
-          )}
-
           {/* Patrocinadores */}
           <FeatureRow icon={<Image className="w-5 h-5 text-indigo-600" />} title="Banner Patrocinadores" subtitle="Mostrar patrocinadores en la app" checked={activeSeason.mostrar_patrocinadores || false} onChange={(v) => toggleFeature('mostrar_patrocinadores', v)} />
 
