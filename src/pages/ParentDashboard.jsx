@@ -26,6 +26,7 @@ import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 import PorraPromoBanner from "../components/porra/PorraPromoBanner";
 import IncompleteDocsBanner from "../components/players/IncompleteDocsBanner";
 import MercadilloBanner from "../components/market/MercadilloBanner";
+import ConvocatoriaBlockBanner from "../components/payments/ConvocatoriaBlockBanner";
 
 
 
@@ -538,6 +539,11 @@ export default function ParentDashboard() {
 
 
 
+
+        {/* Aviso de cuota vencida y riesgo de no ser convocado */}
+        {!playersLoading && myPlayers.length > 0 && (
+          <ConvocatoriaBlockBanner players={myPlayers} payments={allPayments} seasonConfig={activeSeason} />
+        )}
 
         {/* Banner de documentos incompletos — se oculta solo cuando todo esté subido */}
         {!playersLoading && myPlayers.length > 0 && (
