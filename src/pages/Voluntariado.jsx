@@ -302,7 +302,7 @@ export default function Voluntariado() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold">🤝 Comunidad del Club</h1>
+          <h1 className="text-2xl lg:text-3xl font-bold">🤝 Voluntariado y Comunidad</h1>
           <p className="text-sm text-slate-500">Voluntariado y conexión entre familias</p>
         </div>
         {isStaff && (

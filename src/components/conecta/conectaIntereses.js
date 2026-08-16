@@ -10,8 +10,6 @@ export const INTERESES = [
   { id: "natacion", label: "🏊 Natación" },
   { id: "yoga", label: "🧘 Yoga / pilates" },
   { id: "ver_partidos", label: "📺 Ver partidos juntos" },
-  { id: "compartir_coche", label: "🚗 Compartir coche a desplazamientos" },
-  { id: "ayuda_eventos", label: "🤝 Echar una mano en eventos" },
   { id: "planes_familia", label: "👨‍👩‍👧 Planes con los niños" },
 ];
 

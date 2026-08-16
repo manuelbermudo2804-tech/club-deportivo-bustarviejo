@@ -18,7 +18,7 @@ export const ALL_TREASURER_BUTTONS = [
   { id: "chat_coordinador", title: "🎓 Chat Coordinador", icon: MessageCircle, url: createPageUrl("ParentCoordinatorChat"), gradient: "from-cyan-600 to-cyan-700", priority: 9, conditional: true, conditionKey: "hasPlayers", section: "club" },
   { id: "chat_equipo", title: "⚽ Chat Equipo", icon: MessageCircle, url: createPageUrl("ParentCoachChat"), gradient: "from-blue-600 to-blue-700", priority: 10, conditional: true, conditionKey: "hasPlayers", section: "club" },
   { id: "calendario", title: "📅 Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Calendar, gradient: "from-blue-600 to-blue-700", priority: 11, section: "club" },
-  { id: "voluntariado", title: "🤝 Voluntariado", icon: Users, url: createPageUrl("Voluntariado"), gradient: "from-teal-600 to-teal-700", priority: 12, section: "club" },
+  { id: "voluntariado", title: "🤝 Voluntariado y Comunidad", icon: Users, url: createPageUrl("Voluntariado"), gradient: "from-teal-600 to-teal-700", priority: 12, section: "club" },
   { id: "mercadillo", title: "🛍️ Mercadillo", icon: Gift, url: createPageUrl("Mercadillo"), gradient: "from-amber-600 to-amber-700", priority: 13, section: "club" },
   { id: "eventos", title: "🎉 Eventos Club", icon: Calendar, url: createPageUrl("ParentEventRSVP"), gradient: "from-cyan-600 to-cyan-700", priority: 14, section: "club" },
   { id: "anuncios", title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone, gradient: "from-orange-600 to-red-700", priority: 15, section: "club" },

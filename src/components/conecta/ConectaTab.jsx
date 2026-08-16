@@ -6,9 +6,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Badge } from "@/components/ui/badge";
 import { Heart, Pencil, Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import ConectaProfileForm from "./ConectaProfileForm";
 import ConectaCard from "./ConectaCard";
-import { INTERESES, getInteresLabel } from "./conectaIntereses";
+import ConectaFiltroSelect from "./ConectaFiltroSelect";
+import { getInteresLabel } from "./conectaIntereses";
 
 export default function ConectaTab({ user }) {
   const qc = useQueryClient();
@@ -35,8 +37,12 @@ export default function ConectaTab({ user }) {
     onError: () => toast.error("No se pudo guardar el perfil"),
   });
 
-  const otros = profiles
-    .filter(p => p.email !== user?.email && p.activo !== false)
+  const visibles = profiles.filter(p => p.email !== user?.email && p.activo !== false);
+
+  const counts = {};
+  visibles.forEach(p => (p.intereses || []).forEach(i => { counts[i] = (counts[i] || 0) + 1; }));
+
+  const otros = visibles
     .filter(p => !filtro || (p.intereses || []).includes(filtro))
     .map(p => ({ ...p, comunes: (p.intereses || []).filter(i => misIntereses.includes(i)).length }))
     .sort((a, b) => b.comunes - a.comunes);
@@ -44,12 +50,26 @@ export default function ConectaTab({ user }) {
   return (
     <div className="space-y-5">
       {/* Mi perfil */}
-      <div className="bg-gradient-to-r from-green-600 to-emerald-700 rounded-2xl p-4 text-white">
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: "easeOut" }}
+        className="bg-gradient-to-r from-green-600 to-emerald-700 rounded-2xl p-4 text-white shadow-lg"
+      >
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold flex items-center gap-2"><Heart className="w-4 h-4" /> Conecta con otras familias</h3>
+            <h3 className="font-bold flex items-center gap-2">
+              <motion.span
+                animate={{ scale: [1, 1.18, 1] }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+                className="inline-flex"
+              >
+                <Heart className="w-4 h-4 fill-white" />
+              </motion.span>
+              Conecta con otras familias
+            </h3>
             <p className="text-green-50 text-sm mt-1">
-              Comparte tus intereses (correr, ciclismo, pádel, compartir coche, ayudar en eventos...) y encuentra familias del club con tus mismos planes.
+              Comparte tus aficiones (correr, ciclismo, pádel, senderismo...) y encuentra familias del club con tus mismos planes.
             </p>
             {myProfile && (
               <div className="flex flex-wrap gap-1.5 mt-2">
@@ -59,45 +79,48 @@ export default function ConectaTab({ user }) {
               </div>
             )}
           </div>
-          <Button size="sm" onClick={() => setOpenForm(true)} className="bg-white text-green-700 hover:bg-green-50 flex-shrink-0">
-            {myProfile ? <><Pencil className="w-4 h-4 mr-1" /> Editar</> : <><Sparkles className="w-4 h-4 mr-1" /> Apuntarme</>}
-          </Button>
+          <motion.div whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }} className="flex-shrink-0">
+            <Button size="sm" onClick={() => setOpenForm(true)} className="bg-white text-green-700 hover:bg-green-50 shadow">
+              {myProfile ? <><Pencil className="w-4 h-4 mr-1" /> Editar</> : <><Sparkles className="w-4 h-4 mr-1" /> Apuntarme</>}
+            </Button>
+          </motion.div>
         </div>
-      </div>
+      </motion.div>
 
-      {/* Filtros por interés */}
-      <div className="flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() => setFiltro(null)}
-          className={`px-3 py-1.5 rounded-full text-xs font-medium border-2 ${!filtro ? "bg-slate-900 border-slate-900 text-white" : "bg-white border-slate-200 text-slate-700"}`}
-        >
-          Todos
-        </button>
-        {INTERESES.map(i => (
-          <button
-            key={i.id}
-            type="button"
-            onClick={() => setFiltro(filtro === i.id ? null : i.id)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium border-2 ${filtro === i.id ? "bg-green-600 border-green-600 text-white" : "bg-white border-slate-200 text-slate-700 hover:border-green-300"}`}
-          >
-            {i.label}
-          </button>
-        ))}
+      {/* Filtro desplegable */}
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <ConectaFiltroSelect value={filtro} onChange={setFiltro} counts={counts} />
+        <span className="text-xs text-slate-500">{otros.length} familia{otros.length === 1 ? "" : "s"}</span>
       </div>
 
       {/* Listado */}
       {isLoading ? (
         <div className="text-center py-8 text-slate-500">Cargando familias...</div>
       ) : otros.length === 0 ? (
-        <div className="text-center py-8 text-slate-500 bg-white rounded-xl border">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="text-center py-8 text-slate-500 bg-white rounded-xl border"
+        >
           {filtro ? "Nadie se ha apuntado todavía a este interés." : "Aún no hay familias apuntadas. ¡Sé la primera y anima al resto!"}
-        </div>
+        </motion.div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">
-          {otros.map(p => (
-            <ConectaCard key={p.id} profile={p} misIntereses={misIntereses} />
-          ))}
+          <AnimatePresence mode="popLayout">
+            {otros.map((p, idx) => (
+              <motion.div
+                key={p.id}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.28, delay: Math.min(idx * 0.04, 0.3) }}
+                whileHover={{ y: -3 }}
+              >
+                <ConectaCard profile={p} misIntereses={misIntereses} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
 
