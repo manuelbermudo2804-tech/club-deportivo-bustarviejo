@@ -13,4 +13,11 @@ export const INTERESES = [
   { id: "planes_familia", label: "👨‍👩‍👧 Planes con los niños" },
 ];
 
-export const getInteresLabel = (id) => INTERESES.find(i => i.id === id)?.label || id;
+// Los intereses escritos por el usuario se guardan como "otro:Texto libre"
+export const OTRO_PREFIX = "otro:";
+export const isOtroInteres = (id) => typeof id === "string" && id.startsWith(OTRO_PREFIX);
+
+export const getInteresLabel = (id) => {
+  if (isOtroInteres(id)) return `✨ ${id.slice(OTRO_PREFIX.length)}`;
+  return INTERESES.find(i => i.id === id)?.label || id;
+};

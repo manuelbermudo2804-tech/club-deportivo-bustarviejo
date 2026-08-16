@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { INTERESES } from "./conectaIntereses";
+import OtroInteresInput from "./OtroInteresInput";
 
 export default function ConectaProfileForm({ initial, onSubmit, isSaving }) {
   const [form, setForm] = useState({
@@ -58,6 +59,11 @@ export default function ConectaProfileForm({ initial, onSubmit, isSaving }) {
             </button>
           ))}
         </div>
+        <OtroInteresInput
+          intereses={form.intereses}
+          onAdd={(id) => setForm(f => ({ ...f, intereses: [...f.intereses, id] }))}
+          onRemove={(id) => setForm(f => ({ ...f, intereses: f.intereses.filter(i => i !== id) }))}
+        />
       </div>
 
       <div className="space-y-1.5">
