@@ -99,14 +99,10 @@ export function buildAdminNavigation(ctx) {
 
     { title: "─ CONFIGURACIÓN ─", section: true },
     { title: "🧾 Memoria del Club", url: createPageUrl("ClubMemory"), icon: FileText },
-    { title: "🗺️ Mapa de Crecimiento", url: createPageUrl("GrowthMap"), icon: MapPin },
-    { title: "🧠 Club IA", url: createPageUrl("ClubIA"), icon: Brain },
-    { title: "🩺 Panel de Salud", url: createPageUrl("HealthCheck"), icon: HeartPulse },
+    { title: "📊 Centro de Datos", url: createPageUrl("CentroDatos"), icon: BarChart3 },
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "📊 Estadísticas Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
-    { title: "🩺 Análisis Inteligente App", url: createPageUrl("AppAnalytics"), icon: BarChart3 },
-    { title: "⚡ Monitor de Créditos", url: createPageUrl("CreditUsage"), icon: BarChart3 },
     { title: "🌐 Páginas Externas", url: "/ExternalLinks", icon: ExternalLink },
     { title: "🚀 Constructor de Páginas", url: "/PageBuilder", icon: Megaphone },
 
