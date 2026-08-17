@@ -13,6 +13,7 @@ import AIGenerator from "../components/announcements/AIGenerator";
 import EmptyState from "../components/common/EmptyState";
 import TemplateManager from "../components/announcements/TemplateManager";
 import { playerInCategory, playerAllCategories } from "../components/utils/playerCategoryFilter";
+import { playerBelongsToUser } from "../components/utils/playerBelongsToUser";
 
 export default function Announcements() {
   const [showForm, setShowForm] = useState(false);
@@ -40,9 +41,7 @@ export default function Announcements() {
         
         if (currentUser.role !== "admin") {
           const allPlayers = await base44.entities.Player.list();
-          const myPlayers = allPlayers.filter(p => 
-            p.email_padre === currentUser.email || p.email === currentUser.email
-          );
+          const myPlayers = allPlayers.filter(p => playerBelongsToUser(p, currentUser.email));
           
           if (myPlayers.length > 0) {
             // Reunir TODAS las categorías del jugador (categoria_principal + deporte legacy + categorias[])
@@ -67,9 +66,7 @@ export default function Announcements() {
         
         const allAnnouncements = await base44.entities.Announcement.list();
         const allPlayers = await base44.entities.Player.list();
-        const myPlayers = allPlayers.filter(p => 
-          p.email_padre === currentUser.email || p.email === currentUser.email
-        );
+        const myPlayers = allPlayers.filter(p => playerBelongsToUser(p, currentUser.email));
         const sports = [...new Set(myPlayers.flatMap(p => playerAllCategories(p)))];
         
         let marked = 0;

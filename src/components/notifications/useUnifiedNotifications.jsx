@@ -259,13 +259,15 @@ export function useUnifiedNotifications(user, options = {}) {
       } else {
         // 2 consultas paralelas: padres/tutores (la más común) + jugador adulto
         // Consolidado de 3 a 2 llamadas agrupando padre+tutor2 en una sola
-        const [plsByPadre, plsByTutor2, plsByJugador] = await Promise.all([
+        const esMenor = user?.es_menor === true || user?.tipo_panel === 'jugador_menor';
+        const [plsByPadre, plsByTutor2, plsByJugador, plsByMenor] = await Promise.all([
           run(() => base44.entities.Player.filter({ email_padre: user?.email }, '-updated_date', 100)).catch(() => []),
           run(() => base44.entities.Player.filter({ email_tutor_2: user?.email }, '-updated_date', 100)).catch(() => []),
           user?.es_jugador ? run(() => base44.entities.Player.filter({ email_jugador: user?.email }, '-updated_date', 10)).catch(() => []) : Promise.resolve([]),
+          esMenor ? run(() => base44.entities.Player.filter({ acceso_menor_email: user?.email }, '-updated_date', 10)).catch(() => []) : Promise.resolve([]),
         ]);
         const plsMap = new Map();
-        [...plsByPadre, ...plsByTutor2, ...plsByJugador].forEach(p => plsMap.set(p.id, p));
+        [...plsByPadre, ...plsByTutor2, ...plsByJugador, ...plsByMenor].forEach(p => plsMap.set(p.id, p));
         pls = Array.from(plsMap.values());
       }
       setRawData(prev => ({ ...prev, players: pls }));
@@ -438,7 +440,7 @@ export function useUnifiedNotifications(user, options = {}) {
     if (!user) return;
 
     const myPlayerIds = (rawData.players || [])
-      .filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email || p.email_jugador === user.email)
+      .filter(p => p.email_padre === user.email || p.email_tutor_2 === user.email || p.email_jugador === user.email || p.acceso_menor_email === user.email)
       .map(p => p.id);
     
     const myCategories = [...new Set((rawData.players || [])
