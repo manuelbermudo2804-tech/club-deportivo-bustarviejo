@@ -9,6 +9,7 @@ import { Clock, BarChart3, Loader2 } from "lucide-react";
 
 import MinutesSpreadsheet from "../components/minutes/MinutesSpreadsheet";
 import MinutesStatsPanel from "../components/minutes/MinutesStatsPanel";
+import EquidadMinutosPanel from "../components/minutes/EquidadMinutosPanel";
 import { playerInCategory } from "../components/utils/playerCategoryFilter";
 import { useStaffPlayers } from "../hooks/useStaffPlayers";
 
@@ -280,6 +281,11 @@ export default function MatchMinutesTracker() {
         </Card>
       ) : (
         <>
+          <EquidadMinutosPanel
+            players={players}
+            matchStructure={matchStructure}
+          />
+
           <MinutesSpreadsheet
             players={players}
             matchStructure={matchStructure}
