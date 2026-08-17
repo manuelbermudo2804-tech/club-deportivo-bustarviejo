@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Link2 } from "lucide-react";
 
 export const SECCIONES_APP = [
-  { url: "/ParentTrainingSchedules", label: "🕐 Horarios de entrenamiento" },
+  { url: "/Schedules", label: "🕐 Horarios de entrenamiento" },
   { url: "/CalendarAndSchedules", label: "📅 Calendario y eventos" },
   { url: "/ParentCallups", label: "📋 Convocatorias" },
   { url: "/ParentPayments", label: "💳 Mis pagos" },
