@@ -5,6 +5,7 @@ import { CheckCircle2, CreditCard, ArrowRight, FileText, X } from "lucide-react"
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import confetti from "canvas-confetti";
+import PostInscripcionPasos from "./PostInscripcionPasos";
 
 export default function InscriptionSuccessScreen({ 
   player, 
@@ -135,6 +136,8 @@ export default function InscriptionSuccessScreen({
                   </div>
                 </div>
               )}
+
+              <PostInscripcionPasos categoria={player.categoria_principal || player.deporte} />
             </div>
           </div>
 
