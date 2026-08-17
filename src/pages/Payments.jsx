@@ -27,6 +27,7 @@ import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImporte
 import { sendPaymentReceipt, createPlayerPaymentReceiptData } from "../components/receipts/PaymentReceiptPDF";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import FeeAdjustmentDialog from "../components/payments/FeeAdjustmentDialog";
+import FraccionarCuotaDialog from "../components/payments/FraccionarCuotaDialog";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -107,6 +108,7 @@ export default function Payments() {
   const [editingPlan, setEditingPlan] = useState(null);
   const [displayLimit, setDisplayLimit] = useState(20);
   const [feeAdjustPlayer, setFeeAdjustPlayer] = useState(null);
+  const [fraccionarData, setFraccionarData] = useState(null);
 
   const formRef = useRef(null);
   const queryClient = useQueryClient();
@@ -1352,6 +1354,24 @@ export default function Payments() {
                                 </div>
                               </div>
                               <div className="flex gap-2 items-center flex-wrap lg:flex-nowrap lg:flex-shrink-0">
+                                {isAdmin && (() => {
+                                  const pagoUnicoPendiente = allPlayerPaymentsRaw.find(p =>
+                                    (p.tipo_pago === "Único" || p.tipo_pago === "único") && p.estado === "Pendiente"
+                                  );
+                                  if (!pagoUnicoPendiente) return null;
+                                  return (
+                                    <Button
+                                      size="sm"
+                                      variant="outline"
+                                      onClick={() => setFraccionarData({ player, pagoUnico: pagoUnicoPendiente })}
+                                      className="h-7 px-2 text-[10px] lg:text-xs border-blue-300 text-blue-700 hover:bg-blue-50"
+                                      title="Pasar el pago único a 3 cuotas"
+                                    >
+                                      <Calendar className="w-3 h-3 mr-1" />
+                                      Fraccionar en 3
+                                    </Button>
+                                  );
+                                })()}
                                 {isAdmin && (
                                   <Button
                                     size="sm"
@@ -1777,6 +1797,20 @@ export default function Payments() {
           queryClient.invalidateQueries({ queryKey: ['allPlayers'] });
         }}
       />
+
+      {/* Dialog fraccionar pago único en 3 cuotas */}
+      {fraccionarData && (
+        <FraccionarCuotaDialog
+          open={!!fraccionarData}
+          onOpenChange={(open) => { if (!open) setFraccionarData(null); }}
+          player={fraccionarData.player}
+          pagoUnico={fraccionarData.pagoUnico}
+          onDone={() => {
+            setFraccionarData(null);
+            queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+          }}
+        />
+      )}
 
       <ContactCard />
 
