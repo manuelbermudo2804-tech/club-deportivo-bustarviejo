@@ -72,13 +72,19 @@ export default function Schedules() {
     queryFn: async () => {
       const allPlayers = await base44.entities.Player.list();
       
-      if (userRole === "player") {
-        return allPlayers.filter(p => p.id === user?.jugador_id);
-      } else {
-        return allPlayers.filter(p => 
-          (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo
-        );
-      }
+      const email = user?.email;
+      // El jugador puede estar vinculado por su propio email (jugador adulto)
+      // o por el email de acceso juvenil (menor con acceso propio)
+      const mios = allPlayers.filter(p =>
+        p.activo && (
+          p.id === user?.jugador_id ||
+          p.email_jugador === email ||
+          p.acceso_menor_email === email ||
+          p.email_padre === email ||
+          p.email_tutor_2 === email
+        )
+      );
+      return mios;
     },
     enabled: !!user?.email && (userRole === "parent" || userRole === "player"),
     initialData: [],
