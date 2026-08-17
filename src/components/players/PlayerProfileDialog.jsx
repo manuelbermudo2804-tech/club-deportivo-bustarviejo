@@ -21,6 +21,7 @@ const toWhatsAppUrl = (tel) => {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import FeeAdjustmentDialog from "../payments/FeeAdjustmentDialog";
+import FraccionarCuotaDialog from "../payments/FraccionarCuotaDialog";
 
 export default function PlayerProfileDialog({ 
   player, 
@@ -35,6 +36,7 @@ export default function PlayerProfileDialog({
 }) {
   const [activeTab, setActiveTab] = useState(initialTab);
   const [showFeeAdjustment, setShowFeeAdjustment] = useState(false);
+  const [showFraccionar, setShowFraccionar] = useState(false);
   const [directPayments, setDirectPayments] = useState(null);
 
   useEffect(() => {
@@ -72,6 +74,11 @@ export default function PlayerProfileDialog({
     .reduce((sum, p) => sum + (p.cantidad || 0), 0);
   
   const pendingPayments = playerPayments.filter(p => p.estado === "Pendiente").length;
+
+  // Pago único todavía sin pagar → se puede fraccionar en 3 cuotas
+  const pagoUnicoPendiente = playerPayments.find(p =>
+    (p.tipo_pago === "Único" || p.tipo_pago === "único") && p.estado === "Pendiente"
+  );
   
   const totalAttendances = playerAttendances.reduce((sum, a) => {
     const playerAtt = a.asistencias?.find(asist => asist.jugador_id === player.id);
@@ -423,6 +430,19 @@ export default function PlayerProfileDialog({
               </Button>
             )}
 
+            {/* Fraccionar pago único en 3 cuotas (solo admin) */}
+            {isAdmin && pagoUnicoPendiente && (
+              <div className="bg-blue-50 border-2 border-blue-200 rounded-xl p-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-bold text-blue-900">📅 Pago único pendiente: {pagoUnicoPendiente.cantidad}€</p>
+                  <p className="text-xs text-blue-700 mt-0.5">Si la familia lo pide, puedes pasarlo a 3 cuotas (Junio · Septiembre · Diciembre).</p>
+                </div>
+                <Button size="sm" className="bg-blue-600 hover:bg-blue-700 flex-shrink-0" onClick={() => setShowFraccionar(true)}>
+                  Fraccionar en 3 cuotas
+                </Button>
+              </div>
+            )}
+
             {playerPayments.length === 0 ? (
               <Card className="border-none shadow-lg">
                 <CardContent className="pt-6 text-center py-12">
@@ -730,6 +750,17 @@ export default function PlayerProfileDialog({
         player={player}
         payments={playerPayments}
       />
+
+      {/* Fraccionar pago único en 3 cuotas */}
+      {pagoUnicoPendiente && (
+        <FraccionarCuotaDialog
+          open={showFraccionar}
+          onOpenChange={setShowFraccionar}
+          player={player}
+          pagoUnico={pagoUnicoPendiente}
+          onDone={() => window.location.reload()}
+        />
+      )}
     </Dialog>
   );
 }
