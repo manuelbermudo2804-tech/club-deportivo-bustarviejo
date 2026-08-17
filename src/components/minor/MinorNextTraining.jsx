@@ -21,7 +21,7 @@ export default function MinorNextTraining({ playerCategory }) {
 
   if (!schedules.length) return null;
 
-  // Find next training from now
+  // Find next training from now, respetando la fecha de inicio de los entrenamientos
   const now = new Date();
   const todayDow = now.getDay(); // 0=Sun
   const currentTime = now.getHours() * 60 + now.getMinutes();
@@ -36,10 +36,18 @@ export default function MinorNextTraining({ playerCategory }) {
     const [h, m] = (s.hora_inicio || "18:00").split(":").map(Number);
     const trainTime = h * 60 + m;
 
-    // Days until this training
+    // Días hasta este entrenamiento
     let diff = dow - todayDow;
     if (diff < 0) diff += 7;
-    if (diff === 0 && currentTime >= trainTime) diff = 7; // Already passed today
+    if (diff === 0 && currentTime >= trainTime) diff = 7; // Ya pasó hoy
+
+    // Si los entrenamientos aún no han empezado, avanzar hasta la primera semana válida
+    if (s.fecha_inicio) {
+      const inicio = new Date(`${s.fecha_inicio}T00:00:00`);
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const diasHastaInicio = Math.round((inicio - startOfToday) / 86400000);
+      while (diff < diasHastaInicio) diff += 7;
+    }
 
     if (diff < bestDiff) {
       bestDiff = diff;
@@ -49,13 +57,16 @@ export default function MinorNextTraining({ playerCategory }) {
 
   if (!best) return null;
 
-  const dow = DIAS_MAP[best.dia_semana];
-  let daysUntil = dow - todayDow;
-  if (daysUntil < 0) daysUntil += 7;
-  const [h, m] = (best.hora_inicio || "18:00").split(":").map(Number);
-  if (daysUntil === 0 && currentTime >= h * 60 + m) daysUntil = 7;
+  const daysUntil = bestDiff;
+  const fechaEntreno = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntil);
 
-  const dayLabel = daysUntil === 0 ? "¡Hoy!" : daysUntil === 1 ? "Mañana" : `${best.dia_semana}`;
+  const dayLabel = daysUntil === 0
+    ? "¡Hoy!"
+    : daysUntil === 1
+      ? "Mañana"
+      : daysUntil < 7
+        ? best.dia_semana
+        : `${best.dia_semana} ${fechaEntreno.getDate()}/${fechaEntreno.getMonth() + 1}`;
 
   return (
     <motion.div
