@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Edit, Pin, Clock, Trash2, Eye, ChevronDown, ChevronUp, ShieldAlert } from "lucide-react";
+import { Edit, Pin, Clock, Trash2, Eye, ChevronDown, ChevronUp, ShieldAlert, ArrowRight } from "lucide-react";
+import { Link } from "react-router-dom";
 import { format, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
 import ShareButtons from "../social/ShareButtons";
@@ -108,6 +109,26 @@ export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdm
             >
               {expanded ? (<><ChevronUp className="w-3 h-3" /> Ver menos</>) : (<><ChevronDown className="w-3 h-3" /> Ver más</>)}
             </button>
+          )}
+
+          {announcement.cta_url && (
+            <div className="mb-3">
+              {announcement.cta_url.startsWith("http") ? (
+                <a href={announcement.cta_url} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 text-xs">
+                    {announcement.cta_texto || "Abrir enlace"}
+                    <ArrowRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </a>
+              ) : (
+                <Link to={announcement.cta_url}>
+                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 text-xs">
+                    {announcement.cta_texto || "Ir a la sección"}
+                    <ArrowRight className="w-3 h-3 ml-1" />
+                  </Button>
+                </Link>
+              )}
+            </div>
           )}
 
           <div className="flex flex-wrap gap-1 pt-2 border-t border-slate-200">

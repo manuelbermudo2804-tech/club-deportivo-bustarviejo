@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Loader2, Mail, Pin, Clock, AlertCircle, Sparkles, Bell, ShieldAlert } from "lucide-react";
+import AnnouncementCtaSelector from "./AnnouncementCtaSelector";
 
 export default function AnnouncementForm({ announcement, onSubmit, onCancel, isSubmitting }) {
   const [currentAnnouncement, setCurrentAnnouncement] = useState(announcement || {
@@ -391,6 +392,13 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                 required
               />
             </div>
+
+            {/* Botón de enlace a sección de la app */}
+            <AnnouncementCtaSelector
+              texto={currentAnnouncement.cta_texto}
+              url={currentAnnouncement.cta_url}
+              onChange={(vals) => setCurrentAnnouncement({ ...currentAnnouncement, ...vals })}
+            />
 
             {/* Opciones */}
             <div className="space-y-4">

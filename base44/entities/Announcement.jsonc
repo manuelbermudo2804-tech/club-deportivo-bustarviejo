@@ -123,6 +123,14 @@
         "type": "string"
       }
     },
+    "cta_texto": {
+      "type": "string",
+      "description": "Texto del bot\u00f3n de enlace del anuncio (ej: Ver horarios)"
+    },
+    "cta_url": {
+      "type": "string",
+      "description": "Ruta interna de la app (ej: /ParentTrainingSchedules) o URL externa a la que lleva el bot\u00f3n del anuncio"
+    },
     "mostrar_como_banner": {
       "type": "boolean",
       "default": false
