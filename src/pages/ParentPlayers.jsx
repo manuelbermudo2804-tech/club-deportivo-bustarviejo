@@ -863,11 +863,17 @@ Email: info@cdbustarviejo.com
   const futbolPlayers = players.filter(p => 
     p.deporte?.includes("Fútbol") && !p.deporte?.includes("Femenino") && !p.deporte?.includes("+40")
   );
-  const futbolFemeninoPlayers = players.filter(p => p.deporte === "Fútbol Femenino");
+  const futbolFemeninoPlayers = players.filter(p => p.deporte?.includes("Femenino"));
   const baloncestoPlayers = players.filter(p => p.deporte?.includes("Baloncesto"));
   const actividadesComplementarias = players.filter(p => 
     p.deporte === "Multideporte" || p.deporte === "Preparacion física" || p.deporte?.includes("+40")
   );
+  // Red de seguridad: cualquier jugador que no encaje en los grupos anteriores
+  // debe seguir viéndose (antes desaparecía de la pantalla sin avisar).
+  const agrupadosIds = new Set([
+    ...futbolPlayers, ...futbolFemeninoPlayers, ...baloncestoPlayers, ...actividadesComplementarias
+  ].map(p => p.id));
+  const otrosPlayers = players.filter(p => !agrupadosIds.has(p.id));
   
   // Detectar jugadores con renovación pendiente
   const playersToRenew = players.filter(p => p.estado_renovacion === "pendiente");
@@ -1293,6 +1299,41 @@ Email: info@cdbustarviejo.com
                     <PlayerCard 
                       key={player.id}
                       player={player} 
+                      onEdit={handleEdit}
+                      onRenew={handleRenew}
+                      onMarkNotRenewing={handleMarkNotRenewing}
+                      onAddExtra={setExtraActivityPlayer}
+                      isParent={true}
+                      schedules={schedules}
+                      payments={payments}
+                      seasonConfig={seasonConfig}
+                      callups={callups}
+                      evaluations={evaluations}
+                      attendanceRecords={attendanceRecords}
+                      categoryConfigs={categoryConfigs}
+                    />
+                  ))}
+                </AnimatePresence>
+              </div>
+            </div>
+          )}
+
+          {/* Otras categorías (red de seguridad) */}
+          {otrosPlayers.length > 0 && (
+            <div className="space-y-3 lg:space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-slate-400 to-slate-600 rounded-xl flex items-center justify-center text-xl shadow-md">🏅</div>
+                <div>
+                  <h2 className="text-lg lg:text-xl font-bold text-slate-900">Otras categorías</h2>
+                  <p className="text-xs text-slate-500">{otrosPlayers.length} jugador{otrosPlayers.length > 1 ? 'es' : ''}</p>
+                </div>
+              </div>
+              <div className="space-y-6">
+                <AnimatePresence>
+                  {otrosPlayers.map((player) => (
+                    <PlayerCard
+                      key={player.id}
+                      player={player}
                       onEdit={handleEdit}
                       onRenew={handleRenew}
                       onMarkNotRenewing={handleMarkNotRenewing}
