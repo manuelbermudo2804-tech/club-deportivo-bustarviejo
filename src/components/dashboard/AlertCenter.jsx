@@ -31,7 +31,7 @@ import {
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import MiSemanaSection from "./MiSemanaSection";
+import HoyEntrenamientoLine from "./HoyEntrenamientoLine";
 
 // CRÍTICO: Este componente NO debe mostrar alertas de CHATS
 // Solo: convocatorias, pagos, firmas, eventos, encuestas, etc.
@@ -693,13 +693,12 @@ const alerts = [];
     }
   };
 
-  const hasAgenda = weekAgenda && ((weekAgenda.items?.length || 0) > 0 || (weekAgenda.conflicts?.length || 0) > 0);
-
   if (visibleAlerts.length === 0) {
-    // Sin tareas: mostrar la agenda (si la hay) + "Todo al día"
+    // Sin tareas: mostrar el entrenamiento de hoy (si lo hay) + "Todo al día"
     return (
       <Card className="border-orange-200 shadow-lg overflow-hidden">
         <CardContent className="p-3">
+          <HoyEntrenamientoLine items={weekAgenda?.items} />
           <p className="text-sm text-slate-600 text-center">✅ Todo al día</p>
         </CardContent>
       </Card>
@@ -723,6 +722,7 @@ const alerts = [];
   return (
     <Card className="border-orange-200 shadow-lg overflow-hidden">
       <CardContent className="p-3">
+        <HoyEntrenamientoLine items={weekAgenda?.items} />
         {rolTitle && (
           <div className="mb-3 pb-3 border-b border-orange-200">
             <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">
