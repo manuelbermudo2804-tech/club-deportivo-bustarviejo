@@ -13,6 +13,7 @@ import UserAlertsBar from "@/components/admin/UserAlertsBar";
 import UserFilters from "@/components/admin/UserFilters";
 import UserDialogs from "@/components/admin/UserDialogs";
 import UserInconsistenciesBanner from "@/components/admin/UserInconsistenciesBanner";
+import EmailRelationLookup from "@/components/admin/EmailRelationLookup";
 import PairParentsDialog from "@/components/admin/dialogs/PairParentsDialog";
 import PairingResultsDialog from "@/components/admin/dialogs/PairingResultsDialog";
 
@@ -750,6 +751,8 @@ export default function UserManagement() {
           </Button>
         </div>
       </div>
+
+      <EmailRelationLookup players={players} users={users} />
 
       <UserStats
         activeUsers={parents}
