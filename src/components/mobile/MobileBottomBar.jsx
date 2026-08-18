@@ -1,7 +1,7 @@
 import React, { useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home, Bell, CreditCard, MessageCircle, Users, Dumbbell } from 'lucide-react';
+import { Home, Bell, CreditCard, MessageCircle, Users, Dumbbell, Clock } from 'lucide-react';
 import useMeteoAlerta from '@/hooks/useMeteoAlerta';
 
 // Persist last visited path + scroll per tab across renders
@@ -23,11 +23,18 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
     dot: meteoAlerta ? (meteoRojo ? 'red' : 'amber') : null,
   };
 
+  // Acceso directo a los horarios de entrenamiento (abre ya la pestaña de horarios)
+  const horariosTab = {
+    icon: Clock, label: 'Horarios', url: createPageUrl('CalendarAndSchedules'),
+    target: `${createPageUrl('CalendarAndSchedules')}?tab=horarios`, key: 'schedules',
+  };
+
   let tabs = [];
   if (isMinor) {
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('MinorDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('ParentCallups'), key: 'callups' },
+      horariosTab,
       { icon: Users, label: 'Competición', url: createPageUrl('CentroCompeticion'), key: 'competition' },
     ];
   } else if (isAdmin) {
@@ -69,6 +76,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('PlayerDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('ParentCallups'), key: 'callups' },
+      horariosTab,
       { icon: CreditCard, label: 'Pagos', url: createPageUrl('ParentPayments'), key: 'payments' },
       { icon: MessageCircle, label: 'Chat', url: createPageUrl('FamilyChatsHub'), key: 'chat', badge: totalChatBadge },
     ];
@@ -77,6 +85,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('ParentDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('ParentCallups'), key: 'callups' },
+      horariosTab,
       { icon: CreditCard, label: 'Pagos', url: createPageUrl('ParentPayments'), key: 'payments' },
       { icon: MessageCircle, label: 'Chat', url: createPageUrl('FamilyChatsHub'), key: 'chat', badge: totalChatBadge },
     ];
@@ -106,7 +115,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
 
     // Determine target: use saved path if exists (preserves navigation stack), else tab root
     const saved = tabState[tab.key];
-    const targetUrl = saved?.path || getTabRootPath(tab.url);
+    const targetUrl = saved?.path || tab.target || getTabRootPath(tab.url);
 
     // If we're already on this tab's current page, scroll to top instead
     if (targetUrl === currentPath) {
@@ -129,12 +138,12 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-stretch justify-around">
-        {tabs.map(({ icon: Icon, label, url, key, badge, dot }) => {
+        {tabs.map(({ icon: Icon, label, url, target, key, badge, dot }) => {
           const isActive = activeTabKey === key;
           return (
             <button
               key={key}
-              onClick={() => handleTabClick({ key, url })}
+              onClick={() => handleTabClick({ key, url, target })}
               aria-label={label}
               className="flex-1 flex flex-col items-center justify-center py-2 pb-1 no-select active:opacity-70"
               style={{ minHeight: '56px', WebkitTapHighlightColor: 'transparent', WebkitAppearance: 'none' }}

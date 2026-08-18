@@ -41,7 +41,12 @@ const DAY_COLORS = {
 const UBICACION_MAPS_URL = "https://www.google.com/maps/place/Campo+de+F%C3%BAtbol+Municipal+Bustarviejo/@40.8569444,-3.7230556,17z";
 
 export default function CalendarAndSchedules() {
-  const [activeTab, setActiveTab] = useState("partidos");
+  // Permite abrir directamente una pestaña con ?tab=horarios (usado por el acceso "Horarios" del móvil)
+  const initialTab = (() => {
+    const t = new URLSearchParams(window.location.search).get('tab');
+    return ['partidos', 'jornadas', 'calendario', 'horarios'].includes(t) ? t : 'partidos';
+  })();
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [typeFilter, setTypeFilter] = useState("all");
   const [sportFilter, setSportFilter] = useState("all");
   const [viewMode, setViewMode] = useState("calendar");
@@ -388,7 +393,7 @@ export default function CalendarAndSchedules() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Calendario y Horarios</h1>
+            <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Horarios y Calendario</h1>
             {newEventsCount > 0 && !isAdmin && (
               <Badge className="bg-red-500 text-white text-xs">
                 <Bell className="w-3 h-3 mr-1" />
@@ -714,6 +719,10 @@ export default function CalendarAndSchedules() {
           {/* Header for schedules */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
+              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+                <Clock className="w-5 h-5 text-orange-600" />
+                Horarios de entrenamiento
+              </h2>
               <p className="text-slate-600">
                 {canEditSchedules 
                   ? "Gestiona los horarios de entrenamientos por categoría" 
