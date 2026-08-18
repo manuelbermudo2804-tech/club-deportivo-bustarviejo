@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Filter, X, Download, AlertTriangle, CheckCircle2, UserX, MessageCircle, Contact, Users } from "lucide-react";
+import { Plus, Search, Filter, X, Download, AlertTriangle, CheckCircle2, UserX, MessageCircle, Contact, Users, Mail } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AnimatePresence } from "framer-motion";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,6 +22,7 @@ import { analyzePaymentChanges } from "../components/players/recalcPaymentsHelpe
 import RenewalStatsPanel from "../components/players/RenewalStatsPanel";
 import CustomPaymentPlanForm from "../components/payments/CustomPaymentPlanForm";
 import BulkCategoryMoveDialog from "../components/players/BulkCategoryMoveDialog";
+import CambiarEmailFamiliaDialog from "../components/players/CambiarEmailFamiliaDialog";
 
 export default function Players() {
   const [showForm, setShowForm] = useState(false);
@@ -46,6 +47,7 @@ export default function Players() {
   const [showRecalcDialog, setShowRecalcDialog] = useState(false);
   const [recalcPlayerName, setRecalcPlayerName] = useState("");
   const [showBulkMove, setShowBulkMove] = useState(false);
+  const [showEmailChange, setShowEmailChange] = useState(false);
   
   const queryClient = useQueryClient();
 
@@ -822,6 +824,17 @@ export default function Players() {
           )}
           {isAdmin && (
             <Button
+              onClick={() => setShowEmailChange(true)}
+              variant="outline"
+              className="border-purple-600 text-purple-700 hover:bg-purple-50 w-full sm:w-auto justify-center min-w-0"
+              title="Cambiar el correo de una familia manteniendo todos los datos del jugador"
+            >
+              <Mail className="w-5 h-5 mr-2 flex-shrink-0" />
+              <span className="truncate">Cambiar correo</span>
+            </Button>
+          )}
+          {isAdmin && (
+            <Button
               onClick={() => {
                 setEditingPlayer(null);
                 setShowForm(!showForm);
@@ -1094,6 +1107,16 @@ export default function Players() {
         existingPlan={null}
         onSubmit={(planData) => createCustomPlanMutation.mutate(planData)}
         isSubmitting={createCustomPlanMutation.isPending}
+      />
+
+      <CambiarEmailFamiliaDialog
+        open={showEmailChange}
+        onOpenChange={setShowEmailChange}
+        players={allPlayers}
+        onDone={() => {
+          queryClient.invalidateQueries({ queryKey: ['players'] });
+          queryClient.invalidateQueries({ queryKey: ['payments'] });
+        }}
       />
 
       <BulkCategoryMoveDialog
