@@ -11,6 +11,7 @@ import usePwaDetection from "./hooks/usePwaDetection";
 import useStripeReturn from "./hooks/useStripeReturn";
 import useChunkRecovery from "./hooks/useChunkRecovery";
 import useAppBadge from "./hooks/useAppBadge";
+import { autoValidateByPlayerEmail } from "@/lib/autoValidateByPlayerEmail";
 
 
 import { Menu, X, Smartphone } from "lucide-react";
@@ -419,7 +420,19 @@ export default function Layout({ children, currentPageName }) {
                           base44.auth.updateMe({ codigo_acceso_validado: true, fecha_validacion_codigo: new Date().toISOString() });
                         } catch {}
                       } else {
-                        setOnboardingView('access_code');
+                        // Cambio de correo de una familia: si este email ya está en la ficha
+                        // de un jugador, entra directo sin pedir código.
+                        setOnboardingView('loading');
+                        autoValidateByPlayerEmail(user.email)
+                          .then((tipo) => {
+                            if (tipo) {
+                              executeFetch();
+                              setOnboardingView('none');
+                            } else {
+                              setOnboardingView('access_code');
+                            }
+                          })
+                          .catch(() => setOnboardingView('access_code'));
                         return;
                       }
                     }
