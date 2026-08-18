@@ -63,6 +63,11 @@ export function buildWeekAgenda(players = [], schedules = [], callups = []) {
     if (quienes.length === 0) return;
     const fecha = new Date(ini);
     fecha.setDate(ini.getDate() + (idx - 1));
+    // No mostrar entrenos antes de la fecha de comienzo de la categoría
+    if (s.fecha_inicio) {
+      const inicioTemporada = new Date(s.fecha_inicio + "T00:00:00");
+      if (fecha < inicioTemporada) return;
+    }
     items.push({
       tipo: "entreno",
       fecha,
