@@ -13,7 +13,6 @@ import InjuryReportDialog from "./InjuryReportDialog";
 import { getActiveCustomPlan, getPendingPaymentsCount } from "../payments/paymentHelpers";
 import { base44 } from "@/api/base44Client";
 import PlayerCardRenewal from "./card/PlayerCardRenewal";
-import PlayerCardSchedule from "./card/PlayerCardSchedule";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -526,10 +525,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             )}
 
             {/* ═══════ SCHEDULE ═══════ */}
-            {isParent && playerSchedules.length > 0 && (
-              <PlayerCardSchedule playerSchedules={playerSchedules} />
-            )}
-            {!isParent && playerSchedules.length > 0 && (
+            {playerSchedules.length > 0 && (
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <Clock className="w-3.5 h-3.5 text-green-600 flex-shrink-0" />
                 <span className="truncate">
