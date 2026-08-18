@@ -158,34 +158,37 @@ export default function CentroCompeticion() {
 
   // Config categorías (familias)
   const [showConfig, setShowConfig] = React.useState(false);
-  const [visibleCats, setVisibleCats] = React.useState(() => {
+  // Se guardan las categorías OCULTAS (no las visibles): así, cuando el club añade
+  // una categoría nueva, aparece automáticamente para todo el mundo.
+  const [hiddenCats, setHiddenCats] = React.useState(() => {
     try {
-      const stored = localStorage.getItem('comp_visible_categories_family');
+      const stored = localStorage.getItem('comp_hidden_categories_family');
       const arr = stored ? JSON.parse(stored) : null;
-      return Array.isArray(arr) && arr.length ? arr : [];
+      if (Array.isArray(arr)) return arr;
+      // Migración: la lista antigua de "visibles" se descarta para no ocultar categorías nuevas
+      localStorage.removeItem('comp_visible_categories_family');
+      return [];
     } catch { return []; }
   });
 
-  // Sync visible cats when dynamic categories load
-  React.useEffect(() => {
-    if (CATEGORIES.length > 0 && visibleCats.length === 0) {
-      setVisibleCats(CATEGORIES);
-    }
-  }, [CATEGORIES]);
+  const visibleCats = React.useMemo(
+    () => CATEGORIES.filter(c => !hiddenCats.includes(c)),
+    [CATEGORIES, hiddenCats]
+  );
 
   React.useEffect(() => {
-    if (!visibleCats.includes(category)) {
-      setCategory(visibleCats[0] || CATEGORIES[0]);
+    if (visibleCats.length && !visibleCats.includes(category)) {
+      setCategory(visibleCats[0]);
     }
   }, [visibleCats]);
 
   const toggleCatVisibility = (cat) => {
-    setVisibleCats((prev) => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
+    setHiddenCats((prev) => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat]);
   };
-  const selectAllCats = () => setVisibleCats([...CATEGORIES]);
-  const resetCats = () => setVisibleCats([...CATEGORIES]);
+  const selectAllCats = () => setHiddenCats([]);
+  const resetCats = () => setHiddenCats([]);
   const saveCats = () => {
-    try { localStorage.setItem('comp_visible_categories_family', JSON.stringify(visibleCats)); } catch {}
+    try { localStorage.setItem('comp_hidden_categories_family', JSON.stringify(hiddenCats)); } catch {}
     setShowConfig(false);
   };
 
