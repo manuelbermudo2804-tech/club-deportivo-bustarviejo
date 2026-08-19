@@ -497,8 +497,8 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                 </Label>
                 <div className="flex gap-2">
                   <Input
-                    type="url"
-                    placeholder="https://maps.google.com/..."
+                    type="text"
+                    placeholder="https://maps.google.com/... (opcional)"
                     value={currentCallup.enlace_ubicacion || ""}
                     onChange={(e) => setCurrentCallup({ ...currentCallup, enlace_ubicacion: e.target.value })}
                     className="flex-1"
