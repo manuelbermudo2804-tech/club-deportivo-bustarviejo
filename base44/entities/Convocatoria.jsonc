@@ -243,25 +243,7 @@
   ],
   "rls": {
     "read": {},
-    "create": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "user_condition": {
-            "data.es_entrenador": true
-          }
-        },
-        {
-          "user_condition": {
-            "data.es_coordinador": true
-          }
-        }
-      ]
-    },
+    "create": {},
     "update": {},
     "delete": {
       "$or": [
@@ -272,7 +254,17 @@
         },
         {
           "user_condition": {
+            "es_entrenador": true
+          }
+        },
+        {
+          "user_condition": {
             "data.es_entrenador": true
+          }
+        },
+        {
+          "user_condition": {
+            "es_coordinador": true
           }
         },
         {
