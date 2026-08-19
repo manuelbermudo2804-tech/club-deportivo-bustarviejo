@@ -242,6 +242,7 @@
     "entrenador_email"
   ],
   "rls": {
+    "read": {},
     "create": {
       "$or": [
         {
@@ -251,48 +252,35 @@
         },
         {
           "user_condition": {
-            "es_entrenador": true
-          }
-        }
-      ]
-    },
-    "read": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
-          }
-        },
-        {
-          "data.categoria": {
-            "$in": "{{user.data.categorias_hijos}}"
-          }
-        },
-        {
-          "data.categoria": {
-            "$in": "{{user.categorias_entrena}}"
-          }
-        }
-      ]
-    },
-    "update": {
-      "$or": [
-        {
-          "user_condition": {
-            "role": "admin"
+            "data.es_entrenador": true
           }
         },
         {
           "user_condition": {
-            "es_entrenador": true
+            "data.es_coordinador": true
           }
         }
       ]
     },
+    "update": {},
     "delete": {
-      "user_condition": {
-        "role": "admin"
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_entrenador": true
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_coordinador": true
+          }
+        }
+      ]
     }
   }
 }
