@@ -16,7 +16,7 @@ export default function LoteriaCampanaAdmin() {
   const [editando, setEditando] = useState(null); // 'nuevo' | id
   const [form, setForm] = useState(null);
 
-  const { data: campana } = useQuery({
+  const { data: campana, isSuccess: campanaCargada } = useQuery({
     queryKey: ["loteriaCampana"],
     queryFn: async () => {
       const list = await base44.entities.LoteriaCampana.list();
@@ -33,10 +33,12 @@ export default function LoteriaCampanaAdmin() {
   });
 
   React.useEffect(() => {
-    if (campana && !form) setForm(campana);
-    if (!campana && !form) {
+    if (!campanaCargada || form) return;
+    if (campana) {
+      setForm(campana);
+    } else {
       setForm({
-        activa: true,
+        activa: false,
         titulo: "Lotería de Navidad",
         numero: "",
         precio_decimo: 25,
@@ -47,7 +49,7 @@ export default function LoteriaCampanaAdmin() {
         mensaje_whatsapp: "",
       });
     }
-  }, [campana, form]);
+  }, [campana, campanaCargada, form]);
 
   const guardarCampana = useMutation({
     mutationFn: async (data) => {
@@ -100,7 +102,7 @@ export default function LoteriaCampanaAdmin() {
               <p className="font-semibold text-slate-900">Página pública activa</p>
               <p className="text-xs text-slate-600">Si la desactivas, la página deja de mostrar la campaña</p>
             </div>
-            <Switch checked={form.activa !== false} onCheckedChange={(v) => setForm({ ...form, activa: v })} />
+            <Switch checked={form.activa === true} onCheckedChange={(v) => setForm({ ...form, activa: v })} />
           </div>
 
           <div className="grid sm:grid-cols-2 gap-3">
