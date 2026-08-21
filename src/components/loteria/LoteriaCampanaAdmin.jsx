@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Pencil, ExternalLink } from "lucide-react";
+import { Plus, Trash2, Pencil, ExternalLink, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import ComercioForm from "./ComercioForm";
 
@@ -75,6 +75,19 @@ export default function LoteriaCampanaAdmin() {
       toast.success("✅ Comercio guardado");
     },
   });
+
+  // Reordenar comercios: reescribe el campo "orden" según la nueva posición
+  const reordenar = async (from, to) => {
+    if (to < 0 || to >= comercios.length) return;
+    const lista = [...comercios];
+    const [movido] = lista.splice(from, 1);
+    lista.splice(to, 0, movido);
+    await base44.entities.LoteriaComercio.bulkUpdate(
+      lista.map((c, i) => ({ id: c.id, orden: i }))
+    );
+    queryClient.invalidateQueries({ queryKey: ["loteriaComercios"] });
+    queryClient.invalidateQueries({ queryKey: ["loteriaPublic"] });
+  };
 
   const borrarComercio = useMutation({
     mutationFn: (id) => base44.entities.LoteriaComercio.delete(id),
@@ -176,7 +189,7 @@ export default function LoteriaCampanaAdmin() {
             <p className="text-slate-500 text-sm">Todavía no has añadido comercios.</p>
           )}
 
-          {comercios.map((c) =>
+          {comercios.map((c, index) =>
             editando === c.id ? (
               <ComercioForm
                 key={c.id}
@@ -186,6 +199,14 @@ export default function LoteriaCampanaAdmin() {
               />
             ) : (
               <div key={c.id} className="flex items-center gap-3 bg-white border rounded-xl p-3">
+                <div className="flex flex-col gap-1 shrink-0">
+                  <Button size="sm" variant="outline" className="h-6 w-7 p-0" disabled={index === 0} onClick={() => reordenar(index, index - 1)}>
+                    <ArrowUp className="w-3 h-3" />
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-6 w-7 p-0" disabled={index === comercios.length - 1} onClick={() => reordenar(index, index + 1)}>
+                    <ArrowDown className="w-3 h-3" />
+                  </Button>
+                </div>
                 <div className="w-12 h-12 rounded-lg bg-slate-50 border flex items-center justify-center overflow-hidden shrink-0">
                   {c.logo_url ? <img src={c.logo_url} alt={c.nombre} className="w-full h-full object-contain p-1" /> : <span className="text-xl">🏪</span>}
                 </div>
