@@ -175,6 +175,7 @@ export function buildCoachNavigation(ctx) {
       { title: "📄 Documentos y LOPIVI", url: createPageUrl("ParentDocuments"), icon: FileText },
     ] : []),
     { title: "🛍️ Tienda y Equipación", url: createPageUrl("Tienda"), icon: ShoppingBag },
+    { title: "🍀 Lotería Navidad", url: "/loteria", icon: Clover },
 
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
@@ -245,6 +246,7 @@ export function buildCoordinatorNavigation(ctx) {
       { title: "📄 Documentos y LOPIVI", url: createPageUrl("ParentDocuments"), icon: FileText },
     ] : []),
     { title: "🛍️ Tienda y Equipación", url: createPageUrl("Tienda"), icon: ShoppingBag },
+    { title: "🍀 Lotería Navidad", url: "/loteria", icon: Clover },
 
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
@@ -371,6 +373,7 @@ export function buildTreasurerNavigation(ctx) {
 
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
+    { title: "🍀 Lotería Navidad", url: "/loteria", icon: Clover },
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
