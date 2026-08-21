@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Settings, GripVertical, Eye, EyeOff, RotateCcw } from "lucide-react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { toast } from "sonner";
+import LoteriaAppBanner from "@/components/loteria/LoteriaAppBanner";
 
 export default function DashboardButtonSelector({ 
   allButtons, 
@@ -56,7 +57,8 @@ export default function DashboardButtonSelector({
   const availableButtons = allButtons.filter(b => !localSelected.includes(b.id));
 
   return (
-    <>
+    <div className="w-full flex flex-col items-end gap-3">
+      <LoteriaAppBanner />
       <Button
         onClick={() => setOpen(true)}
         variant="outline"
@@ -174,6 +176,6 @@ export default function DashboardButtonSelector({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }
