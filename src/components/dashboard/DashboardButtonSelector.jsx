@@ -58,7 +58,9 @@ export default function DashboardButtonSelector({
 
   return (
     <div className="w-full flex flex-col items-end gap-3">
-      <LoteriaAppBanner />
+      <div className="w-full">
+        <LoteriaAppBanner />
+      </div>
       <Button
         onClick={() => setOpen(true)}
         variant="outline"

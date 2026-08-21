@@ -24,12 +24,12 @@ export default function LoteriaAppBanner() {
       <div className="absolute -top-10 -right-6 w-40 h-40 rounded-full bg-yellow-300/20 blur-2xl" />
       <div className="absolute -bottom-12 left-10 w-40 h-40 rounded-full bg-green-300/10 blur-2xl" />
 
-      <div className="relative flex items-center gap-3 p-4">
-        <div className="w-12 h-12 rounded-2xl bg-yellow-400 flex items-center justify-center shrink-0 shadow-lg">
-          <Clover className="w-7 h-7 text-red-900" />
+      <div className="relative flex items-center gap-3 px-3 py-2.5">
+        <div className="w-9 h-9 rounded-xl bg-yellow-400 flex items-center justify-center shrink-0 shadow-lg">
+          <Clover className="w-5 h-5 text-red-900" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="text-white font-black text-base leading-tight truncate">
+          <p className="text-white font-black text-sm leading-tight truncate">
             🍀 {campana.titulo || "Lotería de Navidad"}
             {campana.numero ? ` · Nº ${campana.numero}` : ""}
           </p>
