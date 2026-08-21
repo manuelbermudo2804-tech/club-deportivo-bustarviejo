@@ -9,6 +9,7 @@ import ComercioCard from "@/components/loteria/ComercioCard";
 import CompartirLoteriaButton from "@/components/loteria/CompartirLoteriaButton";
 import PremioResultado from "@/components/loteria/PremioResultado";
 import TextoLoteria from "@/components/loteria/TextoLoteria";
+import BackToWebsiteButton from "@/components/public/BackToWebsiteButton";
 
 const FONDO = "min-h-screen bg-gradient-to-b from-[#0b1f16] via-[#12261c] to-[#3b0a12]";
 
@@ -46,7 +47,8 @@ export default function LoteriaNavidad() {
 
   return (
     <div className={`${FONDO} pb-14`}>
-      <div className="max-w-2xl mx-auto px-4 pt-6 space-y-5">
+      <BackToWebsiteButton />
+      <div className="max-w-2xl mx-auto px-4 pt-16 space-y-5">
         {campana.resultado_publicado === true && <PremioResultado campana={campana} />}
 
         <DecimoTicket
