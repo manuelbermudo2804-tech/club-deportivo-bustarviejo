@@ -1,0 +1,65 @@
+{
+  "name": "LoteriaCampana",
+  "type": "object",
+  "properties": {
+    "activa": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si la p\u00e1gina p\u00fablica de loter\u00eda est\u00e1 visible"
+    },
+    "titulo": {
+      "type": "string",
+      "default": "Loter\u00eda de Navidad",
+      "description": "T\u00edtulo mostrado en la p\u00e1gina p\u00fablica"
+    },
+    "numero": {
+      "type": "string",
+      "description": "N\u00famero de loter\u00eda del club (ej: 28720)"
+    },
+    "precio_decimo": {
+      "type": "number",
+      "default": 25,
+      "description": "Precio del d\u00e9cimo en euros"
+    },
+    "fecha_sorteo_texto": {
+      "type": "string",
+      "default": "22 de diciembre",
+      "description": "Texto libre con la fecha del sorteo"
+    },
+    "tulotero_url": {
+      "type": "string",
+      "description": "Enlace de TuLotero para comprar online"
+    },
+    "texto_intro": {
+      "type": "string",
+      "description": "Texto breve de presentaci\u00f3n de la campa\u00f1a"
+    },
+    "texto_como_funciona": {
+      "type": "string",
+      "description": "Explicaci\u00f3n breve de c\u00f3mo funciona (opcional, sustituye al texto por defecto)"
+    },
+    "mensaje_whatsapp": {
+      "type": "string",
+      "description": "Mensaje preconfigurado que se comparte por WhatsApp (se le a\u00f1ade el enlace de la p\u00e1gina)"
+    }
+  },
+  "required": [],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

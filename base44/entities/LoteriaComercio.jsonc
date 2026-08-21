@@ -1,0 +1,57 @@
+{
+  "name": "LoteriaComercio",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del comercio"
+    },
+    "logo_url": {
+      "type": "string",
+      "description": "URL del logo del comercio"
+    },
+    "direccion": {
+      "type": "string",
+      "description": "Direcci\u00f3n del comercio"
+    },
+    "horario": {
+      "type": "string",
+      "description": "Horario de apertura (texto libre)"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono del comercio (opcional)"
+    },
+    "orden": {
+      "type": "number",
+      "default": 0,
+      "description": "Orden de aparici\u00f3n en la p\u00e1gina"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si se muestra en la p\u00e1gina p\u00fablica"
+    }
+  },
+  "required": [
+    "nombre"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {},
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

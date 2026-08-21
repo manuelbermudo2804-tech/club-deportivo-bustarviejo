@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Clover, Check, FileDown, RotateCcw, X } from "lucide-react";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
+import LoteriaCampanaAdmin from "@/components/loteria/LoteriaCampanaAdmin";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -452,6 +453,8 @@ export default function LotteryManagement() {
           )}
         </div>
         </div>
+
+        {(user?.role === "admin" || user?.es_tesorero) && <LoteriaCampanaAdmin />}
 
         {maxDecimos && (
           <Card className="border-4 border-yellow-400 shadow-2xl bg-gradient-to-r from-green-50 to-green-100">
