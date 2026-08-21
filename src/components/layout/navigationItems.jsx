@@ -79,7 +79,7 @@ export function buildAdminNavigation(ctx) {
     { title: "─ TIENDA Y SERVICIOS ─", section: true },
     { title: "🛍️ Tienda y Equipación", url: createPageUrl("Tienda"), icon: ShoppingBag },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
-    ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover, badge: pendingLotteryOrders > 0 ? pendingLotteryOrders : null }] : []),
+    { title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover, badge: pendingLotteryOrders > 0 ? pendingLotteryOrders : null },
     { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users, badge: pendingMemberRequests > 0 ? pendingMemberRequests : null },
     { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
     { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },
