@@ -45,6 +45,29 @@
     "mensaje_whatsapp": {
       "type": "string",
       "description": "Mensaje preconfigurado que se comparte por WhatsApp (se le a\u00f1ade el enlace de la p\u00e1gina)"
+    },
+    "resultado_publicado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si TRUE, la p\u00e1gina p\u00fablica muestra el resultado del sorteo en lugar del bloque de compra"
+    },
+    "resultado_premiado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si TRUE, el n\u00famero del club ha resultado premiado"
+    },
+    "resultado_premio_decimo": {
+      "type": "number",
+      "default": 0,
+      "description": "Importe del premio por d\u00e9cimo en euros"
+    },
+    "resultado_tipo_premio": {
+      "type": "string",
+      "description": "Nombre del premio (ej: Gordo, Segundo premio, Pedrea, Reintegro)"
+    },
+    "resultado_mensaje": {
+      "type": "string",
+      "description": "Mensaje del club junto al resultado del sorteo"
     }
   },
   "required": [],

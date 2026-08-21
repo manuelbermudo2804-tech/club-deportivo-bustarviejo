@@ -10,6 +10,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, Pencil, ExternalLink, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from "sonner";
 import ComercioForm from "./ComercioForm";
+import LoteriaPremioAdmin from "./LoteriaPremioAdmin";
 
 export default function LoteriaCampanaAdmin() {
   const queryClient = useQueryClient();
@@ -169,6 +170,8 @@ export default function LoteriaCampanaAdmin() {
           </Button>
         </CardContent>
       </Card>
+
+      <LoteriaPremioAdmin campana={campana} />
 
       <Card className="border-2 border-orange-200">
         <CardHeader className="bg-orange-50 flex-row items-center justify-between">
