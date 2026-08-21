@@ -8,6 +8,7 @@ import TuLoteroAccess from "@/components/loteria/TuLoteroAccess";
 import ComercioCard from "@/components/loteria/ComercioCard";
 import CompartirLoteriaButton from "@/components/loteria/CompartirLoteriaButton";
 import PremioResultado from "@/components/loteria/PremioResultado";
+import TextoLoteria from "@/components/loteria/TextoLoteria";
 
 const FONDO = "min-h-screen bg-gradient-to-b from-[#0b1f16] via-[#12261c] to-[#3b0a12]";
 
@@ -56,9 +57,9 @@ export default function LoteriaNavidad() {
         />
 
         {campana.texto_intro && (
-          <p className="text-amber-50 text-center leading-relaxed whitespace-pre-line px-2">
-            {campana.texto_intro}
-          </p>
+          <div className="rounded-2xl border border-amber-400/30 bg-black/25 backdrop-blur p-5">
+            <TextoLoteria texto={campana.texto_intro} />
+          </div>
         )}
 
         <SeccionLoteria numero="1" titulo="Dónde comprarlo en el pueblo" icono="🏪">
@@ -81,7 +82,7 @@ export default function LoteriaNavidad() {
 
         {campana.texto_como_funciona && (
           <SeccionLoteria numero="3" titulo="Cómo funciona" icono="ℹ️">
-            <p className="text-slate-700 whitespace-pre-line">{campana.texto_como_funciona}</p>
+            <TextoLoteria texto={campana.texto_como_funciona} oscuro={false} />
           </SeccionLoteria>
         )}
 
