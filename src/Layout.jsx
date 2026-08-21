@@ -39,6 +39,7 @@ import { ChatUnreadProvider } from "./components/chat/ChatUnreadProvider";
 import ChatCountsBridge from "./components/chat/ChatCountsBridge";
 import { SeasonProvider } from "./components/season/SeasonProvider";
 import ActiveBanner from "./components/announcements/ActiveBanner";
+import LoteriaAppBanner from "./components/loteria/LoteriaAppBanner";
 import AutoPushSubscriber from "./components/notifications/AutoPushSubscriber";
 import PushPermissionBanner from "./components/notifications/PushPermissionBanner";
 import SponsorRecruitBanner from "./components/sponsors/SponsorRecruitBanner";
@@ -660,6 +661,7 @@ export default function Layout({ children, currentPageName }) {
 
 
         <ActiveBanner position="top" user={user} />
+        <LoteriaAppBanner />
 
           <PullToRefresh>
             <ErrorBoundary label="la página actual" onReset={() => window.location.reload()}>

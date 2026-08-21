@@ -40,18 +40,21 @@ export default function LoteriaNavidad() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-red-950 via-red-900 to-green-950 pb-12">
-      <div className="max-w-2xl mx-auto px-4 pt-10 space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-red-950 via-red-900 to-green-950 pb-12 relative overflow-hidden">
+      {/* Halo dorado de fondo */}
+      <div className="pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 w-[38rem] h-[38rem] rounded-full bg-yellow-400/20 blur-3xl" />
+      <div className="max-w-2xl mx-auto px-4 pt-10 space-y-6 relative">
         {/* Cabecera */}
         <div className="text-center text-white space-y-3">
-          <div className="text-5xl">🍀🎄</div>
-          <h1 className="text-3xl sm:text-4xl font-black drop-shadow-lg">
+          <div className="text-6xl drop-shadow-[0_4px_20px_rgba(250,204,21,0.5)]">🍀🎄</div>
+          <p className="text-yellow-300 text-xs font-black uppercase tracking-[0.3em]">CD Bustarviejo</p>
+          <h1 className="text-4xl sm:text-6xl font-black leading-none bg-gradient-to-b from-yellow-100 via-yellow-300 to-amber-500 bg-clip-text text-transparent drop-shadow-lg">
             {campana.titulo || "Lotería de Navidad"}
           </h1>
           {campana.numero && (
-            <div className="inline-block bg-yellow-400 text-red-900 px-6 py-3 rounded-2xl shadow-xl border-2 border-yellow-500">
-              <p className="text-xs font-bold uppercase tracking-wide">Nuestro número</p>
-              <p className="text-3xl sm:text-4xl font-black leading-tight">{campana.numero}</p>
+            <div className="inline-block bg-gradient-to-b from-yellow-300 to-amber-500 text-red-900 px-10 py-5 rounded-3xl shadow-[0_10px_40px_rgba(250,204,21,0.45)] border-4 border-yellow-200">
+              <p className="text-[11px] font-black uppercase tracking-[0.25em]">Nuestro número</p>
+              <p className="text-5xl sm:text-6xl font-black leading-tight tracking-wider">{campana.numero}</p>
             </div>
           )}
           <div className="flex items-center justify-center gap-4 text-sm text-yellow-100 pt-1">

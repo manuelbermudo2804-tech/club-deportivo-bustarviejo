@@ -99,34 +99,14 @@ export default function FeatureControlSection({
             </div>
           </div>
 
-          {/* Lotería */}
-          <FeatureRow icon={<Clover className="w-5 h-5 text-green-600" />} title="Lotería de Navidad" subtitle="Permitir pedidos de lotería" checked={activeSeason.loteria_navidad_abierta || false} onChange={(v) => toggleFeature('loteria_navidad_abierta', v)} />
-          {activeSeason.loteria_navidad_abierta && (
-            <>
-              <div className="ml-8 flex items-center justify-between p-4 bg-green-50 rounded-lg border-2 border-green-200">
-                <div className="flex items-center gap-3">
-                  <CreditCard className="w-5 h-5 text-green-600" />
-                  <div>
-                    <p className="font-medium">Lotería: Requiere Pago Adelantado</p>
-                    <p className="text-xs text-slate-600">{activeSeason.loteria_requiere_pago_adelantado ? "Los padres deben pagar y subir justificante" : "Los padres pagan al entrenador cuando reciben los décimos"}</p>
-                  </div>
-                </div>
-                <Switch checked={activeSeason.loteria_requiere_pago_adelantado || false} onCheckedChange={(v) => toggleFeature('loteria_requiere_pago_adelantado', v)} />
-              </div>
-              <div className="ml-8 space-y-3">
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm">Precio del décimo (€):</Label>
-                  <Input type="number" value={activeSeason.precio_decimo_loteria || 22} onChange={(e) => update({ precio_decimo_loteria: Number(e.target.value) })} placeholder="22" className="w-24" />
-                </div>
-                <div className="flex items-center gap-2">
-                  <Label className="text-sm">Décimos disponibles:</Label>
-                  <Input type="number" min="0" value={activeSeason.loteria_max_decimos ?? ""} onChange={(e) => update({ loteria_max_decimos: e.target.value === "" ? null : parseInt(e.target.value, 10) })} placeholder="Sin límite" className="w-32" />
-                  <Info className="w-4 h-4 text-slate-400" />
-                </div>
-                <p className="text-xs text-slate-500 ml-2">💡 La lotería se cerrará automáticamente cuando se alcance este límite.</p>
-              </div>
-            </>
-          )}
+          {/* Lotería — se gestiona en su propia página */}
+          <div className="flex items-center gap-3 p-4 bg-green-50 rounded-lg border-2 border-green-200">
+            <Clover className="w-5 h-5 text-green-600" />
+            <div>
+              <p className="font-medium">Lotería de Navidad</p>
+              <p className="text-xs text-slate-600">Se configura en <strong>Tienda y Servicios → 🍀 Lotería Navidad</strong> (número, comercios y página pública).</p>
+            </div>
+          </div>
 
           {/* Plan Mensual */}
           <FeatureRow icon={<CreditCard className="w-5 h-5 text-emerald-600" />} title="Plan Mensual (Domiciliación Tarjeta)" subtitle="Permite pago inicial + mensualidades automáticas por tarjeta" checked={activeSeason.permitir_plan_mensual || false} onChange={(v) => toggleFeature('permitir_plan_mensual', v)} />

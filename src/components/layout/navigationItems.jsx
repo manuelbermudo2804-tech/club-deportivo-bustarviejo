@@ -175,11 +175,11 @@ export function buildCoachNavigation(ctx) {
       { title: "📄 Documentos y LOPIVI", url: createPageUrl("ParentDocuments"), icon: FileText },
     ] : []),
     { title: "🛍️ Tienda y Equipación", url: createPageUrl("Tienda"), icon: ShoppingBag },
-    ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
+
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
-    ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
+
     ...(landingMenuItems?.length ? [
       { title: "─ EVENTOS ESPECIALES ─", section: true },
       ...buildLandingItems(landingMenuItems),
@@ -245,11 +245,11 @@ export function buildCoordinatorNavigation(ctx) {
       { title: "📄 Documentos y LOPIVI", url: createPageUrl("ParentDocuments"), icon: FileText },
     ] : []),
     { title: "🛍️ Tienda y Equipación", url: createPageUrl("Tienda"), icon: ShoppingBag },
-    ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
+
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
-    ...(loteriaVisible ? [{ title: "🍀 Gestión Lotería", url: createPageUrl("LotteryManagement"), icon: Clover }] : []),
+
     ...(landingMenuItems?.length ? [
       { title: "─ EVENTOS ESPECIALES ─", section: true },
       ...buildLandingItems(landingMenuItems),
@@ -284,7 +284,7 @@ export function buildParentNavigation(ctx) {
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos y LOPIVI", url: createPageUrl("ParentDocuments"), icon: FileText },
     ...(!onlyComplementary ? [{ title: "🛍️ Tienda y Equipación", url: createPageUrl("Tienda"), icon: ShoppingBag }] : []),
-    ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
+    { title: "🍀 Lotería Navidad", url: "/loteria", icon: Clover },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
@@ -326,7 +326,7 @@ export function buildPlayerNavigation(ctx) {
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🛍️ Tienda y Equipación", url: createPageUrl("Tienda"), icon: ShoppingBag },
-    ...(loteriaVisible ? [{ title: "🍀 Lotería Navidad", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
+    { title: "🍀 Lotería Navidad", url: "/loteria", icon: Clover },
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
     { title: "⚙️ Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
@@ -368,7 +368,7 @@ export function buildTreasurerNavigation(ctx) {
     ...(hasPlayers ? [{ title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : []),
     ...(hasPlayers ? [{ title: "🖊️ Firmas Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
     ...(hasPlayers ? [{ title: "📄 Documentos y LOPIVI", url: createPageUrl("ParentDocuments"), icon: FileText }] : []),
-    ...(loteriaVisible ? [{ title: "🍀 Mi Lotería", url: createPageUrl("ParentLottery"), icon: Clover }] : []),
+
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
