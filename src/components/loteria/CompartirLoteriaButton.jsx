@@ -6,7 +6,7 @@ const MENSAJE_POR_DEFECTO = "🍀🎄 ¡Ya está aquí la Lotería de Navidad de
 
 export default function CompartirLoteriaButton({ mensaje }) {
   const compartir = () => {
-    const url = `${window.location.origin}/loteria`;
+    const url = "https://app.cdbustarviejo.com/loteria";
     const texto = `${mensaje || MENSAJE_POR_DEFECTO}\n\n${url}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(texto)}`, "_blank");
   };

@@ -30,6 +30,10 @@
       "type": "string",
       "description": "Enlace de TuLotero para comprar online"
     },
+    "tulotero_password": {
+      "type": "string",
+      "description": "Contrase\u00f1a necesaria para acceder al grupo/enlace de TuLotero"
+    },
     "texto_intro": {
       "type": "string",
       "description": "Texto breve de presentaci\u00f3n de la campa\u00f1a"

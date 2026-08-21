@@ -1,8 +1,8 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Ticket, ExternalLink, Loader2 } from "lucide-react";
+import { Ticket, Loader2 } from "lucide-react";
+import TuLoteroAccess from "@/components/loteria/TuLoteroAccess";
 import ComercioCard from "@/components/loteria/ComercioCard";
 import LoteriaComoFunciona from "@/components/loteria/LoteriaComoFunciona";
 import CompartirLoteriaButton from "@/components/loteria/CompartirLoteriaButton";
@@ -74,14 +74,7 @@ export default function LoteriaNavidad() {
         <LoteriaComoFunciona textoPersonalizado={campana.texto_como_funciona} />
 
         {/* TuLotero */}
-        {campana.tulotero_url && (
-          <a href={campana.tulotero_url} target="_blank" rel="noopener noreferrer" className="block">
-            <Button size="lg" className="w-full h-14 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-red-900 font-bold text-base shadow-lg">
-              <ExternalLink className="w-5 h-5 mr-2" />
-              Comprar online en TuLotero
-            </Button>
-          </a>
-        )}
+        <TuLoteroAccess url={campana.tulotero_url} password={campana.tulotero_password} />
 
         {/* Comercios */}
         <div className="space-y-3">

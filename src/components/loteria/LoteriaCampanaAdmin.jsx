@@ -44,6 +44,7 @@ export default function LoteriaCampanaAdmin() {
         precio_decimo: 25,
         fecha_sorteo_texto: "22 de diciembre",
         tulotero_url: "",
+        tulotero_password: "",
         texto_intro: "",
         texto_como_funciona: "",
         mensaje_whatsapp: "",
@@ -125,6 +126,11 @@ export default function LoteriaCampanaAdmin() {
             <div className="space-y-1 sm:col-span-2">
               <Label>Enlace de TuLotero</Label>
               <Input value={form.tulotero_url || ""} onChange={(e) => setForm({ ...form, tulotero_url: e.target.value })} placeholder="https://tulotero.com/..." />
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <Label>Contraseña del enlace de TuLotero</Label>
+              <Input value={form.tulotero_password || ""} onChange={(e) => setForm({ ...form, tulotero_password: e.target.value })} placeholder="Ej: BUSTA2026" />
+              <p className="text-xs text-slate-500">Se mostrará en la página pública para que puedan entrar al grupo del club.</p>
             </div>
             <div className="space-y-1 sm:col-span-2">
               <Label>Texto de presentación (opcional)</Label>

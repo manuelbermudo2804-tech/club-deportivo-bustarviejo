@@ -5,7 +5,7 @@ import { ExternalLink } from "lucide-react";
 import LoteriaCampanaAdmin from "@/components/loteria/LoteriaCampanaAdmin";
 
 export default function LotteryManagement() {
-  const publicUrl = `${window.location.origin}/loteria`;
+  const publicUrl = "https://app.cdbustarviejo.com/loteria";
 
   return (
     <div className="p-4 lg:p-8 max-w-4xl mx-auto space-y-6">
