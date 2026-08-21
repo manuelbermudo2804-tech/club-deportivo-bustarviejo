@@ -26,7 +26,6 @@ import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 import PorraPromoBanner from "../components/porra/PorraPromoBanner";
 import IncompleteDocsBanner from "../components/players/IncompleteDocsBanner";
 import MercadilloBanner from "../components/market/MercadilloBanner";
-import LoteriaAppBanner from "../components/loteria/LoteriaAppBanner";
 import ConvocatoriaBlockBanner from "../components/payments/ConvocatoriaBlockBanner";
 
 
@@ -613,8 +612,6 @@ export default function ParentDashboard() {
           <FemeninoShareBanner />
         )}
 
-        {/* LOTERIA NAVIDAD — campaña de la página pública */}
-        <LoteriaAppBanner />
 
         {/* Botón de configuración de dashboard */}
         <div className="flex justify-end">
