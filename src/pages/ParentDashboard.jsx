@@ -26,6 +26,7 @@ import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 import PorraPromoBanner from "../components/porra/PorraPromoBanner";
 import IncompleteDocsBanner from "../components/players/IncompleteDocsBanner";
 import MercadilloBanner from "../components/market/MercadilloBanner";
+import LoteriaAppBanner from "../components/loteria/LoteriaAppBanner";
 import ConvocatoriaBlockBanner from "../components/payments/ConvocatoriaBlockBanner";
 
 
@@ -612,20 +613,8 @@ export default function ParentDashboard() {
           <FemeninoShareBanner />
         )}
 
-        {/* LOTERIA NAVIDAD - COMPACTO */}
-        {loteriaVisible && (
-          <Link to={createPageUrl("ParentLottery")}>
-            <div className="bg-gradient-to-r from-green-600 to-green-700 rounded-xl p-3 shadow-lg transition-all hover:scale-105 active:scale-95 border border-green-500">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2">
-                  <Clover className="w-5 h-5 text-white flex-shrink-0" />
-                  <p className="text-white font-bold text-sm">🍀 Lotería Navidad • 28720</p>
-                </div>
-                <span className="text-white text-lg">→</span>
-              </div>
-            </div>
-          </Link>
-        )}
+        {/* LOTERIA NAVIDAD — campaña de la página pública */}
+        <LoteriaAppBanner />
 
         {/* Botón de configuración de dashboard */}
         <div className="flex justify-end">
