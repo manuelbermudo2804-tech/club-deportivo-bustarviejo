@@ -701,21 +701,6 @@ export default function SeasonManagementContent() {
               />
             </div>
 
-            {/* Lotería */}
-            <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Clover className="w-5 h-5 text-green-600" />
-                <div>
-                  <p className="font-medium">Lotería de Navidad</p>
-                  <p className="text-xs text-slate-600">Permitir pedidos de lotería</p>
-                </div>
-              </div>
-              <Switch
-                checked={activeSeason?.loteria_navidad_abierta || false}
-                onCheckedChange={(checked) => toggleFeature('loteria_navidad_abierta', checked)}
-              />
-            </div>
-
             {/* Patrocinadores */}
             <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
               <div className="flex items-center gap-3">
