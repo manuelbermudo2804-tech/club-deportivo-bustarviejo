@@ -54,7 +54,15 @@
     },
     "notas_admin": {
       "type": "string",
-      "description": "Notas internas del admin (incluye contexto t\u00e9cnico auto-capturado)"
+      "description": "Notas internas del admin"
+    },
+    "contexto_tecnico": {
+      "type": "string",
+      "description": "Contexto auto-capturado: rol, dispositivo, PWA, ruta, versi\u00f3n, navegador"
+    },
+    "errores_recientes": {
+      "type": "string",
+      "description": "\u00daltimos errores que le dio la app a este usuario antes de escribir (auto-capturado)"
     }
   },
   "required": [

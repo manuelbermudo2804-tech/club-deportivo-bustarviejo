@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Loader2, Send, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { buildContextoTecnico, buildErroresRecientes } from "./buildFeedbackContext";
 
 export default function FeedbackModal({ open, onOpenChange, user, currentPage }) {
   const [loading, setLoading] = useState(false);
@@ -36,18 +37,17 @@ export default function FeedbackModal({ open, onOpenChange, user, currentPage })
 
     setLoading(true);
     try {
-      // Capturar contexto técnico para facilitar debug
-      const userAgent = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-      const rolUsuario = user?.role || (user?.es_entrenador ? 'coach' : user?.es_coordinador ? 'coordinator' : user?.tipo_panel || 'usuario');
-      const contextoTecnico = `[${rolUsuario}] ${userAgent.slice(0, 200)}`;
+      // Contexto técnico y últimos errores, auto-capturados
+      const erroresRecientes = buildErroresRecientes();
 
-      // Auto-prioridad: bugs = media, resto = baja
-      const prioridadAuto = formData.tipo === 'bug' ? 'media' : 'baja';
+      // Auto-prioridad: bug con errores detectados = alta, bug = media, resto = baja
+      const prioridadAuto = formData.tipo === 'bug' ? (erroresRecientes ? 'alta' : 'media') : 'baja';
 
       await base44.entities.Feedback.create({
         ...formData,
         prioridad: prioridadAuto,
-        notas_admin: contextoTecnico,
+        contexto_tecnico: buildContextoTecnico(user),
+        errores_recientes: erroresRecientes,
       });
       setShowSuccess(true);
       setFormData({
@@ -132,7 +132,7 @@ export default function FeedbackModal({ open, onOpenChange, user, currentPage })
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex gap-2">
             <AlertCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
             <p className="text-xs text-blue-700">
-              Se enviará desde <strong>{formData.email}</strong>. El equipo admin lo revisará pronto.
+              Se enviará desde <strong>{formData.email}</strong>. Adjuntamos automáticamente tu dispositivo y la pantalla donde estabas para poder ayudarte mejor.
             </p>
           </div>
 

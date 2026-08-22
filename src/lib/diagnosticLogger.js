@@ -42,6 +42,26 @@ async function getUserEmail() {
   }
 }
 
+// Búfer en memoria con los últimos errores de ESTA sesión.
+// Se adjunta al feedback para que el admin vea qué le falló al usuario.
+const recentErrors = [];
+function rememberError(message, context) {
+  try {
+    recentErrors.unshift({
+      hora: new Date().toISOString(),
+      pagina: window?.location?.pathname || "",
+      contexto: String(context || "").slice(0, 120),
+      mensaje: String(message || "").slice(0, 200),
+    });
+    if (recentErrors.length > 5) recentErrors.length = 5;
+  } catch {}
+}
+
+/** Devuelve los últimos errores de la sesión actual (máx. 5). */
+export function getRecentErrors() {
+  return [...recentErrors];
+}
+
 async function writeEvent(payload) {
   try {
     await base44.entities.UploadDiagnostic.create(payload);
@@ -61,6 +81,7 @@ async function writeEvent(payload) {
  */
 export async function logError(context, error, extra = {}) {
   try {
+    rememberError(error?.message || error, context);
     const email = await getUserEmail();
     await writeEvent({
       user_email: email,
@@ -85,6 +106,7 @@ export async function logError(context, error, extra = {}) {
  */
 export async function logJsError({ message, source, lineno, colno, error, type = "error" }) {
   try {
+    rememberError(message || error?.message, `${type}:${source || "window"}`);
     const email = await getUserEmail();
     await writeEvent({
       user_email: email,

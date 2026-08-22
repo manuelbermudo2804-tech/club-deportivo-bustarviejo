@@ -24,6 +24,7 @@ import {
   Filter
 } from "lucide-react";
 import { toast } from "sonner";
+import ErroresAgrupados from "@/components/feedback/ErroresAgrupados";
 
 export default function FeedbackManagement() {
   const [user, setUser] = useState(null);
@@ -289,6 +290,8 @@ Proporciona un análisis estructurado, accionable y práctico. NO SUGIERAS nada 
           </CardContent>
         </Card>
       </div>
+
+      <ErroresAgrupados />
 
       {/* Análisis */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -605,6 +608,18 @@ Proporciona un análisis estructurado, accionable y práctico. NO SUGIERAS nada 
                 <p className="text-sm font-semibold text-slate-700 mb-1">Descripción</p>
                 <p className="text-slate-700 text-sm">{selectedFeedback.descripcion}</p>
               </div>
+              {selectedFeedback.errores_recientes && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-sm font-semibold text-red-800 mb-1">⚠️ Errores que le dio la app</p>
+                  <pre className="text-[11px] text-red-900 whitespace-pre-wrap break-words">{selectedFeedback.errores_recientes}</pre>
+                </div>
+              )}
+              {selectedFeedback.contexto_tecnico && (
+                <details className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                  <summary className="text-sm font-semibold text-slate-700 cursor-pointer">🔧 Contexto técnico</summary>
+                  <pre className="text-[11px] text-slate-600 whitespace-pre-wrap break-words mt-2">{selectedFeedback.contexto_tecnico}</pre>
+                </details>
+              )}
               <div>
                 <p className="text-sm font-semibold text-slate-700 mb-2">Estado</p>
                 <div className="grid grid-cols-2 gap-2">
