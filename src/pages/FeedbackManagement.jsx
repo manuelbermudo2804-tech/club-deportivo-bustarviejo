@@ -24,7 +24,6 @@ import {
   Filter
 } from "lucide-react";
 import { toast } from "sonner";
-import ErroresAgrupados from "@/components/feedback/ErroresAgrupados";
 
 export default function FeedbackManagement() {
   const [user, setUser] = useState(null);
@@ -290,8 +289,6 @@ Proporciona un análisis estructurado, accionable y práctico. NO SUGIERAS nada 
           </CardContent>
         </Card>
       </div>
-
-      <ErroresAgrupados />
 
       {/* Análisis */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
