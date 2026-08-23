@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shirt, RefreshCw, AlertTriangle, Copy, MessageCircle } from "lucide-react";
+import { Shirt, RefreshCw, AlertTriangle, Copy, MessageCircle, Phone } from "lucide-react";
 import { toast } from "sonner";
 import PedidoSinIdentificar from "@/components/equipacion/PedidoSinIdentificar";
 import JugadoresPedidoLista from "@/components/equipacion/JugadoresPedidoLista";
@@ -84,25 +84,35 @@ export default function PedidosEquipacion() {
     toast.success("Lista copiada (con emails)");
   };
 
-  const copiarSoloNombres = () => {
+  const construirTexto = (conTelefono) => {
     const porCategoria = {};
     faltan.forEach((p) => {
       const cat = p.categoria_principal || p.deporte || "Sin categoría";
-      porCategoria[cat] = [...(porCategoria[cat] || []), p.nombre];
+      const tel = p.telefono || p.telefono_tutor_2 || "sin teléfono";
+      porCategoria[cat] = [...(porCategoria[cat] || []), conTelefono ? `${p.nombre} — ${tel}` : p.nombre];
     });
     const bloques = Object.keys(porCategoria)
       .sort()
       .map((cat) => `*${cat}*\n${porCategoria[cat].map((n) => `• ${n}`).join("\n")}`)
       .join("\n\n");
-    const texto =
+    return (
       `👕 *EQUIPACIÓN — PEDIDOS PENDIENTES*\n` +
       `_CD Bustarviejo_\n\n` +
       `Estos jugadores aún *no han hecho el pedido* de equipación:\n\n` +
       `${bloques}\n\n` +
       `Total pendientes: *${faltan.length}*\n` +
-      `Si ya lo has hecho, avísanos y lo revisamos. ¡Gracias! 🙌`;
-    navigator.clipboard.writeText(texto);
+      `Si ya lo has hecho, avísanos y lo revisamos. ¡Gracias! 🙌`
+    );
+  };
+
+  const copiarSoloNombres = () => {
+    navigator.clipboard.writeText(construirTexto(false));
     toast.success("Nombres copiados, ya puedes pegarlo en WhatsApp");
+  };
+
+  const copiarConTelefonos = () => {
+    navigator.clipboard.writeText(construirTexto(true));
+    toast.success("Lista con teléfonos copiada");
   };
 
   return (
@@ -173,6 +183,9 @@ export default function PedidosEquipacion() {
             <div className="flex flex-col sm:flex-row gap-2">
               <Button size="sm" onClick={copiarSoloNombres} className="bg-green-600 hover:bg-green-700">
                 <MessageCircle className="w-4 h-4 mr-2" /> Copiar solo nombres ({faltan.length}) para WhatsApp
+              </Button>
+              <Button size="sm" variant="outline" onClick={copiarConTelefonos}>
+                <Phone className="w-4 h-4 mr-2" /> Copiar con teléfonos
               </Button>
               <Button variant="outline" size="sm" onClick={copiarFaltan}>
                 <Copy className="w-4 h-4 mr-2" /> Copiar con emails
