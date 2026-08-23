@@ -85,9 +85,22 @@ export default function PedidosEquipacion() {
   };
 
   const copiarSoloNombres = () => {
-    const texto = `Jugadores que aún NO han hecho el pedido de equipación:\n\n${faltan
-      .map((p) => `• ${p.nombre}`)
-      .join("\n")}`;
+    const porCategoria = {};
+    faltan.forEach((p) => {
+      const cat = p.categoria_principal || p.deporte || "Sin categoría";
+      porCategoria[cat] = [...(porCategoria[cat] || []), p.nombre];
+    });
+    const bloques = Object.keys(porCategoria)
+      .sort()
+      .map((cat) => `*${cat}*\n${porCategoria[cat].map((n) => `• ${n}`).join("\n")}`)
+      .join("\n\n");
+    const texto =
+      `👕 *EQUIPACIÓN — PEDIDOS PENDIENTES*\n` +
+      `_CD Bustarviejo_\n\n` +
+      `Estos jugadores aún *no han hecho el pedido* de equipación:\n\n` +
+      `${bloques}\n\n` +
+      `Total pendientes: *${faltan.length}*\n` +
+      `Si ya lo has hecho, avísanos y lo revisamos. ¡Gracias! 🙌`;
     navigator.clipboard.writeText(texto);
     toast.success("Nombres copiados, ya puedes pegarlo en WhatsApp");
   };
