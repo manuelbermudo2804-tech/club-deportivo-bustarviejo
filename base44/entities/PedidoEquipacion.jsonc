@@ -1,0 +1,91 @@
+{
+  "name": "PedidoEquipacion",
+  "type": "object",
+  "properties": {
+    "gmail_message_id": {
+      "type": "string",
+      "description": "ID del correo en Gmail (evita duplicados)"
+    },
+    "numero_pedido": {
+      "type": "string",
+      "description": "N\u00famero de pedido del proveedor (ej: 91910)"
+    },
+    "fecha_pedido": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha del correo del pedido"
+    },
+    "asunto": {
+      "type": "string",
+      "description": "Asunto del correo"
+    },
+    "cliente_nombre": {
+      "type": "string",
+      "description": "Nombre del cliente que hizo el pedido"
+    },
+    "cliente_email": {
+      "type": "string",
+      "description": "Email del cliente que hizo el pedido"
+    },
+    "jugador_id": {
+      "type": "string",
+      "description": "Jugador identificado como titular del pedido"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador identificado"
+    },
+    "metodo_match": {
+      "type": "string",
+      "enum": [
+        "email",
+        "nombre",
+        "asunto",
+        "manual",
+        "sin_identificar"
+      ],
+      "default": "sin_identificar",
+      "description": "C\u00f3mo se identific\u00f3 al jugador"
+    },
+    "candidatos": {
+      "type": "array",
+      "description": "Posibles jugadores cuando hay m\u00e1s de una coincidencia (hermanos, etc.)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "gmail_message_id"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
