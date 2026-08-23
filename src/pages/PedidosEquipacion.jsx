@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Shirt, RefreshCw, AlertTriangle, Copy } from "lucide-react";
+import { Shirt, RefreshCw, AlertTriangle, Copy, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
 import PedidoSinIdentificar from "@/components/equipacion/PedidoSinIdentificar";
 import JugadoresPedidoLista from "@/components/equipacion/JugadoresPedidoLista";
@@ -81,7 +81,15 @@ export default function PedidosEquipacion() {
 
   const copiarFaltan = () => {
     navigator.clipboard.writeText(faltan.map((p) => `${p.nombre} — ${p.email_padre || ""}`).join("\n"));
-    toast.success("Lista copiada");
+    toast.success("Lista copiada (con emails)");
+  };
+
+  const copiarSoloNombres = () => {
+    const texto = `Jugadores que aún NO han hecho el pedido de equipación:\n\n${faltan
+      .map((p) => `• ${p.nombre}`)
+      .join("\n")}`;
+    navigator.clipboard.writeText(texto);
+    toast.success("Nombres copiados, ya puedes pegarlo en WhatsApp");
   };
 
   return (
@@ -149,9 +157,14 @@ export default function PedidosEquipacion() {
             </Select>
           </div>
           {faltan.length > 0 && (
-            <Button variant="outline" size="sm" onClick={copiarFaltan} className="w-full sm:w-auto">
-              <Copy className="w-4 h-4 mr-2" /> Copiar los {faltan.length} que faltan
-            </Button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button size="sm" onClick={copiarSoloNombres} className="bg-green-600 hover:bg-green-700">
+                <MessageCircle className="w-4 h-4 mr-2" /> Copiar solo nombres ({faltan.length}) para WhatsApp
+              </Button>
+              <Button variant="outline" size="sm" onClick={copiarFaltan}>
+                <Copy className="w-4 h-4 mr-2" /> Copiar con emails
+              </Button>
+            </div>
           )}
           <JugadoresPedidoLista players={jugadoresFiltrados} pedidosPorJugador={pedidosPorJugador} />
         </CardContent>
