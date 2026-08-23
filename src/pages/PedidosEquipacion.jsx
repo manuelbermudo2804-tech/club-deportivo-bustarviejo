@@ -84,11 +84,21 @@ export default function PedidosEquipacion() {
     toast.success("Lista copiada (con emails)");
   };
 
+  // WhatsApp solo convierte los teléfonos en enlaces pulsables si van en
+  // formato internacional (+34 XXX XXX XXX), así que los normalizamos.
+  const formatearTelefono = (tel) => {
+    if (!tel) return "sin teléfono";
+    const digitos = String(tel).replace(/\D/g, "");
+    const nacional = digitos.startsWith("34") && digitos.length === 11 ? digitos.slice(2) : digitos;
+    if (nacional.length !== 9) return `+${digitos}`;
+    return `+34 ${nacional.slice(0, 3)} ${nacional.slice(3, 6)} ${nacional.slice(6)}`;
+  };
+
   const construirTexto = (conTelefono) => {
     const porCategoria = {};
     faltan.forEach((p) => {
       const cat = p.categoria_principal || p.deporte || "Sin categoría";
-      const tel = p.telefono || p.telefono_tutor_2 || "sin teléfono";
+      const tel = formatearTelefono(p.telefono || p.telefono_tutor_2);
       porCategoria[cat] = [...(porCategoria[cat] || []), conTelefono ? `${p.nombre} — ${tel}` : p.nombre];
     });
     const bloques = Object.keys(porCategoria)
