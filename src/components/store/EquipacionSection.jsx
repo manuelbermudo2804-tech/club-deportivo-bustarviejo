@@ -1,9 +1,10 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Star, Ruler, Package, Ban, UserPlus, AlertTriangle, Shirt } from "lucide-react";
+import { ExternalLink, Star, Ruler, Package, Ban, AlertTriangle, Shirt } from "lucide-react";
 import useEquipacionAccess from "@/hooks/useEquipacionAccess";
 import EquipacionLocked from "./EquipacionLocked";
+import GuiaPedidoRopaCard from "./GuiaPedidoRopaCard";
 
 export default function EquipacionSection({ clothingUrl }) {
   const { loading, allowed } = useEquipacionAccess();
@@ -40,6 +41,9 @@ export default function EquipacionSection({ clothingUrl }) {
 
         {/* Contenido */}
         <div className="p-5 space-y-4">
+          {/* Guía paso a paso descargable */}
+          <GuiaPedidoRopaCard />
+
           {/* Pack obligatorio — única tarjeta importante arriba */}
           <div className="bg-slate-900 rounded-xl p-4 text-white">
             <div className="flex items-start gap-3">
@@ -100,22 +104,16 @@ export default function EquipacionSection({ clothingUrl }) {
 
           {/* Aviso pegado al botón: web externa + registro */}
           {clothingUrl ? (
-            <div className="bg-amber-50 border-2 border-amber-300 rounded-xl p-4 space-y-3">
-              <div className="flex items-start gap-2.5">
-                <UserPlus className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
-                <div>
-                  <p className="font-bold text-amber-900 text-sm">Tienda externa: necesitas registrarte</p>
-                  <p className="text-amber-800 text-xs mt-1 leading-relaxed">
-                    Al pulsar el botón se abrirá la <strong>web del proveedor oficial</strong> en una nueva ventana. <strong>Tendrás que crear una cuenta allí</strong> (con tu email y contraseña) para poder hacer el pedido. El club no gestiona pedidos ni envíos.
-                  </p>
-                </div>
-              </div>
+            <div className="pt-1">
               <a href={clothingUrl} target="_blank" rel="noopener noreferrer" className="block">
                 <Button size="lg" className="w-full bg-orange-600 hover:bg-orange-700 gap-2 text-base shadow-lg shadow-orange-600/30">
                   <ExternalLink className="w-5 h-5" />
                   Ir a la tienda de equipación
                 </Button>
               </a>
+              <p className="text-[11px] text-slate-500 text-center mt-2">
+                Se abre la web del proveedor · pedidos y envíos los gestiona la tienda, no el club
+              </p>
             </div>
           ) : (
             <div className="bg-orange-50 border-2 border-dashed border-orange-300 rounded-xl p-4 text-center">
