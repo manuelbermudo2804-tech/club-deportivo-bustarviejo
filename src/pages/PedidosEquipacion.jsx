@@ -9,6 +9,7 @@ import { Shirt, RefreshCw, AlertTriangle, Copy, MessageCircle, Phone } from "luc
 import { toast } from "sonner";
 import PedidoSinIdentificar from "@/components/equipacion/PedidoSinIdentificar";
 import JugadoresPedidoLista from "@/components/equipacion/JugadoresPedidoLista";
+import RecordatoriosEquipacion from "@/components/equipacion/RecordatoriosEquipacion";
 
 export default function PedidosEquipacion() {
   const qc = useQueryClient();
@@ -189,6 +190,7 @@ export default function PedidosEquipacion() {
               </SelectContent>
             </Select>
           </div>
+          {faltan.length > 0 && <RecordatoriosEquipacion textoWhatsApp={construirTexto(false)} />}
           {faltan.length > 0 && (
             <div className="flex flex-col sm:flex-row gap-2">
               <Button size="sm" onClick={copiarSoloNombres} className="bg-green-600 hover:bg-green-700">
