@@ -35,11 +35,15 @@ export default function PedidosEquipacion() {
   });
 
   const asignar = useMutation({
-    mutationFn: async ({ pedido, jugadorId }) => {
-      const jugador = players.find((p) => p.id === jugadorId);
+    mutationFn: async ({ pedido, jugadorIds }) => {
+      const seleccion = jugadorIds
+        .map((id) => players.find((p) => p.id === id))
+        .filter(Boolean)
+        .map((p) => ({ jugador_id: p.id, jugador_nombre: p.nombre }));
       return base44.entities.PedidoEquipacion.update(pedido.id, {
-        jugador_id: jugadorId,
-        jugador_nombre: jugador?.nombre || "",
+        jugador_id: seleccion[0]?.jugador_id || "",
+        jugador_nombre: seleccion[0]?.jugador_nombre || "",
+        jugadores: seleccion,
         metodo_match: "manual",
       });
     },
@@ -52,8 +56,9 @@ export default function PedidosEquipacion() {
   const pedidosPorJugador = useMemo(() => {
     const map = {};
     pedidos.forEach((p) => {
-      if (!p.jugador_id) return;
-      map[p.jugador_id] = [...(map[p.jugador_id] || []), p];
+      const ids = (p.jugadores || []).map((j) => j.jugador_id).filter(Boolean);
+      if (!ids.length && p.jugador_id) ids.push(p.jugador_id);
+      ids.forEach((id) => { map[id] = [...(map[id] || []), p]; });
     });
     return map;
   }, [pedidos]);
@@ -121,7 +126,7 @@ export default function PedidosEquipacion() {
                 key={p.id}
                 pedido={p}
                 players={players}
-                onAssign={(pedido, jugadorId) => asignar.mutate({ pedido, jugadorId })}
+                onAssign={(pedido, jugadorIds) => asignar.mutate({ pedido, jugadorIds })}
               />
             ))}
           </CardContent>

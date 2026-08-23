@@ -29,11 +29,26 @@
     },
     "jugador_id": {
       "type": "string",
-      "description": "Jugador identificado como titular del pedido"
+      "description": "Jugador principal identificado como titular del pedido"
     },
     "jugador_nombre": {
       "type": "string",
-      "description": "Nombre del jugador identificado"
+      "description": "Nombre del jugador principal identificado"
+    },
+    "jugadores": {
+      "type": "array",
+      "description": "Todos los jugadores incluidos en este pedido (una familia puede pedir para varios hermanos)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "jugador_id": {
+            "type": "string"
+          },
+          "jugador_nombre": {
+            "type": "string"
+          }
+        }
+      }
     },
     "metodo_match": {
       "type": "string",
