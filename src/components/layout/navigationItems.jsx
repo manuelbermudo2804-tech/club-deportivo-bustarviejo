@@ -78,6 +78,7 @@ export function buildAdminNavigation(ctx) {
 
     { title: "─ TIENDA Y SERVICIOS ─", section: true },
     { title: "🛍️ Tienda y Equipación", url: createPageUrl("Tienda"), icon: ShoppingBag },
+    { title: "📦 Pedidos de Equipación", url: createPageUrl("PedidosEquipacion"), icon: Shirt },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     { title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover, badge: pendingLotteryOrders > 0 ? pendingLotteryOrders : null },
     { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users, badge: pendingMemberRequests > 0 ? pendingMemberRequests : null },

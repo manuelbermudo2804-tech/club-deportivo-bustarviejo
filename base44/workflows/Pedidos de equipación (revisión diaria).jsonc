@@ -1,0 +1,47 @@
+{
+  "name": "Pedidos de equipaci\u00f3n (revisi\u00f3n diaria)",
+  "description": "Cada d\u00eda a las 8:00 revisa el correo del proveedor e importa los nuevos pedidos de equipaci\u00f3n",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "pedidos_equipacion_diario",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "importar_pedidos": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "importarPedidosEquipacion",
+            "args": {
+              "max": 200
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Importar pedidos nuevos",
+            "description": "Lee el correo del proveedor"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 8 * * *",
+      "one_time_date": null,
+      "timezone": "Europe/Madrid",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  }
+}
