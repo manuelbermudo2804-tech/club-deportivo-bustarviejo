@@ -19,13 +19,12 @@ export default function RecordatoriosEquipacion({ textoWhatsApp }) {
     <div className="rounded-lg border bg-slate-50 p-3 space-y-2">
       <p className="text-sm font-semibold">Recordatorios</p>
       <p className="text-xs text-slate-600">
-        Cada lunes a las 10:00 se envía automáticamente un email a las familias con el pedido pendiente.
-        También puedes enviarlo ahora. WhatsApp no permite envíos automáticos: usa el botón para abrirlo con el mensaje ya escrito.
+        Envía tú el aviso cuando quieras: por email a las familias con el pedido pendiente, o abriendo WhatsApp con el mensaje ya escrito.
       </p>
       <div className="flex flex-col sm:flex-row gap-2">
         <Button size="sm" onClick={() => enviar.mutate()} disabled={enviar.isPending}>
           <Mail className="w-4 h-4 mr-2" />
-          {enviar.isPending ? "Enviando..." : "Enviar recordatorio por email ahora"}
+          {enviar.isPending ? "Enviando..." : "Enviar recordatorio por email"}
         </Button>
         <Button
           size="sm"
