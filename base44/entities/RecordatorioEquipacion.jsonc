@@ -1,0 +1,67 @@
+{
+  "name": "RecordatorioEquipacion",
+  "type": "object",
+  "properties": {
+    "jugador_id": {
+      "type": "string",
+      "description": "Jugador al que se le record\u00f3 el pedido"
+    },
+    "jugador_nombre": {
+      "type": "string"
+    },
+    "canal": {
+      "type": "string",
+      "enum": [
+        "email",
+        "whatsapp"
+      ],
+      "description": "Canal usado para el recordatorio"
+    },
+    "destinatario": {
+      "type": "string",
+      "description": "Email o tel\u00e9fono al que se envi\u00f3"
+    },
+    "fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora del recordatorio"
+    },
+    "enviado_por": {
+      "type": "string",
+      "description": "Email del admin que lo envi\u00f3"
+    }
+  },
+  "required": [
+    "jugador_id",
+    "canal"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "jugador_id"
+      ]
+    }
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -9,7 +9,6 @@ import { Shirt, RefreshCw, AlertTriangle, Copy, MessageCircle, Phone } from "luc
 import { toast } from "sonner";
 import PedidoSinIdentificar from "@/components/equipacion/PedidoSinIdentificar";
 import JugadoresPedidoLista from "@/components/equipacion/JugadoresPedidoLista";
-import RecordatoriosEquipacion from "@/components/equipacion/RecordatoriosEquipacion";
 
 export default function PedidosEquipacion() {
   const qc = useQueryClient();
@@ -24,6 +23,50 @@ export default function PedidosEquipacion() {
     queryKey: ["playersEquipacion"],
     queryFn: () => base44.entities.Player.filter({ activo: true }),
   });
+  const { data: recordatorios = [] } = useQuery({
+    queryKey: ["recordatoriosEquipacion"],
+    queryFn: () => base44.entities.RecordatorioEquipacion.list("-created_date", 500),
+  });
+
+  const [enviandoId, setEnviandoId] = useState(null);
+
+  const ultimosPorJugador = useMemo(() => {
+    const map = {};
+    recordatorios.forEach((r) => { if (!map[r.jugador_id]) map[r.jugador_id] = r; });
+    return map;
+  }, [recordatorios]);
+
+  const enviarEmail = useMutation({
+    mutationFn: (player) => base44.functions.invoke("recordatorioEquipacionJugador", {
+      jugador_id: player.id,
+      appUrl: window.location.origin,
+    }),
+    onSuccess: () => {
+      toast.success("Recordatorio enviado por email");
+      qc.invalidateQueries({ queryKey: ["recordatoriosEquipacion"] });
+    },
+    onError: (e) => toast.error(e.message || "No se pudo enviar el correo"),
+    onSettled: () => setEnviandoId(null),
+  });
+
+  const abrirWhatsApp = async (player) => {
+    const tel = String(player.telefono || player.telefono_tutor_2 || "").replace(/\D/g, "");
+    const destino = tel.startsWith("34") ? tel : `34${tel}`;
+    const mensaje =
+      `👕 *Pedido de equipación pendiente*\n\n` +
+      `Hola, nos consta que aún no se ha hecho el pedido de equipación de *${player.nombre}*.\n\n` +
+      `Hazlo desde la *app del club* (Tienda → Equipación): allí verás el dorsal asignado y el enlace correcto a la tienda.\n\n` +
+      `Si ya lo has hecho, avísanos y lo revisamos. ¡Gracias! 🙌`;
+    window.open(`https://wa.me/${destino}?text=${encodeURIComponent(mensaje)}`, "_blank");
+    await base44.entities.RecordatorioEquipacion.create({
+      jugador_id: player.id,
+      jugador_nombre: player.nombre,
+      canal: "whatsapp",
+      destinatario: destino,
+      fecha: new Date().toISOString(),
+    });
+    qc.invalidateQueries({ queryKey: ["recordatoriosEquipacion"] });
+  };
 
   const sync = useMutation({
     mutationFn: () => base44.functions.invoke("importarPedidosEquipacion", { max: 200 }),
@@ -190,7 +233,6 @@ export default function PedidosEquipacion() {
               </SelectContent>
             </Select>
           </div>
-          {faltan.length > 0 && <RecordatoriosEquipacion textoWhatsApp={construirTexto(false)} />}
           {faltan.length > 0 && (
             <div className="flex flex-col sm:flex-row gap-2">
               <Button size="sm" onClick={copiarSoloNombres} className="bg-green-600 hover:bg-green-700">
@@ -204,7 +246,14 @@ export default function PedidosEquipacion() {
               </Button>
             </div>
           )}
-          <JugadoresPedidoLista players={jugadoresFiltrados} pedidosPorJugador={pedidosPorJugador} />
+          <JugadoresPedidoLista
+            players={jugadoresFiltrados}
+            pedidosPorJugador={pedidosPorJugador}
+            ultimosPorJugador={ultimosPorJugador}
+            enviandoId={enviarEmail.isPending ? enviandoId : null}
+            onEmail={(p) => { setEnviandoId(p.id); enviarEmail.mutate(p); }}
+            onWhatsApp={abrirWhatsApp}
+          />
         </CardContent>
       </Card>
     </div>
