@@ -13,6 +13,7 @@ import JugadoresPedidoLista from "@/components/equipacion/JugadoresPedidoLista";
 export default function PedidosEquipacion() {
   const qc = useQueryClient();
   const [filtroCat, setFiltroCat] = useState("todas");
+  const [filtroTipo, setFiltroTipo] = useState("todos");
   const [busqueda, setBusqueda] = useState("");
 
   const { data: pedidos = [] } = useQuery({
@@ -113,14 +114,22 @@ export default function PedidosEquipacion() {
     [players]
   );
 
+  // Este año todos piden equipación; en temporadas siguientes basta con mirar
+  // los que entran nuevos (los renovados ya tienen equipación).
+  const jugadoresBase = useMemo(() => {
+    if (filtroTipo === "nuevos") return players.filter((p) => p.tipo_inscripcion === "Nueva Inscripción");
+    if (filtroTipo === "renovaciones") return players.filter((p) => p.tipo_inscripcion === "Renovación");
+    return players;
+  }, [players, filtroTipo]);
+
   const jugadoresFiltrados = useMemo(() => {
-    return players
+    return jugadoresBase
       .filter((p) => filtroCat === "todas" || (p.categoria_principal || p.deporte) === filtroCat)
       .filter((p) => !busqueda || (p.nombre || "").toLowerCase().includes(busqueda.toLowerCase()))
       .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""));
-  }, [players, filtroCat, busqueda]);
+  }, [jugadoresBase, filtroCat, busqueda]);
 
-  const conPedido = players.filter((p) => pedidosPorJugador[p.id]).length;
+  const conPedido = jugadoresBase.filter((p) => pedidosPorJugador[p.id]).length;
   const faltan = jugadoresFiltrados.filter((p) => !pedidosPorJugador[p.id]);
 
   const copiarFaltan = () => {
@@ -188,7 +197,7 @@ export default function PedidosEquipacion() {
           <p className="text-xs text-slate-500">Han pedido</p>
         </CardContent></Card>
         <Card><CardContent className="p-3 text-center">
-          <p className="text-2xl font-bold text-slate-700">{players.length - conPedido}</p>
+          <p className="text-2xl font-bold text-slate-700">{jugadoresBase.length - conPedido}</p>
           <p className="text-xs text-slate-500">Sin pedido</p>
         </CardContent></Card>
         <Card><CardContent className="p-3 text-center">
@@ -230,6 +239,14 @@ export default function PedidosEquipacion() {
               <SelectContent>
                 <SelectItem value="todas">Todas las categorías</SelectItem>
                 {categorias.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+              </SelectContent>
+            </Select>
+            <Select value={filtroTipo} onValueChange={setFiltroTipo}>
+              <SelectTrigger className="sm:w-56"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos los jugadores</SelectItem>
+                <SelectItem value="nuevos">Solo nuevas inscripciones</SelectItem>
+                <SelectItem value="renovaciones">Solo renovaciones</SelectItem>
               </SelectContent>
             </Select>
           </div>
