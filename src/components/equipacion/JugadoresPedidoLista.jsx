@@ -1,9 +1,18 @@
 import React from "react";
 import JugadorPedidoRow from "./JugadorPedidoRow";
 
-export default function JugadoresPedidoLista({ players, pedidosPorJugador, ultimosPorJugador = {}, enviandoId, onEmail, onWhatsApp }) {
-  if (players.length === 0) {
-    return <p className="text-sm text-slate-500 text-center py-6">No hay jugadores con este filtro.</p>;
+export default function JugadoresPedidoLista({
+  players,
+  pedidosPorJugador,
+  ultimosPorJugador,
+  enviandoId,
+  onEmail,
+  onWhatsApp,
+  onMarcarManual,
+  onDesmarcarManual,
+}) {
+  if (!players.length) {
+    return <p className="text-sm text-slate-500 py-4 text-center">No hay jugadores con este filtro</p>;
   }
 
   return (
@@ -17,6 +26,8 @@ export default function JugadoresPedidoLista({ players, pedidosPorJugador, ultim
           enviando={enviandoId === p.id}
           onEmail={onEmail}
           onWhatsApp={onWhatsApp}
+          onMarcarManual={onMarcarManual}
+          onDesmarcarManual={onDesmarcarManual}
         />
       ))}
     </div>

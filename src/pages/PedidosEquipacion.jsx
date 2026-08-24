@@ -69,6 +69,33 @@ export default function PedidosEquipacion() {
     qc.invalidateQueries({ queryKey: ["recordatoriosEquipacion"] });
   };
 
+  const marcarManual = useMutation({
+    mutationFn: (player) => base44.entities.PedidoEquipacion.create({
+      gmail_message_id: `manual-${player.id}-${Date.now()}`,
+      numero_pedido: "MANUAL",
+      fecha_pedido: new Date().toISOString(),
+      asunto: "Pedido marcado manualmente por el club",
+      jugador_id: player.id,
+      jugador_nombre: player.nombre,
+      jugadores: [{ jugador_id: player.id, jugador_nombre: player.nombre }],
+      metodo_match: "manual",
+    }),
+    onSuccess: () => {
+      toast.success("Jugador marcado como que ya ha pedido");
+      qc.invalidateQueries({ queryKey: ["pedidosEquipacion"] });
+    },
+    onError: (e) => toast.error(e.message || "No se pudo marcar"),
+  });
+
+  const desmarcarManual = useMutation({
+    mutationFn: (pedido) => base44.entities.PedidoEquipacion.delete(pedido.id),
+    onSuccess: () => {
+      toast.success("Marca manual eliminada");
+      qc.invalidateQueries({ queryKey: ["pedidosEquipacion"] });
+    },
+    onError: (e) => toast.error(e.message || "No se pudo deshacer"),
+  });
+
   const sync = useMutation({
     mutationFn: () => base44.functions.invoke("importarPedidosEquipacion", { max: 200 }),
     onSuccess: (res) => {
@@ -270,6 +297,8 @@ export default function PedidosEquipacion() {
             enviandoId={enviarEmail.isPending ? enviandoId : null}
             onEmail={(p) => { setEnviandoId(p.id); enviarEmail.mutate(p); }}
             onWhatsApp={abrirWhatsApp}
+            onMarcarManual={(p) => marcarManual.mutate(p)}
+            onDesmarcarManual={(pedido) => desmarcarManual.mutate(pedido)}
           />
         </CardContent>
       </Card>
