@@ -101,6 +101,7 @@ export function buildAdminNavigation(ctx) {
     { title: "─ CONFIGURACIÓN ─", section: true },
     { title: "🧾 Memoria del Club", url: createPageUrl("ClubMemory"), icon: FileText },
     { title: "📊 Centro de Datos", url: createPageUrl("CentroDatos"), icon: BarChart3 },
+    { title: "📗 Exportar a Google Sheets", url: createPageUrl("ExportarSheets"), icon: BarChart3 },
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "📊 Estadísticas Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
