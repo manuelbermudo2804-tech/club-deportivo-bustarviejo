@@ -41,20 +41,23 @@ export default function CollapsibleNavList({ navigationItems }) {
   // When searching, auto-expand sections that have matches
   const sectionMatches = (items) => items.filter((it) => it.title.toLowerCase().includes(q));
 
+  // Quita emojis/símbolos iniciales del título para que el icono no se duplique
+  const cleanLabel = (t) => t.replace(/^[^\p{L}\p{N}]+/u, "").trim();
+
   const renderItem = (item) => {
     const active = location.pathname === item.url;
     const content = (
       <>
-        <item.icon className="w-5 h-5 flex-shrink-0" />
-        <span className="font-semibold flex-1 text-center">{item.title}</span>
+        <item.icon className="w-[18px] h-[18px] flex-shrink-0" />
+        <span className="font-medium text-sm flex-1 text-left leading-tight">{cleanLabel(item.title)}</span>
         {item.badge && (
-          <Badge className={`${item.urgentBadge ? 'bg-red-500 text-white animate-pulse ring-2 ring-green-400' : 'bg-green-500 text-white'}`}>
-            {item.urgentBadge && '🔴'} {item.badge}
+          <Badge className={`${item.urgentBadge ? 'bg-red-500 text-white animate-pulse' : 'bg-green-500 text-white'}`}>
+            {item.badge}
           </Badge>
         )}
       </>
     );
-    const cls = `flex items-center justify-center gap-4 p-4 rounded-2xl transition-all group ${item.highlight ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-600/50 ring-2 ring-green-400 animate-pulse' : active ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-lg shadow-orange-600/50' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`;
+    const cls = `flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all group ${item.highlight ? 'bg-gradient-to-r from-green-600 to-green-700 text-white shadow-lg shadow-green-600/50 ring-2 ring-green-400' : active ? 'bg-gradient-to-r from-orange-600 to-orange-700 text-white shadow-md shadow-orange-600/40' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`;
     return item.externalUrl ? (
       <a key={item.title} href={item.externalUrl} target="_blank" rel="noopener noreferrer" className={cls}>{content}</a>
     ) : (
@@ -63,7 +66,7 @@ export default function CollapsibleNavList({ navigationItems }) {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1">
       {/* Buscador */}
       <div className="relative mb-2">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -96,12 +99,12 @@ export default function CollapsibleNavList({ navigationItems }) {
           <div key={sec.title} className="border-t border-slate-700/50 pt-1">
             <button
               onClick={() => toggle(sec.title)}
-              className="w-full flex items-center justify-between px-2 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:text-white transition-colors"
+              className="w-full flex items-center justify-between px-3 py-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider hover:text-white transition-colors"
             >
               <span>{cleanTitle}</span>
               <ChevronDown className={`w-4 h-4 transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
-            {open && <div className="space-y-2 pb-2">{matches.map(renderItem)}</div>}
+            {open && <div className="space-y-1 pb-2">{matches.map(renderItem)}</div>}
           </div>
         );
       })}
