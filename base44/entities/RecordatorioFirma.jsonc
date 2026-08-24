@@ -1,0 +1,46 @@
+{
+  "name": "RecordatorioFirma",
+  "type": "object",
+  "properties": {
+    "jugador_id": {
+      "type": "string",
+      "description": "Jugador al que se le record\u00f3 la firma"
+    },
+    "jugador_nombre": {
+      "type": "string"
+    },
+    "destinatarios": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails a los que se envi\u00f3 el recordatorio"
+    },
+    "firmas_pendientes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Firmas que estaban pendientes en ese momento"
+    },
+    "fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora del env\u00edo"
+    },
+    "enviado_por": {
+      "type": "string",
+      "description": "Email de quien lo envi\u00f3"
+    }
+  },
+  "required": [
+    "jugador_id"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "jugador_id"
+      ]
+    }
+  ]
+}
