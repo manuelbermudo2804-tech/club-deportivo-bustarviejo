@@ -1,0 +1,84 @@
+{
+  "name": "ConsentimientoComercial",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre de la persona que da el consentimiento"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email de contacto"
+    },
+    "telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto (opcional)"
+    },
+    "origen": {
+      "type": "string",
+      "description": "Formulario o p\u00e1gina donde se recogi\u00f3 (ej: loteria, torneo-padel, alta-socio)"
+    },
+    "acepta_promociones": {
+      "type": "boolean",
+      "default": false,
+      "description": "Acepta recibir comunicaciones comerciales del club (loter\u00eda, torneos, eventos, tienda)"
+    },
+    "acepta_patrocinadores": {
+      "type": "boolean",
+      "default": false,
+      "description": "Acepta recibir ofertas y descuentos de los patrocinadores y comercios colaboradores del club"
+    },
+    "texto_version": {
+      "type": "string",
+      "description": "Versi\u00f3n del texto de consentimiento que acept\u00f3 (ej: v1.0)"
+    },
+    "fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora en que dio el consentimiento"
+    },
+    "revocado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si la persona ha retirado su consentimiento"
+    },
+    "fecha_revocacion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que retir\u00f3 el consentimiento"
+    }
+  },
+  "required": [
+    "origen"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "email"
+      ]
+    },
+    {
+      "fields": [
+        "origen"
+      ]
+    }
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
