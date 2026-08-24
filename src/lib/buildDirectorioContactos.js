@@ -3,19 +3,44 @@ import { base44 } from "@/api/base44Client";
 const norm = (s) => (s || "").trim().toLowerCase();
 const normTel = (t) => (t || "").replace(/[\s.\-()]/g, "");
 
+const LIMITE = 2000;
+
+const lista = (entidad, orden = "-created_date") =>
+  base44.entities[entidad].list(orden, LIMITE).catch(() => []);
+
 /**
  * Reúne en una sola lista a todas las personas registradas en la app,
  * fusionando por email (o teléfono si no hay email) y marcando de qué
  * partes del club viene cada una y si tiene consentimiento comercial.
  */
 export async function buildDirectorioContactos() {
+  // Se piden en tandas para no saturar el límite de peticiones
   const [jugadores, socios, porristas, inscripciones, consentimientos] = await Promise.all([
-    base44.entities.Player.list("-created_date", 2000),
-    base44.entities.ClubMember.list("-created_date", 2000),
-    base44.entities.PorraParticipante.list("-created_date", 2000),
-    base44.entities.LandingSubmission.list("-created_date", 2000),
-    base44.entities.ConsentimientoComercial.list("-fecha", 2000),
+    lista("Player"),
+    lista("ClubMember"),
+    lista("PorraParticipante"),
+    lista("LandingSubmission"),
+    lista("ConsentimientoComercial", "-fecha"),
   ]);
+
+  const [sanIsidro, sanIsidroVol, preInscripciones, contactos, accesos] = await Promise.all([
+    lista("SanIsidroRegistration"),
+    lista("SanIsidroVoluntario"),
+    lista("PreInscripcion"),
+    lista("ContactForm"),
+    lista("AccessRequest"),
+  ]);
+
+  const [patroInteres, patroTorneo, patroTorneoInteres, propuestas, colaboraciones, femenino, voluntarios] =
+    await Promise.all([
+      lista("SponsorInterest"),
+      lista("TorneoPatrocinioSolicitud"),
+      lista("TournamentSponsorInterest"),
+      lista("PropuestaPatrocinio"),
+      lista("CollaborationPayment"),
+      lista("FemeninoInterest"),
+      lista("VolunteerProfile"),
+    ]);
 
   const mapa = new Map();
 
@@ -105,6 +130,122 @@ export async function buildDirectorioContactos() {
     })
   );
 
+  preInscripciones.forEach((p) =>
+    add({
+      nombre: p.nombre,
+      email: p.email,
+      telefono: p.telefono,
+      origen: "Pre-inscripción web",
+      detalle: p.nombre_equipo,
+      fecha: p.created_date,
+    })
+  );
+
+  sanIsidro.forEach((r) =>
+    add({
+      nombre: r.nombre_responsable,
+      email: r.email_responsable,
+      telefono: r.telefono_responsable,
+      origen: "San Isidro",
+      detalle: r.nombre_equipo || r.jugador_nombre,
+      fecha: r.created_date,
+    })
+  );
+
+  sanIsidroVol.forEach((v) =>
+    add({
+      nombre: v.nombre,
+      telefono: v.telefono,
+      origen: "San Isidro (voluntario)",
+      fecha: v.created_date,
+    })
+  );
+
+  contactos.forEach((c) =>
+    add({
+      nombre: c.nombre,
+      email: c.email,
+      telefono: c.telefono,
+      origen: "Contacto web",
+      fecha: c.fecha_contacto || c.created_date,
+    })
+  );
+
+  accesos.forEach((a) =>
+    add({
+      nombre: a.nombre_progenitor,
+      email: a.email,
+      telefono: a.telefono,
+      origen: "Solicitud de acceso",
+      detalle: a.nombre_jugador,
+      fecha: a.created_date,
+    })
+  );
+
+  femenino.forEach((f) =>
+    add({
+      nombre: f.nombre_padre || f.nombre_jugadora,
+      email: f.email,
+      telefono: f.telefono,
+      origen: "Interés femenino",
+      detalle: f.nombre_jugadora,
+      fecha: f.created_date,
+    })
+  );
+
+  voluntarios.forEach((v) =>
+    add({
+      nombre: v.nombre,
+      email: v.email,
+      telefono: v.telefono,
+      origen: "Voluntariado",
+      fecha: v.created_date,
+    })
+  );
+
+  patroInteres.forEach((s) =>
+    add({
+      nombre: s.nombre_contacto,
+      email: s.email,
+      telefono: s.telefono,
+      origen: "Patrocinio",
+      detalle: s.nombre_comercio,
+      fecha: s.created_date,
+    })
+  );
+
+  [...patroTorneo, ...patroTorneoInteres].forEach((s) =>
+    add({
+      nombre: s.nombre_contacto,
+      email: s.email,
+      telefono: s.telefono,
+      origen: "Patrocinio torneo",
+      detalle: s.nombre_empresa,
+      fecha: s.created_date,
+    })
+  );
+
+  propuestas.forEach((p) =>
+    add({
+      nombre: p.contacto_nombre,
+      email: p.contacto_email,
+      telefono: p.contacto_telefono,
+      origen: "Propuesta patrocinio",
+      fecha: p.created_date,
+    })
+  );
+
+  colaboraciones.forEach((c) =>
+    add({
+      nombre: c.contacto_nombre,
+      email: c.email,
+      telefono: c.telefono,
+      origen: "Colaboración",
+      detalle: c.nombre_comercio,
+      fecha: c.created_date,
+    })
+  );
+
   consentimientos.forEach((c) =>
     add({
       nombre: c.nombre,
@@ -132,11 +273,6 @@ export async function buildDirectorioContactos() {
         ...c,
         origenes: Array.from(c.origenes),
         detalles: Array.from(c.detalles).filter(Boolean),
-        consentimiento: !cons || cons.revocado
-          ? "sin_consentimiento"
-          : cons.acepta_promociones
-          ? "club"
-          : "patrocinadores",
         acepta_promociones: !!cons && !cons.revocado && !!cons.acepta_promociones,
         acepta_patrocinadores: !!cons && !cons.revocado && !!cons.acepta_patrocinadores,
       };

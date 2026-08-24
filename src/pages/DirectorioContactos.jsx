@@ -68,8 +68,9 @@ export default function DirectorioContactos() {
           Directorio de contactos
         </h1>
         <p className="text-slate-500 text-sm mt-1">
-          Todas las personas registradas en la app (familias, jugadores, socios, porra e inscripciones
-          web), sin duplicados. Para uso interno del club: solo puedes hacer comunicación comercial a
+          Todas las personas registradas en la app: familias, jugadores, socios, porra, inscripciones y
+          pre-inscripciones web (torneos, maratón, San Isidro), contactos de la web, solicitudes de
+          acceso, voluntariado, interés en femenino y patrocinadores. Sin duplicados. Para uso interno del club: solo puedes hacer comunicación comercial a
           quien ha dado su consentimiento.
         </p>
       </div>
