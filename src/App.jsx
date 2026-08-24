@@ -75,6 +75,7 @@ import EntrenamientoHub from '@/pages/EntrenamientoHub';
 import CentroDatos from '@/pages/CentroDatos';
 import LoteriaNavidad from '@/pages/LoteriaNavidad';
 import PedidosEquipacion from '@/pages/PedidosEquipacion';
+import ExportarSheets from '@/pages/ExportarSheets';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -252,6 +253,7 @@ const AuthenticatedApp = () => {
       <Route path="/EntrenamientoHub" element={<LayoutWrapper currentPageName="EntrenamientoHub"><EntrenamientoHub /></LayoutWrapper>} />
       <Route path="/CentroDatos" element={<LayoutWrapper currentPageName="CentroDatos"><CentroDatos /></LayoutWrapper>} />
       <Route path="/PedidosEquipacion" element={<LayoutWrapper currentPageName="PedidosEquipacion"><PedidosEquipacion /></LayoutWrapper>} />
+      <Route path="/ExportarSheets" element={<LayoutWrapper currentPageName="ExportarSheets"><ExportarSheets /></LayoutWrapper>} />
 
       <Route path="/ShareReceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
       <Route path="/sharereceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
