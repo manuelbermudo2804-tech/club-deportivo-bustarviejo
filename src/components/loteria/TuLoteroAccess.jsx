@@ -27,10 +27,10 @@ export default function TuLoteroAccess({ url, password }) {
       {password && (
         <div className="bg-white/95 rounded-2xl p-4 space-y-2">
           <p className="flex items-center gap-2 font-bold text-slate-900">
-            <KeyRound className="w-4 h-4 text-amber-600" /> Contraseña del enlace
+            <KeyRound className="w-4 h-4 text-amber-600" /> Código de acceso
           </p>
           <p className="text-sm text-slate-600">
-            TuLotero te pedirá esta contraseña para entrar al grupo del club:
+            Introdúcelo en TuLotero para entrar a la lotería del club:
           </p>
           <div className="flex items-center gap-2">
             <div className="flex-1 bg-slate-100 rounded-xl px-4 py-3 font-mono font-bold text-lg text-slate-900 tracking-wider break-all">
@@ -42,6 +42,10 @@ export default function TuLoteroAccess({ url, password }) {
           </div>
         </div>
       )}
+
+      <p className="text-center text-xs text-yellow-100/80 px-2">
+        Tus décimos quedan guardados en la app: no hay papel que perder.
+      </p>
     </div>
   );
 }
