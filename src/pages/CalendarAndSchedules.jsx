@@ -21,6 +21,7 @@ import ContactCard from "../components/ContactCard";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import UpcomingMatchesSection from "../components/calendar/UpcomingMatchesSection";
 import MyLeagueSchedules from "../components/competition/MyLeagueSchedules";
+import CalendarSubscribeCard from "../components/calendar/CalendarSubscribeCard";
 
 const DIAS_ORDEN = {
   "Lunes": 1,
@@ -744,6 +745,8 @@ export default function CalendarAndSchedules() {
               </Button>
             )}
           </div>
+
+          <CalendarSubscribeCard categories={myCategories} />
 
           {/* Location Card */}
           <Card className="border-none shadow-lg bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300">
