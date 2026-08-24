@@ -103,6 +103,7 @@ export function buildAdminNavigation(ctx) {
     { title: "📊 Centro de Datos", url: createPageUrl("CentroDatos"), icon: BarChart3 },
     { title: "📗 Exportar a Google Sheets", url: createPageUrl("ExportarSheets"), icon: BarChart3 },
     { title: "✅ Consentimientos comerciales", url: createPageUrl("ConsentimientosComerciales"), icon: FileText },
+    { title: "📇 Directorio de contactos", url: createPageUrl("DirectorioContactos"), icon: FileText },
     { title: "⚙️ Temporadas y Categorías", url: createPageUrl("SeasonManagement"), icon: Settings },
     { title: "🔔 Preferencias Notif.", url: createPageUrl("NotificationPreferences"), icon: Settings },
     { title: "📊 Estadísticas Chat", url: createPageUrl("ChatAnalyticsDashboard"), icon: BarChart3 },
