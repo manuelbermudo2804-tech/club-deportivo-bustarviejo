@@ -1,4 +1,4 @@
-import { Send, MessageCircle, Instagram, Bell } from "lucide-react";
+import { Send, MessageCircle, Instagram, Bell, Facebook } from "lucide-react";
 
 // Canales de difusión disponibles en el Centro de Difusión Social
 export const CANALES = [
@@ -28,11 +28,22 @@ export const CANALES = [
   },
   {
     id: "instagram",
-    label: "Instagram / Facebook",
-    desc: "Copia el texto para pegarlo en la publicación",
+    label: "Instagram",
+    desc: "Publica la foto en el feed (necesita imagen)",
     icon: Instagram,
     color: "text-pink-400",
-    automatico: false,
+    automatico: true,
+    requiereConexion: true,
+    requiereImagen: true,
+  },
+  {
+    id: "facebook",
+    label: "Facebook",
+    desc: "Publica en la página del club",
+    icon: Facebook,
+    color: "text-blue-400",
+    automatico: true,
+    requiereConexion: true,
   },
 ];
 

@@ -43,8 +43,44 @@ export async function publicarEnCanales({ canales, texto, imageUrl, titulo }) {
     }
   }
 
+  if (canales.includes("instagram")) {
+    if (!imageUrl) {
+      resultados.push({ canal: "instagram", ok: false, error: "Instagram necesita una imagen. Genera o sube una foto." });
+    } else {
+      try {
+        const { data } = await base44.functions.invoke("publishToInstagram", {
+          caption: texto,
+          image_url: imageUrl,
+        });
+        if (data?.success) {
+          resultados.push({ canal: "instagram", ok: true });
+        } else {
+          resultados.push({ canal: "instagram", ok: false, error: data?.error || "Error al publicar" });
+        }
+      } catch (e) {
+        resultados.push({ canal: "instagram", ok: false, error: e?.message || "Instagram no está conectado" });
+      }
+    }
+  }
+
+  if (canales.includes("facebook")) {
+    try {
+      const { data } = await base44.functions.invoke("publishToFacebookPage", {
+        message: texto,
+        image_url: imageUrl,
+      });
+      if (data?.success) {
+        resultados.push({ canal: "facebook", ok: true });
+      } else {
+        resultados.push({ canal: "facebook", ok: false, error: data?.error || "Error al publicar" });
+      }
+    } catch (e) {
+      resultados.push({ canal: "facebook", ok: false, error: e?.message || "Facebook no está conectado" });
+    }
+  }
+
   // Canales manuales: dejar el texto en el portapapeles
-  const manuales = canales.filter((c) => c === "whatsapp" || c === "instagram");
+  const manuales = canales.filter((c) => c === "whatsapp");
   if (manuales.length) {
     try {
       await navigator.clipboard.writeText(texto);
