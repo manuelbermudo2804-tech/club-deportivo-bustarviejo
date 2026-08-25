@@ -416,9 +416,13 @@ Deno.serve(async (req) => {
           if (!matchDate) return null; // Can't create without a date
 
           // Get active players for this category
-          const players = await base44.asServiceRole.entities.Player.filter({ 
-            categoria_principal: config.categoria, activo: true 
-          });
+          // Incluir jugadores por categoría principal, lista de categorías o el campo antiguo "deporte"
+          const activePlayers = await base44.asServiceRole.entities.Player.filter({ activo: true });
+          const players = activePlayers.filter(p =>
+            p.categoria_principal === config.categoria ||
+            (Array.isArray(p.categorias) && p.categorias.includes(config.categoria)) ||
+            p.deporte === config.categoria
+          );
           const jugadores_convocados = players.map(p => ({
             jugador_id: p.id,
             jugador_nombre: p.nombre,
