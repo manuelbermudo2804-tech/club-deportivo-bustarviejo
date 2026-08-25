@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Camera, Loader2, CheckCircle2, X } from "lucide-react";
-import { toast } from "sonner";
 import { EQUIPOS_CONTENIDO, getTemporadaActual } from "./categoriasContenido";
 
 export default function SubirContenidoForm({ user, onDone }) {
@@ -13,6 +12,7 @@ export default function SubirContenidoForm({ user, onDone }) {
   const [descripcion, setDescripcion] = useState("");
   const [archivos, setArchivos] = useState([]);
   const [subiendo, setSubiendo] = useState(false);
+  const [aviso, setAviso] = useState(null); // { tipo: 'ok' | 'error', texto }
 
   const elegirArchivos = (e) => {
     const files = Array.from(e.target.files || []).slice(0, 5);
@@ -20,11 +20,13 @@ export default function SubirContenidoForm({ user, onDone }) {
   };
 
   const enviar = async () => {
-    if (!equipo) return toast.error("Elige primero el equipo");
-    if (!archivos.length) return toast.error("Elige al menos una foto o vídeo");
+    setAviso(null);
+    if (!equipo) return setAviso({ tipo: "error", texto: "Elige primero el equipo (paso 1)" });
+    if (!archivos.length) return setAviso({ tipo: "error", texto: "Elige al menos una foto o vídeo (paso 2)" });
 
     setSubiendo(true);
     let subidas = 0;
+    let ultimoError = "";
     for (const file of archivos) {
       try {
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
@@ -39,20 +41,21 @@ export default function SubirContenidoForm({ user, onDone }) {
           temporada: getTemporadaActual(),
         });
         subidas++;
-      } catch {
-        // seguimos con el resto
+      } catch (err) {
+        ultimoError = err?.message || "error desconocido";
+        console.error("[SubirContenido] fallo con", file.name, err);
       }
     }
     setSubiendo(false);
 
     if (subidas) {
-      toast.success(`¡Gracias! Has enviado ${subidas} ${subidas === 1 ? "archivo" : "archivos"} al club`);
+      setAviso({ tipo: "ok", texto: `¡Gracias! Has enviado ${subidas} ${subidas === 1 ? "archivo" : "archivos"} al club` });
       setArchivos([]);
       setDescripcion("");
       if (inputRef.current) inputRef.current.value = "";
       onDone?.();
     } else {
-      toast.error("No se pudo subir. Prueba con archivos más pequeños.");
+      setAviso({ tipo: "error", texto: `No se pudo subir: ${ultimoError}` });
     }
   };
 
@@ -119,6 +122,18 @@ export default function SubirContenidoForm({ user, onDone }) {
           className="min-h-[70px] text-base"
         />
       </div>
+
+      {aviso && (
+        <div
+          className={`rounded-xl px-4 py-3 text-sm font-semibold ${
+            aviso.tipo === "ok"
+              ? "bg-green-50 border border-green-300 text-green-800"
+              : "bg-red-50 border border-red-300 text-red-800"
+          }`}
+        >
+          {aviso.texto}
+        </div>
+      )}
 
       <Button
         onClick={enviar}
