@@ -20,8 +20,8 @@ export default function MinorCoachCallups() {
   });
 
   const permisos = player?.entrenador_practicas || {};
-  const categoria = permisos.categoria || player?.categoria_principal || player?.deporte;
-  const puedeVer = permisos.activo === true && permisos.ver_convocatorias === true;
+  const categoria = permisos.categoria;
+  const puedeVer = permisos.activo === true && permisos.ver_convocatorias === true && !!categoria;
   const verNombres = permisos.ver_nombres_convocatoria === true;
 
   const { data: callups = [], isLoading } = useQuery({

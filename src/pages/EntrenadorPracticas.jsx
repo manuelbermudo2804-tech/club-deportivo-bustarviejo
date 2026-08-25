@@ -41,17 +41,16 @@ export default function EntrenadorPracticas() {
       if (cambios.activo === true) {
         nuevo.activado_por = user?.email;
         nuevo.fecha_activacion = new Date().toISOString();
-        nuevo.categoria = player.categoria_principal || player.deporte;
       }
       if (cambios.activo === false) {
-        nuevo.ver_horarios = false;
-        nuevo.ver_convocatorias = false;
-        nuevo.ver_nombres_convocatoria = false;
-        nuevo.ejercicios = false;
-        nuevo.pizarra = false;
-        nuevo.competicion = false;
+        ["ver_horarios", "ver_convocatorias", "ver_nombres_convocatoria", "crear_convocatorias",
+          "asistencia", "evaluaciones", "chat_staff", "ejercicios", "pizarra", "competicion"]
+          .forEach((k) => { nuevo[k] = false; });
       }
-      if (cambios.ver_convocatorias === false) nuevo.ver_nombres_convocatoria = false;
+      if (cambios.ver_convocatorias === false) {
+        nuevo.ver_nombres_convocatoria = false;
+        nuevo.crear_convocatorias = false;
+      }
       return base44.entities.Player.update(player.id, { entrenador_practicas: nuevo });
     },
     onSuccess: () => {
@@ -75,7 +74,7 @@ export default function EntrenadorPracticas() {
           Entrenadores en prácticas
         </h1>
         <p className="text-slate-500 mt-1 text-sm">
-          Jugadores de 14 a 17 años con acceso juvenil. Activa los permisos uno a uno: nunca incluyen datos personales, médicos, económicos ni chats con familias.
+          Jugadores de 14 a 17 años con acceso juvenil. Vincúlalos al equipo que entrenan y activa los permisos uno a uno: nunca incluyen datos personales, médicos, económicos ni chats con familias.
         </p>
       </div>
 

@@ -310,6 +310,10 @@
           "default": false,
           "description": "Si el menor tiene el rol de apoyo t\u00e9cnico activado"
         },
+        "categoria": {
+          "type": "string",
+          "description": "Equipo (categor\u00eda) que entrena como apoyo t\u00e9cnico. Obligatorio para activar el rol."
+        },
         "ver_horarios": {
           "type": "boolean",
           "default": false
@@ -317,12 +321,32 @@
         "ver_convocatorias": {
           "type": "boolean",
           "default": false,
-          "description": "Ver convocatorias del equipo en solo lectura"
+          "description": "Ver convocatorias del equipo"
         },
         "ver_nombres_convocatoria": {
           "type": "boolean",
           "default": false,
           "description": "Ver los nombres de los convocados (no solo los totales)"
+        },
+        "crear_convocatorias": {
+          "type": "boolean",
+          "default": false,
+          "description": "Puede crear y editar convocatorias del equipo. Si est\u00e1 apagado, solo lectura."
+        },
+        "asistencia": {
+          "type": "boolean",
+          "default": false,
+          "description": "Puede pasar lista de asistencia en los entrenamientos (presente / tarde / ausente)"
+        },
+        "evaluaciones": {
+          "type": "boolean",
+          "default": false,
+          "description": "Puede ver y rellenar evaluaciones deportivas del equipo"
+        },
+        "chat_staff": {
+          "type": "boolean",
+          "default": false,
+          "description": "Participa en el chat del cuerpo t\u00e9cnico"
         },
         "ejercicios": {
           "type": "boolean",
@@ -335,10 +359,6 @@
         "competicion": {
           "type": "boolean",
           "default": false
-        },
-        "categoria": {
-          "type": "string",
-          "description": "Equipo del que hace de apoyo t\u00e9cnico"
         },
         "activado_por": {
           "type": "string",

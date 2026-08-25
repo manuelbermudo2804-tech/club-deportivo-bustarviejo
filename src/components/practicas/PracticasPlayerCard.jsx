@@ -2,11 +2,13 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { PERMISOS_PRACTICAS } from "./permisosPracticas";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PERMISOS_PRACTICAS, CATEGORIAS_PRACTICAS } from "./permisosPracticas";
 
 export default function PracticasPlayerCard({ player, onChange, saving }) {
   const p = player.entrenador_practicas || {};
   const activo = p.activo === true;
+  const sinEquipo = activo && !p.categoria;
 
   return (
     <Card className="border-none shadow-lg">
@@ -20,7 +22,7 @@ export default function PracticasPlayerCard({ player, onChange, saving }) {
           <div className="flex-1 min-w-0">
             <h3 className="font-bold text-slate-900 truncate">{player.nombre}</h3>
             <p className="text-xs text-slate-500 truncate">
-              {player.categoria_principal || player.deporte} · {player.acceso_menor_email}
+              Juega en {player.categoria_principal || player.deporte} · {player.acceso_menor_email}
             </p>
             {activo && p.activado_por && (
               <p className="text-[11px] text-slate-400 mt-1">
@@ -42,24 +44,52 @@ export default function PracticasPlayerCard({ player, onChange, saving }) {
         </div>
 
         {activo && (
-          <div className="mt-4 pt-4 border-t border-slate-100 space-y-2">
-            {PERMISOS_PRACTICAS.map((perm) => {
-              const bloqueado = perm.dependeDe && p[perm.dependeDe] !== true;
-              return (
-                <div key={perm.key} className={`flex items-start gap-3 rounded-xl p-3 ${bloqueado ? "bg-slate-50 opacity-50" : "bg-slate-50"}`}>
-                  <span className="text-lg">{perm.emoji}</span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-slate-800">{perm.titulo}</p>
-                    <p className="text-xs text-slate-500">{perm.descripcion}</p>
+          <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
+            <div>
+              <p className="text-sm font-bold text-slate-800 mb-1.5">🏟️ Equipo que entrena</p>
+              <Select
+                value={p.categoria || ""}
+                disabled={saving}
+                onValueChange={(v) => onChange(player, { categoria: v })}
+              >
+                <SelectTrigger className={sinEquipo ? "border-red-400 bg-red-50" : ""}>
+                  <SelectValue placeholder="Elige el equipo al que entrena" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIAS_PRACTICAS.map((c) => (
+                    <SelectItem key={c} value={c}>{c}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {sinEquipo && (
+                <p className="text-xs text-red-600 mt-1">
+                  Elige un equipo: sin equipo vinculado no verá nada.
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              {PERMISOS_PRACTICAS.map((perm) => {
+                const bloqueado = sinEquipo || (perm.dependeDe && p[perm.dependeDe] !== true);
+                return (
+                  <div key={perm.key} className={`flex items-start gap-3 rounded-xl p-3 ${perm.avanzado ? "bg-amber-50" : "bg-slate-50"} ${bloqueado ? "opacity-50" : ""}`}>
+                    <span className="text-lg">{perm.emoji}</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-800">
+                        {perm.titulo}
+                        {perm.avanzado && <span className="ml-2 text-[10px] font-bold text-amber-700">AVANZADO</span>}
+                      </p>
+                      <p className="text-xs text-slate-500">{perm.descripcion}</p>
+                    </div>
+                    <Switch
+                      checked={p[perm.key] === true}
+                      disabled={saving || bloqueado}
+                      onCheckedChange={(v) => onChange(player, { [perm.key]: v })}
+                    />
                   </div>
-                  <Switch
-                    checked={p[perm.key] === true}
-                    disabled={saving || bloqueado}
-                    onCheckedChange={(v) => onChange(player, { [perm.key]: v })}
-                  />
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
       </CardContent>
