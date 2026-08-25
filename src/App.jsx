@@ -81,6 +81,8 @@ import DirectorioContactos from '@/pages/DirectorioContactos';
 import CentroContenido from '@/pages/CentroContenido';
 import SubirContenido from '@/pages/SubirContenido';
 import InstalarApp from '@/pages/InstalarApp';
+import EntrenadorPracticas from '@/pages/EntrenadorPracticas';
+import MinorCoachCallups from '@/pages/MinorCoachCallups';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -265,6 +267,8 @@ const AuthenticatedApp = () => {
       <Route path="/DirectorioContactos" element={<LayoutWrapper currentPageName="DirectorioContactos"><DirectorioContactos /></LayoutWrapper>} />
       <Route path="/CentroContenido" element={<LayoutWrapper currentPageName="CentroContenido"><CentroContenido /></LayoutWrapper>} />
       <Route path="/SubirContenido" element={<LayoutWrapper currentPageName="SubirContenido"><SubirContenido /></LayoutWrapper>} />
+      <Route path="/EntrenadorPracticas" element={<LayoutWrapper currentPageName="EntrenadorPracticas"><EntrenadorPracticas /></LayoutWrapper>} />
+      <Route path="/MinorCoachCallups" element={<LayoutWrapper currentPageName="MinorCoachCallups"><MinorCoachCallups /></LayoutWrapper>} />
 
       <Route path="/ShareReceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
       <Route path="/sharereceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />

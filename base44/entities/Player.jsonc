@@ -301,6 +301,60 @@
         }
       }
     },
+    "entrenador_practicas": {
+      "type": "object",
+      "description": "Permisos de 'entrenador en pr\u00e1cticas' para un menor. Se activan a mano, uno a uno, y queda constancia de qui\u00e9n y cu\u00e1ndo.",
+      "properties": {
+        "activo": {
+          "type": "boolean",
+          "default": false,
+          "description": "Si el menor tiene el rol de apoyo t\u00e9cnico activado"
+        },
+        "ver_horarios": {
+          "type": "boolean",
+          "default": false
+        },
+        "ver_convocatorias": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ver convocatorias del equipo en solo lectura"
+        },
+        "ver_nombres_convocatoria": {
+          "type": "boolean",
+          "default": false,
+          "description": "Ver los nombres de los convocados (no solo los totales)"
+        },
+        "ejercicios": {
+          "type": "boolean",
+          "default": false
+        },
+        "pizarra": {
+          "type": "boolean",
+          "default": false
+        },
+        "competicion": {
+          "type": "boolean",
+          "default": false
+        },
+        "categoria": {
+          "type": "string",
+          "description": "Equipo del que hace de apoyo t\u00e9cnico"
+        },
+        "activado_por": {
+          "type": "string",
+          "description": "Email de quien concedi\u00f3 el permiso"
+        },
+        "fecha_activacion": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Fecha en que se concedi\u00f3"
+        },
+        "notas": {
+          "type": "string",
+          "description": "Notas internas del club"
+        }
+      }
+    },
     "observaciones": {
       "type": "string"
     },

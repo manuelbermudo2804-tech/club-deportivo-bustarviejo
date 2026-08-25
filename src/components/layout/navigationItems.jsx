@@ -99,6 +99,7 @@ export function buildAdminNavigation(ctx) {
     { title: "─ PROTECCIÓN DEL MENOR ─", section: true },
     { title: "🛡️ LOPIVI - Incidencias", url: createPageUrl("LopiviAdmin"), icon: ShieldAlert, badge: ctx.pendingLopiviCount > 0 ? ctx.pendingLopiviCount : null, urgentBadge: ctx.pendingLopiviCount > 0, highlight: ctx.pendingLopiviCount > 0 },
     { title: "📸 Autorización de Imagen", url: createPageUrl("PhotoAuthorizations"), icon: Camera },
+    { title: "🧢 Entrenadores en Prácticas", url: "/EntrenadorPracticas", icon: ShieldAlert },
 
     { title: "─ CONFIGURACIÓN ─", section: true },
     { title: "🧾 Memoria del Club", url: createPageUrl("ClubMemory"), icon: FileText },

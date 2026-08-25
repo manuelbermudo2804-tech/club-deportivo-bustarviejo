@@ -22,6 +22,7 @@ import MinorBirthdayBanner from "@/components/minor/MinorBirthdayBanner";
 import MinorCommitmentLevel from "@/components/minor/MinorCommitmentLevel";
 import MinorChallenges from "@/components/minor/MinorChallenges";
 import MinorFifaCard from "@/components/minor/MinorFifaCard";
+import MinorCoachPanel from "@/components/minor/MinorCoachPanel";
 import MainSponsorBanner from "@/components/sponsors/MainSponsorBanner";
 
 
@@ -427,6 +428,7 @@ export default function MinorDashboard() {
         />
         {linkedPlayer && <MinorAgeTransitionBanner player={linkedPlayer} />}
         {linkedPlayer && <MinorBirthdayBanner player={linkedPlayer} />}
+        {linkedPlayer && <MinorCoachPanel player={linkedPlayer} />}
 
         {/* ─── PRÓXIMO PARTIDO / ENTRENAMIENTO ─── */}
         <SectionHeader icon={Zap} title="Lo próximo" color="text-orange-500" delay={0.15} />
