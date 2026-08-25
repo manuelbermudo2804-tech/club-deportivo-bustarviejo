@@ -1,5 +1,5 @@
 import React from "react";
-import { Users, Calendar, Bell, CreditCard, Image, Megaphone, ShoppingBag, FileText, Heart, FileSignature, BarChart3, Clover, Trophy, MessageCircle, Settings, Gift } from "lucide-react";
+import { Users, Calendar, Bell, CreditCard, Image, Megaphone, ShoppingBag, FileText, Heart, FileSignature, BarChart3, Clover, Trophy, MessageCircle, Settings, Gift, Camera } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 // DEFINICIÓN COMPLETA - refleja TODO el menú lateral de familias
@@ -21,6 +21,7 @@ export const ALL_PARENT_BUTTONS = [
   { id: "documentos", title: "📄 Documentos y LOPIVI", icon: FileText, url: createPageUrl("ParentDocuments"), gradient: "from-slate-600 to-slate-700", priority: 15 },
   { id: "tienda", title: "🛍️ Tienda y Equipación", icon: ShoppingBag, url: createPageUrl("Tienda"), gradient: "from-orange-600 to-orange-700", priority: 16, competitionOnly: true },
   { id: "galeria", title: "🖼️ Galería", icon: Image, url: createPageUrl("Gallery"), gradient: "from-indigo-600 to-indigo-700", priority: 17 },
+  { id: "subir_contenido", title: "📸 Enviar fotos y vídeos", icon: Camera, url: createPageUrl("SubirContenido"), gradient: "from-rose-600 to-pink-700", priority: 17 },
   { id: "encuestas", title: "📋 Encuestas", icon: FileText, url: createPageUrl("Surveys"), gradient: "from-purple-600 to-purple-700", priority: 17 },
   { id: "socio", title: "🎫 Hacerse Socio", icon: Heart, url: createPageUrl("ClubMembership"), gradient: "from-pink-600 to-pink-700", priority: 18 },
   { id: "notificaciones", title: "⚙️ Preferencias Notif.", icon: Settings, url: createPageUrl("NotificationPreferences"), gradient: "from-slate-600 to-slate-700", priority: 19 },
@@ -38,6 +39,7 @@ export const DEFAULT_PARENT_BUTTONS = [
   "clasificaciones",
   "documentos",
   "galeria",
+  "subir_contenido",
   "encuestas"
 ];
 

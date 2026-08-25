@@ -296,6 +296,7 @@ export function buildParentNavigation(ctx) {
     ...(!onlyComplementary ? [{ title: "🛍️ Tienda y Equipación", url: createPageUrl("Tienda"), icon: ShoppingBag }] : []),
     { title: "🍀 Lotería Navidad", url: "/loteria", icon: Clover },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+    { title: "📸 Enviar fotos y vídeos", url: createPageUrl("SubirContenido"), icon: Camera },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🎫 Hacerse Socio", url: createPageUrl("ClubMembership"), icon: Users },
     { title: "💬 Mi Feedback", url: createPageUrl("MyFeedback"), icon: MessageCircle },
