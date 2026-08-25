@@ -80,6 +80,7 @@ import ConsentimientosComerciales from '@/pages/ConsentimientosComerciales';
 import DirectorioContactos from '@/pages/DirectorioContactos';
 import CentroContenido from '@/pages/CentroContenido';
 import SubirContenido from '@/pages/SubirContenido';
+import InstalarApp from '@/pages/InstalarApp';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -94,7 +95,7 @@ const AppRouter = () => {
   
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').replace(/^\/+/, '/').toLowerCase();
-  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/propuestagvcgaesco', '/privacidad', '/colabora', '/altasocio', '/loteria'];
+  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/propuestagvcgaesco', '/privacidad', '/colabora', '/altasocio', '/loteria', '/instalarapp'];
   // Constructor de páginas: cualquier URL que empiece por /l/ es pública
   const isLandingPath = cleanPath.startsWith('/l/');
   // Página pública propia de torneo: cualquier URL que empiece por /torneo/
@@ -154,6 +155,8 @@ const AppRouter = () => {
         <Route path="/altasocio" element={<AltaSocio />} />
         <Route path="/Loteria" element={<LoteriaNavidad />} />
         <Route path="/loteria" element={<LoteriaNavidad />} />
+        <Route path="/InstalarApp" element={<InstalarApp />} />
+        <Route path="/instalarapp" element={<InstalarApp />} />
       </Routes>
     );
   }

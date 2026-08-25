@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ExternalLink, Copy, Check, Globe, Users, CreditCard, Trophy, Megaphone, QrCode, Target, Handshake, Sparkles, ArrowRight, MessageCircle } from "lucide-react";
+import { ExternalLink, Copy, Check, Globe, Users, CreditCard, Trophy, Megaphone, QrCode, Target, Handshake, Sparkles, ArrowRight, MessageCircle, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import PropuestaGenerator from "@/components/external-links/PropuestaGenerator";
@@ -36,6 +36,14 @@ const EXTERNAL_PAGES = [
     path: "/SolicitarAcceso",
     icon: Globe,
     color: "bg-orange-500",
+  },
+  {
+    id: "instalar-app",
+    nombre: "Cómo instalar la app",
+    descripcion: "Página pública con los pasos para instalar la app en iPhone y Android. Ideal para compartir por WhatsApp con las familias.",
+    path: "/InstalarApp",
+    icon: Smartphone,
+    color: "bg-cyan-500",
   },
   {
     id: "sponsors",
