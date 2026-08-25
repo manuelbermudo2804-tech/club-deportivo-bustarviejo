@@ -22,6 +22,7 @@ import MinorBirthdayBanner from "@/components/minor/MinorBirthdayBanner";
 import MinorCommitmentLevel from "@/components/minor/MinorCommitmentLevel";
 import MinorChallenges from "@/components/minor/MinorChallenges";
 import MinorFifaCard from "@/components/minor/MinorFifaCard";
+import MinorPanelTabs from "@/components/minor/MinorPanelTabs";
 import MinorCoachPanel from "@/components/minor/MinorCoachPanel";
 import MainSponsorBanner from "@/components/sponsors/MainSponsorBanner";
 
@@ -283,6 +284,7 @@ function NextCallupBanner({ callup }) {
 
 export default function MinorDashboard() {
   const [user, setUser] = useState(null);
+  const [panel, setPanel] = useState("jugador");
 
   useEffect(() => {
     base44.auth.me().then(setUser);
@@ -393,6 +395,10 @@ export default function MinorDashboard() {
 
   const nextCallup = callups[0] || null;
 
+  const practicas = linkedPlayer?.entrenador_practicas;
+  const esPracticas = practicas?.activo === true && !!practicas?.categoria;
+  const mostrarJugador = !esPracticas || panel === "jugador";
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -417,6 +423,11 @@ export default function MinorDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
       <div className="max-w-lg mx-auto p-4 space-y-3 pb-24">
+        {/* ─── PESTAÑAS: Jugador / Entrenador en prácticas ─── */}
+        {esPracticas && <MinorPanelTabs value={panel} onChange={setPanel} />}
+
+        {mostrarJugador && (
+        <>
         {/* ─── HERO (Carta FIFA) ─── */}
         <MinorFifaCard
           player={linkedPlayer}
@@ -503,9 +514,11 @@ export default function MinorDashboard() {
             <MinorAttendanceCard attendances={attendances} playerId={linkedPlayer.id} />
           </>
         )}
+        </>
+        )}
 
-        {/* ─── MODO ENTRENADOR EN PRÁCTICAS (separado de su rol de jugador) ─── */}
-        {linkedPlayer && <MinorCoachPanel player={linkedPlayer} />}
+        {/* ─── PANEL ENTRENADOR EN PRÁCTICAS ─── */}
+        {esPracticas && panel === "entrenador" && <MinorCoachPanel player={linkedPlayer} />}
 
         {/* ─── MOTIVACIÓN ─── */}
         <MinorMotivationalQuote />
