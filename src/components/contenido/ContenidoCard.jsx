@@ -1,7 +1,8 @@
 import React from "react";
 import moment from "moment";
 import { Button } from "@/components/ui/button";
-import { Download, Check, X, Send } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Download, Check, X, Send, Megaphone } from "lucide-react";
 
 export default function ContenidoCard({ item, onEstado }) {
   return (
@@ -38,6 +39,13 @@ export default function ContenidoCard({ item, onEstado }) {
             <Button size="sm" variant="outline" onClick={() => onEstado(item, "descartado")}>
               <X className="w-4 h-4 mr-1" /> Descartar
             </Button>
+          )}
+          {item.tipo !== "video" && (
+            <Link to={`/SocialHub?imagen=${encodeURIComponent(item.archivo_url)}&desc=${encodeURIComponent(`${item.equipo}${item.descripcion ? ` — ${item.descripcion}` : ''}`)}`}>
+              <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+                <Megaphone className="w-4 h-4 mr-1" /> Usar en publicación
+              </Button>
+            </Link>
           )}
           <a href={item.archivo_url} target="_blank" rel="noopener noreferrer">
             <Button size="sm" variant="outline">

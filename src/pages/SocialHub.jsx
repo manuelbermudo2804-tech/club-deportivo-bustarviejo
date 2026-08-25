@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -169,6 +169,22 @@ export default function SocialHub() {
     }
     setPublishing(false);
   };
+
+  // Llegada desde el Centro de Contenido con una foto ya elegida
+  const initFromUrl = useRef(false);
+  useEffect(() => {
+    if (initFromUrl.current) return;
+    const params = new URLSearchParams(window.location.search);
+    const imagen = params.get("imagen");
+    if (!imagen) return;
+    initFromUrl.current = true;
+    const desc = params.get("desc") || "";
+    setSelectedType("galeria");
+    setImageUrl(imagen);
+    setDatos(desc);
+    setView("editor");
+    generateText(desc, "galeria");
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
