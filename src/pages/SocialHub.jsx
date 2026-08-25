@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  Loader2, Copy, Check, ArrowLeft, RefreshCw,
-  Clock, Send, Sparkles, Image as ImageIcon,
+  Loader2, ArrowLeft, RefreshCw,
+  Clock, Send, Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import moment from "moment";
@@ -11,6 +11,10 @@ import "moment/locale/es";
 
 import SocialOpportunitiesBanner from "@/components/social/SocialOpportunitiesBanner";
 import ContentTypeGrid from "@/components/social/ContentTypeGrid";
+import ContentTypeSearch from "@/components/social/ContentTypeSearch";
+import CanalSelector from "@/components/social/CanalSelector";
+import { publicarEnCanales } from "@/components/social/publicarEnCanales";
+import { getCanalById } from "@/components/social/canales";
 import ToneSelector from "@/components/social/ToneSelector";
 import MessagePreview from "@/components/social/MessagePreview";
 import ImageGenerator from "@/components/social/ImageGenerator";
@@ -62,7 +66,8 @@ export default function SocialHub() {
   const [imageUrl, setImageUrl] = useState(null);
 
   const [publishing, setPublishing] = useState(false);
-  const [copied, setCopied] = useState(false);
+  const [search, setSearch] = useState("");
+  const [canales, setCanales] = useState(["telegram"]);
 
   const { data: history = [] } = useQuery({
     queryKey: ["socialPosts"],
@@ -128,59 +133,41 @@ export default function SocialHub() {
 
   const publishNow = async () => {
     if (!text.trim()) { toast.error("No hay texto para publicar"); return; }
+    if (!canales.length) { toast.error("Elige al menos un canal"); return; }
     setPublishing(true);
     try {
       const user = await base44.auth.me();
       const titulo = typeConfig?.title || selectedType;
-      const htmlMessage = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-      const { data } = await base44.functions.invoke("publishToTelegramAdvanced", {
-        message: htmlMessage,
-        image_url: imageUrl,
-        parse_mode: "HTML",
+      const { resultados, telegramMessageId } = await publicarEnCanales({
+        canales, texto: text, imageUrl, titulo,
       });
-      if (data?.success) {
-        toast.success("✈️ ¡Publicado en Telegram!");
+
+      const ok = resultados.filter(r => r.ok).map(r => getCanalById(r.canal)?.label);
+      const fallos = resultados.filter(r => !r.ok);
+      if (ok.length) toast.success(`Publicado en: ${ok.join(', ')}`);
+      fallos.forEach(f => toast.error(`${getCanalById(f.canal)?.label}: ${f.error}`));
+
+      if (ok.length) {
         await base44.entities.SocialPost.create({
           tipo: selectedType, titulo,
           contenido_whatsapp: text, tono,
           imagen_url: imageUrl,
-          enviado_telegram: true,
-          telegram_message_id: String(data.message_id || ''),
+          enviado_telegram: canales.includes('telegram') && !!telegramMessageId,
+          telegram_message_id: telegramMessageId || '',
+          enviado_whatsapp: canales.includes('whatsapp'),
           datos_origen: datos.substring(0, 2000),
           creado_por: user.email,
         });
         queryClient.invalidateQueries({ queryKey: ["socialPosts"] });
-        goBackToMenu();
-      } else {
-        toast.error(data?.error || "Error al publicar");
+        if (canales.includes('whatsapp')) {
+          setTimeout(() => { window.open("https://wa.me/", "_blank"); }, 600);
+        }
+        if (!fallos.length) goBackToMenu();
       }
     } catch (e) {
       toast.error("Error: " + (e?.message || ""));
     }
     setPublishing(false);
-  };
-
-  const copyForWhatsApp = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 3000);
-      toast.success("¡Copiado! Pégalo en tu Canal de WhatsApp");
-      const user = await base44.auth.me();
-      await base44.entities.SocialPost.create({
-        tipo: selectedType,
-        titulo: typeConfig?.title || selectedType,
-        contenido_whatsapp: text, tono,
-        imagen_url: imageUrl,
-        enviado_whatsapp: true,
-        datos_origen: datos.substring(0, 2000),
-        creado_por: user.email,
-      });
-      queryClient.invalidateQueries({ queryKey: ["socialPosts"] });
-      setTimeout(() => { window.open("https://wa.me/", "_blank"); }, 500);
-    } catch {
-      toast.error("Error al copiar");
-    }
   };
 
   return (
@@ -202,7 +189,7 @@ export default function SocialHub() {
             Centro de Difusión Social
           </h1>
           <p className="text-slate-400 text-sm mt-1.5">
-            <span className="text-orange-400 font-semibold">IA</span> + Telegram + WhatsApp
+            <span className="text-orange-400 font-semibold">IA</span> · Telegram · App · WhatsApp · Redes
           </p>
 
           {history.length > 0 && (
@@ -219,7 +206,8 @@ export default function SocialHub() {
           <div className="space-y-5">
             <SocialOpportunitiesBanner onSelect={selectOpportunity} />
             <p className="text-slate-300 text-sm font-medium text-center">¿Qué quieres publicar?</p>
-            <ContentTypeGrid onSelect={selectType} />
+            <ContentTypeSearch value={search} onChange={setSearch} />
+            <ContentTypeGrid onSelect={selectType} search={search} />
 
             {history.length > 0 && (
               <div className="bg-slate-800/60 rounded-2xl p-4 space-y-2">
@@ -308,29 +296,18 @@ export default function SocialHub() {
 
                     <ImageGenerator value={imageUrl} onChange={setImageUrl} />
 
+                    <CanalSelector value={canales} onChange={setCanales} />
+
                     <button
                       onClick={publishNow}
-                      disabled={publishing}
+                      disabled={publishing || !canales.length}
                       className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 disabled:opacity-60 text-white font-black text-lg py-5 rounded-2xl shadow-2xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
                     >
                       {publishing ? (
                         <><Loader2 className="w-6 h-6 animate-spin" /> Publicando...</>
                       ) : (
-                        <><Send className="w-6 h-6" /> ✈️ Publicar AHORA en Telegram</>
+                        <><Send className="w-6 h-6" /> Publicar en {canales.length} canal{canales.length === 1 ? '' : 'es'}</>
                       )}
-                    </button>
-
-                    <div className="flex items-center gap-2 py-1">
-                      <div className="flex-1 h-px bg-slate-700" />
-                      <span className="text-slate-500 text-xs">O TAMBIÉN</span>
-                      <div className="flex-1 h-px bg-slate-700" />
-                    </div>
-
-                    <button
-                      onClick={copyForWhatsApp}
-                      className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-bold text-base py-3.5 rounded-2xl shadow-lg transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-2"
-                    >
-                      {copied ? <><Check className="w-5 h-5" /> ¡Copiado! Abriendo WhatsApp...</> : <><Copy className="w-5 h-5" /> 📋 Copiar para WhatsApp</>}
                     </button>
                   </div>
                 )}
