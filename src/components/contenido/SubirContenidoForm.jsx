@@ -23,6 +23,7 @@ export default function SubirContenidoForm({ user, onDone }) {
     setAviso(null);
     if (!equipo) return setAviso({ tipo: "error", texto: "Elige primero el equipo (paso 1)" });
     if (!archivos.length) return setAviso({ tipo: "error", texto: "Elige al menos una foto o vídeo (paso 2)" });
+    if (!descripcion.trim()) return setAviso({ tipo: "error", texto: "Cuéntanos qué se ve en la foto o vídeo (paso 3)" });
 
     setSubiendo(true);
     let subidas = 0;
@@ -61,9 +62,13 @@ export default function SubirContenidoForm({ user, onDone }) {
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-5">
+      <p className="text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
+        Los tres pasos son obligatorios: <strong>de qué equipo es</strong>, <strong>las fotos o el vídeo</strong> y <strong>qué se ve</strong>.
+      </p>
+
       {/* Paso 1 */}
       <div>
-        <p className="font-bold text-slate-800 mb-2">1. ¿De qué equipo es?</p>
+        <p className="font-bold text-slate-800 mb-2">1. ¿De qué equipo es? <span className="text-red-600">*</span></p>
         <Select value={equipo} onValueChange={setEquipo}>
           <SelectTrigger className="h-12 text-base">
             <SelectValue placeholder="Elige el equipo" />
@@ -78,7 +83,7 @@ export default function SubirContenidoForm({ user, onDone }) {
 
       {/* Paso 2 */}
       <div>
-        <p className="font-bold text-slate-800 mb-2">2. Elige las fotos o el vídeo</p>
+        <p className="font-bold text-slate-800 mb-2">2. Elige las fotos o el vídeo <span className="text-red-600">*</span></p>
         <input
           ref={inputRef}
           type="file"
@@ -114,7 +119,7 @@ export default function SubirContenidoForm({ user, onDone }) {
 
       {/* Paso 3 */}
       <div>
-        <p className="font-bold text-slate-800 mb-2">3. ¿Qué se ve? <span className="font-normal text-slate-400 text-sm">(opcional)</span></p>
+        <p className="font-bold text-slate-800 mb-2">3. ¿Qué se ve? <span className="text-red-600">*</span></p>
         <Textarea
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
