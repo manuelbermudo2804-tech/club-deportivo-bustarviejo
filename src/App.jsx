@@ -78,6 +78,8 @@ import PedidosEquipacion from '@/pages/PedidosEquipacion';
 import ExportarSheets from '@/pages/ExportarSheets';
 import ConsentimientosComerciales from '@/pages/ConsentimientosComerciales';
 import DirectorioContactos from '@/pages/DirectorioContactos';
+import CentroContenido from '@/pages/CentroContenido';
+import SubirContenido from '@/pages/SubirContenido';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -258,6 +260,8 @@ const AuthenticatedApp = () => {
       <Route path="/ExportarSheets" element={<LayoutWrapper currentPageName="ExportarSheets"><ExportarSheets /></LayoutWrapper>} />
       <Route path="/ConsentimientosComerciales" element={<LayoutWrapper currentPageName="ConsentimientosComerciales"><ConsentimientosComerciales /></LayoutWrapper>} />
       <Route path="/DirectorioContactos" element={<LayoutWrapper currentPageName="DirectorioContactos"><DirectorioContactos /></LayoutWrapper>} />
+      <Route path="/CentroContenido" element={<LayoutWrapper currentPageName="CentroContenido"><CentroContenido /></LayoutWrapper>} />
+      <Route path="/SubirContenido" element={<LayoutWrapper currentPageName="SubirContenido"><SubirContenido /></LayoutWrapper>} />
 
       <Route path="/ShareReceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
       <Route path="/sharereceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />

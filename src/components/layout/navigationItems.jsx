@@ -5,7 +5,7 @@ import {
   FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert,
   ClipboardCheck, Star, Trophy, KeyRound, RotateCw, CheckCircle2,
   User as UserIcon, Share2, ExternalLink, Shirt, Camera, HeartPulse, Landmark, MapPin, Brain,
-  CloudSun
+  CloudSun, Inbox
 } from "lucide-react";
 
 /**
@@ -87,6 +87,8 @@ export function buildAdminNavigation(ctx) {
     { title: "📋 Contactos Web", url: createPageUrl("WebContacts"), icon: Users },
 
     { title: "─ CONTENIDO ─", section: true },
+    { title: "📥 Centro de Contenido", url: createPageUrl("CentroContenido"), icon: Inbox },
+    { title: "📸 Enviar fotos y vídeos", url: createPageUrl("SubirContenido"), icon: Camera },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
     ...(hasPlayers ? [
@@ -163,6 +165,7 @@ export function buildCoachNavigation(ctx) {
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+    { title: "📸 Enviar fotos y vídeos", url: createPageUrl("SubirContenido"), icon: Camera },
 
     { title: "🕐 Horarios y Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Clock },
     { title: "🌦️ Meteo Club", url: createPageUrl("MeteoClub"), icon: CloudSun },
@@ -240,6 +243,7 @@ export function buildCoordinatorNavigation(ctx) {
     { title: "🎉 Eventos Club", url: createPageUrl("ParentEventRSVP"), icon: Calendar },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
+    { title: "📸 Enviar fotos y vídeos", url: createPageUrl("SubirContenido"), icon: Camera },
 
     ...(hasPlayers ? [
       { title: "─ MIS HIJOS ─", section: true },

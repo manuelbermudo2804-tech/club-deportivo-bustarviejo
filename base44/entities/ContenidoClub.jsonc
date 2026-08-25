@@ -1,0 +1,110 @@
+{
+  "name": "ContenidoClub",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "foto",
+        "video"
+      ],
+      "default": "foto",
+      "description": "Si es una foto o un v\u00eddeo"
+    },
+    "archivo_url": {
+      "type": "string",
+      "description": "URL del archivo subido"
+    },
+    "descripcion": {
+      "type": "string",
+      "description": "Qu\u00e9 se ve en la foto o v\u00eddeo, en una frase"
+    },
+    "equipo": {
+      "type": "string",
+      "description": "Equipo o categor\u00eda a la que pertenece"
+    },
+    "autor_nombre": {
+      "type": "string",
+      "description": "Nombre de quien lo sube"
+    },
+    "autor_email": {
+      "type": "string",
+      "description": "Email de quien lo sube"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "guardado",
+        "publicado",
+        "descartado"
+      ],
+      "default": "pendiente",
+      "description": "pendiente = sin revisar; guardado = vale para publicar; publicado = ya sali\u00f3; descartado = no se usa"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada a la que corresponde (ej: 2026/2027)"
+    },
+    "notas_admin": {
+      "type": "string",
+      "description": "Notas internas de quien gestiona las redes"
+    }
+  },
+  "required": [
+    "tipo",
+    "archivo_url",
+    "equipo"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "estado"
+      ]
+    },
+    {
+      "fields": [
+        "equipo"
+      ]
+    }
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_coordinador": true
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_coordinador": true
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
