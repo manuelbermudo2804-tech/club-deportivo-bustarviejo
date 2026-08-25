@@ -1,6 +1,7 @@
 import React from 'react';
 import { format, isToday, isYesterday } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { parseChatDate } from '@/lib/chatDate';
 
 /**
  * Separador de día tipo WhatsApp
@@ -8,13 +9,14 @@ import { es } from 'date-fns/locale';
  */
 export default function DateSeparator({ date }) {
   let label;
-  
-  if (isToday(new Date(date))) {
+  const d = parseChatDate(date);
+
+  if (isToday(d)) {
     label = 'HOY';
-  } else if (isYesterday(new Date(date))) {
+  } else if (isYesterday(d)) {
     label = 'AYER';
   } else {
-    label = format(new Date(date), 'd MMM yyyy', { locale: es }).toUpperCase();
+    label = format(d, 'd MMM yyyy', { locale: es }).toUpperCase();
   }
   
   return (

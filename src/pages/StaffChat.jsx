@@ -12,6 +12,7 @@ import { Send, X, FileText, Download, MessageCircle, Users, Search, Folder, Chec
 import { useNavigate } from "react-router-dom";
 import { format, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
+import { parseChatDate } from "@/lib/chatDate";
 import { toast } from "sonner";
 import ChatInputActions from "../components/chat/ChatInputActions";
 import ChatMessageActions from "../components/chat/ChatMessageActions";
@@ -834,7 +835,7 @@ export default function StaffChat() {
               filteredMessages.map((msg, idx, arr) => {
                 const isMine = msg.autor_email === user.email;
                 const prevMsg = idx > 0 ? arr[idx - 1] : null;
-                const showDateSeparator = !prevMsg || !isSameDay(new Date(prevMsg.created_date), new Date(msg.created_date));
+                const showDateSeparator = !prevMsg || !isSameDay(parseChatDate(prevMsg.created_date), parseChatDate(msg.created_date));
                 
                 return (
                   <React.Fragment key={msg.id}>
@@ -947,7 +948,7 @@ export default function StaffChat() {
 
                         <div className="flex items-center gap-1 justify-end mt-1">
                           <p style={{fontSize: '11px', opacity: 0.6}}>
-                            {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                            {format(parseChatDate(msg.created_date), "HH:mm", { locale: es })}
                           </p>
                           
                           {/* Doble check visual - solo en mensajes propios */}
