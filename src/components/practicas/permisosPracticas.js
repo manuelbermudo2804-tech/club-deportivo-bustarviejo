@@ -29,10 +29,33 @@ export const PERMISOS_PRACTICAS = [
     dependeDe: "ver_convocatorias",
   },
   {
+    key: "crear_convocatorias",
+    titulo: "Acceso completo a convocatorias",
+    descripcion: "Además de verlas, puede crear convocatorias del equipo. Si está apagado, solo lectura.",
+    emoji: "✍️",
+    dependeDe: "ver_convocatorias",
+    avanzado: true,
+  },
+  {
     key: "asistencia",
     titulo: "Control de asistencia",
     descripcion: "Pasar lista del equipo que entrena: presente, tarde o ausente.",
     emoji: "✅",
+    avanzado: true,
+  },
+  {
+    key: "evaluaciones",
+    titulo: "Valoraciones del entrenamiento",
+    descripcion: "Al pasar lista, puntuar la actitud (1-5) y dejar una nota corta de cada jugador.",
+    emoji: "⭐",
+    dependeDe: "asistencia",
+    avanzado: true,
+  },
+  {
+    key: "chat_staff",
+    titulo: "Chat del cuerpo técnico",
+    descripcion: "Participar en el chat interno del staff junto a los entrenadores adultos.",
+    emoji: "💬",
     avanzado: true,
   },
   {

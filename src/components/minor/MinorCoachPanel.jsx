@@ -6,8 +6,9 @@ import { ShieldAlert } from "lucide-react";
 import { AVISO_PRACTICAS } from "@/components/practicas/permisosPracticas";
 
 const TOOLS = [
-  { key: "ver_convocatorias", emoji: "📋", titulo: "Convocatorias", subtitulo: "Equipo · solo lectura", href: "/MinorCoachCallups", color: "from-green-600 to-emerald-700" },
+  { key: "ver_convocatorias", emoji: "📋", titulo: "Convocatorias", subtitulo: "Equipo", href: "/MinorCoachCallups", color: "from-green-600 to-emerald-700" },
   { key: "asistencia", emoji: "✅", titulo: "Pasar lista", subtitulo: "Asistencia del equipo", href: "/MinorCoachAttendance", color: "from-teal-600 to-emerald-700" },
+  { key: "chat_staff", emoji: "💬", titulo: "Chat staff", subtitulo: "Cuerpo técnico", href: createPageUrl("StaffChat"), color: "from-indigo-600 to-purple-700" },
   { key: "ejercicios", emoji: "📚", titulo: "Ejercicios", subtitulo: "Biblioteca", href: createPageUrl("ExerciseLibrary"), color: "from-orange-500 to-amber-600" },
   { key: "pizarra", emoji: "🎯", titulo: "Pizarra", subtitulo: "Táctica", href: createPageUrl("TacticsBoard"), color: "from-purple-600 to-violet-700" },
 ];
@@ -49,7 +50,11 @@ export default function MinorCoachPanel({ player }) {
                     </div>
                     <div className="min-w-0">
                       <h3 className="font-bold text-white text-sm truncate leading-tight">{t.titulo}</h3>
-                      <p className="text-white/60 text-[10px] truncate">{t.subtitulo}</p>
+                      <p className="text-white/60 text-[10px] truncate">
+                        {t.key === "ver_convocatorias"
+                          ? (p.crear_convocatorias ? "Ver y crear" : "Solo lectura")
+                          : t.subtitulo}
+                      </p>
                     </div>
                   </div>
                 </CardContent>

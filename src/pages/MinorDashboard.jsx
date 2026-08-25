@@ -23,6 +23,7 @@ import MinorCommitmentLevel from "@/components/minor/MinorCommitmentLevel";
 import MinorChallenges from "@/components/minor/MinorChallenges";
 import MinorFifaCard from "@/components/minor/MinorFifaCard";
 import MinorPanelTabs from "@/components/minor/MinorPanelTabs";
+import useMinorPanel from "@/hooks/useMinorPanel";
 import MinorCoachPanel from "@/components/minor/MinorCoachPanel";
 import MainSponsorBanner from "@/components/sponsors/MainSponsorBanner";
 
@@ -284,7 +285,7 @@ function NextCallupBanner({ callup }) {
 
 export default function MinorDashboard() {
   const [user, setUser] = useState(null);
-  const [panel, setPanel] = useState("jugador");
+  const [panel, setPanel] = useMinorPanel();
 
   useEffect(() => {
     base44.auth.me().then(setUser);

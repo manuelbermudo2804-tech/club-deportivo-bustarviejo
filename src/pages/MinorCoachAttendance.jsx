@@ -4,19 +4,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, XCircle, Clock, Save, ShieldAlert } from "lucide-react";
+import { Save, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { AVISO_PRACTICAS } from "@/components/practicas/permisosPracticas";
-
-const ESTADOS = [
-  { key: "presente", icon: CheckCircle2, label: "Presente", on: "bg-green-100 text-green-700" },
-  { key: "tardanza", icon: Clock, label: "Tarde", on: "bg-orange-100 text-orange-700" },
-  { key: "ausente", icon: XCircle, label: "Ausente", on: "bg-red-100 text-red-700" },
-];
+import MinorAttendanceRow, { ESTADOS } from "@/components/minor/MinorAttendanceRow";
 
 export default function MinorCoachAttendance() {
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
   const [estados, setEstados] = useState({});
+  const [valoraciones, setValoraciones] = useState({});
   const [sinGuardar, setSinGuardar] = useState(false);
   const queryClient = useQueryClient();
 
@@ -31,14 +27,19 @@ export default function MinorCoachAttendance() {
 
   useEffect(() => {
     const map = {};
-    (data?.sesion?.asistencias || []).forEach((a) => { map[a.jugador_id] = a.estado; });
+    const vals = {};
+    (data?.sesion?.asistencias || []).forEach((a) => {
+      map[a.jugador_id] = a.estado;
+      vals[a.jugador_id] = { actitud: a.actitud, observaciones: a.observaciones };
+    });
     setEstados(map);
+    setValoraciones(vals);
     setSinGuardar(false);
   }, [data]);
 
   const guardar = useMutation({
     mutationFn: async () => {
-      const res = await base44.functions.invoke("minorCoachTeam", { action: "saveAttendance", fecha, estados });
+      const res = await base44.functions.invoke("minorCoachTeam", { action: "saveAttendance", fecha, estados, valoraciones });
       return res.data;
     },
     onSuccess: () => {
@@ -101,32 +102,15 @@ export default function MinorCoachAttendance() {
         <Card className="border-none shadow-lg">
           <CardContent className="p-3 space-y-2">
             {roster.map((p) => (
-              <div key={p.id} className="flex items-center justify-between gap-2 bg-slate-50 rounded-xl p-2.5">
-                <div className="flex items-center gap-2 min-w-0">
-                  {p.foto_url ? (
-                    <img src={p.foto_url} alt="" className="w-8 h-8 rounded-full object-cover" />
-                  ) : (
-                    <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-xs">⚽</div>
-                  )}
-                  <span className="text-sm font-medium text-slate-800 truncate">{p.nombre}</span>
-                </div>
-                <div className="flex gap-1 flex-shrink-0">
-                  {ESTADOS.map((e) => {
-                    const Icon = e.icon;
-                    const sel = estados[p.id] === e.key;
-                    return (
-                      <button
-                        key={e.key}
-                        title={e.label}
-                        onClick={() => { setEstados((prev) => ({ ...prev, [p.id]: e.key })); setSinGuardar(true); }}
-                        className={`p-2 rounded-lg ${sel ? e.on : "bg-white text-slate-400"}`}
-                      >
-                        <Icon className="w-4 h-4" />
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+              <MinorAttendanceRow
+                key={p.id}
+                player={p}
+                estado={estados[p.id]}
+                valoracion={valoraciones[p.id] || {}}
+                puedeValorar={data?.puedeValorar === true}
+                onEstado={(k) => { setEstados((prev) => ({ ...prev, [p.id]: k })); setSinGuardar(true); }}
+                onValoracion={(v) => { setValoraciones((prev) => ({ ...prev, [p.id]: v })); setSinGuardar(true); }}
+              />
             ))}
           </CardContent>
         </Card>

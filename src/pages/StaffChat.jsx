@@ -85,7 +85,16 @@ export default function StaffChat() {
       const currentUser = await base44.auth.me();
       setUser(currentUser);
       
-      const staff = currentUser.es_coordinador || currentUser.es_entrenador || currentUser.role === "admin";
+      let staff = currentUser.es_coordinador || currentUser.es_entrenador || currentUser.role === "admin";
+
+      // Entrenador en prácticas (menor) con permiso de chat del cuerpo técnico
+      if (!staff) {
+        try {
+          const linked = await base44.entities.Player.filter({ acceso_menor_email: currentUser.email, activo: true });
+          const perm = linked?.[0]?.entrenador_practicas;
+          if (perm?.activo === true && perm?.chat_staff === true) staff = true;
+        } catch {}
+      }
       setIsStaff(staff);
 
       if (!staff) return;

@@ -1,8 +1,9 @@
 import React, { useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home, Bell, CreditCard, MessageCircle, Users, Dumbbell, Clock } from 'lucide-react';
+import { Home, Bell, CreditCard, MessageCircle, Users, Dumbbell, Clock, ClipboardCheck } from 'lucide-react';
 import useMeteoAlerta from '@/hooks/useMeteoAlerta';
+import useMinorPanel from '@/hooks/useMinorPanel';
 
 // Persist last visited path + scroll per tab across renders
 const tabState = {};
@@ -10,6 +11,7 @@ const tabState = {};
 export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, isMinor, currentPageName }) {
   const navigate = useNavigate();
   const currentTabRef = useRef(null);
+  const [minorPanel] = useMinorPanel();
 
   const chatPages = ['ParentCoachChat', 'CoachParentChat', 'ParentCoordinatorChat', 'CoordinatorChat', 'AdminCoordinatorChats', 'StaffChat', 'ParentSystemMessages', 'FamilyChatsHub', 'CoachChatsHub', 'CoordinatorChatsHub', 'AdminChatsHub'];
   const isInChat = chatPages.includes(currentPageName);
@@ -30,7 +32,14 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
   };
 
   let tabs = [];
-  if (isMinor) {
+  if (isMinor && minorPanel === 'entrenador') {
+    tabs = [
+      { icon: Home, label: 'Inicio', url: createPageUrl('MinorDashboard'), key: 'home' },
+      { icon: Bell, label: 'Convocatorias', url: '/MinorCoachCallups', key: 'coachCallups' },
+      { icon: ClipboardCheck, label: 'Pasar lista', url: '/MinorCoachAttendance', key: 'coachAttendance' },
+      { icon: MessageCircle, label: 'Chat staff', url: createPageUrl('StaffChat'), key: 'staffChat', badge: chatBadges?.staffCount || 0 },
+    ];
+  } else if (isMinor) {
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('MinorDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('ParentCallups'), key: 'callups' },

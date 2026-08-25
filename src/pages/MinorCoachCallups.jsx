@@ -3,11 +3,14 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ClipboardList, MapPin, Clock, ShieldAlert } from "lucide-react";
 import { AVISO_PRACTICAS } from "@/components/practicas/permisosPracticas";
+import MinorCoachCallupForm from "@/components/minor/MinorCoachCallupForm";
 
 export default function MinorCoachCallups() {
   const [user, setUser] = useState(null);
+  const [mostrarForm, setMostrarForm] = useState(false);
   useEffect(() => { base44.auth.me().then(setUser); }, []);
 
   const { data: player } = useQuery({
@@ -23,13 +26,14 @@ export default function MinorCoachCallups() {
   const categoria = permisos.categoria;
   const puedeVer = permisos.activo === true && permisos.ver_convocatorias === true && !!categoria;
   const verNombres = permisos.ver_nombres_convocatoria === true;
+  const puedeCrear = permisos.crear_convocatorias === true;
 
   const { data: callups = [], isLoading } = useQuery({
     queryKey: ["practicasCallups", categoria],
     queryFn: async () => {
       const today = new Date().toISOString().split("T")[0];
       const all = await base44.entities.Convocatoria.filter({ categoria }, "-fecha_partido", 30);
-      return all.filter((c) => c.publicada && c.fecha_partido >= today).reverse();
+      return all.filter((c) => (c.publicada || puedeCrear) && c.fecha_partido >= today).reverse();
     },
     enabled: puedeVer && !!categoria,
   });
@@ -59,8 +63,21 @@ export default function MinorCoachCallups() {
         <h1 className="text-xl font-black text-slate-900">Convocatorias del equipo</h1>
       </div>
       <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3">
-        👀 Solo lectura · {AVISO_PRACTICAS}
+        {puedeCrear ? "✍️ Puedes crear convocatorias (las publica un entrenador adulto)" : "👀 Solo lectura"} · {AVISO_PRACTICAS}
       </p>
+
+      {puedeCrear && (
+        <>
+          <Button
+            variant="outline"
+            className="w-full h-11"
+            onClick={() => setMostrarForm((v) => !v)}
+          >
+            {mostrarForm ? "Cerrar formulario" : "➕ Crear convocatoria"}
+          </Button>
+          {mostrarForm && <MinorCoachCallupForm onCreated={() => setMostrarForm(false)} />}
+        </>
+      )}
 
       {isLoading && <p className="text-sm text-slate-400">Cargando convocatorias…</p>}
 
