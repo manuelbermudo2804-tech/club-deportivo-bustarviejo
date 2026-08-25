@@ -428,7 +428,6 @@ export default function MinorDashboard() {
         />
         {linkedPlayer && <MinorAgeTransitionBanner player={linkedPlayer} />}
         {linkedPlayer && <MinorBirthdayBanner player={linkedPlayer} />}
-        {linkedPlayer && <MinorCoachPanel player={linkedPlayer} />}
 
         {/* ─── PRÓXIMO PARTIDO / ENTRENAMIENTO ─── */}
         <SectionHeader icon={Zap} title="Lo próximo" color="text-orange-500" delay={0.15} />
@@ -504,6 +503,9 @@ export default function MinorDashboard() {
             <MinorAttendanceCard attendances={attendances} playerId={linkedPlayer.id} />
           </>
         )}
+
+        {/* ─── MODO ENTRENADOR EN PRÁCTICAS (separado de su rol de jugador) ─── */}
+        {linkedPlayer && <MinorCoachPanel player={linkedPlayer} />}
 
         {/* ─── MOTIVACIÓN ─── */}
         <MinorMotivationalQuote />
