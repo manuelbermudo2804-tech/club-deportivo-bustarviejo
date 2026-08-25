@@ -66,7 +66,6 @@ export function buildAdminNavigation(ctx) {
     { title: "🤝 Voluntariado y Comunidad", url: createPageUrl("Voluntariado"), icon: Users },
 
     { title: "─ COMUNICACIÓN ─", section: true },
-    { title: "📱 Centro Difusión Social", url: createPageUrl("SocialHub"), icon: Share2 },
     { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: chatMenuCounts.staffCount },
     { title: "💬 Chat Coordinador-Familias", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
     { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount },
@@ -88,6 +87,7 @@ export function buildAdminNavigation(ctx) {
 
     { title: "─ CONTENIDO ─", section: true },
     { title: "📥 Centro de Contenido", url: createPageUrl("CentroContenido"), icon: Inbox },
+    { title: "📱 Centro Difusión Social", url: createPageUrl("SocialHub"), icon: Share2 },
     { title: "📸 Enviar fotos y vídeos", url: createPageUrl("SubirContenido"), icon: Camera },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
 
