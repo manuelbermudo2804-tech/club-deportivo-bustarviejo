@@ -18,9 +18,19 @@ export default function useMinorPanel() {
   const [panel, setPanel] = useState(getMinorPanel);
 
   useEffect(() => {
-    const handler = (e) => setPanel(e.detail || getMinorPanel());
+    const handler = (e) => setPanel(e?.detail || getMinorPanel());
+    const resync = () => setPanel(getMinorPanel());
     window.addEventListener(EVENT, handler);
-    return () => window.removeEventListener(EVENT, handler);
+    // Al volver atrás o reabrir la app, recuperar la pestaña que tenía abierta
+    window.addEventListener("popstate", resync);
+    window.addEventListener("pageshow", resync);
+    window.addEventListener("storage", resync);
+    return () => {
+      window.removeEventListener(EVENT, handler);
+      window.removeEventListener("popstate", resync);
+      window.removeEventListener("pageshow", resync);
+      window.removeEventListener("storage", resync);
+    };
   }, []);
 
   return [panel, setMinorPanel];
