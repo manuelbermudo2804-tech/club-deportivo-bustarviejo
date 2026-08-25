@@ -9,6 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Trophy, ArrowLeft, Loader2, ShieldCheck, Heart, Mail } from "lucide-react";
 import { toast } from "sonner";
 import PorraMiniLigaInfo from "@/components/porra/PorraMiniLigaInfo";
+import ConsentimientoComercial from "@/components/consent/ConsentimientoComercial";
+import { guardarConsentimiento } from "@/lib/guardarConsentimiento";
 import usePublicPageTracker from "@/components/public/usePublicPageTracker";
 
 // Página pública para crear una porra: formulario + pago Stripe
@@ -26,6 +28,7 @@ export default function PorraCrear() {
     mini_liga_codigo: '',
     acepta_terminos: false,
   });
+  const [consent, setConsent] = useState({ acepta_promociones: false, acepta_patrocinadores: false });
   const [loading, setLoading] = useState(false);
   const [loadingConfig, setLoadingConfig] = useState(true);
 
@@ -89,6 +92,17 @@ export default function PorraCrear() {
           || window.navigator.standalone === true;
         if (fromApp || isStandalone) origen = 'app';
       } catch { /* fallback a 'web' */ }
+
+      // Registrar consentimiento comercial (si marcó algo) antes de ir al pago
+      try {
+        await guardarConsentimiento({
+          origen: 'porra',
+          nombre: form.nombre,
+          email: form.email,
+          telefono: form.telefono,
+          ...consent,
+        });
+      } catch { /* no bloquear la inscripción si falla el registro del permiso */ }
 
       const res = await base44.functions.invoke('porraCrearParticipante', {
         nombre: form.nombre,
@@ -283,6 +297,9 @@ export default function PorraCrear() {
                   </div>
                 </div>
               </div>
+
+              {/* Consentimiento comercial (opcional) */}
+              <ConsentimientoComercial value={consent} onChange={setConsent} />
 
               {/* Aceptación */}
               <div className="flex items-start gap-3 bg-slate-50 p-3 rounded-lg">

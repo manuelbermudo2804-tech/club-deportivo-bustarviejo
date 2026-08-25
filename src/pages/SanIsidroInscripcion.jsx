@@ -12,6 +12,8 @@ import PlazasBadge from "../components/sanisidro/PlazasBadge";
 import DuplicateWarning from "../components/sanisidro/DuplicateWarning";
 import { validateEmail, validatePhone, validatePersonName, validateTeamName, findDuplicatePlayers, findSimilarTeamName, normalizeName } from "../components/sanisidro/validators";
 import { getDeviceFingerprint, getUserAgentSummary } from "../components/sanisidro/deviceFingerprint";
+import ConsentimientoComercial from "../components/consent/ConsentimientoComercial";
+import { guardarConsentimiento } from "@/lib/guardarConsentimiento";
 
 const FECHA_INICIO = new Date("2027-04-19T00:00:00");
 const FECHA_FIN = new Date("2027-05-15T23:59:59");
@@ -72,6 +74,7 @@ export default function SanIsidroInscripcion() {
   const [saving, setSaving] = useState(false);
   const [volunteerOpen, setVolunteerOpen] = useState(false);
   const [counts, setCounts] = useState({});
+  const [consent, setConsent] = useState({ acepta_promociones: false, acepta_patrocinadores: false });
   const [form, setForm] = useState({
     nombre: "",
     telefono: "",
@@ -211,6 +214,15 @@ export default function SanIsidroInscripcion() {
       toast.error(res.data.error);
       return;
     }
+    try {
+      await guardarConsentimiento({
+        origen: 'san-isidro',
+        nombre: data.nombre_responsable,
+        email: form.email,
+        telefono: form.telefono,
+        ...consent,
+      });
+    } catch { /* no bloquear la inscripción si falla el registro del permiso */ }
     setStep("success");
   };
 
@@ -411,6 +423,9 @@ export default function SanIsidroInscripcion() {
                 </div>
               </div>
             )}
+
+            {/* Consentimiento comercial (opcional) */}
+            <ConsentimientoComercial value={consent} onChange={setConsent} />
 
             {/* Honeypot anti-bots — invisible para humanos */}
             <input
