@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { FileText, Download, Check, CheckCheck, AlertTriangle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { parseChatDate } from "@/lib/chatDate";
 import EmojiScaler from "./EmojiScaler";
 import ChatImageBubble from "./ChatImageBubble";
 import ChatAudioBubble from "./ChatAudioBubble";
@@ -96,7 +97,7 @@ export default function ChatMessageItem({ message, currentUserEmail, showSenderN
         
         <div className="flex items-center gap-1 justify-end mt-0.5">
           <p className="text-[11px] opacity-70">
-            {format(new Date(message.created_date), "HH:mm", { locale: es })}
+            {format(parseChatDate(message.created_date), "HH:mm", { locale: es })}
           </p>
           
           {/* Doble check visual - solo en mensajes propios */}

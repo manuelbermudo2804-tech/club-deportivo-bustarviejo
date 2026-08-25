@@ -8,6 +8,7 @@ import { X, FileText, Download, MessageCircle, Info, Check, CheckCheck, Folder, 
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { parseChatDate } from "@/lib/chatDate";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
@@ -620,7 +621,7 @@ export default function ParentCoordinatorChat() {
                       )}
                       <div className="flex items-center gap-1 justify-end mt-1">
                         <p className="text-[11px]" style={{color: '#667781'}}>
-                          {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                          {format(parseChatDate(msg.created_date), "HH:mm", { locale: es })}
                         </p>
                         {isPadre && <ReadTicks message={msg} senderEmail={user.email} read={msg.leido_coordinador} />}
                       </div>

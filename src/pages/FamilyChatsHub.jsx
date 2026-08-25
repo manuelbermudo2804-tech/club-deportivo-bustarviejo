@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { parseChatDate } from "@/lib/chatDate";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 
 export default function FamilyChatsHub() {
@@ -149,7 +150,7 @@ export default function FamilyChatsHub() {
               )}
               {lastMessageDate && (
                 <p className="text-xs text-slate-400 mt-1">
-                  {format(new Date(lastMessageDate), "dd MMM, HH:mm", { locale: es })}
+                  {format(parseChatDate(lastMessageDate), "dd MMM, HH:mm", { locale: es })}
                 </p>
               )}
             </div>

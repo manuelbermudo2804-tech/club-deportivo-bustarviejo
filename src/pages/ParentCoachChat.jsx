@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Users, Search, X, FileText, Download, Play, Pause, Smile, UserCircle } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { parseChatDate } from "@/lib/chatDate";
 import { toast } from "sonner";
 import PollMessage from "../components/chat/PollMessage";
 import LocationMessage from "../components/chat/LocationMessage";
@@ -487,9 +488,9 @@ export default function ParentCoachChat() {
           ) : (
             filteredMessages.map((msg, idx) => {
               const showDateSeparator = idx === 0 || 
-                new Date(filteredMessages[idx - 1].created_date).toDateString() !== 
-                new Date(msg.created_date).toDateString();
-              const dateLabel = new Date(msg.created_date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
+                parseChatDate(filteredMessages[idx - 1].created_date).toDateString() !== 
+                parseChatDate(msg.created_date).toDateString();
+              const dateLabel = parseChatDate(msg.created_date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
               const isMine = msg.remitente_email === user.email;
               const isCoach = msg.tipo === "entrenador_a_grupo";
 
@@ -535,7 +536,7 @@ export default function ParentCoachChat() {
                         })()}
                         {msg.reacciones?.length > 0 && <EmojiScaler reactions={msg.reacciones} />}
                         <div className="flex items-center gap-1 justify-end mt-1">
-                          <p style={{fontSize: '11px', opacity: 0.6}}>{format(new Date(msg.created_date), "HH:mm", { locale: es })}</p>
+                          <p style={{fontSize: '11px', opacity: 0.6}}>{format(parseChatDate(msg.created_date), "HH:mm", { locale: es })}</p>
                           {isMine && <ReadTicks message={msg} senderEmail={user.email} />}
                           <Button size="sm" variant="ghost" className={`opacity-50 hover:opacity-100 h-5 w-5 p-0 ${isMine ? 'text-white' : 'text-slate-600'}`} onClick={() => setShowReactions(msg.id)}>
                             <Smile className="w-3 h-3" />
@@ -553,14 +554,14 @@ export default function ParentCoachChat() {
                       <div className="w-full max-w-[85%]">
                         <div className="mb-1 px-2"><p className="text-xs font-semibold text-slate-600">{isCoach ? '🏃 ' : ''}{msg.remitente_nombre}</p></div>
                         <PollMessage encuesta={msg.encuesta || msg.poll} messageId={msg.id} userEmail={user.email} userName={user.full_name} onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })} isCreator={msg.remitente_email === user.email} />
-                        <p className="text-xs text-slate-500 mt-1 px-2">{format(new Date(msg.created_date), "HH:mm", { locale: es })}</p>
+                        <p className="text-xs text-slate-500 mt-1 px-2">{format(parseChatDate(msg.created_date), "HH:mm", { locale: es })}</p>
                       </div>
                     )}
                     {msg.ubicacion && (
                       <div className="w-full max-w-[85%]">
                         <div className="mb-1 px-2"><p className="text-xs font-semibold text-slate-600">{isCoach ? '🏃 ' : ''}{msg.remitente_nombre}</p></div>
                         <LocationMessage ubicacion={msg.ubicacion} />
-                        <p className="text-xs text-slate-500 mt-1 px-2">{format(new Date(msg.created_date), "HH:mm", { locale: es })}</p>
+                        <p className="text-xs text-slate-500 mt-1 px-2">{format(parseChatDate(msg.created_date), "HH:mm", { locale: es })}</p>
                       </div>
                     )}
                   </div>

@@ -11,6 +11,7 @@ import { MessageCircle, Search, Archive, ArchiveRestore, Users, Filter, Star, Se
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { parseChatDate } from "@/lib/chatDate";
 import CoordinatorChatWindow from "../components/coordinator/CoordinatorChatWindow";
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorAwayMode from "../components/coordinator/CoordinatorAwayMode";
@@ -271,7 +272,7 @@ export default function CoordinatorChat({ embedded = false }) {
                     <p className="text-xs text-slate-600 truncate">{conv.ultimo_mensaje}</p>
                     <div className="flex items-center justify-between mt-1">
                       <p className="text-xs text-slate-400">
-                        {conv.ultimo_mensaje_fecha && format(new Date(conv.ultimo_mensaje_fecha), "dd MMM, HH:mm", { locale: es })}
+                        {conv.ultimo_mensaje_fecha && format(parseChatDate(conv.ultimo_mensaje_fecha), "dd MMM, HH:mm", { locale: es })}
                       </p>
                       <Button
                         size="sm"

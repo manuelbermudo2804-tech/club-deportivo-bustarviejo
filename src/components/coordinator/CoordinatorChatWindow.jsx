@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Search, Star, Smile, MessageCircle, MapPin, Reply, Edit, Trash2, Pin, Check, CheckCheck, ChevronLeft, MoreHorizontal, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { parseChatDate } from "@/lib/chatDate";
 import { toast } from "sonner";
 import ChatMessageActions from "../chat/ChatMessageActions";
 import PollMessage from "../chat/PollMessage";
@@ -804,7 +805,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
 
                 <div className="flex items-center gap-1 justify-end mt-1">
                   <p style={{fontSize: '11px', opacity: 0.6}}>
-                    {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                    {format(parseChatDate(msg.created_date), "HH:mm", { locale: es })}
                   </p>
                   {isMine && (
                     <div className="flex items-center">

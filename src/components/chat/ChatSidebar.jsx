@@ -1,6 +1,7 @@
 import React from "react";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle } from "lucide-react";
+import { parseChatDate } from "@/lib/chatDate";
 
 const shortName = (cat) =>
   (cat || "").replace("Fútbol ", "").replace(" (Mixto)", "").replace("Todas las categorías", "📋 Todas");
@@ -45,7 +46,7 @@ export default function ChatSidebar({ categories, selectedCategory, onSelect, un
                 <div className="flex flex-col items-end gap-1 flex-shrink-0">
                   {last?.created_date && (
                     <span className="text-[10px] text-slate-400">
-                      {new Date(last.created_date).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
+                      {parseChatDate(last.created_date).toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" })}
                     </span>
                   )}
                   {unread > 0 && (

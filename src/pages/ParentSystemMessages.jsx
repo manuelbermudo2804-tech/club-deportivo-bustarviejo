@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Bell, CheckCircle2, Clock, AlertCircle, ChevronDown } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { parseChatDate } from "@/lib/chatDate";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import SocialLinks from "../components/SocialLinks";
@@ -249,9 +250,9 @@ export default function ParentSystemMessages() {
 
                 {allMessages.map((msg, idx) => {
                   const showDateSeparator = idx === 0 || 
-                    new Date(allMessages[idx - 1].created_date).toDateString() !== 
-                    new Date(msg.created_date).toDateString();
-                  const dateLabel = new Date(msg.created_date).toLocaleDateString('es-ES', {
+                    parseChatDate(allMessages[idx - 1].created_date).toDateString() !== 
+                    parseChatDate(msg.created_date).toDateString();
+                  const dateLabel = parseChatDate(msg.created_date).toLocaleDateString('es-ES', {
                     weekday: 'long',
                     day: 'numeric',
                     month: 'long'
@@ -298,7 +299,7 @@ export default function ParentSystemMessages() {
                           
                           <div className="flex items-center gap-1 justify-end mt-1">
                             <p className="text-xs opacity-60">
-                              {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                              {format(parseChatDate(msg.created_date), "HH:mm", { locale: es })}
                             </p>
                           </div>
                         </div>

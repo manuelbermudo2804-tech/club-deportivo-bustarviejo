@@ -3,6 +3,7 @@ import { Pin, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import { parseChatDate } from "@/lib/chatDate";
 
 export default function PinnedMessagesBanner({ pinnedMessages, onUnpin, canUnpin = false }) {
   if (!pinnedMessages || pinnedMessages.length === 0) return null;
@@ -17,7 +18,7 @@ export default function PinnedMessagesBanner({ pinnedMessages, onUnpin, canUnpin
               <div className="flex items-center gap-2 mb-1">
                 <p className="text-xs font-bold text-yellow-900">{msg.remitente_nombre || msg.autor_nombre}</p>
                 <p className="text-[10px] text-yellow-700">
-                  {format(new Date(msg.created_date), "dd/MM HH:mm", { locale: es })}
+                  {format(parseChatDate(msg.created_date), "dd/MM HH:mm", { locale: es })}
                 </p>
               </div>
               <p className="text-sm text-slate-700 line-clamp-2">{msg.mensaje}</p>

@@ -11,6 +11,7 @@ import ChatInputActions from "../chat/ChatInputActions";
 import ChatMessageActions from "../chat/ChatMessageActions";
 import { format, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
+import { parseChatDate } from "@/lib/chatDate";
 import { toast } from "sonner";
 import PollMessage from "../chat/PollMessage";
 import LocationMessage from "../chat/LocationMessage";
@@ -745,7 +746,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
            const prevMsg = idx > 0 ? arr[idx - 1] : null;
            let showDateSeparator = false;
            try {
-             showDateSeparator = !prevMsg || !prevMsg.created_date || !msg.created_date || !isSameDay(new Date(prevMsg.created_date), new Date(msg.created_date));
+             showDateSeparator = !prevMsg || !prevMsg.created_date || !msg.created_date || !isSameDay(parseChatDate(prevMsg.created_date), parseChatDate(msg.created_date));
            } catch { showDateSeparator = true; }
 
            const isMine = msg.remitente_email === user?.email;
@@ -846,7 +847,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
                    <div className="flex items-center gap-1 justify-end mt-1">
                      <p style={{fontSize: '11px', opacity: 0.6}}>
-                       {format(new Date(msg.created_date), "HH:mm", { locale: es })}
+                       {format(parseChatDate(msg.created_date), "HH:mm", { locale: es })}
                      </p>
 
                      {isMine && <ReadTicks message={msg} senderEmail={user?.email} />}
