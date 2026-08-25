@@ -226,7 +226,8 @@ function generarHTML(data, jornadasCache, crossTableCache) {
 
   // Temporada automática
   const now = new Date();
-  const yr = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+  // Desde agosto ya se considera la temporada nueva
+  const yr = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
   const temporada = `${yr}/${yr + 1}`;
 
   // Helper: formatear fecha bonita
