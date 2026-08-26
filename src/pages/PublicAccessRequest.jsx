@@ -472,11 +472,13 @@ export default function PublicAccessRequest() {
           <form onSubmit={handleSubmit} className="p-6 space-y-4">
             {/* Honeypot - invisible para humanos, los bots lo rellenan */}
             <div style={{ position: 'absolute', left: '-9999px', width: '1px', height: '1px', overflow: 'hidden' }} aria-hidden="true">
-              <label>Website (no rellenar)</label>
+              <label htmlFor="hp-zxq">No rellenar</label>
               <input
+                id="hp-zxq"
+                name="hp_zxq"
                 type="text"
                 tabIndex="-1"
-                autoComplete="off"
+                autoComplete="new-password"
                 value={website}
                 onChange={(e) => setWebsite(e.target.value)}
               />
