@@ -126,6 +126,27 @@ export default function CrossTable({ category, config }) {
     );
   }
 
+  // Los nombres de equipo se deducen cruzando resultados ya jugados en la RFFM.
+  // Si la competición aún no ha empezado, no hay nada que cruzar: mostramos aviso
+  // en lugar de una tabla con códigos internos y todo "Pend.".
+  const hayJugados = (data?.results || []).some(r => r.jugado);
+  if (teams.length > 0 && !hayJugados) {
+    return (
+      <Card className="border-2 border-dashed border-slate-300">
+        <CardContent className="p-8 text-center">
+          <AlertCircle className="w-10 h-10 text-slate-400 mx-auto mb-3" />
+          <p className="font-bold text-slate-800 mb-1">Aún no hay partidos jugados</p>
+          <p className="text-sm text-slate-600">
+            La tabla cruzada se completará automáticamente en cuanto la RFFM publique los primeros resultados de la competición.
+          </p>
+          <Button size="sm" variant="outline" onClick={() => refetch()} disabled={isFetching} className="gap-1.5 mt-4">
+            <RefreshCw className={`w-3.5 h-3.5 ${isFetching ? "animate-spin" : ""}`} /> Actualizar
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!teams.length) {
     return (
       <div className="space-y-4">
