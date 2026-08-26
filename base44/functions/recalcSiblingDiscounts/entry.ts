@@ -48,6 +48,46 @@ Deno.serve(async (req) => {
 
     const results = [];
 
+    // Config de cuotas por categoría (para recalcular importes pendientes)
+    const categoryConfigs = await base44.asServiceRole.entities.CategoryConfig.list('-created_date', 300).catch(() => []);
+    const CATEGORY_NAME_MAPPING = {
+      "Fútbol Aficionado": "AFICIONADO", "Fútbol Juvenil": "JUVENIL", "Fútbol Cadete": "CADETE",
+      "Fútbol Infantil (Mixto)": "INFANTIL", "Fútbol Alevín (Mixto)": "ALEVIN",
+      "Fútbol Alevín Femenino": "Alevin Femenino", "Fútbol Benjamín (Mixto)": "BENJAMIN",
+      "Fútbol Pre-Benjamín (Mixto)": "PRE-BENJAMIN", "Fútbol Femenino": "FEMENINO",
+      "Baloncesto (Mixto)": "BALONCESTO"
+    };
+    const getCuotas = (categoria) => {
+      if (!categoria) return null;
+      const mapped = CATEGORY_NAME_MAPPING[categoria] || categoria;
+      const c = categoryConfigs.find(x => x.activa && (x.nombre === categoria || x.nombre === mapped));
+      return c ? { inscripcion: c.cuota_inscripcion, total: c.cuota_total } : null;
+    };
+
+    /**
+     * Ajusta el importe del pago PENDIENTE que lleva el descuento:
+     * - Pago "Único": cuota_total - descuento
+     * - Fraccionado: la cuota de Junio (inscripción) - descuento
+     * Nunca toca pagos ya pagados, en revisión o anulados.
+     */
+    const ajustarPagoPendiente = async (player, descuento) => {
+      const cuotas = getCuotas(player.categoria_principal || player.deporte);
+      if (!cuotas) return null;
+      const pagos = await base44.asServiceRole.entities.Payment.filter({ jugador_id: player.id }).catch(() => []);
+      const candidatos = pagos.filter(p => !p.is_deleted && p.estado === 'Pendiente' && (p.tipo_pago === 'Único' || p.mes === 'Junio'));
+      const ajustes = [];
+      for (const pago of candidatos) {
+        const base = pago.tipo_pago === 'Único' ? cuotas.total : cuotas.inscripcion;
+        if (!base) continue;
+        const target = Math.max(0, base - descuento);
+        if (pago.cantidad !== target) {
+          await base44.asServiceRole.entities.Payment.update(pago.id, { cantidad: target });
+          ajustes.push({ pago_id: pago.id, antes: pago.cantidad, ahora: target });
+        }
+      }
+      return ajustes;
+    };
+
     for (const email of emailsAfectados) {
       if (!email) continue;
 
@@ -79,6 +119,7 @@ Deno.serve(async (req) => {
 
       // Recalcular: mayor sin descuento, resto con 25€
       let updated = 0;
+      const ajustesPagos = [];
       for (const p of activeForDiscount) {
         const shouldHaveDiscount = p.id !== oldestId;
         const currentlyHas = p.tiene_descuento_hermano === true;
@@ -92,9 +133,13 @@ Deno.serve(async (req) => {
           });
           updated += 1;
         }
+
+        // Ajustar SIEMPRE el importe pendiente para que coincida con el descuento real
+        const ajustes = await ajustarPagoPendiente(p, targetAmount);
+        if (ajustes && ajustes.length) ajustesPagos.push({ jugador: p.nombre, ajustes });
       }
 
-      results.push({ email, total: activeForDiscount.length, updated, oldest_id: oldestId });
+      results.push({ email, total: activeForDiscount.length, updated, oldest_id: oldestId, pagos_ajustados: ajustesPagos });
     }
 
     return Response.json({ success: true, results });
