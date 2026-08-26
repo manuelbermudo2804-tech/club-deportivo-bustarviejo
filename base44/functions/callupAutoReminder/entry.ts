@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
     const tomorrowStr = getMadridDate(1);
     const todayStr = getMadridDate(0);
 
-    // Ventana horaria razonable: solo avisamos por la tarde (16:00–21:00 Madrid).
+    // v2 — Ventana horaria razonable: solo avisamos por la tarde (16:00–21:00 Madrid).
     // El workflow corre cada hora, así evitamos avisos de madrugada.
     const madridHour = parseInt(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid', hour: '2-digit', hour12: false }), 10);
     if (madridHour < 16 || madridHour > 21) {
