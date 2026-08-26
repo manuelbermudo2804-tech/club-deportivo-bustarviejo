@@ -17,8 +17,6 @@ import { autoValidateByPlayerEmail } from "@/lib/autoValidateByPlayerEmail";
 import { Menu, X, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import useNavigation from "./hooks/useNavigation";
-import useRolePanel, { getAvailablePanels, getPanelUrl } from "./hooks/useRolePanel";
-import RolePanelTabs from "./components/layout/RolePanelTabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -320,41 +318,8 @@ export default function Layout({ children, currentPageName }) {
 
 
 
-  // === PANELES POR PESTAÑAS (personas con varios roles) ===
-  const availablePanels = useMemo(
-    () => (isMinor ? [] : getAvailablePanels({ isAdmin, isCoordinator, isTreasurer, isCoach, isPlayer, hasPlayers })),
-    [isMinor, isAdmin, isCoordinator, isTreasurer, isCoach, isPlayer, hasPlayers]
-  );
-  const [activePanel, changePanel] = useRolePanel(availablePanels);
-  const multiPanel = availablePanels.length > 1;
-
-  // Rol "efectivo": lo que manda en el menú lateral y en la barra inferior
-  const effAdmin = multiPanel ? activePanel === 'admin' : isAdmin;
-  const effCoordinator = multiPanel ? activePanel === 'coordinador' : isCoordinator;
-  const effTreasurer = multiPanel ? activePanel === 'tesorero' : isTreasurer;
-  const effCoach = multiPanel ? activePanel === 'entrenador' : isCoach;
-  const effPlayer = multiPanel ? activePanel === 'jugador' : isPlayer;
-
-  const panelDots = {
-    admin: (paymentsInReview || 0) + (playersNeedingReview || 0) + (chatCounts.staff || 0),
-    coordinador: (chatCounts.coordinator || 0) + (chatCounts.staff || 0),
-    tesorero: paymentsInReview || 0,
-    entrenador: (pendingCallupResponses || 0) + teamChatsTotal + (chatCounts.staff || 0),
-    familia: (pendingCallupsCount || 0) + (pendingSignaturesCount || 0) + (chatCounts.system || 0),
-    jugador: (pendingCallupsCount || 0) + (chatCounts.system || 0),
-  };
-
-  const handlePanelChange = (key) => {
-    changePanel(key);
-    const url = getPanelUrl(key);
-    if (url) navigate(url);
-  };
-
-  const dashboardPages = ['Home', 'CoordinatorDashboard', 'TreasurerDashboard', 'CoachDashboard', 'ParentDashboard', 'PlayerDashboard'];
-  const showPanelTabs = multiPanel && dashboardPages.includes(currentPageName);
-
   const navigationItems = useNavigation({
-    user, isAdmin: effAdmin, isCoach: effCoach, isCoordinator: effCoordinator, isTreasurer: effTreasurer, isPlayer: effPlayer, isMinor, hasPlayers,
+    user, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, isMinor, hasPlayers,
     loteriaVisible, isMemberPaid, programaSociosActivo, onlyComplementary, porraActiva,
     playersNeedingReview, pendingSignaturesAdmin, pendingInvitations, pendingCallupResponses,
     chatMenuCounts, unreadAnnouncementsCount, pendingCallupsCount, pendingSignaturesCount,
@@ -694,17 +659,6 @@ export default function Layout({ children, currentPageName }) {
           {/* Widget de cumpleaños hoy */}
 
 
-        {showPanelTabs && (
-          <div className="px-4 lg:px-8 pt-4">
-            <RolePanelTabs
-              panels={availablePanels}
-              value={activePanel}
-              onChange={handlePanelChange}
-              dots={panelDots}
-            />
-          </div>
-        )}
-
         <ActiveBanner position="top" user={user} />
 
           <PullToRefresh>
@@ -743,11 +697,11 @@ export default function Layout({ children, currentPageName }) {
         <MobileBottomBar 
           location={location} 
           chatBadges={chatMenuCounts}
-          isAdmin={effAdmin}
-          isCoach={effCoach}
-          isCoordinator={effCoordinator}
-          isTreasurer={effTreasurer}
-          isPlayer={effPlayer}
+          isAdmin={isAdmin}
+          isCoach={isCoach}
+          isCoordinator={isCoordinator}
+          isTreasurer={isTreasurer}
+          isPlayer={isPlayer}
           isMinor={isMinor}
           currentPageName={currentPageName}
         />

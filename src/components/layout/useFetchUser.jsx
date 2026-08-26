@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { base44 } from '@/api/base44Client';
 import { createPageUrl } from '@/utils';
-import { getStoredRolePanel } from '@/hooks/useRolePanel';
 
 export function useFetchUser(location) {
   const [user, setUser] = useState(null);
@@ -285,9 +284,7 @@ export function useFetchUser(location) {
         setHasPlayers(currentUser.tiene_hijos_jugando === true);
         setIsLoading(false);
 
-        // Si la persona ha elegido a mano una pestaña de panel, respetamos su elección
-        const chosenPanel = getStoredRolePanel();
-        if (!chosenPanel && currentUser.tipo_panel === 'familia' && (currentUser.app_instalada === true || currentUser.es_segundo_progenitor === true)) {
+        if (currentUser.tipo_panel === 'familia' && (currentUser.app_instalada === true || currentUser.es_segundo_progenitor === true)) {
           const currentPath = window.location.pathname.toLowerCase();
           if (currentPath !== '/parentdashboard' && !currentPath.includes('parental')) {
             window.location.href = createPageUrl('ParentDashboard');
@@ -296,7 +293,7 @@ export function useFetchUser(location) {
         }
       }
 
-      if (currentUser.es_tesorero === true && !currentUser.es_coordinador && currentUser.role !== "admin" && !getStoredRolePanel()) {
+      if (currentUser.es_tesorero === true && !currentUser.es_coordinador && currentUser.role !== "admin") {
         const currentPath = window.location.pathname.toLowerCase();
         if (currentPath !== '/treasurerdashboard' && !currentPath.includes('treasurer')) {
           window.location.href = createPageUrl('TreasurerDashboard');
