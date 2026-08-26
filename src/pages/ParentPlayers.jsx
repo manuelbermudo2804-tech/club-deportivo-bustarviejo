@@ -471,9 +471,17 @@ export default function ParentPlayers() {
         }
       }
       
-      // ℹ️ Los descuentos por hermanos se recalculan AUTOMÁTICAMENTE en el backend
-      // (automation entity 'Recálculo automático de descuentos hermanos' sobre Player).
-      // Ya no hace falta tocar nada desde el frontend.
+      // 💜 Recalcular descuentos de hermanos de esta familia (una sola llamada).
+      // Corrige el caso de inscribir primero al pequeño y después al mayor:
+      // el mayor pasa a pagar íntegro y el pequeño conserva/recibe los 25€,
+      // ajustando también el importe de la cuota pendiente.
+      try {
+        await base44.functions.invoke('recalcSiblingDiscounts', {
+          email_padre: dataWithParentEmail.email_padre
+        });
+      } catch (e) {
+        console.error('No se pudo recalcular descuentos de hermanos:', e);
+      }
       
       // (Invitación segundo progenitor ya enviada arriba)
       
