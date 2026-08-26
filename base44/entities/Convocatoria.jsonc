@@ -226,6 +226,10 @@
       "type": "string",
       "description": "Hora original antes de reprogramar"
     },
+    "recordatorio_confirmacion_fecha": {
+      "type": "string",
+      "description": "Fecha (YYYY-MM-DD) del \u00faltimo recordatorio de confirmaci\u00f3n enviado a las familias, para no repetirlo varias veces el mismo d\u00eda"
+    },
     "alerta_enviada_fecha": {
       "type": "string",
       "description": "Fecha (YYYY-MM-DD) del \u00faltimo env\u00edo de alerta de borrador sin publicar, para no repetir el mismo d\u00eda"

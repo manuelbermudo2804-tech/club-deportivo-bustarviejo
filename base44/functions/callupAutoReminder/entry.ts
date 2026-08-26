@@ -49,6 +49,15 @@ Deno.serve(async (req) => {
       return madrid.toISOString().slice(0, 10);
     }
     const tomorrowStr = getMadridDate(1);
+    const todayStr = getMadridDate(0);
+
+    // Ventana horaria razonable: solo avisamos por la tarde (16:00–21:00 Madrid).
+    // El workflow corre cada hora, así evitamos avisos de madrugada.
+    const madridHour = parseInt(new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid', hour: '2-digit', hour12: false }), 10);
+    if (madridHour < 16 || madridHour > 21) {
+      console.log(`[CallupReminder] Fuera de ventana horaria (${madridHour}h Madrid) — no se envía nada`);
+      return Response.json({ success: true, skipped: 'outside_window', hour: madridHour });
+    }
 
     console.log(`[CallupReminder] Buscando convocatorias para mañana: ${tomorrowStr}`);
 
@@ -65,7 +74,9 @@ Deno.serve(async (req) => {
     const tomorrowCallups = allCallupsRaw.filter(c => 
       c.fecha_partido === tomorrowStr && 
       c.estado_convocatoria === 'activa' &&
-      !c.cerrada
+      !c.cerrada &&
+      // Un solo recordatorio por convocatoria y día
+      c.recordatorio_confirmacion_fecha !== todayStr
     );
 
     console.log(`[CallupReminder] Encontradas ${tomorrowCallups.length} convocatorias para mañana`);
@@ -143,6 +154,15 @@ Deno.serve(async (req) => {
           await sendViaResend(e, `⚠️ ¡MAÑANA! Confirma convocatoria de ${j.jugador_nombre}`, emailHtml);
         }
         totalNotified++;
+      }
+
+      // Marcar la convocatoria como avisada hoy (aunque no hubiera pendientes)
+      try {
+        await base44.asServiceRole.entities.Convocatoria.update(callup.id, {
+          recordatorio_confirmacion_fecha: todayStr
+        });
+      } catch (e) {
+        console.error('[CallupReminder] No se pudo marcar recordatorio enviado:', e?.message);
       }
     }
 
