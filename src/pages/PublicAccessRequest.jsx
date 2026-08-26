@@ -7,6 +7,7 @@ import BackToWebsiteButton from "../components/public/BackToWebsiteButton";
 import { getDeviceFingerprint } from "../components/sanisidro/deviceFingerprint";
 import usePublicPageTracker from "../components/public/usePublicPageTracker";
 import InstallHelpRequestForm from "../components/public/InstallHelpRequestForm";
+import PlayerBirthdateField, { calcularEdad } from "../components/public/PlayerBirthdateField";
 
 const CLUB_LOGO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
@@ -85,6 +86,7 @@ export default function PublicAccessRequest() {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [categoria, setCategoria] = useState("");
+  const [fechaNacimiento, setFechaNacimiento] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
   const [aceptaGdpr, setAceptaGdpr] = useState(false);
   const [showGdprDetails, setShowGdprDetails] = useState(false);
@@ -154,6 +156,7 @@ export default function PublicAccessRequest() {
     nombre_progenitor: nombre.trim(),
     telefono: telefono.trim(),
     categoria,
+    fecha_nacimiento_jugador: fechaNacimiento,
     prefiere_whatsapp: prefiereWhatsapp,
   });
 
@@ -229,7 +232,7 @@ export default function PublicAccessRequest() {
     setError("");
     trackEvent("submit_attempt", { form_data: formSnapshot() });
 
-    if (!email.trim() || !nombre.trim() || !categoria || !telefono.trim()) {
+    if (!email.trim() || !nombre.trim() || !categoria || !telefono.trim() || !fechaNacimiento) {
       setError("Por favor, rellena todos los campos obligatorios.");
       trackEvent("validation_failed", { motivo: "campos_vacios" }, "warning");
       return;
@@ -283,6 +286,8 @@ export default function PublicAccessRequest() {
           nombre_progenitor: trimmedName,
           telefono: telefono.trim(),
           categoria,
+          fecha_nacimiento_jugador: fechaNacimiento,
+          edad_jugador: calcularEdad(fechaNacimiento),
           prefiere_whatsapp: prefiereWhatsapp,
           device_fingerprint: fingerprint,
           user_agent: navigator.userAgent,
@@ -574,6 +579,8 @@ export default function PublicAccessRequest() {
                 ))}
               </select>
             </div>
+
+            <PlayerBirthdateField value={fechaNacimiento} onChange={(v) => { logFormStartedOnce(); setFechaNacimiento(v); }} />
 
             {/* Preferencia WhatsApp — solo visible si hay teléfono válido */}
             {telefono.replace(/\D/g, '').length === 9 && /^[67]/.test(telefono.replace(/\D/g, '')) && (

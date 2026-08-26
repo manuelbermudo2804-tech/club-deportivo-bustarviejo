@@ -21,7 +21,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const body = await req.json();
-    const { email, nombre_progenitor, tipo_solicitante, telefono, categoria, nombre_jugador, prefiere_whatsapp, device_fingerprint, user_agent, website } = body;
+    const { email, nombre_progenitor, tipo_solicitante, telefono, categoria, nombre_jugador, fecha_nacimiento_jugador, edad_jugador, prefiere_whatsapp, device_fingerprint, user_agent, website } = body;
 
     // 1. Honeypot: si el campo "website" está relleno, es un bot
     if (website && website.trim() !== '') {
@@ -90,6 +90,8 @@ Deno.serve(async (req) => {
       telefono: (telefono || '').trim(),
       categoria,
       nombre_jugador: nombre_jugador || '',
+      fecha_nacimiento_jugador: fecha_nacimiento_jugador || undefined,
+      edad_jugador: typeof edad_jugador === 'number' ? edad_jugador : undefined,
       prefiere_whatsapp: !!prefiere_whatsapp,
       estado: 'pendiente',
       device_fingerprint: device_fingerprint || '',

@@ -148,6 +148,16 @@ export default function AccessRequestsPanel() {
                     {req.nombre_jugador && (
                       <p className="text-xs text-slate-500 mt-0.5">⚽ Jugador: {req.nombre_jugador}</p>
                     )}
+                    {req.fecha_nacimiento_jugador && (
+                      <p className="text-xs mt-0.5 flex items-center gap-1.5 flex-wrap">
+                        <span className="text-slate-500">🎂 {new Date(req.fecha_nacimiento_jugador).toLocaleDateString('es-ES')}</span>
+                        {typeof req.edad_jugador === 'number' && (
+                          <Badge className={req.edad_jugador >= 18 ? "bg-blue-100 text-blue-700 border-blue-200 text-xs" : "bg-slate-100 text-slate-700 border-slate-200 text-xs"}>
+                            {req.edad_jugador} años{req.edad_jugador >= 18 ? ' · +18' : ''}
+                          </Badge>
+                        )}
+                      </p>
+                    )}
                   </div>
                   <div className="flex items-center gap-1.5 flex-shrink-0">
                     <Button
