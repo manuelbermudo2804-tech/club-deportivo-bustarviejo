@@ -58,8 +58,8 @@ export default function StepCategory({
           className="w-5 h-5"
         />
         <Label htmlFor="wiz-femenino" className="cursor-pointer flex-1">
-          <span className="font-bold text-pink-900">⚽👧 ¿Es jugadora de Fútbol Femenino?</span>
-          <p className="text-xs text-pink-700 mt-1">Marca si participará en el equipo femenino</p>
+          <span className="font-bold text-pink-900">⚽👧 ¿Va al equipo de Fútbol Femenino (de 12 a 17 años)?</span>
+          <p className="text-xs text-pink-700 mt-1">Solo para el equipo femenino de las mayores. Si es alevín o más pequeña, NO marques esto: elige abajo "Fútbol Alevín Femenino".</p>
         </Label>
       </div>
 
