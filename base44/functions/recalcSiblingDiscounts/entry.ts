@@ -114,7 +114,13 @@ Deno.serve(async (req) => {
       }
 
       // Ordenar por fecha de nacimiento (el MAYOR es la fecha más antigua)
-      activeForDiscount.sort((a, b) => new Date(a.fecha_nacimiento) - new Date(b.fecha_nacimiento));
+      // Si hay empate de fecha (mellizos/gemelos), el "mayor" es el inscrito primero,
+      // para que el descuento recaiga en el hermano inscrito después (con pagos pendientes).
+      activeForDiscount.sort((a, b) => {
+        const diff = new Date(a.fecha_nacimiento) - new Date(b.fecha_nacimiento);
+        if (diff !== 0) return diff;
+        return new Date(a.created_date || 0) - new Date(b.created_date || 0);
+      });
       const oldestId = activeForDiscount[0].id;
 
       // Recalcular: mayor sin descuento, resto con 25€
