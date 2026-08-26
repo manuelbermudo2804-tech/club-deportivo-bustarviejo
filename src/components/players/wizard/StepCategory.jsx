@@ -42,26 +42,29 @@ export default function StepCategory({
         ⚽ Categoría y Deporte
       </h3>
 
-      {/* Checkbox Fútbol Femenino */}
-      <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border-2 border-pink-200">
-        <Checkbox
-          id="wiz-femenino"
-          checked={currentPlayer.deporte === "Fútbol Femenino"}
-          onCheckedChange={(checked) => {
-            if (checked) {
-              setCurrentPlayer({ ...currentPlayer, deporte: "Fútbol Femenino" });
-            } else {
-              const suggested = suggestCategoryByAge(currentPlayer.fecha_nacimiento);
-              setCurrentPlayer({ ...currentPlayer, deporte: suggested || "Fútbol Pre-Benjamín (Mixto)" });
-            }
-          }}
-          className="w-5 h-5"
-        />
-        <Label htmlFor="wiz-femenino" className="cursor-pointer flex-1">
-          <span className="font-bold text-pink-900">⚽👧 ¿Es jugadora de Fútbol Femenino?</span>
-          <p className="text-xs text-pink-700 mt-1">Marca si participará en el equipo femenino</p>
-        </Label>
-      </div>
+      {/* Checkbox Fútbol Femenino — SOLO para edades del equipo femenino sénior.
+          Las niñas de categorías base (alevín, etc.) van a su categoría femenina por edad. */}
+      {(playerAge === null || playerAge >= 14) && (
+        <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-pink-50 to-purple-50 rounded-lg border-2 border-pink-200">
+          <Checkbox
+            id="wiz-femenino"
+            checked={currentPlayer.deporte === "Fútbol Femenino"}
+            onCheckedChange={(checked) => {
+              if (checked) {
+                setCurrentPlayer({ ...currentPlayer, deporte: "Fútbol Femenino" });
+              } else {
+                const suggested = suggestCategoryByAge(currentPlayer.fecha_nacimiento);
+                setCurrentPlayer({ ...currentPlayer, deporte: suggested || "Fútbol Pre-Benjamín (Mixto)" });
+              }
+            }}
+            className="w-5 h-5"
+          />
+          <Label htmlFor="wiz-femenino" className="cursor-pointer flex-1">
+            <span className="font-bold text-pink-900">⚽👩 ¿Jugará en el equipo de Fútbol Femenino (sénior)?</span>
+            <p className="text-xs text-pink-700 mt-1">Solo para el equipo femenino de mayores. Las jugadoras de categorías base (alevín, infantil...) NO deben marcarlo: su categoría se asigna por edad.</p>
+          </Label>
+        </div>
+      )}
 
       {/* Auto-sugerencia */}
       {playerAge !== null && currentPlayer.deporte !== "Fútbol Femenino" && (
