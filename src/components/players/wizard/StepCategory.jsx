@@ -60,8 +60,8 @@ export default function StepCategory({
             className="w-5 h-5"
           />
           <Label htmlFor="wiz-femenino" className="cursor-pointer flex-1">
-            <span className="font-bold text-pink-900">⚽👩 ¿Jugará en el equipo de Fútbol Femenino (sénior)?</span>
-            <p className="text-xs text-pink-700 mt-1">Solo para el equipo femenino de mayores. Las jugadoras de categorías base (alevín, infantil...) NO deben marcarlo: su categoría se asigna por edad.</p>
+            <span className="font-bold text-pink-900">⚽👩 ¿Jugará en el equipo de Fútbol Femenino del club?</span>
+            <p className="text-xs text-pink-700 mt-1">Es el equipo femenino de las jugadoras mayores. Si tu hija va a jugar en una categoría base femenina (por ejemplo Alevín Femenino), NO lo marques: elige su categoría por edad en el desplegable.</p>
           </Label>
         </div>
       )}
