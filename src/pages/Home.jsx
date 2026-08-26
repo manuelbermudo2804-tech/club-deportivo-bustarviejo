@@ -20,6 +20,7 @@ import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 import PorraPromoBanner from "../components/porra/PorraPromoBanner";
 import DailySummaryBanner from "../components/dashboard/DailySummaryBanner";
+import { getStoredRolePanel, getPanelUrl } from "@/hooks/useRolePanel";
 
 
 export default function Home() {
@@ -59,8 +60,15 @@ export default function Home() {
         const adminCheck = currentUser.role === "admin";
         setIsAdmin(adminCheck);
 
+        // Si tiene varios paneles y ha elegido uno a mano, le llevamos a ese
+        const chosenPanel = getStoredRolePanel();
+        const chosenUrl = chosenPanel && chosenPanel !== 'admin' ? getPanelUrl(chosenPanel) : null;
+
         if (adminCheck) {
           setHasPlayers(currentUser.tiene_hijos_jugando === true);
+        } else if (chosenUrl) {
+          window.location.href = chosenUrl;
+          return;
         } else if (currentUser.tipo_panel === 'jugador_menor' || currentUser.es_menor === true) {
           window.location.href = createPageUrl('MinorDashboard');
           return;
