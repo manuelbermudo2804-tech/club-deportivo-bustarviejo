@@ -252,6 +252,16 @@ export default function Layout({ children, currentPageName }) {
     localStorage.setItem('appLanguage', newLang);
   };
 
+  // Panel multi-rol (en pruebas): cualquier entrada a un panel de rol suelto
+  // se redirige al panel con pestañas, venga de donde venga (menú, acceso directo, PWA)
+  useEffect(() => {
+    if (!user || !isMultiPanelUser(user.email)) return;
+    const rolePages = ['CoordinatorDashboard', 'CoachDashboard', 'ParentDashboard'];
+    if (rolePages.includes(currentPageName)) {
+      navigate(createPageUrl('MiPanel'), { replace: true });
+    }
+  }, [user, currentPageName]);
+
   // Cargar idioma desde localStorage después del montaje
   useEffect(() => {
     const savedLang = localStorage.getItem('appLanguage');
