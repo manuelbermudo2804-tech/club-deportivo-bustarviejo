@@ -4,7 +4,6 @@ import { createPageUrl } from '@/utils';
 import { Home, Bell, CreditCard, MessageCircle, Users, Dumbbell, Clock, ClipboardCheck } from 'lucide-react';
 import useMeteoAlerta from '@/hooks/useMeteoAlerta';
 import useMinorPanel from '@/hooks/useMinorPanel';
-import useRolePanel from '@/hooks/useRolePanel';
 
 // Persist last visited path + scroll per tab across renders
 const tabState = {};
@@ -13,7 +12,6 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
   const navigate = useNavigate();
   const currentTabRef = useRef(null);
   const [minorPanel] = useMinorPanel();
-  const [rolePanel] = useRolePanel();
 
   const chatPages = ['ParentCoachChat', 'CoachParentChat', 'ParentCoordinatorChat', 'CoordinatorChat', 'AdminCoordinatorChats', 'StaffChat', 'ParentSystemMessages', 'FamilyChatsHub', 'CoachChatsHub', 'CoordinatorChatsHub', 'AdminChatsHub'];
   const isInChat = chatPages.includes(currentPageName);
@@ -35,26 +33,14 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
 
   let tabs = [];
   if (rolePanelEnabled) {
-    // Panel multi-rol por pestañas: la barra inferior cambia según la pestaña abierta
-    const homeTab = { icon: Home, label: 'Mi panel', url: createPageUrl('MiPanel'), key: 'home' };
-    if (rolePanel === 'entrenador' || rolePanel === 'coordinador') {
-      const staffChatBadge = (chatBadges?.coachCount || 0) + (chatBadges?.staffCount || 0) + (rolePanel === 'coordinador' ? (chatBadges?.coordinatorCount || 0) : 0);
-      tabs = [
-        homeTab,
-        { icon: Bell, label: 'Convocatorias', url: createPageUrl('CoachCallups'), key: 'callups' },
-        { icon: MessageCircle, label: 'Chat', url: createPageUrl(rolePanel === 'coordinador' ? 'CoordinatorChatsHub' : 'CoachChatsHub'), key: 'chat', badge: staffChatBadge },
-        { icon: Users, label: 'Plantillas', url: createPageUrl('TeamRosters'), key: 'rosters' },
-        entrenamientoTab,
-      ];
-    } else {
-      tabs = [
-        homeTab,
-        { icon: Bell, label: 'Convocatorias', url: createPageUrl('ParentCallups'), key: 'callups' },
-        horariosTab,
-        { icon: CreditCard, label: 'Pagos', url: createPageUrl('ParentPayments'), key: 'payments' },
-        { icon: MessageCircle, label: 'Chat', url: createPageUrl('FamilyChatsHub'), key: 'chat', badge: familyTotal },
-      ];
-    }
+    // Panel unificado: una sola barra, sin modos
+    tabs = [
+      { icon: Home, label: 'Mi panel', url: createPageUrl('MiPanel'), key: 'home' },
+      { icon: Bell, label: 'Equipo', url: createPageUrl('CoachCallups'), key: 'callups' },
+      { icon: Users, label: 'Mis hijos', url: createPageUrl('ParentPlayers'), key: 'players' },
+      { icon: MessageCircle, label: 'Mensajes', url: createPageUrl('CoachChatsHub'), key: 'chat', badge: (chatBadges?.staffCount || 0) + (chatBadges?.coachCount || 0) + (chatBadges?.coordinatorCount || 0) },
+      horariosTab,
+    ];
   } else if (isMinor && minorPanel === 'entrenador') {
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('MinorDashboard'), key: 'home' },
