@@ -12,6 +12,7 @@ import useStripeReturn from "./hooks/useStripeReturn";
 import useChunkRecovery from "./hooks/useChunkRecovery";
 import useAppBadge from "./hooks/useAppBadge";
 import { autoValidateByPlayerEmail } from "@/lib/autoValidateByPlayerEmail";
+import { isMultiPanelUser } from "@/lib/multiPanelUsers";
 
 
 import { Menu, X, Smartphone } from "lucide-react";
@@ -703,6 +704,7 @@ export default function Layout({ children, currentPageName }) {
           isTreasurer={isTreasurer}
           isPlayer={isPlayer}
           isMinor={isMinor}
+          rolePanelEnabled={isMultiPanelUser(user?.email)}
           currentPageName={currentPageName}
         />
 

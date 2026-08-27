@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { isMultiPanelUser } from "@/lib/multiPanelUsers";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -61,6 +62,10 @@ export default function Home() {
 
         if (adminCheck) {
           setHasPlayers(currentUser.tiene_hijos_jugando === true);
+        } else if (isMultiPanelUser(currentUser.email)) {
+          // En pruebas: panel con pestañas por rol
+          window.location.href = createPageUrl('MiPanel');
+          return;
         } else if (currentUser.tipo_panel === 'jugador_menor' || currentUser.es_menor === true) {
           window.location.href = createPageUrl('MinorDashboard');
           return;
