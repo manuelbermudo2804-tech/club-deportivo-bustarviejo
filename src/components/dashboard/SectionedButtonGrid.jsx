@@ -18,7 +18,6 @@ export default function SectionedButtonGrid({
   clubSectionLabel = "👨‍👩‍👧 Club y Familia",
   playerSectionLabel = "⚽ Mi Perfil Jugador",
   badgeMap = {},
-  onlyRoleSection = false,
 }) {
   const roleButtons = buttons.filter(b => b.section === roleSection);
   const playerButtons = buttons.filter(b => b.section === "player");
@@ -51,8 +50,8 @@ export default function SectionedButtonGrid({
   return (
     <div className="space-y-4">
       {renderSection(roleButtons, roleSectionLabel, "text-blue-400", "bg-blue-500/30")}
-      {!onlyRoleSection && renderSection(playerButtons, playerSectionLabel, "text-green-400", "bg-green-500/30")}
-      {!onlyRoleSection && renderSection(clubButtons, clubSectionLabel, "text-orange-400", "bg-orange-500/30")}
+      {renderSection(playerButtons, playerSectionLabel, "text-green-400", "bg-green-500/30")}
+      {renderSection(clubButtons, clubSectionLabel, "text-orange-400", "bg-orange-500/30")}
     </div>
   );
 }

@@ -12,7 +12,6 @@ import useStripeReturn from "./hooks/useStripeReturn";
 import useChunkRecovery from "./hooks/useChunkRecovery";
 import useAppBadge from "./hooks/useAppBadge";
 import { autoValidateByPlayerEmail } from "@/lib/autoValidateByPlayerEmail";
-import { isMultiPanelUser } from "@/lib/multiPanelUsers";
 
 
 import { Menu, X, Smartphone } from "lucide-react";
@@ -251,16 +250,6 @@ export default function Layout({ children, currentPageName }) {
     setCurrentLang(newLang);
     localStorage.setItem('appLanguage', newLang);
   };
-
-  // Panel multi-rol (en pruebas): cualquier entrada a un panel de rol suelto
-  // se redirige al panel con pestañas, venga de donde venga (menú, acceso directo, PWA)
-  useEffect(() => {
-    if (!user || !isMultiPanelUser(user.email)) return;
-    const rolePages = ['CoordinatorDashboard', 'CoachDashboard', 'ParentDashboard'];
-    if (rolePages.includes(currentPageName)) {
-      navigate(createPageUrl('MiPanel'), { replace: true });
-    }
-  }, [user, currentPageName]);
 
   // Cargar idioma desde localStorage después del montaje
   useEffect(() => {
@@ -714,7 +703,6 @@ export default function Layout({ children, currentPageName }) {
           isTreasurer={isTreasurer}
           isPlayer={isPlayer}
           isMinor={isMinor}
-          rolePanelEnabled={isMultiPanelUser(user?.email)}
           currentPageName={currentPageName}
         />
 

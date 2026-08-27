@@ -8,7 +8,7 @@ import useMinorPanel from '@/hooks/useMinorPanel';
 // Persist last visited path + scroll per tab across renders
 const tabState = {};
 
-export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, isMinor, rolePanelEnabled, currentPageName }) {
+export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach, isCoordinator, isTreasurer, isPlayer, isMinor, currentPageName }) {
   const navigate = useNavigate();
   const currentTabRef = useRef(null);
   const [minorPanel] = useMinorPanel();
@@ -32,16 +32,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
   };
 
   let tabs = [];
-  if (rolePanelEnabled) {
-    // Panel unificado: una sola barra, sin modos
-    tabs = [
-      { icon: Home, label: 'Mi panel', url: createPageUrl('MiPanel'), key: 'home' },
-      { icon: Bell, label: 'Equipo', url: createPageUrl('CoachCallups'), key: 'callups' },
-      { icon: Users, label: 'Mis hijos', url: createPageUrl('ParentPlayers'), key: 'players' },
-      { icon: MessageCircle, label: 'Mensajes', url: createPageUrl('CoachChatsHub'), key: 'chat', badge: (chatBadges?.staffCount || 0) + (chatBadges?.coachCount || 0) + (chatBadges?.coordinatorCount || 0) },
-      horariosTab,
-    ];
-  } else if (isMinor && minorPanel === 'entrenador') {
+  if (isMinor && minorPanel === 'entrenador') {
     tabs = [
       { icon: Home, label: 'Inicio', url: createPageUrl('MinorDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: '/MinorCoachCallups', key: 'coachCallups' },

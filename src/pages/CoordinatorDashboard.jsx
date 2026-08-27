@@ -25,7 +25,7 @@ import { Users, Calendar, Bell } from "lucide-react";
 
 
 
-export default function CoordinatorDashboard({ embedded = false }) {
+export default function CoordinatorDashboard() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const [myCategories, setMyCategories] = useState([]);
@@ -231,7 +231,7 @@ export default function CoordinatorDashboard({ embedded = false }) {
             </div>
           </div>
           {/* Barra PADRE (solo si tiene hijos) */}
-          {hasPlayers && !embedded && (
+          {hasPlayers && (
             <div className="rounded-xl border-2 border-orange-500/30 overflow-hidden">
               <div className="bg-gradient-to-r from-orange-600 to-orange-700 px-4 py-2">
                 <p className="text-white font-bold text-sm flex items-center gap-2">
@@ -293,7 +293,6 @@ export default function CoordinatorDashboard({ embedded = false }) {
           roleSection="coordinator"
           roleSectionLabel="🎓 Coordinación"
           clubSectionLabel="👨‍👩‍👧 Club y Familia"
-          onlyRoleSection={embedded}
         />
 
         {/* Stats Footer - solo móvil */}
