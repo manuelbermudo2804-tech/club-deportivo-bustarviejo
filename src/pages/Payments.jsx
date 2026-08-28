@@ -28,6 +28,7 @@ import { sendPaymentReceipt, createPlayerPaymentReceiptData } from "../component
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import FeeAdjustmentDialog from "../components/payments/FeeAdjustmentDialog";
 import FraccionarCuotaDialog from "../components/payments/FraccionarCuotaDialog";
+import CobroEfectivoDialog from "../components/payments/CobroEfectivoDialog";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -109,6 +110,8 @@ export default function Payments() {
   const [displayLimit, setDisplayLimit] = useState(20);
   const [feeAdjustPlayer, setFeeAdjustPlayer] = useState(null);
   const [fraccionarData, setFraccionarData] = useState(null);
+  const [efectivoData, setEfectivoData] = useState(null);
+  const [savingEfectivo, setSavingEfectivo] = useState(false);
 
   const formRef = useRef(null);
   const queryClient = useQueryClient();
@@ -508,6 +511,45 @@ export default function Payments() {
         console.error("Error sending receipt PDF:", error);
         toast.error("Error al enviar recibo: " + error.message);
       }
+    }
+  };
+
+  // Cobro en efectivo: marca como pagado sin justificante y deja la anotación
+  const handleCashPayment = async ({ fecha, nota }) => {
+    if (!efectivoData) return;
+    setSavingEfectivo(true);
+    try {
+      let real = efectivoData.payment;
+
+      // Si era una cuota virtual (aún no existe en BD), crearla primero
+      if (real.isVirtual) {
+        real = await base44.entities.Payment.create({
+          jugador_id: real.jugador_id,
+          jugador_nombre: real.jugador_nombre,
+          tipo_pago: real.tipo_pago,
+          mes: real.mes,
+          temporada: real.temporada,
+          cantidad: real.cantidad,
+          estado: "Pendiente",
+          metodo_pago: "Efectivo",
+        });
+      }
+
+      const anotacion = `Cobrado en EFECTIVO el ${new Date(fecha).toLocaleDateString('es-ES')}${nota ? ` — ${nota}` : ''}`;
+      const notas = [real.notas, anotacion].filter(Boolean).join(' | ');
+
+      await handleStatusChange(
+        { ...real, metodo_pago: "Efectivo", notas, fecha_pago: fecha },
+        "Pagado"
+      );
+
+      setEfectivoData(null);
+      toast.success("Cobro en efectivo registrado 💵");
+    } catch (error) {
+      console.error("Error registrando cobro en efectivo:", error);
+      toast.error("Error al registrar el cobro en efectivo");
+    } finally {
+      setSavingEfectivo(false);
     }
   };
 
@@ -1580,6 +1622,17 @@ export default function Payments() {
                                                             ✗ Rechazar
                                                           </Button>
                                                         )}
+                                                        {isAdmin && payment.estado !== "Pagado" && (
+                                                          <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => setEfectivoData({ payment, playerName: player.nombre })}
+                                                            className="border-green-400 text-green-700 hover:bg-green-50 text-[10px] lg:text-xs h-6 px-2"
+                                                            title="Registrar cobro en efectivo con anotación"
+                                                          >
+                                                            💵 Efectivo
+                                                          </Button>
+                                                        )}
                                                         {isAdmin && payment.estado !== "Pagado" && payment.justificante_url && !payment.isVirtual && (
                                                           <Button
                                                             size="sm"
@@ -1811,6 +1864,16 @@ export default function Payments() {
           }}
         />
       )}
+
+      {/* Dialog cobro en efectivo */}
+      <CobroEfectivoDialog
+        open={!!efectivoData}
+        onOpenChange={(open) => { if (!open && !savingEfectivo) setEfectivoData(null); }}
+        payment={efectivoData?.payment}
+        playerName={efectivoData?.playerName}
+        onConfirm={handleCashPayment}
+        isSubmitting={savingEfectivo}
+      />
 
       <ContactCard />
 

@@ -65,7 +65,8 @@
     "metodo_pago": {
       "type": "string",
       "enum": [
-        "Transferencia"
+        "Transferencia",
+        "Efectivo"
       ],
       "default": "Transferencia",
       "description": "M\u00e9todo de pago utilizado"
