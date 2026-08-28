@@ -137,8 +137,20 @@ export default function UserManagement() {
   });
 
   const minorRevokeMutation = useMutation({
-    mutationFn: async ({ player, revoke }) =>
-      base44.entities.Player.update(player.id, { acceso_menor_revocado: revoke }),
+    mutationFn: async ({ player, revoke, user }) => {
+      // 1) Ficha del jugador: quitar/restaurar la autorización
+      await base44.entities.Player.update(player.id, {
+        acceso_menor_revocado: revoke,
+        acceso_menor_autorizado: !revoke,
+      });
+      // 2) Cuenta del menor: sin esto seguiría entrando en su panel juvenil
+      if (user?.id) {
+        await base44.entities.User.update(user.id, revoke
+          ? { es_menor: false, tipo_panel: null, jugador_id: null, jugador_nombre: null }
+          : { es_menor: true, tipo_panel: "jugador_menor", jugador_id: player.id, jugador_nombre: player.nombre }
+        );
+      }
+    },
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ["players"] });
       queryClient.invalidateQueries({ queryKey: ["allUsers"] });
@@ -365,20 +377,7 @@ export default function UserManagement() {
     // CASO 2: Hay player vinculado y aún no es juvenil → darle de alta vinculado
     if (!user.es_menor) {
       if (!window.confirm(`¿Marcar a ${user.full_name || user.email} como JUVENIL vinculado a ${linked.nombre}?`)) return;
-      updateUserMutation.mutate({
-        userId: user.id,
-        userData: {
-          es_menor: true,
-          tipo_panel: "jugador_menor",
-          jugador_id: linked.id,
-          jugador_nombre: linked.nombre,
-          codigo_acceso_validado: true,
-          fecha_validacion_codigo: new Date().toISOString(),
-        },
-      });
-      if (linked.acceso_menor_revocado) {
-        minorRevokeMutation.mutate({ player: linked, revoke: false });
-      }
+      minorRevokeMutation.mutate({ player: linked, revoke: false, user });
       return;
     }
 
@@ -386,7 +385,7 @@ export default function UserManagement() {
     const isCurrentlyActive = !linked.acceso_menor_revocado;
     const action = isCurrentlyActive ? "REVOCAR" : "RESTAURAR";
     if (!window.confirm(`¿Quieres ${action} el acceso juvenil de ${linked.nombre}?`)) return;
-    minorRevokeMutation.mutate({ player: linked, revoke: isCurrentlyActive });
+    minorRevokeMutation.mutate({ player: linked, revoke: isCurrentlyActive, user });
   };
 
   // ===== PAIR PROGENITORES =====

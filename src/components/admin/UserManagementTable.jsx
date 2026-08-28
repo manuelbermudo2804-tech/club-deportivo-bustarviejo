@@ -251,7 +251,7 @@ export default function UserManagementTable({
                   {/* Juvenil (menor) */}
                   <td className="px-4 py-3 text-center">
                     <Switch
-                      checked={user.es_menor === true && !user.acceso_menor_revocado}
+                      checked={user.es_menor === true}
                       onCheckedChange={() => onMinorRevoke && onMinorRevoke(user)}
                       disabled={isRestricted || isDeleted}
                     />
