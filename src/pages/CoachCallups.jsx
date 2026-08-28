@@ -213,47 +213,52 @@ export default function CoachCallups() {
       // Reusar allPlayers ya cargado en el componente (evita doble Player.list())
       const playersForEmails = allPlayers || [];
 
-      // Send emails to parents, second tutors, AND minors with juvenile access
-      const emailPromises = callup.jugadores_convocados.flatMap(async (jugador) => {
+      // Construir la lista de destinatarios (padres, segundo tutor y menores con acceso juvenil)
+      const destinatarios = [];
+      callup.jugadores_convocados.forEach((jugador) => {
         const emails = [];
         if (jugador.email_padre) emails.push(jugador.email_padre);
         if (jugador.email_tutor_2) emails.push(jugador.email_tutor_2);
         if (!jugador.email_padre && jugador.email_jugador) emails.push(jugador.email_jugador);
-        
-        // Also send to minor (juvenile access) if authorized
+
         const playerData = playersForEmails.find(p => p.id === jugador.jugador_id);
         if (playerData?.acceso_menor_email && playerData?.acceso_menor_autorizado && !playerData?.acceso_menor_revocado) {
-          if (!emails.includes(playerData.acceso_menor_email)) {
-            emails.push(playerData.acceso_menor_email);
-            console.log('👦 [CoachCallups] Añadiendo email menor:', playerData.acceso_menor_email);
-          }
+          emails.push(playerData.acceso_menor_email);
         }
-        
-        if (emails.length === 0) return;
-        
-        const sendToEmails = emails.map(async (email) => {
-          const subject = `⚽ Convocatoria: ${callup.rival ? `vs ${callup.rival}` : callup.titulo} - CD Bustarviejo`;
-          const htmlBody = buildCallupEmailHtml(callup, jugador.jugador_nombre);
-          
-          try {
-            console.log('📤 [CoachCallups] Enviando convocatoria a:', email);
-            await base44.functions.invoke('sendEmail', {
-              to: email,
-              subject: subject,
-              html: htmlBody
-            });
-            console.log('✅ [CoachCallups] Email enviado a:', email);
-          } catch (error) {
-            console.error(`❌ [CoachCallups] Error sending email to ${email}:`, error);
-          }
-          
-          await new Promise(resolve => setTimeout(resolve, 300));
+
+        [...new Set(emails.filter(Boolean))].forEach(email => {
+          destinatarios.push({ email, jugadorNombre: jugador.jugador_nombre });
         });
-        
-        return Promise.all(sendToEmails);
       });
-      
-      await Promise.all(emailPromises);
+
+      // Envío SECUENCIAL con pausa: el proveedor de email rechaza los envíos en paralelo
+      const subject = `⚽ Convocatoria: ${callup.rival ? `vs ${callup.rival}` : callup.titulo} - CD Bustarviejo`;
+      const fallidos = [];
+      let enviados = 0;
+
+      for (const { email, jugadorNombre } of destinatarios) {
+        let ok = false;
+        // Un reintento si falla (típicamente por límite de velocidad)
+        for (let intento = 1; intento <= 2 && !ok; intento++) {
+          try {
+            const res = await base44.functions.invoke('sendEmail', {
+              to: email,
+              subject,
+              html: buildCallupEmailHtml(callup, jugadorNombre)
+            });
+            if (res?.data?.success) {
+              ok = true;
+            } else {
+              console.error(`❌ [CoachCallups] Respuesta sin éxito para ${email}:`, res?.data);
+            }
+          } catch (error) {
+            console.error(`❌ [CoachCallups] Error enviando a ${email} (intento ${intento}):`, error);
+          }
+          if (!ok) await new Promise(r => setTimeout(r, 1500));
+        }
+        if (ok) { enviados++; } else { fallidos.push(email); }
+        await new Promise(r => setTimeout(r, 700));
+      }
       
       // Chat al grupo — texto genérico para que solo actúen los convocados
       try {
@@ -280,7 +285,14 @@ export default function CoachCallups() {
         notificaciones_enviadas: true
       });
       
-      toast.success(`✅ Notificaciones enviadas a ${callup.jugadores_convocados.length} jugadores`);
+      if (fallidos.length > 0) {
+        toast.error(
+          `⚠️ ${enviados} correos enviados, pero ${fallidos.length} NO se pudieron enviar: ${fallidos.slice(0, 3).join(', ')}${fallidos.length > 3 ? '…' : ''}. Avisa a esas familias por el chat.`,
+          { duration: 12000 }
+        );
+      } else {
+        toast.success(`✅ ${enviados} correos enviados a las familias de ${callup.jugadores_convocados.length} jugadores`);
+      }
     } catch (error) {
       console.error("Error sending notifications:", error);
       toast.error("Error al enviar notificaciones");
