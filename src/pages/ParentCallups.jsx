@@ -36,6 +36,7 @@ import TransportePanel from "../components/callups/TransportePanel";
 import TransporteModal from "../components/callups/TransporteModal";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { useActiveSeason } from "../components/season/SeasonProvider";
+import { canRespond, isDeadlinePassed, formatDeadline } from "../components/callups/callupDeadline";
 
 export default function ParentCallups() {
   const [user, setUser] = useState(null);
@@ -48,6 +49,9 @@ export default function ParentCallups() {
     comentario: ""
   });
   const [showSuccess, setShowSuccess] = useState(false);
+  // Respuesta que había cuando se abrió el diálogo, para detectar que el otro
+  // progenitor ha respondido a la vez y evitar la doble confirmación.
+  const [openedConfirmacion, setOpenedConfirmacion] = useState(null);
   const [showTransporteModal, setShowTransporteModal] = useState(false);
   const [transporteCallup, setTransporteCallup] = useState(null);
   const [transportePlayer, setTransportePlayer] = useState(null);
@@ -68,6 +72,7 @@ export default function ParentCallups() {
         const userPlayers = allPlayers.filter(p => 
           p.email_padre === currentUser.email || 
           p.email_tutor_2 === currentUser.email ||
+          (p.email_jugador === currentUser.email && p.acceso_jugador_autorizado === true) ||
           (p.acceso_menor_email === currentUser.email && p.acceso_menor_autorizado === true)
         );
         setMyPlayers(userPlayers);
@@ -86,6 +91,14 @@ export default function ParentCallups() {
     refetchInterval: 120000, // Cada 2 min en vez de 30s — suficiente para convocatorias
     refetchIntervalInBackground: false,
   });
+
+  // Tiempo real: si el otro progenitor responde, esta pantalla se actualiza al instante
+  useEffect(() => {
+    const unsubscribe = base44.entities.Convocatoria.subscribe(() => {
+      queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
+    });
+    return unsubscribe;
+  }, [queryClient]);
 
   const updateCallupMutation = useMutation({
     mutationFn: ({ id, callupData }) => base44.entities.Convocatoria.update(id, callupData),
@@ -110,6 +123,7 @@ export default function ParentCallups() {
     setSelectedPlayer(player);
     
     const existingConfirmation = callup.jugadores_convocados.find(j => j.jugador_id === player.id);
+    setOpenedConfirmacion(existingConfirmation?.confirmacion ?? "pendiente");
     if (existingConfirmation) {
       setConfirmationData({
         confirmacion: existingConfirmation.confirmacion,
@@ -129,12 +143,32 @@ export default function ParentCallups() {
     const freshCallups = await base44.entities.Convocatoria.filter({ id: selectedCallup.id });
     const freshCallup = freshCallups?.[0] || selectedCallup;
 
+    // Plazo cerrado mientras el diálogo estaba abierto
+    if (!canRespond(freshCallup)) {
+      setShowConfirmDialog(false);
+      queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
+      alert("El plazo para responder a esta convocatoria ya se ha cerrado. Habla con el entrenador si necesitas cambiar algo.");
+      return;
+    }
+
+    // Evitar doble confirmación: si el otro progenitor ha respondido mientras
+    // este diálogo estaba abierto, avisamos en vez de sobrescribir su respuesta.
+    const fresh = freshCallup.jugadores_convocados.find(j => j.jugador_id === selectedPlayer.id);
+    const freshValue = fresh?.confirmacion ?? "pendiente";
+    if (openedConfirmacion !== null && freshValue !== openedConfirmacion) {
+      setShowConfirmDialog(false);
+      queryClient.invalidateQueries({ queryKey: ['convocatorias'] });
+      alert("Otra persona de la familia acaba de responder por este jugador. Hemos actualizado la pantalla: revísalo y, si hace falta, modifícalo.");
+      return;
+    }
+
     const updatedJugadores = freshCallup.jugadores_convocados.map(j => {
       if (j.jugador_id === selectedPlayer.id) {
         return {
           ...j,
           confirmacion: confirmationData.confirmacion,
           comentario: confirmationData.comentario,
+          confirmado_por: user?.email || "",
           fecha_confirmacion: new Date().toISOString()
         };
       }
@@ -322,6 +356,8 @@ export default function ParentCallups() {
           {upcomingCallups.map((callup) => {
             const myCallupPlayers = getCallupPlayers(callup);
             const hasPending = myCallupPlayers.some(p => p.confirmacion === "pendiente");
+            const puedeResponder = canRespond(callup);
+            const plazoVencido = isDeadlinePassed(callup);
 
             return (
               <Card key={callup.id} className={`border-2 shadow-lg overflow-hidden ${
@@ -403,6 +439,19 @@ export default function ParentCallups() {
                         </span>
                       )}
                     </div>
+
+                    {callup.fecha_limite_respuesta && (
+                      <div className={`flex items-start gap-2 rounded-lg p-2.5 text-sm ${plazoVencido ? 'bg-slate-100 text-slate-600' : 'bg-amber-50 text-amber-800'}`}>
+                        <Clock className={`w-4 h-4 mt-0.5 flex-shrink-0 ${plazoVencido ? 'text-slate-500' : 'text-amber-600'}`} />
+                        <span>
+                          {plazoVencido ? (
+                            <>El plazo para responder se cerró el <strong>{formatDeadline(callup)}</strong>. Si necesitas cambiar algo, habla con el entrenador.</>
+                          ) : (
+                            <>Puedes confirmar hasta el <strong>{formatDeadline(callup)}</strong>.</>
+                          )}
+                        </span>
+                      </div>
+                    )}
 
                     {callup.entrenador_telefono && (
                       <div className="flex items-center gap-2 text-slate-700">
@@ -497,12 +546,15 @@ export default function ParentCallups() {
                               <Button
                                 onClick={() => handleOpenConfirm(callup, player.playerData)}
                                 size="sm"
-                                className={isPending 
-                                  ? "bg-orange-600 hover:bg-orange-700 text-white shadow-md animate-pulse" 
-                                  : "bg-slate-100 hover:bg-slate-200 text-slate-700 border"
+                                disabled={!puedeResponder}
+                                className={!puedeResponder
+                                  ? "bg-slate-100 text-slate-500 border"
+                                  : isPending
+                                    ? "bg-orange-600 hover:bg-orange-700 text-white shadow-md animate-pulse"
+                                    : "bg-slate-100 hover:bg-slate-200 text-slate-700 border"
                                 }
                               >
-                                {isPending ? "✅ Confirmar" : "✏️ Modificar"}
+                                {!puedeResponder ? "🔒 Plazo cerrado" : isPending ? "✅ Confirmar" : "✏️ Modificar"}
                               </Button>
                               {callup.local_visitante === "Visitante" && player.confirmacion === "asistire" && (
                                 <Button

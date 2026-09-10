@@ -22,6 +22,7 @@ import ExportButton from "../components/ExportButton";
 import CallupForm from "../components/callups/CallupForm";
 import CallupCard from "../components/callups/CallupCard";
 import CancelRescheduleDialog from "../components/callups/CancelRescheduleDialog";
+import PlantillaVaciaAlert from "../components/callups/PlantillaVaciaAlert";
 import { buildCallupEmailHtml } from "../components/callups/callupEmailTemplate";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { CombinedSuccessAnimation } from "../components/animations/SuccessAnimation";
@@ -620,6 +621,11 @@ export default function CoachCallups() {
           </CardContent>
         </Card>
       )}
+
+      <PlantillaVaciaAlert
+        categoria={editingCallup?.categoria || selectedCategory}
+        total={players.length}
+      />
 
       {/* Stats compactos */}
       <div className="grid grid-cols-3 gap-3 lg:gap-4">

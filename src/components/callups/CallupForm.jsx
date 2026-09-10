@@ -23,6 +23,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     fecha_partido: "",
     hora_partido: "",
     hora_concentracion: "",
+    fecha_limite_respuesta: "",
     ubicacion: "",
     enlace_ubicacion: "",
     local_visitante: "Local",
@@ -226,7 +227,10 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
       const player = players.find(p => p.id === playerId);
       if (!player) return null;
       const existing = callup?.jugadores_convocados?.find(j => j.jugador_id === playerId);
+      // Conservar ÍNTEGRA la respuesta previa (confirmación, comentario, transporte…)
+      // al editar: editar una convocatoria nunca debe borrar lo que ya respondieron.
       return {
+        ...(existing || {}),
         jugador_id: player.id,
         jugador_nombre: player.nombre,
         email_padre: player.email_padre,
@@ -429,6 +433,19 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   value={currentCallup.hora_concentracion || ""}
                   onChange={(e) => setCurrentCallup({ ...currentCallup, hora_concentracion: e.target.value })}
                 />
+              </div>
+
+              {/* Plazo límite para responder */}
+              <div className="space-y-2">
+                <Label>⏳ Plazo para confirmar (opcional)</Label>
+                <Input
+                  type="datetime-local"
+                  value={currentCallup.fecha_limite_respuesta || ""}
+                  onChange={(e) => setCurrentCallup({ ...currentCallup, fecha_limite_respuesta: e.target.value })}
+                />
+                <p className="text-xs text-slate-500">
+                  Día y hora tope para que las familias confirmen o rechacen. Después seguirán viendo la convocatoria, pero ya no podrán cambiar su respuesta. Puedes modificar el plazo cuando quieras.
+                </p>
               </div>
 
               {/* Local/Visitante */}

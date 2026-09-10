@@ -50,6 +50,10 @@
       "type": "string",
       "description": "Hora de concentraci\u00f3n (ej: 09:30)"
     },
+    "fecha_limite_respuesta": {
+      "type": "string",
+      "description": "Fecha y hora l\u00edmite (formato YYYY-MM-DDTHH:mm, hora local) para que las familias confirmen o rechacen. Pasado el plazo la convocatoria sigue visible pero no se puede responder. Vac\u00edo = sin plazo."
+    },
     "ubicacion": {
       "type": "string",
       "description": "Lugar donde se juega"
@@ -84,6 +88,9 @@
           "email_padre": {
             "type": "string"
           },
+          "email_tutor_2": {
+            "type": "string"
+          },
           "email_jugador": {
             "type": "string"
           },
@@ -99,6 +106,10 @@
           "fecha_confirmacion": {
             "type": "string",
             "format": "date-time"
+          },
+          "confirmado_por": {
+            "type": "string",
+            "description": "Email de la persona (padre, madre, tutor o jugador) que registr\u00f3 la \u00faltima respuesta"
           },
           "comentario": {
             "type": "string"
