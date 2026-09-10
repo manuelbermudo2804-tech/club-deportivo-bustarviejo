@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock, Loader2, Smartphone, Dumbbell, Activity } from "lucide-react";
 import { toast } from "sonner";
+import PlazasCategoriaPanel from "@/components/categories/PlazasCategoriaPanel";
 
 // 9 categorías BASE que NUNCA pueden ser eliminadas
 const BASE_CATEGORIES = [
@@ -371,6 +372,8 @@ export default function CategoryConfigAdmin() {
           </CardContent>
         </Card>
       )}
+
+      <PlazasCategoriaPanel categories={categories.filter(c => c.activa !== false).sort((a, b) => a.nombre.localeCompare(b.nombre))} />
 
       {/* Tabla: 9 CATEGORÍAS BASE */}
       <Card className="border-2 border-green-300">

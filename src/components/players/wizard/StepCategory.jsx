@@ -5,6 +5,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle2, Dumbbell, Info, AlertTriangle } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import useCategoryPlazas from "@/components/categories/useCategoryPlazas";
+import PlazasBadge from "@/components/categories/PlazasBadge";
 
 export default function StepCategory({
   currentPlayer,
@@ -15,6 +17,8 @@ export default function StepCategory({
   onUserChangeCategory
 }) {
   const [categoryConfigs, setCategoryConfigs] = useState([]);
+  const { getEstado } = useCategoryPlazas();
+  const estadoSeleccionada = getEstado(currentPlayer.deporte);
 
   // Cargar configs de categorías para detectar prep. física y complementaria
   useEffect(() => {
@@ -101,11 +105,39 @@ export default function StepCategory({
         <Select value={currentPlayer.deporte} onValueChange={(v) => { if (onUserChangeCategory) onUserChangeCategory(); setCurrentPlayer({ ...currentPlayer, deporte: v }); }}>
           <SelectTrigger className="min-h-[44px]"><SelectValue /></SelectTrigger>
           <SelectContent position="popper" sideOffset={4} className="z-[9999] max-h-[60vh]">
-            {categories.map(cat => <SelectItem key={cat.value} value={cat.value} className="py-3 text-sm cursor-pointer">{cat.label}</SelectItem>)}
+            {categories.map(cat => {
+              const est = getEstado(cat.value);
+              return (
+                <SelectItem
+                  key={cat.value}
+                  value={cat.value}
+                  disabled={est.bloqueada}
+                  className="py-3 text-sm cursor-pointer"
+                >
+                  {cat.label}
+                  {est.cerrada ? " — inscripciones cerradas" : est.completa ? " — COMPLETA" : est.disponibles !== null ? ` — ${est.disponibles} plazas` : ""}
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
+        <div className="flex items-center gap-2 flex-wrap">
+          <PlazasBadge estado={estadoSeleccionada} />
+        </div>
         <p className="text-xs text-slate-500">ℹ️ Categoría auto-seleccionada por edad - puedes cambiarla</p>
       </div>
+
+      {estadoSeleccionada.bloqueada && (
+        <Alert className="bg-red-50 border-2 border-red-300">
+          <AlertTriangle className="h-5 w-5 text-red-600" />
+          <AlertDescription className="text-red-800 text-sm">
+            <strong>{estadoSeleccionada.cerrada ? "Inscripciones cerradas en esta categoría" : "Esta categoría está completa"}</strong>
+            <p className="mt-1 text-xs">
+              No se pueden aceptar más inscripciones aquí por ahora. Escribe al coordinador para que te apunte en lista de espera o te indique otra categoría.
+            </p>
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Banner: Actividad Complementaria */}
       {isComplementaria && (

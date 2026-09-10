@@ -27,6 +27,7 @@ import { trackWizardStep } from "@/lib/diagnosticLogger";
 import { saveFormDraft, loadFormDraft, clearFormDraft, markCameraOpening, checkCameraReload, clearCameraFlag } from "./wizard/useFormPersistence";
 import HelpRequestBanner from "./wizard/HelpRequestBanner";
 import { validators } from "../utils/validators";
+import useCategoryPlazas from "@/components/categories/useCategoryPlazas";
 
 // --- Helpers (same as original PlayerForm) ---
 const calculateAge = (birthDate) => {
@@ -182,6 +183,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   const [uploadFailCount, setUploadFailCount] = useState(0);
 
   const categories = useCategoriesFromConfig();
+  const { getEstado: getEstadoPlazas } = useCategoryPlazas();
 
   // Load categoryConfigs for complementary detection (used by StepAuthorizations)
   const [categoryConfigsData, setCategoryConfigsData] = React.useState([]);
@@ -433,6 +435,14 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       // Validación crítica: si está en modo +18 auto-registro, la fecha DEBE dar 18+
       if (adultMode && currentPlayer.fecha_nacimiento && playerAge !== null && playerAge < 18) {
         errors.fecha_nacimiento = `Esta inscripción es solo para mayores de 18 años. Has indicado ${playerAge} años. Si eres menor, debe inscribirte un padre/madre/tutor desde su cuenta.`;
+      }
+    }
+    if (s === 1 && !isEditing) {
+      const est = getEstadoPlazas(currentPlayer.deporte);
+      if (est.cerrada) {
+        errors.deporte = "Las inscripciones de esta categoría están cerradas. Escribe al coordinador.";
+      } else if (est.completa) {
+        errors.deporte = `Esta categoría está completa (${est.ocupadas}/${est.limite}). Escribe al coordinador para la lista de espera.`;
       }
     }
     if (s === 2) {

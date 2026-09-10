@@ -20,6 +20,15 @@
       "default": false,
       "description": "Si es una de las 9 categor\u00edas BASE (inmutable - nunca se puede borrar)"
     },
+    "plazas_maximas": {
+      "type": "number",
+      "description": "N\u00famero m\u00e1ximo de fichas/plazas de la categor\u00eda. Vac\u00edo o 0 = sin l\u00edmite."
+    },
+    "inscripciones_abiertas": {
+      "type": "boolean",
+      "default": true,
+      "description": "Interruptor manual del club: si es FALSE, no se aceptan nuevas inscripciones en esta categor\u00eda aunque queden plazas."
+    },
     "es_actividad_complementaria": {
       "type": "boolean",
       "default": false,
