@@ -53,6 +53,7 @@ export default function ListingForm({ listing, open, onClose, onSaved }) {
   const submit = async (e) => {
     e.preventDefault();
     if (!form.vendedor_telefono?.trim()) { alert('El teléfono es obligatorio.'); return; }
+    if (!(form.imagenes || []).length) { alert('Debes añadir al menos una foto del artículo para poder publicarlo.'); return; }
     setSaving(true);
     const me = await base44.auth.me().catch(() => null);
     const payload = {
@@ -106,7 +107,12 @@ export default function ListingForm({ listing, open, onClose, onSaved }) {
 
           {/* Fotos */}
           <div className="space-y-2">
-            <label className="text-sm font-medium text-slate-700">📷 Fotos del artículo</label>
+            <label className="text-sm font-medium text-slate-700">📷 Fotos del artículo <span className="text-red-600">*</span></label>
+            {!(form.imagenes || []).length && (
+              <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg p-2">
+                ⚠️ Es obligatorio añadir al menos una foto para publicar el anuncio.
+              </p>
+            )}
             <div className="flex gap-2 flex-wrap">
               {(form.imagenes || []).map((url, idx) => (
                 <div key={idx} className="relative w-20 h-20 rounded-lg overflow-hidden border group">

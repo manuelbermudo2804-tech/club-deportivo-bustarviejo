@@ -10,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Plus, X, Filter, ShoppingBag, Gift, Tag } from "lucide-react";
 import { toast } from "sonner";
 import ListingForm from "../components/market/ListingForm";
+import MarketListingCard from "../components/market/MarketListingCard";
+import MercadilloAdminPanel from "../components/market/MercadilloAdminPanel";
+import { reservarArticulo, marcarVendido, liberarReserva, esVendido, vendidoReciente, DIAS_VISIBLE_VENDIDO } from "../components/market/marketActions";
 
 const CATEGORIES = ['Fútbol','Baloncesto','Equipación','Calzado','Protecciones','Accesorios','Otro Deportivo'];
 
@@ -28,12 +31,24 @@ export default function Mercadillo() {
   const [visibleCount, setVisibleCount] = useState(20);
   const sentinelRef = useRef(null);
 
+  const [allListings, setAllListings] = useState([]);
+
   const load = async () => {
     const u = await base44.auth.me().catch(() => null);
     setUser(u);
-    const data = await base44.entities.MarketListing.filter({ $or: [{ estado: 'activo' }, { estado: 'reservado' }] });
-    setListings(data || []);
+    const data = (await base44.entities.MarketListing.list('-created_date', 300)) || [];
+    setAllListings(data);
+    // Visibles para todos: publicados, reservados y los vendidos de los últimos días.
+    // Cada uno ve además sus propios anuncios pendientes de revisión.
+    setListings(data.filter((l) => {
+      if (l.estado === 'activo' || l.estado === 'reservado') return true;
+      if (esVendido(l)) return vendidoReciente(l);
+      if (l.estado === 'pendiente') return u && (l.vendedor_email === u.email || l.created_by === u.email);
+      return false;
+    }));
   };
+
+  const isAdmin = user?.role === 'admin';
 
   useEffect(() => { load(); }, []);
 
@@ -46,32 +61,22 @@ export default function Mercadillo() {
 
   const reserve = async (item) => {
     if (!user) { toast.error('Debes estar conectado para reservar'); return; }
-    const comprador_nombre = user.full_name || user.email;
-    await base44.entities.MarketReservation.create({
-      listing_id: item.id, comprador_nombre, comprador_email: user.email,
-      comprador_telefono: user.telefono || '', mensaje: 'Reserva desde la app', fecha: new Date().toISOString()
-    });
-    await base44.entities.MarketListing.update(item.id, {
-      estado: 'reservado', reservado_por_email: user.email,
-      reservado_por_nombre: comprador_nombre, reservado_fecha: new Date().toISOString()
-    });
-    const vendedorEmail = item.vendedor_email || item.created_by;
-    if (vendedorEmail) {
-      await base44.entities.AppNotification.create({
-        usuario_email: vendedorEmail, titulo: `Reserva: ${item.titulo}`,
-        mensaje: `${comprador_nombre} ha reservado tu anuncio.`, tipo: 'importante', icono: '🛍️',
-        enlace: typeof window !== 'undefined' ? window.location.href : ''
-      });
-    }
-    await base44.integrations.Core.SendEmail({
-      to: item.vendedor_email, subject: `Nueva reserva: ${item.titulo}`,
-      body: `${comprador_nombre} ha reservado tu anuncio: ${item.titulo}.\n\nContacto:\n- Email: ${user.email}\n- Teléfono: ${user.telefono || ''}\n\nCD Bustarviejo`
-    });
-    await base44.integrations.Core.SendEmail({
-      to: user.email, subject: `Has reservado: ${item.titulo}`,
-      body: `Hemos avisado al vendedor (${item.vendedor_nombre || item.vendedor_email}).\nAnuncio: ${item.titulo} · ${Number(item.precio||0).toFixed(2)} €\n\nCD Bustarviejo`
-    });
+    await reservarArticulo(item, user);
     toast.success('¡Reserva enviada! Hemos avisado al vendedor.');
+    await load();
+  };
+
+  const markSold = async (item) => {
+    const esDonacion = item.tipo === 'donacion';
+    if (!window.confirm(esDonacion ? `¿Confirmas que has ENTREGADO "${item.titulo}"?` : `¿Confirmas que has VENDIDO "${item.titulo}"?`)) return;
+    await marcarVendido(item, user?.email);
+    toast.success(esDonacion ? 'Marcado como entregado' : 'Marcado como vendido');
+    await load();
+  };
+
+  const release = async (item) => {
+    await liberarReserva(item);
+    toast.success('Reserva liberada, el artículo vuelve a estar disponible');
     await load();
   };
 
@@ -211,16 +216,25 @@ export default function Mercadillo() {
             {overdueMine.slice(0, 3).map((it) => (
               <div key={it.id} className="flex items-center justify-between gap-2 bg-white rounded-lg p-2 border border-yellow-200">
                 <span className="truncate text-sm font-medium">{it.titulo}</span>
-                <div className="flex gap-1.5 flex-shrink-0">
-                  {it.tipo === 'donacion' && (
-                    <Button size="sm" variant="outline" className="border-green-500 text-green-700 text-xs h-7" onClick={async () => { await base44.entities.MarketListing.update(it.id, { estado: 'entregado' }); await load(); }}>Entregado</Button>
-                  )}
-                  <Button size="sm" variant="destructive" className="text-xs h-7" onClick={async () => { await base44.entities.MarketListing.update(it.id, { estado: 'vendido' }); await load(); }}>Vendido</Button>
+                <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                  {it.reservado_por_nombre && <span className="text-[11px]">Reservado por <b>{it.reservado_por_nombre}</b></span>}
+                  <Button size="sm" className="bg-slate-900 hover:bg-slate-800 text-xs h-7" onClick={() => markSold(it)}>
+                    {it.tipo === 'donacion' ? 'Entregado' : 'Vendido'}
+                  </Button>
                 </div>
               </div>
             ))}
           </CardContent>
         </Card>
+      )}
+
+      {isAdmin && (
+        <MercadilloAdminPanel
+          listings={allListings}
+          user={user}
+          onEdit={(it) => { setEditing(it); setShowForm(true); }}
+          onChanged={load}
+        />
       )}
 
       {/* Grid de anuncios */}
@@ -235,70 +249,18 @@ export default function Mercadillo() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
-          {filtered.slice(0, visibleCount).map(item => {
-            const firstImg = Array.isArray(item.imagenes) && item.imagenes[0] ? item.imagenes[0] : null;
-            const isNew = (() => { try { return (Date.now() - new Date(item.created_date).getTime()) < 7*24*60*60*1000; } catch { return false; }})();
-            const price = item.tipo === 'donacion' || Number(item.precio||0) === 0 ? 'GRATIS' : `${Number(item.precio||0).toFixed(0)} €`;
-            const isMine = user && (item.created_by === user.email || item.vendedor_email === user.email);
-            const isReserved = item.estado === 'reservado';
-
-            return (
-              <Card key={item.id} className={`overflow-hidden transition-all hover:shadow-lg group ${isReserved ? 'opacity-70' : ''}`}>
-                <Link to={createPageUrl(`MarketListingDetail?id=${item.id}`)}>
-                  <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden">
-                    {firstImg ? (
-                      <img src={firstImg} alt={item.titulo} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                    ) : (
-                      <div className="h-full w-full grid place-items-center text-5xl text-slate-300">📦</div>
-                    )}
-                    <div className="absolute top-2 left-2 flex gap-1 flex-wrap">
-                      {item.tipo === 'donacion' && (
-                        <Badge className="bg-green-500 text-white border-none text-[10px] px-1.5 py-0">🎁 Gratis</Badge>
-                      )}
-                      {isNew && <Badge className="bg-blue-500 text-white border-none text-[10px] px-1.5 py-0">Nuevo</Badge>}
-                      {isReserved && <Badge className="bg-yellow-500 text-white border-none text-[10px] px-1.5 py-0">Reservado</Badge>}
-                    </div>
-                    <div className="absolute bottom-2 right-2">
-                      <span className={`text-sm font-black px-2.5 py-1 rounded-full shadow-lg ${price === 'GRATIS' ? 'bg-green-500 text-white' : 'bg-white/95 text-slate-900'}`}>
-                        {price}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-
-                <CardContent className="p-3 space-y-2">
-                  <Link to={createPageUrl(`MarketListingDetail?id=${item.id}`)} className="block">
-                    <h3 className="font-bold text-sm truncate hover:text-orange-600 transition-colors">{item.titulo}</h3>
-                  </Link>
-                  <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
-                    <span className="bg-slate-100 px-1.5 py-0.5 rounded">{item.categoria}</span>
-                    <span>·</span>
-                    <span className="truncate">{item.vendedor_nombre || 'Anónimo'}</span>
-                  </div>
-
-                  <div className="flex gap-1.5 pt-1">
-                    {isMine ? (
-                      <>
-                        <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => { setEditing(item); setShowForm(true); }}>Editar</Button>
-                        {item.tipo === 'donacion' ? (
-                          <Button size="sm" className="flex-1 bg-green-600 hover:bg-green-700 text-xs h-8" onClick={async () => { await base44.entities.MarketListing.update(item.id, { estado: 'entregado' }); await load(); }}>Entregado</Button>
-                        ) : (
-                          <Button size="sm" variant="destructive" className="flex-1 text-xs h-8" onClick={async () => { await base44.entities.MarketListing.update(item.id, { estado: 'vendido' }); await load(); }}>Vendido</Button>
-                        )}
-                        {isReserved && (
-                          <Button variant="outline" size="sm" className="text-xs h-8 border-blue-400 text-blue-600" onClick={async () => { await base44.entities.MarketListing.update(item.id, { estado: 'activo', reservado_por_email: '', reservado_por_nombre: '', reservado_fecha: '' }); await load(); }}>Liberar</Button>
-                        )}
-                      </>
-                    ) : (
-                      <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700 text-xs h-8 disabled:opacity-50" disabled={isReserved} onClick={() => reserve(item)}>
-                        {isReserved ? '🔒 Reservado' : '🛒 Reservar'}
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+          {filtered.slice(0, visibleCount).map(item => (
+            <MarketListingCard
+              key={item.id}
+              item={item}
+              user={user}
+              isAdmin={isAdmin}
+              onEdit={(it) => { setEditing(it); setShowForm(true); }}
+              onReserve={reserve}
+              onSold={markSold}
+              onRelease={release}
+            />
+          ))}
         </div>
       )}
 
@@ -312,8 +274,10 @@ export default function Mercadillo() {
         <p className="font-bold text-sm text-slate-700">ℹ️ Normas del Mercadillo</p>
         <ul className="text-xs text-slate-600 space-y-1 list-disc list-inside">
           <li>Solo material deportivo (equipación, calzado, protecciones, accesorios).</li>
-          <li>Al reservar, el vendedor recibe un email con tus datos para contactarte.</li>
-          <li>El vendedor puede editar o retirar su anuncio en cualquier momento.</li>
+          <li>Es obligatorio subir al menos una foto del artículo.</li>
+          <li>Al reservar, el vendedor recibe un email con tu nombre y teléfono para contactarte.</li>
+          <li>Reservar no es comprar: cuando entregues el artículo, pulsa «Vendido» para cerrar el anuncio.</li>
+          <li>Los artículos vendidos siguen visibles {DIAS_VISIBLE_VENDIDO} días con el cartel «VENDIDO» y luego desaparecen.</li>
         </ul>
       </div>
 

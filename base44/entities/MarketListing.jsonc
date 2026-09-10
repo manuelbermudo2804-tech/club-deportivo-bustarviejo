@@ -36,17 +36,21 @@
       "type": "array",
       "items": {
         "type": "string"
-      }
+      },
+      "description": "Fotos del art\u00edculo. Obligatorio al menos una para publicar."
     },
     "estado": {
       "type": "string",
       "enum": [
+        "pendiente",
         "activo",
         "reservado",
         "vendido",
-        "entregado"
+        "entregado",
+        "cancelado"
       ],
-      "default": "activo"
+      "default": "activo",
+      "description": "pendiente = a revisar por el club; activo = publicado; reservado; vendido; entregado (donaciones); cancelado = retirado"
     },
     "vendedor_nombre": {
       "type": "string"
@@ -63,6 +67,10 @@
     "reservado_por_nombre": {
       "type": "string"
     },
+    "reservado_por_telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono de contacto de quien reserva"
+    },
     "reservado_fecha": {
       "type": "string",
       "format": "date-time"
@@ -76,6 +84,29 @@
       "type": "string",
       "format": "date-time",
       "description": "\u00daltimo email/notificaci\u00f3n de recordatorio enviado al vendedor"
+    },
+    "vendido_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha en que el vendedor puls\u00f3 VENDIDO / ENTREGADO. Se usa para mantenerlo visible unos d\u00edas con el cartel VENDIDO."
+    },
+    "comprador_final_nombre": {
+      "type": "string",
+      "description": "Persona a la que finalmente se vendi\u00f3/entreg\u00f3 el art\u00edculo"
+    },
+    "comprador_final_email": {
+      "type": "string"
+    },
+    "notas_admin": {
+      "type": "string",
+      "description": "Notas internas del club sobre este anuncio"
+    },
+    "cancelado_por": {
+      "type": "string",
+      "description": "Email de quien retir\u00f3 o cancel\u00f3 el anuncio"
+    },
+    "motivo_cancelacion": {
+      "type": "string"
     }
   },
   "required": [

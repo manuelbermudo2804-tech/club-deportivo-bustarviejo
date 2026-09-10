@@ -7,6 +7,7 @@ import { createPageUrl } from "@/utils";
 
 export default function MarketListingDetail() {
   const [listing, setListing] = useState(null);
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -14,7 +15,11 @@ export default function MarketListingDetail() {
       const params = new URLSearchParams(window.location.search);
       const id = params.get("id");
       if (!id) { setLoading(false); return; }
-      const rows = await base44.entities.MarketListing.filter({ id });
+      const [rows, me] = await Promise.all([
+        base44.entities.MarketListing.filter({ id }),
+        base44.auth.me().catch(() => null),
+      ]);
+      setUser(me);
       setListing(rows && rows[0] ? rows[0] : null);
       setLoading(false);
     };
@@ -87,6 +92,25 @@ export default function MarketListingDetail() {
           )}
         </CardContent>
       </Card>
+
+      {(listing.reservado_por_email || listing.comprador_final_email) && (user?.role === 'admin' || user?.email === listing.vendedor_email || user?.email === listing.created_by) && (
+        <Card className="border-yellow-300 bg-yellow-50">
+          <CardHeader>
+            <CardTitle className="text-lg">
+              {listing.estado === 'reservado' ? '🛍️ Reservado por' : (listing.estado === 'entregado' ? '✅ Entregado a' : '✅ Vendido a')}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-slate-800 text-sm">
+            <p><span className="font-semibold">Nombre:</span> {listing.reservado_por_nombre || listing.comprador_final_nombre || '—'}</p>
+            <p><span className="font-semibold">Email:</span> {listing.reservado_por_email || listing.comprador_final_email}</p>
+            {listing.reservado_por_telefono && <p><span className="font-semibold">Teléfono:</span> {listing.reservado_por_telefono}</p>}
+            {listing.reservado_fecha && <p><span className="font-semibold">Fecha de reserva:</span> {new Date(listing.reservado_fecha).toLocaleString('es-ES')}</p>}
+            {listing.estado === 'reservado' && (
+              <p className="pt-1 text-yellow-900 font-semibold">Cuando le entregues el artículo, vuelve al Mercadillo y pulsa «Vendido».</p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>
