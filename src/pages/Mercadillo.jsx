@@ -27,6 +27,7 @@ export default function Mercadillo() {
   const [category, setCategory] = useState('todas');
   const [priceMin, setPriceMin] = useState('');
   const [priceMax, setPriceMax] = useState('');
+  const [talla, setTalla] = useState('');
   const [q, setQ] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [visibleCount, setVisibleCount] = useState(20);
@@ -59,7 +60,7 @@ export default function Mercadillo() {
     setNewCount(listings.length > lastSeen ? (listings.length - lastSeen) : 0);
   }, [listings]);
 
-  useEffect(() => { setVisibleCount(20); }, [filter, category, priceMin, priceMax, q, listings]);
+  useEffect(() => { setVisibleCount(20); }, [filter, category, priceMin, priceMax, q, talla, listings]);
 
   const reserve = (item) => {
     if (!user) { toast.error('Debes estar conectado para reservar'); return; }
@@ -106,12 +107,14 @@ export default function Mercadillo() {
     const typeMatch = filter === 'todos' || l.tipo === filter;
     const categoryMatch = category === 'todas' || l.categoria === category;
     const keyword = q.trim().toLowerCase();
-    const keywordMatch = !keyword || (l.titulo?.toLowerCase().includes(keyword) || l.descripcion?.toLowerCase().includes(keyword));
+    const keywordMatch = !keyword || (l.titulo?.toLowerCase().includes(keyword) || l.descripcion?.toLowerCase().includes(keyword) || l.talla?.toLowerCase().includes(keyword));
+    const tallaQ = talla.trim().toLowerCase();
+    const tallaMatch = !tallaQ || (l.talla || '').toLowerCase().includes(tallaQ);
     let priceMatch = true;
     const p = Number(l.precio || 0);
     if (priceMin !== '' && l.tipo === 'venta' && p < Number(priceMin)) priceMatch = false;
     if (priceMax !== '' && l.tipo === 'venta' && p > Number(priceMax)) priceMatch = false;
-    return typeMatch && categoryMatch && keywordMatch && priceMatch;
+    return typeMatch && categoryMatch && keywordMatch && priceMatch && tallaMatch;
   });
 
   useEffect(() => {
@@ -138,8 +141,8 @@ export default function Mercadillo() {
     });
   })();
 
-  const hasActiveFilters = filter !== 'todos' || category !== 'todas' || priceMin !== '' || priceMax !== '' || q !== '';
-  const clearFilters = () => { setCategory('todas'); setFilter('todos'); setPriceMin(''); setPriceMax(''); setQ(''); };
+  const hasActiveFilters = filter !== 'todos' || category !== 'todas' || priceMin !== '' || priceMax !== '' || q !== '' || talla !== '';
+  const clearFilters = () => { setCategory('todas'); setFilter('todos'); setPriceMin(''); setPriceMax(''); setQ(''); setTalla(''); };
 
   const statsVenta = listings.filter(l => l.tipo === 'venta' && l.estado === 'activo').length;
   const statsDonacion = listings.filter(l => l.tipo === 'donacion' && l.estado === 'activo').length;
@@ -215,6 +218,7 @@ export default function Mercadillo() {
                 <SelectItem value="donacion">🎁 Donación</SelectItem>
               </SelectContent>
             </Select>
+            <Input placeholder="Talla (ej: 38, M)" value={talla} onChange={(e) => setTalla(e.target.value)} className="text-sm" />
             <Input type="number" min="0" step="0.01" placeholder="Precio mín." value={priceMin} onChange={(e) => setPriceMin(e.target.value)} className="text-sm" />
             <Input type="number" min="0" step="0.01" placeholder="Precio máx." value={priceMax} onChange={(e) => setPriceMax(e.target.value)} className="text-sm" />
           </div>

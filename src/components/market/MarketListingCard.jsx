@@ -60,6 +60,7 @@ export default function MarketListingCard({ item, user, isAdmin, onEdit, onReser
         </Wrapper>
         <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
           <span className="bg-slate-100 px-1.5 py-0.5 rounded">{item.categoria}</span>
+          {item.talla && <span className="bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-semibold">Talla {item.talla}</span>}
           <span>·</span>
           <span className="truncate">{item.vendedor_nombre || 'Anónimo'}</span>
         </div>

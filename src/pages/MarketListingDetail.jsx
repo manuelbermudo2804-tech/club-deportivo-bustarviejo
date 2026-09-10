@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { MessageCircle, Mail } from "lucide-react";
+import ShareListingButton from "@/components/market/ShareListingButton";
 
 export default function MarketListingDetail() {
   const [listing, setListing] = useState(null);
@@ -86,7 +87,10 @@ export default function MarketListingDetail() {
     <div className="max-w-4xl mx-auto p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-extrabold flex items-center gap-3">{listing.titulo}{listing.estado === 'reservado' && (<span className="text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 border border-yellow-200">Reservado</span>)}{listing.estado === 'entregado' && (<span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700 border border-green-200">Entregado</span>)}</h1>
-        <Link to={createPageUrl("Mercadillo")}><Button variant="outline">Volver</Button></Link>
+        <div className="flex items-center gap-2">
+          {!esVendidoYa && <ShareListingButton listing={listing} />}
+          <Link to={createPageUrl("Mercadillo")}><Button variant="outline">Volver</Button></Link>
+        </div>
       </div>
 
       <Card className="overflow-hidden">
@@ -109,6 +113,7 @@ export default function MarketListingDetail() {
         </CardHeader>
         <CardContent className="space-y-2 text-slate-700">
           <p><span className="font-semibold">Categoría:</span> {listing.categoria}</p>
+          {listing.talla && <p><span className="font-semibold">Talla:</span> {listing.talla}</p>}
           <p><span className="font-semibold">Tipo:</span> {listing.tipo === 'donacion' ? 'Donación' : 'Venta'}</p>
           <p><span className="font-semibold">Precio:</span> {priceText}</p>
           {listing.descripcion && (

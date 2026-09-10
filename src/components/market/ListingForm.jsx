@@ -11,7 +11,7 @@ const CATEGORIES = ['Fútbol','Baloncesto','Equipación','Calzado','Protecciones
 
 export default function ListingForm({ listing, open, onClose, onSaved }) {
   const [form, setForm] = useState({
-    titulo: "", descripcion: "", categoria: "Equipación",
+    titulo: "", descripcion: "", categoria: "Equipación", talla: "",
     tipo: "venta", precio: 0, imagenes: [],
     vendedor_nombre: "", vendedor_email: "", vendedor_telefono: ""
   });
@@ -26,7 +26,7 @@ export default function ListingForm({ listing, open, onClose, onSaved }) {
         setForm({ ...listing });
       } else {
         setForm({
-          titulo: "", descripcion: "", categoria: "Equipación",
+          titulo: "", descripcion: "", categoria: "Equipación", talla: "",
           tipo: "venta", precio: 0, imagenes: [],
           vendedor_nombre: me?.full_name || "",
           vendedor_email: me?.email || "",
@@ -96,6 +96,11 @@ export default function ListingForm({ listing, open, onClose, onSaved }) {
                 <SelectItem value="donacion">🎁 Donación</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+
+          <div>
+            <label className="text-xs font-medium text-slate-600 mb-1 block">Talla</label>
+            <Input placeholder="Ej: 38, M, 10 años (déjalo vacío si no aplica)" value={form.talla || ''} onChange={e => handle('talla', e.target.value)} />
           </div>
 
           {form.tipo === 'venta' && (
