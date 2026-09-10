@@ -38,6 +38,14 @@ Deno.serve(async (req) => {
         return Response.json({ skipped: true, reason: 'solo_cambios_propios_anti_bucle' });
       }
 
+      // PROTECCIÓN DE PAGOS: un cambio de correo o de vinculación NO debe mover importes.
+      // Solo recalculamos automáticamente si cambió algo que realmente afecta al descuento
+      // (alta/baja, renovación o fecha de nacimiento). El resto se hace a mano por admin.
+      const CAMPOS_RELEVANTES = ['activo', 'estado_renovacion', 'fecha_nacimiento'];
+      if (changed.length > 0 && !changed.some((f) => CAMPOS_RELEVANTES.includes(f))) {
+        return Response.json({ skipped: true, reason: 'cambio_no_afecta_descuentos' });
+      }
+
       // Automation: recoger emails del jugador modificado
       if (automationData.email_padre) emailsAfectados.add(String(automationData.email_padre).toLowerCase());
       if (automationData.email_tutor_2) emailsAfectados.add(String(automationData.email_tutor_2).toLowerCase());
@@ -74,7 +82,15 @@ Deno.serve(async (req) => {
       const cuotas = getCuotas(player.categoria_principal || player.deporte);
       if (!cuotas) return null;
       const pagos = await base44.asServiceRole.entities.Payment.filter({ jugador_id: player.id }).catch(() => []);
-      const candidatos = pagos.filter(p => !p.is_deleted && p.estado === 'Pendiente' && (p.tipo_pago === 'Único' || p.mes === 'Junio'));
+      // Nunca tocamos: pagos borrados, pagados, en revisión, anulados,
+      // ni planes especiales / suscripciones mensuales.
+      const candidatos = pagos.filter(p =>
+        !p.is_deleted &&
+        p.estado === 'Pendiente' &&
+        p.tipo_pago !== 'Plan Especial' &&
+        p.tipo_pago !== 'Plan Mensual' &&
+        (p.tipo_pago === 'Único' || p.mes === 'Junio')
+      );
       const ajustes = [];
       for (const pago of candidatos) {
         const base = pago.tipo_pago === 'Único' ? cuotas.total : cuotas.inscripcion;
