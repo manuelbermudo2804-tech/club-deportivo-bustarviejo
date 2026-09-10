@@ -9,6 +9,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Users, AlertCircle, ChevronDown, ChevronUp, Clock, Loader2, Sparkles, Info, CheckCircle2, Send, KeyRound } from "lucide-react";
 import { toast } from "sonner";
 import EmailInputWithTypoCheck from "@/components/ui/EmailInputWithTypoCheck";
+import { validarEmailSegundoProgenitor } from "@/lib/emailFamilyValidation";
 
 export default function SecondParentSection({ 
   currentPlayer, 
@@ -94,6 +95,11 @@ export default function SecondParentSection({
       toast.error("Introduce el email del segundo progenitor");
       return;
     }
+    const conflicto = validarEmailSegundoProgenitor(currentPlayer.email_tutor_2, currentPlayer);
+    if (conflicto) {
+      toast.error(conflicto);
+      return;
+    }
     if (!currentPlayer.id) {
       toast.info("Primero guarda el jugador, luego podrás enviar la invitación");
       return;
@@ -128,6 +134,8 @@ export default function SecondParentSection({
       setIsSendingInvitation(false);
     }
   };
+
+  const emailTutor2Conflicto = validarEmailSegundoProgenitor(currentPlayer.email_tutor_2, currentPlayer);
 
   const hasCompleteSecondParent = currentPlayer.nombre_tutor_2 && 
                                    currentPlayer.email_tutor_2 && 
@@ -281,6 +289,9 @@ export default function SecondParentSection({
                   onChange={(e) => setCurrentPlayer({...currentPlayer, email_tutor_2: e.target.value})}
                   placeholder="padre@ejemplo.com"
                 />
+                {emailTutor2Conflicto && (
+                  <p className="text-xs text-red-600 font-medium">⚠️ {emailTutor2Conflicto}</p>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -318,7 +329,7 @@ export default function SecondParentSection({
                   <Button
                     type="button"
                     onClick={sendInvitation}
-                    disabled={isSendingInvitation || !currentPlayer.email_tutor_2?.trim()}
+                    disabled={isSendingInvitation || !currentPlayer.email_tutor_2?.trim() || !!emailTutor2Conflicto}
                     className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white py-5 font-bold"
                   >
                     {isSendingInvitation ? (

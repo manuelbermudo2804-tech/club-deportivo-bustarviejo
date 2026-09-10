@@ -8,6 +8,7 @@ import { ShieldCheck, ShieldX, Mail, Clock, FolderSearch, CheckCircle2, Loader2,
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import EmailInputWithTypoCheck from "@/components/ui/EmailInputWithTypoCheck";
+import { validarEmailJugador } from "@/lib/emailFamilyValidation";
 
 const CONSENTIMIENTO_VERSION = "v1.0";
 
@@ -49,10 +50,15 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
 
   const edad = calcularEdad(player?.fecha_nacimiento);
   const esElegible = edad >= 13 && edad < 18;
+  const emailConflicto = validarEmailJugador(email, player);
 
   const handleSubmit = async () => {
     if (!email || !email.includes("@")) {
       toast.error("Introduce un email válido");
+      return;
+    }
+    if (emailConflicto) {
+      toast.error(emailConflicto);
       return;
     }
     if (!consentimiento) {
@@ -196,8 +202,15 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
                 className="text-lg py-6"
               />
               <p className="text-xs text-slate-500 mt-1">
-                Recibirá un email con un código de acceso para registrarse
+                Este será el correo con el que tu hijo/a entrará en la app: debe ser suyo y distinto al de los padres.
               </p>
+              {emailConflicto && (
+                <Alert className="border-red-300 bg-red-50 mt-2">
+                  <AlertDescription className="text-red-800 text-sm">
+                    ⚠️ {emailConflicto}
+                  </AlertDescription>
+                </Alert>
+              )}
             </div>
 
             <Alert className="border-yellow-200 bg-yellow-50">
@@ -226,7 +239,7 @@ export default function MinorAccessDialog({ open, onOpenChange, player, parentUs
 
             <Button
               onClick={handleSubmit}
-              disabled={!email || !consentimiento || loading}
+              disabled={!email || !consentimiento || loading || !!emailConflicto}
               className="w-full bg-green-600 hover:bg-green-700 py-6 text-lg font-bold disabled:opacity-50"
             >
               {loading ? (
