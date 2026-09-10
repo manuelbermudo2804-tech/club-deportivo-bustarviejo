@@ -176,6 +176,19 @@ Deno.serve(async (req) => {
 
     await base44.asServiceRole.entities.User.update(user.id, updateData);
 
+    // Jugador adulto: dejar la ficha marcada como acceso propio autorizado
+    if (accessCode.tipo === 'jugador_adulto' && accessCode.jugador_id) {
+      try {
+        await base44.asServiceRole.entities.Player.update(accessCode.jugador_id, {
+          email_jugador: userEmail,
+          acceso_jugador_autorizado: true,
+          es_mayor_edad: true
+        });
+      } catch (e) {
+        console.error('[validateAccessCode] No se pudo marcar la ficha del jugador adulto:', e.message);
+      }
+    }
+
     return Response.json({ 
       valid: true, 
       tipo: accessCode.tipo,
