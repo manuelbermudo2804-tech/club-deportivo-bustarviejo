@@ -36,28 +36,36 @@ export default function ConvocatoriaBlockBanner({ players = [] }) {
           <div className="flex-1 space-y-3">
             {isBlocked && (
               <div>
-                <h3 className="font-bold text-red-900">No entra en las convocatorias</h3>
+                <h3 className="font-bold text-red-900">Cuota pendiente: participación en pausa</h3>
                 <p className="text-sm text-red-800 mt-1">
-                  <strong>{nombres(bloqueados)}</strong>: hasta que no esté al corriente de pago
-                  <strong> no entrará en las convocatorias de partido</strong>. En cuanto se
-                  regularice la cuota, vuelve a entrar con normalidad.
+                  Hola, os escribimos por <strong>{nombres(bloqueados)}</strong>. Mientras la cuota siga
+                  pendiente, de momento no entrará en las convocatorias de partido. En cuanto quede
+                  regularizada, vuelve a entrar con total normalidad. Gracias por vuestra comprensión.
                 </p>
               </div>
             )}
 
             {avisados.length > 0 && (
               <div>
-                <h3 className="font-bold text-amber-900">Recordatorio de cuota pendiente</h3>
+                <h3 className="font-bold text-amber-900">Recordatorio amable de cuota pendiente</h3>
                 <p className="text-sm text-amber-800 mt-1">
-                  <strong>{nombres(avisados)}</strong> tiene una cuota pendiente. Por favor,
-                  regularízala para evitar quedarse fuera de las convocatorias.
+                  Hola, nos consta una cuota pendiente de <strong>{nombres(avisados)}</strong>. Si ya la
+                  habéis abonado, avisadnos y lo revisamos encantados. Muchas gracias.
                 </p>
               </div>
             )}
 
             <p className="text-xs text-slate-600">
-              Si tenéis alguna dificultad para pagar, escribidnos: buscamos una solución
-              (plan de pago o beca). No habléis de esto con el entrenador, él no gestiona los pagos.
+              Si en este momento os resulta difícil afrontar el pago, escribidnos con confianza y
+              buscamos juntos la mejor solución. Estamos aquí para ayudaros:{" "}
+              <a href="mailto:info@clubdeportivobustarviejo.com" className="underline font-medium">
+                info@clubdeportivobustarviejo.com
+              </a>{" "}
+              o{" "}
+              <a href="mailto:info@cdbustarviejo.com" className="underline font-medium">
+                info@cdbustarviejo.com
+              </a>
+              .
             </p>
 
             <Link to={createPageUrl("ParentPayments")}>
