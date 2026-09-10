@@ -52,7 +52,9 @@ export function useStaffPlayers(user, { onlyActive = false, enabled = true, quer
     enabled: enabled && !!user,
     staleTime: 30_000,
     refetchOnMount: "always",
-    initialData: [],
+    // placeholderData (en vez de initialData) para que `isLoading` sea fiable:
+    // así las pantallas pueden mostrar "cargando plantilla" en vez de "0 jugadores".
+    placeholderData: [],
   });
 }
 

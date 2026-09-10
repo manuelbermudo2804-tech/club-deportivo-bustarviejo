@@ -129,7 +129,7 @@ export default function CoachCallups() {
 
   // Hook unificado: garantiza que cualquier staff (admin/entrenador/coordinador)
   // recibe la lista completa de jugadores vía getStaffPlayers (service role).
-  const { data: allPlayers } = useStaffPlayers(user, { queryKeyExtra: 'callups' });
+  const { data: allPlayers, isLoading: playersLoading, refetch: refetchPlayers } = useStaffPlayers(user, { queryKeyExtra: 'callups' });
 
   const { data: allPayments = [] } = useQuery({
     queryKey: ['payments-callup'],
@@ -543,8 +543,10 @@ export default function CoachCallups() {
   }
 
   // Determine if user can create callups
-  const canCreateCallup = (user?.role === "admin" && selectedCategory && selectedCategory !== "all") || 
-    (user?.es_entrenador && selectedCategory && selectedCategory !== "all" && selectedCategory !== "admin");
+  const canCreateCallup = !playersLoading && (
+    (user?.role === "admin" && selectedCategory && selectedCategory !== "all") ||
+    (user?.es_entrenador && selectedCategory && selectedCategory !== "all" && selectedCategory !== "admin")
+  );
 
   return (
     <>
@@ -625,6 +627,8 @@ export default function CoachCallups() {
       <PlantillaVaciaAlert
         categoria={editingCallup?.categoria || selectedCategory}
         total={players.length}
+        cargando={playersLoading}
+        onReintentar={refetchPlayers}
       />
 
       {/* Stats compactos */}
