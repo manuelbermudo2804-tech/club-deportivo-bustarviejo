@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { MessageCircle, Mail } from "lucide-react";
 
 export default function MarketListingDetail() {
   const [listing, setListing] = useState(null);
@@ -54,6 +55,10 @@ export default function MarketListingDetail() {
   const images = Array.isArray(listing.imagenes) ? listing.imagenes : [];
   const phoneDigits = (listing.vendedor_telefono || '').replace(/\D/g, '');
   const waUrl = phoneDigits ? `https://wa.me/${phoneDigits}?text=${encodeURIComponent('Hola, estoy interesado en tu anuncio: ' + listing.titulo)}` : null;
+  const compradorDigits = (listing.reservado_por_telefono || '').replace(/\D/g, '');
+  const compradorWaUrl = compradorDigits
+    ? `https://wa.me/${compradorDigits.length === 9 ? '34' + compradorDigits : compradorDigits}?text=${encodeURIComponent('Hola ' + (listing.reservado_por_nombre || '') + ', te escribo por el artículo del Mercadillo del club: ' + listing.titulo)}`
+    : null;
 
   return (
     <div className="max-w-4xl mx-auto p-6 space-y-4">
@@ -102,9 +107,31 @@ export default function MarketListingDetail() {
           </CardHeader>
           <CardContent className="space-y-1 text-slate-800 text-sm">
             <p><span className="font-semibold">Nombre:</span> {listing.reservado_por_nombre || listing.comprador_final_nombre || '—'}</p>
-            <p><span className="font-semibold">Email:</span> {listing.reservado_por_email || listing.comprador_final_email}</p>
-            {listing.reservado_por_telefono && <p><span className="font-semibold">Teléfono:</span> {listing.reservado_por_telefono}</p>}
+            <p>
+              <span className="font-semibold">Email:</span>{" "}
+              <a className="text-orange-600 hover:underline" href={`mailto:${listing.reservado_por_email || listing.comprador_final_email}`}>
+                {listing.reservado_por_email || listing.comprador_final_email}
+              </a>
+            </p>
+            {listing.reservado_por_telefono
+              ? <p><span className="font-semibold">Teléfono:</span> {listing.reservado_por_telefono}</p>
+              : <p className="text-slate-600">Esta reserva se hizo antes de que pidiéramos el teléfono, así que solo tienes su email. Las nuevas reservas ya incluyen teléfono.</p>}
             {listing.reservado_fecha && <p><span className="font-semibold">Fecha de reserva:</span> {new Date(listing.reservado_fecha).toLocaleString('es-ES')}</p>}
+            <div className="flex flex-wrap gap-2 pt-2">
+              {compradorWaUrl && (
+                <a href={compradorWaUrl} target="_blank" rel="noopener noreferrer">
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                    <MessageCircle className="w-4 h-4 mr-1" /> WhatsApp al comprador
+                  </Button>
+                </a>
+              )}
+              <a href={`mailto:${listing.reservado_por_email || listing.comprador_final_email}?subject=${encodeURIComponent('Mercadillo CD Bustarviejo: ' + listing.titulo)}`}>
+                <Button size="sm" variant="outline">
+                  <Mail className="w-4 h-4 mr-1" /> Enviar email
+                </Button>
+              </a>
+            </div>
+            <p className="pt-1 text-xs text-slate-500">Solo tú (el vendedor) y el club veis estos datos de contacto.</p>
             {listing.estado === 'reservado' && (
               <p className="pt-1 text-yellow-900 font-semibold">Cuando le entregues el artículo, vuelve al Mercadillo y pulsa «Vendido».</p>
             )}
