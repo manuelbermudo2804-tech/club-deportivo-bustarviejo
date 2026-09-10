@@ -1,0 +1,111 @@
+{
+  "name": "AdminDataChange",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "cambio_email",
+        "vinculacion",
+        "otro"
+      ],
+      "default": "cambio_email",
+      "description": "Tipo de correcci\u00f3n administrativa realizada"
+    },
+    "jugador_id": {
+      "type": "string"
+    },
+    "jugador_nombre": {
+      "type": "string"
+    },
+    "campo": {
+      "type": "string",
+      "description": "Campo modificado (ej: email_padre)"
+    },
+    "campo_label": {
+      "type": "string",
+      "description": "Nombre legible del campo"
+    },
+    "valor_anterior": {
+      "type": "string"
+    },
+    "valor_nuevo": {
+      "type": "string"
+    },
+    "pagos_migrados": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00ba de pagos cuyo correo se actualiz\u00f3 (importes intactos)"
+    },
+    "realizado_por": {
+      "type": "string",
+      "description": "Email de quien hizo el cambio"
+    },
+    "realizado_por_nombre": {
+      "type": "string"
+    },
+    "fecha": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "notas": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "tipo",
+    "jugador_id"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "jugador_id"
+      ]
+    },
+    {
+      "fields": [
+        "fecha"
+      ]
+    }
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_tesorero": true
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_tesorero": true
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

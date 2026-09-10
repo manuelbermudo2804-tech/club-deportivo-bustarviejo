@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Mail, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
+import EmailChangeImpact from "./EmailChangeImpact";
 
 const FIELDS = [
   { key: "email_padre", label: "Tutor/a 1" },
@@ -21,12 +22,46 @@ export default function CambiarEmailFamiliaDialog({ open, onOpenChange, players 
   const [field, setField] = useState("email_padre");
   const [newEmail, setNewEmail] = useState("");
   const [saving, setSaving] = useState(false);
+  const [impact, setImpact] = useState(null);
+  const [checking, setChecking] = useState(false);
 
   const player = players.find(p => p.id === playerId);
   const available = FIELDS.filter(f => player?.[f.key]);
   const oldEmail = player?.[field] || "";
+  const cleanEmail = newEmail.trim().toLowerCase();
 
-  const reset = () => { setPlayerId(""); setField("email_padre"); setNewEmail(""); };
+  const reset = () => { setPlayerId(""); setField("email_padre"); setNewEmail(""); setImpact(null); };
+
+  // Comprobar duplicados e impacto cuando hay jugador + correo nuevo válido
+  useEffect(() => {
+    if (!player || !cleanEmail.includes("@")) { setImpact(null); return; }
+    let cancelled = false;
+    setChecking(true);
+    const t = setTimeout(async () => {
+      try {
+        const [conEseEmail, pays] = await Promise.all([
+          base44.entities.Player.filter({ [field]: cleanEmail }),
+          base44.entities.Payment.filter({ jugador_id: player.id }),
+        ]);
+        if (cancelled) return;
+        const otros = conEseEmail.filter(p => p.id !== player.id).map(p => p.nombre);
+        const mismos = players.filter(p => p.id !== player.id && p[field] && p[field] === oldEmail).map(p => p.nombre);
+        const pagos = (field === "email_padre" || field === "email_tutor_2")
+          ? pays.filter(p => p[field] === oldEmail).length
+          : 0;
+        setImpact({
+          duplicado: otros.length > 0 ? otros.join(", ") : null,
+          jugadoresAfectados: mismos,
+          pagosAfectados: pagos,
+        });
+      } catch {
+        if (!cancelled) setImpact(null);
+      } finally {
+        if (!cancelled) setChecking(false);
+      }
+    }, 500);
+    return () => { cancelled = true; clearTimeout(t); };
+  }, [player?.id, field, cleanEmail, oldEmail]);
 
   const handleSave = async () => {
     const email = newEmail.trim().toLowerCase();
@@ -48,6 +83,24 @@ export default function CambiarEmailFamiliaDialog({ open, onOpenChange, players 
           migrated = toFix.length;
         }
       }
+
+      // Registrar el cambio en el historial administrativo (nunca bloquea el cambio)
+      try {
+        const me = await base44.auth.me();
+        await base44.entities.AdminDataChange.create({
+          tipo: "cambio_email",
+          jugador_id: player.id,
+          jugador_nombre: player.nombre,
+          campo: field,
+          campo_label: FIELDS.find(f => f.key === field)?.label || field,
+          valor_anterior: oldEmail,
+          valor_nuevo: email,
+          pagos_migrados: migrated,
+          realizado_por: me?.email,
+          realizado_por_nombre: me?.full_name,
+          fecha: new Date().toISOString(),
+        });
+      } catch {}
 
       toast.success(`Correo actualizado${migrated ? ` · ${migrated} pagos migrados` : ""}`);
       reset();
@@ -119,6 +172,14 @@ export default function CambiarEmailFamiliaDialog({ open, onOpenChange, players 
                 El jugador y todos sus datos se mantienen; la familia entrará con el correo nuevo y el
                 histórico de pagos se migra automáticamente.
               </p>
+              {(checking || impact) && (
+                <EmailChangeImpact
+                  loading={checking && !impact}
+                  duplicado={impact?.duplicado}
+                  jugadoresAfectados={impact?.jugadoresAfectados}
+                  pagosAfectados={impact?.pagosAfectados || 0}
+                />
+              )}
             </div>
           )}
 
