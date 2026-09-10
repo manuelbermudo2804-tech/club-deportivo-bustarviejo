@@ -31,7 +31,7 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [selectedCategorias, setSelectedCategorias] = useState([]);
 
-  const needsPlayer = tipo === 'segundo_progenitor' || tipo === 'juvenil';
+  const needsPlayer = tipo === 'segundo_progenitor' || tipo === 'juvenil' || tipo === 'jugador_adulto';
   const needsCategoria = tipo === 'entrenador' || tipo === 'coordinador';
 
   const { data: allPlayers = [] } = useQuery({
@@ -227,8 +227,10 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
                 </div>
               )}
               <p className="text-xs text-slate-500">
-                {tipo === 'segundo_progenitor' 
+                {tipo === 'segundo_progenitor'
                   ? '⚠️ Selecciona el hijo/a al que el segundo progenitor tendrá acceso'
+                  : tipo === 'jugador_adulto'
+                  ? '⚠️ Selecciona la ficha del jugador mayor de 18 que gestionará su propia cuenta'
                   : '⚠️ Selecciona el jugador que recibirá acceso juvenil (debe tener 13-17 años)'}
               </p>
             </div>
