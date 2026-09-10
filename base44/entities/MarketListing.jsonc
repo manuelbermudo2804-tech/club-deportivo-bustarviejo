@@ -20,6 +20,10 @@
         "Otro Deportivo"
       ]
     },
+    "talla": {
+      "type": "string",
+      "description": "Talla del art\u00edculo (ej: 38, M, 10 a\u00f1os). Campo libre para poder filtrar."
+    },
     "tipo": {
       "type": "string",
       "enum": [
@@ -88,7 +92,7 @@
     "vendido_fecha": {
       "type": "string",
       "format": "date-time",
-      "description": "Fecha en que el vendedor puls\u00f3 VENDIDO / ENTREGADO. Se usa para mantenerlo visible unos d\u00edas con el cartel VENDIDO."
+      "description": "Fecha en que el vendedor puls\u00f3 VENDIDO / ENTREGADO."
     },
     "comprador_final_nombre": {
       "type": "string",
