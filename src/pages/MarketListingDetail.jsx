@@ -50,6 +50,28 @@ export default function MarketListingDetail() {
     );
   }
 
+  const esMio = user && (user.email === listing.vendedor_email || user.email === listing.created_by);
+  const esAdmin = user?.role === 'admin';
+  const esVendidoYa = listing.estado === 'vendido' || listing.estado === 'entregado';
+  const soyElQueReserva = user && listing.reservado_por_email === user.email;
+  // Solo el vendedor y el club pueden abrir un artículo ya vendido/entregado
+  if (esVendidoYa && !esMio && !esAdmin) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <Card>
+          <CardContent className="p-6 text-center text-slate-600 space-y-3">
+            <p className="text-4xl">🔒</p>
+            <p className="font-semibold text-slate-800">Este artículo ya está {listing.estado === 'entregado' ? 'entregado' : 'vendido'}</p>
+            <p className="text-sm">Ya no está disponible, así que no se puede consultar su ficha.</p>
+            <Link to={createPageUrl("Mercadillo")}>
+              <Button variant="outline">Volver al Mercadillo</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   const isDonation = listing.tipo === "donacion" || Number(listing.precio||0) === 0;
   const priceText = isDonation ? "GRATIS" : `${Number(listing.precio||0).toFixed(2)} €`;
   const images = Array.isArray(listing.imagenes) ? listing.imagenes : [];
@@ -139,6 +161,19 @@ export default function MarketListingDetail() {
         </Card>
       )}
 
+      {!(esMio || esAdmin || soyElQueReserva) ? (
+        <Card className="border-orange-200 bg-orange-50">
+          <CardHeader>
+            <CardTitle className="text-lg">🔒 Contacto del vendedor</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-slate-700 text-sm">
+            <p>Para ver el teléfono y el email del vendedor, primero <span className="font-semibold">reserva el artículo</span>. Así el vendedor sabe quién está interesado y nadie recibe mensajes por sorpresa.</p>
+            <Link to={createPageUrl("Mercadillo")}>
+              <Button className="bg-orange-600 hover:bg-orange-700">🛒 Ir a reservar</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      ) : (
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">Contacto del vendedor</CardTitle>
@@ -161,8 +196,12 @@ export default function MarketListingDetail() {
               )}
             </p>
           )}
+          {soyElQueReserva && !esMio && (
+            <p className="text-xs text-slate-500 pt-1">Ves estos datos porque tienes el artículo reservado. Ponte de acuerdo con el vendedor para recogerlo.</p>
+          )}
         </CardContent>
       </Card>
+      )}
     </div>
   );
 }

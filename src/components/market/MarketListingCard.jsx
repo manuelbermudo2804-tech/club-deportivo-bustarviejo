@@ -15,10 +15,15 @@ export default function MarketListingCard({ item, user, isAdmin, onEdit, onReser
   const sold = esVendido(item);
   const puedeVerComprador = isMine || isAdmin;
   const esMiReserva = user && isReserved && item.reservado_por_email === user.email;
+  // Un artículo vendido/entregado solo lo puede abrir el vendedor o el club
+  const puedeAbrir = !sold || isMine || isAdmin;
+  const Wrapper = ({ children, className }) => puedeAbrir
+    ? <Link to={createPageUrl(`MarketListingDetail?id=${item.id}`)} className={className}>{children}</Link>
+    : <div className={className}>{children}</div>;
 
   return (
     <Card className={`overflow-hidden transition-all hover:shadow-lg group ${isReserved ? 'ring-2 ring-yellow-300' : ''}`}>
-      <Link to={createPageUrl(`MarketListingDetail?id=${item.id}`)}>
+      <Wrapper>
         <div className="aspect-[4/3] bg-slate-100 relative overflow-hidden">
           {firstImg ? (
             <img src={firstImg} alt={item.titulo} className={`h-full w-full object-cover transition-transform duration-300 ${sold ? 'grayscale' : 'group-hover:scale-105'}`} />
@@ -47,12 +52,12 @@ export default function MarketListingCard({ item, user, isAdmin, onEdit, onReser
             </div>
           )}
         </div>
-      </Link>
+      </Wrapper>
 
       <CardContent className="p-3 space-y-2">
-        <Link to={createPageUrl(`MarketListingDetail?id=${item.id}`)} className="block">
-          <h3 className="font-bold text-sm truncate hover:text-orange-600 transition-colors">{item.titulo}</h3>
-        </Link>
+        <Wrapper className="block">
+          <h3 className={`font-bold text-sm truncate transition-colors ${puedeAbrir ? 'hover:text-orange-600' : 'text-slate-500'}`}>{item.titulo}</h3>
+        </Wrapper>
         <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
           <span className="bg-slate-100 px-1.5 py-0.5 rounded">{item.categoria}</span>
           <span>·</span>
