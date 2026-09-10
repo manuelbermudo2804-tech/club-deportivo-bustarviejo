@@ -12,7 +12,8 @@ import { toast } from "sonner";
 import ListingForm from "../components/market/ListingForm";
 import MarketListingCard from "../components/market/MarketListingCard";
 import MercadilloAdminPanel from "../components/market/MercadilloAdminPanel";
-import { reservarArticulo, marcarVendido, liberarReserva, esVendido, vendidoReciente, DIAS_VISIBLE_VENDIDO } from "../components/market/marketActions";
+import ReserveDialog from "../components/market/ReserveDialog";
+import { reservarArticulo, marcarVendido, liberarReserva, cancelarArticulo, anularMiReserva, esVendido, vendidoReciente, DIAS_VISIBLE_VENDIDO } from "../components/market/marketActions";
 
 const CATEGORIES = ['Fútbol','Baloncesto','Equipación','Calzado','Protecciones','Accesorios','Otro Deportivo'];
 
@@ -29,6 +30,7 @@ export default function Mercadillo() {
   const [q, setQ] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [visibleCount, setVisibleCount] = useState(20);
+  const [reserving, setReserving] = useState(null);
   const sentinelRef = useRef(null);
 
   const [allListings, setAllListings] = useState([]);
@@ -59,10 +61,30 @@ export default function Mercadillo() {
 
   useEffect(() => { setVisibleCount(20); }, [filter, category, priceMin, priceMax, q, listings]);
 
-  const reserve = async (item) => {
+  const reserve = (item) => {
     if (!user) { toast.error('Debes estar conectado para reservar'); return; }
-    await reservarArticulo(item, user);
+    setReserving(item);
+  };
+
+  const confirmReserve = async (datos) => {
+    await reservarArticulo(reserving, user, datos);
+    setReserving(null);
     toast.success('¡Reserva enviada! Hemos avisado al vendedor.');
+    await load();
+  };
+
+  const cancelMyReservation = async (item) => {
+    if (!window.confirm(`¿Anular tu reserva de "${item.titulo}"? El artículo volverá a estar disponible para otras familias.`)) return;
+    await anularMiReserva(item, user);
+    toast.success('Reserva anulada');
+    await load();
+  };
+
+  const cancelListing = async (item) => {
+    const motivo = window.prompt(`Retirar "${item.titulo}" del Mercadillo.\n\nMotivo (se envía al vendedor):`, '');
+    if (motivo === null) return;
+    await cancelarArticulo(item, motivo, user?.email);
+    toast.success('Anuncio retirado del Mercadillo');
     await load();
   };
 
@@ -259,6 +281,8 @@ export default function Mercadillo() {
               onReserve={reserve}
               onSold={markSold}
               onRelease={release}
+              onCancel={cancelListing}
+              onCancelMyReservation={cancelMyReservation}
             />
           ))}
         </div>
@@ -287,6 +311,14 @@ export default function Mercadillo() {
         open={showForm}
         onClose={() => { setShowForm(false); setEditing(null); }}
         onSaved={() => { setShowForm(false); setEditing(null); load(); }}
+      />
+
+      <ReserveDialog
+        item={reserving}
+        user={user}
+        open={!!reserving}
+        onClose={() => setReserving(null)}
+        onConfirm={confirmReserve}
       />
     </div>
   );

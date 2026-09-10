@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { esVendido } from "./marketActions";
 
-export default function MarketListingCard({ item, user, isAdmin, onEdit, onReserve, onSold, onRelease }) {
+export default function MarketListingCard({ item, user, isAdmin, onEdit, onReserve, onSold, onRelease, onCancel, onCancelMyReservation }) {
   const firstImg = Array.isArray(item.imagenes) && item.imagenes[0] ? item.imagenes[0] : null;
   const isNew = (() => { try { return (Date.now() - new Date(item.created_date).getTime()) < 7 * 24 * 60 * 60 * 1000; } catch { return false; } })();
   const price = item.tipo === 'donacion' || Number(item.precio || 0) === 0 ? 'GRATIS' : `${Number(item.precio || 0).toFixed(0)} €`;
@@ -14,6 +14,7 @@ export default function MarketListingCard({ item, user, isAdmin, onEdit, onReser
   const isReserved = item.estado === 'reservado';
   const sold = esVendido(item);
   const puedeVerComprador = isMine || isAdmin;
+  const esMiReserva = user && isReserved && item.reservado_por_email === user.email;
 
   return (
     <Card className={`overflow-hidden transition-all hover:shadow-lg group ${isReserved ? 'ring-2 ring-yellow-300' : ''}`}>
@@ -85,7 +86,14 @@ export default function MarketListingCard({ item, user, isAdmin, onEdit, onReser
                 {isReserved && (
                   <Button variant="outline" size="sm" className="text-xs h-8 border-blue-400 text-blue-600" onClick={() => onRelease(item)}>Liberar</Button>
                 )}
+                {isAdmin && onCancel && (
+                  <Button variant="outline" size="sm" className="text-xs h-8 border-red-300 text-red-600" onClick={() => onCancel(item)}>Retirar</Button>
+                )}
               </>
+            ) : esMiReserva ? (
+              <Button variant="outline" size="sm" className="w-full text-xs h-8 border-red-300 text-red-600" onClick={() => onCancelMyReservation(item)}>
+                ↩️ Anular mi reserva
+              </Button>
             ) : (
               <Button size="sm" className="w-full bg-orange-600 hover:bg-orange-700 text-xs h-8 disabled:opacity-50" disabled={isReserved} onClick={() => onReserve(item)}>
                 {isReserved ? '🔒 Reservado' : '🛒 Reservar'}
