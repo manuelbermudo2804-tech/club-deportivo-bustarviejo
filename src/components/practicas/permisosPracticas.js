@@ -14,6 +14,14 @@ export const CATEGORIAS_PRACTICAS = [
   "Baloncesto (Mixto)",
 ];
 
+// Equipos que entrena el menor. Admite el campo nuevo (varios equipos) y
+// el antiguo de un solo equipo, para no romper los permisos ya concedidos.
+export function equiposPracticas(permisos) {
+  const p = permisos || {};
+  if (Array.isArray(p.categorias) && p.categorias.length > 0) return p.categorias;
+  return p.categoria ? [p.categoria] : [];
+}
+
 export const PERMISOS_PRACTICAS = [
   {
     key: "ver_convocatorias",

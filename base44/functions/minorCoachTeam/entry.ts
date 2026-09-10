@@ -20,7 +20,12 @@ Deno.serve(async (req) => {
     });
     const me = players[0];
     const permisos = me?.entrenador_practicas || {};
-    const categoria = permisos.categoria;
+    // Equipos que entrena: campo nuevo (varios) o el antiguo de un solo equipo
+    const equipos = Array.isArray(permisos.categorias) && permisos.categorias.length > 0
+      ? permisos.categorias
+      : (permisos.categoria ? [permisos.categoria] : []);
+    // El menor puede pedir un equipo concreto, siempre que sea uno de los suyos
+    const categoria = equipos.includes(body.categoria) ? body.categoria : equipos[0];
 
     if (!me || permisos.activo !== true || !categoria) {
       return Response.json({ error: 'Sin permisos de apoyo técnico' }, { status: 403 });
@@ -47,7 +52,7 @@ Deno.serve(async (req) => {
       .sort((a, b) => a.nombre.localeCompare(b.nombre));
 
     if (action === 'roster') {
-      return Response.json({ categoria, roster });
+      return Response.json({ categoria, categorias: equipos, roster });
     }
 
     if (action === 'createCallup') {
@@ -86,6 +91,7 @@ Deno.serve(async (req) => {
     if (action === 'getAttendance') {
       return Response.json({
         categoria,
+        categorias: equipos,
         roster,
         sesion: existing,
         puedeValorar: permisos.evaluaciones === true,

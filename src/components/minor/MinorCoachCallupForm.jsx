@@ -10,7 +10,7 @@ import { toast } from "sonner";
 // Formulario simple para que un entrenador en prácticas con acceso completo
 // pueda crear una convocatoria del equipo. Se guarda SIN publicar: la publica
 // un entrenador adulto.
-export default function MinorCoachCallupForm({ onCreated }) {
+export default function MinorCoachCallupForm({ categoria, onCreated }) {
   const queryClient = useQueryClient();
   const [form, setForm] = useState({
     titulo: "", rival: "", fecha_partido: "", hora_partido: "",
@@ -21,9 +21,9 @@ export default function MinorCoachCallupForm({ onCreated }) {
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
   const { data: rosterData } = useQuery({
-    queryKey: ["minorCoachRoster"],
+    queryKey: ["minorCoachRoster", categoria],
     queryFn: async () => {
-      const res = await base44.functions.invoke("minorCoachTeam", { action: "roster" });
+      const res = await base44.functions.invoke("minorCoachTeam", { action: "roster", categoria });
       return res.data;
     },
     retry: false,
@@ -34,6 +34,7 @@ export default function MinorCoachCallupForm({ onCreated }) {
     mutationFn: async () => {
       const res = await base44.functions.invoke("minorCoachTeam", {
         action: "createCallup",
+        categoria,
         convocatoria: { ...form, jugadores_ids: seleccionados },
       });
       return res.data;

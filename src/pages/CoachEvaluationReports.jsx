@@ -231,7 +231,7 @@ export default function CoachEvaluationReports() {
   const seasonStart = currentSeason?.fecha_inicio || null;
 
   // Hook unificado: solo activos
-  const { data: players } = useStaffPlayers(user, { onlyActive: true, queryKeyExtra: 'reports' });
+  const { data: players, isLoading: playersLoading } = useStaffPlayers(user, { onlyActive: true, queryKeyExtra: 'reports' });
 
   // CategoryConfig para excluir actividades complementarias
   const { data: categoryConfigs = [] } = useQuery({
@@ -245,15 +245,19 @@ export default function CoachEvaluationReports() {
   );
 
   // Attendances filtrados por temporada actual (desde fecha_inicio en adelante)
-  const { data: attendances } = useQuery({
+  const { data: attendances, isLoading: attendancesLoading } = useQuery({
     queryKey: ['attendancesSeason', seasonStart],
     queryFn: () => {
       const filter = seasonStart ? { fecha: { $gte: seasonStart } } : {};
-      return base44.entities.Attendance.filter(filter, '-fecha');
+      return base44.entities.Attendance.filter(filter, '-fecha', 400);
     },
-    initialData: [],
+    placeholderData: [],
     enabled: !!currentSeason,
+    staleTime: 300000,
+    gcTime: 900000,
   });
+
+  const cargando = playersLoading || attendancesLoading;
 
   const allCategories = [...new Set(
     players.flatMap(p => playerAllCategories(p)).filter(c => c && validCategoryNames.has(c))
@@ -625,7 +629,15 @@ CD Bustarviejo
         </div>
       </div>
 
-      {categories.length === 0 ? (
+      {cargando ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-4 border-orange-200 border-t-orange-600 mx-auto mb-4" />
+            <p className="text-slate-600 font-medium">Cargando jugadores y evaluaciones…</p>
+            <p className="text-slate-400 text-sm mt-1">Puede tardar unos segundos la primera vez.</p>
+          </CardContent>
+        </Card>
+      ) : categories.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
             <AlertCircle className="w-12 h-12 text-slate-400 mx-auto mb-4" />

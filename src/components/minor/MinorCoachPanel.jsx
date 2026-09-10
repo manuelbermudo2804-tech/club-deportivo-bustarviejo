@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShieldAlert } from "lucide-react";
-import { AVISO_PRACTICAS } from "@/components/practicas/permisosPracticas";
+import { AVISO_PRACTICAS, equiposPracticas } from "@/components/practicas/permisosPracticas";
 
 const TOOLS = [
   { key: "ver_convocatorias", emoji: "📋", titulo: "Convocatorias", subtitulo: "Equipo", href: "/MinorCoachCallups", color: "from-green-600 to-emerald-700" },
@@ -15,7 +15,8 @@ const TOOLS = [
 
 export default function MinorCoachPanel({ player }) {
   const p = player?.entrenador_practicas;
-  if (!p?.activo || !p?.categoria) return null;
+  const equipos = equiposPracticas(p);
+  if (!p?.activo || equipos.length === 0) return null;
 
   const tools = TOOLS.filter((t) => p[t.key] === true);
 
@@ -31,7 +32,7 @@ export default function MinorCoachPanel({ player }) {
           <div className="flex items-start gap-3">
             <ShieldAlert className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
             <div>
-              <p className="font-bold text-amber-900 text-sm">Apoyo técnico de {p.categoria}</p>
+              <p className="font-bold text-amber-900 text-sm">Apoyo técnico de {equipos.join(" · ")}</p>
               <p className="text-xs text-amber-800 mt-1 leading-relaxed">{AVISO_PRACTICAS}</p>
             </div>
           </div>

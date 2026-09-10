@@ -2,13 +2,19 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PERMISOS_PRACTICAS, CATEGORIAS_PRACTICAS } from "./permisosPracticas";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PERMISOS_PRACTICAS, CATEGORIAS_PRACTICAS, equiposPracticas } from "./permisosPracticas";
 
 export default function PracticasPlayerCard({ player, onChange, saving }) {
   const p = player.entrenador_practicas || {};
   const activo = p.activo === true;
-  const sinEquipo = activo && !p.categoria;
+  const equipos = equiposPracticas(p);
+  const sinEquipo = activo && equipos.length === 0;
+
+  const toggleEquipo = (cat, marcado) => {
+    const nuevos = marcado ? [...equipos, cat] : equipos.filter((c) => c !== cat);
+    onChange(player, { categorias: nuevos, categoria: nuevos[0] || "" });
+  };
 
   return (
     <Card className="border-none shadow-lg">
@@ -46,24 +52,24 @@ export default function PracticasPlayerCard({ player, onChange, saving }) {
         {activo && (
           <div className="mt-4 pt-4 border-t border-slate-100 space-y-3">
             <div>
-              <p className="text-sm font-bold text-slate-800 mb-1.5">🏟️ Equipo que entrena</p>
-              <Select
-                value={p.categoria || ""}
-                disabled={saving}
-                onValueChange={(v) => onChange(player, { categoria: v })}
-              >
-                <SelectTrigger className={sinEquipo ? "border-red-400 bg-red-50" : ""}>
-                  <SelectValue placeholder="Elige el equipo al que entrena" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CATEGORIAS_PRACTICAS.map((c) => (
-                    <SelectItem key={c} value={c}>{c}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <p className="text-sm font-bold text-slate-800 mb-1.5">
+                🏟️ Equipos que entrena <span className="font-normal text-slate-500">(puedes marcar varios)</span>
+              </p>
+              <div className={`grid grid-cols-1 sm:grid-cols-2 gap-1.5 rounded-xl p-2 ${sinEquipo ? "border border-red-400 bg-red-50" : "bg-slate-50"}`}>
+                {CATEGORIAS_PRACTICAS.map((c) => (
+                  <label key={c} className="flex items-center gap-2 text-sm text-slate-700 p-1.5 cursor-pointer">
+                    <Checkbox
+                      checked={equipos.includes(c)}
+                      disabled={saving}
+                      onCheckedChange={(v) => toggleEquipo(c, v === true)}
+                    />
+                    <span className="truncate">{c}</span>
+                  </label>
+                ))}
+              </div>
               {sinEquipo && (
                 <p className="text-xs text-red-600 mt-1">
-                  Elige un equipo: sin equipo vinculado no verá nada.
+                  Marca al menos un equipo: sin equipo vinculado no verá nada.
                 </p>
               )}
             </div>

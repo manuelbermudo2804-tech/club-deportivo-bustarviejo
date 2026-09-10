@@ -93,7 +93,15 @@ export default function DorsalManagement() {
   }, [temporada]);
 
   const config = useMemo(
-    () => configs.find((c) => c.categoria === categoria) || { dorsal_min: 1, dorsal_max: 60, dorsales_reservados: [] },
+    () => {
+      const saved = configs.find((c) => c.categoria === categoria);
+      return {
+        dorsal_min: saved?.dorsal_min || 1,
+        dorsal_max: saved?.dorsal_max || 99,
+        dorsales_reservados: saved?.dorsales_reservados || [],
+        tienda_url: saved?.tienda_url,
+      };
+    },
     [configs, categoria]
   );
 

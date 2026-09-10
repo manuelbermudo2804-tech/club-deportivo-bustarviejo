@@ -81,7 +81,7 @@ export function resolverPrioridad(candidatos) {
 // Devuelve los dorsales libres en una categoría/temporada dado el rango y los asignados
 export function getDorsalesLibres(config, assignmentsEnCategoria) {
   const min = config?.dorsal_min || 1;
-  const max = config?.dorsal_max || 25;
+  const max = config?.dorsal_max || 99;
   const reservados = new Set(config?.dorsales_reservados || []);
   const ocupados = new Set(
     (assignmentsEnCategoria || []).filter((a) => a.estado === "asignado").map((a) => Number(a.dorsal))

@@ -5,12 +5,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ClipboardList, MapPin, Clock, ShieldAlert } from "lucide-react";
-import { AVISO_PRACTICAS } from "@/components/practicas/permisosPracticas";
+import { AVISO_PRACTICAS, equiposPracticas } from "@/components/practicas/permisosPracticas";
 import MinorCoachCallupForm from "@/components/minor/MinorCoachCallupForm";
+import MinorTeamPicker from "@/components/minor/MinorTeamPicker";
 
 export default function MinorCoachCallups() {
   const [user, setUser] = useState(null);
   const [mostrarForm, setMostrarForm] = useState(false);
+  const [equipoElegido, setEquipoElegido] = useState(null);
   useEffect(() => { base44.auth.me().then(setUser); }, []);
 
   const { data: player } = useQuery({
@@ -23,7 +25,8 @@ export default function MinorCoachCallups() {
   });
 
   const permisos = player?.entrenador_practicas || {};
-  const categoria = permisos.categoria;
+  const equipos = equiposPracticas(permisos);
+  const categoria = equipos.includes(equipoElegido) ? equipoElegido : equipos[0];
   const puedeVer = permisos.activo === true && permisos.ver_convocatorias === true && !!categoria;
   const verNombres = permisos.ver_nombres_convocatoria === true;
   const puedeCrear = permisos.crear_convocatorias === true;
@@ -66,6 +69,8 @@ export default function MinorCoachCallups() {
         {puedeCrear ? "✍️ Puedes crear convocatorias (las publica un entrenador adulto)" : "👀 Solo lectura"} · {AVISO_PRACTICAS}
       </p>
 
+      <MinorTeamPicker equipos={equipos} value={categoria} onChange={setEquipoElegido} />
+
       {puedeCrear && (
         <>
           <Button
@@ -75,7 +80,7 @@ export default function MinorCoachCallups() {
           >
             {mostrarForm ? "Cerrar formulario" : "➕ Crear convocatoria"}
           </Button>
-          {mostrarForm && <MinorCoachCallupForm onCreated={() => setMostrarForm(false)} />}
+          {mostrarForm && <MinorCoachCallupForm categoria={categoria} onCreated={() => setMostrarForm(false)} />}
         </>
       )}
 

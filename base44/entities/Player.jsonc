@@ -312,7 +312,14 @@
         },
         "categoria": {
           "type": "string",
-          "description": "Equipo (categor\u00eda) que entrena como apoyo t\u00e9cnico. Obligatorio para activar el rol."
+          "description": "LEGACY: primer equipo que entrena. Se mantiene por compatibilidad; el listado real est\u00e1 en 'categorias'."
+        },
+        "categorias": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Equipos (categor\u00edas) que entrena como apoyo t\u00e9cnico. Puede ser m\u00e1s de uno. Obligatorio al menos uno para activar el rol."
         },
         "ver_horarios": {
           "type": "boolean",

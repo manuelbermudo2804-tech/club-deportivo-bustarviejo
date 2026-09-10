@@ -1,7 +1,7 @@
 {
   "name": "DorsalConfig",
   "type": "object",
-  "description": "Configuraci\u00f3n por categor\u00eda: rango de dorsales permitidos y URL de la tienda. Una fila por (temporada, categor\u00eda).",
+  "description": "Configuraci\u00f3n por categor\u00eda: rango de dorsales permitidos y URL de la tienda. Una fila por (temporada, categor\u00eda). Si no existe fila, se usa el rango 1-99.",
   "properties": {
     "temporada": {
       "type": "string",
@@ -18,7 +18,7 @@
     },
     "dorsal_max": {
       "type": "number",
-      "default": 60,
+      "default": 99,
       "description": "Dorsal m\u00e1ximo permitido"
     },
     "dorsales_reservados": {

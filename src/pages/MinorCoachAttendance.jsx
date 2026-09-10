@@ -8,18 +8,20 @@ import { Save, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 import { AVISO_PRACTICAS } from "@/components/practicas/permisosPracticas";
 import MinorAttendanceRow, { ESTADOS } from "@/components/minor/MinorAttendanceRow";
+import MinorTeamPicker from "@/components/minor/MinorTeamPicker";
 
 export default function MinorCoachAttendance() {
   const [fecha, setFecha] = useState(new Date().toISOString().split("T")[0]);
+  const [categoria, setCategoria] = useState(null);
   const [estados, setEstados] = useState({});
   const [valoraciones, setValoraciones] = useState({});
   const [sinGuardar, setSinGuardar] = useState(false);
   const queryClient = useQueryClient();
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ["minorCoachAttendance", fecha],
+    queryKey: ["minorCoachAttendance", fecha, categoria],
     queryFn: async () => {
-      const res = await base44.functions.invoke("minorCoachTeam", { action: "getAttendance", fecha });
+      const res = await base44.functions.invoke("minorCoachTeam", { action: "getAttendance", fecha, categoria });
       return res.data;
     },
     retry: false,
@@ -39,7 +41,7 @@ export default function MinorCoachAttendance() {
 
   const guardar = useMutation({
     mutationFn: async () => {
-      const res = await base44.functions.invoke("minorCoachTeam", { action: "saveAttendance", fecha, estados, valoraciones });
+      const res = await base44.functions.invoke("minorCoachTeam", { action: "saveAttendance", fecha, categoria, estados, valoraciones });
       return res.data;
     },
     onSuccess: () => {
@@ -74,6 +76,12 @@ export default function MinorCoachAttendance() {
         <p className="text-sm text-slate-500">{data?.categoria || "Tu equipo"}</p>
       </div>
       <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-xl p-3">{AVISO_PRACTICAS}</p>
+
+      <MinorTeamPicker
+        equipos={data?.categorias || []}
+        value={data?.categoria}
+        onChange={setCategoria}
+      />
 
       <input
         type="date"
