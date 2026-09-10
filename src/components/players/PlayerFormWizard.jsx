@@ -254,7 +254,9 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
     if (isAdultPlayerSelfRegistration) return;
     if (!currentUser) return;
     // Caso 1: el usuario tiene flags de jugador adulto sin ficha
-    const esJugadorAdultoUser = (currentUser.tipo_panel === 'jugador_adulto' || currentUser.es_jugador === true) && !currentUser.player_id;
+    // Cuenta marcada como jugador +18: puede darse de alta él mismo,
+    // tenga o no una ficha ya vinculada (antes esto la bloqueaba)
+    const esJugadorAdultoUser = currentUser.tipo_panel === 'jugador_adulto' || currentUser.es_jugador === true;
     if (esJugadorAdultoUser) {
       console.log('🛡️ [Wizard] Auto-activando modo +18 (user es jugador adulto sin ficha)');
       setIsAdultPlayerSelfRegistration(true);

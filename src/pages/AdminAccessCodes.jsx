@@ -31,7 +31,9 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
   const [selectedPlayer, setSelectedPlayer] = useState(null);
   const [selectedCategorias, setSelectedCategorias] = useState([]);
 
-  const needsPlayer = tipo === 'segundo_progenitor' || tipo === 'juvenil' || tipo === 'jugador_adulto';
+  // Para +18 la ficha es OPCIONAL: si aún no está inscrito, se dará de alta él mismo
+  const showPlayerPicker = tipo === 'segundo_progenitor' || tipo === 'juvenil' || tipo === 'jugador_adulto';
+  const needsPlayer = tipo === 'segundo_progenitor' || tipo === 'juvenil';
   const needsCategoria = tipo === 'entrenador' || tipo === 'coordinador';
 
   const { data: allPlayers = [] } = useQuery({
@@ -103,7 +105,7 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
 
   // Reset campos al cambiar tipo
   React.useEffect(() => {
-    if (!needsPlayer) {
+    if (!showPlayerPicker) {
       setSelectedPlayer(null);
       setSearchPlayer("");
     }
@@ -181,11 +183,11 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
             </div>
           )}
 
-          {/* Selector de jugador vinculado (para segundo_progenitor y juvenil) */}
-          {needsPlayer && (
+          {/* Selector de jugador vinculado (obligatorio en 2º progenitor y juvenil, opcional en +18) */}
+          {showPlayerPicker && (
             <div className="space-y-2">
               <Label className="flex items-center gap-1">
-                ⚽ Jugador vinculado *
+                ⚽ Jugador vinculado {needsPlayer ? '*' : '(opcional)'}
               </Label>
               {selectedPlayer ? (
                 <div className="flex items-center justify-between bg-green-50 border-2 border-green-300 rounded-lg p-3">
@@ -230,7 +232,7 @@ function InviteDialog({ open, onOpenChange, onInvite }) {
                 {tipo === 'segundo_progenitor'
                   ? '⚠️ Selecciona el hijo/a al que el segundo progenitor tendrá acceso'
                   : tipo === 'jugador_adulto'
-                  ? '⚠️ Selecciona la ficha del jugador mayor de 18 que gestionará su propia cuenta'
+                  ? 'ℹ️ Si ya tiene ficha en el club, selecciónala para vincularla. Si aún no está inscrito, déjalo vacío: podrá darse de alta él mismo desde la app.'
                   : '⚠️ Selecciona el jugador que recibirá acceso juvenil (debe tener 13-17 años)'}
               </p>
             </div>

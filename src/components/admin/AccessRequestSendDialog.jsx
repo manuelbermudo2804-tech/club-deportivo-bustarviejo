@@ -25,13 +25,15 @@ export default function AccessRequestSendDialog({ request, open, onOpenChange, o
   const [loading, setLoading] = useState(false);
   const [sentResult, setSentResult] = useState(null); // {codigo, tipo, nombre}
 
+  // Para +18 la ficha es OPCIONAL: si aún no está inscrito, se dará de alta él mismo
+  const showPlayerPicker = tipo === 'segundo_progenitor' || tipo === 'juvenil' || tipo === 'jugador_adulto';
   const needsPlayer = tipo === 'segundo_progenitor' || tipo === 'juvenil';
   const needsCategoria = tipo === 'entrenador' || tipo === 'coordinador';
 
   const { data: allPlayers = [] } = useQuery({
     queryKey: ['playersForInvite'],
     queryFn: () => base44.entities.Player.filter({ activo: true }),
-    enabled: open && needsPlayer,
+    enabled: open && showPlayerPicker,
   });
 
   const { data: allCategories = [] } = useQuery({
@@ -62,7 +64,7 @@ export default function AccessRequestSendDialog({ request, open, onOpenChange, o
 
   // Reset campos dependientes al cambiar tipo
   useEffect(() => {
-    if (!needsPlayer) { setSelectedPlayer(null); setSearchPlayer(""); }
+    if (!showPlayerPicker) { setSelectedPlayer(null); setSearchPlayer(""); }
     if (!needsCategoria) setSelectedCategorias([]);
   }, [tipo]);
 
@@ -190,10 +192,15 @@ export default function AccessRequestSendDialog({ request, open, onOpenChange, o
             </div>
           )}
 
-          {/* Jugador vinculado (segundo_progenitor / juvenil) */}
-          {needsPlayer && (
+          {/* Jugador vinculado (obligatorio 2º progenitor/juvenil, opcional +18) */}
+          {showPlayerPicker && (
             <div className="space-y-2">
-              <Label className="flex items-center gap-1">⚽ Jugador vinculado *</Label>
+              <Label className="flex items-center gap-1">⚽ Jugador vinculado {needsPlayer ? '*' : '(opcional)'}</Label>
+              {tipo === 'jugador_adulto' && (
+                <p className="text-xs text-slate-500">
+                  Si ya tiene ficha, selecciónala. Si aún no está inscrito, déjalo vacío: podrá darse de alta él mismo.
+                </p>
+              )}
               {selectedPlayer ? (
                 <div className="flex items-center justify-between bg-green-50 border-2 border-green-300 rounded-lg p-3">
                   <div>
