@@ -7,7 +7,9 @@ import { es } from "date-fns/locale";
 
 export default function AgendaView({ items, onItemClick }) {
   const groupedByDate = items.reduce((acc, item) => {
-    const date = item.fecha || item.fecha_partido;
+    // Los items del calendario vienen normalizados con "date"; los originales traen fecha/fecha_partido
+    const date = item.date || item.fecha || item.fecha_partido;
+    if (!date || isNaN(new Date(`${date}T00:00:00`))) return acc;
     if (!acc[date]) {
       acc[date] = [];
     }
@@ -82,7 +84,7 @@ export default function AgendaView({ items, onItemClick }) {
                         <div className="flex-1">
                           <div className="flex items-start justify-between mb-2">
                             <h4 className="font-bold text-slate-900 text-lg">
-                              {item.titulo}
+                              {item.titulo || item.title}
                             </h4>
                             {item.importante && (
                               <Badge className="bg-red-500 text-white">Importante</Badge>

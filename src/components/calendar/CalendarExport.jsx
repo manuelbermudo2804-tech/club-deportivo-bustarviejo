@@ -9,7 +9,49 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
-export default function CalendarExport({ events, callups, schedules, userEmail, userName }) {
+export default function CalendarExport({ events, callups, schedules, matches = [], userEmail, userName }) {
+  const escapeText = (text) => String(text || '').replace(/[,;\\]/g, '\\$&').replace(/\n/g, '\\n');
+  const stamp = () => new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  const localStr = (fecha, hora) => `${String(fecha).replace(/-/g, '')}T${String(hora).replace(':', '')}00`;
+  const plusHours = (fecha, hora, h) => {
+    const [hh, mm] = String(hora).split(':').map(n => parseInt(n, 10));
+    const d = new Date(`${fecha}T00:00:00`);
+    d.setHours(hh + h, mm || 0, 0, 0);
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}T${p(d.getHours())}${p(d.getMinutes())}00`;
+  };
+  const nextDay = (fecha) => {
+    const d = new Date(`${fecha}T00:00:00`);
+    d.setDate(d.getDate() + 1);
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+  };
+
+  // Partidos de liga (federación). Si no tienen hora, se exportan como evento de día completo
+  // para que aparezcan igualmente en Google/Apple.
+  const generateICalMatch = (m) => {
+    const fecha = m.fecha_iso || m.date;
+    if (!fecha) return '';
+    const isLocal = String(m.local || m.local_visitante || '').toLowerCase().includes('bustarviejo') || m.local_visitante === 'Local';
+    const rival = m.rival || (isLocal ? m.visitante : m.local) || '';
+    const hora = m.hora || m.hora_partido;
+    const timing = hora
+      ? [`DTSTART;TZID=Europe/Madrid:${localStr(fecha, hora)}`, `DTEND;TZID=Europe/Madrid:${plusHours(fecha, hora, 2)}`]
+      : [`DTSTART;VALUE=DATE:${String(fecha).replace(/-/g, '')}`, `DTEND;VALUE=DATE:${nextDay(fecha)}`];
+
+    return [
+      'BEGIN:VEVENT',
+      `UID:partido-${m.id}@cdbustarviejo.com`,
+      `DTSTAMP:${stamp()}`,
+      ...timing,
+      `SUMMARY:⚽ ${escapeText(m.categoria || m.category)}${rival ? ` vs ${escapeText(rival)}` : ''}`,
+      `DESCRIPTION:${escapeText(`Jornada ${m.jornada || '-'} · ${isLocal ? 'Local' : 'Visitante'}${hora ? '' : ' · Hora por confirmar'}`)}`,
+      `LOCATION:${escapeText(m.campo || m.ubicacion || '')}`,
+      'STATUS:CONFIRMED',
+      'END:VEVENT',
+    ].join('\n');
+  };
+
   const generateICalEvent = (event) => {
     const startDate = new Date(event.fecha);
     const endDate = event.hora_fin 
@@ -126,7 +168,8 @@ END:VEVENT`;
 
   const exportToICal = () => {
     const icalEvents = events.map(generateICalEvent).join('\n');
-    const icalCallups = callups.map(generateICalCallup).join('\n');
+    const icalCallups = callups.filter(c => c.fecha_partido && (c.hora_partido || c.hora_concentracion)).map(generateICalCallup).join('\n');
+    const icalMatches = matches.map(generateICalMatch).filter(Boolean).join('\n');
 
     const icalContent = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -138,6 +181,7 @@ X-WR-TIMEZONE:Europe/Madrid
 X-WR-CALDESC:Calendario personal de eventos del CD Bustarviejo
 ${icalEvents}
 ${icalCallups}
+${icalMatches}
 END:VCALENDAR`;
 
     const blob = new Blob([icalContent], { type: 'text/calendar;charset=utf-8' });
@@ -205,7 +249,7 @@ END:VCALENDAR`;
           <CalendarIcon className="w-4 h-4 mr-2" />
           <div className="flex-1">
             <div className="font-medium">Exportar Todo</div>
-            <div className="text-xs text-slate-500">Eventos y convocatorias de partidos</div>
+            <div className="text-xs text-slate-500">Eventos, convocatorias y partidos de liga</div>
           </div>
         </DropdownMenuItem>
         <DropdownMenuItem onClick={exportPersonalEvents} className="cursor-pointer py-3">

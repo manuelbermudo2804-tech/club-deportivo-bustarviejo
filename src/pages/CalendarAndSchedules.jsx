@@ -406,6 +406,9 @@ export default function CalendarAndSchedules() {
         </div>
       </div>
 
+      {/* Suscripción al calendario (Google / Apple) — arriba porque es lo que más se usa */}
+      <CalendarSubscribeCard categories={myCategories} />
+
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
@@ -451,6 +454,7 @@ export default function CalendarAndSchedules() {
                 events={events.filter(e => isAdmin || e.publicado)} 
                 callups={visibleCallups}
                 schedules={schedules.filter(s => s.activo && (isAdmin || myPlayersSports.includes(s.categoria)))}
+                matches={filteredItems.filter(i => i.type === 'match')}
                 userEmail={user?.email}
                 userName={user?.full_name}
               />
@@ -493,30 +497,17 @@ export default function CalendarAndSchedules() {
             >
               Todos
             </Button>
-            <Button
-              size="sm"
-              variant={sportFilter === "Fútbol Masculino" ? "default" : "outline"}
-              onClick={() => setSportFilter("Fútbol Masculino")}
-              className={sportFilter === "Fútbol Masculino" ? "bg-blue-600 hover:bg-blue-700 h-9 text-xs" : "h-9 text-xs"}
-            >
-              ⚽ Fútbol M
-            </Button>
-            <Button
-              size="sm"
-              variant={sportFilter === "Fútbol Femenino" ? "default" : "outline"}
-              onClick={() => setSportFilter("Fútbol Femenino")}
-              className={sportFilter === "Fútbol Femenino" ? "bg-pink-600 hover:bg-pink-700 h-9 text-xs" : "h-9 text-xs"}
-            >
-              ⚽ Fútbol F
-            </Button>
-            <Button
-              size="sm"
-              variant={sportFilter === "Baloncesto" ? "default" : "outline"}
-              onClick={() => setSportFilter("Baloncesto")}
-              className={sportFilter === "Baloncesto" ? "bg-orange-600 hover:bg-orange-700 h-9 text-xs" : "h-9 text-xs"}
-            >
-              🏀 Basket
-            </Button>
+            {[...new Set([...myCategories, ...allCalendarItems.map(i => i.category)].filter(c => c && c !== "Todos"))].sort().map(cat => (
+              <Button
+                key={cat}
+                size="sm"
+                variant={sportFilter === cat ? "default" : "outline"}
+                onClick={() => setSportFilter(cat)}
+                className={sportFilter === cat ? "bg-blue-600 hover:bg-blue-700 h-9 text-xs" : "h-9 text-xs"}
+              >
+                {cat}
+              </Button>
+            ))}
             <div className="h-9 w-px bg-slate-300 mx-1"></div>
             {eventTypes.map((type) => (
               <Button
@@ -745,8 +736,6 @@ export default function CalendarAndSchedules() {
               </Button>
             )}
           </div>
-
-          <CalendarSubscribeCard categories={myCategories} />
 
           {/* Location Card */}
           <Card className="border-none shadow-lg bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300">

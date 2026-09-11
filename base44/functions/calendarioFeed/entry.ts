@@ -35,14 +35,24 @@ Deno.serve(async (req) => {
       if (!m.fecha_iso || !matchCat(m.categoria)) continue;
       const isLocal = (m.local || '').toLowerCase().includes('bustarviejo');
       const rival = isLocal ? m.visitante : m.local;
+      // Si el partido aún no tiene hora, se publica como evento de día completo
+      // (si se pusiera 00:00 aparecería de madrugada o el móvil podría ignorarlo)
+      const nextDay = (() => {
+        const d = new Date(`${m.fecha_iso}T00:00:00`);
+        d.setDate(d.getDate() + 1);
+        const p = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+      })();
+      const timing = m.hora
+        ? [`DTSTART;TZID=Europe/Madrid:${local(m.fecha_iso, m.hora)}`, `DTEND;TZID=Europe/Madrid:${addHours(m.fecha_iso, m.hora, 2)}`]
+        : [`DTSTART;VALUE=DATE:${String(m.fecha_iso).replace(/-/g, '')}`, `DTEND;VALUE=DATE:${nextDay}`];
       vevents.push([
         'BEGIN:VEVENT',
         `UID:partido-${m.id}@cdbustarviejo.com`,
         `DTSTAMP:${stamp}`,
-        `DTSTART;TZID=Europe/Madrid:${local(m.fecha_iso, m.hora)}`,
-        `DTEND;TZID=Europe/Madrid:${addHours(m.fecha_iso, m.hora, 2)}`,
+        ...timing,
         `SUMMARY:⚽ ${esc(m.categoria)} vs ${esc(rival)}`,
-        `DESCRIPTION:${esc(`Jornada ${m.jornada || '-'} · ${isLocal ? 'Local' : 'Visitante'}`)}`,
+        `DESCRIPTION:${esc(`Jornada ${m.jornada || '-'} · ${isLocal ? 'Local' : 'Visitante'}${m.hora ? '' : ' · Hora por confirmar'}`)}`,
         `LOCATION:${esc(m.campo)}`,
         'BEGIN:VALARM',
         'TRIGGER:-PT12H',
