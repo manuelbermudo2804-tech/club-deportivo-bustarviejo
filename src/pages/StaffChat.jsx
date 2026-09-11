@@ -249,14 +249,23 @@ export default function StaffChat() {
     const { scrollTop, scrollHeight, clientHeight } = e.target;
     const atBottom = scrollHeight - scrollTop - clientHeight < 100;
     setIsScrolledToBottom(atBottom);
+    // Al llegar abajo (a mano o con el botón) el contador desaparece
+    if (atBottom) setNewMessageCount(0);
   };
 
+  // Contar SOLO los mensajes realmente nuevos (no en cada re-render)
+  const prevMessagesCountRef = useRef(0);
   useEffect(() => {
-    if (isScrolledToBottom && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    const nuevos = messages.length - prevMessagesCountRef.current;
+    prevMessagesCountRef.current = messages.length;
+
+    if (isScrolledToBottom) {
       setNewMessageCount(0);
-    } else if (!isScrolledToBottom && messages.length > 0) {
-      setNewMessageCount(prev => prev + 1);
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+      }
+    } else if (nuevos > 0) {
+      setNewMessageCount(prev => prev + nuevos);
     }
   }, [messages, isScrolledToBottom]);
 
