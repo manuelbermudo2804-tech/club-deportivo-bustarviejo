@@ -36,6 +36,18 @@ export default function HazteSocioBanner({ seasonConfig }) {
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/15 rounded-full blur-xl" />
         <div className="absolute -bottom-10 -left-10 w-28 h-28 bg-white/10 rounded-full blur-xl" />
 
+        {premioFoto && (
+          <div className="relative h-28 w-full">
+            <img src={premioFoto} alt={premio || "Premio"} className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
+            {premio && (
+              <p className="absolute bottom-2 left-3 right-3 text-white font-black text-lg leading-tight drop-shadow-lg">
+                {premio}
+              </p>
+            )}
+          </div>
+        )}
+
         <div className="relative p-4">
           <div className="flex items-center gap-2 mb-2">
             <span className="bg-white text-orange-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide animate-pulse">
@@ -45,9 +57,7 @@ export default function HazteSocioBanner({ seasonConfig }) {
           </div>
 
           <div className="flex items-center gap-3">
-            {premioFoto ? (
-              <img src={premioFoto} alt={premio || "Premio"} className="w-16 h-16 rounded-xl object-cover border-2 border-white/50 flex-shrink-0" />
-            ) : (
+            {!premioFoto && (
               <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
                 <Gift className="w-7 h-7 text-white" />
               </div>
