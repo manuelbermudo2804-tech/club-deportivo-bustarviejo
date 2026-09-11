@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { format } from "date-fns";
+import { es } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -271,9 +273,16 @@ function NextCallupBanner({ callup }) {
                   <span className="text-white/70 text-[10px] font-semibold">¡Estás convocado!</span>
                 </div>
                 <h3 className="font-black text-white text-lg truncate">{callup.titulo}</h3>
-                <p className="text-white/80 text-sm">
-                  {callup.hora_partido} · {callup.ubicacion?.split(",")[0]}
-                </p>
+                <div className="text-white/90 text-sm space-y-0.5 mt-1">
+                  {callup.hora_concentracion && <p>🕘 Concentración: {callup.hora_concentracion}</p>}
+                  {callup.hora_partido && <p>⚽ Partido: {callup.hora_partido}</p>}
+                  {callup.ubicacion && <p className="truncate">📍 {callup.ubicacion}</p>}
+                  {callup.fecha_limite_respuesta && (
+                    <p className="text-white font-semibold">
+                      ⏳ Responde antes del {format(new Date(callup.fecha_limite_respuesta), "d MMM 'a las' HH:mm", { locale: es })}
+                    </p>
+                  )}
+                </div>
               </div>
               <ChevronRight className="w-6 h-6 text-white/60" />
             </div>
