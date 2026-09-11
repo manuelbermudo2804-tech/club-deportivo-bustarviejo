@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { UserX, Undo2 } from "lucide-react";
 import { getNextTraining, labelEntreno } from "@/lib/nextTraining";
+import useSinEntrenamiento from "@/hooks/useSinEntrenamiento";
 
 // Solo Infantil y superiores pueden avisar por su cuenta
 const CATEGORIAS_PERMITIDAS = ["Infantil", "Cadete", "Juvenil", "Aficionado", "Femenino"];
@@ -31,7 +32,8 @@ export default function MinorSkipTraining({ player, playerCategory, user }) {
     staleTime: 600000,
   });
 
-  const next = schedules.length ? getNextTraining(schedules) : null;
+  const diasSinEntreno = useSinEntrenamiento();
+  const next = schedules.length ? getNextTraining(schedules, new Date(), diasSinEntreno) : null;
   const storageKey = next && player?.id ? `noVoyEntreno_${player.id}_${next.fechaISO}` : null;
 
   useEffect(() => {

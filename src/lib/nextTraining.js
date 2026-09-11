@@ -1,10 +1,12 @@
+import { esDiaSinEntreno, fechaISO as toISO } from "@/lib/sinEntrenamiento";
+
 const DIAS_MAP = { "Lunes": 1, "Martes": 2, "Miércoles": 3, "Jueves": 4, "Viernes": 5 };
 
 /**
  * Devuelve el próximo entrenamiento a partir de una lista de TrainingSchedule.
  * { schedule, daysUntil, fecha (Date), fechaISO (YYYY-MM-DD) } o null.
  */
-export function getNextTraining(schedules = [], now = new Date()) {
+export function getNextTraining(schedules = [], now = new Date(), cancelaciones = []) {
   const todayDow = now.getDay();
   const currentTime = now.getHours() * 60 + now.getMinutes();
 
@@ -27,6 +29,18 @@ export function getNextTraining(schedules = [], now = new Date()) {
       const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const diasHastaInicio = Math.round((inicio - startOfToday) / 86400000);
       while (diff < diasHastaInicio) diff += 7;
+    }
+
+    // Saltar los días marcados como "sin entrenamiento" (fiestas, puentes...)
+    if (cancelaciones && cancelaciones.length) {
+      let vueltas = 0;
+      while (vueltas < 10) {
+        const f = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff);
+        if (!esDiaSinEntreno(cancelaciones, toISO(f), s.categoria)) break;
+        diff += 7;
+        vueltas++;
+      }
+      if (vueltas >= 10) continue;
     }
 
     if (diff < bestDiff) { bestDiff = diff; best = s; }

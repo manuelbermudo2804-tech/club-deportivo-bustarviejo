@@ -19,6 +19,7 @@ import ShareFormButton from "../components/players/ShareFormButton";
 import { ALL_PARENT_BUTTONS, DEFAULT_PARENT_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/ParentDashboardButtons";
 import { calculatePaymentStats } from "../components/payments/paymentHelpers";
 import { buildWeekAgenda } from "../components/dashboard/miSemanaHelper";
+import useSinEntrenamiento from "@/hooks/useSinEntrenamiento";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
 import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
@@ -371,9 +372,10 @@ export default function ParentDashboard() {
   }, 0);
 
   // Agenda de "Mi Semana" (entrenos + partidos + choques entre hermanos)
+  const diasSinEntreno = useSinEntrenamiento();
   const weekAgenda = useMemo(
-    () => buildWeekAgenda(myPlayers, trainingSchedules, callups),
-    [myPlayers, trainingSchedules, callups]
+    () => buildWeekAgenda(myPlayers, trainingSchedules, callups, diasSinEntreno),
+    [myPlayers, trainingSchedules, callups, diasSinEntreno]
   );
 
   // Determinar qué botones mostrar según configuración del usuario (BD > localStorage > default)

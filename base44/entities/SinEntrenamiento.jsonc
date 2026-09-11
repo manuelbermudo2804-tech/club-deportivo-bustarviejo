@@ -1,0 +1,87 @@
+{
+  "name": "SinEntrenamiento",
+  "type": "object",
+  "description": "D\u00edas en los que NO hay entrenamiento (fiestas patronales, puentes, cierre de instalaciones...). Sirve para que la app no avise de entrenamientos esos d\u00edas.",
+  "properties": {
+    "fecha": {
+      "type": "string",
+      "format": "date",
+      "description": "Primer d\u00eda sin entrenamiento (YYYY-MM-DD)"
+    },
+    "fecha_fin": {
+      "type": "string",
+      "format": "date",
+      "description": "\u00daltimo d\u00eda sin entrenamiento si es un rango de varios d\u00edas. Vac\u00edo = solo un d\u00eda."
+    },
+    "categorias": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Categor\u00edas afectadas. Vac\u00edo = todas las categor\u00edas del club."
+    },
+    "motivo": {
+      "type": "string",
+      "description": "Motivo visible (ej: Fiestas patronales)"
+    },
+    "creado_por": {
+      "type": "string",
+      "description": "Email de quien lo marc\u00f3"
+    }
+  },
+  "required": [
+    "fecha"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "fecha"
+      ]
+    }
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_coordinador": true
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_coordinador": true
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_coordinador": true
+          }
+        }
+      ]
+    }
+  }
+}

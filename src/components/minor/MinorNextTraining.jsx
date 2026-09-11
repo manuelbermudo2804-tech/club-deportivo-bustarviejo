@@ -4,12 +4,8 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Clock } from "lucide-react";
-
-const DIAS_MAP = {
-  "Lunes": 1, "Martes": 2, "Miércoles": 3, "Jueves": 4, "Viernes": 5,
-};
-
-const DIAS_NOMBRES = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+import { getNextTraining } from "@/lib/nextTraining";
+import useSinEntrenamiento from "@/hooks/useSinEntrenamiento";
 
 export default function MinorNextTraining({ playerCategory }) {
   const { data: schedules = [] } = useQuery({
@@ -19,46 +15,16 @@ export default function MinorNextTraining({ playerCategory }) {
     staleTime: 600000,
   });
 
+  const diasSinEntreno = useSinEntrenamiento();
+
   if (!schedules.length) return null;
 
-  // Find next training from now, respetando la fecha de inicio de los entrenamientos
-  const now = new Date();
-  const todayDow = now.getDay(); // 0=Sun
-  const currentTime = now.getHours() * 60 + now.getMinutes();
+  const next = getNextTraining(schedules, new Date(), diasSinEntreno);
+  if (!next) return null;
 
-  let best = null;
-  let bestDiff = Infinity;
-
-  for (const s of schedules) {
-    const dow = DIAS_MAP[s.dia_semana];
-    if (dow === undefined) continue;
-
-    const [h, m] = (s.hora_inicio || "18:00").split(":").map(Number);
-    const trainTime = h * 60 + m;
-
-    // Días hasta este entrenamiento
-    let diff = dow - todayDow;
-    if (diff < 0) diff += 7;
-    if (diff === 0 && currentTime >= trainTime) diff = 7; // Ya pasó hoy
-
-    // Si los entrenamientos aún no han empezado, avanzar hasta la primera semana válida
-    if (s.fecha_inicio) {
-      const inicio = new Date(`${s.fecha_inicio}T00:00:00`);
-      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-      const diasHastaInicio = Math.round((inicio - startOfToday) / 86400000);
-      while (diff < diasHastaInicio) diff += 7;
-    }
-
-    if (diff < bestDiff) {
-      bestDiff = diff;
-      best = s;
-    }
-  }
-
-  if (!best) return null;
-
-  const daysUntil = bestDiff;
-  const fechaEntreno = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysUntil);
+  const best = next.schedule;
+  const daysUntil = next.daysUntil;
+  const fechaEntreno = next.fecha;
 
   const dayLabel = daysUntil === 0
     ? "¡Hoy!"

@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import TrainingScheduleForm from "../components/training/TrainingScheduleForm";
 import ContactCard from "../components/ContactCard";
+import DiasSinEntrenamientoPanel from "../components/training/DiasSinEntrenamientoPanel";
 
 const DIAS_ORDEN = {
   "Lunes": 1,
@@ -311,6 +312,12 @@ export default function Schedules() {
           </Card>
         </div>
       )}
+
+      {/* Días sin entrenamiento (fiestas, puentes...) */}
+      <DiasSinEntrenamientoPanel
+        canEdit={canEdit}
+        categorias={[...new Set(schedules.map((s) => s.categoria).filter(Boolean))].sort()}
+      />
 
       {/* Form */}
       <AnimatePresence>

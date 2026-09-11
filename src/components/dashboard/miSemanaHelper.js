@@ -2,6 +2,8 @@
 // a partir de sus jugadores, horarios de entrenamiento y convocatorias.
 // Sin llamadas a red: recibe los datos ya cargados y devuelve una lista ordenada.
 
+import { esDiaSinEntreno } from "@/lib/sinEntrenamiento";
+
 const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 
 // Devuelve el lunes 00:00 de la semana de una fecha dada
@@ -41,7 +43,7 @@ const DIA_A_INDEX = {
  * @param {Array} callups - Convocatorias publicadas (ya filtradas por categorías de los hijos)
  * @returns {{ items: Array, conflicts: Array }}
  */
-export function buildWeekAgenda(players = [], schedules = [], callups = []) {
+export function buildWeekAgenda(players = [], schedules = [], callups = [], cancelaciones = []) {
   const ini = inicioSemana();
   const fin = finSemana();
 
@@ -68,6 +70,8 @@ export function buildWeekAgenda(players = [], schedules = [], callups = []) {
       const inicioTemporada = new Date(s.fecha_inicio + "T00:00:00");
       if (fecha < inicioTemporada) return;
     }
+    // Día marcado como "sin entrenamiento" (fiestas, puentes...)
+    if (esDiaSinEntreno(cancelaciones, fecha, s.categoria)) return;
     items.push({
       tipo: "entreno",
       fecha,
