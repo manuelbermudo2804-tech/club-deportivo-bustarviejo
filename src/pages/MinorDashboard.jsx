@@ -17,6 +17,7 @@ import MinorEvalWidget from "@/components/minor/MinorEvalWidget";
 import MinorGoalsWidget from "@/components/minor/MinorGoalsWidget";
 import MinorBadgesWidget from "@/components/minor/MinorBadgesWidget";
 import MinorNextTraining from "@/components/minor/MinorNextTraining";
+import MinorSkipTraining from "@/components/minor/MinorSkipTraining";
 import MinorMotivationalQuote from "@/components/minor/MinorMotivationalQuote";
 import MinorBirthdayBanner from "@/components/minor/MinorBirthdayBanner";
 import MinorCommitmentLevel from "@/components/minor/MinorCommitmentLevel";
@@ -445,6 +446,9 @@ export default function MinorDashboard() {
         <SectionHeader icon={Zap} title="Lo próximo" color="text-orange-500" delay={0.15} />
         {!isComplementaria && <NextCallupBanner callup={nextCallup} />}
         {playerCategory && <MinorNextTraining playerCategory={playerCategory} />}
+        {playerCategory && linkedPlayer && (
+          <MinorSkipTraining player={linkedPlayer} playerCategory={playerCategory} user={user} />
+        )}
 
         {/* ─── MI PROGRESO ─── */}
         <SectionHeader icon={Trophy} title="Mi progreso" color="text-yellow-500" delay={0.2} />
