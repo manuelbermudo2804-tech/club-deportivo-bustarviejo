@@ -1,12 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Heart, Gift, Ticket, Sparkles } from "lucide-react";
+import { Heart, Gift } from "lucide-react";
 
 /**
- * Banner de "Hazte Socio" en el panel de familias.
- * Si el programa "Trae un socio amigo" está activo, cambia por completo:
- * pasa a ser un banner de premio irresistible con el sorteo destacado.
+ * Banner compacto de "Hazte Socio" en el panel de familias.
+ * Si el programa "Trae un socio amigo" está activo, cambia el mensaje y el color
+ * para destacar el sorteo, manteniendo el mismo tamaño que el banner normal.
  */
 export default function HazteSocioBanner({ seasonConfig }) {
   const programaActivo = seasonConfig?.programa_referidos_activo === true;
@@ -31,58 +31,29 @@ export default function HazteSocioBanner({ seasonConfig }) {
   }
 
   return (
-    <Link to={createPageUrl("ClubMembership")} className="block">
-      <div className="relative overflow-hidden rounded-2xl border-2 border-amber-300 shadow-xl bg-gradient-to-br from-amber-500 via-orange-600 to-rose-600 transition-all hover:scale-[1.02] active:scale-95">
-        <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/15 rounded-full blur-xl" />
-        <div className="absolute -bottom-10 -left-10 w-28 h-28 bg-white/10 rounded-full blur-xl" />
-
-        {premioFoto && (
-          <div className="relative h-28 w-full">
-            <img src={premioFoto} alt={premio || "Premio"} className="absolute inset-0 w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/20" />
-            {premio && (
-              <p className="absolute bottom-2 left-3 right-3 text-white font-black text-lg leading-tight drop-shadow-lg">
-                {premio}
-              </p>
+    <Link to={createPageUrl("ClubMembership")}>
+      <div className="bg-gradient-to-r from-amber-500 via-orange-600 to-rose-600 rounded-xl p-3 shadow-lg transition-all hover:scale-105 active:scale-95 border border-amber-300">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            {premioFoto ? (
+              <img
+                src={premioFoto}
+                alt={premio || "Premio"}
+                className="w-9 h-9 rounded-lg object-cover border border-white/60 flex-shrink-0"
+              />
+            ) : (
+              <Gift className="w-5 h-5 text-white flex-shrink-0" />
             )}
-          </div>
-        )}
-
-        <div className="relative p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="bg-white text-orange-700 text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide animate-pulse">
-              Sorteo en marcha
-            </span>
-            <Sparkles className="w-4 h-4 text-yellow-200" />
-          </div>
-
-          <div className="flex items-center gap-3">
-            {!premioFoto && (
-              <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
-                <Gift className="w-7 h-7 text-white" />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-white font-black text-base leading-tight">
-                ¡Trae un socio amigo y gana!
+            <div className="min-w-0">
+              <p className="text-white font-bold text-sm leading-tight truncate">
+                🎟️ Trae un socio amigo y gana{premio ? ` ${premio}` : ""}
               </p>
-              <p className="text-white/90 text-xs mt-0.5">
-                {premio
-                  ? <>Cada amigo = 1 papeleta para el sorteo de <strong>{premio}</strong></>
-                  : <>Cada amigo que traes = 1 papeleta para el sorteo</>}
+              <p className="text-white/85 text-[11px] leading-tight">
+                Cada amigo = 1 papeleta · Socio {precio}€
               </p>
             </div>
           </div>
-
-          <div className="mt-3 flex items-center justify-between gap-2 bg-white rounded-xl px-3 py-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <Ticket className="w-4 h-4 text-orange-600 flex-shrink-0" />
-              <p className="text-slate-800 text-xs font-semibold truncate">
-                Ser socio: solo {precio}€/temporada
-              </p>
-            </div>
-            <span className="text-orange-700 font-black text-sm whitespace-nowrap">Ver cómo →</span>
-          </div>
+          <span className="text-white text-lg flex-shrink-0">→</span>
         </div>
       </div>
     </Link>
