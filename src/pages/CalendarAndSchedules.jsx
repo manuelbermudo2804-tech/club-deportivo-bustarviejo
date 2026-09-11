@@ -18,6 +18,7 @@ import CalendarExport from "../components/calendar/CalendarExport";
 import AgendaView from "../components/calendar/AgendaView";
 import TrainingScheduleForm from "../components/training/TrainingScheduleForm";
 import ContactCard from "../components/ContactCard";
+import DiasSinEntrenamientoPanel from "../components/training/DiasSinEntrenamientoPanel";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import UpcomingMatchesSection from "../components/calendar/UpcomingMatchesSection";
 import MyLeagueSchedules from "../components/competition/MyLeagueSchedules";
@@ -736,6 +737,9 @@ export default function CalendarAndSchedules() {
               </Button>
             )}
           </div>
+
+          {/* Días sin entrenamiento */}
+          <DiasSinEntrenamientoPanel canEdit={canEditSchedules} categorias={Object.keys(schedulesByCategory).sort()} />
 
           {/* Location Card */}
           <Card className="border-none shadow-lg bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300">
