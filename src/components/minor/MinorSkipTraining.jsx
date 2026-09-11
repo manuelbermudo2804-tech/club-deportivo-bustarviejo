@@ -20,7 +20,9 @@ export default function MinorSkipTraining({ player, playerCategory, user }) {
   const [enviado, setEnviado] = useState(false);
   const [sending, setSending] = useState(false);
 
-  const permitida = CATEGORIAS_PERMITIDAS.some((c) => (playerCategory || "").includes(c));
+  // Solo para jugadores con acceso juvenil concedido y no revocado
+  const tieneAccesoJuvenil = !!player?.acceso_menor_autorizado && !player?.acceso_menor_revocado;
+  const permitida = tieneAccesoJuvenil && CATEGORIAS_PERMITIDAS.some((c) => (playerCategory || "").includes(c));
 
   const { data: schedules = [] } = useQuery({
     queryKey: ["minorSchedules", playerCategory],
