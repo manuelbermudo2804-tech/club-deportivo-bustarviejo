@@ -707,6 +707,8 @@ export default function ClubMembership() {
             precio={seasonConfig?.precio_socio || CUOTA_SOCIO}
             premio={seasonConfig?.sorteo_premio_principal_nombre}
             premioFoto={seasonConfig?.sorteo_premio_principal_foto}
+            sorteoFecha={seasonConfig?.sorteo_fecha}
+            sorteoLugar={seasonConfig?.sorteo_lugar}
             onQuieroSerSocio={!(isPlayerUser && currentSeasonMembership) ? () => setShowForm(true) : null}
           />
           {user && (

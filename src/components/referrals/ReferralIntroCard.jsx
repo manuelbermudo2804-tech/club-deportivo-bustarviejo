@@ -2,12 +2,13 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Gift, UserPlus } from "lucide-react";
+import SorteoCountdown from "./SorteoCountdown";
 
 /**
  * Cabecera del programa "Trae un socio amigo": explica en dos líneas cómo
  * participar y recuerda que CUALQUIERA puede hacerse socio.
  */
-export default function ReferralIntroCard({ precio = 25, premio, premioFoto, onQuieroSerSocio }) {
+export default function ReferralIntroCard({ precio = 25, premio, premioFoto, sorteoFecha, sorteoLugar, onQuieroSerSocio }) {
   return (
     <Card className="border-none shadow-lg overflow-hidden bg-gradient-to-br from-amber-500 via-orange-600 to-rose-600">
       <CardContent className="p-5 text-white">
@@ -31,6 +32,8 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, onQ
             </p>
           </div>
         </div>
+
+        <SorteoCountdown fecha={sorteoFecha} lugar={sorteoLugar} />
 
         {onQuieroSerSocio && (
           <Button

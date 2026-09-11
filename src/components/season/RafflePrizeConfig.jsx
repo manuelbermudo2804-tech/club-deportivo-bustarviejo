@@ -129,6 +129,44 @@ export default function RafflePrizeConfig({ activeSeason, updateSeasonMutation }
         <p className="text-xs text-slate-500 mt-1">Se guarda al salir del campo.</p>
       </div>
 
+      {/* Fecha del sorteo (cuenta atrás para los socios) */}
+      <div className="border-t border-amber-200 pt-4 space-y-3">
+        <p className="font-semibold text-amber-900 text-sm">⏳ Día del sorteo (cuenta atrás)</p>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label className="text-sm font-medium">📅 Fecha y hora</Label>
+            <Input
+              key={`sorteo-fecha-${activeSeason.id}`}
+              type="datetime-local"
+              defaultValue={activeSeason.sorteo_fecha || ""}
+              onBlur={(e) => {
+                if (e.target.value !== (activeSeason.sorteo_fecha || "")) {
+                  update({ sorteo_fecha: e.target.value });
+                }
+              }}
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label className="text-sm font-medium">📍 Dónde se sortea</Label>
+            <Input
+              key={`sorteo-lugar-${activeSeason.id}`}
+              defaultValue={activeSeason.sorteo_lugar || ""}
+              onBlur={(e) => {
+                if (e.target.value !== (activeSeason.sorteo_lugar || "")) {
+                  update({ sorteo_lugar: e.target.value });
+                }
+              }}
+              placeholder="Ej: Torneo de fin de temporada"
+              className="mt-1"
+            />
+          </div>
+        </div>
+        <p className="text-xs text-slate-600">
+          Si dejas la fecha vacía no se muestra ninguna cuenta atrás. Puedes cambiarla en cualquier momento.
+        </p>
+      </div>
+
       {/* Umbral de rentabilidad para poder sortear */}
       <div className="border-t border-amber-200 pt-4 space-y-3">
         <p className="font-semibold text-amber-900 text-sm">🎯 ¿Cuándo se puede hacer el sorteo?</p>

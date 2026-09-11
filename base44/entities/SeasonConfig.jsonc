@@ -260,6 +260,14 @@
       "default": 25,
       "description": "Valor en euros que aporta cada papeleta/amigo referido (normalmente la cuota de socio). Con el valor del premio se calcula el umbral m\u00ednimo de papeletas para que el sorteo sea rentable."
     },
+    "sorteo_fecha": {
+      "type": "string",
+      "description": "Fecha y hora del sorteo del premio principal (formato YYYY-MM-DDTHH:mm, hora local). Se muestra como cuenta atr\u00e1s a los socios."
+    },
+    "sorteo_lugar": {
+      "type": "string",
+      "description": "D\u00f3nde se celebra el sorteo (ej: Torneo de fin de temporada)"
+    },
     "sorteo_premios": {
       "type": "array",
       "items": {
