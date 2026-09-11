@@ -31,8 +31,8 @@ export default function HazteSocioBanner({ seasonConfig }) {
   }
 
   return (
-    <Link to={createPageUrl("ClubMembership")}>
-      <div className="bg-gradient-to-r from-amber-500 via-orange-600 to-rose-600 rounded-xl p-3 shadow-lg transition-all hover:scale-105 active:scale-95 border border-amber-300">
+    <Link to={`${createPageUrl("ClubMembership")}?focus=referidos`}>
+      <div className="animate-pulse-soft bg-gradient-to-r from-amber-500 via-orange-600 to-rose-600 rounded-xl p-3 shadow-lg transition-all hover:scale-105 active:scale-95 border border-amber-300">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             {premioFoto ? (
@@ -49,7 +49,7 @@ export default function HazteSocioBanner({ seasonConfig }) {
                 🎟️ Trae un socio amigo y gana{premio ? ` ${premio}` : ""}
               </p>
               <p className="text-white/85 text-[11px] leading-tight">
-                Cada amigo = 1 papeleta · Socio {precio}€
+                Cualquiera puede ser socio · 1 amigo = 1 papeleta · {precio}€
               </p>
             </div>
           </div>

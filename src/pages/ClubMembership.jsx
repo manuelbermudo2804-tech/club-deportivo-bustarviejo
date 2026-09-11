@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift, Share2, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
+import ReferralIntroCard from "../components/referrals/ReferralIntroCard";
 import { generatePapeletaNumber } from "../components/referrals/generatePapeletaNumber";
 import { toast } from "sonner";
 import InvitationPWAGuide from "../components/pwa/InvitationPWAGuide";
@@ -628,6 +629,8 @@ export default function ClubMembership() {
   const isPlayerUser = (user?.tipo_panel === 'jugador_adulto') || (user?.es_jugador === true);
   // Los jugadores adultos SÍ pueden darse de alta como socios; solo limitamos que no creen NUEVOS jugadores.
 
+  const programaReferidosActivo = seasonConfig?.programa_referidos_activo === true;
+
   const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.estado_pago === 'Pagado').length;
 
   if (loadingRenewal) {
@@ -696,6 +699,29 @@ export default function ClubMembership() {
             : `Forma parte de nuestra gran familia deportiva`}
         </p>
       </div>
+
+      {/* Programa "Trae un socio amigo" — primero cuando está activo */}
+      {programaReferidosActivo && !isRenewal && (
+        <>
+          <ReferralIntroCard
+            precio={seasonConfig?.precio_socio || CUOTA_SOCIO}
+            premio={seasonConfig?.sorteo_premio_principal_nombre}
+            premioFoto={seasonConfig?.sorteo_premio_principal_foto}
+            onQuieroSerSocio={!(isPlayerUser && currentSeasonMembership) ? () => setShowForm(true) : null}
+          />
+          {user && (
+            <ReferralProgramCard
+              seasonConfig={seasonConfig}
+              userReferrals={currentUser?.referrals_count || 0}
+              userRaffleEntries={currentUser?.raffle_entries_total || 0}
+              userFemeninoReferrals={currentUser?.femenino_referrals_count || 0}
+              userEmail={currentUser?.email || ""}
+              userName={currentUser?.full_name || ""}
+              hasPlayersInClub={myPlayers.length > 0}
+            />
+          )}
+        </>
+      )}
 
       {/* Banner de renovación */}
       {isRenewal && renewalMember && (
@@ -909,8 +935,8 @@ export default function ClubMembership() {
         </div>
       )}
 
-      {/* Programa Trae un Socio Amigo - Visible para todos los usuarios logueados */}
-      {user && (
+      {/* Programa Trae un Socio Amigo - solo aquí si el programa NO está activo (ya se muestra arriba cuando lo está) */}
+      {user && !programaReferidosActivo && (
         <ReferralProgramCard 
           seasonConfig={seasonConfig}
           userReferrals={currentUser?.referrals_count || 0}
