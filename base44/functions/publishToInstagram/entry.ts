@@ -53,6 +53,22 @@ Deno.serve(async (req) => {
       return Response.json({ success: false, error: created?.error?.message || 'Instagram rechazó la imagen' }, { status: 400 });
     }
 
+    // 2b. Esperar a que Instagram termine de procesar la imagen (si no, da "Media ID is not available")
+    let status = '';
+    for (let i = 0; i < 12; i++) {
+      await new Promise((r) => setTimeout(r, 2500));
+      const stRes = await fetch(`https://graph.instagram.com/v21.0/${created.id}?fields=status_code&access_token=${accessToken}`);
+      const st = await stRes.json();
+      status = st?.status_code || '';
+      if (status === 'FINISHED') break;
+      if (status === 'ERROR' || status === 'EXPIRED') {
+        return Response.json({ success: false, error: 'Instagram no pudo procesar la imagen' }, { status: 400 });
+      }
+    }
+    if (status !== 'FINISHED') {
+      return Response.json({ success: false, error: 'Instagram tardó demasiado en procesar la imagen. Inténtalo de nuevo.' }, { status: 400 });
+    }
+
     // 3. Publicar el contenedor
     const pubRes = await fetch(`https://graph.instagram.com/v21.0/${me.id}/media_publish`, {
       method: 'POST',
