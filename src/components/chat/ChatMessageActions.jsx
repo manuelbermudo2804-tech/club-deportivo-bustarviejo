@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Edit, Trash2 } from "lucide-react";
+import { Copy, Edit, Trash2, Reply } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -14,6 +14,7 @@ export default function ChatMessageActions({
   isMine,
   onEdit,
   onDelete,
+  onReply,
 }) {
   const handleCopy = async () => {
     const text = message?.mensaje || "";
@@ -41,6 +42,13 @@ export default function ChatMessageActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        {onReply && !message?.eliminado && (
+          <DropdownMenuItem onClick={() => onReply(message)}>
+            <Reply className="w-4 h-4 mr-2" />
+            Responder
+          </DropdownMenuItem>
+        )}
+
         {message?.mensaje?.trim() && (
           <DropdownMenuItem onClick={handleCopy}>
             <Copy className="w-4 h-4 mr-2" />

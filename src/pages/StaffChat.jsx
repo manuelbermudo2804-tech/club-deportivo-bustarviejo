@@ -49,7 +49,6 @@ export default function StaffChat() {
   const [conversation, setConversation] = useState(null);
   const [showParticipants, setShowParticipants] = useState(false);
   const [showGallery, setShowGallery] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
   const [playingAudio, setPlayingAudio] = useState(null);
   const audioRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -162,19 +161,6 @@ export default function StaffChat() {
     
     return unsub;
   }, [conversation?.id, user?.email, queryClient]);
-
-  // Calcular mensajes sin leer (solo para badge local) y recargar contadores independientes
-  useEffect(() => {
-    if (!messages || !user) {
-      setUnreadCount(0);
-      return;
-    }
-    const unread = messages.filter(m => 
-      m.autor_email !== user.email && 
-      !m.leido_por?.some(l => l.email === user.email)
-    ).length;
-    setUnreadCount(unread);
-  }, [messages, user]);
 
   const { data: allUsers = [] } = useQuery({
     queryKey: ['allUsersStaff'],
@@ -718,9 +704,6 @@ export default function StaffChat() {
                </Button>
                <MessageCircle className="w-4 h-4" />
                💼 Chat Interno Staff
-               {unreadCount > 0 && (
-                <Badge className="ml-2 bg-red-500 text-white text-xs animate-pulse">{unreadCount}</Badge>
-               )}
              </CardTitle>
              <div className="flex gap-1">
               <Button
@@ -863,7 +846,7 @@ export default function StaffChat() {
                       }}>
                         {msg.mensaje_citado && (
                           <div className={`mb-2 p-2 rounded border-l-2 ${
-                            isMine ? 'bg-purple-700 border-purple-400' : 'bg-slate-100 border-slate-400'
+                            isMine ? 'bg-green-50 border-green-600' : 'bg-slate-100 border-slate-400'
                           }`}>
                             <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
                             <p className="text-xs italic truncate">{msg.mensaje_citado.mensaje}</p>
