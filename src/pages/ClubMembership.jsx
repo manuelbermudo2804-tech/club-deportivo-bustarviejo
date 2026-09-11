@@ -750,7 +750,7 @@ export default function ClubMembership() {
           </div>
           
           {/* Stats de referidos del usuario - Solo para padres con hijos */}
-          {currentUser && myPlayers.length > 0 && seasonConfig?.programa_referidos_activo && (
+          {currentUser && seasonConfig?.programa_referidos_activo && (
             <div className="border-t border-slate-200 pt-4 mt-4">
               <p className="text-center text-sm font-semibold text-slate-700 mb-3">🎁 Tu Programa "Trae un Socio Amigo"</p>
               <div className="grid grid-cols-2 gap-3 text-center">
