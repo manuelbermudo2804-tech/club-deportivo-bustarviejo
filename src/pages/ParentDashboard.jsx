@@ -27,6 +27,7 @@ import PorraPromoBanner from "../components/porra/PorraPromoBanner";
 import IncompleteDocsBanner from "../components/players/IncompleteDocsBanner";
 import MercadilloBanner from "../components/market/MercadilloBanner";
 import ConvocatoriaBlockBanner from "../components/payments/ConvocatoriaBlockBanner";
+import HazteSocioBanner from "../components/membership/HazteSocioBanner";
 
 
 
@@ -594,18 +595,8 @@ export default function ParentDashboard() {
         {/* Banner de novedades del Mercadillo (solo si hay anuncios nuevos) */}
         <MercadilloBanner />
 
-        {/* HAZTE SOCIO BANNER - COMPACTO */}
-        <Link to={createPageUrl("ClubMembership")}>
-          <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-orange-500 rounded-xl p-3 shadow-lg transition-all hover:scale-105 active:scale-95 border border-pink-400">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <Heart className="w-5 h-5 text-white flex-shrink-0" />
-                <p className="text-white font-bold text-sm">❤️ Hazte Socio • 25€/temporada</p>
-              </div>
-              <span className="text-white text-lg">→</span>
-            </div>
-          </div>
-        </Link>
+        {/* HAZTE SOCIO BANNER (cambia por completo si el programa de referidos está activo) */}
+        <HazteSocioBanner seasonConfig={activeSeason} />
 
         {/* BANNER FÚTBOL FEMENINO - COMPARTIR POR WHATSAPP (solo para familias de fútbol) */}
         {activeSeason?.bonus_femenino_activo && myPlayers && myPlayers.length > 0 && !onlyComplementary && (
