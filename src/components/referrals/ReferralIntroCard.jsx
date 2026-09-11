@@ -3,12 +3,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Gift, UserPlus } from "lucide-react";
 import SorteoCountdown from "./SorteoCountdown";
+import ReferralShareRow from "./ReferralShareRow";
 
 /**
  * Cabecera del programa "Trae un socio amigo": explica en dos líneas cómo
  * participar y recuerda que CUALQUIERA puede hacerse socio.
  */
-export default function ReferralIntroCard({ precio = 25, premio, premioFoto, sorteoFecha, sorteoLugar, onQuieroSerSocio }) {
+export default function ReferralIntroCard({ precio = 25, premio, premioFoto, sorteoFecha, sorteoLugar, onQuieroSerSocio, userEmail, userName, showShare = false }) {
   return (
     <Card className="border-none shadow-lg overflow-hidden bg-gradient-to-br from-amber-500 via-orange-600 to-rose-600">
       <CardContent className="p-5 text-white">
@@ -32,6 +33,20 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, sor
             </p>
           </div>
         </div>
+
+        <div className="mt-4 bg-white/15 rounded-2xl p-4">
+          <p className="font-bold text-sm mb-2">¿Cómo funciona?</p>
+          <ol className="text-sm space-y-1 text-white/95">
+            <li>1️⃣ Comparte tu invitación por WhatsApp (lleva tu enlace personal).</li>
+            <li>2️⃣ Quien la reciba se da de alta como socio y paga los {precio}€.</li>
+            <li>3️⃣ Se te suma automáticamente una papeleta para el sorteo.</li>
+          </ol>
+          <p className="text-white/80 text-xs mt-2">
+            También puedes apuntar tú mismo a alguien con el botón de abajo.
+          </p>
+        </div>
+
+        {showShare && <ReferralShareRow userEmail={userEmail} userName={userName} />}
 
         <SorteoCountdown fecha={sorteoFecha} lugar={sorteoLugar} />
 

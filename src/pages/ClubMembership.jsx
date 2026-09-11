@@ -710,18 +710,10 @@ export default function ClubMembership() {
             sorteoFecha={seasonConfig?.sorteo_fecha}
             sorteoLugar={seasonConfig?.sorteo_lugar}
             onQuieroSerSocio={!(isPlayerUser && currentSeasonMembership) ? () => setShowForm(true) : null}
+            userEmail={currentUser?.email || ""}
+            userName={currentUser?.full_name || ""}
+            showShare={!!user}
           />
-          {user && (
-            <ReferralProgramCard
-              seasonConfig={seasonConfig}
-              userReferrals={currentUser?.referrals_count || 0}
-              userRaffleEntries={currentUser?.raffle_entries_total || 0}
-              userFemeninoReferrals={currentUser?.femenino_referrals_count || 0}
-              userEmail={currentUser?.email || ""}
-              userName={currentUser?.full_name || ""}
-              hasPlayersInClub={myPlayers.length > 0}
-            />
-          )}
         </>
       )}
 
@@ -915,8 +907,9 @@ export default function ClubMembership() {
         </Card>
       )}
 
-      {/* Botón para hacerse socio - Jugador solo puede 1 alta por temporada */}
-      {!showForm && !isRenewal && !(isPlayerUser && currentSeasonMembership) && (
+      {/* Botón para hacerse socio - Jugador solo puede 1 alta por temporada.
+          Si el programa de referidos está activo, el botón ya está en el bloque de arriba. */}
+      {!showForm && !isRenewal && !programaReferidosActivo && !(isPlayerUser && currentSeasonMembership) && (
         <div className="space-y-4">
           <Button 
             onClick={() => {
@@ -948,32 +941,6 @@ export default function ClubMembership() {
           userName={currentUser?.full_name || ""}
           hasPlayersInClub={myPlayers.length > 0}
         />
-      )}
-
-      {/* Invitar familiares y amigos */}
-      {user && (seasonConfig?.programa_referidos_activo) && (
-        <Card className="border border-slate-200 shadow-sm bg-white">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
-                <UserPlus className="w-6 h-6 text-orange-600" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-lg mb-1 text-slate-900">
-                  Invita a familiares y amigos
-                </h3>
-                <p className="text-slate-600 text-sm mb-3">
-                  Abuelos, tíos, padrinos, amigos... Todos pueden ser socios y apoyar al club. Cada nuevo socio suma.
-                </p>
-                <div className="bg-slate-50 border border-slate-200 rounded-xl p-3">
-                  <p className="text-slate-900 font-semibold text-center">
-                    Solo <span className="text-2xl font-bold text-orange-600">{seasonConfig?.precio_socio || CUOTA_SOCIO}€</span> /temporada
-                  </p>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       )}
 
 
