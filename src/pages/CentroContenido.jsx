@@ -25,6 +25,23 @@ export default function CentroContenido() {
 
   const cambiarEstado = async (item, nuevo) => {
     await base44.entities.ContenidoClub.update(item.id, { estado: nuevo });
+
+    // Avisar a quien lo envió cuando el club lo publica (crea el hábito de seguir enviando)
+    if (nuevo === "publicado" && item.autor_email) {
+      try {
+        await base44.entities.AppNotification.create({
+          usuario_email: item.autor_email,
+          titulo: "¡Tu contenido se ha publicado!",
+          mensaje: `El club ha publicado ${item.tipo === "video" ? "el vídeo" : "la foto"} que enviaste de ${item.equipo}. ¡Gracias por mandarlo!`,
+          tipo: "info",
+          icono: "📸",
+          enlace: "/SubirContenido",
+        });
+      } catch (e) {
+        console.error("[CentroContenido] no se pudo avisar al autor", e);
+      }
+    }
+
     queryClient.invalidateQueries({ queryKey: ["contenidoClub"] });
     toast.success(
       nuevo === "guardado" ? "Guardado para publicar"
