@@ -12,7 +12,8 @@ export default function CalendarSubscribeCard({ categories = [] }) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const httpUrl = `${origin}/functions/calendarioFeed${cat ? `?cat=${encodeURIComponent(cat)}` : ""}`;
   const webcalUrl = httpUrl.replace(/^https?:/, "webcal:");
-  const googleUrl = `https://calendar.google.com/calendar/r?cid=${encodeURIComponent(webcalUrl)}`;
+  // Google acepta mejor la URL https directa que webcal: en el flujo de "añadir por URL"
+  const googleUrl = `https://calendar.google.com/calendar/r/settings/addbyurl?cid=${encodeURIComponent(httpUrl)}`;
 
   const copy = async () => {
     await navigator.clipboard.writeText(httpUrl);
@@ -76,6 +77,9 @@ export default function CalendarSubscribeCard({ categories = [] }) {
         <p className="text-xs text-blue-700 leading-relaxed">
           <strong>Android:</strong> pulsa "Añadir en Google Calendar" y confirma.{" "}
           <strong>iPhone:</strong> pulsa "Añadir en iPhone" y acepta suscribirte. Si te pide una dirección, pega el enlace copiado.
+        </p>
+        <p className="text-xs text-blue-700 leading-relaxed">
+          Ojo: Google Calendar puede tardar unas horas (hasta un día) en mostrar los partidos la primera vez. Los partidos sin hora confirmada aparecen como evento de día completo.
         </p>
       </CardContent>
     </Card>
