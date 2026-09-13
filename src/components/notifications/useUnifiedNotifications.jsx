@@ -331,8 +331,12 @@ export function useUnifiedNotifications(user, options = {}) {
           isFullAdmin ? run(() => base44.entities.AccountDeletionRequest.filter({ status: "solicitada" })) : Promise.resolve([]),
           isFullAdmin ? run(() => base44.entities.AccountDeletionRequest.filter({ status: "en_revision" })) : Promise.resolve([]),
         ]);
+        const contenido = isFullAdmin
+          ? await run(() => base44.entities.ContenidoClub.filter({ estado: 'pendiente' })).catch(() => [])
+          : [];
         setRawData(prev => ({ 
           ...prev, 
+          contenidoPendiente: contenido,
           invitations: inv, 
           secondParentInvitations: secInv,
           clothingOrders: clothing,
@@ -383,6 +387,13 @@ export function useUnifiedNotifications(user, options = {}) {
         globalThrottler.execute(() => {
           base44.entities.ClubMember.filter({ estado_pago: "Pendiente" }).then(members => {
             setRawData(prev => ({ ...prev, clubMembers: members }));
+          }).catch(() => {});
+        });
+      });
+      safeSubscribe('ContenidoClub', () => {
+        globalThrottler.execute(() => {
+          base44.entities.ContenidoClub.filter({ estado: 'pendiente' }).then(items => {
+            setRawData(prev => ({ ...prev, contenidoPendiente: items }));
           }).catch(() => {});
         });
       });
@@ -542,8 +553,10 @@ export function useUnifiedNotifications(user, options = {}) {
     let pendingLotteryOrders = 0;
     let pendingMemberRequests = 0;
     let pendingDeletionRequests = 0;
+    let pendingContenido = 0;
 
     if (user.role === 'admin') {
+      pendingContenido = (rawData.contenidoPendiente || []).length;
       // unresolvedAdminChats desactivado - se reimplementará
       playersNeedingReview = (rawData.players || []).filter(p => p.categoria_requiere_revision === true).length;
       pendingInvitations = (rawData.invitations || []).length + (rawData.secondParentInvitations || []).length;
@@ -596,6 +609,7 @@ export function useUnifiedNotifications(user, options = {}) {
       pendingLotteryOrders,
       pendingMemberRequests,
       pendingDeletionRequests,
+      pendingContenido,
       pendingMatchObservations,
       hasActiveAdminConversation,
       appNotificationsCount,

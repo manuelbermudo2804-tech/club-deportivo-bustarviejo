@@ -31,7 +31,8 @@ export default function PendingTasksBar({ notifications, forceShow = false }) {
   const isCoach = notifications?.isCoach;
 
   const deletionTotal = notifications?.pendingDeletionRequests || 0;
-  const total = coordTotal + coachTotal + staffTotal + adminTotal + privateTotal + familyTotal + deletionTotal;
+  const contenidoTotal = notifications?.pendingContenido || 0;
+  const total = coordTotal + coachTotal + staffTotal + adminTotal + privateTotal + familyTotal + deletionTotal + contenidoTotal;
   
   // SIEMPRE mostrar para admin, coordinador y entrenador (aunque no haya mensajes)
   const shouldShow = (forceShow === true) || (role === 'admin' || isCoordinator === true || isCoach === true || total > 0);
@@ -68,6 +69,14 @@ export default function PendingTasksBar({ notifications, forceShow = false }) {
           color="bg-green-800/40"
           onClick={() => navigate(createPageUrl('ParentAdminChat'))}
         />
+        {notifications?.role === 'admin' && contenidoTotal > 0 && (
+          <Chip
+            label="Fotos/vídeos"
+            count={contenidoTotal}
+            color="bg-orange-600/80"
+            onClick={() => navigate(createPageUrl('CentroContenido'))}
+          />
+        )}
         {notifications?.role === 'admin' && (
           <Chip
             label="Eliminación"
