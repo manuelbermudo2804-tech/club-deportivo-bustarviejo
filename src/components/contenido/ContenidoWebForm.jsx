@@ -37,11 +37,20 @@ export default function ContenidoWebForm({ onDone }) {
     setEnviando(true);
     try {
       const archivo_base64 = await leerBase64(file);
-      const res = await base44.functions.invoke("enviarContenidoWeb", {
-        equipo, descripcion, nombre, email,
+      const subida = await base44.functions.invoke("enviarContenidoWebArchivo", {
         archivo_base64,
         archivo_nombre: file.name,
         archivo_tipo: file.type,
+      });
+      if (!subida?.data?.archivo_url) {
+        setEnviando(false);
+        setError(subida?.data?.error || "No se ha podido subir el archivo. Inténtalo otra vez.");
+        return;
+      }
+      const res = await base44.functions.invoke("enviarContenidoWeb", {
+        equipo, descripcion, nombre, email,
+        archivo_url: subida.data.archivo_url,
+        tipo: subida.data.tipo,
       });
       setEnviando(false);
       if (res?.data?.success) onDone();
