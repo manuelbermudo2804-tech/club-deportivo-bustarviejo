@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Settings, RefreshCw, Smartphone, CreditCard, Clover, Users, Mail, Image,
   Shield, Trash2, Info, ChevronDown, ChevronUp
@@ -119,9 +120,12 @@ export default function FeatureControlSection({
               </div>
               <div className="flex items-center gap-2">
                 <Label className="text-sm font-medium">📅 Último mes de cobro:</Label>
-                <select value={activeSeason.plan_mensual_mes_fin || "Mayo"} onChange={(e) => update({ plan_mensual_mes_fin: e.target.value })} className="border rounded px-2 py-1 text-sm">
-                  {["Enero","Febrero","Marzo","Abril","Mayo","Junio"].map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
+                <Select value={activeSeason.plan_mensual_mes_fin || "Mayo"} onValueChange={(v) => update({ plan_mensual_mes_fin: v })}>
+                  <SelectTrigger className="w-36 h-9 text-sm bg-white"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {["Enero","Febrero","Marzo","Abril","Mayo","Junio"].map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                  </SelectContent>
+                </Select>
               </div>
               <p className="text-xs text-emerald-700">💡 El padre paga el {activeSeason.plan_mensual_porcentaje_inicial || 60}% en Junio. El resto se divide en mensualidades automáticas.</p>
 
@@ -261,9 +265,12 @@ export default function FeatureControlSection({
                         <Input placeholder="10%" value={comercio.descuento} onChange={(e) => { const updated = [...activeSeason.comercios_descuento]; updated[index].descuento = e.target.value; update({ comercios_descuento: updated }); }} className="w-24" />
                         <Button size="sm" variant="ghost" onClick={() => { const updated = activeSeason.comercios_descuento.filter((_, i) => i !== index); update({ comercios_descuento: updated }); }} className="text-red-600 hover:text-red-700"><Trash2 className="w-4 h-4" /></Button>
                       </div>
-                      <select value={comercio.categoria || "Restaurantes"} onChange={(e) => { const updated = [...activeSeason.comercios_descuento]; updated[index].categoria = e.target.value; update({ comercios_descuento: updated }); }} className="w-full text-sm border rounded px-2 py-1">
-                        {["Restaurantes","Tiendas","Servicios","Ocio","Salud","Otro"].map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
+                      <Select value={comercio.categoria || "Restaurantes"} onValueChange={(v) => { const updated = [...activeSeason.comercios_descuento]; updated[index].categoria = v; update({ comercios_descuento: updated }); }}>
+                        <SelectTrigger className="w-full h-9 text-sm bg-white"><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {["Restaurantes","Tiendas","Servicios","Ocio","Salud","Otro"].map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
                       <Input placeholder="Dirección (opcional)" value={comercio.direccion || ""} onChange={(e) => { const updated = [...activeSeason.comercios_descuento]; updated[index].direccion = e.target.value; update({ comercios_descuento: updated }); }} className="text-sm" />
                       <Input placeholder="Teléfono (opcional)" value={comercio.telefono || ""} onChange={(e) => { const updated = [...activeSeason.comercios_descuento]; updated[index].telefono = e.target.value; update({ comercios_descuento: updated }); }} className="text-sm" />
                       <div className="bg-blue-50 rounded-lg p-2 space-y-1.5 border border-blue-200">
