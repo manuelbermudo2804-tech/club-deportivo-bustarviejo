@@ -671,6 +671,9 @@ export default function Layout({ children, currentPageName }) {
           <SponsorRecruitBanner user={user} />
           <ActiveBanner position="bottom" user={user} />
 
+          {/* Compensación del notch inferior para que la barra no recorte contenido */}
+          <div className="lg:hidden" style={{ height: 'env(safe-area-inset-bottom, 0px)' }} aria-hidden="true" />
+
           {showPaymentSuccess && <PaymentSuccessOverlay />}
 
           {/* Modal de felicitación de cumpleaños */}
