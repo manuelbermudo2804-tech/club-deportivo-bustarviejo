@@ -15,6 +15,7 @@ const PAGE_LABELS = {
   PorraCrear: "Porra — Crear",
   PorraExito: "Porra — Éxito tras pago",
   PublicData_Competicion: "Competición (web del club)",
+  LoteriaNavidad: "Lotería de Navidad",
 };
 
 // Etiqueta dinámica para propuestas de patrocinio (Propuesta_xxx)

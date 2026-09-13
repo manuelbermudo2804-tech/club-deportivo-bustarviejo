@@ -10,10 +10,13 @@ import CompartirLoteriaButton from "@/components/loteria/CompartirLoteriaButton"
 import PremioResultado from "@/components/loteria/PremioResultado";
 import TextoLoteria from "@/components/loteria/TextoLoteria";
 import BackToWebsiteButton from "@/components/public/BackToWebsiteButton";
+import usePublicPageTracker from "@/components/public/usePublicPageTracker";
 
 const FONDO = "min-h-screen bg-gradient-to-b from-[#0b1f16] via-[#12261c] to-[#3b0a12]";
 
 export default function LoteriaNavidad() {
+  usePublicPageTracker("LoteriaNavidad");
+
   const { data, isLoading } = useQuery({
     queryKey: ["loteriaPublic"],
     queryFn: async () => {
