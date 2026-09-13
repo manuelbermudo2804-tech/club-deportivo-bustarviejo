@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, Loader2, AlertTriangle } from "lucide-react";
 import { EQUIPOS_CONTENIDO } from "@/components/contenido/categoriasContenido";
+import WebFilePicker from "@/components/contenido/WebFilePicker";
 
 const MAX_MB = 10;
 
@@ -52,35 +53,13 @@ export default function ContenidoWebForm({ onDone }) {
   };
 
   return (
-    <div className="space-y-5">
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <Label>Tu nombre *</Label>
-          <Input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Ej: María López" className="mt-1.5" />
-        </div>
-        <div>
-          <Label>Tu email (opcional)</Label>
-          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Para avisarte si lo publicamos" className="mt-1.5" />
-        </div>
-      </div>
-
+    <div className="space-y-6">
       <div>
-        <Label>¿De qué equipo es? *</Label>
-        <Select value={equipo} onValueChange={setEquipo}>
-          <SelectTrigger className="mt-1.5"><SelectValue placeholder="Elige el equipo" /></SelectTrigger>
-          <SelectContent>
-            {EQUIPOS_CONTENIDO.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div>
-        <Label>Foto o vídeo *</Label>
-        <Input type="file" accept="image/*,video/*" onChange={(e) => { setFile(e.target.files?.[0] || null); setError(""); }} className="mt-1.5" />
-        <p className="text-xs text-slate-500 mt-1.5">Un archivo cada vez · máximo {MAX_MB} MB</p>
-        {file && !demasiadoGrande && (
-          <p className="text-xs text-slate-600 mt-1">{file.name} · {pesoMb.toFixed(1)} MB</p>
-        )}
+        <Label className="text-base font-bold text-slate-900">1 · Elige la foto o el vídeo</Label>
+        <div className="mt-2">
+          <WebFilePicker file={file} pesoMb={pesoMb} onPick={(f) => { setFile(f); setError(""); }} />
+        </div>
+        <p className="text-xs text-slate-500 mt-2">Un archivo cada vez · máximo {MAX_MB} MB</p>
         {demasiadoGrande && (
           <Alert className="mt-2 bg-amber-50 border-amber-200">
             <AlertTriangle className="w-4 h-4 text-amber-600" />
@@ -92,8 +71,20 @@ export default function ContenidoWebForm({ onDone }) {
       </div>
 
       <div>
-        <Label>¿Qué se ve? (opcional)</Label>
-        <Textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="Ej: gol de falta en el partido del sábado" className="mt-1.5" rows={2} />
+        <Label className="text-base font-bold text-slate-900">2 · ¿De qué equipo es?</Label>
+        <Select value={equipo} onValueChange={setEquipo}>
+          <SelectTrigger className="mt-2 h-12 rounded-xl"><SelectValue placeholder="Elige el equipo" /></SelectTrigger>
+          <SelectContent>
+            {EQUIPOS_CONTENIDO.map((e) => <SelectItem key={e} value={e}>{e}</SelectItem>)}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <Label className="text-base font-bold text-slate-900">3 · ¿Quién lo envía?</Label>
+        <Input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Tu nombre" className="mt-2 h-12 rounded-xl" />
+        <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Tu email (opcional, para avisarte)" className="mt-2 h-12 rounded-xl" />
+        <Textarea value={descripcion} onChange={(e) => setDescripcion(e.target.value)} placeholder="¿Qué se ve? (opcional). Ej: gol de falta del sábado" className="mt-2 rounded-xl" rows={2} />
       </div>
 
       {error && (
@@ -102,7 +93,7 @@ export default function ContenidoWebForm({ onDone }) {
         </Alert>
       )}
 
-      <Button onClick={enviar} disabled={!puedeEnviar} className="w-full bg-rose-600 hover:bg-rose-700 h-12 text-base">
+      <Button onClick={enviar} disabled={!puedeEnviar} className="w-full bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 h-14 text-base font-bold rounded-xl shadow-lg">
         {enviando ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Enviando...</> : <><Upload className="w-5 h-5 mr-2" /> Enviar al club</>}
       </Button>
     </div>
