@@ -54,7 +54,8 @@ Deno.serve(async (req) => {
     const y = now.getFullYear();
     const temporada = now.getMonth() + 1 >= 9 ? `${y}/${y + 1}` : `${y - 1}/${y}`;
 
-    const registro = await base44.asServiceRole.entities.ContenidoClub.create({
+    const db = createClientFromRequest(req);
+    const registro = await db.asServiceRole.entities.ContenidoClub.create({
       tipo: esVideo ? 'video' : 'foto',
       archivo_url: subida.file_url,
       descripcion,
