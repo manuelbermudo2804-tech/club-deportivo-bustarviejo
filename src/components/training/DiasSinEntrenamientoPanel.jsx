@@ -65,6 +65,9 @@ export default function DiasSinEntrenamientoPanel({ canEdit = false, categorias 
   const toggleCat = (c) =>
     setCats((prev) => (prev.includes(c) ? prev.filter((x) => x !== c) : [...prev, c]));
 
+  // Familias, jugadores y staff sin permiso: si no hay días marcados, no se muestra nada
+  if (!canEdit && proximos.length === 0) return null;
+
   return (
     <Card className="border-none shadow-lg bg-white">
       <CardHeader className="flex flex-row items-center justify-between gap-4">
@@ -80,8 +83,9 @@ export default function DiasSinEntrenamientoPanel({ canEdit = false, categorias 
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm text-slate-500">
-          Marca aquí las fiestas patronales, puentes o cierres de instalaciones. Esos días la app no
-          avisará de entrenamientos a familias ni jugadores.
+          {canEdit
+            ? "Marca aquí las fiestas patronales, puentes o cierres de instalaciones. Esos días la app no avisará de entrenamientos a familias ni jugadores."
+            : "Estos días no hay entrenamiento."}
         </p>
 
         {showForm && canEdit && (
