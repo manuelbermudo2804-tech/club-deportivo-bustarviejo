@@ -121,6 +121,9 @@ Deno.serve(async (req) => {
       countNew('MarketReservation'),
     ]);
 
+    const nuevoContenido = await safeFetch('ContenidoClub', {}, countNewerThanSince);
+    const contenidoPendiente = await safeFetch('ContenidoClub', { estado: 'pendiente' });
+
     const novedades = [
       { id: 'inscripciones', label: 'Nuevas inscripciones de jugadores', count: nuevasInscripciones, page: 'Players', icon: 'UserPlus' },
       { id: 'pagos', label: 'Nuevos pagos / justificantes', count: nuevosPagos, page: 'Payments', icon: 'CreditCard' },
@@ -144,6 +147,7 @@ Deno.serve(async (req) => {
       { id: 'mercadillo_reservas', label: 'Nuevas reservas en el mercadillo', count: nuevasReservasMercadillo, page: 'Mercadillo', icon: 'ShoppingBag' },
       { id: 'voluntarios', label: 'Nuevas inscripciones de voluntarios', count: nuevosVoluntarios, page: 'Voluntariado', icon: 'HandHeart' },
       { id: 'bajas_cuenta', label: 'Nuevas solicitudes de baja de cuenta', count: nuevasBajasCuenta, page: 'UserManagement', icon: 'UserMinus' },
+      { id: 'contenido', label: 'Nuevas fotos y vídeos enviados', count: nuevoContenido, page: 'CentroContenido', icon: 'Camera' },
     ].filter(n => n.count > 0);
 
     // === REQUIERE ATENCIÓN (pendientes acumulados, independientemente de la fecha) ===
@@ -220,6 +224,7 @@ Deno.serve(async (req) => {
       { id: 'recalcular_hermanos', label: 'Familias con hermanos: pulsa "Recalcular descuentos" en Renovaciones', count: familiasHermanosRecalcular, page: 'RenewalDashboard', icon: 'Users' },
       { id: 'categorias_revisar', label: 'Jugadores con categoría a revisar', count: categoriasARevisar, page: 'Players', icon: 'AlertTriangle' },
       { id: 'bajas_cuenta_pendientes', label: 'Solicitudes de baja sin procesar', count: bajasCuentaPendientes, page: 'UserManagement', icon: 'UserMinus' },
+      { id: 'contenido_pendiente', label: 'Fotos y vídeos por revisar', count: contenidoPendiente, page: 'CentroContenido', icon: 'Camera' },
     ].filter(a => a.count > 0);
 
     // === ERRORES / EVENTOS CRÍTICOS (diagnóstico, desde la última visita) ===

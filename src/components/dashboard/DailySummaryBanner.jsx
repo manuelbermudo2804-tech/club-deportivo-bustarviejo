@@ -7,10 +7,11 @@ import {
   UserPlus, CreditCard, KeyRound, Users, Shirt, Clover, Mail, ClipboardList,
   MessageSquare, Globe, PartyPopper, Hash, Handshake, Briefcase, FileText,
   Trophy, Heart, ShieldAlert, AlertTriangle, Bell, ShoppingBag, HandHeart,
-  UserMinus, FileSignature, RefreshCw,
+  UserMinus, FileSignature, RefreshCw, Camera,
 } from "lucide-react";
 
 const ICONS = {
+  Camera,
   UserPlus, CreditCard, KeyRound, Users, Shirt, Clover, Mail, ClipboardList,
   MessageSquare, Globe, PartyPopper, Hash, Handshake, Briefcase, FileText,
   Trophy, Heart, ShieldAlert, AlertTriangle, Bell, ShoppingBag, HandHeart,
