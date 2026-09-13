@@ -12,12 +12,17 @@ export default function SubirContenidoForm({ user, onDone }) {
   const [descripcion, setDescripcion] = useState("");
   const [archivos, setArchivos] = useState([]);
   const [subiendo, setSubiendo] = useState(false);
-  const [aviso, setAviso] = useState(null); // { tipo: 'ok' | 'error', texto }
+  const [progreso, setProgreso] = useState({ hecho: 0, total: 0 });
+  const [aviso, setAviso] = useState(null); // { tipo: 'ok' | 'error' | 'parcial', texto }
 
   const elegirArchivos = (e) => {
     const files = Array.from(e.target.files || []).slice(0, 5);
     setArchivos(files);
+    setAviso(null);
   };
+
+  const pesoMB = (f) => f.size / (1024 * 1024);
+  const archivosPesados = archivos.filter((f) => pesoMB(f) > 100);
 
   const enviar = async () => {
     setAviso(null);
@@ -26,8 +31,10 @@ export default function SubirContenidoForm({ user, onDone }) {
     if (!descripcion.trim()) return setAviso({ tipo: "error", texto: "Cuéntanos qué se ve en la foto o vídeo (paso 3)" });
 
     setSubiendo(true);
+    setProgreso({ hecho: 0, total: archivos.length });
     let subidas = 0;
-    let ultimoError = "";
+    const fallidos = [];
+    const okFiles = [];
     for (const file of archivos) {
       try {
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
@@ -42,21 +49,35 @@ export default function SubirContenidoForm({ user, onDone }) {
           temporada: getTemporadaActual(),
         });
         subidas++;
+        okFiles.push(file);
       } catch (err) {
-        ultimoError = err?.message || "error desconocido";
+        fallidos.push(file.name);
         console.error("[SubirContenido] fallo con", file.name, err);
       }
+      setProgreso((p) => ({ ...p, hecho: p.hecho + 1 }));
     }
     setSubiendo(false);
+    setProgreso({ hecho: 0, total: 0 });
 
-    if (subidas) {
+    if (subidas && !fallidos.length) {
       setAviso({ tipo: "ok", texto: `¡Gracias! Has enviado ${subidas} ${subidas === 1 ? "archivo" : "archivos"} al club` });
       setArchivos([]);
       setDescripcion("");
       if (inputRef.current) inputRef.current.value = "";
       onDone?.();
+    } else if (subidas && fallidos.length) {
+      // Los que sí subieron quedan guardados; dejamos en la lista solo los que fallaron
+      setAviso({
+        tipo: "parcial",
+        texto: `Se enviaron ${subidas} al club, pero no se pudo con: ${fallidos.join(", ")}. Suelen ser vídeos muy largos o pesados: recórtalo en el móvil y vuelve a darle a Enviar.`,
+      });
+      setArchivos(archivos.filter((f) => !okFiles.includes(f)));
+      onDone?.();
     } else {
-      setAviso({ tipo: "error", texto: `No se pudo subir: ${ultimoError}` });
+      setAviso({
+        tipo: "error",
+        texto: "No se pudo enviar. Si es un vídeo largo o pesado, recórtalo en el móvil (menos de 1 minuto) y vuelve a intentarlo.",
+      });
     }
   };
 
@@ -99,8 +120,16 @@ export default function SubirContenidoForm({ user, onDone }) {
         >
           <Camera className="w-9 h-9 text-orange-500" />
           <span className="font-bold text-orange-700">Pulsa aquí para elegir</span>
-          <span className="text-xs text-slate-500">Hasta 5 archivos · fotos o vídeos</span>
+          <span className="text-xs text-slate-500">Hasta 5 archivos · fotos y vídeos</span>
+          <span className="text-xs text-slate-500">Los vídeos, mejor cortos (menos de 1 minuto)</span>
         </button>
+
+        {archivosPesados.length > 0 && (
+          <div className="mt-3 rounded-xl bg-amber-50 border border-amber-300 px-4 py-3 text-sm text-amber-900">
+            <strong>Ojo, hay archivos muy pesados</strong> ({archivosPesados.map((f) => `${f.name} · ${Math.round(pesoMB(f))} MB`).join(", ")}).
+            Puede tardar bastante o fallar. Si es un vídeo largo, recórtalo en el móvil antes de enviarlo.
+          </div>
+        )}
 
         {archivos.length > 0 && (
           <div className="mt-3 space-y-1.5">
@@ -133,6 +162,8 @@ export default function SubirContenidoForm({ user, onDone }) {
           className={`rounded-xl px-4 py-3 text-sm font-semibold ${
             aviso.tipo === "ok"
               ? "bg-green-50 border border-green-300 text-green-800"
+              : aviso.tipo === "parcial"
+              ? "bg-amber-50 border border-amber-300 text-amber-900"
               : "bg-red-50 border border-red-300 text-red-800"
           }`}
         >
@@ -145,8 +176,18 @@ export default function SubirContenidoForm({ user, onDone }) {
         disabled={subiendo}
         className="w-full h-14 text-lg font-bold bg-orange-600 hover:bg-orange-700"
       >
-        {subiendo ? (<><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Enviando...</>) : "Enviar al club"}
+        {subiendo ? (
+          <>
+            <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            {progreso.total > 1 ? `Enviando ${progreso.hecho + 1} de ${progreso.total}...` : "Enviando..."}
+          </>
+        ) : "Enviar al club"}
       </Button>
+      {subiendo && (
+        <p className="text-xs text-slate-500 text-center">
+          No cierres la app hasta que termine. Los vídeos tardan más que las fotos.
+        </p>
+      )}
       <p className="text-xs text-slate-500 text-center">
         El club revisará el material y decidirá qué se publica. Gracias por aportar 🙌
       </p>
