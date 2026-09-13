@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.44';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 // Recibe una foto o vídeo enviado desde la web pública del club (sin registro)
 // y lo deja en el Centro de Contenido con estado "pendiente" para que el club lo revise.
