@@ -7,20 +7,20 @@ const WEB_CLUB = "https://www.cdbustarviejo.com";
 
 export const buildWhatsAppMessage = ({ nombre, tipo, temporada, url }) => {
   const nombreCorto = (nombre || "").split(" ")[0] || "";
-  const cabecera = `Hola ${nombreCorto} 👋 Te escribimos desde el *Club Deportivo Bustarviejo* (no es publicidad, somos el club del pueblo 💚⚽).`;
+  const cabecera = `Hola ${nombreCorto} 👋 Te escribimos desde el *Club Deportivo Bustarviejo* (no es publicidad, somos una asociación sin ánimo de lucro 💚).`;
 
   if (tipo === "ex_socio") {
     return `${cabecera}
 
 Fuiste socio/a nuestro y queríamos escribirte personalmente: sin gente como tú, esto no existiría. Gracias de verdad por haber estado ahí.
 
-Este año seguimos con más de 200 niños y niñas de Bustarviejo entrenando cada semana. Para muchos de ellos el club es su sitio: donde hacen amigos, donde aprenden a perder y a levantarse, donde se sienten parte de algo.
+Seguimos creciendo: cada temporada hay más deportistas en el club, desde los más pequeños hasta los equipos de adultos, y queremos incorporar nuevas disciplinas y organizar más torneos en Bustarviejo.
 
-Mantener todo eso cuesta: equipaciones, fichas, arbitrajes, material, transporte... y lo sacamos adelante entre todos.
+Todo lo que se recauda va íntegro al club: equipaciones, fichas, arbitrajes, material, desplazamientos y las actividades que organizamos.
 
-Tu carnet de socio son *25€ al año*. Poco para ti, muchísimo para ellos.
+Tu carnet de socio son *25€ al año*.
 
-¿Nos ayudas a seguir un año más?
+¿Nos acompañas un año más?
 ${url}
 
 Si prefieres que te lo expliquemos, escríbenos: ${EMAIL_CLUB}
@@ -33,11 +33,11 @@ Gracias por estar 💚
 
 Te escribimos porque nos encantaría contar contigo como socio/a esta temporada *${temporada || ""}*.
 
-Somos un club de pueblo, sin grandes patrocinadores: más de 200 niños y niñas de Bustarviejo que entrenan cada semana y para los que el club es su sitio, donde hacen amigos y aprenden mucho más que deporte.
+Somos el Club Deportivo Bustarviejo: deportistas de todas las edades, desde los más pequeños hasta los equipos de adultos. Queremos seguir creciendo, incorporar nuevas disciplinas y traer más torneos al pueblo.
 
-Todo eso lo sostenemos entre vecinos: equipaciones, fichas, arbitrajes, material, desplazamientos...
+Al ser una asociación sin ánimo de lucro, todo lo que entra se destina al club: equipaciones, fichas, arbitrajes, material, desplazamientos y actividades.
 
-Ser socio/a son *25€ al año*. No es una cuota, es echarnos una mano para que ningún niño se quede fuera.
+Ser socio/a son *25€ al año*.
 
 Puedes hacerlo aquí en un minuto:
 ${url}
@@ -54,7 +54,7 @@ const wrapEmail = (titulo, parrafos, url, cta) => `
     <div style="background:linear-gradient(135deg,#ea580c,#15803d);padding:24px;text-align:center;">
       <img src="${LOGO_URL}" alt="CD Bustarviejo" width="76" height="76" style="border-radius:50%;background:#fff;padding:4px;display:block;margin:0 auto 10px;" />
       <div style="color:#fff;font-size:18px;font-weight:800;letter-spacing:.3px;">CLUB DEPORTIVO BUSTARVIEJO</div>
-      <div style="color:rgba(255,255,255,.9);font-size:13px;margin-top:2px;">Deporte base en Bustarviejo</div>
+      <div style="color:rgba(255,255,255,.9);font-size:13px;margin-top:2px;">Asociación deportiva sin ánimo de lucro</div>
     </div>
     <div style="padding:28px 26px;color:#1f2937;font-size:16px;line-height:1.65;">
       <h1 style="margin:0 0 16px;font-size:21px;color:#0f172a;">${titulo}</h1>
@@ -65,7 +65,7 @@ const wrapEmail = (titulo, parrafos, url, cta) => `
       </div>
     </div>
     <div style="padding:18px 26px 26px;border-top:1px solid #e5e7eb;color:#6b7280;font-size:13px;line-height:1.6;">
-      <p style="margin:0 0 6px;">Este correo lo envía el <strong>Club Deportivo Bustarviejo</strong>, el club de fútbol y baloncesto de Bustarviejo (Madrid).</p>
+      <p style="margin:0 0 6px;">Este correo lo envía el <strong>Club Deportivo Bustarviejo</strong>, asociación deportiva sin ánimo de lucro de Bustarviejo (Madrid).</p>
       <p style="margin:0;">¿Dudas o quieres que te llamemos? Escríbenos a <a href="mailto:${EMAIL_CLUB}" style="color:#ea580c;">${EMAIL_CLUB}</a> · <a href="${WEB_CLUB}" style="color:#15803d;">cdbustarviejo.com</a></p>
     </div>
   </div>
@@ -79,13 +79,13 @@ export const buildEmailContent = ({ nombre, tipo, temporada, url }) => {
     return {
       subject: "Te echamos de menos en el CD Bustarviejo 💚",
       body: wrapEmail(
-        "Fuiste parte de esto. Y se nota que ya no estás.",
+        "Fuiste parte de esto. Nos gustaría que volvieras.",
         [
           saludo,
-          "Te escribimos desde el <strong>Club Deportivo Bustarviejo</strong>. Fuiste socio/a nuestro y queríamos darte las gracias de verdad: sin vecinos como tú, este club simplemente no existiría.",
-          `Esta temporada <strong>${temporada || ""}</strong> seguimos con más de 200 niños y niñas del pueblo entrenando cada semana. Para muchos de ellos el club es <em>su sitio</em>: donde hacen amigos, donde aprenden a perder y a levantarse, donde se sienten parte de algo.`,
-          "Mantenerlo cuesta: equipaciones, fichas, arbitrajes, material, desplazamientos… y lo sacamos adelante entre todos, sin grandes patrocinadores.",
-          "Tu carnet de socio son <strong>25 € al año</strong>. Poco para ti, muchísimo para ellos.",
+          "Te escribimos desde el <strong>Club Deportivo Bustarviejo</strong>. Fuiste socio/a nuestro y queríamos darte las gracias de verdad: sin vecinos como tú, este club no existiría.",
+          `Esta temporada <strong>${temporada || ""}</strong> seguimos creciendo: cada año hay más deportistas en el club, desde los más pequeños hasta los equipos de adultos, y queremos incorporar nuevas disciplinas y organizar más torneos en Bustarviejo.`,
+          "Somos una <strong>asociación sin ánimo de lucro</strong>: todo lo que se recauda va íntegro al club — equipaciones, fichas, arbitrajes, material, desplazamientos y actividades.",
+          "Tu carnet de socio son <strong>25 € al año</strong>.",
           "¿Nos acompañas un año más?",
         ],
         url,
@@ -95,15 +95,15 @@ export const buildEmailContent = ({ nombre, tipo, temporada, url }) => {
   }
 
   return {
-    subject: "Necesitamos tu ayuda: hazte socio del CD Bustarviejo 💚",
+    subject: "Ayúdanos a seguir creciendo: hazte socio del CD Bustarviejo 💚",
     body: wrapEmail(
-      "Somos el club del pueblo. Y necesitamos tu ayuda.",
+      "Queremos seguir creciendo. Y nos vendría muy bien tu ayuda.",
       [
         saludo,
-        "Te escribimos desde el <strong>Club Deportivo Bustarviejo</strong>, el club de fútbol y baloncesto de nuestro pueblo. No te estamos vendiendo nada: te estamos pidiendo una mano.",
-        `Esta temporada <strong>${temporada || ""}</strong> más de 200 niños y niñas de Bustarviejo entrenan cada semana con nosotros. Para muchos, el club es <em>su sitio</em>: donde hacen amigos, donde aprenden esfuerzo y compañerismo, donde se sienten parte de algo.`,
-        "Todo esto lo sostenemos entre vecinos: equipaciones, fichas, arbitrajes, material, desplazamientos… y cada año hay familias que necesitan ayuda para que su hijo o hija pueda jugar.",
-        "Ser socio/a son <strong>25 € al año</strong>. No es una cuota: es que ningún niño de Bustarviejo se quede fuera.",
+        "Te escribimos desde el <strong>Club Deportivo Bustarviejo</strong>. No te estamos vendiendo nada: te estamos pidiendo una mano.",
+        `Esta temporada <strong>${temporada || ""}</strong> el club reúne a deportistas de todas las edades, desde los más pequeños hasta los equipos de adultos. Queremos seguir creciendo, incorporar nuevas disciplinas y traer más torneos al pueblo.`,
+        "Somos una <strong>asociación sin ánimo de lucro</strong>: todo lo que entra se destina al club — equipaciones, fichas, arbitrajes, material, desplazamientos y actividades.",
+        "Ser socio/a son <strong>25 € al año</strong>.",
         "¿Nos echas una mano?",
       ],
       url,
