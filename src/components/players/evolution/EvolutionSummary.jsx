@@ -23,9 +23,9 @@ export default function EvolutionSummary({ stats }) {
         color="text-orange-600"
       />
       <Kpi
-        value={stats.avgScore ? `${stats.avgScore}/5` : "—"}
-        label="Valoración media"
-        hint={`${stats.totalEvaluations} evaluaciones`}
+        value={stats.avgScore ? `${stats.avgScore}/5` : stats.avgActitud ? `${stats.avgActitud}/5` : "—"}
+        label={stats.avgScore ? "Valoración media" : "Actitud media"}
+        hint={stats.avgScore ? `${stats.totalEvaluations} evaluaciones` : `${stats.totalActitud} entrenamientos`}
         color="text-blue-600"
       />
       <Kpi

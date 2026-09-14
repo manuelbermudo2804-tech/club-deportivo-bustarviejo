@@ -93,6 +93,25 @@ export default function usePlayerEvolution(player, isStaff = false) {
       }));
   }, [attendances, categories, playerId]);
 
+  // Actitud puntuada por el entrenador en cada entrenamiento (dentro de la asistencia)
+  const actitudSessions = useMemo(() => {
+    return attendances
+      .filter((a) => categories.includes(a.categoria))
+      .map((att) => {
+        const entry = att.asistencias?.find((a) => a.jugador_id === playerId);
+        if (!entry || typeof entry.actitud !== "number" || entry.actitud <= 0) return null;
+        return {
+          fecha: att.fecha,
+          fechaCorta: att.fecha ? `${att.fecha.slice(8, 10)}/${att.fecha.slice(5, 7)}` : "",
+          actitud: entry.actitud,
+          entrenador_nombre: att.entrenador_nombre,
+          observaciones: entry.observaciones || "",
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""));
+  }, [attendances, categories, playerId]);
+
   // Evolución de la valoración del entrenador
   const evaluationChart = useMemo(
     () =>
@@ -114,7 +133,13 @@ export default function usePlayerEvolution(player, isStaff = false) {
     const totalSessions = attendanceByMonth.reduce((s, m) => s + m.sesiones, 0);
     const attended = attendanceByMonth.reduce((s, m) => s + m.asistidas, 0);
     const medias = evaluations.map(media).filter((v) => v !== null);
+    const actitudes = actitudSessions.map((s) => s.actitud);
+    const avgActitud = actitudes.length
+      ? (actitudes.reduce((s, v) => s + v, 0) / actitudes.length).toFixed(1)
+      : null;
     return {
+      avgActitud,
+      totalActitud: actitudes.length,
       totalSessions,
       attendedSessions: attended,
       attendanceRate: totalSessions > 0 ? Math.round((attended / totalSessions) * 100) : 0,
@@ -124,11 +149,11 @@ export default function usePlayerEvolution(player, isStaff = false) {
       completedGoals: goals.filter((g) => g.estado === "Completado" || g.completada).length,
       totalNotes: notes.length,
     };
-  }, [attendanceByMonth, evaluations, goals, notes]);
+  }, [attendanceByMonth, evaluations, goals, notes, actitudSessions]);
 
   const latestEvaluation = evaluations.length ? evaluations[evaluations.length - 1] : null;
 
-  return { evaluations, latestEvaluation, goals, notes, attendanceByMonth, evaluationChart, stats, isLoading: loadingEval };
+  return { evaluations, latestEvaluation, goals, notes, attendanceByMonth, evaluationChart, actitudSessions, stats, isLoading: loadingEval };
 }
 
 export { media as mediaEvaluacion };

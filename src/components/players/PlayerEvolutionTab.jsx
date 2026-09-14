@@ -12,7 +12,7 @@ import EvolutionHistory from "./evolution/EvolutionHistory";
  * isStaff = true muestra también lo no marcado como visible para las familias.
  */
 export default function PlayerEvolutionTab({ player, isStaff = false }) {
-  const { evaluations, goals, notes, attendanceByMonth, evaluationChart, stats } = usePlayerEvolution(player, isStaff);
+  const { evaluations, goals, notes, attendanceByMonth, evaluationChart, actitudSessions, stats } = usePlayerEvolution(player, isStaff);
 
   if (!player) return null;
 
@@ -29,7 +29,7 @@ export default function PlayerEvolutionTab({ player, isStaff = false }) {
         </TabsList>
 
         <TabsContent value="graficas" className="mt-4">
-          <EvolutionCharts attendanceByMonth={attendanceByMonth} evaluationChart={evaluationChart} />
+          <EvolutionCharts attendanceByMonth={attendanceByMonth} evaluationChart={evaluationChart} actitudSessions={actitudSessions} />
         </TabsContent>
         <TabsContent value="objetivos" className="mt-4">
           <EvolutionGoals goals={goals} />

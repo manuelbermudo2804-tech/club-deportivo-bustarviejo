@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { TrendingUp } from "lucide-react";
 
-export default function EvolutionCharts({ attendanceByMonth, evaluationChart }) {
+export default function EvolutionCharts({ attendanceByMonth, evaluationChart, actitudSessions = [] }) {
   return (
     <div className="space-y-4">
       <Card>
@@ -33,8 +33,34 @@ export default function EvolutionCharts({ attendanceByMonth, evaluationChart }) 
       <Card>
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
+            <TrendingUp className="w-4 h-4 text-yellow-600" />
+            Actitud en los entrenamientos (1 a 5)
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {actitudSessions.length === 0 ? (
+            <p className="text-sm text-slate-400 py-8 text-center">
+              Todavía no hay actitud puntuada en los entrenamientos
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={actitudSessions}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="fechaCorta" />
+                <YAxis domain={[0, 5]} ticks={[1, 2, 3, 4, 5]} />
+                <Tooltip formatter={(v) => `${v}/5`} />
+                <Line type="monotone" dataKey="actitud" name="Actitud" stroke="#eab308" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
             <TrendingUp className="w-4 h-4 text-blue-600" />
-            Valoración del entrenador (1 a 5)
+            Valoración detallada del entrenador (1 a 5)
           </CardTitle>
         </CardHeader>
         <CardContent>
