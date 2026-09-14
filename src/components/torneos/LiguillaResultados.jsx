@@ -53,6 +53,16 @@ export default function LiguillaResultados({ torneo, categoria, grupos, equipos,
     onError: () => toast.error("Error al guardar"),
   });
 
+  // Anula un resultado ya guardado: deja el partido sin marcador y sin finalizar
+  const anularResultado = useMutation({
+    mutationFn: (partido) =>
+      base44.entities.TorneoPartido.update(partido.id, {
+        marcador_local: null, marcador_visitante: null, finalizado: false,
+      }),
+    onSuccess: () => { invalidate(); toast.success("Resultado anulado"); },
+    onError: () => toast.error("Error al anular el resultado"),
+  });
+
   const guardarUbicacion = useMutation({
     mutationFn: ({ partido, patch }) =>
       base44.entities.TorneoPartido.update(partido.id, patch),
@@ -131,6 +141,7 @@ export default function LiguillaResultados({ torneo, categoria, grupos, equipos,
                                   onSave={(partido, local, visit) => guardarResultado.mutate({ partido, local, visit })}
                                   onSaveUbicacion={(partido, patch) => guardarUbicacion.mutate({ partido, patch })}
                                   isSaving={guardarResultado.isPending}
+                                  onAnular={(partido) => anularResultado.mutate(partido)}
                                   golesCount={goles.filter((g) => g.partido_id === p.id).reduce((s, g) => s + (g.goles || 1), 0)}
                                   onGoleadores={() => setGolPartido(p)}
                                 />

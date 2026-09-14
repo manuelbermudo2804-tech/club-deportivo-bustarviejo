@@ -21,7 +21,7 @@ export default function DocumentosUploader({ items = [], onChange }) {
     try {
       const uploads = await Promise.all(
         valid.map(async (file) => {
-          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
           return { nombre: file.name, url: file_url, descripcion: "" };
         })
       );

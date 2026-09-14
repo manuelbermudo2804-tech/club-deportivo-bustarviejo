@@ -33,7 +33,7 @@ export default function ImportarPartidosDialog({ open, onOpenChange, torneo, cat
     if (!file) return;
     setUploading(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
       setImageUrl(file_url);
       setImagePreview(URL.createObjectURL(file));
     } catch {
