@@ -5,6 +5,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { UserX, Undo2 } from "lucide-react";
+import {
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { getNextTraining, labelEntreno } from "@/lib/nextTraining";
 import useSinEntrenamiento from "@/hooks/useSinEntrenamiento";
 
@@ -20,6 +24,7 @@ const toGroupId = (s) =>
 export default function MinorSkipTraining({ player, playerCategory, user }) {
   const [enviado, setEnviado] = useState(false);
   const [sending, setSending] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   // Solo para jugadores con acceso juvenil concedido y no revocado
   const tieneAccesoJuvenil = !!player?.acceso_menor_autorizado && !player?.acceso_menor_revocado;
@@ -77,6 +82,7 @@ export default function MinorSkipTraining({ player, playerCategory, user }) {
   };
 
   const handleAvisar = async () => {
+    setConfirmOpen(false);
     setSending(true);
     try {
       await publicar(`🚫 ${player.nombre} no irá al entrenamiento de ${cuando}.`);
@@ -125,14 +131,34 @@ export default function MinorSkipTraining({ player, playerCategory, user }) {
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-bold text-slate-800 text-sm">¿No puedes ir a entrenar {cuando}?</p>
-              <p className="text-slate-500 text-xs">Avisa a tu entrenador y al equipo con un toque</p>
+              <p className="text-slate-500 text-xs">Se avisa a tu entrenador. Úsalo solo si de verdad no vas.</p>
             </div>
-            <Button size="sm" onClick={handleAvisar} disabled={sending} className="bg-orange-600 hover:bg-orange-700 flex-shrink-0">
+            <Button size="sm" onClick={() => setConfirmOpen(true)} disabled={sending} className="bg-orange-600 hover:bg-orange-700 flex-shrink-0">
               No voy
             </Button>
           </div>
         )}
       </CardContent>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Seguro que no vas a entrenar?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-left">
+                <p>Al confirmar se envía un mensaje a tu entrenador y al chat del equipo diciendo que no irás al entrenamiento de <strong>{cuando}</strong>.</p>
+                <p>Tu entrenador lo tendrá en cuenta para la sesión, así que <strong>no lo marques por probar o sin estar seguro</strong>. Si al final sí puedes ir, avisa cuanto antes con el botón "Sí voy".</p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleAvisar} className="bg-orange-600 hover:bg-orange-700">
+              Sí, avisar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }
