@@ -15,18 +15,6 @@ import GalleryAlbum from "../components/gallery/GalleryAlbum";
 import ContactCard from "../components/ContactCard";
 
 
-const CATEGORIES = [
-  "Fútbol Pre-Benjamín (Mixto)",
-  "Fútbol Benjamín (Mixto)",
-  "Fútbol Alevín (Mixto)",
-  "Fútbol Infantil (Mixto)",
-  "Fútbol Cadete",
-  "Fútbol Juvenil",
-  "Fútbol Aficionado",
-  "Fútbol Femenino",
-  "Baloncesto (Mixto)"
-];
-
 export default function Gallery() {
   const [showForm, setShowForm] = useState(false);
   const [editingAlbum, setEditingAlbum] = useState(null);
@@ -98,6 +86,16 @@ export default function Gallery() {
       setMyCategories([...cats]);
     }
   }, [players]);
+
+  // Categorías activas del club (siempre al día con la configuración)
+  const { data: activeCategories } = useQuery({
+    queryKey: ['activeCategoriesGallery'],
+    queryFn: async () => {
+      const cats = await base44.entities.CategoryConfig.filter({ activa: true });
+      return [...new Set(cats.map(c => c.nombre).filter(Boolean))].sort();
+    },
+    initialData: [],
+  });
 
   const { data: albums, isLoading } = useQuery({
     queryKey: ['photoGallery'],
@@ -185,7 +183,7 @@ export default function Gallery() {
   });
 
   // Categories to show in filter tabs
-  const filterCategories = userRole === "admin" ? CATEGORIES : myCategories;
+  const filterCategories = userRole === "admin" ? activeCategories : myCategories;
 
   return (
     <div className="p-4 lg:p-6 space-y-4">
@@ -266,6 +264,7 @@ export default function Gallery() {
             isSubmitting={createAlbumMutation.isPending || updateAlbumMutation.isPending}
             userRole={userRole}
             coachCategories={coachCategories}
+            activeCategories={activeCategories}
           />
         )}
       </AnimatePresence>

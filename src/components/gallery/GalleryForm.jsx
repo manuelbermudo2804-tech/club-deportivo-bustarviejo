@@ -12,7 +12,7 @@ import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import { validateImage } from "../utils/imageCompressor";
 
-export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting, userRole = "admin", coachCategories = [] }) {
+export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting, userRole = "admin", coachCategories = [], activeCategories = [] }) {
   const [currentAlbum, setCurrentAlbum] = useState(album || {
     titulo: "",
     descripcion: "",
@@ -135,15 +135,11 @@ export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting, u
                     {userRole === "admin" ? (
                       <>
                         <SelectItem value="Todas las Categorías">Todas las Categorías</SelectItem>
-                        <SelectItem value="Fútbol Pre-Benjamín (Mixto)">⚽ Pre-Benjamín</SelectItem>
-                        <SelectItem value="Fútbol Benjamín (Mixto)">⚽ Benjamín</SelectItem>
-                        <SelectItem value="Fútbol Alevín (Mixto)">⚽ Alevín</SelectItem>
-                        <SelectItem value="Fútbol Infantil (Mixto)">⚽ Infantil</SelectItem>
-                        <SelectItem value="Fútbol Cadete">⚽ Cadete</SelectItem>
-                        <SelectItem value="Fútbol Juvenil">⚽ Juvenil</SelectItem>
-                        <SelectItem value="Fútbol Aficionado">⚽ Aficionado</SelectItem>
-                        <SelectItem value="Fútbol Femenino">⚽ Fútbol Femenino</SelectItem>
-                        <SelectItem value="Baloncesto (Mixto)">🏀 Baloncesto</SelectItem>
+                        {activeCategories.map(cat => (
+                          <SelectItem key={cat} value={cat}>
+                            {cat.includes("Baloncesto") ? "🏀" : "⚽"} {cat}
+                          </SelectItem>
+                        ))}
                       </>
                     ) : (
                       // Entrenadores/Coordinadores solo ven sus categorías
