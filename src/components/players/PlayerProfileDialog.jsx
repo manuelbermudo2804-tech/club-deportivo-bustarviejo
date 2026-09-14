@@ -20,6 +20,7 @@ const toWhatsAppUrl = (tel) => {
 };
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import PlayerEvolutionTab from "./PlayerEvolutionTab";
 import FeeAdjustmentDialog from "../payments/FeeAdjustmentDialog";
 import FraccionarCuotaDialog from "../payments/FraccionarCuotaDialog";
 
@@ -139,7 +140,7 @@ export default function PlayerProfileDialog({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="info">
               <User className="w-4 h-4 mr-2" />
               Información
@@ -156,7 +157,16 @@ export default function PlayerProfileDialog({
               <CheckCircle2 className="w-4 h-4 mr-2" />
               Asistencia
             </TabsTrigger>
+            <TabsTrigger value="evolucion">
+              <TrendingUp className="w-4 h-4 mr-2" />
+              Evolución
+            </TabsTrigger>
           </TabsList>
+
+          {/* Tab: Evolución deportiva */}
+          <TabsContent value="evolucion" className="space-y-4 mt-6">
+            <PlayerEvolutionTab player={player} isStaff />
+          </TabsContent>
 
           {/* Tab: Información Personal */}
           <TabsContent value="info" className="space-y-4 mt-6">

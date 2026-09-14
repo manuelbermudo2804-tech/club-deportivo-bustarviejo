@@ -10,11 +10,10 @@ import { Badge } from "@/components/ui/badge";
 import { User, Mail, Phone, MapPin, Calendar, Heart, AlertTriangle, Users, Shield, CheckCircle2, XCircle, Camera, FileText, AlertTriangle as AlertTriangleIcon } from "lucide-react";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import PlayerEvaluationsSection from "../evaluations/PlayerEvaluationsSection";
+import PlayerEvolutionTab from "./PlayerEvolutionTab";
 
 export default function PlayerDetailDialog({ player, open, onOpenChange }) {
   const [coaches, setCoaches] = useState([]);
-  const [evaluations, setEvaluations] = useState([]);
 
   useEffect(() => {
     const fetchCoaches = async () => {
@@ -36,22 +35,6 @@ export default function PlayerDetailDialog({ player, open, onOpenChange }) {
     fetchCoaches();
   }, [player?.deporte, open]);
 
-  useEffect(() => {
-    const fetchEvaluations = async () => {
-      if (!player?.id || !open) return;
-      try {
-        const evals = await base44.entities.PlayerEvaluation.filter(
-          { jugador_id: player.id, visible_para_padres: true },
-          "-fecha_evaluacion",
-          10
-        );
-        setEvaluations(evals);
-      } catch (error) {
-        console.error("Error fetching evaluations:", error);
-      }
-    };
-    fetchEvaluations();
-  }, [player?.id, open]);
   if (!player) return null;
 
   const hasMedicalInfo = player.ficha_medica && Object.values(player.ficha_medica).some(val => val);
@@ -267,8 +250,11 @@ export default function PlayerDetailDialog({ player, open, onOpenChange }) {
             </div>
           )}
 
-          {/* Evaluaciones del Entrenador */}
-          <PlayerEvaluationsSection evaluations={evaluations} />
+          {/* Evolución deportiva: asistencia, valoraciones, objetivos y notas */}
+          <div className="bg-indigo-50 rounded-lg p-4 border border-indigo-200">
+            <h3 className="font-bold text-indigo-900 mb-3">📈 Evolución deportiva</h3>
+            <PlayerEvolutionTab player={player} />
+          </div>
 
           {/* Entrenador(es) */}
           {coaches.length > 0 && (

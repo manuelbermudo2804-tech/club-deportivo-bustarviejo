@@ -18,6 +18,7 @@ import { calcularEdad, getSuggestedCategory } from "../components/utils/calcular
 import RenewalPaymentFlow from "../components/renewals/RenewalPaymentFlow";
 import RenewalSuccessScreen from "../components/renewals/RenewalSuccessScreen";
 import PlayerStatsWidget from "../components/players/PlayerStatsWidget";
+import PlayerEvolutionTab from "../components/players/PlayerEvolutionTab";
 
 export default function PlayerProfile() {
   const queryClient = useQueryClient();
@@ -488,11 +489,17 @@ export default function PlayerProfile() {
 
       {/* Tabs de contenido */}
       <Tabs defaultValue="datos" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="datos">📋 Datos</TabsTrigger>
+          <TabsTrigger value="evolucion">📈 Evolución</TabsTrigger>
           <TabsTrigger value="salud">❤️ Salud</TabsTrigger>
           <TabsTrigger value="contacto">📞 Contacto</TabsTrigger>
         </TabsList>
+
+        {/* Tab: Evolución deportiva */}
+        <TabsContent value="evolucion" className="space-y-4">
+          <PlayerEvolutionTab player={player} />
+        </TabsContent>
 
 
 
