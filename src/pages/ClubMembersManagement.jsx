@@ -20,6 +20,7 @@ import MemberEditForm from "../components/members/MemberEditForm";
 import MemberDetailDialog from "../components/members/MemberDetailDialog";
 import MemberAdvancedFilters from "../components/members/MemberAdvancedFilters";
 import MembershipStatsPanel from "../components/members/MembershipStatsPanel";
+import CotejarArchivoPanel from "../components/members/CotejarArchivoPanel";
 
 export default function ClubMembersManagement() {
   const [user, setUser] = useState(null);
@@ -1226,7 +1227,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
 
       {/* Tabs: Lista vs Estadísticas */}
       <Tabs defaultValue="lista" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4 max-w-3xl">
+        <TabsList className="grid w-full grid-cols-5 max-w-4xl">
           <TabsTrigger value="lista" className="flex items-center gap-2">
             <Users className="w-4 h-4" /> Lista de Socios
           </TabsTrigger>
@@ -1239,7 +1240,14 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
           <TabsTrigger value="no-renovados" className="flex items-center gap-2">
             <AlertCircle className="w-4 h-4" /> No Renovados {noRenovados.length > 0 && `(${noRenovados.length})`}
           </TabsTrigger>
+          <TabsTrigger value="cotejar" className="flex items-center gap-2">
+            <FileSpreadsheet className="w-4 h-4" /> Cotejar archivo
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="cotejar">
+          <CotejarArchivoPanel members={members} temporada={seasonConfig?.temporada} />
+        </TabsContent>
 
         <TabsContent value="estadisticas">
           <MembershipStatsPanel members={members} seasonConfig={seasonConfig} />
