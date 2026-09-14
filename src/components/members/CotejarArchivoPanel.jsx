@@ -12,12 +12,15 @@ import CotejoLecturaPreview from "./cotejo/CotejoLecturaPreview";
 
 // Una fila = una persona. El extractor mapea las columnas del archivo a estos campos.
 const SCHEMA = {
-  type: "object",
-  properties: {
-    nombre: { type: "string" },
-    email: { type: "string" },
-    telefono: { type: "string" },
-    dni: { type: "string" },
+  type: "array",
+  items: {
+    type: "object",
+    properties: {
+      nombre: { type: "string" },
+      email: { type: "string" },
+      telefono: { type: "string" },
+      dni: { type: "string" },
+    },
   },
 };
 
