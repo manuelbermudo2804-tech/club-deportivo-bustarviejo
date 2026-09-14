@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -31,6 +31,7 @@ export default function CotejarArchivoPanel({ members, temporada }) {
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [totalFilas, setTotalFilas] = useState(0);
+  const inputRef = useRef(null);
   const altaUrl = `${window.location.origin}/AltaSocio`;
 
   const handleFile = async (e) => {
@@ -113,14 +114,17 @@ export default function CotejarArchivoPanel({ members, temporada }) {
             </AlertDescription>
           </Alert>
 
-          <label className="inline-block cursor-pointer">
-            <input type="file" accept=".csv,.xlsx,.xls,.pdf,.png,.jpg,.jpeg,.json" onChange={handleFile} className="hidden" />
-            <Button disabled={loading} className="pointer-events-none bg-blue-600 hover:bg-blue-700">
-              {loading
-                ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Leyendo y cotejando...</>
-                : <><Upload className="w-4 h-4 mr-2" /> Subir archivo y cotejar</>}
-            </Button>
-          </label>
+          <input ref={inputRef} type="file" onChange={handleFile} className="hidden" />
+          <Button
+            type="button"
+            disabled={loading}
+            onClick={() => inputRef.current?.click()}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            {loading
+              ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Leyendo y cotejando...</>
+              : <><Upload className="w-4 h-4 mr-2" /> Subir archivo y cotejar</>}
+          </Button>
         </CardContent>
       </Card>
 
