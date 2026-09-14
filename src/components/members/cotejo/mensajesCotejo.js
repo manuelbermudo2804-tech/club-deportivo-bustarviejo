@@ -2,8 +2,8 @@
 // tipo: 'ex_socio' (fue socio y no ha renovado) | 'nuevo' (nunca ha sido socio)
 
 const LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
-const EMAIL_CLUB = "info@clubdeportivobustarviejo.com";
-const WEB_CLUB = "https://cdbustarviejo.com";
+const EMAIL_CLUB = "info@cdbustarviejo.com";
+const WEB_CLUB = "https://www.cdbustarviejo.com";
 
 export const buildWhatsAppMessage = ({ nombre, tipo, temporada, url }) => {
   const nombreCorto = (nombre || "").split(" ")[0] || "";
