@@ -12,21 +12,24 @@ export const buildWhatsAppMessage = ({ nombre, tipo, temporada, url }) => {
   if (tipo === "ex_socio") {
     return `${cabecera}
 
-Fuiste socio/a nuestro y queríamos escribirte personalmente: sin gente como tú, esto no existiría. Gracias de verdad por haber estado ahí.
+En algún momento formaste parte de la familia del *C.D. Bustarviejo* como socio/a. Aunque ahora ya no apareces como socio/a, queríamos escribirte personalmente.
 
-Seguimos creciendo: cada temporada hay más deportistas en el club, desde los más pequeños hasta los equipos de adultos, y queremos incorporar nuevas disciplinas y organizar más torneos en Bustarviejo.
+Estamos empezando una nueva temporada con muchas ganas, nuevos proyectos y mucha ilusión por seguir haciendo crecer el club. Y nos gustaría que volvieras a formar parte de él.
 
-Todo lo que se recauda va íntegro al club: equipaciones, fichas, arbitrajes, material, desplazamientos y las actividades que organizamos.
+La cuota de socio es de *25 € al año* y, aunque pueda parecer una pequeña aportación, para un club como el nuestro cada socio cuenta.
 
-Tu carnet de socio son *25€ al año*.
+Porque ser socio no es solamente pagar una cuota:
+· Es apoyar al club que representa a nuestro pueblo.
+· Es ayudar a nuestros equipos y a nuestros niños y niñas.
+· Es participar en todo lo que estamos construyendo juntos.
 
-¿Nos acompañas un año más?
+Si guardas un buen recuerdo del C.D. Bustarviejo, nos encantaría que volvieras a estar con nosotros ❤️
 ${url}
 
-Si prefieres que te lo expliquemos, escríbenos: ${EMAIL_CLUB}
+Cualquier duda, escríbenos: ${EMAIL_CLUB}
 
-Gracias por estar 💚
-*CD Bustarviejo*`;
+Gracias por haber formado parte de nuestra historia.
+🧡🖤 *C.D. Bustarviejo*`;
   }
 
   return `${cabecera}
@@ -77,19 +80,21 @@ export const buildEmailContent = ({ nombre, tipo, temporada, url }) => {
 
   if (tipo === "ex_socio") {
     return {
-      subject: "Te echamos de menos en el CD Bustarviejo 💚",
+      subject: "Nos gustaría volver a contar contigo 🧡🖤",
       body: wrapEmail(
-        "Fuiste parte de esto. Nos gustaría que volvieras.",
+        "Nos gustaría volver a contar contigo",
         [
           saludo,
-          "Te escribimos desde el <strong>Club Deportivo Bustarviejo</strong>. Fuiste socio/a nuestro y queríamos darte las gracias de verdad: sin vecinos como tú, este club no existiría.",
-          `Esta temporada <strong>${temporada || ""}</strong> seguimos creciendo: cada año hay más deportistas en el club, desde los más pequeños hasta los equipos de adultos, y queremos incorporar nuevas disciplinas y organizar más torneos en Bustarviejo.`,
-          "Somos una <strong>asociación sin ánimo de lucro</strong>: todo lo que se recauda va íntegro al club — equipaciones, fichas, arbitrajes, material, desplazamientos y actividades.",
-          "Tu carnet de socio son <strong>25 € al año</strong>.",
-          "¿Nos acompañas un año más?",
+          "Nos ponemos en contacto contigo porque en algún momento formaste parte de la familia del <strong>C.D. Bustarviejo</strong> como socio/a.",
+          "Y, aunque ahora ya no apareces como socio/a, queríamos escribirte personalmente.",
+          `Estamos empezando una nueva temporada <strong>${temporada || ""}</strong> con muchas ganas, nuevos proyectos y mucha ilusión por seguir haciendo crecer nuestro club. Y nos gustaría que volvieras a formar parte de él.`,
+          "La cuota de socio es de <strong>25 € al año</strong> y, aunque pueda parecer una pequeña aportación, para un club como el nuestro cada socio cuenta.",
+          "Porque ser socio no es solamente pagar una cuota:<br>· Es apoyar al club que representa a nuestro pueblo.<br>· Es ayudar a nuestros equipos y a nuestros niños y niñas.<br>· Es participar, de alguna manera, en todo lo que estamos construyendo juntos.",
+          "Si guardas un buen recuerdo del C.D. Bustarviejo, nos encantaría que volvieras a estar con nosotros. ❤️",
+          "Gracias por haber formado parte de nuestra historia. Y ojalá podamos volver a contar contigo en la que estamos construyendo ahora.",
         ],
         url,
-        "Renovar mi carnet de socio"
+        "Quiero volver a ser socio/a"
       ),
     };
   }
