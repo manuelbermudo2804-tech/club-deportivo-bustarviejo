@@ -11,7 +11,7 @@ export default function CotejoGrupo({ titulo, descripcion, color, personas, tipo
 
   const handleOne = async (persona) => {
     setSendingId(persona.key);
-    await onSendEmail([persona], tipo);
+    await onSendEmail([persona], persona.tipo || tipo);
     setSendingId(null);
   };
 
@@ -46,7 +46,7 @@ export default function CotejoGrupo({ titulo, descripcion, color, personas, tipo
             <CotejoContactRow
               key={p.key}
               persona={p}
-              tipo={tipo}
+              tipo={p.tipo || tipo}
               temporada={temporada}
               altaUrl={altaUrl}
               onSendEmail={handleOne}

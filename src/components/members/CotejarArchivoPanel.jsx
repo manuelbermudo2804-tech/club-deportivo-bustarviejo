@@ -79,7 +79,7 @@ export default function CotejarArchivoPanel({ members, temporada }) {
       if (!persona.email) continue;
       const { subject, body } = buildEmailContent({
         nombre: persona.nombre,
-        tipo,
+        tipo: persona.tipo || tipo,
         temporada,
         url: altaUrl,
       });
@@ -94,6 +94,14 @@ export default function CotejarArchivoPanel({ members, temporada }) {
     }
     toast.success(`✅ ${sent} de ${personas.length} emails enviados`);
   };
+
+  // Los que hay que contactar: fueron socios y no han renovado + nunca lo han sido
+  const noTenemos = resultado
+    ? [
+        ...resultado.exSocios.map((p) => ({ ...p, tipo: "ex_socio" })),
+        ...resultado.nuevos.map((p) => ({ ...p, tipo: "nuevo" })),
+      ]
+    : [];
 
   return (
     <div className="space-y-4">
@@ -142,12 +150,11 @@ export default function CotejarArchivoPanel({ members, temporada }) {
 
       {resultado && (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="grid grid-cols-3 gap-3">
             {[
               { label: "En el archivo", valor: totalFilas, clase: "text-slate-700" },
               { label: "Ya son socios", valor: resultado.yaSocios.length, clase: "text-green-700" },
-              { label: "No han renovado", valor: resultado.exSocios.length, clase: "text-orange-700" },
-              { label: "Nunca han sido socios", valor: resultado.nuevos.length, clase: "text-blue-700" },
+              { label: "No los tenemos", valor: noTenemos.length, clase: "text-orange-700" },
             ].map((s) => (
               <Card key={s.label}>
                 <CardContent className="pt-4 text-center">
@@ -159,21 +166,10 @@ export default function CotejarArchivoPanel({ members, temporada }) {
           </div>
 
           <CotejoGrupo
-            titulo="🔄 Socios de temporadas pasadas"
-            descripcion={`Ya fueron socios pero no aparecen en ${temporada}. Mensaje de renovación precargado.`}
+            titulo="📣 No los tenemos como socios"
+            descripcion={`No están dados de alta en ${temporada}. Mensaje precargado para contactarles.`}
             color="border-orange-300"
-            personas={resultado.exSocios}
-            tipo="ex_socio"
-            temporada={temporada}
-            altaUrl={altaUrl}
-            onSendEmail={sendEmails}
-          />
-
-          <CotejoGrupo
-            titulo="🆕 Todavía no son socios"
-            descripcion="No están en la base de socios. Mensaje de invitación precargado."
-            color="border-blue-300"
-            personas={resultado.nuevos}
+            personas={noTenemos}
             tipo="nuevo"
             temporada={temporada}
             altaUrl={altaUrl}
