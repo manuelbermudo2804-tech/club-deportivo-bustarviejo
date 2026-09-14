@@ -32,7 +32,7 @@ export default function CotejarArchivoPanel({ members, temporada }) {
   const [error, setError] = useState("");
   const [nombreArchivo, setNombreArchivo] = useState("");
   const inputRef = useRef(null);
-  const altaUrl = `${window.location.origin}/AltaSocio`;
+  const altaUrl = "https://alta-socio.vercel.app/alta-socio.html";
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0];
