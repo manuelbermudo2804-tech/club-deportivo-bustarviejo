@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { cotejarArchivo } from "./cotejo/cotejarArchivo";
 import { buildEmailContent } from "./cotejo/mensajesCotejo";
 import CotejoGrupo from "./cotejo/CotejoGrupo";
+import CotejoLecturaPreview from "./cotejo/CotejoLecturaPreview";
 
 // Una fila = una persona. El extractor mapea las columnas del archivo a estos campos.
 const SCHEMA = {
@@ -24,6 +25,7 @@ export default function CotejarArchivoPanel({ members, temporada }) {
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [totalFilas, setTotalFilas] = useState(0);
+  const [filasLeidas, setFilasLeidas] = useState([]);
   const [error, setError] = useState("");
   const [nombreArchivo, setNombreArchivo] = useState("");
   const inputRef = useRef(null);
@@ -61,6 +63,7 @@ export default function CotejarArchivoPanel({ members, temporada }) {
       }
 
       setTotalFilas(filas.length);
+      setFilasLeidas(filas);
       setResultado(cotejarArchivo(filas, members, temporada));
       toast.success(`${filas.length} contactos cotejados`);
     } catch (err) {
@@ -176,6 +179,8 @@ export default function CotejarArchivoPanel({ members, temporada }) {
             altaUrl={altaUrl}
             onSendEmail={sendEmails}
           />
+
+          <CotejoLecturaPreview filas={filasLeidas} />
 
           {resultado.yaSocios.length > 0 && (
             <Alert className="bg-green-50 border-green-200">
