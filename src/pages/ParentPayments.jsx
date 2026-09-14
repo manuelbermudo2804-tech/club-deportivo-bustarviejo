@@ -31,6 +31,13 @@ import { usePageTutorial } from "../components/tutorials/useTutorial";
 import { CUOTAS_FALLBACK, CATEGORY_NAME_MAPPING, getCuotasFromConfig, getImportePorMesFromConfig } from '../lib/cuotasConfig';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
+// Número de orden de una cuota de plan especial ("Cuota 2" → 2).
+// Los planes antiguos pueden traer "Junio" como primera cuota → va primero.
+const cuotaNum = (mes) => {
+  const n = parseInt(String(mes || '').replace('Cuota ', ''), 10);
+  return Number.isNaN(n) ? 0 : n;
+};
+
 export default function ParentPayments() {
   const [uploadingPaymentId, setUploadingPaymentId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -157,9 +164,11 @@ export default function ParentPayments() {
     queryFn: async () => {
       if (!playerIds.length) return [];
       const plans = await base44.entities.CustomPaymentPlan.filter({ estado: 'Activo' });
-      return plans.filter(p => playerIds.includes(p.jugador_id));
+      // Solo planes del jugador Y de la temporada activa (acepta "2026-2027" y "2026/2027")
+      const norm = (s) => (s || '').replace(/-/g, '/');
+      return plans.filter(p => playerIds.includes(p.jugador_id) && norm(p.temporada) === norm(currentSeason));
     },
-    enabled: playerIds.length > 0,
+    enabled: playerIds.length > 0 && !!currentSeason,
     staleTime: 300000,
     refetchOnWindowFocus: false,
   });
@@ -898,12 +907,9 @@ export default function ParentPayments() {
                   return true;
                 });
                 
-                // Ordenar por número de cuota
-                displayPayments.sort((a, b) => {
-                  const numA = parseInt(a.mes?.replace('Cuota ', '') || '0');
-                  const numB = parseInt(b.mes?.replace('Cuota ', '') || '0');
-                  return numA - numB;
-                });
+                // Ordenar por número de cuota. Algunos planes antiguos tienen la
+                // primera cuota como "Junio" en vez de "Cuota 1": esos van primero.
+                displayPayments.sort((a, b) => cuotaNum(a.mes) - cuotaNum(b.mes));
               } else if (hasPlanMensual) {
                 // Plan Mensual: mostrar TODOS los pagos reales (inicial + mensualidades cobradas por Stripe)
                 displayPayments = allPlayerPayments.filter(p => p.tipo_pago === "Plan Mensual");
@@ -1087,7 +1093,7 @@ export default function ParentPayments() {
                             if (hasPlanEspecial) {
                               const cuotasPendientes = displayPayments
                                 .filter(p => p.estado === "Pendiente" && !p.isVirtual)
-                                .sort((a, b) => parseInt(a.mes.replace('Cuota ', '')) - parseInt(b.mes.replace('Cuota ', '')));
+                                .sort((a, b) => cuotaNum(a.mes) - cuotaNum(b.mes));
                               mostrarBotonPagar = cuotasPendientes.length > 0 && cuotasPendientes[0].id === payment.id;
                             } else {
                               const ordenMeses = ["Junio", "Septiembre", "Diciembre"];
