@@ -9,21 +9,14 @@ import { cotejarArchivo } from "./cotejo/cotejarArchivo";
 import { buildEmailContent } from "./cotejo/mensajesCotejo";
 import CotejoGrupo from "./cotejo/CotejoGrupo";
 
+// Una fila = una persona. El extractor mapea las columnas del archivo a estos campos.
 const SCHEMA = {
   type: "object",
   properties: {
-    personas: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          nombre: { type: "string" },
-          email: { type: "string" },
-          telefono: { type: "string" },
-          dni: { type: "string" },
-        },
-      },
-    },
+    nombre: { type: "string" },
+    email: { type: "string" },
+    telefono: { type: "string" },
+    dni: { type: "string" },
   },
 };
 
@@ -31,6 +24,8 @@ export default function CotejarArchivoPanel({ members, temporada }) {
   const [loading, setLoading] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [totalFilas, setTotalFilas] = useState(0);
+  const [error, setError] = useState("");
+  const [nombreArchivo, setNombreArchivo] = useState("");
   const inputRef = useRef(null);
   const altaUrl = `${window.location.origin}/AltaSocio`;
 
@@ -41,6 +36,8 @@ export default function CotejarArchivoPanel({ members, temporada }) {
 
     setLoading(true);
     setResultado(null);
+    setError("");
+    setNombreArchivo(file.name);
     try {
       const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
       const extraction = await base44.integrations.Core.ExtractDataFromUploadedFile({
@@ -49,14 +46,16 @@ export default function CotejarArchivoPanel({ members, temporada }) {
       });
 
       if (extraction.status !== "success") {
-        toast.error("No se pudo leer el archivo: " + (extraction.details || "formato no reconocido"));
+        setError("No se pudo leer el archivo: " + (extraction.details || "formato no reconocido") + ". Asegúrate de que tiene una fila de cabecera con columnas Nombre, Email, Teléfono y DNI.");
         setLoading(false);
         return;
       }
 
-      const filas = (extraction.output?.personas || []).filter((p) => p.nombre || p.email);
+      const salida = extraction.output;
+      const lista = Array.isArray(salida) ? salida : (salida ? [salida] : []);
+      const filas = lista.filter((p) => p && (p.nombre || p.email || p.telefono || p.dni));
       if (filas.length === 0) {
-        toast.error("El archivo no contiene contactos reconocibles (nombre, email o teléfono).");
+        setError("El archivo no contiene contactos reconocibles. Revisa que las columnas se llamen Nombre, Email, Teléfono o DNI.");
         setLoading(false);
         return;
       }
@@ -65,7 +64,7 @@ export default function CotejarArchivoPanel({ members, temporada }) {
       setResultado(cotejarArchivo(filas, members, temporada));
       toast.success(`${filas.length} contactos cotejados`);
     } catch (err) {
-      toast.error("Error procesando el archivo: " + err.message);
+      setError("Error procesando el archivo: " + (err?.message || "desconocido"));
     } finally {
       setLoading(false);
     }
@@ -125,6 +124,16 @@ export default function CotejarArchivoPanel({ members, temporada }) {
               ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Leyendo y cotejando...</>
               : <><Upload className="w-4 h-4 mr-2" /> Subir archivo y cotejar</>}
           </Button>
+
+          {nombreArchivo && !error && (
+            <p className="text-xs text-slate-500">Archivo: {nombreArchivo}</p>
+          )}
+
+          {error && (
+            <Alert className="bg-red-50 border-red-300">
+              <AlertDescription className="text-sm text-red-800">{error}</AlertDescription>
+            </Alert>
+          )}
         </CardContent>
       </Card>
 
