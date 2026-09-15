@@ -516,9 +516,9 @@ export default function CentroCompeticion() {
       {isAdmin && (
         <Card className="mb-4 border-2 border-orange-500">
           <CardContent className="p-4 space-y-3">
-            <div className="grid gap-2 md:grid-cols-[1fr_auto] items-start">
-              <div className="flex items-center gap-3">
-                <span className="font-semibold">Herramientas de Administración</span>
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="font-semibold mr-auto">Herramientas de Administración</span>
                 <Button variant="outline" size="sm" onClick={() => setShowUrlManager(true)} className="gap-1.5 text-xs border-blue-300 text-blue-700 hover:bg-blue-50">
                    <Link2 className="w-3.5 h-3.5" /> URLs RFFM
                  </Button>
@@ -526,7 +526,7 @@ export default function CentroCompeticion() {
                    <Database className="w-3.5 h-3.5" /> {showMonitor ? 'Ocultar Monitor' : 'Monitor RFFM'}
                  </Button>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 w-full md:w-auto">
+              <div className="grid grid-cols-3 gap-2 w-full max-w-md">
                 <Button
                   variant={adminTab === 'clasificacion' ? 'default' : 'outline'}
                   onClick={() => { setAdminTab('clasificacion'); setView('clasificacion'); }}
@@ -600,8 +600,8 @@ export default function CentroCompeticion() {
               {adminTab === 'clasificacion' && (
                 <div className="bg-white rounded-lg p-3 border border-blue-200">
                   <p className="text-xs font-semibold text-slate-600 mb-1">Clasificación:</p>
-                  <div className="flex items-center gap-2">
-                    <Input className="flex-1 text-xs h-8" value={rfefUrlState} onChange={(e) => setRfefUrlState(e.target.value)} placeholder="URL de RFFM/RFEF para clasificación" />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input className="flex-1 min-w-[240px] text-xs h-8" value={rfefUrlState} onChange={(e) => setRfefUrlState(e.target.value)} placeholder="URL de RFFM/RFEF para clasificación" />
                     <Input className="w-28 text-xs h-8" value={grupoText} onChange={(e) => setGrupoText(e.target.value)} placeholder="Ej: Grupo 72" />
                     <Button size="sm" variant="outline" onClick={() => rfefUrlState && window.open(rfefUrlState, '_blank')} disabled={!rfefUrlState}>Abrir</Button>
                     <Button size="sm" variant="outline" onClick={async () => {
@@ -632,8 +632,8 @@ export default function CentroCompeticion() {
               {adminTab === 'resultados' && (
                 <div className="bg-white rounded-lg p-3 border border-blue-200">
                   <p className="text-xs font-semibold text-slate-600 mb-1">Resultados:</p>
-                  <div className="flex items-center gap-2">
-                    <Input className="flex-1 text-xs h-8" value={resultsUrl} onChange={(e) => setResultsUrl(e.target.value)} placeholder="URL de RFFM/RFEF para resultados" />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input className="flex-1 min-w-[240px] text-xs h-8" value={resultsUrl} onChange={(e) => setResultsUrl(e.target.value)} placeholder="URL de RFFM/RFEF para resultados" />
                     <Button size="sm" variant="outline" onClick={() => openUrl(resultsUrl)} disabled={!resultsUrl}>Abrir</Button>
                     <Button size="sm" variant="outline" onClick={tryResultsUrl} disabled={!resultsUrl}>Probar</Button>
                     <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_results_url: resultsUrl })} disabled={!resultsUrl}>💾</Button>
@@ -644,8 +644,8 @@ export default function CentroCompeticion() {
               {adminTab === 'goleadores' && (
                 <div className="bg-white rounded-lg p-3 border border-blue-200">
                   <p className="text-xs font-semibold text-slate-600 mb-1">Goleadores:</p>
-                  <div className="flex items-center gap-2">
-                    <Input className="flex-1 text-xs h-8" value={scorersUrl} onChange={(e) => setScorersUrl(e.target.value)} placeholder="URL de RFFM/RFEF para goleadores" />
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Input className="flex-1 min-w-[240px] text-xs h-8" value={scorersUrl} onChange={(e) => setScorersUrl(e.target.value)} placeholder="URL de RFFM/RFEF para goleadores" />
                     <Button size="sm" variant="outline" onClick={() => openUrl(scorersUrl)} disabled={!scorersUrl}>Abrir</Button>
                     <Button size="sm" variant="outline" onClick={tryScorersUrl} disabled={!scorersUrl}>Probar</Button>
                     <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => saveConfigUrls({ rfef_scorers_url: scorersUrl })} disabled={!scorersUrl}>💾</Button>
