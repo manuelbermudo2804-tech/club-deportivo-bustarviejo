@@ -102,6 +102,18 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
   // Campo/opciones de categoría (para el desglose)
   const campoCategoria = cupoCatActivo ? (campos.find((c) => c.id === cupoCatCampo)) : null;
   const opcionesCategoria = campoCategoria?.opciones || [];
+  // ¿Están TODAS las categorías con cupo completas? Entonces ya no hay nada que elegir.
+  const categoriasConCupo = opcionesCategoria.filter((op) => {
+    const c = parseInt(cuposCat[op]);
+    return Number.isFinite(c) && c > 0;
+  });
+  const todasCategoriasAgotadas =
+    cupoCatActivo &&
+    categoriasConCupo.length > 0 &&
+    categoriasConCupo.length === opcionesCategoria.length &&
+    categoriasConCupo.every((op) => (plazasPorCategoria?.[op] || 0) >= parseInt(cuposCat[op]));
+  // Si no queda ninguna plaza posible, el formulario no se muestra en absoluto
+  const todoCompleto = plazasGlobalAgotadas || todasCategoriasAgotadas;
 
   const opcionElegida = opciones.find((o) => o.id === opcionId) || opciones[0];
   const importeBase = opcionElegida ? Number((opcionElegida.precio * cantidad).toFixed(2)) : 0;
@@ -491,14 +503,14 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
           </div>
         )}
 
-        {plazasAgotadas && !mostrarListaEspera && (
+        {(plazasAgotadas || todoCompleto) && !mostrarListaEspera && (
           <div className="mb-6 bg-red-50 border-2 border-red-200 rounded-2xl p-6 text-center">
             <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-3" />
             <h3 className="text-xl font-black text-red-900 mb-1">
-              {categoriaAgotada && !plazasGlobalAgotadas ? "Categoría completa" : "Plazas agotadas"}
+              {categoriaAgotada && !todoCompleto ? "Categoría completa" : "Plazas agotadas"}
             </h3>
             <p className="text-red-700">
-              {categoriaAgotada && !plazasGlobalAgotadas
+              {categoriaAgotada && !todoCompleto
                 ? `La categoría "${categoriaElegida}" ya está completa. Elige otra categoría con plazas libres.`
                 : (limites?.mensaje_plazas_agotadas || "Lo sentimos, ya no quedan plazas disponibles.")}
             </p>
@@ -553,7 +565,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className={`bg-white rounded-3xl shadow-xl border border-slate-200 p-6 lg:p-10 space-y-5 ${mostrarListaEspera ? "hidden" : ""} ${(plazasGlobalAgotadas && !mostrarListaEspera) ? "opacity-50 pointer-events-none" : ""}`}>
+        <form onSubmit={handleSubmit} className={`bg-white rounded-3xl shadow-xl border border-slate-200 p-6 lg:p-10 space-y-5 ${(mostrarListaEspera || todoCompleto) ? "hidden" : ""}`}>
           {/* Honeypot anti-bot — invisible para humanos.
               IMPORTANTE: usamos un name neutro + autoComplete="new-password" para que
               el autocompletado del navegador (sobre todo móviles) NO rellene este campo
