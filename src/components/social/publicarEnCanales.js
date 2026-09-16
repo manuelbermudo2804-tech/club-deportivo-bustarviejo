@@ -79,6 +79,22 @@ export async function publicarEnCanales({ canales, texto, imageUrl, titulo }) {
     }
   }
 
+  if (canales.includes("linkedin")) {
+    try {
+      const { data } = await base44.functions.invoke("publishToLinkedIn", {
+        message: texto,
+        image_url: imageUrl,
+      });
+      if (data?.success) {
+        resultados.push({ canal: "linkedin", ok: true });
+      } else {
+        resultados.push({ canal: "linkedin", ok: false, error: data?.error || "Error al publicar" });
+      }
+    } catch (e) {
+      resultados.push({ canal: "linkedin", ok: false, error: e?.message || "LinkedIn no está conectado" });
+    }
+  }
+
   // Canales manuales: dejar el texto en el portapapeles
   const manuales = canales.filter((c) => c === "whatsapp");
   if (manuales.length) {

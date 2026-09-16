@@ -1,4 +1,4 @@
-import { Send, MessageCircle, Instagram, Bell, Facebook } from "lucide-react";
+import { Send, MessageCircle, Instagram, Bell, Facebook, Linkedin } from "lucide-react";
 
 // Canales de difusión disponibles en el Centro de Difusión Social
 export const CANALES = [
@@ -42,6 +42,15 @@ export const CANALES = [
     desc: "Publica en la página del club",
     icon: Facebook,
     color: "text-blue-400",
+    automatico: true,
+    requiereConexion: true,
+  },
+  {
+    id: "linkedin",
+    label: "LinkedIn",
+    desc: "Publica en la página del club (patrocinadores, empresas)",
+    icon: Linkedin,
+    color: "text-blue-500",
     automatico: true,
     requiereConexion: true,
   },
