@@ -47,6 +47,18 @@ export default function AITrainingPlanner({ exercises, onClose }) {
         tags_ia: ex.tags_ia,
       }));
 
+      // Semilla de variación: evita que la IA devuelva siempre la misma sesión
+      const variacionId = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+      const estilos = [
+        "sesión basada en juegos reducidos y competición constante",
+        "sesión analítica: primero técnica aislada y luego aplicada",
+        "sesión con formato de circuito por estaciones y rotaciones",
+        "sesión global con tareas integradas de alta participación",
+        "sesión progresiva de menos a más oposición y espacio",
+      ];
+      const estiloSesion = estilos[Math.floor(Math.random() * estilos.length)];
+      const catalogoMezclado = [...exerciseCatalog].sort(() => Math.random() - 0.5);
+
       const prompt = `Eres un entrenador deportivo experto en ${sport}. 
       
 Diseña una sesión de entrenamiento completa de ${duration} minutos para un equipo de ${numPlayers} jugadores.
@@ -55,8 +67,11 @@ ENFOQUE PRINCIPAL: ${focus}
 GRUPO DE EDAD: ${ageGroup || "Mixto"}
 ${additionalNotes ? `NOTAS ADICIONALES: ${additionalNotes}` : ""}
 
+ESTILO DE SESIÓN PARA HOY: ${estiloSesion}
+ID DE VARIACIÓN (no lo menciones): ${variacionId}
+
 CATÁLOGO DE EJERCICIOS DISPONIBLES:
-${JSON.stringify(exerciseCatalog, null, 2)}
+${JSON.stringify(catalogoMezclado, null, 2)}
 
 IMPORTANTE: Debes usar EXCLUSIVAMENTE ejercicios del catálogo proporcionado. Si no hay suficientes ejercicios en el catálogo, indica qué ejercicios adicionales serían recomendables crear.
 
@@ -74,7 +89,9 @@ Para cada ejercicio incluye:
 También incluye:
 - Materiales totales necesarios
 - Consejos generales para la sesión
-- Objetivos de la sesión`;
+- Objetivos de la sesión
+
+MUY IMPORTANTE: esta sesión debe ser CLARAMENTE DISTINTA de otras sesiones típicas del mismo enfoque. Varía el orden de los ejercicios, el número y nombre de los bloques, las duraciones y el título. No repitas una estructura estándar ni títulos genéricos.`;
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt,

@@ -50,7 +50,22 @@ UBICACIÓN: EJERCICIO PARA HACER EN LA CALLE/PARQUE
 - Enfocado en resistencia, velocidad, saltos, agilidad`;
       }
 
+      // Semilla de variación: evita que la IA devuelva siempre el mismo ejercicio
+      const variacionId = `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
+      const enfoques = [
+        "formato de juego/competición con puntuación",
+        "formato de circuito por estaciones",
+        "formato de reto por parejas o grupos",
+        "formato progresivo con dificultad creciente",
+        "formato de rondo/posesión adaptado",
+        "formato de trabajo técnico con repeticiones dirigidas",
+      ];
+      const enfoqueElegido = enfoques[Math.floor(Math.random() * enfoques.length)];
+
       const prompt = `Crea un ejercicio de entrenamiento físico para ${formData.deporte} con las siguientes características:
+
+FORMATO SUGERIDO PARA ESTA VEZ: ${enfoqueElegido}
+ID DE VARIACIÓN (no lo menciones en el texto): ${variacionId}
 
 OBJETIVO PRINCIPAL: ${formData.objetivo}
 ${ubicacionContext}
@@ -82,7 +97,8 @@ IMPORTANTE:
 - Las instrucciones deben ser fáciles de seguir
 - El diagrama ASCII debe ser claro y simple
 - Incluye variaciones útiles
-- Los consejos deben ser valiosos`;
+- Los consejos deben ser valiosos
+- El ejercicio debe ser ORIGINAL y distinto de los clásicos de manual: evita nombres y montajes genéricos repetidos (tipo "rondo 4x2" o "circuito de conos") salvo que el objetivo lo exija`;
 
       const response = await base44.integrations.Core.InvokeLLM({
         prompt,
