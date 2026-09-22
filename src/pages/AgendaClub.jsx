@@ -17,7 +17,7 @@ import AgendaWeekView from "../components/agenda/AgendaWeekView";
 import AgendaMonthView from "../components/agenda/AgendaMonthView";
 import AgendaItemCard, { KIND_STYLES } from "../components/agenda/AgendaItemCard";
 import { fechaISO } from "@/lib/sinEntrenamiento";
-import CalendarSubscribeCard from "../components/calendar/CalendarSubscribeCard";
+import AgendaSubscribeButtons from "../components/agenda/AgendaSubscribeButtons";
 
 const VISTAS = [
   { id: "lista", label: "Lista", icon: List },
@@ -143,7 +143,7 @@ export default function AgendaClub() {
         </p>
       </div>
 
-      <CalendarSubscribeCard categories={categoriasDisponibles} />
+      <AgendaSubscribeButtons categoria={filtroCategoria === "all" ? "" : filtroCategoria} />
 
       {/* Selector de vista + navegación */}
       <div className="flex flex-wrap items-center justify-between gap-2">
