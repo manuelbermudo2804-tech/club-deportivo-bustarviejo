@@ -239,6 +239,69 @@ Deno.serve(async (req) => {
       atencion.push({ id: 'errores_criticos', label: 'Errores críticos registrados', count: erroresDiagnostico, page: 'UploadDiagnostics', icon: 'AlertTriangle' });
     }
 
+    // === PAGOS RECIENTES: quién ha pagado y por qué vía ===
+    let pagosDetalle = [];
+    // Trae registros con un reintento ante 429 (devuelve [] si falla).
+    const fetchRows = async (entityName, query, sort, limit) => {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          return await sr.entities[entityName].filter(query, sort, limit);
+        } catch {
+          await new Promise((r) => setTimeout(r, 500));
+        }
+      }
+      return [];
+    };
+    try {
+      const stripeLogs = await fetchRows('StripePaymentLog', {}, '-created_date', 100);
+      const stripeRecientes = stripeLogs.filter((l) => {
+        const t = new Date(l.created_date || l.created_at).getTime();
+        const ok = (l.status || '').toLowerCase();
+        return !isNaN(t) && t >= sinceMs && (ok.includes('succe') || ok === 'paid' || ok === 'complete' || ok === 'completed');
+      });
+      const stripeIds = new Set(stripeRecientes.map((l) => l.related_id).filter(Boolean));
+
+      const pagados = await fetchRows(
+        'Payment', { estado: 'Pagado', is_deleted: { $ne: true } }, '-updated_date', 200
+      );
+      pagosDetalle = pagados
+        .filter((p) => {
+          const t = new Date(p.updated_date).getTime();
+          return !isNaN(t) && t >= sinceMs;
+        })
+        .slice(0, 20)
+        .map((p) => {
+          let origen = 'Marcado por el club';
+          if (stripeIds.has(p.id)) origen = 'Tarjeta (Stripe)';
+          else if (p.stripe_subscription_id) origen = 'Tarjeta (plan mensual)';
+          else if (p.metodo_pago === 'Efectivo') origen = 'Efectivo (marcado por el club)';
+          return {
+            id: p.id,
+            nombre: (p.jugador_nombre || '').trim(),
+            importe: p.cantidad,
+            detalle: p.mes || p.tipo_pago || '',
+            origen,
+            page: 'Payments',
+          };
+        });
+
+      // Pagos online que no son cuotas (socios, lotería, colaboraciones...)
+      stripeRecientes
+        .filter((l) => l.related_entity !== 'Payment')
+        .slice(0, 10)
+        .forEach((l) => {
+          const secciones = { socios: 'Cuota de socio', loteria: 'Lotería', extra: 'Pago extra', cuotas_batch: 'Cuotas (varias)' };
+          pagosDetalle.push({
+            id: l.id,
+            nombre: l.email || 'Pago online',
+            importe: l.amount,
+            detalle: secciones[l.section] || l.section || '',
+            origen: 'Tarjeta (Stripe)',
+            page: 'Payments',
+          });
+        });
+    } catch { pagosDetalle = []; }
+
     const totalNovedades = novedades.reduce((s, n) => s + n.count, 0);
     const totalAtencion = atencion.reduce((s, a) => s + a.count, 0);
 
@@ -246,6 +309,7 @@ Deno.serve(async (req) => {
       since,
       novedades,
       atencion,
+      pagosDetalle,
       totales: { novedades: totalNovedades, atencion: totalAtencion },
       generado: new Date().toISOString(),
     });

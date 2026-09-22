@@ -9,6 +9,7 @@ import {
   Trophy, Heart, ShieldAlert, AlertTriangle, Bell, ShoppingBag, HandHeart,
   UserMinus, FileSignature, RefreshCw, Camera,
 } from "lucide-react";
+import PagosRecientesList from "./PagosRecientesList";
 
 const ICONS = {
   Camera,
@@ -51,7 +52,7 @@ export default function DailySummaryBanner() {
   const handleMarkAllSeen = (e) => {
     e.stopPropagation();
     try { localStorage.setItem(LS_KEY, new Date().toISOString()); } catch {}
-    setData({ ...data, novedades: [], atencion: [], totales: { novedades: 0, atencion: 0 } });
+    setData({ ...data, novedades: [], atencion: [], pagosDetalle: [], totales: { novedades: 0, atencion: 0 } });
     setExpanded(false);
   };
 
@@ -70,7 +71,8 @@ export default function DailySummaryBanner() {
 
   const totalNovedades = data.totales?.novedades || 0;
   const totalAtencion = data.totales?.atencion || 0;
-  const nada = totalNovedades === 0 && totalAtencion === 0;
+  const pagosDetalle = data.pagosDetalle || [];
+  const nada = totalNovedades === 0 && totalAtencion === 0 && pagosDetalle.length === 0;
 
   return (
     <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl overflow-hidden">
@@ -93,6 +95,8 @@ export default function DailySummaryBanner() {
               {totalNovedades > 0 && <span className="text-indigo-300 font-semibold">{totalNovedades} novedades</span>}
               {totalNovedades > 0 && totalAtencion > 0 && " · "}
               {totalAtencion > 0 && <span className="text-orange-300 font-semibold">{totalAtencion} requieren atención</span>}
+              {pagosDetalle.length > 0 && ((totalNovedades > 0 || totalAtencion > 0) ? " · " : "")}
+              {pagosDetalle.length > 0 && <span className="text-emerald-300 font-semibold">{pagosDetalle.length} pagos</span>}
             </p>
           )}
         </div>
@@ -117,6 +121,7 @@ export default function DailySummaryBanner() {
           {data.atencion?.length > 0 && (
             <Section title="⚠️ Requiere tu atención" items={data.atencion} accent="orange" />
           )}
+          <PagosRecientesList pagos={pagosDetalle} />
           {data.novedades?.length > 0 && (
             <Section title="🆕 Novedades desde tu última visita" items={data.novedades} accent="indigo" />
           )}
