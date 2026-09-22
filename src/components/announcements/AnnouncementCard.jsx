@@ -9,6 +9,7 @@ import { format, differenceInHours } from "date-fns";
 import { es } from "date-fns/locale";
 import ShareButtons from "../social/ShareButtons";
 import ReadConfirmationPanel from "./ReadConfirmationPanel";
+import LinkifiedText from "./LinkifiedText";
 
 export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdmin, onMarkAsRead, userEmail }) {
   const priorityConfig = {
@@ -99,7 +100,7 @@ export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdm
 
         <CardContent className="p-3">
           <p className={`text-sm text-slate-700 mb-2 leading-relaxed whitespace-pre-wrap break-words ${!expanded && necesitaExpandir ? "line-clamp-3" : ""}`}>
-            {contenido}
+            <LinkifiedText text={contenido} />
           </p>
           {necesitaExpandir && (
             <button
