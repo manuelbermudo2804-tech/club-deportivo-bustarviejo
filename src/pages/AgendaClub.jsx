@@ -18,6 +18,7 @@ import AgendaMonthView from "../components/agenda/AgendaMonthView";
 import AgendaItemCard, { KIND_STYLES } from "../components/agenda/AgendaItemCard";
 import { fechaISO } from "@/lib/sinEntrenamiento";
 import AgendaSubscribeButtons from "../components/agenda/AgendaSubscribeButtons";
+import AgendaTeamFilter from "../components/agenda/AgendaTeamFilter";
 
 const VISTAS = [
   { id: "lista", label: "Lista", icon: List },
@@ -192,31 +193,13 @@ export default function AgendaClub() {
             {f.label}
           </Button>
         ))}
-        {categoriasDisponibles.length > 1 && (
-          <>
-            <div className="h-8 w-px bg-slate-300 mx-1" />
-            <Button
-              size="sm"
-              variant={filtroCategoria === "all" ? "default" : "outline"}
-              onClick={() => setFiltroCategoria("all")}
-              className={filtroCategoria === "all" ? "bg-blue-600 hover:bg-blue-700 h-8 text-xs" : "h-8 text-xs"}
-            >
-              Todos los equipos
-            </Button>
-            {categoriasDisponibles.map((c) => (
-              <Button
-                key={c}
-                size="sm"
-                variant={filtroCategoria === c ? "default" : "outline"}
-                onClick={() => setFiltroCategoria(c)}
-                className={filtroCategoria === c ? "bg-blue-600 hover:bg-blue-700 h-8 text-xs" : "h-8 text-xs"}
-              >
-                {c}
-              </Button>
-            ))}
-          </>
-        )}
       </div>
+
+      <AgendaTeamFilter
+        categorias={categoriasDisponibles}
+        valor={filtroCategoria}
+        onChange={setFiltroCategoria}
+      />
 
       {/* Leyenda */}
       <div className="flex flex-wrap gap-3 text-xs text-slate-600">
