@@ -17,6 +17,7 @@ import AgendaWeekView from "../components/agenda/AgendaWeekView";
 import AgendaMonthView from "../components/agenda/AgendaMonthView";
 import AgendaItemCard, { KIND_STYLES } from "../components/agenda/AgendaItemCard";
 import { fechaISO } from "@/lib/sinEntrenamiento";
+import CalendarSubscribeCard from "../components/calendar/CalendarSubscribeCard";
 
 const VISTAS = [
   { id: "lista", label: "Lista", icon: List },
@@ -141,6 +142,8 @@ export default function AgendaClub() {
           Entrenamientos, partidos y eventos en un único sitio, ordenados por fecha.
         </p>
       </div>
+
+      <CalendarSubscribeCard categories={categoriasDisponibles} />
 
       {/* Selector de vista + navegación */}
       <div className="flex flex-wrap items-center justify-between gap-2">
