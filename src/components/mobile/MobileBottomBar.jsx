@@ -52,6 +52,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       { icon: Users, label: 'Jugadores', url: createPageUrl('Players'), key: 'players' },
       { icon: MessageCircle, label: 'Chat', url: createPageUrl('AdminChatsHub'), key: 'chat', badge: totalChatBadge },
       { icon: CreditCard, label: 'Pagos', url: createPageUrl('Payments'), key: 'payments' },
+      horariosTab,
     ];
   } else if (isCoordinator) {
     const totalChatBadge = (chatBadges?.coordinatorCount || 0) + (chatBadges?.staffCount || 0) + (chatBadges?.coachCount || 0);
@@ -61,6 +62,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       { icon: MessageCircle, label: 'Chat', url: createPageUrl('CoordinatorChatsHub'), key: 'chat', badge: totalChatBadge },
       { icon: Users, label: 'Plantillas', url: createPageUrl('TeamRosters'), key: 'rosters' },
       entrenamientoTab,
+      horariosTab,
     ];
   } else if (isCoach) {
     const totalChatBadge = (chatBadges?.coachCount || 0) + (chatBadges?.staffCount || 0);
@@ -70,6 +72,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       { icon: MessageCircle, label: 'Chat', url: createPageUrl('CoachChatsHub'), key: 'chat', badge: totalChatBadge },
       { icon: Users, label: 'Plantillas', url: createPageUrl('TeamRosters'), key: 'rosters' },
       entrenamientoTab,
+      horariosTab,
     ];
   } else if (isTreasurer) {
     const treasurerChatBadge = familyTotal + (chatBadges?.staffCount || 0);
@@ -78,6 +81,7 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       { icon: CreditCard, label: 'Pagos', url: createPageUrl('Payments'), key: 'payments' },
       { icon: MessageCircle, label: 'Chat', url: createPageUrl('FamilyChatsHub'), key: 'chat', badge: treasurerChatBadge },
       { icon: Users, label: 'Socios', url: createPageUrl('ClubMembersManagement'), key: 'members' },
+      horariosTab,
     ];
   } else if (isPlayer) {
     const totalChatBadge = familyTotal;
