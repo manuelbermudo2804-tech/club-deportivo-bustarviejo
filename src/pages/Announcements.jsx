@@ -249,9 +249,8 @@ Estimadas familias,
 
 ${announcement.contenido}
 
-════════════════════════════════════════
+──────────
 Información del anuncio:
-════════════════════════════════════════
 Prioridad: ${announcement.prioridad}
 Destinatarios: ${announcement.destinatarios_tipo}
 Publicado: ${new Date(announcement.fecha_publicacion).toLocaleDateString('es-ES', { 
@@ -271,11 +270,9 @@ Atentamente,
 CD Bustarviejo
 Equipo de Administración
 
-════════════════════════════════════════
-Datos de contacto:
-════════════════════════════════════════
-Email: cdbustarviejo@gmail.com
-Ubicación: Bustarviejo, Madrid
+──────────
+Contacto: info@cdbustarviejo.com
+Bustarviejo, Madrid
             `;
 
       for (const email of recipients) {
