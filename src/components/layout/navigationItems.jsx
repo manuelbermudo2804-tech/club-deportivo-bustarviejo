@@ -60,8 +60,8 @@ export function buildAdminNavigation(ctx) {
     { title: "👕 Gestión de Dorsales", url: createPageUrl("DorsalManagement"), icon: Shirt, badge: ctx.pendingDorsalCount > 0 ? ctx.pendingDorsalCount : null, urgentBadge: ctx.pendingDorsalCount > 0 },
 
     { title: "─ CALENDARIO Y EVENTOS ─", section: true },
+    { title: "📅 Agenda del club", url: "/AgendaClub", icon: CalendarDays },
     { title: "🕐 Horarios y Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Clock },
-    { title: "🧪 Agenda del club (pruebas)", url: "/AgendaClub", icon: CalendarDays },
     { title: "🌦️ Meteo Club", url: createPageUrl("MeteoClub"), icon: CloudSun },
     { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
     { title: "🤝 Voluntariado y Comunidad", url: createPageUrl("Voluntariado"), icon: Users },
@@ -169,6 +169,7 @@ export function buildCoachNavigation(ctx) {
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
     { title: "📸 Enviar fotos y vídeos", url: createPageUrl("SubirContenido"), icon: Camera },
 
+    { title: "📅 Agenda del club", url: "/AgendaClub", icon: CalendarDays },
     { title: "🕐 Horarios y Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Clock },
     { title: "🌦️ Meteo Club", url: createPageUrl("MeteoClub"), icon: CloudSun },
     { title: "🤝 Voluntariado y Comunidad", url: createPageUrl("Voluntariado"), icon: Users },
@@ -223,6 +224,7 @@ export function buildCoordinatorNavigation(ctx) {
 
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "🚨 Riesgo de Abandono", url: createPageUrl("RiesgoAbandono"), icon: ShieldAlert },
+    { title: "📅 Agenda del club", url: "/AgendaClub", icon: CalendarDays },
     { title: "🕐 Horarios y Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Clock },
     { title: "🌦️ Meteo Club", url: createPageUrl("MeteoClub"), icon: CloudSun },
     { title: "🤝 Voluntariado y Comunidad", url: createPageUrl("Voluntariado"), icon: Users },
@@ -287,6 +289,7 @@ export function buildParentNavigation(ctx) {
     ...(!onlyComplementary ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
     { title: "💳 Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "👥 Mis Jugadores e Inscripciones", url: createPageUrl("ParentPlayers"), icon: Users },
+    { title: "📅 Agenda del club", url: "/AgendaClub", icon: CalendarDays },
     { title: "🕐 Horarios y Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Clock },
     { title: "🤝 Voluntariado y Comunidad", url: createPageUrl("Voluntariado"), icon: Users },
     { title: "♻️ Mercadillo de familias", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
@@ -328,6 +331,7 @@ export function buildPlayerNavigation(ctx) {
     ...(!onlyComplementary ? [{ title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : []),
     ...(!onlyComplementary ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
     { title: "💳 Mis Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
+    { title: "📅 Agenda del club", url: "/AgendaClub", icon: CalendarDays },
     { title: "🕐 Horarios y Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Clock },
     { title: "🤝 Voluntariado y Comunidad", url: createPageUrl("Voluntariado"), icon: Users },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
@@ -370,6 +374,7 @@ export function buildTreasurerNavigation(ctx) {
     ...(hasPlayers ? [{ title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell, badge: chatMenuCounts.systemMessagesCount }] : []),
     ...(hasPlayers ? [{ title: "🎓 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorForFamilyCount }] : []),
     ...(hasPlayers ? [{ title: "⚽ Chat Equipo", url: createPageUrl("ParentCoachChat"), icon: MessageCircle, badge: chatMenuCounts.coachForFamilyCount }] : []),
+    { title: "📅 Agenda del club", url: "/AgendaClub", icon: CalendarDays },
     { title: "🕐 Horarios y Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Clock },
     { title: "🤝 Voluntariado y Comunidad", url: createPageUrl("Voluntariado"), icon: Users },
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
@@ -401,6 +406,7 @@ export function buildMinorNavigation(ctx) {
   return [
     { title: "🏠 Inicio", url: createPageUrl("MinorDashboard"), icon: Home },
     { title: "📋 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
+    { title: "📅 Agenda del club", url: "/AgendaClub", icon: CalendarDays },
     { title: "🕐 Horarios y Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Clock },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },

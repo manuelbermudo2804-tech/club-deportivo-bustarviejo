@@ -1,7 +1,7 @@
 import React, { useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { createPageUrl } from '@/utils';
-import { Home, Bell, CreditCard, MessageCircle, Users, Dumbbell, Clock, ClipboardCheck } from 'lucide-react';
+import { Home, Bell, CreditCard, MessageCircle, Users, Dumbbell, CalendarDays, ClipboardCheck } from 'lucide-react';
 import useMeteoAlerta from '@/hooks/useMeteoAlerta';
 import useMinorPanel from '@/hooks/useMinorPanel';
 
@@ -25,10 +25,9 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
     dot: meteoAlerta ? (meteoRojo ? 'red' : 'amber') : null,
   };
 
-  // Acceso directo a los horarios de entrenamiento (abre ya la pestaña de horarios)
+  // Agenda del club: entrenamientos, convocatorias, partidos y eventos en un solo sitio
   const horariosTab = {
-    icon: Clock, label: 'Horarios', url: createPageUrl('CalendarAndSchedules'),
-    target: `${createPageUrl('CalendarAndSchedules')}?tab=horarios`, key: 'schedules',
+    icon: CalendarDays, label: 'Agenda', url: '/AgendaClub', key: 'agenda',
   };
 
   let tabs = [];
