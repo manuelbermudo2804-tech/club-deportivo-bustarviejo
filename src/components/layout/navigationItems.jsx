@@ -5,7 +5,7 @@ import {
   FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert,
   ClipboardCheck, Star, Trophy, KeyRound, RotateCw, CheckCircle2,
   User as UserIcon, Share2, ExternalLink, Shirt, Camera, HeartPulse, Landmark, MapPin, Brain,
-  CloudSun, Inbox
+  CloudSun, Inbox, CalendarDays
 } from "lucide-react";
 
 /**
@@ -61,6 +61,7 @@ export function buildAdminNavigation(ctx) {
 
     { title: "─ CALENDARIO Y EVENTOS ─", section: true },
     { title: "🕐 Horarios y Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Clock },
+    { title: "🧪 Agenda del club (pruebas)", url: "/AgendaClub", icon: CalendarDays },
     { title: "🌦️ Meteo Club", url: createPageUrl("MeteoClub"), icon: CloudSun },
     { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
     { title: "🤝 Voluntariado y Comunidad", url: createPageUrl("Voluntariado"), icon: Users },
