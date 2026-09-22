@@ -2,9 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { List, CalendarDays, CalendarRange, ChevronLeft, ChevronRight, FlaskConical } from "lucide-react";
+import { List, CalendarDays, CalendarRange, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   addDays, addMonths, subMonths, addWeeks, subWeeks,
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, format,
@@ -132,13 +131,7 @@ export default function AgendaClub() {
   return (
     <div className="p-4 lg:p-6 space-y-4 max-w-6xl mx-auto">
       <div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Agenda del club</h1>
-          <Badge className="bg-purple-100 text-purple-800 border-0">
-            <FlaskConical className="w-3 h-3 mr-1" />
-            En pruebas
-          </Badge>
-        </div>
+        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Agenda del club</h1>
         <p className="text-slate-600 mt-1 text-sm">
           Entrenamientos, partidos y eventos en un único sitio, ordenados por fecha.
         </p>
