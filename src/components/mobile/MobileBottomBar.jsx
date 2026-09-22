@@ -60,7 +60,6 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       { icon: Home, label: 'Inicio', url: createPageUrl('CoordinatorDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('CoachCallups'), key: 'callups' },
       { icon: MessageCircle, label: 'Chat', url: createPageUrl('CoordinatorChatsHub'), key: 'chat', badge: totalChatBadge },
-      { icon: Users, label: 'Plantillas', url: createPageUrl('TeamRosters'), key: 'rosters' },
       entrenamientoTab,
       horariosTab,
     ];
@@ -70,7 +69,6 @@ export default function MobileBottomBar({ location, chatBadges, isAdmin, isCoach
       { icon: Home, label: 'Inicio', url: createPageUrl('CoachDashboard'), key: 'home' },
       { icon: Bell, label: 'Convocatorias', url: createPageUrl('CoachCallups'), key: 'callups' },
       { icon: MessageCircle, label: 'Chat', url: createPageUrl('CoachChatsHub'), key: 'chat', badge: totalChatBadge },
-      { icon: Users, label: 'Plantillas', url: createPageUrl('TeamRosters'), key: 'rosters' },
       entrenamientoTab,
       horariosTab,
     ];
