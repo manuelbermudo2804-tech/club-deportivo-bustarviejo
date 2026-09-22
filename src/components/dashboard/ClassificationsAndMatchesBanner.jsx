@@ -225,6 +225,11 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
                       {nextMatch.hora_partido}
                     </span>
                   </div>
+                  {nextMatch.hora_concentracion && (
+                    <p className="text-[10px] font-semibold text-green-700 mb-1.5">
+                      ⏱️ Concentración: {nextMatch.hora_concentracion}
+                    </p>
+                  )}
                   <Button 
                     size="sm" 
                     className="w-full h-7 bg-green-600 hover:bg-green-700 text-white text-[10px]"
@@ -279,6 +284,11 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
                       {callup.hora_partido}
                     </span>
                   </div>
+                  {callup.hora_concentracion && (
+                    <p className="text-xs font-semibold text-green-700 mb-2">
+                      ⏱️ Concentración: {callup.hora_concentracion}
+                    </p>
+                  )}
                   {callup.ubicacion && (
                     <p className="text-xs text-slate-500 mb-2 flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
