@@ -36,32 +36,35 @@ export default function ConvocatoriaBlockBanner({ players = [] }) {
           <div className="flex-1 space-y-3">
             {isBlocked && (
               <div>
-                <h3 className="font-bold text-red-900">Tenéis una cuota pendiente</h3>
+                <h3 className="font-bold text-red-900">Cuota pendiente: fuera de convocatorias</h3>
                 <p className="text-sm text-red-800 mt-1">
-                  Hasta que se abone, <strong>{nombres(bloqueados)}</strong>{" "}
-                  {bloqueados.length > 1 ? "no podrán ser convocados" : "no podrá ser convocado/a"} para los partidos.
-                  En cuanto esté pagada, {bloqueados.length > 1 ? "vuelven" : "vuelve"} a entrar con normalidad.
+                  Estimada familia: la cuota de <strong>{nombres(bloqueados)}</strong> continúa pendiente de pago.
+                  Según lo establecido por el club, {bloqueados.length > 1 ? "no podrán ser convocados" : "no podrá ser convocado/a"} para
+                  los partidos hasta que la situación quede regularizada. Una vez abonada, {bloqueados.length > 1 ? "se incorporarán" : "se incorporará"} de
+                  nuevo a las convocatorias con normalidad.
                 </p>
               </div>
             )}
 
             {avisados.length > 0 && (
               <div>
-                <h3 className="font-bold text-amber-900">Recordatorio de cuota</h3>
+                <h3 className="font-bold text-amber-900">Aviso de cuota pendiente</h3>
                 <p className="text-sm text-amber-800 mt-1">
-                  Tenéis pendiente la cuota de <strong>{nombres(avisados)}</strong>. Si ya la habéis pagado,
-                  no hagáis caso a este aviso: se quitará en cuanto lo revisemos.
+                  Estimada familia: les informamos de que la cuota de <strong>{nombres(avisados)}</strong> figura
+                  como pendiente de pago. Les rogamos que regularicen la situación a la mayor brevedad. Si ya han
+                  realizado el pago, pueden ignorar este aviso; se retirará en cuanto quede comprobado.
                 </p>
               </div>
             )}
 
             <p className="text-xs text-slate-600">
-              ¿Os viene mal pagar ahora? Escribidnos a{" "}
+              Si tienen dificultades para realizar el pago, pueden ponerse en contacto con el club en{" "}
               <a href="mailto:info@cdbustarviejo.com" className="underline font-medium">
                 info@cdbustarviejo.com
               </a>{" "}
-              y lo solucionamos juntos.
+              para estudiar una solución.
             </p>
+            <p className="text-xs font-semibold text-slate-700">Junta Directiva · CD Bustarviejo</p>
 
             <Link to={createPageUrl("ParentPayments")}>
               <Button className={isBlocked ? "bg-red-600 hover:bg-red-700" : "bg-amber-600 hover:bg-amber-700"}>
