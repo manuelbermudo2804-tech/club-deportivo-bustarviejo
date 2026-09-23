@@ -20,6 +20,7 @@ import DashboardButtonCard from "../components/dashboard/DashboardButtonCard";
 import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 import PorraPromoBanner from "../components/porra/PorraPromoBanner";
 import DailySummaryBanner from "../components/dashboard/DailySummaryBanner";
+import BirthdayBanner from "../components/birthday/BirthdayBanner";
 
 
 export default function Home() {
@@ -88,10 +89,9 @@ export default function Home() {
     fetchUser();
   }, []);
 
-  const { data: players } = useQuery({
+  const { data: players = [] } = useQuery({
     queryKey: ['playersActive'],
     queryFn: () => base44.entities.Player.filter({ activo: true }, '-updated_date', 500),
-    initialData: [],
     staleTime: 120000,
     gcTime: 600000,
     refetchOnWindowFocus: false,
@@ -663,6 +663,11 @@ export default function Home() {
 
         {/* Resumen del Día - Solo Admin */}
         {isAdmin && <DailySummaryBanner />}
+
+        {/* Cumpleaños de hoy de todo el club - Solo Admin */}
+        {isAdmin && players?.length > 0 && (
+          <BirthdayBanner players={players} myPlayerIds={[]} mode="coach" />
+        )}
 
         {/* Banner de alertas para familias (NO admin: el admin ya ve el "Resumen del día") */}
         {!isAdmin && hasPlayers && (
