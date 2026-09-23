@@ -531,6 +531,26 @@ Deno.serve(async (req) => {
 
     // (Section 17 removed — cancel/reschedule handled in section 2)
 
+    // ==========================================
+    // 18. VOLUNTARIADO (nueva oportunidad → todas las familias)
+    // ==========================================
+    if (entityName === 'VolunteerOpportunity') {
+      if (data.estado === 'cerrada' || data.publicada === false) return Response.json({ skipped: 'not open' });
+      const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true });
+      const targetEmails = [];
+      for (const p of allPlayers) {
+        if (p.email_padre) targetEmails.push(p.email_padre);
+        if (p.email_tutor_2) targetEmails.push(p.email_tutor_2);
+        if (p.email_jugador) targetEmails.push(p.email_jugador);
+      }
+      const organizer = data.creado_por || '';
+      const filtered = [...new Set(targetEmails)].filter(e => e !== senderEmail && e !== organizer);
+      const fecha = data.fecha ? data.fecha.split('-').reverse().join('/') : '';
+      const detalle = `${fecha}${data.hora ? ' a las ' + data.hora : ''}${data.plazas ? ` · Se necesitan ${data.plazas} personas` : ''}`;
+      const result = await sendPushToEmails(base44, filtered, `🤝 Voluntariado: ${data.titulo || 'Nueva oportunidad'}`, detalle || '¿Nos echas una mano? Apúntate en la app', `/Voluntariado?opp_id=${event.entity_id}`, `volunteer-${event.entity_id}`);
+      return Response.json({ type: 'volunteer_opportunity', recipients: filtered.length, ...result });
+    }
+
     return Response.json({ skipped: 'unhandled entity', entityName });
   } catch (error) {
     console.error('onPushTrigger error:', error);

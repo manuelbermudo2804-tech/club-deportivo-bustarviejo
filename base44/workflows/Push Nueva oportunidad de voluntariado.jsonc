@@ -1,0 +1,37 @@
+{
+  "description": "Env\u00eda una notificaci\u00f3n push a todas las familias cuando se crea una oportunidad de voluntariado",
+  "name": "Push: Nueva oportunidad de voluntariado",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "push_nueva_oportunidad_voluntariado",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "onPushTrigger",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Enviar push a familias"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": "${ (.trigger.data.estado // \"abierta\") != \"cerrada\" }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "VolunteerOpportunity"
+    }
+  }
+}
