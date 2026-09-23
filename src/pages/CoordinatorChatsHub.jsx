@@ -6,6 +6,7 @@ import { MessageCircle, Users, Briefcase, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
+import MyKidsChatsSection from "@/components/chat/MyKidsChatsSection";
 
 // Normalización consistente con backend
 const toGroupId = (s = "") =>
@@ -95,6 +96,8 @@ export default function CoordinatorChatsHub() {
             iconBg="bg-blue-600"
           />
         ))}
+
+        {user.tiene_hijos_jugando && <MyKidsChatsSection user={user} />}
 
         {/* Chat Staff */}
         <ConversationRow
