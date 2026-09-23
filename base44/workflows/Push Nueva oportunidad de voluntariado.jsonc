@@ -1,6 +1,6 @@
 {
   "name": "Push: Nueva oportunidad de voluntariado",
-  "description": "Env\u00eda una notificaci\u00f3n push a todas las familias cuando se crea una oportunidad de voluntariado",
+  "description": "Env\u00eda push y correo a todas las familias cuando se crea una oportunidad de voluntariado",
   "trigger": {
     "condition": "${ (.trigger.data.estado // \"abierta\") != \"cerrada\" }",
     "config": {
@@ -33,9 +33,24 @@
               "data": "${ .trigger.data }"
             }
           },
-          "then": "end",
+          "then": "send_emails",
           "x-base44": {
             "title": "Enviar push a familias"
+          }
+        }
+      },
+      {
+        "send_emails": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "notifyVolunteerOpportunity",
+            "args": {
+              "opportunity_id": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Enviar correo a familias"
           }
         }
       }
