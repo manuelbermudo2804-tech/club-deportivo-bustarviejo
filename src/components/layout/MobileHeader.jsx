@@ -44,12 +44,13 @@ export default function MobileHeader({
             )}
 
             {/* Badges adicionales para chats en móvil */}
-            {!isAdmin && chatMenuCounts.coordinatorForFamilyCount > 0 && (
+            {/* Los contadores "como familia" solo si no se muestra ya el mismo como staff (evita duplicados) */}
+            {!isAdmin && !isCoordinator && chatMenuCounts.coordinatorForFamilyCount > 0 && (
               <div className="px-2 py-1 bg-cyan-500 text-white text-xs rounded-lg font-bold">
                 💬 {chatMenuCounts.coordinatorForFamilyCount}
               </div>
             )}
-            {!isAdmin && chatMenuCounts.coachForFamilyCount > 0 && (
+            {!isAdmin && !isCoach && chatMenuCounts.coachForFamilyCount > 0 && (
               <div className="px-2 py-1 bg-blue-500 text-white text-xs rounded-lg font-bold">
                 ⚽ {chatMenuCounts.coachForFamilyCount}
               </div>
