@@ -97,7 +97,11 @@ export default function CoordinatorChatsHub() {
           />
         ))}
 
-        <MyKidsChatsSection user={user} />
+        <MyKidsChatsSection
+          user={user}
+          excludeCategories={user?.es_entrenador ? (user?.categorias_entrena || []) : []}
+          hideCoordinator
+        />
 
         {/* Chat Staff */}
         <ConversationRow

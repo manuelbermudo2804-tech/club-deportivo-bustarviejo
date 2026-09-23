@@ -26,7 +26,12 @@ function Row({ title, subtitle, url, Icon, iconBg }) {
   );
 }
 
-export default function MyKidsChatsSection({ user }) {
+const normCat = (s = "") =>
+  s.toString().replace(/\(.*?\)/g, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toLowerCase();
+
+// excludeCategories: categorías que el usuario ya ve como entrenador (evita chats duplicados)
+// hideCoordinator: ocultar "Chat Coordinador" (p.ej. si el usuario ya es el coordinador)
+export default function MyKidsChatsSection({ user, excludeCategories = [], hideCoordinator = false }) {
   const { data: players = [] } = useQuery({
     queryKey: ["myKidsChats", user?.email],
     queryFn: () => base44.entities.Player.filter({
@@ -37,7 +42,10 @@ export default function MyKidsChatsSection({ user }) {
   });
 
   if (players.length === 0) return null;
-  const cats = [...new Set(players.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
+  const excluded = new Set(excludeCategories.map(normCat));
+  const cats = [...new Set(players.map(p => p.categoria_principal || p.deporte).filter(Boolean))]
+    .filter(c => !excluded.has(normCat(c)));
+  if (cats.length === 0 && hideCoordinator) return null;
   const soyYo = (p) => (p.email_jugador || "").toLowerCase() === (user.email || "").toLowerCase();
   const soloJugador = players.every(soyYo);
 
@@ -56,13 +64,15 @@ export default function MyKidsChatsSection({ user }) {
           iconBg="bg-green-600"
         />
       ))}
-      <Row
-        title="🎓 Chat Coordinador"
-        subtitle="Habla con la coordinación como familia"
-        url={createPageUrl("ParentCoordinatorChat")}
-        Icon={GraduationCap}
-        iconBg="bg-cyan-600"
-      />
+      {!hideCoordinator && (
+        <Row
+          title="🎓 Chat Coordinador"
+          subtitle="Habla con la coordinación como familia"
+          url={createPageUrl("ParentCoordinatorChat")}
+          Icon={GraduationCap}
+          iconBg="bg-cyan-600"
+        />
+      )}
     </div>
   );
 }
