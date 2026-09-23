@@ -179,6 +179,8 @@ export function buildCoachNavigation(ctx) {
     ...(hasPlayers ? [
       { title: "─ MIS HIJOS ─", section: true },
       { title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },
+      { title: "⚽ Chat Equipo Mis Hijos", url: createPageUrl("ParentCoachChat"), icon: MessageCircle },
+      { title: "🎓 Chat Coordinador (familia)", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle },
       { title: "💳 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard },
       { title: "🏆 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null },
       { title: "🖊️ Firmas Mis Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 },
@@ -252,6 +254,8 @@ export function buildCoordinatorNavigation(ctx) {
     ...(hasPlayers ? [
       { title: "─ MIS HIJOS ─", section: true },
       { title: "👨‍👩‍👧 Mis Hijos", url: createPageUrl("ParentPlayers"), icon: Users },
+      { title: "⚽ Chat Equipo Mis Hijos", url: createPageUrl("ParentCoachChat"), icon: MessageCircle },
+      { title: "🎓 Chat Coordinador (familia)", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle },
       { title: "💳 Pagos Mis Hijos", url: createPageUrl("ParentPayments"), icon: CreditCard },
       { title: "🏆 Confirmar Mis Hijos", url: createPageUrl("ParentCallups"), icon: ClipboardCheck, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null },
       { title: "🖊️ Firmas Mis Hijos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 },

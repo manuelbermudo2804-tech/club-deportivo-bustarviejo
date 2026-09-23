@@ -10,6 +10,7 @@ import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { parseChatDate } from "@/lib/chatDate";
+import MyKidsChatsSection from "@/components/chat/MyKidsChatsSection";
 
 const toGroupId = (s = "") =>
   (s || "").toString().replace(/\(.*?\)/g, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, "_").toLowerCase();
@@ -142,6 +143,8 @@ export default function CoachChatsHub() {
             iconBg="bg-blue-600"
           />
         )}
+
+        {user.tiene_hijos_jugando && <MyKidsChatsSection user={user} />}
 
         {/* Chat Staff */}
         <div className="space-y-4 mt-6">
