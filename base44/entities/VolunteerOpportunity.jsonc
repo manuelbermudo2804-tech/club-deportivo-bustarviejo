@@ -60,21 +60,30 @@
     "descripcion"
   ],
   "rls": {
-    "read": {
-      "user_condition": {
-        "role": [
-          "admin",
-          "user"
-        ]
-      }
-    },
+    "read": {},
     "create": {
-      "user_condition": {
-        "role": [
-          "admin",
-          "user"
-        ]
-      }
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_coordinador": true
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_entrenador": true
+          }
+        },
+        {
+          "user_condition": {
+            "data.puede_gestionar_voluntarios": true
+          }
+        }
+      ]
     },
     "update": {
       "$or": [
