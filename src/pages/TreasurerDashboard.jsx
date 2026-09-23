@@ -14,6 +14,7 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import SectionedButtonGrid from "../components/dashboard/SectionedButtonGrid";
 import ShareFormButton from "../components/players/ShareFormButton";
 import ContactCard from "../components/ContactCard";
+import BirthdayBanner from "../components/birthday/BirthdayBanner";
 import DashboardCardSkeleton from "../components/skeletons/DashboardCardSkeleton";
 import DashboardButtonSelector from "../components/dashboard/DashboardButtonSelector";
 import { ALL_TREASURER_BUTTONS, DEFAULT_TREASURER_BUTTONS, MIN_BUTTONS, MAX_BUTTONS } from "../components/dashboard/TreasurerDashboardButtons";
@@ -299,6 +300,11 @@ export default function TreasurerDashboard() {
         />
 
 
+
+        {/* Cumpleaños de mis hijos */}
+        {!playersLoading && myPlayers.length > 0 && (
+          <BirthdayBanner players={myPlayers} myPlayerIds={myPlayers.map(p => p.id)} mode="parent" />
+        )}
 
         {/* Widget Clasificaciones y Próximo Partido */}
         {!playersLoading && myPlayers.length > 0 && (
