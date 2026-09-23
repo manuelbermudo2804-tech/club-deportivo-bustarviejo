@@ -21,6 +21,7 @@ import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 import PorraPromoBanner from "../components/porra/PorraPromoBanner";
 import DailySummaryBanner from "../components/dashboard/DailySummaryBanner";
 import BirthdayBanner from "../components/birthday/BirthdayBanner";
+import StaffBirthdaysBanner from "../components/birthday/StaffBirthdaysBanner";
 
 
 export default function Home() {
@@ -668,6 +669,9 @@ export default function Home() {
         {isAdmin && players?.length > 0 && (
           <BirthdayBanner players={players} myPlayerIds={[]} mode="coach" />
         )}
+
+        {/* Próximos cumpleaños de entrenadores y coordinadores - Solo Admin */}
+        {isAdmin && <StaffBirthdaysBanner />}
 
         {/* Banner de alertas para familias (NO admin: el admin ya ve el "Resumen del día") */}
         {!isAdmin && hasPlayers && (
