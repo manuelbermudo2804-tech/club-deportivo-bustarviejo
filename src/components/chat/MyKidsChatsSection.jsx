@@ -30,7 +30,7 @@ export default function MyKidsChatsSection({ user }) {
   const { data: players = [] } = useQuery({
     queryKey: ["myKidsChats", user?.email],
     queryFn: () => base44.entities.Player.filter({
-      $or: [{ email_padre: user.email }, { email_tutor_2: user.email }],
+      $or: [{ email_padre: user.email }, { email_tutor_2: user.email }, { email_jugador: user.email }],
       activo: true,
     }),
     enabled: !!user?.email,
@@ -38,15 +38,19 @@ export default function MyKidsChatsSection({ user }) {
 
   if (players.length === 0) return null;
   const cats = [...new Set(players.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
+  const soyYo = (p) => (p.email_jugador || "").toLowerCase() === (user.email || "").toLowerCase();
+  const soloJugador = players.every(soyYo);
 
   return (
     <div className="space-y-4 mt-6">
-      <h2 className="text-lg font-bold text-slate-800 px-2">👨‍👩‍👧 Como familia (mis hijos)</h2>
+      <h2 className="text-lg font-bold text-slate-800 px-2">
+        {soloJugador ? "⚽ Como jugador" : "👨‍👩‍👧 Como familia / jugador"}
+      </h2>
       {cats.map(cat => (
         <Row
           key={cat}
           title={`⚽ ${cat}`}
-          subtitle={players.filter(p => (p.categoria_principal || p.deporte) === cat).map(p => p.nombre.split(" ")[0]).join(", ")}
+          subtitle={players.filter(p => (p.categoria_principal || p.deporte) === cat).map(p => soyYo(p) ? "Yo (jugador)" : p.nombre.split(" ")[0]).join(", ")}
           url={`${createPageUrl("ParentCoachChat")}?category=${encodeURIComponent(cat)}`}
           Icon={Users}
           iconBg="bg-green-600"

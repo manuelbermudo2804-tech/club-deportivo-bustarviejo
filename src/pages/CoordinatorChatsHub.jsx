@@ -97,7 +97,7 @@ export default function CoordinatorChatsHub() {
           />
         ))}
 
-        {user.tiene_hijos_jugando && <MyKidsChatsSection user={user} />}
+        <MyKidsChatsSection user={user} />
 
         {/* Chat Staff */}
         <ConversationRow

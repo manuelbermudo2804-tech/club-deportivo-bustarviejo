@@ -144,7 +144,7 @@ export default function CoachChatsHub() {
           />
         )}
 
-        {user.tiene_hijos_jugando && <MyKidsChatsSection user={user} />}
+        <MyKidsChatsSection user={user} />
 
         {/* Chat Staff */}
         <div className="space-y-4 mt-6">
