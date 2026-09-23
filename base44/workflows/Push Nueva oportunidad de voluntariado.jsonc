@@ -1,6 +1,16 @@
 {
-  "description": "Env\u00eda una notificaci\u00f3n push a todas las familias cuando se crea una oportunidad de voluntariado",
   "name": "Push: Nueva oportunidad de voluntariado",
+  "description": "Env\u00eda una notificaci\u00f3n push a todas las familias cuando se crea una oportunidad de voluntariado",
+  "trigger": {
+    "condition": "${ (.trigger.data.estado // \"abierta\") != \"cerrada\" }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create"
+      ],
+      "entity_name": "VolunteerOpportunity"
+    }
+  },
   "definition": {
     "document": {
       "dsl": "1.0.0",
@@ -14,7 +24,14 @@
           "call": "invoke_backend_function",
           "with": {
             "function_name": "onPushTrigger",
-            "args": {}
+            "args": {
+              "event": {
+                "entity_name": "VolunteerOpportunity",
+                "entity_id": "${ .trigger.entity_id }",
+                "type": "create"
+              },
+              "data": "${ .trigger.data }"
+            }
           },
           "then": "end",
           "x-base44": {
@@ -23,15 +40,5 @@
         }
       }
     ]
-  },
-  "trigger": {
-    "condition": "${ (.trigger.data.estado // \"abierta\") != \"cerrada\" }",
-    "config": {
-      "trigger_type": "entity",
-      "events": [
-        "create"
-      ],
-      "entity_name": "VolunteerOpportunity"
-    }
   }
 }
