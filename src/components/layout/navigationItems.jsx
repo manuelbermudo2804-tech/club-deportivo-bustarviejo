@@ -14,6 +14,10 @@ import {
  * This keeps the extraction 100% mechanical — no logic changes.
  */
 
+// Total de no leídos de los chats de familia (avisos + coordinador + equipo)
+const familyChatTotal = (c = {}) =>
+  (c.systemMessagesCount || 0) + (c.coordinatorForFamilyCount || 0) + (c.coachForFamilyCount || 0);
+
 // Helper: convierte landings autorizadas en items de menú apuntando al panel de inscritos
 function buildLandingItems(landingMenuItems = []) {
   return (landingMenuItems || []).map((l) => ({
@@ -67,9 +71,7 @@ export function buildAdminNavigation(ctx) {
     { title: "🤝 Voluntariado y Comunidad", url: createPageUrl("Voluntariado"), icon: Users },
 
     { title: "─ COMUNICACIÓN ─", section: true },
-    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: chatMenuCounts.staffCount },
-    { title: "💬 Chat Coordinador-Familias", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
-    { title: "⚽ Chat Entrenador-Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount },
+    { title: "💬 Chats", url: createPageUrl("AdminChatsHub"), icon: MessageCircle, badge: (chatMenuCounts.staffCount || 0) + (chatMenuCounts.coordinatorCount || 0) },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
@@ -139,8 +141,7 @@ export function buildCoachNavigation(ctx) {
     ...(programaSociosActivo && isMemberPaid ? [{ title: "🎫 MI CARNET DE SOCIO", url: createPageUrl("MemberCardDisplay"), icon: Users, highlight: true }] : []),
     { title: "🏠 Inicio", url: createPageUrl("CoachDashboard"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-    { title: "💬 Chat con Familias", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount },
-    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: chatMenuCounts.staffCount },
+    { title: "💬 Chats", url: createPageUrl("CoachChatsHub"), icon: MessageCircle, badge: (chatMenuCounts.coachCount || 0) + (chatMenuCounts.staffCount || 0) },
 
     { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
     { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
@@ -209,9 +210,7 @@ export function buildCoordinatorNavigation(ctx) {
     ...(programaSociosActivo && isMemberPaid ? [{ title: "🎫 MI CARNET DE SOCIO", url: createPageUrl("MemberCardDisplay"), icon: Users, highlight: true }] : []),
     { title: "🏠 Inicio", url: createPageUrl("CoordinatorDashboard"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-    { title: "💬 Familias - Coordinador", url: createPageUrl("CoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorCount },
-    ...(user?.es_entrenador ? [{ title: "⚽ Familias - Entrenador", url: createPageUrl("CoachParentChat"), icon: MessageCircle, badge: chatMenuCounts.coachCount }] : []),
-    { title: "💼 Chat Staff", url: createPageUrl("StaffChat"), icon: MessageCircle, badge: chatMenuCounts.staffCount },
+    { title: "💬 Chats", url: createPageUrl("CoordinatorChatsHub"), icon: MessageCircle, badge: (chatMenuCounts.coordinatorCount || 0) + (chatMenuCounts.staffCount || 0) + (user?.es_entrenador ? (chatMenuCounts.coachCount || 0) : 0) },
 
     { title: user?.es_entrenador ? "🎓 Convocatorias" : "🎓 Ver Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
     { title: "📋 Asistencia y Evaluación", url: createPageUrl("TeamAttendanceEvaluation"), icon: CheckCircle2 },
@@ -282,9 +281,7 @@ export function buildParentNavigation(ctx) {
     ...(programaSociosActivo && isMemberPaid ? [{ title: "🎫 MI CARNET DE SOCIO", url: createPageUrl("MemberCardDisplay"), icon: Users, highlight: true }] : []),
     { title: "🏠 Inicio", url: createPageUrl("ParentDashboard"), icon: Home },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-    { title: "📬 Avisos para mi familia", url: createPageUrl("ParentSystemMessages"), icon: Bell, badge: chatMenuCounts.systemMessagesCount },
-    { title: "🎓 Hablar con el coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorForFamilyCount },
-    { title: "⚽ Hablar con el entrenador", url: createPageUrl("ParentCoachChat"), icon: MessageCircle, badge: chatMenuCounts.coachForFamilyCount },
+    { title: "💬 Chats", url: createPageUrl("FamilyChatsHub"), icon: MessageCircle, badge: familyChatTotal(chatMenuCounts) },
     ...(!onlyComplementary ? [{ title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : []),
     ...(!onlyComplementary ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
     { title: "💳 Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
@@ -325,9 +322,7 @@ export function buildPlayerNavigation(ctx) {
     { title: "🏠 Inicio", url: createPageUrl("PlayerDashboard"), icon: Home },
     { title: "👤 Mi Perfil", url: createPageUrl("PlayerProfile"), icon: UserCircle },
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
-    { title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell, badge: chatMenuCounts.systemMessagesCount },
-    { title: "🎓 Chat Coordinador (1-a-1)", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorForFamilyCount },
-    { title: "⚽ Chat Equipo (Grupal)", url: createPageUrl("ParentCoachChat"), icon: MessageCircle, badge: chatMenuCounts.coachForFamilyCount },
+    { title: "💬 Chats", url: createPageUrl("FamilyChatsHub"), icon: MessageCircle, badge: familyChatTotal(chatMenuCounts) },
     ...(!onlyComplementary ? [{ title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : []),
     ...(!onlyComplementary ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
     { title: "💳 Mis Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
@@ -371,9 +366,7 @@ export function buildTreasurerNavigation(ctx) {
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
     { title: "🛍️ Tienda y Equipación", url: createPageUrl("Tienda"), icon: ShoppingBag },
     { title: "🎫 Socios", url: createPageUrl("ClubMembersManagement"), icon: Users },
-    ...(hasPlayers ? [{ title: "🔔 Mensajes del Club", url: createPageUrl("ParentSystemMessages"), icon: Bell, badge: chatMenuCounts.systemMessagesCount }] : []),
-    ...(hasPlayers ? [{ title: "🎓 Chat Coordinador", url: createPageUrl("ParentCoordinatorChat"), icon: MessageCircle, badge: chatMenuCounts.coordinatorForFamilyCount }] : []),
-    ...(hasPlayers ? [{ title: "⚽ Chat Equipo", url: createPageUrl("ParentCoachChat"), icon: MessageCircle, badge: chatMenuCounts.coachForFamilyCount }] : []),
+    { title: "💬 Chats", url: createPageUrl("FamilyChatsHub"), icon: MessageCircle, badge: familyChatTotal(chatMenuCounts) + (chatMenuCounts.staffCount || 0) },
     { title: "📅 Agenda del club", url: "/AgendaClub", icon: CalendarDays },
     { title: "🕐 Horarios y Calendario", url: createPageUrl("CalendarAndSchedules"), icon: Clock },
     { title: "🤝 Voluntariado y Comunidad", url: createPageUrl("Voluntariado"), icon: Users },
