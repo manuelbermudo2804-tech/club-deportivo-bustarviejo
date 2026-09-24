@@ -27,6 +27,7 @@ import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 import PorraPromoBanner from "../components/porra/PorraPromoBanner";
 import IncompleteDocsBanner from "../components/players/IncompleteDocsBanner";
 import MercadilloBanner from "../components/market/MercadilloBanner";
+import VoluntariadoBanner from "@/components/volunteer/VoluntariadoBanner";
 import ConvocatoriaBlockBanner from "../components/payments/ConvocatoriaBlockBanner";
 import HazteSocioBanner from "../components/membership/HazteSocioBanner";
 
@@ -593,6 +594,9 @@ export default function ParentDashboard() {
 
         {/* Banner promocional Porra Mundial 2026 */}
         <PorraPromoBanner />
+
+        {/* Aviso fino de oportunidades de voluntariado abiertas */}
+        <VoluntariadoBanner user={user} />
 
         {/* Banner de novedades del Mercadillo (solo si hay anuncios nuevos) */}
         <MercadilloBanner />

@@ -11,6 +11,7 @@ import {
 } from "../components/layout/navigationItems";
 import useLandingMenuItems from "./useLandingMenuItems";
 import useDorsalPending from "./useDorsalPending";
+import { createPageUrl } from "@/utils";
 
 /**
  * Centralizes all navigation-building logic that was spread across Layout.
@@ -46,6 +47,7 @@ export default function useNavigation({
   unresolvedAdminChats,
   paymentsInReview,
   pendingFeedback,
+  volunteerNewCount,
 }) {
   // Landings con panel de gestión accesibles para este usuario
   const landingMenuItems = useLandingMenuItems(user, isAdmin);
@@ -106,11 +108,17 @@ export default function useNavigation({
     [pendingCallupsCount]);
 
   // Select the right nav based on role priority
-  if (isAdmin) return adminNav;
-  if (isMinor) return minorNav;
-  if (isCoordinator) return coordinatorNav;
-  if (isTreasurer) return treasurerNav;
-  if (isCoach) return coachNav;
-  if (isPlayer) return playerNav;
-  return parentNav;
+  const nav = isAdmin ? adminNav
+    : isMinor ? minorNav
+    : isCoordinator ? coordinatorNav
+    : isTreasurer ? treasurerNav
+    : isCoach ? coachNav
+    : isPlayer ? playerNav
+    : parentNav;
+
+  // Globito de oportunidades de voluntariado nuevas
+  const voluntariadoUrl = createPageUrl("Voluntariado");
+  return useMemo(() => (volunteerNewCount > 0
+    ? nav.map((i) => (i.url === voluntariadoUrl ? { ...i, badge: volunteerNewCount } : i))
+    : nav), [nav, volunteerNewCount]);
 }
