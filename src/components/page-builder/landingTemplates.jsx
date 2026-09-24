@@ -1,3 +1,5 @@
+import { SEASONAL_TEMPLATES } from "./seasonalTemplates";
+
 // Plantillas pre-diseñadas brutales para el constructor.
 // Cada plantilla define hero + bloques + formulario + branding base.
 
@@ -297,5 +299,7 @@ export const TEMPLATES = [
     },
   },
 ];
+
+TEMPLATES.push(...SEASONAL_TEMPLATES);
 
 export const getTemplate = (id) => TEMPLATES.find((t) => t.id === id);
