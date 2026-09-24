@@ -158,6 +158,36 @@
     "referencia_origen": {
       "type": "string",
       "description": "ID del pago/pedido origen si es autom\u00e1tico"
+    },
+    "fecha_factura": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha que figura en la factura"
+    },
+    "fecha_pago": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha en que se pag\u00f3 realmente la factura"
+    },
+    "justificante_pago_url": {
+      "type": "string",
+      "description": "Justificante de pago (transferencia, recibo bancario...)"
+    },
+    "justificante_pago_nombre": {
+      "type": "string",
+      "description": "Nombre del archivo del justificante de pago"
+    },
+    "subvencion_expediente_id": {
+      "type": "string",
+      "description": "Expediente de subvenci\u00f3n al que se imputa este gasto"
+    },
+    "importe_imputado": {
+      "type": "number",
+      "description": "Parte del importe que se imputa a la subvenci\u00f3n (si vac\u00edo, el total)"
+    },
+    "temporada_actividad": {
+      "type": "string",
+      "description": "Temporada de la actividad a la que corresponde (\u00fatil para ayudas cobradas en una temporada por actividad de otra)"
     }
   },
   "required": [

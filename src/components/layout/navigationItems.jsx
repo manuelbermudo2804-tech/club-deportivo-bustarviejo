@@ -54,6 +54,7 @@ export function buildAdminNavigation(ctx) {
     { title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
     { title: "🏛️ Subvenciones", url: createPageUrl("SubvencionesPanel"), icon: Landmark },
+    { title: "📂 Expediente Subvención", url: "/ExpedienteSubvencion", icon: Landmark },
 
     { title: "─ DEPORTIVO ─", section: true },
     { title: "🎓 Convocatorias", url: createPageUrl("CoachCallups"), icon: Bell, badge: pendingCallupResponses > 0 ? pendingCallupResponses : null, urgentBadge: pendingCallupResponses > 0 },
@@ -364,6 +365,7 @@ export function buildTreasurerNavigation(ctx) {
     { title: "📊 Panel Financiero", url: createPageUrl("TreasurerFinancialPanel"), icon: BarChart3 },
     { title: "🔔 Recordatorios", url: createPageUrl("PaymentReminders"), icon: Bell },
     { title: "📁 Histórico", url: createPageUrl("PaymentHistory"), icon: Archive },
+    { title: "📂 Expediente Subvención", url: "/ExpedienteSubvencion", icon: Archive },
     { title: "🛍️ Tienda y Equipación", url: createPageUrl("Tienda"), icon: ShoppingBag },
     { title: "🎫 Socios", url: createPageUrl("ClubMembersManagement"), icon: Users },
     { title: "💬 Chats", url: createPageUrl("FamilyChatsHub"), icon: MessageCircle, badge: familyChatTotal(chatMenuCounts) + (chatMenuCounts.staffCount || 0) },

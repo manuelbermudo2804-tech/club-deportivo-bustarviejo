@@ -86,6 +86,7 @@ import MinorCoachCallups from '@/pages/MinorCoachCallups';
 import MinorCoachAttendance from '@/pages/MinorCoachAttendance';
 import EnviarContenidoWeb from '@/pages/EnviarContenidoWeb';
 import AgendaClub from '@/pages/AgendaClub';
+import ExpedienteSubvencion from '@/pages/ExpedienteSubvencion';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -276,6 +277,7 @@ const AuthenticatedApp = () => {
       <Route path="/MinorCoachCallups" element={<LayoutWrapper currentPageName="MinorCoachCallups"><MinorCoachCallups /></LayoutWrapper>} />
       <Route path="/MinorCoachAttendance" element={<LayoutWrapper currentPageName="MinorCoachAttendance"><MinorCoachAttendance /></LayoutWrapper>} />
       <Route path="/AgendaClub" element={<LayoutWrapper currentPageName="AgendaClub"><AgendaClub /></LayoutWrapper>} />
+      <Route path="/ExpedienteSubvencion" element={<LayoutWrapper currentPageName="ExpedienteSubvencion"><ExpedienteSubvencion /></LayoutWrapper>} />
 
       <Route path="/ShareReceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
       <Route path="/sharereceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />

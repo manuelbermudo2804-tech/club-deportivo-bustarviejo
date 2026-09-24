@@ -1,0 +1,114 @@
+{
+  "name": "SubvencionExpediente",
+  "type": "object",
+  "description": "Expediente de justificaci\u00f3n de una subvenci\u00f3n (ej: Ayuntamiento de Bustarviejo) para una temporada",
+  "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Temporada justificada (ej: 2026-2027)"
+    },
+    "entidad": {
+      "type": "string",
+      "default": "Ayuntamiento de Bustarviejo",
+      "description": "Entidad concedente"
+    },
+    "importe_concedido": {
+      "type": "number",
+      "default": 6000,
+      "description": "Importe de la subvenci\u00f3n"
+    },
+    "fecha_limite_justificacion": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha l\u00edmite para presentar la justificaci\u00f3n"
+    },
+    "documentos": {
+      "type": "array",
+      "description": "Estado de cada documento exigido",
+      "items": {
+        "type": "object",
+        "properties": {
+          "clave": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "pendiente",
+              "listo",
+              "no_aplica"
+            ]
+          },
+          "archivo_uri": {
+            "type": "string"
+          },
+          "archivo_nombre": {
+            "type": "string"
+          },
+          "fecha_caducidad": {
+            "type": "string",
+            "format": "date"
+          },
+          "notas": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "notas": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "temporada"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_tesorero": true
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_tesorero": true
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_tesorero": true
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
