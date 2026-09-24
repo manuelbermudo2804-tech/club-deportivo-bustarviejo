@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Download, Loader2, AlertTriangle } from "lucide-react";
+import { Download, Loader2, AlertTriangle, FileText } from "lucide-react";
+import { generarListadoInscritosPdf } from "@/components/subvencion/listadoInscritosPdf";
 import { seasonRange } from "@/components/subvencion/expedienteConfig";
 import { downloadExcel } from "@/components/subvencion/exportExcel";
 import IndicadorCard from "@/components/subvencion/IndicadorCard";
@@ -19,6 +20,7 @@ const norm = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u
 export default function DeportistasTab({ temporada }) {
   const [players, setPlayers] = useState(null);
   const [ligas, setLigas] = useState(0);
+  const [generando, setGenerando] = useState(false);
 
   useEffect(() => {
     base44.entities.Player.filter({ activo: true }, "nombre", 2000).then(setPlayers);
@@ -31,7 +33,7 @@ export default function DeportistasTab({ temporada }) {
     const inicio = `${seasonRange(temporada).inicio}-09-01`;
     const rows = players.map((p) => {
       const edad = edadEn(p.fecha_nacimiento, inicio);
-      return { nombre: p.nombre, categoria: p.categoria_principal || p.deporte || "Sin categoría", anio: p.fecha_nacimiento?.slice(0, 4) || "", menor: edad !== null && edad < 18 };
+      return { nombre: p.nombre, categoria: p.categoria_principal || p.deporte || "Sin categoría", anio: p.fecha_nacimiento?.slice(0, 4) || "", nacimiento: p.fecha_nacimiento || "", dni: (p.dni_jugador || "").toUpperCase(), menor: edad !== null && edad < 18 };
     });
     const porCat = {};
     rows.forEach((r) => { (porCat[r.categoria] = porCat[r.categoria] || []).push(r); });
@@ -42,9 +44,17 @@ export default function DeportistasTab({ temporada }) {
 
   if (!data) return <div className="flex justify-center py-12"><Loader2 className="w-7 h-7 animate-spin text-orange-500" /></div>;
 
+  const sinDni = data.rows.filter((r) => !r.dni).length;
+
+  const exportarPdf = async () => {
+    setGenerando(true);
+    await generarListadoInscritosPdf({ temporada, porCat: data.porCat, total: data.rows.length, menores: data.menores });
+    setGenerando(false);
+  };
+
   const exportar = () => downloadExcel(`Listado_inscritos_${temporada}.xlsx`, [{
     name: "Inscritos",
-    rows: Object.keys(data.porCat).sort().flatMap((cat) => data.porCat[cat].map((r, i) => ({ "Categoría": cat, "Nº": i + 1, "Nombre y apellidos": r.nombre, "Año nacimiento": r.anio, "Menor de edad": r.menor ? "Sí" : "No" }))),
+    rows: Object.keys(data.porCat).sort().flatMap((cat) => data.porCat[cat].map((r, i) => ({ "Categoría": cat, "Nº": i + 1, "Nombre y apellidos": r.nombre, "Fecha nacimiento": r.nacimiento, "DNI / NIE": r.dni, "Menor de edad": r.menor ? "Sí" : "No" }))),
   }, {
     name: "Indicadores",
     rows: [{ "Temporada": temporada, "Deportistas": data.rows.length, "Menores de 18": data.menores, "Mayores de edad": data.rows.length - data.menores, "Categorías": Object.keys(data.porCat).length, "Equipos en competición federada": ligas }],
@@ -58,11 +68,17 @@ export default function DeportistasTab({ temporada }) {
         <IndicadorCard label="Categorías" value={Object.keys(data.porCat).length} />
         <IndicadorCard label="Equipos en liga federada" value={ligas} />
       </div>
-      <p className="text-xs text-slate-500">Una sola fuente para todos los documentos: usa estas mismas cifras en las memorias. El listado no incluye DNI ni datos de contacto.</p>
+      <p className="text-xs text-slate-500">Una sola fuente para todos los documentos: usa estas mismas cifras en las memorias. El listado incluye nombre, fecha de nacimiento y DNI (sin datos de contacto).</p>
+      {sinDni > 0 && <p className="text-xs text-amber-700">{sinDni} deportistas no tienen DNI en su ficha (aparecerán con «—»).</p>}
       {data.duplicados.length > 0 && (
         <p className="text-sm text-amber-700 flex items-center gap-1"><AlertTriangle className="w-4 h-4" /> Nombres repetidos (revísalos): {data.duplicados.join(", ")}</p>
       )}
-      <Button onClick={exportar} className="bg-orange-600 hover:bg-orange-700"><Download className="w-4 h-4 mr-2" /> Descargar listado de inscritos (Excel)</Button>
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={exportarPdf} disabled={generando} className="bg-green-700 hover:bg-green-800">
+          {generando ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />} Descargar listado en PDF
+        </Button>
+        <Button onClick={exportar} variant="outline"><Download className="w-4 h-4 mr-2" /> Excel</Button>
+      </div>
       <div className="grid md:grid-cols-2 gap-3">
         {Object.keys(data.porCat).sort().map((cat) => (
           <Card key={cat} className="rounded-xl">
