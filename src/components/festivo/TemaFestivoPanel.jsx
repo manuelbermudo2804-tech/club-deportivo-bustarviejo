@@ -8,6 +8,7 @@ import { Loader2, Sparkles, Check } from "lucide-react";
 import { toast } from "sonner";
 import useTemaFestivo from "@/hooks/useTemaFestivo";
 import { TEMAS_FESTIVOS } from "./temasFestivos";
+import PruebaFestivaAdmin from "./PruebaFestivaAdmin";
 
 // Panel de admin para activar/desactivar a mano la decoración festiva de la app.
 export default function TemaFestivoPanel() {
@@ -34,7 +35,7 @@ export default function TemaFestivoPanel() {
         <p className="font-bold text-slate-900">Decoración festiva de la app</p>
         {saving && <Loader2 className="w-4 h-4 animate-spin text-violet-600" />}
       </div>
-      <p className="text-xs text-slate-600">Elige una época y todos los usuarios verán la app decorada. Nada se activa solo.</p>
+      <p className="text-xs text-slate-600">Pulsa una tarjeta para <strong>activarlo para TODOS</strong>. Nada se activa solo.</p>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {Object.entries(TEMAS_FESTIVOS).map(([clave, t]) => (
@@ -50,6 +51,8 @@ export default function TemaFestivoPanel() {
           </button>
         ))}
       </div>
+
+      <PruebaFestivaAdmin />
 
       {activo && (
         <div className="space-y-3 pt-2 border-t border-violet-100">

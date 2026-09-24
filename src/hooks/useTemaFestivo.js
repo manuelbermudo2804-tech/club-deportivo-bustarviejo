@@ -10,7 +10,8 @@ export default function useTemaFestivo() {
     staleTime: 5 * 60 * 1000,
   });
 
-  const forzado = new URLSearchParams(window.location.search).get("epoca");
+  // Vista previa: por URL (?epoca=) o modo prueba guardado solo en este dispositivo
+  const forzado = new URLSearchParams(window.location.search).get("epoca") || localStorage.getItem("tema_festivo_prueba");
   const clave = TEMAS_FESTIVOS[forzado] ? forzado : registro?.tema;
   if (!clave || !TEMAS_FESTIVOS[clave]) return { registro, tema: null };
 
