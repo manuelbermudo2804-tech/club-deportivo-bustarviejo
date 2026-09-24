@@ -12,6 +12,7 @@ import {
   Shield, Trash2, Info, ChevronDown, ChevronUp
 } from "lucide-react";
 import SolidarityFundConfig from "./SolidarityFundConfig";
+import TemaFestivoPanel from "@/components/festivo/TemaFestivoPanel";
 
 export default function FeatureControlSection({
   activeSeason,
@@ -40,6 +41,8 @@ export default function FeatureControlSection({
       </CardHeader>
       {expanded && (
         <CardContent className="space-y-4">
+          <TemaFestivoPanel />
+
           {/* Renovaciones */}
           <FeatureRow icon={<RefreshCw className="w-5 h-5 text-blue-600" />} title="Permitir Renovaciones" subtitle="Los padres pueden renovar jugadores de temporadas anteriores" extra={<p className="text-xs text-blue-600 font-medium mt-1">⚠️ Activar DESPUÉS de resetear la temporada</p>} checked={activeSeason.permitir_renovaciones || false} onChange={(v) => toggleFeature('permitir_renovaciones', v)} />
 

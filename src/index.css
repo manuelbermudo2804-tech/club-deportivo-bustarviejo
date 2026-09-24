@@ -30,6 +30,28 @@
 }
 
 
+/* ===== Decoración festiva (Navidad, Reyes, Halloween, Carnaval) ===== */
+@keyframes festiveFall {
+  0% { transform: translate3d(0, -10vh, 0) rotate(0deg); }
+  50% { transform: translate3d(30px, 50vh, 0) rotate(180deg); }
+  100% { transform: translate3d(-10px, 110vh, 0) rotate(360deg); }
+}
+.festive-particle { animation: festiveFall linear infinite; will-change: transform; }
+@keyframes festiveFloat { 0%,100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-10px) rotate(4deg); } }
+.festive-float { animation: festiveFloat 4s ease-in-out infinite; display: inline-block; }
+@keyframes festiveTwinkle { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: .4; transform: scale(.85); } }
+.festive-twinkle { animation: festiveTwinkle 2.2s ease-in-out infinite; }
+@keyframes festiveBulb { 0%,100% { opacity: 1; box-shadow: 0 0 10px 2px currentColor; } 50% { opacity: .35; box-shadow: none; } }
+.festive-bulb { animation: festiveBulb 1.6s ease-in-out infinite; color: rgba(255,255,255,.6); }
+@keyframes festivePulseRing { 0% { transform: scale(.9); opacity: .8; } 100% { transform: scale(1.25); opacity: 0; } }
+.festive-pulse-ring { animation: festivePulseRing 2.6s ease-out infinite; }
+@keyframes festiveEnter { from { opacity: 0; transform: translateY(-12px) scale(.98); } to { opacity: 1; transform: none; } }
+.festive-enter { animation: festiveEnter .7s cubic-bezier(.2,.8,.2,1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .festive-particles { display: none; }
+  .festive-float, .festive-twinkle, .festive-bulb, .festive-pulse-ring, .festive-enter { animation: none; }
+}
+
 /* ============================================================
    TEMA "ESTADIO NOCTURNO" para la página pública de torneos.
    Solo aplica dentro de .torneo-night, para no afectar al panel

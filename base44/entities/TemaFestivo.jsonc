@@ -1,0 +1,53 @@
+{
+  "name": "TemaFestivo",
+  "type": "object",
+  "description": "Decoraci\u00f3n festiva de la app que activa manualmente un administrador",
+  "properties": {
+    "tema": {
+      "type": "string",
+      "enum": [
+        "ninguno",
+        "navidad",
+        "reyes",
+        "halloween",
+        "carnaval"
+      ],
+      "default": "ninguno",
+      "description": "Tema festivo activo en la app"
+    },
+    "particulas": {
+      "type": "boolean",
+      "default": true,
+      "description": "Mostrar efecto animado (nieve, estrellas, murci\u00e9lagos, confeti)"
+    },
+    "mensaje": {
+      "type": "string",
+      "description": "Mensaje personalizado (si est\u00e1 vac\u00edo se usa el de por defecto)"
+    },
+    "activado_por": {
+      "type": "string",
+      "description": "Email de quien lo activ\u00f3"
+    }
+  },
+  "required": [
+    "tema"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
