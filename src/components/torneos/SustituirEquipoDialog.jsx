@@ -7,18 +7,20 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import EscudoUploadButton from "./EscudoUploadButton";
 
 // Sustituye un equipo por otro: el nuevo hereda su plaza (partidos, horarios, campos, grupo)
 // y el antiguo desaparece (nombre, escudo, plantilla y goles).
 export default function SustituirEquipoDialog({ equipo, onClose, onDone }) {
   const [nombre, setNombre] = useState("");
   const [club, setClub] = useState("");
+  const [escudo, setEscudo] = useState("");
   const [resetResultados, setResetResultados] = useState(true);
   const [partidos, setPartidos] = useState(null);
 
   useEffect(() => {
     if (!equipo) return;
-    setNombre(""); setClub(""); setResetResultados(true); setPartidos(null);
+    setNombre(""); setClub(""); setEscudo(""); setResetResultados(true); setPartidos(null);
     base44.entities.TorneoPartido.filter({ categoria_id: equipo.categoria_id }).then((ps) =>
       setPartidos(ps.filter((p) => p.equipo_local_id === equipo.id || p.equipo_visitante_id === equipo.id)));
   }, [equipo]);
@@ -40,7 +42,7 @@ export default function SustituirEquipoDialog({ equipo, onClose, onDone }) {
           id: p.id, marcador_local: null, marcador_visitante: null, ganador_id: "", finalizado: false,
         })));
       }
-      await base44.entities.TorneoEquipo.update(equipo.id, { nombre: nombre.trim(), club: club.trim(), escudo_url: "" });
+      await base44.entities.TorneoEquipo.update(equipo.id, { nombre: nombre.trim(), club: club.trim(), escudo_url: escudo });
     },
     onSuccess: () => { toast.success(`${equipo.nombre} sustituido por ${nombre.trim()}`); onDone(); onClose(); },
     onError: (e) => toast.error(e.message),
@@ -51,14 +53,16 @@ export default function SustituirEquipoDialog({ equipo, onClose, onDone }) {
       <DialogContent className="max-w-md">
         <DialogHeader><DialogTitle>🔄 Sustituir a {equipo?.nombre}</DialogTitle></DialogHeader>
         <div className="space-y-3">
-          <Input placeholder="Nombre del equipo nuevo" value={nombre} onChange={(e) => setNombre(e.target.value)} autoFocus />
+          <div className="flex items-center gap-2">
+            <EscudoUploadButton value={escudo} onChange={setEscudo} />
+            <Input placeholder="Nombre del equipo nuevo" value={nombre} onChange={(e) => setNombre(e.target.value)} autoFocus />
+          </div>
           <Input placeholder="Club (opcional)" value={club} onChange={(e) => setClub(e.target.value)} />
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-800 space-y-1">
             {partidos === null ? <p>Cargando partidos…</p> : (
               <p>El equipo nuevo hereda <b>{partidos.length} partidos</b> con sus mismos horarios, campos y grupo.</p>
             )}
             <p><b>{equipo?.nombre}</b> desaparecerá del torneo junto con su escudo, plantilla y goles.</p>
-            <p>Después puedes subir el escudo del equipo nuevo desde la lista.</p>
           </div>
           {jugados.length > 0 && (
             <label className="flex items-start gap-2 text-sm">
