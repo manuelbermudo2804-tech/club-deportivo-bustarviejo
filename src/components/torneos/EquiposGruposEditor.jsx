@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, Shuffle } from "lucide-react";
+import { Plus, Trash2, Shuffle, RefreshCw } from "lucide-react";
+import SustituirEquipoDialog from "./SustituirEquipoDialog";
 import { toast } from "sonner";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -14,6 +15,7 @@ import EscudoUploadButton from "./EscudoUploadButton";
 export default function EquiposGruposEditor({ torneo, categoria, grupos, equipos, onChange }) {
   const [nuevoEquipo, setNuevoEquipo] = useState("");
   const [nGrupos, setNGrupos] = useState(grupos.length || 2);
+  const [sustituyendo, setSustituyendo] = useState(null);
 
   // En formato "grupo único" no hay grupos: todos los equipos van a una única
   // clasificación general y luego se dividen en fase Oro / Plata.
@@ -149,6 +151,10 @@ export default function EquiposGruposEditor({ torneo, categoria, grupos, equipos
                   </SelectContent>
                 </Select>
               )}
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-blue-500" title="Sustituir equipo"
+                onClick={() => setSustituyendo(e)}>
+                <RefreshCw className="w-3.5 h-3.5" />
+              </Button>
               <Button variant="ghost" size="icon" className="h-7 w-7 text-red-400"
                 onClick={() => delEquipo.mutate(e.id)}>
                 <Trash2 className="w-3.5 h-3.5" />
@@ -157,6 +163,7 @@ export default function EquiposGruposEditor({ torneo, categoria, grupos, equipos
           ))
         )}
       </div>
+      <SustituirEquipoDialog equipo={sustituyendo} onClose={() => setSustituyendo(null)} onDone={onChange} />
     </div>
   );
 }
