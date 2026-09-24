@@ -47,8 +47,21 @@
 .festive-pulse-ring { animation: festivePulseRing 2.6s ease-out infinite; }
 @keyframes festiveEnter { from { opacity: 0; transform: translateY(-12px) scale(.98); } to { opacity: 1; transform: none; } }
 .festive-enter { animation: festiveEnter .7s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes festiveFly { 0% { transform: translate3d(-45vw, 0, 0); } 70% { transform: translate3d(115vw, -6vh, 0); } 100% { transform: translate3d(115vw, -6vh, 0); } }
+.festive-fly { animation: festiveFly 22s linear infinite; will-change: transform; }
+@keyframes festiveBob { 0%,100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-12px) rotate(2deg); } }
+.festive-bob { animation: festiveBob 1.8s ease-in-out infinite; }
+@keyframes festiveSpider { 0%,100% { height: 60px; } 50% { height: 170px; } }
+.festive-spider { animation: festiveSpider 6s ease-in-out infinite; }
+@keyframes festiveComet { 0% { transform: translate3d(-30vw, 8vh, 0) rotate(12deg); opacity: 0; } 4% { opacity: 1; } 30% { transform: translate3d(110vw, 40vh, 0) rotate(12deg); opacity: 1; } 31%, 100% { transform: translate3d(110vw, 40vh, 0) rotate(12deg); opacity: 0; } }
+.festive-comet { animation: festiveComet 14s ease-in infinite; }
+@keyframes festiveRise { 0% { transform: translate3d(0, 0, 0); opacity: 0; } 8% { opacity: 1; } 100% { transform: translate3d(40px, -125vh, 0); opacity: 1; } }
+.festive-rise { bottom: -80px; animation: festiveRise 15s linear infinite; opacity: 0; }
+@keyframes festiveWalk { from { left: 100%; } to { left: -40%; } }
+.festive-walk { animation: festiveWalk 40s linear infinite; }
 @media (prefers-reduced-motion: reduce) {
   .festive-particles { display: none; }
+  .festive-walk { display: none; }
   .festive-float, .festive-twinkle, .festive-bulb, .festive-pulse-ring, .festive-enter { animation: none; }
 }
 
