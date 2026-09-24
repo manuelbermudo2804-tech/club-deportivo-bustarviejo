@@ -6,6 +6,7 @@ import { Briefcase, MessageCircle, ChevronRight } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
+import AdminTeamChatsSection from "@/components/chat/AdminTeamChatsSection";
 
 function ConversationRow({ title, subtitle, unreadCount, url, icon: Icon, color, iconBg }) {
   return (
@@ -80,6 +81,10 @@ export default function AdminChatsHub() {
           color="#8b5cf6"
           iconBg="bg-purple-600"
         />
+
+        <div className="pt-4">
+          <AdminTeamChatsSection />
+        </div>
       </div>
     </div>
   );
