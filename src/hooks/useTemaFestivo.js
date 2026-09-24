@@ -21,5 +21,6 @@ export default function useTemaFestivo() {
     tema: TEMAS_FESTIVOS[clave],
     mensaje: registro?.mensaje || TEMAS_FESTIVOS[clave].mensaje,
     particulas: forzado ? true : registro?.particulas !== false,
+    prueba: !!TEMAS_FESTIVOS[forzado],
   };
 }

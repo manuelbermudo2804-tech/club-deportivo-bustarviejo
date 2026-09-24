@@ -3,9 +3,10 @@ import { X } from "lucide-react";
 import FestiveDecor from "./FestiveDecor";
 
 // Banner principal festivo: gran tarjeta con degradado, brillos, decoración y emoji animado.
-export default function FestiveBanner({ clave, tema, mensaje }) {
+export default function FestiveBanner({ clave, tema, mensaje, prueba }) {
   const key = `festivo_cerrado_${clave}_${new Date().toDateString()}`;
-  const [cerrado, setCerrado] = useState(() => sessionStorage.getItem(key) === "1");
+  // En modo prueba siempre se muestra, aunque se hubiera cerrado antes
+  const [cerrado, setCerrado] = useState(() => !prueba && sessionStorage.getItem(key) === "1");
   if (cerrado) return null;
 
   return (
@@ -36,7 +37,7 @@ export default function FestiveBanner({ clave, tema, mensaje }) {
         </div>
 
         <button
-          onClick={() => { sessionStorage.setItem(key, "1"); setCerrado(true); }}
+          onClick={() => { if (!prueba) sessionStorage.setItem(key, "1"); setCerrado(true); }}
           className="absolute top-3 right-3 p-1.5 rounded-full bg-black/25 hover:bg-black/40 text-white/80 hover:text-white backdrop-blur min-h-0 min-w-0"
           aria-label="Cerrar"
         >

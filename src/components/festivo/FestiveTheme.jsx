@@ -6,13 +6,13 @@ import FestiveScenes from "./scenes/FestiveScenes";
 
 // Decoración festiva de la app. Solo aparece cuando un administrador la activa.
 export default function FestiveTheme() {
-  const { clave, tema, mensaje, particulas } = useTemaFestivo();
+  const { clave, tema, mensaje, particulas, prueba } = useTemaFestivo();
   if (!tema) return null;
   return (
     <>
       {particulas && <FestiveParticles tema={tema} />}
       {particulas && <FestiveScenes clave={clave} />}
-      <FestiveBanner clave={clave} tema={tema} mensaje={mensaje} />
+      <FestiveBanner key={`${clave}-${prueba}`} clave={clave} tema={tema} mensaje={mensaje} prueba={prueba} />
     </>
   );
 }
