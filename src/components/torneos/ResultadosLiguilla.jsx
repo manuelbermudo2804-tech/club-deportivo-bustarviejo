@@ -19,17 +19,17 @@ function PartidoFila({ p }) {
           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{horaCorta(p.fecha_hora)}</span>
         )}
       </div>
-      <div className="flex items-center gap-2 text-sm">
-        <span className={`flex-1 flex items-center justify-end gap-1.5 truncate ${ganaL ? "font-bold text-slate-900" : "text-slate-700"}`}>
-          <span className="truncate">{p.local_nombre}</span>
+      <div className="flex items-center gap-2 text-sm sm:text-base">
+        <span className={`flex-1 min-w-0 flex items-center justify-end gap-1.5 text-slate-800 ${ganaL ? "font-extrabold" : "font-semibold"}`}>
+          <span className="text-right leading-tight break-words sm:truncate">{p.local_nombre}</span>
           {p.local_escudo && <img src={p.local_escudo} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />}
         </span>
         <span className="flex-shrink-0 min-w-[44px] text-center font-bold tabular-nums">
           {jugado ? `${p.marcador_local} - ${p.marcador_visitante}` : <span className="text-slate-400 font-normal">vs</span>}
         </span>
-        <span className={`flex-1 flex items-center gap-1.5 truncate ${ganaV ? "font-bold text-slate-900" : "text-slate-700"}`}>
+        <span className={`flex-1 min-w-0 flex items-center gap-1.5 text-slate-800 ${ganaV ? "font-extrabold" : "font-semibold"}`}>
           {p.visitante_escudo && <img src={p.visitante_escudo} alt="" className="w-5 h-5 rounded-full object-cover flex-shrink-0" />}
-          <span className="truncate">{p.visitante_nombre}</span>
+          <span className="leading-tight break-words sm:truncate">{p.visitante_nombre}</span>
         </span>
       </div>
     </div>
