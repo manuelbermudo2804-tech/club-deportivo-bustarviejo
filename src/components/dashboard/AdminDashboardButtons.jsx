@@ -25,7 +25,7 @@ export const ALL_ADMIN_BUTTONS = [
   { id: "competicion", title: "🏆 Competición", icon: Trophy, url: createPageUrl("CentroCompeticion"), gradient: "from-orange-600 to-orange-700", priority: 14 },
 
   // --- CALENDARIO Y EVENTOS ---
-  { id: "calendario", title: "📅 Calendario", icon: Calendar, url: createPageUrl("CalendarAndSchedules"), gradient: "from-purple-600 to-purple-700", priority: 15 },
+  { id: "calendario", title: "📅 Agenda del club", icon: Calendar, url: "/AgendaClub", gradient: "from-purple-600 to-purple-700", priority: 15 },
   { id: "eventos", title: "🎉 Gestión Eventos", icon: Calendar, url: createPageUrl("EventManagement"), gradient: "from-indigo-600 to-indigo-700", priority: 16 },
   { id: "voluntariado", title: "🤝 Voluntariado y Comunidad", icon: Users, url: createPageUrl("Voluntariado"), gradient: "from-teal-600 to-teal-700", priority: 17 },
 

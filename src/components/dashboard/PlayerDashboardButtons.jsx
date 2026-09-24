@@ -10,7 +10,7 @@ export const ALL_PLAYER_BUTTONS = [
   { id: "mensajes_club", title: "🔔 Mensajes Club", icon: Bell, url: createPageUrl("ParentSystemMessages"), gradient: "from-orange-600 to-orange-700", priority: 4 },
   { id: "chat_coordinador", title: "🎓 Chat Coordinador", icon: MessageCircle, url: createPageUrl("ParentCoordinatorChat"), gradient: "from-cyan-600 to-cyan-700", priority: 5 },
   { id: "chat_equipo", title: "⚽ Chat Equipo", icon: MessageCircle, url: createPageUrl("ParentCoachChat"), gradient: "from-blue-600 to-blue-700", priority: 6 },
-  { id: "calendario", title: "📅 Calendario", icon: Calendar, url: createPageUrl("CalendarAndSchedules"), gradient: "from-purple-600 to-purple-700", priority: 7 },
+  { id: "calendario", title: "📅 Agenda del club", icon: Calendar, url: "/AgendaClub", gradient: "from-purple-600 to-purple-700", priority: 7 },
   { id: "anuncios", title: "📢 Anuncios", icon: Megaphone, url: createPageUrl("Announcements"), gradient: "from-pink-600 to-pink-700", priority: 8 },
   { id: "eventos", title: "🎉 Eventos Club", icon: Calendar, url: createPageUrl("ParentEventRSVP"), gradient: "from-cyan-600 to-cyan-700", priority: 9 },
   { id: "clasificaciones", title: "📊 Competición", icon: Trophy, url: createPageUrl("CentroCompeticion"), gradient: "from-blue-600 to-blue-700", priority: 10 },

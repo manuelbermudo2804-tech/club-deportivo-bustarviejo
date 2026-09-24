@@ -224,7 +224,7 @@ export default function CoachClassificationsMatchesBanner({ myCategories = [] })
                   </Button>
                 </button>
               ) : (
-                <Link to={createPageUrl("CalendarAndSchedules")} className="block h-full">
+                <Link to={"/AgendaClub"} className="block h-full">
                   <div className="p-3 text-center flex flex-col items-center justify-center h-full hover:bg-green-100/50 transition-colors">
                     <Bell className="w-5 h-5 text-slate-400 mb-1" />
                     <p className="text-[11px] font-semibold text-slate-600 mb-1">Sin convocatorias activas</p>

@@ -226,7 +226,7 @@ function NextCallupBanner({ callup }) {
   if (!callup) {
     return (
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
-        <Link to={createPageUrl("CalendarAndSchedules")}>
+        <Link to={"/AgendaClub"}>
           <Card className="border-none shadow-lg bg-gradient-to-r from-slate-100 to-green-50 overflow-hidden">
             <CardContent className="p-4 relative">
               <div className="flex items-center gap-4">
@@ -511,7 +511,7 @@ export default function MinorDashboard() {
 
         <div className="grid grid-cols-2 gap-2">
           {!isComplementaria && <QuickActionCard emoji="📋" title="Convocatorias" subtitle="Partidos" href={createPageUrl("ParentCallups")} color="from-green-600 to-emerald-700" badge={pendingCallups} delay={0.1} />}
-          <QuickActionCard emoji="📅" title="Calendario" subtitle="Horarios" href={createPageUrl("CalendarAndSchedules")} color="from-blue-600 to-cyan-700" delay={0.12} />
+          <QuickActionCard emoji="📅" title="Calendario" subtitle="Horarios" href={"/AgendaClub"} color="from-blue-600 to-cyan-700" delay={0.12} />
           {!isComplementaria && <QuickActionCard emoji="🏆" title="Competición" subtitle="Clasificación" href={createPageUrl("CentroCompeticion")} color="from-yellow-500 to-orange-600" delay={0.14} />}
           <QuickActionCard emoji="📢" title="Anuncios" subtitle="Noticias" href={createPageUrl("Announcements")} color="from-pink-500 to-rose-600" badge={unreadAnnouncements} delay={0.16} />
           <QuickActionCard emoji="🎉" title="Eventos" subtitle="Actividades" href={createPageUrl("ParentEventRSVP")} color="from-purple-500 to-violet-600" delay={0.18} />

@@ -26,7 +26,7 @@ export const ALL_COORDINATOR_BUTTONS = [
   { id: "documentos_jugador", title: "📄 Mis Documentos (Jugador)", icon: FileText, url: createPageUrl("ParentDocuments"), gradient: "from-slate-600 to-slate-700", priority: 34, conditional: true, conditionKey: "isPlayer", section: "player" },
   // --- Sección Club / Familia ---
   { id: "asistente", title: "🤖 Asistente Virtual", icon: MessageCircle, url: createPageUrl("Chatbot"), gradient: "from-indigo-600 to-purple-700", priority: 7, section: "club" },
-  { id: "calendario", title: "📅 Calendario", icon: Calendar, url: createPageUrl("CalendarAndSchedules"), gradient: "from-purple-600 to-purple-700", priority: 11, section: "club" },
+  { id: "calendario", title: "📅 Agenda del club", icon: Calendar, url: "/AgendaClub", gradient: "from-purple-600 to-purple-700", priority: 11, section: "club" },
   { id: "voluntariado", title: "🤝 Voluntariado y Comunidad", icon: Users, url: createPageUrl("Voluntariado"), gradient: "from-teal-600 to-teal-700", priority: 12, section: "club" },
   { id: "mercadillo", title: "🛍️ Mercadillo", icon: Gift, url: createPageUrl("Mercadillo"), gradient: "from-amber-600 to-amber-700", priority: 13, section: "club" },
   { id: "anuncios", title: "📢 Anuncios", icon: Megaphone, url: createPageUrl("Announcements"), gradient: "from-pink-600 to-pink-700", priority: 17, section: "club" },

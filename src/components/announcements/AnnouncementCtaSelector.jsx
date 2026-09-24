@@ -6,7 +6,7 @@ import { Link2 } from "lucide-react";
 
 export const SECCIONES_APP = [
   { url: "/Schedules", label: "🕐 Horarios de entrenamiento" },
-  { url: "/CalendarAndSchedules", label: "📅 Calendario y eventos" },
+  { url: "/AgendaClub", label: "📅 Agenda del club" },
   { url: "/ParentCallups", label: "📋 Convocatorias" },
   { url: "/ParentPayments", label: "💳 Mis pagos" },
   { url: "/ParentPlayers", label: "👦 Mis jugadores" },
