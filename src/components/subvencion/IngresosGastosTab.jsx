@@ -14,10 +14,13 @@ export default function IngresosGastosTab({ exp }) {
 
   useEffect(() => {
     (async () => {
-      const [movs, pagos] = await Promise.all([
+      // Los pagos se archivan en el histórico al resetear la temporada: se suman ambos
+      const [movs, pagosVivos, pagosArchivados] = await Promise.all([
         base44.entities.FinancialTransaction.list("-fecha", 5000),
         base44.entities.Payment.filter({ estado: "Pagado" }, "-fecha_pago", 5000),
+        base44.entities.PaymentHistory.filter({ estado: "Pagado" }, "-fecha_pago", 5000),
       ]);
+      const pagos = [...pagosVivos, ...pagosArchivados];
       const season = movs.filter((m) => m.estado !== "Anulado" && inSeason(m.temporada, m.fecha, exp.temporada));
       const ingresos = season.filter((m) => m.tipo === "Ingreso" && !(m.automatico && m.categoria === "Inscripciones") && !(m.categoria === "Subvenciones" && esEstaSubvencion(m, exp.entidad)));
       const otras = ingresos.filter((m) => m.categoria === "Subvenciones");

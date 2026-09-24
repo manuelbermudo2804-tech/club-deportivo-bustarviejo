@@ -70,7 +70,7 @@ export default function ExpedienteSubvencion() {
           <TabsContent value="documentos" className="mt-4"><DocumentosTab exp={exp} updateExp={updateExp} onGoTab={setTab} /></TabsContent>
           <TabsContent value="gastos" className="mt-4"><GastosTab exp={exp} /></TabsContent>
           <TabsContent value="cuadro" className="mt-4"><IngresosGastosTab exp={exp} /></TabsContent>
-          <TabsContent value="deportistas" className="mt-4"><DeportistasTab temporada={temporada} /></TabsContent>
+          <TabsContent value="deportistas" className="mt-4"><DeportistasTab exp={exp} updateExp={updateExp} /></TabsContent>
         </Tabs>
       )}
     </div>

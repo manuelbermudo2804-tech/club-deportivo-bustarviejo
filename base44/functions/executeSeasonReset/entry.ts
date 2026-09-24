@@ -134,6 +134,30 @@ Deno.serve(async (req) => {
     if (config.resetPlayerStatus) {
       const players = await base44.asServiceRole.entities.Player.list();
       const activePlayers = players.filter(p => p.activo);
+
+      // Congelar el listado de deportistas en el expediente de subvención de la temporada que se cierra
+      try {
+        const expTemporada = String(previousSeasonName).replace('/', '-').trim();
+        const inicio = `${expTemporada.split('-')[0]}-09-01`;
+        const snapshot = activePlayers.map(p => {
+          let menor = false;
+          if (p.fecha_nacimiento) {
+            const n = new Date(p.fecha_nacimiento), f = new Date(inicio);
+            let e = f.getFullYear() - n.getFullYear();
+            if (f < new Date(f.getFullYear(), n.getMonth(), n.getDate())) e--;
+            menor = e < 18;
+          }
+          return { nombre: p.nombre, categoria: p.categoria_principal || p.deporte || 'Sin categoría', nacimiento: p.fecha_nacimiento || '', dni: (p.dni_jugador || '').toUpperCase(), menor };
+        }).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+        const ligaCats = await base44.asServiceRole.entities.CategoryConfig.filter({ compite_en_liga: true, activa: true });
+        const snapData = { deportistas_snapshot: snapshot, snapshot_ligas: new Set(ligaCats.map(c => c.nombre)).size, snapshot_fecha: new Date().toISOString(), snapshot_congelado: true };
+        const exps = await base44.asServiceRole.entities.SubvencionExpediente.filter({ temporada: expTemporada });
+        if (exps[0]) await base44.asServiceRole.entities.SubvencionExpediente.update(exps[0].id, snapData);
+        else await base44.asServiceRole.entities.SubvencionExpediente.create({ temporada: expTemporada, entidad: 'Ayuntamiento de Bustarviejo', importe_concedido: 6000, documentos: [], ...snapData });
+        log.push(`✅ Listado de deportistas guardado en el expediente de subvención ${expTemporada}: ${snapshot.length}`);
+      } catch (e) {
+        log.push(`⚠️ No se pudo guardar el listado en el expediente de subvención: ${e.message}`);
+      }
       
       // Archivar jugadores que NO están renovando
       const toArchive = activePlayers.filter(p => p.estado_renovacion !== 'renovado');
