@@ -34,22 +34,8 @@
     "email"
   ],
   "rls": {
-    "read": {
-      "user_condition": {
-        "role": [
-          "admin",
-          "user"
-        ]
-      }
-    },
-    "create": {
-      "user_condition": {
-        "role": [
-          "admin",
-          "user"
-        ]
-      }
-    },
+    "read": {},
+    "create": {},
     "update": {
       "$or": [
         {

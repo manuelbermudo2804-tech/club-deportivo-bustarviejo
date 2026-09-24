@@ -172,7 +172,8 @@ export default function Voluntariado() {
 
       // Si se cubren las plazas, marcar como completa
       if (plazas > 0 && newCount >= plazas) {
-        await base44.entities.VolunteerOpportunity.update(opp.id, { estado: "completa" });
+        // Solo el organizador/admin puede cambiar el estado; si no, no bloquea la inscripción
+        await base44.entities.VolunteerOpportunity.update(opp.id, { estado: "completa" }).catch(() => {});
       }
 
       // Notificar al organizador
@@ -226,6 +227,9 @@ export default function Voluntariado() {
       qc.invalidateQueries({ queryKey: ["volunteer_signups"] });
       qc.invalidateQueries({ queryKey: ["volunteer_opps"] });
       toast.success("🎉 ¡Te has apuntado! El organizador ha sido notificado.");
+    },
+    onError: () => {
+      toast.error("No se ha podido completar la inscripción. Inténtalo de nuevo.");
     }
   });
 
