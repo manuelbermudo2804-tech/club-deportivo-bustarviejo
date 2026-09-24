@@ -40,11 +40,16 @@ export default function VolunteerSignupDialog({ open, onOpenChange, opp, user, m
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Users className="w-5 h-5 text-green-600" />
-            Apuntarse: {opp?.titulo}
+            Quiero ayudar como voluntario
           </DialogTitle>
+          <p className="text-sm text-slate-600 text-left">en: <strong>{opp?.titulo}</strong></p>
         </DialogHeader>
         <div className="space-y-3">
           {error && <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-md p-2">{error}</div>}
+
+          <div className="bg-amber-50 border-2 border-amber-300 rounded-lg p-3 text-sm text-amber-900">
+            ⚠️ <strong>Esto NO es la inscripción de jugadores.</strong> Es para echar una mano al club como voluntario (montaje, mesa, organización...).
+          </div>
 
           {/* Info del evento */}
           <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm space-y-1">
@@ -55,13 +60,13 @@ export default function VolunteerSignupDialog({ open, onOpenChange, opp, user, m
           </div>
           
           <div>
-            <label className="text-sm font-medium text-slate-700 mb-1 block">¿Para quién?</label>
+            <label className="text-sm font-medium text-slate-700 mb-1 block">¿Quién va a ayudar?</label>
             <Select value={form.por_quien} onValueChange={(v) => handle("por_quien", v)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="yo">Para mí</SelectItem>
-                <SelectItem value="familiar">Para un familiar</SelectItem>
-                <SelectItem value="otro">Para otra persona</SelectItem>
+                <SelectItem value="yo">Yo mismo/a</SelectItem>
+                <SelectItem value="familiar">Un familiar adulto</SelectItem>
+                <SelectItem value="otro">Otra persona</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -95,7 +100,7 @@ export default function VolunteerSignupDialog({ open, onOpenChange, opp, user, m
           </div>
 
           <Button onClick={submit} className="w-full bg-green-600 hover:bg-green-700 py-5 text-base font-bold">
-            ✅ ¡Me apunto!
+            🙋 Me apunto como voluntario
           </Button>
 
           <p className="text-xs text-slate-500 text-center">

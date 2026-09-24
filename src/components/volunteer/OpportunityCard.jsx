@@ -125,7 +125,7 @@ export default function OpportunityCard({ opp, signups = [], alreadySignedUp, is
               </Badge>
             ) : isCerrada ? null : onSignup ? (
               <Button onClick={onSignup} className="bg-green-600 hover:bg-green-700">
-                ✅ ¡Me apunto!
+                🙋 Quiero ayudar
               </Button>
             ) : null}
           </div>

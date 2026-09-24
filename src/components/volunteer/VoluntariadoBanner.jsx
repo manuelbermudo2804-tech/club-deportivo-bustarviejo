@@ -32,8 +32,8 @@ export default function VoluntariadoBanner({ user }) {
         <HeartHandshake className="w-5 h-5 text-emerald-400 flex-shrink-0" />
         <p className="flex-1 min-w-0 text-sm text-white truncate">
           {una
-            ? <>🤝 El club necesita ayuda: <strong>{una.titulo}</strong></>
-            : <>🤝 Hay <strong>{visibles.length} oportunidades</strong> de voluntariado abiertas</>}
+            ? <>🙋 Se buscan <strong>voluntarios</strong> para ayudar en: <strong>{una.titulo}</strong></>
+            : <>🙋 Se buscan <strong>voluntarios</strong> para {visibles.length} actividades del club</>}
         </p>
         <span className="text-xs font-bold text-emerald-300 flex-shrink-0">Ver →</span>
         <button
