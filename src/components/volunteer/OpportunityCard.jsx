@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Pencil, Trash2, CheckCircle2, Users, ChevronDown, ChevronUp } from "lucide-react";
 
-export default function OpportunityCard({ opp, signups = [], alreadySignedUp, isCreator, isStaff, onSignup, onEdit, onDelete }) {
+export default function OpportunityCard({ opp, signups = [], alreadySignedUp, isCreator, isStaff, onSignup, onEdit, onDelete, onRemoveSignup, canRemoveAll, currentEmail }) {
   const [showPeople, setShowPeople] = useState(false);
   const catLabels = { evento: 'Evento', dia_a_dia: 'Día a día', logistica: 'Logística', comunicacion: 'Comunicación', otro: 'Otro' };
 
@@ -92,6 +92,15 @@ export default function OpportunityCard({ opp, signups = [], alreadySignedUp, is
                     )}
                     {s.mensaje && (
                       <span className="text-xs text-slate-400 italic truncate max-w-[150px]">— {s.mensaje}</span>
+                    )}
+                    {onRemoveSignup && (canRemoveAll || s.email === currentEmail) && (
+                      <button
+                        onClick={() => onRemoveSignup(s)}
+                        className="ml-auto p-1 text-red-500 hover:bg-red-50 rounded"
+                        title="Quitar de la lista"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     )}
                   </div>
                 ))}

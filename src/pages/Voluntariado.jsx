@@ -152,6 +152,23 @@ export default function Voluntariado() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["volunteer_opps"] })
   });
 
+  // Quitar a una persona apuntada (reabre la oportunidad si estaba completa)
+  const removeSignup = useMutation({
+    mutationFn: async (signup) => {
+      await base44.entities.VolunteerSignup.delete(signup.id);
+      const opp = opportunities.find(o => o.id === signup.opportunity_id);
+      if (opp?.estado === "completa") {
+        await base44.entities.VolunteerOpportunity.update(opp.id, { estado: "abierta" }).catch(() => {});
+      }
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["volunteer_signups"] });
+      qc.invalidateQueries({ queryKey: ["volunteer_opps"] });
+      toast.success("Persona quitada de la lista");
+    },
+    onError: () => toast.error("No se ha podido quitar a esta persona")
+  });
+
   // Signup con notificación al organizador
   const doSignup = useMutation({
     mutationFn: async ({ opp, nombre, telefono, por_quien, mensaje }) => {
@@ -396,6 +413,9 @@ export default function Voluntariado() {
                   onSignup={(!isFull && opp.estado !== "cerrada") ? () => setSignupOpp(opp) : null}
                   onEdit={() => { setEditingOpp(opp); setOpenOpp(true); }}
                   onDelete={() => { if (window.confirm(`¿Eliminar "${opp.titulo}"?`)) deleteOpp.mutate(opp.id); }}
+                  onRemoveSignup={(s) => { if (window.confirm(`¿Quitar a ${s.nombre} de "${opp.titulo}"?`)) removeSignup.mutate(s); }}
+                  canRemoveAll={user?.role === "admin"}
+                  currentEmail={user?.email}
                 />
               );
             })}
