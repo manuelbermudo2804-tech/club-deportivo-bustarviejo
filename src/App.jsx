@@ -19,82 +19,96 @@ import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-route
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
-import MinorPreview from '@/pages/MinorPreview';
-import CreditUsage from '@/pages/CreditUsage';
-import PushBadgeTest from '@/pages/PushBadgeTest';
-import PushStats from '@/pages/PushStats';
-import FamilyPresentation from '@/pages/FamilyPresentation';
-import PublicMemberCard from '@/pages/PublicMemberCard';
-import SocialHub from '@/pages/SocialHub';
-import PublicAccessRequest from '@/pages/PublicAccessRequest';
-import PublicSponsors from '@/pages/PublicSponsors';
-import Colabora from '@/pages/Colabora';
-import BudgetPlanner from '@/pages/BudgetPlanner';
-import SanIsidroAdmin from '@/pages/SanIsidroAdmin';
-import SanIsidroInscripcion from '@/pages/SanIsidroInscripcion';
-import ExternalLinks from '@/pages/ExternalLinks';
-import ReciboGenerator from '@/pages/ReciboGenerator';
-import FacturaGenerator from '@/pages/FacturaGenerator';
-import PresupuestoGenerator from '@/pages/PresupuestoGenerator';
-import CuestionarioPadelPDF from '@/pages/CuestionarioPadelPDF';
-import MorososManagement from '@/pages/MorososManagement';
-import MyFeedback from '@/pages/MyFeedback';
-import Porra from '@/pages/Porra';
-import MiPorra from '@/pages/MiPorra';
-import PorraAdmin from '@/pages/PorraAdmin';
-import PorraCrear from '@/pages/PorraCrear';
-import PorraExito from '@/pages/PorraExito';
-import PorraMiPorra from '@/pages/PorraMiPorra';
-import PorraRanking from '@/pages/PorraRanking';
 import SponsorSplash from '@/components/sponsors/SponsorSplash';
-import PropuestaGVCGaesco from '@/pages/PropuestaGVCGaesco';
-import PublicLanding from '@/pages/PublicLanding';
-import PublicTorneo from '@/pages/PublicTorneo';
-import PageBuilder from '@/pages/PageBuilder';
-import PageBuilderEditor from '@/pages/PageBuilderEditor';
-import PageBuilderInscritos from '@/pages/PageBuilderInscritos';
-import PageBuilderPreInscritos from '@/pages/PageBuilderPreInscritos';
-import PageBuilderAnalytics from '@/pages/PageBuilderAnalytics';
-import PageBuilderGuia from '@/pages/PageBuilderGuia';
-import DorsalManagement from '@/pages/DorsalManagement';
-import GuiaEventos from '@/pages/GuiaEventos';
-import Privacidad from '@/pages/Privacidad';
-import ShareReceiver from '@/pages/ShareReceiver';
-import PhotoAuthorizations from '@/pages/PhotoAuthorizations';
-import HealthCheck from '@/pages/HealthCheck';
-import ClubMemory from '@/pages/ClubMemory';
-import SubvencionesPanel from '@/pages/SubvencionesPanel';
-import AltaSocio from '@/pages/AltaSocio';
-import GrowthMap from '@/pages/GrowthMap';
-import ClubIA from '@/pages/ClubIA';
-import RiesgoAbandono from '@/pages/RiesgoAbandono';
-import TorneosAdmin from '@/pages/TorneosAdmin';
-import TorneoManager from '@/pages/TorneoManager';
-import MeteoClub from '@/pages/MeteoClub';
-import EntrenamientoHub from '@/pages/EntrenamientoHub';
-import CentroDatos from '@/pages/CentroDatos';
-import LoteriaNavidad from '@/pages/LoteriaNavidad';
-import PedidosEquipacion from '@/pages/PedidosEquipacion';
-import ExportarSheets from '@/pages/ExportarSheets';
-import ConsentimientosComerciales from '@/pages/ConsentimientosComerciales';
-import DirectorioContactos from '@/pages/DirectorioContactos';
-import CentroContenido from '@/pages/CentroContenido';
-import SubirContenido from '@/pages/SubirContenido';
-import InstalarApp from '@/pages/InstalarApp';
-import EntrenadorPracticas from '@/pages/EntrenadorPracticas';
-import MinorCoachCallups from '@/pages/MinorCoachCallups';
-import MinorCoachAttendance from '@/pages/MinorCoachAttendance';
-import EnviarContenidoWeb from '@/pages/EnviarContenidoWeb';
-import AgendaClub from '@/pages/AgendaClub';
-import ExpedienteSubvencion from '@/pages/ExpedienteSubvencion';
+import { lazy, Suspense } from 'react';
+
+// Páginas cargadas bajo demanda: solo se descarga la pantalla que se abre
+const MinorPreview = lazy(() => import('@/pages/MinorPreview'));
+const CreditUsage = lazy(() => import('@/pages/CreditUsage'));
+const PushBadgeTest = lazy(() => import('@/pages/PushBadgeTest'));
+const PushStats = lazy(() => import('@/pages/PushStats'));
+const FamilyPresentation = lazy(() => import('@/pages/FamilyPresentation'));
+const PublicMemberCard = lazy(() => import('@/pages/PublicMemberCard'));
+const SocialHub = lazy(() => import('@/pages/SocialHub'));
+const PublicAccessRequest = lazy(() => import('@/pages/PublicAccessRequest'));
+const PublicSponsors = lazy(() => import('@/pages/PublicSponsors'));
+const Colabora = lazy(() => import('@/pages/Colabora'));
+const BudgetPlanner = lazy(() => import('@/pages/BudgetPlanner'));
+const SanIsidroAdmin = lazy(() => import('@/pages/SanIsidroAdmin'));
+const SanIsidroInscripcion = lazy(() => import('@/pages/SanIsidroInscripcion'));
+const ExternalLinks = lazy(() => import('@/pages/ExternalLinks'));
+const ReciboGenerator = lazy(() => import('@/pages/ReciboGenerator'));
+const FacturaGenerator = lazy(() => import('@/pages/FacturaGenerator'));
+const PresupuestoGenerator = lazy(() => import('@/pages/PresupuestoGenerator'));
+const CuestionarioPadelPDF = lazy(() => import('@/pages/CuestionarioPadelPDF'));
+const MorososManagement = lazy(() => import('@/pages/MorososManagement'));
+const MyFeedback = lazy(() => import('@/pages/MyFeedback'));
+const Porra = lazy(() => import('@/pages/Porra'));
+const MiPorra = lazy(() => import('@/pages/MiPorra'));
+const PorraAdmin = lazy(() => import('@/pages/PorraAdmin'));
+const PorraCrear = lazy(() => import('@/pages/PorraCrear'));
+const PorraExito = lazy(() => import('@/pages/PorraExito'));
+const PorraMiPorra = lazy(() => import('@/pages/PorraMiPorra'));
+const PorraRanking = lazy(() => import('@/pages/PorraRanking'));
+const PropuestaGVCGaesco = lazy(() => import('@/pages/PropuestaGVCGaesco'));
+const PublicLanding = lazy(() => import('@/pages/PublicLanding'));
+const PublicTorneo = lazy(() => import('@/pages/PublicTorneo'));
+const PageBuilder = lazy(() => import('@/pages/PageBuilder'));
+const PageBuilderEditor = lazy(() => import('@/pages/PageBuilderEditor'));
+const PageBuilderInscritos = lazy(() => import('@/pages/PageBuilderInscritos'));
+const PageBuilderPreInscritos = lazy(() => import('@/pages/PageBuilderPreInscritos'));
+const PageBuilderAnalytics = lazy(() => import('@/pages/PageBuilderAnalytics'));
+const PageBuilderGuia = lazy(() => import('@/pages/PageBuilderGuia'));
+const DorsalManagement = lazy(() => import('@/pages/DorsalManagement'));
+const GuiaEventos = lazy(() => import('@/pages/GuiaEventos'));
+const Privacidad = lazy(() => import('@/pages/Privacidad'));
+const ShareReceiver = lazy(() => import('@/pages/ShareReceiver'));
+const PhotoAuthorizations = lazy(() => import('@/pages/PhotoAuthorizations'));
+const HealthCheck = lazy(() => import('@/pages/HealthCheck'));
+const ClubMemory = lazy(() => import('@/pages/ClubMemory'));
+const SubvencionesPanel = lazy(() => import('@/pages/SubvencionesPanel'));
+const AltaSocio = lazy(() => import('@/pages/AltaSocio'));
+const GrowthMap = lazy(() => import('@/pages/GrowthMap'));
+const ClubIA = lazy(() => import('@/pages/ClubIA'));
+const RiesgoAbandono = lazy(() => import('@/pages/RiesgoAbandono'));
+const TorneosAdmin = lazy(() => import('@/pages/TorneosAdmin'));
+const TorneoManager = lazy(() => import('@/pages/TorneoManager'));
+const MeteoClub = lazy(() => import('@/pages/MeteoClub'));
+const EntrenamientoHub = lazy(() => import('@/pages/EntrenamientoHub'));
+const CentroDatos = lazy(() => import('@/pages/CentroDatos'));
+const LoteriaNavidad = lazy(() => import('@/pages/LoteriaNavidad'));
+const PedidosEquipacion = lazy(() => import('@/pages/PedidosEquipacion'));
+const ExportarSheets = lazy(() => import('@/pages/ExportarSheets'));
+const ConsentimientosComerciales = lazy(() => import('@/pages/ConsentimientosComerciales'));
+const DirectorioContactos = lazy(() => import('@/pages/DirectorioContactos'));
+const CentroContenido = lazy(() => import('@/pages/CentroContenido'));
+const SubirContenido = lazy(() => import('@/pages/SubirContenido'));
+const InstalarApp = lazy(() => import('@/pages/InstalarApp'));
+const EntrenadorPracticas = lazy(() => import('@/pages/EntrenadorPracticas'));
+const MinorCoachCallups = lazy(() => import('@/pages/MinorCoachCallups'));
+const MinorCoachAttendance = lazy(() => import('@/pages/MinorCoachAttendance'));
+const EnviarContenidoWeb = lazy(() => import('@/pages/EnviarContenidoWeb'));
+const AgendaClub = lazy(() => import('@/pages/AgendaClub'));
+const ExpedienteSubvencion = lazy(() => import('@/pages/ExpedienteSubvencion'));
+
+const PageSpinner = () => (
+  <div className="fixed inset-0 flex items-center justify-center">
+    <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
+  </div>
+);
+const InlineSpinner = () => (
+  <div className="flex items-center justify-center py-24">
+    <div className="w-8 h-8 border-4 border-slate-200 border-t-orange-600 rounded-full animate-spin"></div>
+  </div>
+);
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 
 const LayoutWrapper = ({ children, currentPageName }) => Layout ?
-  <Layout currentPageName={currentPageName}>{children}</Layout>
-  : <>{children}</>;
+  <Layout currentPageName={currentPageName}><Suspense fallback={<InlineSpinner />}>{children}</Suspense></Layout>
+  : <Suspense fallback={<InlineSpinner />}>{children}</Suspense>;
 
 const AppRouter = () => {
   const location = useLocation();
@@ -300,7 +314,9 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <NavigationTracker />
-          <AppRouter />
+          <Suspense fallback={<PageSpinner />}>
+            <AppRouter />
+          </Suspense>
         </Router>
         <Toaster />
         <VisualEditAgent />
