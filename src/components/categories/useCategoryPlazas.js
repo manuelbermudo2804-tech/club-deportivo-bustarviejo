@@ -14,16 +14,18 @@ export default function useCategoryPlazas() {
     staleTime: 60000,
   });
 
-  const { data: players = [] } = useQuery({
+  // El recuento lo hace el servidor: una familia solo puede ver a sus propios
+  // jugadores, así que contar aquí daría siempre plazas libres.
+  const { data: counts = {} } = useQuery({
     queryKey: ["playersPlazasCount"],
-    queryFn: () => base44.entities.Player.filter({ activo: true }),
-    staleTime: 60000,
+    queryFn: async () => {
+      const { data } = await base44.functions.invoke("playerRenewalAction", { action: "plazas_estado" });
+      return data?.counts || {};
+    },
+    staleTime: 30000,
   });
 
-  const contarOcupadas = (nombre) =>
-    players.filter(
-      (p) => p.deporte === nombre || (p.categorias || []).includes(nombre)
-    ).length;
+  const contarOcupadas = (nombre) => counts[nombre] || 0;
 
   /** Estado de una categoría: { limite, ocupadas, disponibles, completa, cerrada, bloqueada } */
   const getEstado = (nombre) => {

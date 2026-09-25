@@ -40,10 +40,50 @@ Deno.serve(async (req) => {
       return player;
     };
 
+    // Cuenta jugadores activos por categoría (con permisos de servidor: ve a todo el club)
+    const contarPlazas = async () => {
+      const activos = await base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 5000);
+      const counts = {};
+      for (const p of activos) {
+        const cats = new Set([p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])].filter(Boolean));
+        for (const c of cats) counts[c] = (counts[c] || 0) + 1;
+      }
+      return counts;
+    };
+
+    // Devuelve un mensaje de error si la categoría está cerrada o completa (admins no se bloquean)
+    const comprobarCupo = async (categoria) => {
+      if (!categoria || user.role === 'admin') return null;
+      const cfgs = await base44.asServiceRole.entities.CategoryConfig.filter({ nombre: categoria, activa: true });
+      const cfg = cfgs[0];
+      if (!cfg) return null;
+      if (cfg.inscripciones_abiertas === false) {
+        return `Las inscripciones de ${categoria} están cerradas. Escribe al coordinador.`;
+      }
+      const limite = Number(cfg.plazas_maximas) || 0;
+      if (!limite) return null;
+      const ocupadas = (await contarPlazas())[categoria] || 0;
+      if (ocupadas >= limite) {
+        return `${categoria} está completa (${ocupadas}/${limite}). Escribe al coordinador para la lista de espera.`;
+      }
+      return null;
+    };
+
+    // ============ PLAZAS (solo recuentos, sin datos personales) ============
+    if (action === 'plazas_estado') {
+      return Response.json({ success: true, counts: await contarPlazas() });
+    }
+
     // ============ RENEW ============
     if (action === 'renew') {
       if (!playerId) return Response.json({ error: 'Falta playerId' }, { status: 400 });
-      await verifyOwnership(playerId);
+      const actual = await verifyOwnership(playerId);
+      const nuevaCat = playerData?.deporte;
+      const yaEnCategoria = actual.activo && (actual.deporte === nuevaCat || (actual.categorias || []).includes(nuevaCat));
+      if (nuevaCat && !yaEnCategoria) {
+        const bloqueo = await comprobarCupo(nuevaCat);
+        if (bloqueo) return Response.json({ success: false, error: bloqueo }, { status: 409 });
+      }
 
       const updateData = {
         estado_renovacion: 'renovado',
@@ -160,6 +200,9 @@ Deno.serve(async (req) => {
     // ============ CREATE WITH PAYMENTS ============
     if (action === 'create_with_payments') {
       if (!playerData) return Response.json({ error: 'Falta playerData' }, { status: 400 });
+
+      const bloqueo = await comprobarCupo(playerData.deporte);
+      if (bloqueo) return Response.json({ success: false, error: bloqueo }, { status: 409 });
 
       // Forzar email_padre = email del usuario autenticado (no se acepta arbitrario)
       const safePlayerData = {

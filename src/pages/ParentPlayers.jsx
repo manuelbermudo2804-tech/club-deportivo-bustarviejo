@@ -596,7 +596,7 @@ Email: info@cdbustarviejo.com
     onError: (error) => {
       setIsProcessing(false);
       console.error("Error creating player:", error);
-      toast.error("Error al registrar el jugador");
+      toast.error(error?.response?.data?.error || "Error al registrar el jugador", { duration: 10000 });
     }
   });
 
@@ -767,7 +767,7 @@ Email: info@cdbustarviejo.com
     onError: (error) => {
       setIsProcessing(false);
       console.error("Error renewing player:", error);
-      toast.error("Error al renovar el jugador");
+      toast.error(error?.response?.data?.error || "Error al renovar el jugador", { duration: 10000 });
     }
   });
 
