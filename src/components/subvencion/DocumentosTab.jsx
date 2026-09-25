@@ -18,6 +18,9 @@ export default function DocumentosTab({ exp, updateExp, onGoTab }) {
 
   return (
     <div className="space-y-5">
+      <p className="text-sm text-slate-600 bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+        Aquí descargas los documentos que prepara la app, listos para firmar y entregar al Ayuntamiento. Los que emiten otros (Hacienda, Seguridad Social, banco, Federación) los pides tú y los entregas directamente; aquí solo los marcas como hechos.
+      </p>
       {carpetas.map((carpeta) => (
         <div key={carpeta} className="space-y-2">
           <h3 className="font-semibold text-slate-700 text-sm">📁 {carpeta}</h3>
@@ -26,7 +29,7 @@ export default function DocumentosTab({ exp, updateExp, onGoTab }) {
               key={def.clave}
               def={def}
               doc={getDoc(def.clave)}
-              fechaLimite={exp.fecha_limite_justificacion}
+              exp={exp}
               onChange={(patch) => changeDoc(def.clave, patch)}
               onGoTab={onGoTab}
             />
