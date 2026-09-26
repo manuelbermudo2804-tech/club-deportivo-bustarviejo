@@ -7,9 +7,11 @@
 //   4) Menos goles/sets en contra
 //   5) Nombre (alfabético, estable)
 
+// Solo cuentan los partidos de la fase de grupos (liguilla), nunca los cuadros Oro/Plata/Bronce
 function partidosFinalizados(partidos) {
   return partidos.filter(
-    (p) => p.finalizado && p.marcador_local != null && p.marcador_visitante != null
+    (p) => (!p.fase || p.fase === "liguilla") &&
+      p.finalizado && p.marcador_local != null && p.marcador_visitante != null
   );
 }
 
