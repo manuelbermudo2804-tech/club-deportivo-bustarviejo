@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,13 @@ export default function VolunteerSignupDialog({ open, onOpenChange, opp, user, m
     mensaje: ""
   });
   const [error, setError] = useState("");
+
+  // Rellenar de nuevo el formulario cada vez que se abre para una oportunidad
+  useEffect(() => {
+    if (!open) return;
+    setForm({ nombre: myProfile?.nombre || user?.full_name || "", telefono: myProfile?.telefono || "", por_quien: "yo", mensaje: "" });
+    setError("");
+  }, [open, opp?.id, user?.full_name, myProfile?.nombre]);
 
   const handle = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
 

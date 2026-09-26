@@ -208,6 +208,8 @@ export default function ParentPlayers() {
         throw new Error(result?.error || 'Error al crear jugador');
       }
       const newPlayer = result.player;
+      // Mostrar ya el jugador en "Mis jugadores" sin esperar a invitaciones y correos
+      queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
 
       // ===== INVITACIONES (PRIORIDAD ALTA - ejecutar ANTES de operaciones pesadas) =====
       

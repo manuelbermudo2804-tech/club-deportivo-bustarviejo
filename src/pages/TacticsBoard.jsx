@@ -103,7 +103,8 @@ export default function TacticsBoard() {
       if (categories.length === 0 && currentUser.email) {
         const misFichas = await base44.entities.Player.filter({ acceso_menor_email: currentUser.email });
         const practicas = misFichas.find((p) => p.entrenador_practicas?.activo && p.entrenador_practicas?.pizarra)?.entrenador_practicas;
-        if (practicas?.categoria) categories = [practicas.categoria];
+        const equipos = practicas?.categorias?.length ? practicas.categorias : (practicas?.categoria ? [practicas.categoria] : []);
+        categories = equipos;
       }
       
       setCoachCategories(categories);

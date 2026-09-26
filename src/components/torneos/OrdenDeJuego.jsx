@@ -12,10 +12,10 @@ function Enfrentamiento({ p, tono }) {
           <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{horaCorta(p.fecha_hora)}</span>
         )}
       </div>
-      <div className="flex items-center justify-between gap-2 text-base">
-        <span className="flex-1 text-right text-slate-900 font-bold truncate">{p.local_nombre}</span>
-        <span className="text-slate-500 font-bold text-xs">vs</span>
-        <span className="flex-1 text-left text-slate-900 font-bold truncate">{p.visitante_nombre}</span>
+      <div className="flex items-center justify-between gap-2 text-sm sm:text-base">
+        <span className="flex-1 min-w-0 text-right text-slate-900 font-bold leading-tight break-words">{p.local_nombre}</span>
+        <span className="flex-shrink-0 text-slate-500 font-bold text-xs">vs</span>
+        <span className="flex-1 min-w-0 text-left text-slate-900 font-bold leading-tight break-words">{p.visitante_nombre}</span>
       </div>
     </div>
   );
