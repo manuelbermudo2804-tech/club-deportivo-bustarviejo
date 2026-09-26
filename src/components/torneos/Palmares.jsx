@@ -26,11 +26,9 @@ function finalistas(partidos, equipos, fase) {
   };
 }
 
-// Máximo goleador del torneo, sumando los goles de la liguilla y los de la fase indicada.
-function pichichiFase(goles, partidos, fase) {
-  const idsValidos = new Set(
-    partidos.filter((p) => p.fase === "liguilla" || p.fase === fase).map((p) => p.id)
-  );
+// Máximo goleador del torneo: cuenta TODOS los goles (liguilla, Oro, Plata y Bronce).
+function pichichiTorneo(goles, partidos) {
+  const idsValidos = new Set(partidos.map((p) => p.id));
   const enFase = (goles || []).filter((g) => idsValidos.has(g.partido_id));
   if (enFase.length === 0) return null;
   const porJugador = {};
@@ -96,7 +94,7 @@ export default function Palmares({ partidos, equipos, goles, categoria }) {
   const pm = categoria?.premios_manuales || {};
   const oro = finalistas(partidos, equipos, "oro");
   const plata = finalistas(partidos, equipos, "plata");
-  const pichichi = pichichiFase(goles, partidos, "oro");
+  const pichichi = pichichiTorneo(goles, partidos);
   const zamoraEquipo = equipoMenosGoleado(partidos, equipos, "oro");
 
   const premios = [];
@@ -104,7 +102,7 @@ export default function Palmares({ partidos, equipos, goles, categoria }) {
   if (oro.subcampeon) premios.push({ key: "sub_oro", emoji: "🥈", etiqueta: "Subcampeón · Fase Oro", principal: oro.subcampeon.nombre, escudo: oro.subcampeon.escudo, color: "#fbbf24" });
   if (plata.campeon) premios.push({ key: "camp_plata", emoji: "🥇", etiqueta: "Campeón · Fase Plata", principal: plata.campeon.nombre, escudo: plata.campeon.escudo, color: "#cbd5e1" });
   if (plata.subcampeon) premios.push({ key: "sub_plata", emoji: "🥈", etiqueta: "Subcampeón · Fase Plata", principal: plata.subcampeon.nombre, escudo: plata.subcampeon.escudo, color: "#cbd5e1" });
-  if (pichichi) premios.push({ key: "pichichi", emoji: "👟", etiqueta: "Pichichi · Fase Oro", principal: pichichi.nombre, secundario: pichichi.equipo, valor: pichichi.total, color: "#22c55e" });
+  if (pichichi) premios.push({ key: "pichichi", emoji: "👟", etiqueta: "Pichichi del torneo", principal: pichichi.nombre, secundario: pichichi.equipo, valor: pichichi.total, color: "#22c55e" });
   if (zamoraEquipo) premios.push({ key: "zamora", emoji: "🧤", etiqueta: "Zamora · Fase Oro (menor promedio encajado)", principal: pm.zamora_oro_portero || zamoraEquipo.nombre, secundario: pm.zamora_oro_portero ? zamoraEquipo.nombre : null, escudo: zamoraEquipo.escudo, valor: `${zamoraEquipo.promedio.toFixed(2)}/pj`, color: "#3b82f6" });
   if (pm.mvp_oro_nombre) premios.push({ key: "mvp_oro", emoji: "🌟", etiqueta: "MVP · Fase Oro", principal: pm.mvp_oro_nombre, secundario: pm.mvp_oro_equipo, color: "#a855f7" });
   if (pm.mvp_plata_nombre) premios.push({ key: "mvp_plata", emoji: "🌟", etiqueta: "MVP · Fase Plata", principal: pm.mvp_plata_nombre, secundario: pm.mvp_plata_equipo, color: "#a855f7" });
