@@ -38,14 +38,16 @@ Deno.serve(async (req) => {
     let hasAccess = false;
     if (isAdmin) {
       hasAccess = true;
-    } else if (isCoach || isCoordinator) {
+    }
+    if (!hasAccess && (isCoach || isCoordinator)) {
       const cats = [
         ...(user.categorias_entrena || []),
         ...(user.categorias_coordina || []),
       ];
       hasAccess = cats.some(c => toGroupId(c) === targetGid);
-    } else {
-      // Familia / jugador: resolver categorías por sus jugadores reales
+    }
+    // Familia / jugador (también entrenadores que a la vez son jugadores o padres)
+    if (!hasAccess) {
       const myPlayers = await base44.asServiceRole.entities.Player.filter({
         $or: [{ email_padre: email }, { email_tutor_2: email }, { email_jugador: email }],
         activo: true

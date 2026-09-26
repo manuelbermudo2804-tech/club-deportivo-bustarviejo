@@ -33,10 +33,17 @@ Deno.serve(async (req) => {
     const promises = [];
 
     // ===== 1. TEAM CHATS =====
+    // Un entrenador/coordinador puede ser también jugador o padre: sumamos sus equipos
+    // como staff + los equipos de sus propios jugadores.
     if (isCoach || isCoordinator) {
       const coachCats = user.categorias_entrena || [];
       const coordCats = user.categorias_coordina || [];
-      const cats = [...new Set([...coachCats, ...coordCats])];
+      const ownPlayers = await base44.asServiceRole.entities.Player.filter({
+        $or: [{ email_padre: email }, { email_tutor_2: email }, { email_jugador: email }],
+        activo: true
+      }).catch(() => []);
+      const ownCats = ownPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean);
+      const cats = [...new Set([...coachCats, ...coordCats, ...ownCats])];
       if (cats.length > 0) {
         promises.push((async () => {
           try {
