@@ -59,7 +59,7 @@ export default function ImportarPartidosDialog({ open, onOpenChange, torneo, cat
       setDescartados(data.descartados || []);
       if ((data.partidos || []).length === 0) toast.info("No se reconoció ningún partido");
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e) => toast.error(e?.response?.data?.error || e.message || "Error al leer los partidos"),
   });
 
   const crear = useMutation({

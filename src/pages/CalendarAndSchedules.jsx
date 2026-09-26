@@ -201,6 +201,7 @@ export default function CalendarAndSchedules() {
       setEditingSchedule(null);
       toast.success("Horario creado correctamente");
     },
+    onError: () => toast.error("No se pudo crear el horario. Inténtalo de nuevo."),
   });
 
   const updateScheduleMutation = useMutation({
@@ -211,6 +212,7 @@ export default function CalendarAndSchedules() {
       setEditingSchedule(null);
       toast.success("Horario actualizado correctamente");
     },
+    onError: () => toast.error("No se pudo guardar el horario. Inténtalo de nuevo."),
   });
 
   const deleteScheduleMutation = useMutation({
@@ -219,6 +221,7 @@ export default function CalendarAndSchedules() {
       queryClient.invalidateQueries({ queryKey: ['trainingSchedules'] });
       toast.success("Horario eliminado correctamente");
     },
+    onError: () => toast.error("No se pudo eliminar el horario. Inténtalo de nuevo."),
   });
 
   const handleScheduleSubmit = async (scheduleData) => {
