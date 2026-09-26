@@ -184,24 +184,10 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
     const markReads = async () => {
       try {
-        const BATCH_SIZE = 10;
-        const processBatch = async (batch) => {
-          for (const msg of batch) {
-            const leido_por = msg.leido_por || [];
-            leido_por.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
-            await base44.entities.ChatMessage.update(msg.id, { leido_por });
-          }
-        };
-        const first = unreadFromParents.slice(0, BATCH_SIZE);
-        await processBatch(first);
-        if (unreadFromParents.length > BATCH_SIZE) {
-          setTimeout(async () => {
-            const rest = unreadFromParents.slice(BATCH_SIZE);
-            for (let i = 0; i < rest.length; i += BATCH_SIZE) {
-              await processBatch(rest.slice(i, i + BATCH_SIZE));
-              await new Promise(r => setTimeout(r, 300));
-            }
-          }, 300);
+        // Vía servidor: los mensajes de las familias no se pueden modificar directamente
+        const ids = unreadFromParents.map(m => m.id).filter(id => !String(id).startsWith('temp-'));
+        for (let i = 0; i < ids.length; i += 50) {
+          await base44.functions.invoke('chatMessageInteract', { action: 'mark_read', messageIds: ids.slice(i, i + 50) });
         }
 
         if (unreadFromParents.length > 0) {
@@ -340,26 +326,11 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
   };
 
   const addReaction = async (messageId, emoji) => {
-    const message = messages.find(m => m.id === messageId);
-    const existingReactions = message.reacciones || [];
-    
-    const alreadyReacted = existingReactions.find(r => r.user_email === user.email && r.emoji === emoji);
-    
-    let newReactions;
-    if (alreadyReacted) {
-      newReactions = existingReactions.filter(r => !(r.user_email === user.email && r.emoji === emoji));
-    } else {
-      newReactions = [...existingReactions, {
-        user_email: user.email,
-        user_nombre: user.full_name || "Entrenador",
-        emoji: emoji,
-        fecha: new Date().toISOString()
-      }];
+    try {
+      await base44.functions.invoke('chatMessageInteract', { action: 'react', messageId, emoji });
+    } catch {
+      toast.error("No se pudo guardar la reacción");
     }
-
-    await base44.entities.ChatMessage.update(messageId, {
-      reacciones: newReactions
-    });
 
     queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
     setShowReactions(null);
@@ -584,23 +555,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
   const votePollMutation = useMutation({
     mutationFn: async ({ messageId, optionIndex }) => {
-      const msg = messages.find(m => m.id === messageId);
-      const votos = msg.encuesta?.votos || [];
-      
-      votos.push({
-        usuario_email: user.email,
-        usuario_nombre: user.full_name,
-        opcion_index: optionIndex,
-        fecha: new Date().toISOString()
-      });
-
-      await base44.entities.ChatMessage.update(messageId, {
-        encuesta: {
-          ...msg.encuesta,
-          votos
-        }
-      });
+      await base44.functions.invoke('chatMessageInteract', { action: 'vote', messageId, optionIndex });
     },
+    onError: () => toast.error("No se pudo registrar el voto"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
       toast.success("Voto registrado");

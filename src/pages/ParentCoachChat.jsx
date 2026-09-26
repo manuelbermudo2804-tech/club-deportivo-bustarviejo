@@ -332,23 +332,9 @@ export default function ParentCoachChat() {
 
   const votePollMutation = useMutation({
     mutationFn: async ({ messageId, optionIndex }) => {
-      const msg = messages.find(m => m.id === messageId);
-      const poll = msg.encuesta || msg.poll;
-      const votos = poll?.votos || [];
-      
-      votos.push({
-        usuario_email: user.email,
-        usuario_nombre: user.full_name,
-        opcion_index: optionIndex,
-        fecha: new Date().toISOString()
-      });
-
-      const updateData = msg.encuesta 
-        ? { encuesta: { ...poll, votos } }
-        : { poll: { ...poll, votos } };
-
-      await base44.entities.ChatMessage.update(messageId, updateData);
+      await base44.functions.invoke('chatMessageInteract', { action: 'vote', messageId, optionIndex });
     },
+    onError: () => toast.error("No se pudo registrar el voto"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
       toast.success("Voto registrado");
@@ -356,26 +342,11 @@ export default function ParentCoachChat() {
   });
 
   const addReaction = async (messageId, emoji) => {
-    const message = messages.find(m => m.id === messageId);
-    const existingReactions = message.reacciones || [];
-    
-    const alreadyReacted = existingReactions.find(r => r.user_email === user.email && r.emoji === emoji);
-    
-    let newReactions;
-    if (alreadyReacted) {
-      newReactions = existingReactions.filter(r => !(r.user_email === user.email && r.emoji === emoji));
-    } else {
-      newReactions = [...existingReactions, {
-        user_email: user.email,
-        user_nombre: user.full_name,
-        emoji: emoji,
-        fecha: new Date().toISOString()
-      }];
+    try {
+      await base44.functions.invoke('chatMessageInteract', { action: 'react', messageId, emoji });
+    } catch {
+      toast.error("No se pudo guardar la reacción");
     }
-
-    await base44.entities.ChatMessage.update(messageId, {
-      reacciones: newReactions
-    });
 
     queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
     setShowReactions(null);
