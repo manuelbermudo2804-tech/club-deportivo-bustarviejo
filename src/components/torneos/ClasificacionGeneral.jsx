@@ -11,7 +11,8 @@ const COLOR_FASE = {
 // Tabla única de clasificación general (grupo único). Resalta los tramos que
 // entran en cada fase final del torneo (Oro 1-16, Plata 17-24, etc.)
 export default function ClasificacionGeneral({ equipos, partidos, torneo }) {
-  const filas = calcularClasificacionGeneral(equipos, partidos, torneo);
+  // La tabla visible cuenta todos los partidos (liguilla + fases finales)
+  const filas = calcularClasificacionGeneral(equipos, partidos, torneo, true);
   const anot = labelAnotacion(torneo);
   const fases = (torneo?.fases_finales || []).filter((f) => f.desde && f.hasta);
 

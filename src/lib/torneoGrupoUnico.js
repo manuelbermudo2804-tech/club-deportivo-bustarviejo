@@ -7,16 +7,17 @@
 //   4) Menos goles/sets en contra
 //   5) Nombre (alfabético, estable)
 
-// Solo cuentan los partidos de la fase de grupos (liguilla), nunca los cuadros Oro/Plata/Bronce
-function partidosFinalizados(partidos) {
+// Por defecto solo cuentan los partidos de la liguilla (así se reparten las fases finales).
+// Con incluirEliminatorias = true cuentan también los de Oro/Plata/Bronce (tabla pública).
+function partidosFinalizados(partidos, incluirEliminatorias = false) {
   return partidos.filter(
-    (p) => (!p.fase || p.fase === "liguilla") &&
+    (p) => (incluirEliminatorias || !p.fase || p.fase === "liguilla") &&
       p.finalizado && p.marcador_local != null && p.marcador_visitante != null
   );
 }
 
 // Estadística base (puntos, jugados, GF, GC…) de cada equipo sobre un conjunto de partidos
-function acumular(equipos, partidos, torneo) {
+function acumular(equipos, partidos, torneo, incluirEliminatorias = false) {
   const pV = torneo?.puntos_victoria ?? 3;
   const pE = torneo?.puntos_empate ?? 1;
   const pD = torneo?.puntos_derrota ?? 0;
@@ -32,7 +33,7 @@ function acumular(equipos, partidos, torneo) {
     };
   });
 
-  partidosFinalizados(partidos).forEach((p) => {
+  partidosFinalizados(partidos, incluirEliminatorias).forEach((p) => {
     const local = stats[p.equipo_local_id];
     const visit = stats[p.equipo_visitante_id];
     if (!local || !visit) return;
@@ -54,8 +55,8 @@ function acumular(equipos, partidos, torneo) {
  * Clasificación general de un grupo único.
  * @returns {Array} filas ordenadas con { posicion, equipo_id, nombre, ... }
  */
-export function calcularClasificacionGeneral(equipos, partidos, torneo) {
-  const stats = acumular(equipos, partidos, torneo);
+export function calcularClasificacionGeneral(equipos, partidos, torneo, incluirEliminatorias = false) {
+  const stats = acumular(equipos, partidos, torneo, incluirEliminatorias);
   const filas = Object.values(stats);
 
   const cmp = (a, b) => {
