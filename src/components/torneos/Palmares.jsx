@@ -77,17 +77,17 @@ function equipoMenosGoleado(partidos, equipos, fase) {
 // Tarjeta genérica de un premio.
 function PremioCard({ emoji, etiqueta, principal, escudo, secundario, valor, color }) {
   return (
-    <div className="bg-white rounded-xl border p-4 flex items-center gap-3" style={{ borderLeft: `4px solid ${color}` }}>
-      <span className="text-3xl">{emoji}</span>
+    <div className="bg-white rounded-xl border p-3 sm:p-4 flex items-center gap-2 sm:gap-3 min-w-0 overflow-hidden" style={{ borderLeft: `4px solid ${color}` }}>
+      <span className="text-2xl sm:text-3xl flex-shrink-0">{emoji}</span>
       <div className="flex-1 min-w-0">
-        <p className="text-[11px] uppercase tracking-wide text-slate-400">{etiqueta}</p>
-        <div className="flex items-center gap-2 mt-0.5">
-          {escudo && <img src={escudo} alt="" className="w-6 h-6 rounded-full object-cover" />}
-          <span className="font-bold text-slate-900 text-lg truncate">{principal}</span>
-          {secundario && <span className="text-slate-400 text-sm truncate">· {secundario}</span>}
+        <p className="text-[11px] uppercase tracking-wide text-slate-400 truncate">{etiqueta}</p>
+        <div className="flex items-center gap-2 mt-0.5 min-w-0">
+          {escudo && <img src={escudo} alt="" className="w-6 h-6 rounded-full object-cover flex-shrink-0" />}
+          <span className="font-bold text-slate-900 text-base sm:text-lg truncate min-w-0">{principal}</span>
         </div>
+        {secundario && <p className="text-slate-400 text-sm truncate">{secundario}</p>}
       </div>
-      {valor != null && <span className="font-black text-lg text-slate-700 flex-shrink-0">{valor}</span>}
+      {valor != null && <span className="font-black text-base sm:text-lg text-slate-700 flex-shrink-0">{valor}</span>}
     </div>
   );
 }
@@ -123,7 +123,7 @@ export default function Palmares({ partidos, equipos, goles, categoria }) {
         <Trophy className="w-10 h-10 text-amber-400 mx-auto mb-1" />
         <h3 className="text-xl font-black text-white">Palmarés del torneo</h3>
       </div>
-      <div className="grid gap-3">
+      <div className="grid grid-cols-1 gap-3 min-w-0">
         {premios.map((p) => <PremioCard key={p.key} {...p} />)}
       </div>
     </div>
