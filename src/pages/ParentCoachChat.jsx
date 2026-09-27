@@ -228,9 +228,10 @@ export default function ParentCoachChat() {
   // messages ya viene filtrado por grupo_id desde la query
   const categoryMessages = [...messages].sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
 
+  const visibleMessages = categoryMessages.filter(m => !m.eliminado);
   const filteredMessages = searchTerm 
-    ? categoryMessages.filter(m => m.mensaje?.toLowerCase().includes(searchTerm.toLowerCase()))
-    : categoryMessages;
+    ? visibleMessages.filter(m => m.mensaje?.toLowerCase().includes(searchTerm.toLowerCase()))
+    : visibleMessages;
 
   // Solo bajar solo si ya estabas abajo; si estás leyendo arriba, mostrar botón de nuevos
   const [atBottom, setAtBottom] = useState(true);
@@ -354,6 +355,21 @@ export default function ParentCoachChat() {
       queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
       toast.success("Voto registrado");
     },
+  });
+
+  const deleteMessageMutation = useMutation({
+    mutationFn: async (messageId) => {
+      await base44.functions.invoke('chatMessageInteract', { action: 'delete', messageId });
+    },
+    onMutate: (messageId) => {
+      queryClient.setQueryData(['coachParentChatMessages', categoryKey], (old = []) =>
+        old.map(m => (m.id === messageId ? { ...m, eliminado: true } : m)));
+    },
+    onError: () => {
+      toast.error("No se pudo borrar el mensaje");
+      queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
+    },
+    onSuccess: () => toast.success("Mensaje eliminado"),
   });
 
   const addReaction = async (messageId, emoji) => {
@@ -503,7 +519,7 @@ export default function ParentCoachChat() {
                             {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
                           </div>
                           <div className="ml-auto" />
-                          <ChatMessageActions message={msg} isMine={isMine} />
+                          <ChatMessageActions message={msg} isMine={isMine} onDelete={(m) => deleteMessageMutation.mutate(m.id)} />
                         </div>
                         {msg.mensaje && <p style={{fontSize: '15px', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}><EmojiScaler content={msg.mensaje} /></p>}
                         {msg.audio_url && <div className="mt-1"><ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isMine} /></div>}

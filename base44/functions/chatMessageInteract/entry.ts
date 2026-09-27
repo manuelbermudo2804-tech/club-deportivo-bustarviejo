@@ -41,6 +41,13 @@ Deno.serve(async (req) => {
     const msg = await loadAllowed(messageId);
     if (!msg) return Response.json({ error: 'Mensaje no encontrado' }, { status: 404 });
 
+    if (action === 'delete') {
+      // Solo el autor puede borrar su propio mensaje
+      if (msg.remitente_email !== user.email) return Response.json({ error: 'Solo puedes borrar tus mensajes' }, { status: 403 });
+      await base44.asServiceRole.entities.ChatMessage.update(messageId, { eliminado: true, mensaje: 'Este mensaje fue eliminado' });
+      return Response.json({ ok: true });
+    }
+
     if (action === 'react') {
       if (!emoji) return Response.json({ error: 'Falta emoji' }, { status: 400 });
       const reacciones = msg.reacciones || [];
