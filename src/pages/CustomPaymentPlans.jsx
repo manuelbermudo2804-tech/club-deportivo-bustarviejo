@@ -17,10 +17,28 @@ export default function CustomPaymentPlans() {
   
   const queryClient = useQueryClient();
 
-  const { data: customPlans = [] } = useQuery({
+  const { data: rawPlans = [] } = useQuery({
     queryKey: ['customPaymentPlans'],
     queryFn: () => base44.entities.CustomPaymentPlan.list('-created_date'),
     initialData: [],
+  });
+
+  // Estado real de cada cuota tomado de Pagos (fuente de verdad)
+  const { data: planPayments = [] } = useQuery({
+    queryKey: ['planEspecialPayments'],
+    queryFn: () => base44.entities.Payment.filter({ tipo_pago: 'Plan Especial' }, '-created_date', 1000),
+    initialData: [],
+  });
+
+  const customPlans = rawPlans.map((plan) => {
+    const pays = planPayments.filter((p) => p.jugador_id === plan.jugador_id && p.temporada === plan.temporada && !p.is_deleted);
+    const cuotas = (plan.cuotas || []).map((c) => {
+      const pay = pays.find((p) => p.mes === `Cuota ${c.numero}`)
+        || (c.numero === 1 ? pays.find((p) => !/^Cuota \d/.test(p.mes || '') && p.cantidad === c.cantidad) : null);
+      if (!pay) return c;
+      return { ...c, pagada: pay.estado === 'Pagado', fecha_pago: pay.fecha_pago || c.fecha_pago };
+    });
+    return { ...plan, cuotas };
   });
 
   const { data: players = [] } = useQuery({
