@@ -369,7 +369,10 @@ export default function ParentCoachChat() {
       toast.error("No se pudo borrar el mensaje");
       queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
     },
-    onSuccess: () => toast.success("Mensaje eliminado"),
+    onSuccess: () => {
+      toast.success("Mensaje eliminado");
+      queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', categoryKey] });
+    },
   });
 
   const addReaction = async (messageId, emoji) => {

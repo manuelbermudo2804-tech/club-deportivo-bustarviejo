@@ -38,10 +38,18 @@ Deno.serve(async (req) => {
       return Response.json({ ok: true, updated });
     }
 
+    if (action === 'delete') {
+      const own = (await base44.asServiceRole.entities.ChatMessage.filter({ id: messageId }))[0];
+      if (!own) return Response.json({ error: 'Mensaje no encontrado' }, { status: 404 });
+      if ((own.remitente_email || '').toLowerCase() !== (user.email || '').toLowerCase()) return Response.json({ error: 'Solo puedes borrar tus mensajes' }, { status: 403 });
+      await base44.asServiceRole.entities.ChatMessage.update(messageId, { eliminado: true, mensaje: 'Este mensaje fue eliminado' });
+      return Response.json({ ok: true });
+    }
+
     const msg = await loadAllowed(messageId);
     if (!msg) return Response.json({ error: 'Mensaje no encontrado' }, { status: 404 });
 
-    if (action === 'delete') {
+    if (action === 'delete_legacy') {
       // Solo el autor puede borrar su propio mensaje
       if (msg.remitente_email !== user.email) return Response.json({ error: 'Solo puedes borrar tus mensajes' }, { status: 403 });
       await base44.asServiceRole.entities.ChatMessage.update(messageId, { eliminado: true, mensaje: 'Este mensaje fue eliminado' });

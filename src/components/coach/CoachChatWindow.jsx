@@ -547,11 +547,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
   const deleteMessageMutation = useMutation({
     mutationFn: async (messageId) => {
-      await base44.entities.ChatMessage.update(messageId, {
-        eliminado: true,
-        mensaje: "Este mensaje fue eliminado"
-      });
+      await base44.functions.invoke('chatMessageInteract', { action: 'delete', messageId });
     },
+    onError: () => toast.error("No se pudo borrar el mensaje"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
       toast.success("Mensaje eliminado");
