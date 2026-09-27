@@ -23,6 +23,7 @@ import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 import ChatMessageActions from "../components/chat/ChatMessageActions";
 import ReadTicks from "../components/chat/ReadTicks";
+import NewMessageButton from "../components/chat/NewMessageButton";
 
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
@@ -231,11 +232,30 @@ export default function ParentCoachChat() {
     ? categoryMessages.filter(m => m.mensaje?.toLowerCase().includes(searchTerm.toLowerCase()))
     : categoryMessages;
 
+  // Solo bajar solo si ya estabas abajo; si estás leyendo arriba, mostrar botón de nuevos
+  const [atBottom, setAtBottom] = useState(true);
+  const [newCount, setNewCount] = useState(0);
+  const prevCountRef = useRef(0);
+  const handleScroll = (e) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.target;
+    const bottom = scrollHeight - scrollTop - clientHeight < 100;
+    setAtBottom(bottom);
+    if (bottom) setNewCount(0);
+  };
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
+    prevCountRef.current = 0;
+    setAtBottom(true);
+    setNewCount(0);
+  }, [selectedCategory]);
+  useEffect(() => {
+    const nuevos = messages.length - prevCountRef.current;
+    prevCountRef.current = messages.length;
+    if (atBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    } else if (nuevos > 0) {
+      setNewCount(c => c + nuevos);
     }
-  }, [messages, selectedCategory]);
+  }, [messages]);
 
 
 
@@ -288,29 +308,24 @@ export default function ParentCoachChat() {
          leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }],
        });
 
-       // Obtener entrenadores de esta categoría y crear notificaciones
-       try {
+       // Avisar a los entrenadores en SEGUNDO PLANO: no retrasa ni hace fallar el envío
+       const categoriaEnvio = selectedCategory;
+       const textoAviso = messageData.mensaje || "Archivo en el chat";
+       (async () => {
          const allSettings = await base44.entities.CoachSettings.list();
-         const coachesForCategory = allSettings.filter(s => s.categorias_entrena?.includes(selectedCategory));
-         
-         const categoryShort = selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '');
-         
-         for (const coach of coachesForCategory) {
-           if (coach.entrenador_email && coach.entrenador_email !== user.email) {
-             await base44.entities.AppNotification.create({
-               usuario_email: coach.entrenador_email,
-               titulo: `⚽ ${categoryShort}: Mensaje de ${user.full_name}`,
-               mensaje: `${messageData.mensaje.substring(0, 100)}${messageData.mensaje.length > 100 ? '...' : ''}`,
-               tipo: "importante",
-               icono: "⚽",
-               enlace: "CoachParentChat",
-               vista: false
-             });
-           }
-         }
-       } catch (e) {
-         console.log('Error notificando al entrenador:', e);
-       }
+         const categoryShort = categoriaEnvio.replace('Fútbol ', '').replace(' (Mixto)', '');
+         await Promise.all(allSettings
+           .filter(s => s.categorias_entrena?.includes(categoriaEnvio) && s.entrenador_email && s.entrenador_email !== user.email)
+           .map(coach => base44.entities.AppNotification.create({
+             usuario_email: coach.entrenador_email,
+             titulo: `⚽ ${categoryShort}: Mensaje de ${user.full_name}`,
+             mensaje: `${textoAviso.substring(0, 100)}${textoAviso.length > 100 ? '...' : ''}`,
+             tipo: "importante",
+             icono: "⚽",
+             enlace: "CoachParentChat",
+             vista: false
+           })));
+       })().catch(e => console.log('Error notificando al entrenador:', e));
 
        return newMessage;
     },
@@ -445,12 +460,13 @@ export default function ParentCoachChat() {
     // ====== Render mensajes (compartido mobile y desktop) ======
     const renderMessages = () => (
       <div className="flex-1 flex flex-col overflow-hidden min-h-0">
-        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}}>
-          {selectedCategory && getUnreadCountByCategory(selectedCategory) > 0 && (
-            <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 text-xs px-3 py-2 rounded-lg">
-              Tienes {getUnreadCountByCategory(selectedCategory)} mensajes nuevos en {selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '')}
-            </div>
-          )}
+        {!atBottom && newCount > 0 && (
+          <NewMessageButton
+            onClick={() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); setNewCount(0); }}
+            unreadCount={newCount}
+          />
+        )}
+        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-0 min-h-0" style={{backgroundColor: '#E5DDD5'}} onScroll={handleScroll}>
           {filteredMessages.length === 0 ? (
             <div className="text-center py-8">
               <MessageCircle className="w-10 h-10 text-slate-300 mx-auto mb-2" />
@@ -464,6 +480,8 @@ export default function ParentCoachChat() {
               const dateLabel = parseChatDate(msg.created_date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
               const isMine = msg.remitente_email === user.email;
               const isCoach = msg.tipo === "entrenador_a_grupo";
+              const sameAuthorRun = !showDateSeparator && filteredMessages[idx - 1]?.remitente_email === msg.remitente_email;
+              const showAuthor = !isMine && !sameAuthorRun;
 
               return (
                 <React.Fragment key={msg.id}>
@@ -472,7 +490,7 @@ export default function ParentCoachChat() {
                       <div className="bg-white px-4 py-1 rounded-full text-xs text-slate-600 shadow-sm">{dateLabel}</div>
                     </div>
                   )}
-                  <div className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} group mb-1.5`}>
+                  <div className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} group ${sameAuthorRun ? 'mt-0.5' : 'mt-2'}`}>
                     {(msg.mensaje || msg.audio_url || msg.archivos_adjuntos?.length > 0) && !msg.encuesta && !msg.poll && !msg.ubicacion && (
                       <div className="max-w-[72%] rounded-2xl px-3 py-2 relative" style={{
                         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
@@ -480,10 +498,11 @@ export default function ParentCoachChat() {
                         backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
                       }}>
                         <div className="flex items-center justify-between gap-1 mb-1">
-                          <div className="flex items-center gap-1">
-                            <p className="text-xs font-semibold opacity-70">{isCoach ? '🏃 ' : ''}{msg.remitente_nombre}</p>
+                          <div className={`flex items-center gap-1 ${showAuthor ? '' : 'hidden'}`}>
+                            <p className={`text-xs font-semibold ${isCoach ? 'text-green-700' : 'text-blue-700'}`}>{isCoach ? '🏃 ' : ''}{msg.remitente_nombre}</p>
                             {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
                           </div>
+                          <div className="ml-auto" />
                           <ChatMessageActions message={msg} isMine={isMine} />
                         </div>
                         {msg.mensaje && <p style={{fontSize: '15px', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}><EmojiScaler content={msg.mensaje} /></p>}
@@ -498,7 +517,7 @@ export default function ParentCoachChat() {
                               {images.length > 0 && <div className="mt-1"><ChatImageBubble images={images} isMine={isMine} /></div>}
                               {audios.map((file, i) => <div key={`a-${i}`} className="mt-1"><ChatAudioBubble url={file.url} duration={file.duracion} isMine={isMine} /></div>)}
                               {files.length > 0 && <div className="mt-1 space-y-1">{files.map((file, i) => (
-                                <a key={i} href={file.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-slate-600' : isCoach ? 'bg-green-700' : 'bg-slate-100'}`}>
+                                <a key={i} href={file.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-black/5' : 'bg-slate-100'}`}>
                                   <FileText className="w-3 h-3" /><span className="flex-1 truncate">{file.nombre}</span><Download className="w-3 h-3" />
                                 </a>
                               ))}</div>}
@@ -509,7 +528,7 @@ export default function ParentCoachChat() {
                         <div className="flex items-center gap-1 justify-end mt-1">
                           <p style={{fontSize: '11px', opacity: 0.6}}>{format(parseChatDate(msg.created_date), "HH:mm", { locale: es })}</p>
                           {isMine && <ReadTicks message={msg} senderEmail={user.email} />}
-                          <Button size="sm" variant="ghost" className={`opacity-50 hover:opacity-100 h-5 w-5 p-0 ${isMine ? 'text-white' : 'text-slate-600'}`} onClick={() => setShowReactions(msg.id)}>
+                          <Button size="sm" variant="ghost" className="opacity-50 hover:opacity-100 h-5 w-5 p-0 text-slate-600" onClick={() => setShowReactions(msg.id)}>
                             <Smile className="w-3 h-3" />
                           </Button>
                         </div>
@@ -522,15 +541,15 @@ export default function ParentCoachChat() {
                       </div>
                     )}
                     {(msg.encuesta || msg.poll) && (
-                      <div className="w-full max-w-[85%]">
-                        <div className="mb-1 px-2"><p className="text-xs font-semibold text-slate-600">{isCoach ? '🏃 ' : ''}{msg.remitente_nombre}</p></div>
+                      <div className="w-full max-w-[85%] rounded-2xl p-2" style={{ backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)' }}>
+                        <div className="mb-1 px-2"><p className={`text-xs font-semibold ${isCoach ? 'text-green-700' : 'text-blue-700'}`}>{isMine ? 'Tú' : `${isCoach ? '🏃 ' : ''}${msg.remitente_nombre}`}</p></div>
                         <PollMessage encuesta={msg.encuesta || msg.poll} messageId={msg.id} userEmail={user.email} userName={user.full_name} onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })} isCreator={msg.remitente_email === user.email} />
                         <p className="text-xs text-slate-500 mt-1 px-2">{format(parseChatDate(msg.created_date), "HH:mm", { locale: es })}</p>
                       </div>
                     )}
                     {msg.ubicacion && (
-                      <div className="w-full max-w-[85%]">
-                        <div className="mb-1 px-2"><p className="text-xs font-semibold text-slate-600">{isCoach ? '🏃 ' : ''}{msg.remitente_nombre}</p></div>
+                      <div className="w-full max-w-[85%] rounded-2xl p-2" style={{ backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF', boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)' }}>
+                        <div className="mb-1 px-2"><p className={`text-xs font-semibold ${isCoach ? 'text-green-700' : 'text-blue-700'}`}>{isMine ? 'Tú' : `${isCoach ? '🏃 ' : ''}${msg.remitente_nombre}`}</p></div>
                         <LocationMessage ubicacion={msg.ubicacion} />
                         <p className="text-xs text-slate-500 mt-1 px-2">{format(parseChatDate(msg.created_date), "HH:mm", { locale: es })}</p>
                       </div>
