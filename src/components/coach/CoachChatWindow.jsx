@@ -160,16 +160,22 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     const { scrollTop, scrollHeight, clientHeight } = e.target;
     const atBottom = scrollHeight - scrollTop - clientHeight < 100;
     setIsScrolledToBottom(atBottom);
+    if (atBottom) setNewMessageCount(0);
   };
 
+  // Contar solo los mensajes realmente nuevos (antes sumaba 1 en cada repintado)
+  const prevCountRef = useRef(0);
+  useEffect(() => { prevCountRef.current = 0; setNewMessageCount(0); }, [selectedCategory]);
   useEffect(() => {
-    if (isScrolledToBottom && messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    const nuevos = messages.length - prevCountRef.current;
+    prevCountRef.current = messages.length;
+    if (isScrolledToBottom) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
       setNewMessageCount(0);
-    } else if (!isScrolledToBottom && messages.length > 0) {
-      setNewMessageCount(prev => prev + 1);
+    } else if (nuevos > 0) {
+      setNewMessageCount(prev => prev + nuevos);
     }
-  }, [messages, isScrolledToBottom, anyoneTyping]);
+  }, [messages, isScrolledToBottom]);
 
   // Marcar como leídos los mensajes de familias - SISTEMA UNIFICADO
   useEffect(() => {
@@ -420,17 +426,16 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     try {
       const parentEmails = [...new Set(categoryPlayers.flatMap(p => [p.email_padre, p.email_tutor_2].filter(Boolean)))];
       const categoryShort = selectedCategory.replace('Fútbol ', '').replace(' (Mixto)', '');
-      for (const email of parentEmails) {
-        await base44.entities.AppNotification.create({
-          usuario_email: email,
-          titulo: `⚽ ${categoryShort}: Nuevo mensaje`,
-          mensaje: `${messageData.mensaje.substring(0, 100)}${messageData.mensaje.length > 100 ? '...' : ''}`,
-          tipo: "importante",
-          icono: "⚽",
-          enlace: "ParentCoachChat",
-          vista: false
-        });
-      }
+      const texto = messageData.mensaje || "Archivo en el chat";
+      await Promise.all(parentEmails.map(email => base44.entities.AppNotification.create({
+        usuario_email: email,
+        titulo: `⚽ ${categoryShort}: Nuevo mensaje`,
+        mensaje: `${texto.substring(0, 100)}${texto.length > 100 ? '...' : ''}`,
+        tipo: "importante",
+        icono: "⚽",
+        enlace: "ParentCoachChat",
+        vista: false
+      })));
     } catch (e) { console.error("notificaciones:", e); }
   };
 
@@ -708,12 +713,14 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
            const isMine = msg.remitente_email === user?.email;
            const isCoachMsg = msg.tipo === "entrenador_a_grupo";
+           const sameAuthorRun = !showDateSeparator && prevMsg?.remitente_email === msg.remitente_email;
+           const showAuthor = !isMine && !sameAuthorRun;
 
            return (
              <div key={msg.id}>
                {showDateSeparator && <DateSeparator date={msg.created_date} />}
 
-               <div className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} group mb-1.5`}>
+               <div className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} group ${sameAuthorRun ? 'mt-0.5' : 'mt-2'}`}>
                  <div className={`max-w-[72%] rounded-2xl px-3 py-2 relative`} style={{
                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                    fontSize: '15px',
@@ -725,17 +732,19 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                    boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
                  }}>
                    {msg.mensaje_citado && (
-                     <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'bg-green-700 border-green-400' : 'bg-slate-100 border-slate-400'}`}>
+                     <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'bg-black/5 border-green-600' : 'bg-slate-100 border-slate-400'}`}>
                        <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
                        <p className="text-xs italic truncate">{msg.mensaje_citado.mensaje}</p>
                      </div>
                    )}
 
                    <div className="flex items-start justify-between gap-2 mb-1">
-                     <p className="text-xs font-semibold opacity-70">
-                       {isCoachMsg ? '🏃 ' : ''}{msg.remitente_nombre}
-                     </p>
-                     <div className="flex items-center gap-0.5">
+                     {showAuthor && (
+                       <p className={`text-xs font-semibold ${isCoachMsg ? 'text-green-700' : 'text-blue-700'}`}>
+                         {isCoachMsg ? '🏃 ' : ''}{msg.remitente_nombre}
+                       </p>
+                     )}
+                     <div className="flex items-center gap-0.5 ml-auto">
                        {isMine && (
                          <Button
                            size="sm"
@@ -777,7 +786,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                          {images.length > 0 && <div className="mt-1"><ChatImageBubble images={images} isMine={isMine} /></div>}
                          {audios.map((file, idx) => <div key={`a-${idx}`} className="mt-1"><ChatAudioBubble url={file.url} duration={file.duracion} isMine={isMine} /></div>)}
                          {files.length > 0 && <div className="mt-1 space-y-1">{files.map((file, idx) => (
-                           <a key={idx} href={file.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-green-700' : 'bg-slate-100'}`}>
+                           <a key={idx} href={file.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-black/5' : 'bg-slate-100'}`}>
                              <FileText className="w-3 h-3" /><span className="flex-1 truncate">{file.nombre}</span><Download className="w-3 h-3" />
                            </a>
                          ))}</div>}
@@ -812,7 +821,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                      <Button
                        size="sm"
                        variant="ghost"
-                       className={`opacity-50 hover:opacity-100 h-5 w-5 p-0 ${isMine ? 'text-white' : 'text-slate-600'}`}
+                       className="opacity-50 hover:opacity-100 h-5 w-5 p-0 text-slate-600"
                        onClick={() => setShowReactions(msg.id)}
                      >
                        <Smile className="w-3 h-3" />
@@ -841,196 +850,6 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
            );
          })}
 
-        {/* Old map - keep as fallback */}
-        {false && messages.map((msg) => {
-          if (msg.eliminado) return null;
-          
-          const isMine = msg.remitente_email === user?.email;
-          const isCoachMsg = msg.tipo === "entrenador_a_grupo";
-          
-          return (
-            <div key={msg.id} className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} group mb-1.5`}>
-              <div className={`max-w-[72%] rounded-2xl px-3 py-2 relative`} style={{
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
-                fontSize: '15px',
-                lineHeight: '1.4',
-                fontWeight: 400,
-                wordWrap: 'break-word',
-                whiteSpace: 'pre-wrap',
-                backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
-                boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
-              }}>
-                {msg.mensaje_citado && (
-                  <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'bg-green-700 border-green-400' : 'bg-slate-100 border-slate-400'}`}>
-                    <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
-                    <p className="text-xs italic truncate">{msg.mensaje_citado.mensaje}</p>
-                  </div>
-                )}
-                
-                <div className="flex items-start justify-between gap-2 mb-1">
-                  <p className="text-xs font-semibold opacity-70">
-                    {isCoachMsg ? '🏃 ' : ''}{msg.remitente_nombre}
-                  </p>
-                  {isMine && (
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                        onClick={() => msg.anclado ? unpinMessageMutation.mutate(msg.id) : pinMessageMutation.mutate(msg.id)}
-                        title={msg.anclado ? "Desanclar" : "Anclar mensaje"}
-                      >
-                        <Pin className={`w-3 h-3 ${msg.anclado ? 'text-yellow-600 fill-yellow-600' : ''}`} />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                        onClick={() => {
-                          setEditingMessage(msg);
-                          toast.info("Edición próximamente");
-                        }}
-                      >
-                        <Edit className="w-3 h-3" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                        onClick={() => deleteMessageMutation.mutate(msg.id)}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </Button>
-                    </div>
-                  )}
-                  {!isMine && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="opacity-0 group-hover:opacity-100 h-6 w-6 p-0"
-                      onClick={() => setReplyingTo(msg)}
-                    >
-                      <Reply className="w-3 h-3" />
-                    </Button>
-                  )}
-                </div>
-                
-                {msg.audio_url ? (
-                  <div className="flex items-center gap-2">
-                    <Button 
-                      size="sm" 
-                      variant={isMine ? "secondary" : "outline"}
-                      onClick={() => togglePlayAudio(msg.audio_url)}
-                      disabled={!msg.audio_url}
-                    >
-                      {playingAudio === msg.audio_url ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                    </Button>
-                    <span className="text-sm">🎤 {msg.audio_duracion}s</span>
-                  </div>
-                ) : msg.encuesta ? (
-                  // NO mostrar el texto cuando hay encuesta
-                  null
-                ) : (
-                  <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-                    <EmojiScaler content={msg.mensaje} />
-                    {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
-                  </p>
-                )}
-
-                {/* Archivos ANTES de la encuesta */}
-                {msg.archivos_adjuntos?.length > 0 && (
-                  <div className="mt-2 space-y-1">
-                    {msg.archivos_adjuntos.map((file, idx) => (
-                     file.tipo?.startsWith('image/') ? (
-                       <img 
-                         key={idx}
-                         src={file.url} 
-                         alt={file.nombre}
-                         loading="lazy"
-                         className="rounded cursor-pointer max-w-full h-auto bg-slate-200"
-                         onClick={() => setShowImagePreview(file.url)}
-                       />
-                     ) : (
-                        <a
-                          key={idx}
-                          href={file.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-green-700' : 'bg-slate-100'}`}
-                        >
-                          <FileText className="w-3 h-3" />
-                          <span className="flex-1 truncate">{file.nombre}</span>
-                          <Download className="w-3 h-3" />
-                        </a>
-                      )
-                    ))}
-                  </div>
-                )}
-
-                {msg.ubicacion && <LocationMessage ubicacion={msg.ubicacion} />}
-                
-                {msg.encuesta && (
-                  <PollMessage 
-                    encuesta={msg.encuesta} 
-                    messageId={msg.id}
-                    userEmail={user.email}
-                    userName={user.full_name}
-                    onVote={(msgId, optionIdx) => votePollMutation.mutate({ messageId: msgId, optionIndex: optionIdx })}
-                    isCreator={msg.remitente_email === user.email}
-                  />
-                )}
-
-                {msg.reacciones?.length > 0 && (
-                  <EmojiScaler reactions={msg.reacciones} />
-                )}
-
-                <div className="flex items-center gap-1 justify-end mt-1">
-                  <p style={{fontSize: '11px', opacity: 0.6}}>
-                    {format(new Date(msg.created_date), "HH:mm", { locale: es })}
-                  </p>
-                  
-                  {/* Doble check visual - solo en mensajes propios */}
-                  {isMine && (
-                    <div className="flex items-center">
-                      {msg.leido_por && msg.leido_por.length > 0 ? (
-                        <CheckCheck className="w-3 h-3 text-white opacity-70" />
-                      ) : (
-                        <Check className="w-3 h-3 opacity-50" />
-                      )}
-                    </div>
-                  )}
-                  
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className={`opacity-50 hover:opacity-100 h-5 w-5 p-0 ${isMine ? 'text-white' : 'text-slate-600'}`}
-                    onClick={() => setShowReactions(msg.id)}
-                  >
-                    <Smile className="w-3 h-3" />
-                  </Button>
-                </div>
-
-                {showReactions === msg.id && (
-                  <div className="absolute bottom-full mb-2 right-0 bg-white rounded-lg shadow-lg p-2 flex gap-2 z-10">
-                    {REACTIONS.map(emoji => (
-                      <button
-                        key={emoji}
-                        onClick={() => addReaction(msg.id, emoji)}
-                        className="text-2xl hover:scale-125 transition-transform"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                    <button onClick={() => setShowReactions(null)} className="ml-2">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-        
         {anyoneTyping && (
           <div className="flex justify-start">
             <div className="bg-white rounded-2xl p-3 shadow-sm">
