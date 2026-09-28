@@ -104,7 +104,7 @@ export default function MinorAttendanceCard({ attendances, playerId }) {
       {/* Recent records */}
       <div className="space-y-2">
         <p className="text-sm font-bold text-slate-600 px-1">Últimos entrenamientos</p>
-        {myRecords.slice(0, 10).map((record, idx) => {
+        {myRecords.filter((r, i, a) => a.findIndex(x => x.fecha === r.fecha) === i).slice(0, 5).map((record, idx) => {
           const statusConf = STATUS_CONFIG[record.estado] || STATUS_CONFIG.ausente;
           return (
             <motion.div
