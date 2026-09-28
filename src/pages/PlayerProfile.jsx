@@ -62,7 +62,6 @@ export default function PlayerProfile() {
       }
       return found;
     },
-    initialData: null,
     staleTime: 120_000,
     gcTime: 300_000,
     refetchOnWindowFocus: false,
@@ -221,7 +220,7 @@ export default function PlayerProfile() {
     await updateMutation.mutateAsync(payload);
   };
 
-  if (isLoading) {
+  if (!user || isLoading) {
     return (
       <div className="min-h-[50vh] flex items-center justify-center">
         <div className="spinner-elegant"></div>
