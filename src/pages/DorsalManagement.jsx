@@ -16,7 +16,7 @@ import PendingPlayersPanel from "@/components/dorsales/PendingPlayersPanel";
 import ImportExcelDialog from "@/components/dorsales/ImportExcelDialog";
 import PendingNotificationsPanel from "@/components/dorsales/PendingNotificationsPanel";
 import ExportDorsalesButton from "@/components/dorsales/ExportDorsalesButton";
-import { getNextSeason, loadDorsalData } from "@/components/dorsales/dorsalHelpers";
+import { getNextSeason, loadDorsalData, getEffectiveAssignments } from "@/components/dorsales/dorsalHelpers";
 
 const CATEGORIAS = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -113,8 +113,8 @@ export default function DorsalManagement() {
   );
 
   const assignmentsEnCategoria = useMemo(
-    () => assignments.filter((a) => a.categoria === categoria),
-    [assignments, categoria]
+    () => getEffectiveAssignments(players, assignments, currentAssignmentsAll, categoria),
+    [players, assignments, currentAssignmentsAll, categoria]
   );
 
   const handleClickFree = (dorsal) => {

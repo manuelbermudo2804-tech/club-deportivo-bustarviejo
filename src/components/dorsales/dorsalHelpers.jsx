@@ -39,6 +39,26 @@ export async function loadDorsalData(temporada) {
   return { players, assignments, configs };
 }
 
+// El dorsal es del jugador: solo ocupa si el jugador está activo (ha renovado) y
+// sigue al jugador a su categoría actual. Si no tiene asignación en esta temporada,
+// se arrastra la más reciente de temporadas anteriores.
+export function getEffectiveAssignments(players, seasonAssignments, allAssignments, categoria) {
+  const byPlayer = new Map();
+  (seasonAssignments || []).forEach((a) => a.estado === "asignado" && byPlayer.set(a.jugador_id, a));
+  [...(allAssignments || [])]
+    .filter((a) => a.estado === "asignado")
+    .sort((a, b) => String(b.temporada).localeCompare(String(a.temporada)))
+    .forEach((a) => { if (!byPlayer.has(a.jugador_id)) byPlayer.set(a.jugador_id, a); });
+  const result = [];
+  (players || []).forEach((p) => {
+    const a = byPlayer.get(p.id);
+    if (!a) return;
+    const cats = p.categorias?.length ? p.categorias : [p.categoria_principal || p.deporte].filter(Boolean);
+    if (cats.includes(categoria)) result.push({ ...a, categoria });
+  });
+  return result;
+}
+
 // Saca historial de un jugador (todas sus asignaciones, ordenadas por temporada)
 export async function getDorsalHistoryForPlayer(jugadorId) {
   const items = await base44.entities.DorsalAssignment.filter({ jugador_id: jugadorId });
