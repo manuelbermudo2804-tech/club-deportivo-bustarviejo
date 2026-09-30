@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Switch } from "@/components/ui/switch";
-import { Bell, Ban, CheckCircle2 } from "lucide-react";
+import { Bell, Ban, CheckCircle2, Unlock } from "lucide-react";
 import { toast } from "sonner";
 
 /**
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 export default function PlayerPaymentSwitches({ player, onUpdated }) {
   const [aviso, setAviso] = useState(player.aviso_impago_activo === true);
   const [bloqueo, setBloqueo] = useState(player.bloqueo_convocatoria_activo === true);
+  const [exento, setExento] = useState(player.exento_bloqueo_impago === true);
   const [saving, setSaving] = useState(false);
 
   const save = async (data, apply) => {
@@ -59,6 +60,18 @@ export default function PlayerPaymentSwitches({ player, onUpdated }) {
           disabled={saving}
           checked={bloqueo}
           onCheckedChange={(v) => save({ bloqueo_convocatoria_activo: v }, () => setBloqueo(v))}
+        />
+      </div>
+
+      <div className="flex items-center justify-between gap-3">
+        <span className="flex items-center gap-2 text-xs font-medium text-green-800">
+          <Unlock className="w-4 h-4 text-green-600" />
+          Permitir renovar aunque tenga deuda
+        </span>
+        <Switch
+          disabled={saving}
+          checked={exento}
+          onCheckedChange={(v) => save({ exento_bloqueo_impago: v }, () => setExento(v))}
         />
       </div>
     </div>

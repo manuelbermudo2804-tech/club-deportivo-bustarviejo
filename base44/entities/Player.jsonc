@@ -290,6 +290,11 @@
       "default": false,
       "description": "Interruptor manual del club: si TRUE, el jugador queda fuera de las convocatorias y la familia ve que no entrar\u00e1 hasta estar al corriente de pago."
     },
+    "exento_bloqueo_impago": {
+      "type": "boolean",
+      "default": false,
+      "description": "Excepci\u00f3n del club: si TRUE, la familia puede renovar aunque tenga cuotas pendientes de temporadas anteriores."
+    },
     "ajuste_cuota": {
       "type": "object",
       "properties": {

@@ -78,6 +78,22 @@ Deno.serve(async (req) => {
     if (action === 'renew') {
       if (!playerId) return Response.json({ error: 'Falta playerId' }, { status: 400 });
       const actual = await verifyOwnership(playerId);
+
+      // Bloqueo por deuda de temporadas anteriores (salvo excepción marcada por el club)
+      if (user.role !== 'admin' && !actual.exento_bloqueo_impago) {
+        const key = (t) => String(t || '').trim().replace(/\//g, '-');
+        const pagos = await base44.asServiceRole.entities.Payment.filter({ jugador_id: playerId, estado: 'Pendiente' });
+        const deuda = pagos.filter((p) => !p.is_deleted && p.temporada && key(p.temporada) !== key(temporada));
+        if (deuda.length > 0) {
+          const total = deuda.reduce((s, p) => s + (Number(p.cantidad) || 0), 0);
+          const detalle = deuda.map((p) => `${p.mes} ${p.temporada}: ${p.cantidad}€`).join(', ');
+          return Response.json({
+            success: false,
+            error: `No se puede renovar a ${actual.nombre}: tiene ${total}€ pendientes de temporadas anteriores (${detalle}). Ponte al día en "Pagos" o escribe al club.`,
+          });
+        }
+      }
+
       const nuevaCat = playerData?.deporte;
       const yaEnCategoria = actual.activo && (actual.deporte === nuevaCat || (actual.categorias || []).includes(nuevaCat));
       if (nuevaCat && !yaEnCategoria) {
