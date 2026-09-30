@@ -13,7 +13,9 @@ export default function JuntaAppBar({ user, isAdmin }) {
 
   useEffect(() => {
     const t = setInterval(() => tick((n) => n + 1), 60000);
-    return () => clearInterval(t);
+    const abrir = () => setEditar(true);
+    window.addEventListener("abrir-junta", abrir);
+    return () => { clearInterval(t); window.removeEventListener("abrir-junta", abrir); };
   }, []);
 
   const prueba = (junta?.email_prueba || "").trim().toLowerCase();
@@ -24,11 +26,6 @@ export default function JuntaAppBar({ user, isAdmin }) {
 
   return (
     <>
-      {r && (
-        <button onClick={() => setEditar(true)} className="w-full bg-gradient-to-r from-orange-600 to-green-700 text-white text-xs font-semibold px-3 py-2 text-center">
-          🗳️ Junta: {faltaTexto(junta.fecha)} · {r.emoji} {r.label}
-        </button>
-      )}
       <JuntaResponderDialog
         open={obligatorio || editar}
         forzado={obligatorio}

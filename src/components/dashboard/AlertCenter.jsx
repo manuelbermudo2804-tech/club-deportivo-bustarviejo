@@ -31,6 +31,8 @@ import {
 import { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
+import useJuntaActiva from "@/hooks/useJuntaActiva";
+import { RESPUESTAS, faltaTexto } from "@/lib/juntaUtils";
 import HoyEntrenamientoLine from "./HoyEntrenamientoLine";
 
 // CRÍTICO: Este componente NO debe mostrar alertas de CHATS
@@ -79,6 +81,7 @@ export default function AlertCenter({
   // Queries pesadas ELIMINADAS — los contadores llegan por props desde useUnifiedNotifications
   // Solo mantenemos state local para dismissed alerts y queries ligeras con staleTime alto
   const meUser = null; // Ya no hacemos query propia
+  const { junta: juntaActiva, miRespuesta: juntaResp } = useJuntaActiva(userEmail ? { email: userEmail } : null);
   
   const [dismissedAlerts, setDismissedAlerts] = useState(() => {
     try {
@@ -659,6 +662,23 @@ const alerts = [];
     }
   }
 
+  const juntaPrueba = (juntaActiva?.email_prueba || "").trim().toLowerCase();
+  const veJunta = juntaPrueba ? userEmail?.toLowerCase() === juntaPrueba : !isAdmin;
+  if (juntaActiva && juntaResp && veJunta) {
+    const r = RESPUESTAS[juntaResp.respuesta];
+    alerts.push({
+      id: "junta",
+      icon: Users,
+      title: `🗳️ ${juntaActiva.titulo || "Junta de Socios"}`,
+      description: `${faltaTexto(juntaActiva.fecha)} · Tu respuesta: ${r?.emoji || ""} ${r?.label || ""} (toca para cambiar)`,
+      url: "#",
+      color: "bg-orange-600",
+      priority: 1,
+      sticky: true,
+      abrirJunta: true,
+    });
+  }
+
   // Ordenar por prioridad
   alerts.sort((a, b) => a.priority - b.priority);
   const alertsWithKeys = alerts.map((a) => ({ ...a, _key: `${a.id}:${a.description}` }));
@@ -735,7 +755,7 @@ const alerts = [];
             <Link
                            key={alert._key}
                            to={alert.url}
-                           onClick={() => handleAlertClick(alert)}
+                           onClick={(e) => { if (alert.abrirJunta) { e.preventDefault(); window.dispatchEvent(new Event("abrir-junta")); return; } handleAlertClick(alert); }}
                            onAuxClick={() => handleAlertClick(alert)}
                            className="flex items-center gap-3 p-2 hover:bg-slate-50 transition-colors group rounded-lg"
                          >
