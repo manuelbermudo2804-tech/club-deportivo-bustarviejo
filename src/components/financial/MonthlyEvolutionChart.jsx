@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { sameSeason } from "@/lib/sameSeason";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
@@ -23,7 +24,7 @@ export default function MonthlyEvolutionChart({ payments, clothingOrders, lotter
       { key: 'may', label: 'May', fullName: 'Mayo' }
     ];
 
-    const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason.temporada && p.is_deleted !== true && p.estado === "Pagado");
+    const currentSeasonPayments = payments.filter(p => sameSeason(p.temporada, activeSeason.temporada) && p.is_deleted !== true && p.estado === "Pagado");
     const currentSeasonClothing = clothingOrders.filter(o => o.temporada === activeSeason.temporada && o.pagado === true);
     const currentSeasonLottery = lotteryOrders.filter(o => o.temporada === activeSeason.temporada && o.pagado === true);
     const currentSeasonMembers = clubMembers.filter(m => m.temporada === activeSeason.temporada && m.estado_pago === "Pagado");

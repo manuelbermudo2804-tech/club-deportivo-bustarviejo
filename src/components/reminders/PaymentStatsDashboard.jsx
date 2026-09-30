@@ -1,11 +1,12 @@
 import React from "react";
+import { sameSeason } from "@/lib/sameSeason";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, CheckCircle2, Clock, Users, Euro, TrendingUp } from "lucide-react";
 
 export default function PaymentStatsDashboard({ payments, players, currentSeason }) {
   // Filtrar por temporada actual
-  const seasonPayments = payments.filter(p => p.temporada === currentSeason);
+  const seasonPayments = payments.filter(p => sameSeason(p.temporada, currentSeason));
   
   // Estadísticas generales
   const totalPlayers = players.filter(p => p.activo).length;

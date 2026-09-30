@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { sameSeason } from "@/lib/sameSeason";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -40,7 +41,7 @@ export default function SeasonComparison({ open, onClose, currentSeason, allSeas
       .slice(0, 3);
 
     return seasons.map(season => {
-      const seasonPayments = allPayments.filter(p => p.temporada === season.temporada && p.is_deleted !== true);
+      const seasonPayments = allPayments.filter(p => sameSeason(p.temporada, season.temporada) && p.is_deleted !== true);
       const seasonPlayers = allPlayers.filter(p => p.activo === true);
       const seasonClothing = allClothing.filter(o => o.temporada === season.temporada);
       const seasonLottery = allLottery.filter(o => o.temporada === season.temporada);

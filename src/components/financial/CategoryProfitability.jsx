@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { sameSeason } from "@/lib/sameSeason";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
@@ -24,7 +25,7 @@ export default function CategoryProfitability({ payments, transactions, players,
       const playerPayments = payments.filter(p => 
         p.jugador_id === player.id && 
         p.estado === "Pagado" &&
-        p.temporada === activeSeason?.temporada
+        sameSeason(p.temporada, activeSeason?.temporada)
       );
       categories[cat].ingresos += playerPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
     });

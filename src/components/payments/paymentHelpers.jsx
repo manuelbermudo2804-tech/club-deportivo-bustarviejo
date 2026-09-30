@@ -1,3 +1,4 @@
+import { sameSeason } from "@/lib/sameSeason";
 /**
  * Helper centralizado para cálculo de estados de pago
  * USAR EN TODOS LOS DASHBOARDS para consistencia
@@ -84,7 +85,7 @@ export function getExpectedPaymentsCount(jugadorId, payments, customPlans, tempo
   // 2. Verificar si tiene pago único
   const playerPayments = payments.filter(p => 
     p.jugador_id === jugadorId &&
-    (!temporada || p.temporada === temporada) &&
+    (!temporada || sameSeason(p.temporada, temporada)) &&
     p.is_deleted !== true
   );
   
@@ -113,7 +114,7 @@ export function getPendingPaymentsCount(jugadorId, payments, customPlans, tempor
   // 2. Lógica estándar
   const playerPayments = payments.filter(p => 
     p.jugador_id === jugadorId &&
-    (!temporada || p.temporada === temporada) &&
+    (!temporada || sameSeason(p.temporada, temporada)) &&
     p.is_deleted !== true
   );
   

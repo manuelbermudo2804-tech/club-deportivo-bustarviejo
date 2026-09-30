@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { sameSeason } from "@/lib/sameSeason";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Calendar, TrendingUp } from "lucide-react";
@@ -10,7 +11,7 @@ export default function SeasonalityAnalysis({ payments, activeSeason }) {
     return months.map(mes => {
       const monthPayments = payments.filter(p => 
         p.estado === "Pagado" && 
-        p.temporada === activeSeason?.temporada &&
+        sameSeason(p.temporada, activeSeason?.temporada) &&
         p.fecha_pago
       );
 

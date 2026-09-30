@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { sameSeason } from "@/lib/sameSeason";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ComposedChart, Line, Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area } from "recharts";
 import { TrendingUp, Calendar } from "lucide-react";
@@ -12,7 +13,7 @@ export default function CashFlowAnalysis({ payments, transactions, clothingOrder
       const cuotas = payments.filter(p => 
         p.mes === mes && 
         p.estado === "Pagado" && 
-        p.temporada === activeSeason?.temporada
+        sameSeason(p.temporada, activeSeason?.temporada)
       ).reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
       const ropa = clothingOrders.filter(o => {

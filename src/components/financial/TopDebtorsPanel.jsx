@@ -1,4 +1,5 @@
 import React from "react";
+import { sameSeason } from "@/lib/sameSeason";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { createPageUrl } from "@/utils";
 export default function TopDebtorsPanel({ players, payments, activeSeason, getImportePorMes, customPlans = [] }) {
   if (!activeSeason) return null;
 
-  const currentSeasonPayments = payments.filter(p => p.temporada === activeSeason.temporada && p.is_deleted !== true);
+  const currentSeasonPayments = payments.filter(p => sameSeason(p.temporada, activeSeason.temporada) && p.is_deleted !== true);
   const currentSeasonPlayers = players.filter(p => p.activo === true);
   const currentSeasonPlans = customPlans.filter(p => p.temporada === activeSeason.temporada);
 

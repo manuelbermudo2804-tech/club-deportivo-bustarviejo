@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { sameSeason } from "@/lib/sameSeason";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -106,7 +107,7 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
       const temporadaActiva = seasonConfig?.temporada || currentPayment.temporada;
       const jugadorPayments = payments.filter(p => 
         p.jugador_id === currentPayment.jugador_id && 
-        p.temporada === temporadaActiva
+        sameSeason(p.temporada, temporadaActiva)
       );
       
       if (jugadorPayments.length > 0) {
@@ -139,7 +140,7 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
       const temporadaActiva = seasonConfig?.temporada || currentPayment.temporada;
       const jugadorPayments = payments.filter(p => 
         p.jugador_id === playerId && 
-        p.temporada === temporadaActiva
+        sameSeason(p.temporada, temporadaActiva)
       );
       setExistingPayments(jugadorPayments);
       
@@ -495,7 +496,7 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
                                     const temporadaActiva = seasonConfig?.temporada || currentPayment.temporada;
                                     const jugadorPayments = payments.filter(pago => 
                                       pago.jugador_id === p.id && 
-                                      pago.temporada === temporadaActiva
+                                      sameSeason(pago.temporada, temporadaActiva)
                                     );
                                     
                                     // Si tiene pago único pagado, ya está completo
@@ -537,7 +538,7 @@ export default function ParentPaymentForm({ players, payments = [], customPlans 
                       const planPayments = payments.filter(p => 
                         p.jugador_id === selectedPlayer.id && 
                         p.tipo_pago === "Plan Especial" &&
-                        p.temporada === temporadaActiva
+                        sameSeason(p.temporada, temporadaActiva)
                       );
                       
                       // Encontrar cuotas que NO tienen pago o están pendientes
