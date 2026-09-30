@@ -37,6 +37,11 @@ export default function DorsalManagement() {
   const [temporada, setTemporada] = useState("");
   const [currentSeasonStr, setCurrentSeasonStr] = useState("");
   const [categoria, setCategoria] = useState(CATEGORIAS[0]);
+  const [categoriasCompiten, setCategoriasCompiten] = useState([]);
+  const listaCategorias = useMemo(
+    () => Array.from(new Set([...CATEGORIAS, ...categoriasCompiten])),
+    [categoriasCompiten]
+  );
   const [players, setPlayers] = useState([]);
   const [assignments, setAssignments] = useState([]);
   const [configs, setConfigs] = useState([]);
@@ -64,6 +69,8 @@ export default function DorsalManagement() {
         const list = Array.from(new Set([current, next, ...seasons.map((s) => s.temporada)])).filter(Boolean);
         setTemporadas(list);
         setTemporada(current);
+        const cats = await base44.entities.CategoryConfig.filter({ activa: true, compite_en_liga: true });
+        setCategoriasCompiten(cats.map((c) => c.nombre).filter(Boolean));
       } catch (e) {
         console.error(e);
         toast.error("Error cargando datos");
@@ -159,7 +166,7 @@ export default function DorsalManagement() {
         </div>
         <ExportDorsalesButton
           assignments={currentAssignmentsAll.filter((a) => String(a.temporada) === String(temporada))}
-          categorias={CATEGORIAS}
+          categorias={listaCategorias}
           temporada={temporada}
           categoriaActual={categoria}
         />
@@ -189,7 +196,7 @@ export default function DorsalManagement() {
             <Select value={categoria} onValueChange={setCategoria}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {CATEGORIAS.map((c) => (
+                {listaCategorias.map((c) => (
                   <SelectItem key={c} value={c}>{c}</SelectItem>
                 ))}
               </SelectContent>

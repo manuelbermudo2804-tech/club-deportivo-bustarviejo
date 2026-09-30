@@ -66,6 +66,7 @@ export function buildAdminNavigation(ctx) {
 
     { title: "─ CALENDARIO Y EVENTOS ─", section: true },
     { title: "📅 Agenda del club", url: "/AgendaClub", icon: CalendarDays },
+    { title: "🕐 Horarios y días sin entreno", url: createPageUrl("Schedules"), icon: Clock },
     { title: "🌦️ Meteo Club", url: createPageUrl("MeteoClub"), icon: CloudSun },
     { title: "🎉 Gestión Eventos", url: createPageUrl("EventManagement"), icon: Calendar },
     { title: "🤝 Voluntariado y Comunidad", url: createPageUrl("Voluntariado"), icon: Users },
