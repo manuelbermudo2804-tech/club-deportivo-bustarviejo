@@ -1007,7 +1007,7 @@ export default function StaffChat() {
             onSave={(m, mensaje) => editMessageMutation.mutate({ id: m.id, mensaje })}
           />
           <UnifiedChatInput
-            mentionCandidates={mentionCandidates(messages, user?.full_name)}
+            mentionCandidates={mentionCandidates(messages, user?.full_name, staffUsersFromDB.map(u => u.full_name))}
             onSendMessage={handleSendMessage}
             onFileUpload={handleFileUpload}
             onCameraCapture={handleCameraCapture}

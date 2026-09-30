@@ -869,7 +869,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         onSave={(m, mensaje) => editMessageMutation.mutate({ id: m.id, mensaje })}
       />
       <UnifiedChatInput
-        mentionCandidates={mentionCandidates(messages, user?.full_name)}
+        mentionCandidates={mentionCandidates(messages, user?.full_name, categoryPlayers.flatMap(p => [p.nombre_tutor_legal, p.nombre_tutor_2]))}
         onSendMessage={handleSendMessage}
         onFileUpload={handleFileUpload}
         onCameraCapture={handleCameraCapture}

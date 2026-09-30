@@ -16,7 +16,8 @@ export function messageMentionsUser(text, userName) {
 }
 
 // Personas mencionables: quien ha escrito en el chat (menos yo)
-export function mentionCandidates(messages, myName) {
-  const names = (messages || []).map(m => m.remitente_nombre || m.autor_nombre).filter(Boolean);
+// extraNames: miembros del grupo aunque nunca hayan escrito
+export function mentionCandidates(messages, myName, extraNames = []) {
+  const names = [...(messages || []).map(m => m.remitente_nombre || m.autor_nombre), ...extraNames].filter(Boolean).map(n => String(n).trim());
   return [...new Set(names)].filter(n => n !== myName).sort();
 }

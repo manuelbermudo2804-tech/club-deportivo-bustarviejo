@@ -600,7 +600,7 @@ export default function ParentCoachChat() {
           )}
           <div ref={messagesEndRef} />
         </div>
-        <UnifiedChatInput mentionCandidates={mentionCandidates(messages, user?.full_name)} onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} onCameraCapture={handleCameraCapture} onLocationClick={() => setShowLocationDlg(true)} onPollClick={() => setShowPollDlg(true)} uploading={uploading || uploadingImage} placeholder="Escribe tu mensaje..." />
+        <UnifiedChatInput mentionCandidates={mentionCandidates(messages, user?.full_name, [categoryCoach?.full_name])} onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} onCameraCapture={handleCameraCapture} onLocationClick={() => setShowLocationDlg(true)} onPollClick={() => setShowPollDlg(true)} uploading={uploading || uploadingImage} placeholder="Escribe tu mensaje..." />
         <ChatLocationDialog open={showLocationDlg} onOpenChange={setShowLocationDlg} onSend={handleSendMessage} />
         <ChatPollDialog open={showPollDlg} onOpenChange={setShowPollDlg} onSend={handleSendMessage} />
       </div>

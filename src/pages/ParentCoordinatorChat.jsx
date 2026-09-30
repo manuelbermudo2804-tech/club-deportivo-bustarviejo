@@ -671,7 +671,7 @@ export default function ParentCoordinatorChat() {
           )}
 
           <UnifiedChatInput
-             mentionCandidates={mentionCandidates(messages, user?.full_name)}
+             mentionCandidates={mentionCandidates(messages, user?.full_name, [conversation?.coordinador_nombre])}
              onSendMessage={handleSendMessage}
              onFileUpload={handleFileUpload}
              onCameraCapture={handleCameraCapture}

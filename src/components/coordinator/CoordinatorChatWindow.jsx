@@ -853,7 +853,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       {/* Input Bar */}
       <div className="border-t bg-white flex-shrink-0 sticky bottom-0 z-10">
          <UnifiedChatInput
-           mentionCandidates={mentionCandidates(messages, user?.full_name)}
+           mentionCandidates={mentionCandidates(messages, user?.full_name, [conversation?.padre_nombre, conversation?.coordinador_nombre])}
            onSendMessage={handleSendMessage}
            onFileUpload={handleFileUpload}
            onCameraCapture={handleCameraCapture}
