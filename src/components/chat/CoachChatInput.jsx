@@ -65,7 +65,6 @@ const CoachChatInput = memo(function CoachChatInput({
     { icon: Camera, label: "Cámara", onClick: () => cameraInputRef.current?.click(), color: "text-green-600", bg: "bg-green-50" },
     { icon: MapPin, label: "Ubicación", onClick: onLocationClick, color: "text-orange-600", bg: "bg-orange-50" },
     { icon: BarChart3, label: "Encuesta", onClick: onPollClick, color: "text-purple-600", bg: "bg-purple-50" },
-    { icon: Dumbbell, label: "Ejercicios", onClick: onExerciseClick, color: "text-red-600", bg: "bg-red-50" },
   ];
 
   return (
