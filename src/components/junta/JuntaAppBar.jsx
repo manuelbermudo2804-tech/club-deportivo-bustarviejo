@@ -21,7 +21,7 @@ export default function JuntaAppBar({ user }) {
   const r = miRespuesta && RESPUESTAS[miRespuesta.respuesta];
 
   return (
-    <div className="px-3 pt-3 lg:px-6">
+    <div className="fixed z-[60] right-3 left-3 bottom-[140px] sm:left-auto sm:w-[420px] lg:bottom-24 lg:right-6">
       <div className={`rounded-2xl p-3 flex flex-wrap items-center gap-3 text-white shadow-lg ${r ? "bg-gradient-to-r from-slate-700 to-slate-800" : "bg-gradient-to-r from-orange-600 to-green-700"}`}>
         <span className="text-2xl">🗳️</span>
         <div className="flex-1 min-w-[180px]">

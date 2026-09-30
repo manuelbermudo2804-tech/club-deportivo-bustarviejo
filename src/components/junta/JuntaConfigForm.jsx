@@ -32,7 +32,13 @@ export default function JuntaConfigForm({ junta, onSaved }) {
       <label className="text-sm">Lugar<Input value={f.lugar || ""} onChange={set("lugar")} placeholder="Campo municipal" /></label>
       <label className="text-sm">Página pública (slug o enlace /l/...)<Input value={f.landing_slug || ""} onChange={set("landing_slug")} placeholder="junta-socios-2026" /></label>
       <label className="text-sm md:col-span-2">Orden del día (un punto por línea)<Textarea rows={4} value={f.orden || ""} onChange={set("orden")} /></label>
-      <div className="flex items-center gap-2 text-sm"><Switch checked={!!f.activa} onCheckedChange={(v) => setF({ ...f, activa: v })} />Mostrar aviso con cuenta atrás en la app</div>
+      <div className="flex items-center gap-2 text-sm"><Switch checked={!!f.activa} onCheckedChange={async (v) => {
+        setF({ ...f, activa: v });
+        if (!junta) return;
+        const saved = await base44.entities.JuntaSocios.update(junta.id, { activa: v });
+        toast.success(v ? "Aviso activado en la app" : "Aviso desactivado");
+        onSaved(saved);
+      }} />Mostrar aviso con cuenta atrás en la app</div>
       <Button onClick={guardar} className="bg-orange-600 hover:bg-orange-700 md:justify-self-end">Guardar junta</Button>
     </CardContent></Card>
   );
