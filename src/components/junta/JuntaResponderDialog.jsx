@@ -45,7 +45,7 @@ export default function JuntaResponderDialog({ open, onOpenChange, forzado, junt
             <div className="mt-4 inline-block rounded-full bg-white text-orange-700 font-black px-4 py-1.5 shadow">⏳ {faltaTexto(junta.fecha)}</div>
           </div>
 
-          <div className="px-5 -mt-5 space-y-4 pb-4">
+          <div className="relative z-10 px-5 -mt-5 space-y-4 pb-4">
             <div className="rounded-2xl bg-white shadow-lg border border-orange-100 p-4 space-y-2 text-sm">
               <p className="flex items-center gap-2 font-semibold capitalize"><CalendarDays className="w-4 h-4 text-orange-600" />{fechaLarga(junta.fecha)}</p>
               {junta.lugar && <p className="flex items-center gap-2"><MapPin className="w-4 h-4 text-green-700" />{junta.lugar}</p>}
