@@ -46,6 +46,13 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
     queryFn: () => base44.entities.ProximoPartido.filter({ jugado: false }, "fecha_iso", 200),
   });
 
+  // Calendario completo de liga (se sincroniza solo desde la federación)
+  const { data: calendario = [], isLoading: l5 } = useQuery({
+    queryKey: ["agenda-calendario-liga"],
+    queryFn: () => base44.entities.Resultado.filter({ estado: "pendiente" }, "jornada", 2000),
+    refetchInterval: 10 * 60_000,
+  });
+
   const { data: eventos = [], isLoading: l4 } = useQuery({
     queryKey: ["agenda-eventos"],
     queryFn: () => base44.entities.Event.list("-fecha", 300),
@@ -141,6 +148,38 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
         };
       });
 
+    // 3b) Resto del calendario de liga (todas las jornadas pendientes)
+    const yaHayPartido = new Set([
+      ...yaHayConvocatoria,
+      ...partidosLiga.map((p) => `${normCat(p.categoria)}|${p.date}`),
+    ]);
+    const toISO = (s) => {
+      const m = (s || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      return m ? `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}` : null;
+    };
+    const calendarioLiga = calendario
+      .filter((r) => norm(r.local).includes("bustarviejo") || norm(r.visitante).includes("bustarviejo"))
+      .map((r) => ({ ...r, iso: toISO(r.fecha_partido) }))
+      .filter((r) => enRango(r.iso) && esMia(r.categoria))
+      .filter((r) => !yaHayPartido.has(`${normCat(r.categoria)}|${r.iso}`))
+      .map((r) => {
+        const esLocal = norm(r.local).includes("bustarviejo");
+        const rival = esLocal ? r.visitante : r.local;
+        return {
+          id: `cal-${r.id}`,
+          kind: "partido",
+          date: r.iso,
+          hora: r.hora_partido,
+          titulo: `Jornada ${r.jornada || "?"} · ${rival || "Rival por confirmar"}`,
+          categoria: r.categoria,
+          ubicacion: r.campo,
+          mapsUrl: mapsUrlFor(r.campo),
+          rival,
+          localVisitante: esLocal ? "Local" : "Visitante",
+          jornada: r.jornada,
+        };
+      });
+
     // 4) Eventos del club (los partidos ya vienen por las vías anteriores)
     const eventosClub = eventos
       .filter((e) => (verTodo || e.publicado) && e.tipo !== "Partido" && enRango(e.fecha))
@@ -164,11 +203,11 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
         notas: e.descripcion,
       }));
 
-    return [...entrenamientos, ...convocatorias, ...partidosLiga, ...eventosClub].sort((a, b) => {
+    return [...entrenamientos, ...convocatorias, ...partidosLiga, ...calendarioLiga, ...eventosClub].sort((a, b) => {
       if (a.date !== b.date) return a.date.localeCompare(b.date);
       return (a.hora || "99:99").localeCompare(b.hora || "99:99");
     });
-  }, [schedules, cancelaciones, callups, partidos, eventos, start, end, myCategories, verTodo, user?.email]);
+  }, [schedules, cancelaciones, callups, partidos, calendario, eventos, start, end, myCategories, verTodo, user?.email]);
 
-  return { items, isLoading: l1 || l2 || l3 || l4 };
+  return { items, isLoading: l1 || l2 || l3 || l4 || l5 };
 }
