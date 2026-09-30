@@ -19,7 +19,7 @@ import EscalateToCoordinatorButton from "./EscalateToCoordinatorButton";
 import ExerciseShareDialog from "../exercises/ExerciseShareDialog";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
-import CoachChatInput from "../chat/CoachChatInput";
+import UnifiedChatInput from "../chat/UnifiedChatInput";
 import EditMessageDialog from "../chat/EditMessageDialog";
 import EmojiScaler from "../chat/EmojiScaler";
 import ReadTicks from "../chat/ReadTicks";
@@ -867,13 +867,12 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         onClose={() => setEditDialogMsg(null)}
         onSave={(m, mensaje) => editMessageMutation.mutate({ id: m.id, mensaje })}
       />
-      <CoachChatInput
+      <UnifiedChatInput
         onSendMessage={handleSendMessage}
         onFileUpload={handleFileUpload}
         onCameraCapture={handleCameraCapture}
         onLocationClick={() => setShowLocationDialog(true)}
         onPollClick={() => setShowPollDialog(true)}
-        onExerciseClick={() => setShowExerciseShare(true)}
         uploading={uploading || uploadingImage}
         placeholder="Escribe un mensaje..."
       />
