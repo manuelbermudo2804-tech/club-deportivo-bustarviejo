@@ -49,7 +49,25 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
   // Calendario completo de liga (se sincroniza solo desde la federación)
   const { data: calendario = [], isLoading: l5 } = useQuery({
     queryKey: ["agenda-calendario-liga"],
-    queryFn: () => base44.entities.Resultado.filter({ estado: "pendiente" }, "jornada", 2000),
+    queryFn: async () => {
+      const caches = await base44.entities.CompetitionCache.filter({ tipo: "jornadas" });
+      return caches.flatMap((c) =>
+        (c.datos?.jornadas || []).flatMap((j) =>
+          (j.matches || [])
+            .filter((m) => !m.jugado && !/descansa/i.test(`${m.local} ${m.visitante}`))
+            .map((m, i) => ({
+              id: `${c.id}-${j.jornada}-${i}`,
+              categoria: c.categoria,
+              jornada: j.jornada,
+              local: m.local,
+              visitante: m.visitante,
+              fecha_partido: m.fecha,
+              hora_partido: m.hora,
+              campo: m.campo,
+            }))
+        )
+      );
+    },
     refetchInterval: 10 * 60_000,
   });
 

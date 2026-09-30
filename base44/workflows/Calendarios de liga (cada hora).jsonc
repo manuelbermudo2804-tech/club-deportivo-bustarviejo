@@ -1,0 +1,41 @@
+{
+  "name": "Calendarios de liga (cada hora)",
+  "description": "Refresca el calendario completo de jornadas de la federaci\u00f3n (2 categor\u00edas por ejecuci\u00f3n, las m\u00e1s antiguas primero) para que la Agenda del club est\u00e9 siempre al d\u00eda.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "15 * * * *",
+      "one_time_date": null,
+      "timezone": "Europe/Madrid",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "calendarios_liga_cada_hora",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "syncCompetitionCache",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  }
+}
