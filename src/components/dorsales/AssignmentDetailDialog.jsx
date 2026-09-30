@@ -44,6 +44,7 @@ function normalizePhoneForWhatsApp(raw) {
 // Diálogo de detalle de un dorsal ya asignado: enviar/reenviar email, WhatsApp, liberar dorsal
 export default function AssignmentDetailDialog({ open, onOpenChange, assignment, onChanged }) {
   const [busy, setBusy] = useState(false);
+  const [confirmFree, setConfirmFree] = useState(false);
   const [player, setPlayer] = useState(null);
   const [tiendaUrl, setTiendaUrl] = useState("");
 
@@ -110,7 +111,8 @@ export default function AssignmentDetailDialog({ open, onOpenChange, assignment,
   };
 
   const handleFree = async () => {
-    if (!confirm(`¿Liberar el dorsal #${assignment.dorsal} de ${assignment.jugador_nombre}? Quedará pendiente.`)) return;
+    if (!confirmFree) { setConfirmFree(true); return; }
+    setConfirmFree(false);
     setBusy(true);
     try {
       await base44.entities.DorsalAssignment.update(assignment.id, { estado: "pendiente" });
@@ -171,7 +173,7 @@ export default function AssignmentDetailDialog({ open, onOpenChange, assignment,
           </Button>
           <Button variant="outline" onClick={handleFree} disabled={busy} className="gap-2 text-red-600 hover:text-red-700">
             <Trash2 className="w-4 h-4" />
-            Liberar dorsal
+            {confirmFree ? "Pulsa otra vez para confirmar" : "Liberar dorsal"}
           </Button>
         </DialogFooter>
       </DialogContent>
