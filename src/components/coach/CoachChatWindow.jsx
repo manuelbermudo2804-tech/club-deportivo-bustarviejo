@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import PollMessage from "../chat/PollMessage";
 import LocationMessage from "../chat/LocationMessage";
 import EscalateToCoordinatorButton from "./EscalateToCoordinatorButton";
+import ChatGalleryButton from "@/components/chat/ChatGalleryButton";
 import ExerciseShareDialog from "../exercises/ExerciseShareDialog";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
@@ -658,6 +659,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
             </p>
           </div>
           <div className="flex items-center gap-1 flex-shrink-0">
+            <ChatGalleryButton messages={messages} />
             <EscalateToCoordinatorButton 
               user={user} 
               categoria={selectedCategory}

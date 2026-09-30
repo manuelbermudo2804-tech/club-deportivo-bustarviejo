@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import PollMessage from "../components/chat/PollMessage";
 import LocationMessage from "../components/chat/LocationMessage";
 import EscalateToCoordinatorButton from "../components/coach/EscalateToCoordinatorButton";
+import ChatGalleryButton from "@/components/chat/ChatGalleryButton";
 import CoachProfilePreview from "../components/coach/CoachProfilePreview";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import UnifiedChatInput from "../components/chat/UnifiedChatInput";
@@ -643,6 +644,7 @@ export default function ParentCoachChat() {
                     </DialogContent>
                   </Dialog>
                 )}
+                <ChatGalleryButton messages={messages} />
                 <EscalateToCoordinatorButton user={user} categoria={selectedCategory} recentMessages={messages} />
               </div>
             </div>
