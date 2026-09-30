@@ -32,7 +32,7 @@ export default function JuntaResponderDialog({ open, onOpenChange, junta, user, 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md w-full h-[100dvh] max-h-[100dvh] rounded-none sm:h-auto sm:max-h-[90vh] sm:rounded-lg overflow-y-auto z-[70]">
         <DialogHeader><DialogTitle>🗳️ {junta.titulo || "Junta General de Socios"}</DialogTitle></DialogHeader>
         <div className="rounded-xl bg-orange-50 p-3 space-y-1 text-sm">
           <p className="flex items-center gap-2 font-semibold capitalize"><CalendarDays className="w-4 h-4" />{fechaLarga(junta.fecha)}</p>

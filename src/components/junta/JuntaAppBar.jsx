@@ -26,7 +26,7 @@ export default function JuntaAppBar({ user, isAdmin }) {
 
   return (
     <div className="fixed z-[60] right-3 left-3 bottom-[140px] sm:left-auto sm:w-[420px] lg:bottom-24 lg:right-6">
-      <div className={`relative rounded-2xl p-3 pr-8 flex flex-wrap items-center gap-3 text-white shadow-lg ${r ? "bg-gradient-to-r from-slate-700 to-slate-800" : "bg-gradient-to-r from-orange-600 to-green-700"}`}>
+      <div className={`${open ? "hidden" : ""} relative rounded-2xl p-3 pr-8 flex flex-wrap items-center gap-3 text-white shadow-lg ${r ? "bg-gradient-to-r from-slate-700 to-slate-800" : "bg-gradient-to-r from-orange-600 to-green-700"}`}>
         <button onClick={cerrar} aria-label="Cerrar aviso" className="absolute top-2 right-3 text-white/80 hover:text-white text-lg leading-none">×</button>
         <span className="text-2xl">🗳️</span>
         <div className="flex-1 min-w-[180px]">
