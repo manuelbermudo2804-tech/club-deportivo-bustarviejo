@@ -28,6 +28,7 @@ import NewMessageButton from "../components/chat/NewMessageButton";
 import ChatLocationDialog from "../components/chat/ChatLocationDialog";
 import ChatPollDialog from "../components/chat/ChatPollDialog";
 import { mentionCandidates } from "@/lib/chatMentions";
+import useMentionNames from "@/hooks/useMentionNames";
 
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
@@ -60,6 +61,7 @@ export default function ParentCoachChat() {
   const [showReactions, setShowReactions] = useState(null);
   const [editDialogMsg, setEditDialogMsg] = useState(null);
   const [categoryCoach, setCategoryCoach] = useState(null);
+  const teamMentionNames = useMentionNames("equipo", selectedCategory);
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
   const queryClient = useQueryClient();
@@ -600,7 +602,7 @@ export default function ParentCoachChat() {
           )}
           <div ref={messagesEndRef} />
         </div>
-        <UnifiedChatInput mentionCandidates={mentionCandidates(messages, user?.full_name, [categoryCoach?.full_name])} onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} onCameraCapture={handleCameraCapture} onLocationClick={() => setShowLocationDlg(true)} onPollClick={() => setShowPollDlg(true)} uploading={uploading || uploadingImage} placeholder="Escribe tu mensaje..." />
+        <UnifiedChatInput mentionCandidates={mentionCandidates(messages, user?.full_name, [categoryCoach?.full_name, ...teamMentionNames])} onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} onCameraCapture={handleCameraCapture} onLocationClick={() => setShowLocationDlg(true)} onPollClick={() => setShowPollDlg(true)} uploading={uploading || uploadingImage} placeholder="Escribe tu mensaje..." />
         <ChatLocationDialog open={showLocationDlg} onOpenChange={setShowLocationDlg} onSend={handleSendMessage} />
         <ChatPollDialog open={showPollDlg} onOpenChange={setShowPollDlg} onSend={handleSendMessage} />
       </div>

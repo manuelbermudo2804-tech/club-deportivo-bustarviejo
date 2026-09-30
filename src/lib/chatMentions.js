@@ -1,5 +1,5 @@
 // Menciones @Nombre en los chats (solo visual, sin notificaciones)
-export const MENTION_REGEX = /(@[\p{Lu}][\p{L}]+(?: [\p{Lu}][\p{L}]+){0,3})/u;
+export const MENTION_REGEX = /(@[\p{L}][\p{L}.]+(?: [\p{Lu}][\p{L}]+){0,3})/u;
 
 const norm = (s) => (s || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 

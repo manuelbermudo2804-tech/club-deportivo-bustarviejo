@@ -33,6 +33,7 @@ import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 import { useImageUpload } from "../components/utils/useImageUpload";
 import { mentionCandidates } from "@/lib/chatMentions";
+import useMentionNames from "@/hooks/useMentionNames";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -46,6 +47,7 @@ export default function StaffChat() {
   const navigate = useNavigate();
    const [user, setUser] = useState(null);
    const [isStaff, setIsStaff] = useState(false);
+   const staffMentionNames = useMentionNames("staff");
   const [uploadingImage, uploadFile] = useImageUpload();
   const [uploading, setUploading] = useState(false);
   const [conversation, setConversation] = useState(null);
@@ -1007,7 +1009,7 @@ export default function StaffChat() {
             onSave={(m, mensaje) => editMessageMutation.mutate({ id: m.id, mensaje })}
           />
           <UnifiedChatInput
-            mentionCandidates={mentionCandidates(messages, user?.full_name, staffUsersFromDB.map(u => u.full_name))}
+            mentionCandidates={mentionCandidates(messages, user?.full_name, staffMentionNames)}
             onSendMessage={handleSendMessage}
             onFileUpload={handleFileUpload}
             onCameraCapture={handleCameraCapture}
