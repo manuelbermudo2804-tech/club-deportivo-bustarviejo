@@ -172,6 +172,21 @@ Deno.serve(async (req) => {
         }
       }
 
+      // Avisar a los administradores
+      if (!yaTiene) {
+        const total = createdPayments.reduce((s, p) => s + (Number(p.cantidad) || 0), 0);
+        const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
+        for (const a of admins) {
+          await base44.asServiceRole.integrations.Core.SendEmail({
+            to: a.email,
+            subject: `Nueva actividad extra: ${updated.nombre} → ${categoria}`,
+            body: `<p><strong>${updated.nombre}</strong> se ha apuntado a <strong>${categoria}</strong> desde su perfil.</p>
+<p>Pagos creados: ${createdPayments.length} (total ${total}€, con descuento de socio).</p>
+<p>Pendiente por parte del club: revisar pagos, tramitar la licencia federativa si hace falta y asignar dorsal.</p>`,
+          }).catch((e) => console.error('[add_extra_category] email admin', a.email, e?.message));
+        }
+      }
+
       return Response.json({ success: true, player: updated, payments: createdPayments });
     }
 
