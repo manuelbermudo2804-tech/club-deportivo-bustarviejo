@@ -21,6 +21,7 @@ import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
 import BankReconciliation from "../components/payments/BankReconciliation";
 import ExportButton from "../components/ExportButton";
+import DeudaAnteriorRevisionPanel from "@/components/payments/DeudaAnteriorRevisionPanel";
 import CustomPaymentPlansList from "../components/payments/CustomPaymentPlansList";
 import CustomPaymentPlanForm from "../components/payments/CustomPaymentPlanForm";
 import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImportePorMes } from "../components/payments/paymentAmounts";
@@ -993,6 +994,16 @@ export default function Payments() {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {isAdmin && (
+        <DeudaAnteriorRevisionPanel
+          payments={payments}
+          currentSeason={activeSeasonStr}
+          onVer={setPreviewImage}
+          onAprobar={(p) => handleStatusChange(p, "Pagado")}
+          onRechazar={(p) => handleStatusChange(p, "Pendiente")}
+        />
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
