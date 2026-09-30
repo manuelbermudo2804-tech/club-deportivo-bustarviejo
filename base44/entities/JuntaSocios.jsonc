@@ -1,0 +1,55 @@
+{
+  "name": "JuntaSocios",
+  "type": "object",
+  "description": "Convocatoria de Junta General de Socios",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "default": "Junta General de Socios"
+    },
+    "fecha": {
+      "type": "string",
+      "description": "Fecha y hora local (YYYY-MM-DDTHH:mm)"
+    },
+    "lugar": {
+      "type": "string"
+    },
+    "orden_dia": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Puntos del orden del d\u00eda"
+    },
+    "landing_slug": {
+      "type": "string",
+      "description": "Slug de la p\u00e1gina p\u00fablica del constructor (/l/slug) cuyas respuestas se suman"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si se muestra el aviso en la app"
+    }
+  },
+  "required": [
+    "fecha"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

@@ -41,6 +41,7 @@ import ChatCountsBridge from "./components/chat/ChatCountsBridge";
 import { SeasonProvider } from "./components/season/SeasonProvider";
 import ActiveBanner from "./components/announcements/ActiveBanner";
 import FestiveTheme from "./components/festivo/FestiveTheme";
+import JuntaAppBar from "./components/junta/JuntaAppBar";
 import AutoPushSubscriber from "./components/notifications/AutoPushSubscriber";
 import PushPermissionBanner from "./components/notifications/PushPermissionBanner";
 import SponsorRecruitBanner from "./components/sponsors/SponsorRecruitBanner";
@@ -664,6 +665,7 @@ export default function Layout({ children, currentPageName }) {
 
         <FestiveTheme />
         <ActiveBanner position="top" user={user} />
+        {user && <JuntaAppBar user={user} />}
 
           <PullToRefresh>
             <ErrorBoundary label="la página actual" onReset={() => window.location.reload()}>

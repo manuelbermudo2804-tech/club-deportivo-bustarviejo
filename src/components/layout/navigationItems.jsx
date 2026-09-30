@@ -74,6 +74,7 @@ export function buildAdminNavigation(ctx) {
     { title: "─ COMUNICACIÓN ─", section: true },
     { title: "💬 Chats", url: createPageUrl("AdminChatsHub"), icon: MessageCircle, badge: (chatMenuCounts.staffCount || 0) + (chatMenuCounts.coordinatorCount || 0) },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
+    { title: "🗳️ Junta de Socios", url: "/JuntaSocios", icon: Users },
     { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "💬 Feedback Usuarios", url: createPageUrl("FeedbackManagement"), icon: MessageCircle, badge: ctx.pendingFeedback > 0 ? ctx.pendingFeedback : null },

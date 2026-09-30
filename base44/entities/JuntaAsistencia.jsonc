@@ -1,0 +1,71 @@
+{
+  "name": "JuntaAsistencia",
+  "type": "object",
+  "description": "Respuesta de asistencia a la junta desde la app",
+  "properties": {
+    "junta_id": {
+      "type": "string"
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "respuesta": {
+      "type": "string",
+      "enum": [
+        "voy",
+        "no_voy",
+        "delego"
+      ],
+      "default": "voy"
+    },
+    "personas": {
+      "type": "number",
+      "default": 1,
+      "description": "Personas que vienen (incluido \u00e9l/ella)"
+    },
+    "pregunta": {
+      "type": "string",
+      "description": "Pregunta o tema para la junta"
+    }
+  },
+  "required": [
+    "junta_id",
+    "email",
+    "respuesta"
+  ],
+  "rls": {
+    "create": {},
+    "read": {
+      "$or": [
+        {
+          "data.email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

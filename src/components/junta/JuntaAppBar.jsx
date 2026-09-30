@@ -1,0 +1,41 @@
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { useQueryClient } from "@tanstack/react-query";
+import useJuntaActiva from "@/hooks/useJuntaActiva";
+import { RESPUESTAS, faltaTexto, fechaLarga } from "@/lib/juntaUtils";
+import JuntaResponderDialog from "./JuntaResponderDialog";
+
+// Aviso fijo en toda la app con cuenta atrás hasta la junta
+export default function JuntaAppBar({ user }) {
+  const { junta, miRespuesta, refetch } = useJuntaActiva(user);
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [, tick] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => tick((n) => n + 1), 60000);
+    return () => clearInterval(t);
+  }, []);
+
+  if (!junta) return null;
+  const r = miRespuesta && RESPUESTAS[miRespuesta.respuesta];
+
+  return (
+    <div className="px-3 pt-3 lg:px-6">
+      <div className={`rounded-2xl p-3 flex flex-wrap items-center gap-3 text-white shadow-lg ${r ? "bg-gradient-to-r from-slate-700 to-slate-800" : "bg-gradient-to-r from-orange-600 to-green-700"}`}>
+        <span className="text-2xl">🗳️</span>
+        <div className="flex-1 min-w-[180px]">
+          <p className="font-bold leading-tight">{junta.titulo || "Junta General de Socios"}</p>
+          <p className="text-xs opacity-90 capitalize">{fechaLarga(junta.fecha)}{junta.lugar ? ` · ${junta.lugar}` : ""}</p>
+        </div>
+        <span className="rounded-full bg-white/20 px-3 py-1 text-sm font-bold">⏳ {faltaTexto(junta.fecha)}</span>
+        {r ? (
+          <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>{r.emoji} {r.label} · Cambiar</Button>
+        ) : (
+          <Button size="sm" className="bg-white text-orange-700 hover:bg-orange-50 font-bold" onClick={() => setOpen(true)}>¿Vienes? Responde</Button>
+        )}
+      </div>
+      <JuntaResponderDialog open={open} onOpenChange={setOpen} junta={junta} user={user} miRespuesta={miRespuesta} onSaved={() => { refetch(); qc.invalidateQueries({ queryKey: ["juntaRespuestas"] }); }} />
+    </div>
+  );
+}

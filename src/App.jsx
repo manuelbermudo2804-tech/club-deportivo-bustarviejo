@@ -90,6 +90,7 @@ const MinorCoachAttendance = lazy(() => import('@/pages/MinorCoachAttendance'));
 const EnviarContenidoWeb = lazy(() => import('@/pages/EnviarContenidoWeb'));
 const AgendaClub = lazy(() => import('@/pages/AgendaClub'));
 const ExpedienteSubvencion = lazy(() => import('@/pages/ExpedienteSubvencion'));
+const JuntaSocios = lazy(() => import('@/pages/JuntaSocios'));
 
 const PageSpinner = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -292,6 +293,7 @@ const AuthenticatedApp = () => {
       <Route path="/MinorCoachAttendance" element={<LayoutWrapper currentPageName="MinorCoachAttendance"><MinorCoachAttendance /></LayoutWrapper>} />
       <Route path="/AgendaClub" element={<LayoutWrapper currentPageName="AgendaClub"><AgendaClub /></LayoutWrapper>} />
       <Route path="/ExpedienteSubvencion" element={<LayoutWrapper currentPageName="ExpedienteSubvencion"><ExpedienteSubvencion /></LayoutWrapper>} />
+      <Route path="/JuntaSocios" element={<LayoutWrapper currentPageName="JuntaSocios"><JuntaSocios /></LayoutWrapper>} />
 
       <Route path="/ShareReceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
       <Route path="/sharereceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
