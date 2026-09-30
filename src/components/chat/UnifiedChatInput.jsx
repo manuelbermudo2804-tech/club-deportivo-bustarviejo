@@ -93,7 +93,7 @@ const UnifiedChatInput = memo(function UnifiedChatInput({
 
   const mentionMatch = localText.match(/(?:^|\s)@([\p{L}]*)$/u);
   const mentionOptions = mentionMatch
-    ? mentionCandidates.filter(n => n.toLowerCase().startsWith(mentionMatch[1].toLowerCase())).slice(0, 6)
+    ? mentionCandidates.filter(n => n.toLowerCase().split(/\s+/).some(w => w.startsWith(mentionMatch[1].toLowerCase())))
     : [];
   const insertMention = (name) => {
     setLocalText(localText.replace(/@([\p{L}]*)$/u, `@${name} `));
