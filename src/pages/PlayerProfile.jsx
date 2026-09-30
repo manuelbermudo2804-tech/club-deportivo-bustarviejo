@@ -19,6 +19,8 @@ import RenewalPaymentFlow from "../components/renewals/RenewalPaymentFlow";
 import RenewalSuccessScreen from "../components/renewals/RenewalSuccessScreen";
 import PlayerStatsWidget from "../components/players/PlayerStatsWidget";
 import PlayerEvolutionTab from "../components/players/PlayerEvolutionTab";
+import AddExtraActivityDialog from "../components/players/AddExtraActivityDialog";
+import { PlusCircle } from "lucide-react";
 
 export default function PlayerProfile() {
   const queryClient = useQueryClient();
@@ -27,6 +29,7 @@ export default function PlayerProfile() {
   const [showPaymentFlow, setShowPaymentFlow] = useState(false);
   const [renewalSuccess, setRenewalSuccess] = useState(false);
   const [renewalData, setRenewalData] = useState(null);
+  const [showExtra, setShowExtra] = useState(false);
 
   const { data: user } = useQuery({
     queryKey: ["me"],
@@ -273,6 +276,10 @@ export default function PlayerProfile() {
       {/* Header con acciones */}
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <h1 className="text-3xl md:text-4xl font-bold">Mi Ficha</h1>
+        <div className="flex gap-2 flex-wrap">
+        <Button variant="outline" onClick={() => setShowExtra(true)} className="border-blue-300 text-blue-700">
+          <PlusCircle className="w-4 h-4 mr-2" /> Apuntarme a otra actividad
+        </Button>
         <Button
           onClick={() => (editMode ? handleSave() : setEditMode(true))}
           className={`${editMode ? "bg-green-600 hover:bg-green-700" : "bg-orange-600 hover:bg-orange-700"}`}
@@ -280,7 +287,14 @@ export default function PlayerProfile() {
           <Save className="w-4 h-4 mr-2" />
           {editMode ? "Guardar" : "Editar"}
         </Button>
+        </div>
       </div>
+      <AddExtraActivityDialog
+        player={player}
+        open={showExtra}
+        onOpenChange={setShowExtra}
+        onDone={() => queryClient.invalidateQueries({ queryKey: ["myPlayerProfile"] })}
+      />
 
       {/* Tarjeta de perfil IMPACTANTE */}
       <Card className="border-0 shadow-xl overflow-hidden">

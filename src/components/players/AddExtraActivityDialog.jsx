@@ -121,7 +121,10 @@ export default function AddExtraActivityDialog({ player, open, onOpenChange, onD
                       <p className="font-bold text-slate-900">{cat.nombre}</p>
                       <p className="text-xs text-slate-500">{cat.deporte || 'Fútbol'}</p>
                     </div>
-                    <span className="text-blue-700 font-bold">{cat.cuota_total}€</span>
+                    <span className="text-blue-700 font-bold text-right">
+                      {cat.cuota_total - 25}€
+                      <span className="block text-xs text-slate-400 line-through font-normal">{cat.cuota_total}€</span>
+                    </span>
                   </button>
                 ))}
               </div>
@@ -133,7 +136,8 @@ export default function AddExtraActivityDialog({ player, open, onOpenChange, onD
               playerData={{ ...player, deporte: selectedCategory.nombre }}
               seasonConfig={seasonConfig}
               categoryConfigs={[selectedCategory]}
-              descuentoHermano={0}
+              descuentoHermano={currentCats.length > 0 ? 25 : 0}
+              motivoDescuento="socio"
               onContinue={handlePaymentContinue}
               userEmail={player?.email_padre}
             />

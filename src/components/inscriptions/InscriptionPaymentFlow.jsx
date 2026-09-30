@@ -21,6 +21,7 @@ export default function InscriptionPaymentFlow({
   seasonConfig, 
   categoryConfigs: categoryConfigsProp,
   descuentoHermano = 0,
+  motivoDescuento = "hermano",
   onContinue,
   userEmail
 }) {
@@ -106,7 +107,7 @@ export default function InscriptionPaymentFlow({
         estado: "Pendiente",
         metodo_pago: "Transferencia",
         notas: [
-          descuentoHermano > 0 ? `Descuento hermano: -${descuentoHermano}€` : null,
+          descuentoHermano > 0 ? `Descuento ${motivoDescuento}: -${descuentoHermano}€` : null,
           aportTotal > 0 ? `Incluye ${aportTotal}€ de aportación al Fondo Solidario` : null
         ].filter(Boolean).join(' | '),
         aportacion_solidaria: aportTotal,
@@ -125,7 +126,7 @@ export default function InscriptionPaymentFlow({
           estado: "Pendiente",
           metodo_pago: "Transferencia",
           notas: [
-            descuentoHermano > 0 ? `Descuento hermano: -${descuentoHermano}€` : null,
+            descuentoHermano > 0 ? `Descuento ${motivoDescuento}: -${descuentoHermano}€` : null,
             aportPrimera > 0 ? `Incluye ${aportPrimera}€ Fondo Solidario` : null
           ].filter(Boolean).join(' | '),
           aportacion_solidaria: aportPrimera,
@@ -170,7 +171,7 @@ export default function InscriptionPaymentFlow({
         cantidad: pagoInicial + aportTotal,
         estado: "Pendiente",
         metodo_pago: "Transferencia",
-        notas: `Plan Mensual: ${pagoInicial}€ inicial + ${numMeses}x ${mensualidad}€/mes (Sept-${mesFin})${descuentoHermano > 0 ? ` | Descuento hermano: -${descuentoHermano}€` : ''}${aportTotal > 0 ? ` | Incluye ${aportTotal}€ Fondo Solidario` : ''}`,
+        notas: `Plan Mensual: ${pagoInicial}€ inicial + ${numMeses}x ${mensualidad}€/mes (Sept-${mesFin})${descuentoHermano > 0 ? ` | Descuento ${motivoDescuento}: -${descuentoHermano}€` : ''}${aportTotal > 0 ? ` | Incluye ${aportTotal}€ Fondo Solidario` : ''}`,
         aportacion_solidaria: aportTotal,
         aportacion_solidaria_total: aportTotal
       });
@@ -233,9 +234,9 @@ export default function InscriptionPaymentFlow({
           <Alert className="bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-300 animate-pulse">
             <Gift className="h-5 w-5 text-purple-600" />
             <AlertDescription className="text-purple-900">
-              <p className="font-bold text-lg mb-2">🎉 ¡Descuento Familiar Aplicado!</p>
+              <p className="font-bold text-lg mb-2">{motivoDescuento === "hermano" ? "🎉 ¡Descuento Familiar Aplicado!" : "🎉 ¡Descuento de Socio Aplicado!"}</p>
               <p className="text-sm mb-2">
-                <strong>{playerData.nombre}</strong> tiene un descuento de <strong className="text-purple-700 text-xl">{descuentoHermano}€</strong> por tener hermanos mayores inscritos en el club.
+                <strong>{playerData.nombre}</strong> tiene un descuento de <strong className="text-purple-700 text-xl">{descuentoHermano}€</strong> {motivoDescuento === "hermano" ? "por tener hermanos mayores inscritos en el club." : "por estar ya inscrito en otra categoría del club."}
               </p>
               <div className="bg-white rounded-lg p-3 mt-3 border-2 border-purple-200">
                 <p className="text-xs text-purple-800">
@@ -401,7 +402,7 @@ export default function InscriptionPaymentFlow({
                 {descuentoHermano > 0 && (
                   <div className="bg-purple-100 border-2 border-purple-300 rounded-lg p-2">
                     <p className="text-xs text-purple-900 text-center font-bold">
-                      💜 Descuento hermano aplicado: -{descuentoHermano}€
+                      💜 Descuento {motivoDescuento} aplicado: -{descuentoHermano}€
                     </p>
                   </div>
                 )}
@@ -430,7 +431,7 @@ export default function InscriptionPaymentFlow({
               {descuentoHermano > 0 && (
                 <div className="bg-purple-100 border-2 border-purple-300 rounded-lg p-2">
                   <p className="text-xs text-purple-900 text-center font-bold">
-                    💜 Descuento hermano aplicado: -{descuentoHermano}€
+                    💜 Descuento {motivoDescuento} aplicado: -{descuentoHermano}€
                   </p>
                 </div>
               )}
