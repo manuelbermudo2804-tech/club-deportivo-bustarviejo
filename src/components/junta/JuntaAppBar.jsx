@@ -25,7 +25,7 @@ export default function JuntaAppBar({ user, isAdmin }) {
   return (
     <>
       {r && (
-        <button onClick={() => setEditar(true)} className="fixed z-[60] top-[60px] lg:top-2 left-1/2 -translate-x-1/2 rounded-full bg-slate-800/90 text-white text-xs font-semibold px-3 py-1 shadow">
+        <button onClick={() => setEditar(true)} className="w-full bg-gradient-to-r from-orange-600 to-green-700 text-white text-xs font-semibold px-3 py-2 text-center">
           🗳️ Junta: {faltaTexto(junta.fecha)} · {r.emoji} {r.label}
         </button>
       )}

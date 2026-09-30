@@ -42,6 +42,12 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
         const saved = await base44.entities.JuntaSocios.update(junta.id, { activa: v });
         toast.success(v ? "Aviso activado en la app" : "Aviso desactivado");
         onSaved(saved);
+        if (v && window.confirm("¿Enviar ahora el correo de convocatoria a los socios?\n\n• Socios con app → se les remite al aviso de la app\n• Socios sin app → al enlace de la página pública")) {
+          const t = toast.loading("Enviando correos…");
+          const { data } = await base44.functions.invoke("juntaEnviarAviso", { junta_id: junta.id });
+          toast.dismiss(t);
+          toast.success(`Correos enviados: ${data.app} a usuarios de la app, ${data.web} con enlace web${data.sinWeb ? ` · ${data.sinWeb} sin enviar (falta página pública)` : ""}${data.fallos ? ` · ${data.fallos} fallidos` : ""}`);
+        }
       }} />{f.activa ? "🟢 Junta ACTIVA — el aviso sale en la app" : "⚪ Junta DESACTIVADA — nadie ve el aviso"}</div>
       <div className="flex gap-2 md:justify-self-end">
         {junta && <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-50" onClick={async () => {
