@@ -17,16 +17,16 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
   }, [junta]);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
-  const guardar = async () => {
+  const guardar = async (silencioso) => {
     if (!f.fecha) return toast.error("Pon la fecha y hora");
-    const data = { titulo: f.titulo, fecha: f.fecha, lugar: f.lugar, landing_slug: f.landing_slug.trim().replace(/^.*\/l\//, ""), activa: f.activa, email_prueba: (f.email_prueba || "").trim(), orden_dia: f.orden.split("\n").map((s) => s.trim()).filter(Boolean) };
+    const data = { titulo: f.titulo, fecha: f.fecha, lugar: f.lugar, landing_slug: f.landing_slug.trim().replace(/^.*\/l\//, ""), ...(silencioso === true ? {} : { activa: f.activa }), email_prueba: (f.email_prueba || "").trim(), orden_dia: f.orden.split("\n").map((s) => s.trim()).filter(Boolean) };
     const saved = junta ? await base44.entities.JuntaSocios.update(junta.id, data) : await base44.entities.JuntaSocios.create(data);
-    toast.success("Junta guardada");
+    toast.success(silencioso === true ? "Cambio guardado ✓" : "Junta creada");
     onSaved(saved);
   };
 
   return (
-    <Card><CardContent className="p-4 grid gap-3 md:grid-cols-2">
+    <Card><CardContent className="p-4 grid gap-3 md:grid-cols-2" onBlur={() => junta && guardar(true)}>
       <label className="text-sm">Título<Input value={f.titulo || ""} onChange={set("titulo")} /></label>
       <label className="text-sm">Fecha y hora<Input type="datetime-local" value={f.fecha || ""} onChange={set("fecha")} /></label>
       <label className="text-sm">Lugar<Input value={f.lugar || ""} onChange={set("lugar")} placeholder="Campo municipal" /></label>
@@ -35,13 +35,14 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
         <Input value={f.email_prueba || ""} onChange={set("email_prueba")} placeholder="tu@email.com" className="mt-1 bg-white" />
       </label>
       <label className="text-sm md:col-span-2">Orden del día (un punto por línea)<Textarea rows={4} value={f.orden || ""} onChange={set("orden")} /></label>
-      <div className="flex items-center gap-2 text-sm"><Switch checked={!!f.activa} onCheckedChange={async (v) => {
+      <p className="text-xs text-slate-500 md:col-span-2">Pega aquí el enlace de la página que hayas hecho en el Constructor de páginas (con su formulario de asistencia). Las respuestas de esa página se suman solas a las de la app en la tabla de abajo.</p>
+      <div className={`flex items-center gap-3 text-sm font-semibold rounded-lg p-3 md:col-span-2 ${f.activa ? "bg-green-50 text-green-800" : "bg-slate-100 text-slate-600"}`}><Switch checked={!!f.activa} onCheckedChange={async (v) => {
         setF({ ...f, activa: v });
         if (!junta) return;
         const saved = await base44.entities.JuntaSocios.update(junta.id, { activa: v });
         toast.success(v ? "Aviso activado en la app" : "Aviso desactivado");
         onSaved(saved);
-      }} />Mostrar aviso con cuenta atrás en la app</div>
+      }} />{f.activa ? "🟢 Junta ACTIVA — el aviso sale en la app" : "⚪ Junta DESACTIVADA — nadie ve el aviso"}</div>
       <div className="flex gap-2 md:justify-self-end">
         {junta && <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-50" onClick={async () => {
           if (!window.confirm("¿Cancelar y borrar esta junta? Desaparecerá el aviso para todos.")) return;
@@ -49,7 +50,7 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
           toast.success("Junta cancelada");
           onDeleted();
         }}>Cancelar junta</Button>}
-        <Button onClick={guardar} className="bg-orange-600 hover:bg-orange-700">{junta ? "Guardar cambios" : "Crear junta"}</Button>
+        {!junta && <Button onClick={() => guardar()} className="bg-orange-600 hover:bg-orange-700">Crear junta</Button>}
       </div>
     </CardContent></Card>
   );
