@@ -46,6 +46,28 @@
       "type": "number",
       "description": "Precio anual del patrocinio en euros"
     },
+    "pagos_temporadas": {
+      "type": "array",
+      "description": "Temporadas en las que el patrocinador ya ha pagado",
+      "items": {
+        "type": "object",
+        "properties": {
+          "temporada": {
+            "type": "string"
+          },
+          "fecha_pago": {
+            "type": "string",
+            "format": "date"
+          },
+          "importe": {
+            "type": "number"
+          },
+          "marcado_por": {
+            "type": "string"
+          }
+        }
+      }
+    },
     "fecha_inicio": {
       "type": "string",
       "format": "date",

@@ -6,6 +6,7 @@ import { Pencil, Trash2, FileText, Calendar, Building2, Phone, Mail, Power, Mous
 import { Switch } from "@/components/ui/switch";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
+import SponsorPagoTemporada from "./SponsorPagoTemporada";
 
 const nivelColors = {
   "Principal": "bg-gradient-to-r from-yellow-500 to-amber-600 text-white",
@@ -89,6 +90,8 @@ export default function SponsorCard({ sponsor, onEdit, onDelete, onToggleActive 
             <span className="text-sm text-slate-400">/año</span>
           </div>
         ) : null}
+
+        <SponsorPagoTemporada sponsor={sponsor} />
 
         {/* Switch banner + clicks en una fila compacta */}
         <div className="mb-4 grid grid-cols-2 gap-2">
