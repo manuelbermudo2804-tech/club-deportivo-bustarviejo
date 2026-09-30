@@ -147,6 +147,29 @@
       "format": "date-time",
       "description": "Fecha en que se marc\u00f3 la firma del tutor como completada"
     },
+    "firmas_extra": {
+      "type": "array",
+      "description": "Firmas federativas adicionales por categor\u00eda (jugadores apuntados a varias categor\u00edas, ej: F\u00fatbol Sala)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "categoria": {
+            "type": "string"
+          },
+          "enlace": {
+            "type": "string"
+          },
+          "completada": {
+            "type": "boolean",
+            "default": false
+          },
+          "fecha_completada": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
     "documentos_adicionales": {
       "type": "array",
       "items": {

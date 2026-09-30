@@ -11,6 +11,7 @@ import { FileSignature, ExternalLink, CheckCircle2, Clock, AlertCircle, User, Se
 import { toast } from "sonner";
 import PlayerDocsForFederation from "@/components/federation/PlayerDocsForFederation";
 import RecordarFirmaButton from "@/components/federation/RecordarFirmaButton";
+import FirmasExtraAdmin from "@/components/federation/FirmasExtraAdmin";
 
 export default function FederationSignaturesAdmin() {
   const [user, setUser] = useState(null);
@@ -447,6 +448,7 @@ export default function FederationSignaturesAdmin() {
 
                       {/* Documentación que la Federación necesita adjuntar */}
                       <PlayerDocsForFederation player={player} esMayorDeEdad={esMayorDeEdad} />
+                      <FirmasExtraAdmin player={player} />
                     </div>
 
                     {/* Acciones */}

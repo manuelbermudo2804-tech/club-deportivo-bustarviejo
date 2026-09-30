@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
+import FirmasExtraJugador from "@/components/federation/FirmasExtraJugador";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -215,6 +216,7 @@ export default function FederationSignatures() {
           </div>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
+          <FirmasExtraJugador player={player} />
           {/* Firma del Jugador */}
           {hasEnlaceJugador && (
             <div className={`p-4 rounded-lg border-2 ${firmaJugadorOk ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
