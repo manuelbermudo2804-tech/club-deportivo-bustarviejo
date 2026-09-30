@@ -665,7 +665,7 @@ export default function Layout({ children, currentPageName }) {
 
         <FestiveTheme />
         <ActiveBanner position="top" user={user} />
-        {user && <JuntaAppBar user={user} />}
+        {user && !isAdmin && <JuntaAppBar user={user} />}
 
           <PullToRefresh>
             <ErrorBoundary label="la página actual" onReset={() => window.location.reload()}>
