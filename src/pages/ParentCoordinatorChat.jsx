@@ -24,6 +24,10 @@ import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 import ChatMessageActions from "../components/chat/ChatMessageActions";
 import ReadTicks from "../components/chat/ReadTicks";
+import ChatLocationDialog from "../components/chat/ChatLocationDialog";
+import ChatPollDialog from "../components/chat/ChatPollDialog";
+import PollMessage from "../components/chat/PollMessage";
+import LocationMessage from "../components/chat/LocationMessage";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -336,6 +340,8 @@ export default function ParentCoordinatorChat() {
         audio_url: messageData.audio_url,
         audio_duracion: messageData.audio_duracion,
         archivos_adjuntos: messageData.adjuntos || messageData.archivos_adjuntos || [],
+        ...(messageData.ubicacion ? { ubicacion: messageData.ubicacion } : {}),
+        ...(messageData.encuesta ? { encuesta: messageData.encuesta } : {}),
         leido_padre: true,
         leido_coordinador: false,
         fecha_leido_padre: new Date().toISOString()
@@ -357,6 +363,17 @@ export default function ParentCoordinatorChat() {
       });
     }
   });
+
+  const [showLocationDlg, setShowLocationDlg] = useState(false);
+  const [showPollDlg, setShowPollDlg] = useState(false);
+  const votePoll = async (messageId, optionIndex) => {
+    const msg = messages.find(m => m.id === messageId);
+    if (!msg?.encuesta) return;
+    const votos = [...(msg.encuesta.votos || []).filter(v => v.usuario_email !== user.email),
+      { usuario_email: user.email, usuario_nombre: user.full_name, opcion_index: optionIndex, fecha: new Date().toISOString() }];
+    await base44.entities.CoordinatorMessage.update(messageId, { encuesta: { ...msg.encuesta, votos } });
+    queryClient.invalidateQueries({ queryKey: ['parentCoordinatorMessages', conversation?.id] });
+  };
 
   const handleSendMessage = useCallback((messageData) => {
     if (!termsAccepted) {
@@ -595,6 +612,12 @@ export default function ParentCoordinatorChat() {
                           <EmojiScaler content={msg.mensaje} />
                         </p>
                       )}
+                      {msg.ubicacion && <div className="mt-1"><LocationMessage ubicacion={msg.ubicacion} /></div>}
+                      {msg.encuesta && (
+                        <div className="mt-1">
+                          <PollMessage encuesta={msg.encuesta} messageId={msg.id} userEmail={user.email} userName={user.full_name} onVote={votePoll} isCreator={msg.autor_email === user.email} />
+                        </div>
+                      )}
                       {(() => {
                         const attachments = msg.archivos_adjuntos || msg.adjuntos || [];
                         const images = attachments.filter(f => f.tipo?.startsWith('image/') || f.url?.match(/\.(jpg|jpeg|png|gif|webp)$/i));
@@ -650,10 +673,14 @@ export default function ParentCoordinatorChat() {
              onSendMessage={handleSendMessage}
              onFileUpload={handleFileUpload}
              onCameraCapture={handleCameraCapture}
+             onLocationClick={() => setShowLocationDlg(true)}
+             onPollClick={() => setShowPollDlg(true)}
              uploading={uploading || uploadingImage}
              disabled={user?.chat_bloqueado}
              placeholder={user?.chat_bloqueado ? "Chat bloqueado" : "Escribe tu mensaje..."}
            />
+          <ChatLocationDialog open={showLocationDlg} onOpenChange={setShowLocationDlg} onSend={handleSendMessage} />
+          <ChatPollDialog open={showPollDlg} onOpenChange={setShowPollDlg} onSend={handleSendMessage} />
         </CardContent>
       </Card>
 

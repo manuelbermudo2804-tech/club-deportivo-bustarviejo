@@ -25,6 +25,8 @@ import ChatMessageActions from "../components/chat/ChatMessageActions";
 import EditMessageDialog from "../components/chat/EditMessageDialog";
 import ReadTicks from "../components/chat/ReadTicks";
 import NewMessageButton from "../components/chat/NewMessageButton";
+import ChatLocationDialog from "../components/chat/ChatLocationDialog";
+import ChatPollDialog from "../components/chat/ChatPollDialog";
 
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
@@ -306,6 +308,8 @@ export default function ParentCoachChat() {
          audio_url: messageData.audio_url,
          audio_duracion: messageData.audio_duracion,
          archivos_adjuntos: messageData.adjuntos || [],
+         ...(messageData.ubicacion ? { ubicacion: messageData.ubicacion } : {}),
+         ...(messageData.encuesta ? { encuesta: messageData.encuesta } : {}),
          grupo_id: gid,
          deporte: selectedCategory,
          leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }],
@@ -399,6 +403,8 @@ export default function ParentCoachChat() {
     setShowReactions(null);
   };
 
+  const [showLocationDlg, setShowLocationDlg] = useState(false);
+  const [showPollDlg, setShowPollDlg] = useState(false);
   const handleSendMessage = useCallback((messageData) => {
     sendMessageMutation.mutate(messageData);
   }, [sendMessageMutation]);
@@ -593,7 +599,9 @@ export default function ParentCoachChat() {
           )}
           <div ref={messagesEndRef} />
         </div>
-        <UnifiedChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} onCameraCapture={handleCameraCapture} uploading={uploading || uploadingImage} placeholder="Escribe tu mensaje..." />
+        <UnifiedChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} onCameraCapture={handleCameraCapture} onLocationClick={() => setShowLocationDlg(true)} onPollClick={() => setShowPollDlg(true)} uploading={uploading || uploadingImage} placeholder="Escribe tu mensaje..." />
+        <ChatLocationDialog open={showLocationDlg} onOpenChange={setShowLocationDlg} onSend={handleSendMessage} />
+        <ChatPollDialog open={showPollDlg} onOpenChange={setShowPollDlg} onSend={handleSendMessage} />
       </div>
     );
 
