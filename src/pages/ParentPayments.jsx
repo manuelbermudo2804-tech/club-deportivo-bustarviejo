@@ -25,6 +25,7 @@ import EmptyState from "../components/common/EmptyState";
 import ContactCard from "../components/ContactCard";
 import ParentPaymentForm from "../components/payments/ParentPaymentForm";
 import PaymentCard from "../components/payments/PaymentCard";
+import DeudaAnteriorBlock from "@/components/payments/DeudaAnteriorBlock";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 
@@ -997,6 +998,17 @@ export default function ParentPayments() {
                     </div>
                   </CardHeader>
                   <CardContent className="p-6">
+                    <DeudaAnteriorBlock
+                      player={player}
+                      payments={payments}
+                      currentSeason={currentSeason}
+                      uploadingPaymentId={uploadingPaymentId}
+                      onUpload={handleFileUpload}
+                      onPayClick={(pl, pay) => {
+                        setPayModalContext({ player: pl, payment: pay });
+                        setPayModalOpen(true);
+                      }}
+                    />
                     {/* Alerta de plan personalizado */}
                     {playerCustomPlan && (
                       <div className="mb-4 p-3 bg-gradient-to-r from-purple-50 to-purple-100 border-2 border-purple-400 rounded-lg">
