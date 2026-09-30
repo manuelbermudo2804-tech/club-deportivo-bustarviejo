@@ -269,7 +269,7 @@ Deno.serve(async (req) => {
     const lastSync = (cat) => caches.find((c) => c.categoria === cat)?.ultima_sync || '';
     const configs = allConfigs
       .sort((a, b) => lastSync(a.categoria).localeCompare(lastSync(b.categoria)))
-      .slice(0, 2);
+      .slice(0, 1);
     if (!configs || configs.length === 0) {
       return Response.json({ error: 'No StandingsConfig found' }, { status: 400 });
     }
