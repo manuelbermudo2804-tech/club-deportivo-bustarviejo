@@ -255,12 +255,21 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
 
     // Verificar admin
-    const user = await base44.auth.me();
-    if (user?.role !== 'admin') {
+    // Llamada manual: solo admin. Llamada programada (sin usuario): permitida.
+    const user = await base44.auth.me().catch(() => null);
+    if (user && user.role !== 'admin') {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    const configs = await base44.asServiceRole.entities.StandingsConfig.list();
+    // Cada ejecución refresca solo las 2 categorías con el calendario más antiguo,
+    // para no pasarse del tiempo máximo. Programado cada hora, todo queda al día.
+    const allConfigs = (await base44.asServiceRole.entities.StandingsConfig.list())
+      .filter((c) => c.rfef_url || c.rfef_results_url);
+    const caches = await base44.asServiceRole.entities.CompetitionCache.filter({ tipo: 'jornadas' });
+    const lastSync = (cat) => caches.find((c) => c.categoria === cat)?.ultima_sync || '';
+    const configs = allConfigs
+      .sort((a, b) => lastSync(a.categoria).localeCompare(lastSync(b.categoria)))
+      .slice(0, 2);
     if (!configs || configs.length === 0) {
       return Response.json({ error: 'No StandingsConfig found' }, { status: 400 });
     }
