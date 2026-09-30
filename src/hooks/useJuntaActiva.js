@@ -10,7 +10,8 @@ export default function useJuntaActiva(user) {
       const limite = Date.now() - 6 * 3600000;
       return list.find((j) => new Date(j.fecha).getTime() > limite) || null;
     },
-    staleTime: 5 * 60000,
+    staleTime: 30000,
+    refetchInterval: 60000,
   });
 
   const { data: miRespuesta, refetch } = useQuery({

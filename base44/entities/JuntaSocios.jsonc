@@ -29,6 +29,10 @@
       "type": "boolean",
       "default": true,
       "description": "Si se muestra el aviso en la app"
+    },
+    "email_prueba": {
+      "type": "string",
+      "description": "Modo prueba: si tiene un email, el aviso SOLO lo ve ese usuario (aunque sea admin)"
     }
   },
   "required": [

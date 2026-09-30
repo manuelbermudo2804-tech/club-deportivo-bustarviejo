@@ -12,14 +12,14 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
   useEffect(() => {
     setF({
       titulo: junta?.titulo || "Junta General de Socios", fecha: junta?.fecha || "", lugar: junta?.lugar || "",
-      orden: (junta?.orden_dia || []).join("\n"), landing_slug: junta?.landing_slug || "", activa: junta?.activa ?? true,
+      orden: (junta?.orden_dia || []).join("\n"), landing_slug: junta?.landing_slug || "", email_prueba: junta?.email_prueba || "", activa: junta?.activa ?? true,
     });
   }, [junta]);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
   const guardar = async () => {
     if (!f.fecha) return toast.error("Pon la fecha y hora");
-    const data = { titulo: f.titulo, fecha: f.fecha, lugar: f.lugar, landing_slug: f.landing_slug.trim().replace(/^.*\/l\//, ""), activa: f.activa, orden_dia: f.orden.split("\n").map((s) => s.trim()).filter(Boolean) };
+    const data = { titulo: f.titulo, fecha: f.fecha, lugar: f.lugar, landing_slug: f.landing_slug.trim().replace(/^.*\/l\//, ""), activa: f.activa, email_prueba: (f.email_prueba || "").trim(), orden_dia: f.orden.split("\n").map((s) => s.trim()).filter(Boolean) };
     const saved = junta ? await base44.entities.JuntaSocios.update(junta.id, data) : await base44.entities.JuntaSocios.create(data);
     toast.success("Junta guardada");
     onSaved(saved);
@@ -31,6 +31,9 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
       <label className="text-sm">Fecha y hora<Input type="datetime-local" value={f.fecha || ""} onChange={set("fecha")} /></label>
       <label className="text-sm">Lugar<Input value={f.lugar || ""} onChange={set("lugar")} placeholder="Campo municipal" /></label>
       <label className="text-sm">Página pública (slug o enlace /l/...)<Input value={f.landing_slug || ""} onChange={set("landing_slug")} placeholder="junta-socios-2026" /></label>
+      <label className="text-sm md:col-span-2 rounded-lg border border-dashed border-amber-400 bg-amber-50 p-3">🧪 Modo prueba: email del único usuario que verá el aviso (déjalo vacío para que lo vean todos los socios)
+        <Input value={f.email_prueba || ""} onChange={set("email_prueba")} placeholder="tu@email.com" className="mt-1 bg-white" />
+      </label>
       <label className="text-sm md:col-span-2">Orden del día (un punto por línea)<Textarea rows={4} value={f.orden || ""} onChange={set("orden")} /></label>
       <div className="flex items-center gap-2 text-sm"><Switch checked={!!f.activa} onCheckedChange={async (v) => {
         setF({ ...f, activa: v });

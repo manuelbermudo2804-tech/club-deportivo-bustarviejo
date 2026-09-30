@@ -6,7 +6,7 @@ import { RESPUESTAS, faltaTexto, fechaLarga } from "@/lib/juntaUtils";
 import JuntaResponderDialog from "./JuntaResponderDialog";
 
 // Aviso fijo en toda la app con cuenta atrás hasta la junta
-export default function JuntaAppBar({ user }) {
+export default function JuntaAppBar({ user, isAdmin }) {
   const { junta, miRespuesta, refetch } = useJuntaActiva(user);
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -18,7 +18,9 @@ export default function JuntaAppBar({ user }) {
   }, []);
 
   const [cerrada, setCerrada] = useState(false);
-  if (!junta || cerrada || localStorage.getItem("junta_cerrada") === junta.id) return null;
+  const prueba = (junta?.email_prueba || "").trim().toLowerCase();
+  const loVe = prueba ? user.email?.toLowerCase() === prueba : !isAdmin;
+  if (!junta || !loVe || cerrada || localStorage.getItem("junta_cerrada") === junta.id) return null;
   const cerrar = () => { localStorage.setItem("junta_cerrada", junta.id); setCerrada(true); };
   const r = miRespuesta && RESPUESTAS[miRespuesta.respuesta];
 
