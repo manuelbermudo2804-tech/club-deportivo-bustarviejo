@@ -28,6 +28,7 @@ import ChatLocationDialog from "../components/chat/ChatLocationDialog";
 import ChatPollDialog from "../components/chat/ChatPollDialog";
 import PollMessage from "../components/chat/PollMessage";
 import LocationMessage from "../components/chat/LocationMessage";
+import { mentionCandidates } from "@/lib/chatMentions";
 
 export default function ParentCoordinatorChat() {
   const [user, setUser] = useState(null);
@@ -609,7 +610,7 @@ export default function ParentCoordinatorChat() {
                         </div>
                       ) : (
                         <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-                          <EmojiScaler content={msg.mensaje} />
+                          <EmojiScaler content={msg.mensaje} currentUserName={user?.full_name} />
                         </p>
                       )}
                       {msg.ubicacion && <div className="mt-1"><LocationMessage ubicacion={msg.ubicacion} /></div>}
@@ -670,6 +671,7 @@ export default function ParentCoordinatorChat() {
           )}
 
           <UnifiedChatInput
+             mentionCandidates={mentionCandidates(messages, user?.full_name)}
              onSendMessage={handleSendMessage}
              onFileUpload={handleFileUpload}
              onCameraCapture={handleCameraCapture}

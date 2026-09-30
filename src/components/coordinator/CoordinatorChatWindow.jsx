@@ -22,6 +22,7 @@ import EmojiScaler from "../chat/EmojiScaler";
 import ChatImageBubble from "../chat/ChatImageBubble";
 import ChatAudioBubble from "../chat/ChatAudioBubble";
 import { useAudioRecording } from "../chat/useAudioRecording";
+import { mentionCandidates } from "@/lib/chatMentions";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
@@ -767,7 +768,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
                   </div>
                 ) : msg.mensaje?.trim() ? (
                  <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-                   <EmojiScaler content={msg.mensaje} />
+                   <EmojiScaler content={msg.mensaje} currentUserName={user?.full_name} />
                    {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
                  </p>
                 ) : null}
@@ -852,6 +853,7 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
       {/* Input Bar */}
       <div className="border-t bg-white flex-shrink-0 sticky bottom-0 z-10">
          <UnifiedChatInput
+           mentionCandidates={mentionCandidates(messages, user?.full_name)}
            onSendMessage={handleSendMessage}
            onFileUpload={handleFileUpload}
            onCameraCapture={handleCameraCapture}

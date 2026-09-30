@@ -32,6 +32,7 @@ import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 import { useImageUpload } from "../components/utils/useImageUpload";
+import { mentionCandidates } from "@/lib/chatMentions";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -910,7 +911,7 @@ export default function StaffChat() {
                           </div>
                         ) : (
                          <p style={{fontSize: '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-                           <EmojiScaler content={msg.mensaje} />
+                           <EmojiScaler content={msg.mensaje} currentUserName={user?.full_name} />
                            {msg.editado && <span className="text-xs ml-1 opacity-60">(editado)</span>}
                          </p>
                         )}
@@ -1006,6 +1007,7 @@ export default function StaffChat() {
             onSave={(m, mensaje) => editMessageMutation.mutate({ id: m.id, mensaje })}
           />
           <UnifiedChatInput
+            mentionCandidates={mentionCandidates(messages, user?.full_name)}
             onSendMessage={handleSendMessage}
             onFileUpload={handleFileUpload}
             onCameraCapture={handleCameraCapture}

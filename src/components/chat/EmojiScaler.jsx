@@ -2,7 +2,9 @@ import React from "react";
 
 // Renderiza emojis grandes SOLO si el contenido es únicamente emojis (1-3 caracteres)
 // O renderiza reacciones de usuarios a un mensaje
-export default function EmojiScaler({ content, reactions }) {
+import { MENTION_REGEX, isMentionOf } from "@/lib/chatMentions";
+
+export default function EmojiScaler({ content, reactions, currentUserName }) {
   // Modo 1: Reacciones a mensajes
   if (reactions) {
     if (!reactions || reactions.length === 0) return null;
@@ -42,14 +44,26 @@ export default function EmojiScaler({ content, reactions }) {
     return <span style={{ fontSize: '3rem' }}>{content}</span>;
   }
 
-  return <Linkify text={content} />;
+  return <Linkify text={content} currentUserName={currentUserName} />;
+}
+
+// Resalta @menciones: color para todos; parpadeo solo si me mencionan a mí
+function Mentions({ text, currentUserName }) {
+  const parts = String(text).split(new RegExp(MENTION_REGEX, "gu"));
+  return parts.map((p, i) => {
+    if (!p.startsWith("@") || !MENTION_REGEX.test(p)) return <React.Fragment key={i}>{p}</React.Fragment>;
+    const mine = isMentionOf(p, currentUserName);
+    return (
+      <span key={i} className={`font-bold text-blue-600 ${mine ? "bg-yellow-200 rounded px-1 animate-pulse" : ""}`}>{p}</span>
+    );
+  });
 }
 
 // Convierte URLs (http/https/www) y emails dentro del texto en enlaces clicables,
 // preservando el resto del texto y los saltos de línea.
 const URL_REGEX = /((?:https?:\/\/|www\.)[^\s]+|[^\s@]+@[^\s@]+\.[^\s@]+)/gi;
 
-function Linkify({ text }) {
+function Linkify({ text, currentUserName }) {
   if (!text) return null;
   const parts = String(text).split(URL_REGEX);
   return (
@@ -91,7 +105,7 @@ function Linkify({ text }) {
             </a>
           );
         }
-        return <React.Fragment key={i}>{part}</React.Fragment>;
+        return <React.Fragment key={i}><Mentions text={part} currentUserName={currentUserName} /></React.Fragment>;
       })}
     </>
   );

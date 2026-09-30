@@ -27,6 +27,7 @@ import ReadTicks from "../components/chat/ReadTicks";
 import NewMessageButton from "../components/chat/NewMessageButton";
 import ChatLocationDialog from "../components/chat/ChatLocationDialog";
 import ChatPollDialog from "../components/chat/ChatPollDialog";
+import { mentionCandidates } from "@/lib/chatMentions";
 
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
@@ -543,7 +544,7 @@ export default function ParentCoachChat() {
                           <div className="ml-auto" />
                           <ChatMessageActions message={msg} isMine={isMine} onEdit={(m) => setEditDialogMsg(m)} onDelete={(m) => deleteMessageMutation.mutate(m.id)} />
                         </div>
-                        {msg.mensaje && <p style={{fontSize: '15px', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}><EmojiScaler content={msg.mensaje} /></p>}
+                        {msg.mensaje && <p style={{fontSize: '15px', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}><EmojiScaler content={msg.mensaje} currentUserName={user?.full_name} /></p>}
                         {msg.audio_url && <div className="mt-1"><ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isMine} /></div>}
                         {(() => {
                           const attachments = msg.archivos_adjuntos || [];
@@ -599,7 +600,7 @@ export default function ParentCoachChat() {
           )}
           <div ref={messagesEndRef} />
         </div>
-        <UnifiedChatInput onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} onCameraCapture={handleCameraCapture} onLocationClick={() => setShowLocationDlg(true)} onPollClick={() => setShowPollDlg(true)} uploading={uploading || uploadingImage} placeholder="Escribe tu mensaje..." />
+        <UnifiedChatInput mentionCandidates={mentionCandidates(messages, user?.full_name)} onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} onCameraCapture={handleCameraCapture} onLocationClick={() => setShowLocationDlg(true)} onPollClick={() => setShowPollDlg(true)} uploading={uploading || uploadingImage} placeholder="Escribe tu mensaje..." />
         <ChatLocationDialog open={showLocationDlg} onOpenChange={setShowLocationDlg} onSend={handleSendMessage} />
         <ChatPollDialog open={showPollDlg} onOpenChange={setShowPollDlg} onSend={handleSendMessage} />
       </div>

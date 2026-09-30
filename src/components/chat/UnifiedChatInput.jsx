@@ -33,6 +33,7 @@ const UnifiedChatInput = memo(function UnifiedChatInput({
   disabled = false,
   editingText = "",
   onCancelEdit,
+  mentionCandidates = [],
 }) {
   const [localText, setLocalText] = useState("");
   const [pendingAttachments, setPendingAttachments] = useState([]);
@@ -90,8 +91,25 @@ const UnifiedChatInput = memo(function UnifiedChatInput({
     setPendingAttachments(prev => prev.filter((_, i) => i !== idx));
   };
 
+  const mentionMatch = localText.match(/(?:^|\s)@([\p{L}]*)$/u);
+  const mentionOptions = mentionMatch
+    ? mentionCandidates.filter(n => n.toLowerCase().startsWith(mentionMatch[1].toLowerCase())).slice(0, 6)
+    : [];
+  const insertMention = (name) => {
+    setLocalText(localText.replace(/@([\p{L}]*)$/u, `@${name} `));
+  };
+
   return (
     <div className="border-t bg-white flex-shrink-0 p-2">
+      {mentionOptions.length > 0 && (
+        <div className="mb-2 border rounded-lg shadow-sm bg-white max-h-48 overflow-y-auto">
+          {mentionOptions.map(name => (
+            <button key={name} type="button" onClick={() => insertMention(name)} className="w-full text-left px-3 py-2 text-sm hover:bg-slate-100">
+              <span className="font-semibold text-blue-600">@</span>{name}
+            </button>
+          ))}
+        </div>
+      )}
       {hasFiles && (
         <input ref={fileInputRef} type="file" multiple accept="*/*" className="hidden" onChange={handleFileUploadLocal} disabled={uploading} />
       )}

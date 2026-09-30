@@ -29,6 +29,7 @@ import { useImageUpload } from "../utils/useImageUpload";
 import DateSeparator from "../chat/DateSeparator";
 import NewMessageButton from "../chat/NewMessageButton";
 import { groupConsecutiveMessages } from "../chat/MessageGrouping";
+import { mentionCandidates } from "@/lib/chatMentions";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -768,7 +769,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                       </div>
                     ) : msg.encuesta ? null : (
                       <p style={{fontSize: msg.mensaje?.trim().length <= 3 ? '3rem' : '15px', lineHeight: '1.4', fontWeight: 400, whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}>
-                        {msg.mensaje}
+                        <EmojiScaler content={msg.mensaje} currentUserName={user?.full_name} />
                         {msg.editado && <span className="text-xs opacity-50 ml-1">(editado)</span>}
                       </p>
                     )}
@@ -868,6 +869,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         onSave={(m, mensaje) => editMessageMutation.mutate({ id: m.id, mensaje })}
       />
       <UnifiedChatInput
+        mentionCandidates={mentionCandidates(messages, user?.full_name)}
         onSendMessage={handleSendMessage}
         onFileUpload={handleFileUpload}
         onCameraCapture={handleCameraCapture}
