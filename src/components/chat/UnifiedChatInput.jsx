@@ -225,6 +225,12 @@ const UnifiedChatInput = memo(function UnifiedChatInput({
                 e.target.style.height = 'auto';
                 e.target.style.height = Math.min(e.target.scrollHeight, 6 * 24) + 'px';
               }}
+              onPaste={(e) => {
+                const files = Array.from(e.clipboardData?.files || []);
+                if (!hasFiles || files.length === 0) return;
+                e.preventDefault();
+                handleFileUploadLocal({ target: { files } });
+              }}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
