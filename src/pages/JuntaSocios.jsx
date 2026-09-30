@@ -47,7 +47,12 @@ export default function JuntaSocios() {
           </select>
         )}
       </div>
-      <JuntaConfigForm junta={junta} onSaved={onSaved} />
+      <p className="text-sm text-slate-500">{junta ? "Estás editando la junta seleccionada: cambia lo que quieras y pulsa «Guardar cambios», o «Cancelar junta» para borrarla." : "Nueva junta: rellena los datos y pulsa «Crear junta»."}</p>
+      <JuntaConfigForm junta={junta} onSaved={onSaved} onDeleted={() => {
+        setJuntaId(null);
+        qc.setQueryData(["juntas"], (old = []) => old.filter((j) => j.id !== junta.id));
+        qc.invalidateQueries({ queryKey: ["juntaActiva"] });
+      }} />
       {junta && (loadingRows ? <Loader2 className="w-6 h-6 animate-spin mx-auto text-orange-600" /> : (
         <>
           <JuntaStats rows={rows} />

@@ -7,7 +7,7 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
-export default function JuntaConfigForm({ junta, onSaved }) {
+export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
   const [f, setF] = useState({});
   useEffect(() => {
     setF({
@@ -39,7 +39,15 @@ export default function JuntaConfigForm({ junta, onSaved }) {
         toast.success(v ? "Aviso activado en la app" : "Aviso desactivado");
         onSaved(saved);
       }} />Mostrar aviso con cuenta atrás en la app</div>
-      <Button onClick={guardar} className="bg-orange-600 hover:bg-orange-700 md:justify-self-end">Guardar junta</Button>
+      <div className="flex gap-2 md:justify-self-end">
+        {junta && <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-50" onClick={async () => {
+          if (!window.confirm("¿Cancelar y borrar esta junta? Desaparecerá el aviso para todos.")) return;
+          await base44.entities.JuntaSocios.delete(junta.id);
+          toast.success("Junta cancelada");
+          onDeleted();
+        }}>Cancelar junta</Button>}
+        <Button onClick={guardar} className="bg-orange-600 hover:bg-orange-700">{junta ? "Guardar cambios" : "Crear junta"}</Button>
+      </div>
     </CardContent></Card>
   );
 }
