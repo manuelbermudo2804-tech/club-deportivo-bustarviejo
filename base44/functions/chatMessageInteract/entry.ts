@@ -9,7 +9,8 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { action, messageIds, messageId, emoji, optionIndex } = await req.json();
+    const body = await req.json();
+    const { action, messageIds, messageId, emoji, optionIndex } = body;
     const now = new Date().toISOString();
 
     // Carga el mensaje con permisos del usuario: si no puede leerlo, no puede tocarlo.
@@ -43,6 +44,16 @@ Deno.serve(async (req) => {
       if (!own) return Response.json({ error: 'Mensaje no encontrado' }, { status: 404 });
       if ((own.remitente_email || '').toLowerCase() !== (user.email || '').toLowerCase()) return Response.json({ error: 'Solo puedes borrar tus mensajes' }, { status: 403 });
       await base44.asServiceRole.entities.ChatMessage.update(messageId, { eliminado: true, mensaje: 'Este mensaje fue eliminado' });
+      return Response.json({ ok: true });
+    }
+
+    if (action === 'edit') {
+      const texto = String(body.mensaje || '').trim();
+      if (!texto) return Response.json({ error: 'El mensaje no puede estar vacío' }, { status: 400 });
+      const own = (await base44.asServiceRole.entities.ChatMessage.filter({ id: messageId }))[0];
+      if (!own || own.eliminado) return Response.json({ error: 'Mensaje no encontrado' }, { status: 404 });
+      if ((own.remitente_email || '').toLowerCase() !== (user.email || '').toLowerCase()) return Response.json({ error: 'Solo puedes editar tus mensajes' }, { status: 403 });
+      await base44.asServiceRole.entities.ChatMessage.update(messageId, { mensaje: texto, editado: true, fecha_edicion: now });
       return Response.json({ ok: true });
     }
 

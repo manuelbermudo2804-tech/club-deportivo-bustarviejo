@@ -22,6 +22,7 @@ import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 import ChatMessageActions from "../components/chat/ChatMessageActions";
+import EditMessageDialog from "../components/chat/EditMessageDialog";
 import ReadTicks from "../components/chat/ReadTicks";
 import NewMessageButton from "../components/chat/NewMessageButton";
 
@@ -54,6 +55,7 @@ export default function ParentCoachChat() {
   const [showImagePreview, setShowImagePreview] = useState(null);
   const [playingAudio, setPlayingAudio] = useState(null);
   const [showReactions, setShowReactions] = useState(null);
+  const [editDialogMsg, setEditDialogMsg] = useState(null);
   const [categoryCoach, setCategoryCoach] = useState(null);
   const messagesEndRef = useRef(null);
   const audioRef = useRef(null);
@@ -357,6 +359,17 @@ export default function ParentCoachChat() {
     },
   });
 
+  const editMessageMutation = useMutation({
+    mutationFn: ({ id, mensaje }) =>
+      base44.functions.invoke('chatMessageInteract', { action: 'edit', messageId: id, mensaje }),
+    onMutate: ({ id, mensaje }) => {
+      queryClient.setQueryData(['coachParentChatMessages', categoryKey], (old = []) =>
+        old.map(m => (m.id === id ? { ...m, mensaje, editado: true } : m)));
+    },
+    onError: () => toast.error("No se pudo editar el mensaje"),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['coachParentChatMessages', categoryKey] }),
+  });
+
   const deleteMessageMutation = useMutation({
     mutationFn: async (messageId) => {
       await base44.functions.invoke('chatMessageInteract', { action: 'delete', messageId });
@@ -522,7 +535,7 @@ export default function ParentCoachChat() {
                             {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
                           </div>
                           <div className="ml-auto" />
-                          <ChatMessageActions message={msg} isMine={isMine} onDelete={(m) => deleteMessageMutation.mutate(m.id)} />
+                          <ChatMessageActions message={msg} isMine={isMine} onEdit={(m) => setEditDialogMsg(m)} onDelete={(m) => deleteMessageMutation.mutate(m.id)} />
                         </div>
                         {msg.mensaje && <p style={{fontSize: '15px', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}><EmojiScaler content={msg.mensaje} /></p>}
                         {msg.audio_url && <div className="mt-1"><ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isMine} /></div>}
@@ -653,6 +666,11 @@ export default function ParentCoachChat() {
           </CardContent>
         </Card>
       </div>
+      <EditMessageDialog
+        message={editDialogMsg}
+        onClose={() => setEditDialogMsg(null)}
+        onSave={(m, mensaje) => editMessageMutation.mutate({ id: m.id, mensaje })}
+      />
     </>
     );
     }

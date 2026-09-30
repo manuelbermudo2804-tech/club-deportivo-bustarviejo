@@ -20,6 +20,7 @@ import ExerciseShareDialog from "../exercises/ExerciseShareDialog";
 import PinnedMessagesBanner from "../chat/PinnedMessagesBanner";
 import EmojiPicker from "../chat/EmojiPicker";
 import CoachChatInput from "../chat/CoachChatInput";
+import EditMessageDialog from "../chat/EditMessageDialog";
 import EmojiScaler from "../chat/EmojiScaler";
 import ReadTicks from "../chat/ReadTicks";
 import ChatImageBubble from "../chat/ChatImageBubble";
@@ -54,6 +55,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
   const [pollOptions, setPollOptions] = useState(["", ""]);
   const [replyingTo, setReplyingTo] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
+  const [editDialogMsg, setEditDialogMsg] = useState(null);
   const [showLocationDialog, setShowLocationDialog] = useState(false);
   const [locationName, setLocationName] = useState("");
   const [locationAddress, setLocationAddress] = useState("");
@@ -533,12 +535,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
   const editMessageMutation = useMutation({
     mutationFn: async ({ id, mensaje }) => {
-      await base44.entities.ChatMessage.update(id, {
-        mensaje,
-        editado: true,
-        fecha_edicion: new Date().toISOString()
-      });
+      await base44.functions.invoke('chatMessageInteract', { action: 'edit', messageId: id, mensaje });
     },
+    onError: () => toast.error("No se pudo editar el mensaje"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coachGroupMessages'] });
       toast.success("Mensaje editado");
@@ -757,7 +756,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                        <ChatMessageActions
                          message={msg}
                          isMine={isMine}
-                         onEdit={() => toast.info("Edición próximamente")}
+                         onEdit={(m) => setEditDialogMsg(m)}
                          onDelete={(m) => deleteMessageMutation.mutate(m.id)}
                        />
                      </div>
@@ -863,6 +862,11 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         <div ref={messagesEndRef} />
       </div>
 
+      <EditMessageDialog
+        message={editDialogMsg}
+        onClose={() => setEditDialogMsg(null)}
+        onSave={(m, mensaje) => editMessageMutation.mutate({ id: m.id, mensaje })}
+      />
       <CoachChatInput
         onSendMessage={handleSendMessage}
         onFileUpload={handleFileUpload}

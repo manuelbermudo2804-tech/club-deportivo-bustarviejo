@@ -26,6 +26,7 @@ import SocialLinks from "../components/SocialLinks";
 import { sendWithQueue } from "../components/utils/messageQueue";
 import PinnedMessagesBanner from "../components/chat/PinnedMessagesBanner";
 import UnifiedChatInput from "../components/chat/UnifiedChatInput";
+import EditMessageDialog from "../components/chat/EditMessageDialog";
 import EmojiScaler from "../components/chat/EmojiScaler";
 import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
@@ -63,6 +64,7 @@ export default function StaffChat() {
   const [locationAddress, setLocationAddress] = useState("");
   const [replyingTo, setReplyingTo] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
+  const [editDialogMsg, setEditDialogMsg] = useState(null);
   const [filterType, setFilterType] = useState("all");
   const [filterPerson, setFilterPerson] = useState("all");
   const [filterDate, setFilterDate] = useState("all");
@@ -895,10 +897,7 @@ export default function StaffChat() {
                               isMine={isMine}
                               isStaff={true}
                               onReply={(m) => setReplyingTo(m)}
-                              onEdit={(m) => {
-                                setEditingMessage(m);
-                                toast.info("Edición de mensajes desde el input próximamente");
-                              }}
+                              onEdit={(m) => setEditDialogMsg(m)}
                               onDelete={(m) => deleteMessageMutation.mutate(m.id)}
                               onForward={(m) => {}}
                             />
@@ -1001,6 +1000,11 @@ export default function StaffChat() {
             <div ref={messagesEndRef} />
           </div>
 
+          <EditMessageDialog
+            message={editDialogMsg}
+            onClose={() => setEditDialogMsg(null)}
+            onSave={(m, mensaje) => editMessageMutation.mutate({ id: m.id, mensaje })}
+          />
           <UnifiedChatInput
             onSendMessage={handleSendMessage}
             onFileUpload={handleFileUpload}

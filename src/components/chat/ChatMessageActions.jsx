@@ -58,14 +58,18 @@ export default function ChatMessageActions({
 
         {isMine && !message.eliminado && (
           <>
-            <DropdownMenuItem onClick={() => onEdit(message)}>
-              <Edit className="w-4 h-4 mr-2" />
-              Editar
-            </DropdownMenuItem>
+            {onEdit && !message.audio_url && message.mensaje?.trim() && (
+              <DropdownMenuItem onClick={() => onEdit(message)}>
+                <Edit className="w-4 h-4 mr-2" />
+                Editar
+              </DropdownMenuItem>
+            )}
+            {onDelete && (
             <DropdownMenuItem onClick={() => onDelete(message)} className="text-red-600">
               <Trash2 className="w-4 h-4 mr-2" />
               Eliminar
             </DropdownMenuItem>
+            )}
           </>
         )}
       </DropdownMenuContent>
