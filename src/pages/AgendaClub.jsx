@@ -18,6 +18,8 @@ import AgendaItemCard, { KIND_STYLES } from "../components/agenda/AgendaItemCard
 import { fechaISO } from "@/lib/sinEntrenamiento";
 import AgendaSubscribeButtons from "../components/agenda/AgendaSubscribeButtons";
 import AgendaTeamFilter from "../components/agenda/AgendaTeamFilter";
+import FechasLibresDialog from "../components/agenda/FechasLibresDialog";
+import { Sparkles } from "lucide-react";
 
 const VISTAS = [
   { id: "lista", label: "Lista", icon: List },
@@ -39,6 +41,7 @@ export default function AgendaClub() {
   const [filtroCategoria, setFiltroCategoria] = useState("all");
   const [diaSeleccionado, setDiaSeleccionado] = useState(null);
   const [user, setUser] = useState(null);
+  const [showLibres, setShowLibres] = useState(false);
 
   const { activeSeason } = useActiveSeason();
 
@@ -138,6 +141,15 @@ export default function AgendaClub() {
       </div>
 
       <AgendaSubscribeButtons categoria={filtroCategoria === "all" ? "" : filtroCategoria} />
+
+      {(isAdmin || isStaff) && (
+        <>
+          <Button onClick={() => setShowLibres(true)} className="bg-green-600 hover:bg-green-700">
+            <Sparkles className="w-4 h-4 mr-1.5" /> Buscar fines de semana libres
+          </Button>
+          <FechasLibresDialog open={showLibres} onOpenChange={setShowLibres} temporada={activeSeason} user={user} />
+        </>
+      )}
 
       {/* Selector de vista + navegación */}
       <div className="flex flex-wrap items-center justify-between gap-2">
