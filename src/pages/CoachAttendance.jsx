@@ -15,6 +15,8 @@ import AttendanceStats from "../components/coach/AttendanceStats";
 import ExportButton from "../components/ExportButton";
 import { playerInCategory } from "../components/utils/playerCategoryFilter";
 import { useStaffPlayers } from "../hooks/useStaffPlayers";
+import SaveStatusBanner from "@/components/attendance/SaveStatusBanner";
+import { queueAttendance, sendAttendance, flushQueue, isPending, pendingCount } from "@/lib/attendanceQueue";
 
 export default function CoachAttendance() {
   const [user, setUser] = useState(null);
@@ -57,27 +59,62 @@ export default function CoachAttendance() {
     initialData: [],
   });
 
+  const [saveStatus, setSaveStatus] = useState(null);
+  const [savedInfo, setSavedInfo] = useState(null);
+  const [online, setOnline] = useState(navigator.onLine);
+
+  const markSaved = (count) => {
+    setSaveStatus("saved");
+    setSavedInfo({ count, time: format(new Date(), "HH:mm") });
+    queryClient.invalidateQueries({ queryKey: ['attendances'] });
+  };
+
+  // Reintento automático de lo pendiente (al volver la señal y cada 20s)
+  useEffect(() => {
+    const retry = async () => {
+      if (pendingCount() === 0) return;
+      const sent = await flushQueue();
+      if (sent > 0 && pendingCount() === 0) {
+        setSaveStatus(s => (s === "pending" ? "saved" : s));
+        setSavedInfo(i => i || { count: 0, time: format(new Date(), "HH:mm") });
+        queryClient.invalidateQueries({ queryKey: ['attendances'] });
+        toast.success("✅ Asistencia pendiente enviada");
+      }
+    };
+    const goOnline = () => { setOnline(true); retry(); };
+    const goOffline = () => setOnline(false);
+    window.addEventListener("online", goOnline);
+    window.addEventListener("offline", goOffline);
+    const t = setInterval(retry, 20000);
+    retry();
+    return () => {
+      window.removeEventListener("online", goOnline);
+      window.removeEventListener("offline", goOffline);
+      clearInterval(t);
+    };
+  }, []);
+
+  useEffect(() => {
+    setSaveStatus(isPending(selectedCategory, selectedDate) ? "pending" : null);
+  }, [selectedCategory, selectedDate]);
+
   const saveAttendanceMutation = useMutation({
     mutationFn: async (data) => {
-      const existing = attendances.find(a => 
-        a.categoria === selectedCategory && 
-        a.fecha === selectedDate
-      );
-      
-      if (existing) {
-        return base44.entities.Attendance.update(existing.id, data);
-      } else {
-        return base44.entities.Attendance.create(data);
-      }
+      queueAttendance(data); // primero en el móvil: nunca se pierde
+      setSaveStatus("saving");
+      return sendAttendance(data);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['attendances'] });
+    onSuccess: (_r, data) => {
       setHasUnsavedChanges(false);
       setLastSavedData(attendanceData);
-      toast.success("✅ Asistencia guardada correctamente");
+      markSaved(data.asistencias.length);
     },
-    onError: () => {
-      toast.error("❌ Error al guardar la asistencia");
+    onError: (_e, data) => {
+      // Queda en cola; ya no se pierde ni se muestra como error
+      setHasUnsavedChanges(false);
+      setLastSavedData(attendanceData);
+      setSaveStatus("pending");
+      setSavedInfo({ count: data.asistencias.length, time: format(new Date(), "HH:mm") });
     }
   });
 
@@ -206,6 +243,7 @@ export default function CoachAttendance() {
         </TabsList>
 
         <TabsContent value="attendance" className="space-y-4 mt-4">
+          <SaveStatusBanner status={saveStatus} online={online} savedInfo={savedInfo} />
           {hasUnsavedChanges && (
             <Card className="border-2 border-orange-500 bg-orange-50">
               <CardContent className="py-3 px-4">
