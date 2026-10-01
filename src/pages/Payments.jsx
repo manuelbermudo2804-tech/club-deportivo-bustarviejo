@@ -1091,6 +1091,7 @@ export default function Payments() {
                         <SelectItem value="Pendiente">Pendiente</SelectItem>
                         <SelectItem value="En revisión">En revisión</SelectItem>
                         <SelectItem value="Pagado">Pagado</SelectItem>
+                        <SelectItem value="Vencido">Vencido (cuotas vencidas)</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1187,7 +1188,16 @@ export default function Payments() {
                  let matchesEstado = true;
                  if (estadoFilter !== "all") {
                    // Si filtramos por "Pendiente", verificar si le falta algún pago
-                   if (estadoFilter === "Pendiente") {
+                   if (estadoFilter === "Vencido") {
+                     const esUnico = playerPayments.some(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
+                     const esPlan = playerPayments.some(p => p.tipo_pago === "Plan Especial" || p.tipo_pago === "Plan Mensual");
+                     const realVencido = playerPayments.some(p => p.estado === "Pendiente" && calculateDaysOverdue(p.mes) > 0);
+                     const meses = esUnico ? ["Junio"] : ["Junio", "Septiembre", "Diciembre"];
+                     const virtualVencido = temporadaFilter !== "all" && !esPlan && meses.some(mes =>
+                       !playerPayments.some(p => p.mes === mes) && calculateDaysOverdue(mes) > 0
+                     );
+                     matchesEstado = realVencido || virtualVencido;
+                   } else if (estadoFilter === "Pendiente") {
                      const hasPagoUnico = playerPayments.some(p => 
                        (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
                        (p.estado === "Pagado" || p.estado === "En revisión")
@@ -1353,7 +1363,9 @@ export default function Payments() {
                       }
 
                       // Si hay filtro de estado activo, filtrar displayPayments también
-                      if (estadoFilter !== "all") {
+                      if (estadoFilter === "Vencido") {
+                        displayPayments = displayPayments.filter(p => p.estado === "Pendiente" && calculateDaysOverdue(p.mes) > 0);
+                      } else if (estadoFilter !== "all") {
                         displayPayments = displayPayments.filter(p => p.estado === estadoFilter);
                       }
                       
