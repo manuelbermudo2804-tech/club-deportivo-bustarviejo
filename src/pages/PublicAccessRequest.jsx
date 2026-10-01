@@ -86,6 +86,15 @@ export default function PublicAccessRequest() {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [categoria, setCategoria] = useState("");
+  const [categorias, setCategorias] = useState(CATEGORIAS);
+  useEffect(() => {
+    base44.functions.invoke('publicCategorias', {})
+      .then((res) => {
+        const list = res?.data?.categorias;
+        if (list?.length) setCategorias([...list, "No lo sé aún"]);
+      })
+      .catch(() => {});
+  }, []);
   const [fechaNacimiento, setFechaNacimiento] = useState("");
   const [website, setWebsite] = useState(""); // honeypot
   const [aceptaGdpr, setAceptaGdpr] = useState(false);
@@ -576,7 +585,7 @@ export default function PublicAccessRequest() {
                 required
               >
                 <option value="">Selecciona una categoría</option>
-                {CATEGORIAS.map((cat) => (
+                {categorias.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
