@@ -671,7 +671,7 @@ export default function Home() {
         )}
 
         {/* Próximos cumpleaños de entrenadores y coordinadores - Solo Admin */}
-        {isAdmin && <StaffBirthdaysBanner />}
+
 
         {/* Banner de alertas para familias (NO admin: el admin ya ve el "Resumen del día") */}
         {!isAdmin && hasPlayers && (
