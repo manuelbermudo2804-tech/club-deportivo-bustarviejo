@@ -18,8 +18,8 @@ export default function SaveStatusBanner({ status, online, savedInfo }) {
         <div className="flex items-center gap-3 p-4 rounded-xl bg-orange-50 border-2 border-orange-400 text-orange-900">
           <CloudOff className="w-6 h-6" />
           <div>
-            <p className="font-bold">Pendiente de enviar (poca cobertura)</p>
-            <p className="text-sm">No pierdes nada: se reintenta automáticamente. Puedes cerrar la app.</p>
+            <p className="font-bold text-lg">✅ Asistencia guardada en tu móvil · NO hace falta repetirla</p>
+            <p className="text-sm">Hay poca cobertura y se enviará sola en cuanto vuelva la señal. Puedes cerrar la app tranquilamente.</p>
           </div>
         </div>
       )}
