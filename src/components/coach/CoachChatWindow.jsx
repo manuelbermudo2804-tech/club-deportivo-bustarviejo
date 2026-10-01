@@ -31,6 +31,8 @@ import DateSeparator from "../chat/DateSeparator";
 import NewMessageButton from "../chat/NewMessageButton";
 import { groupConsecutiveMessages } from "../chat/MessageGrouping";
 import { mentionCandidates } from "@/lib/chatMentions";
+import { newClientId, isNetworkError, queueChatMessage } from "@/lib/chatQueue";
+import ChatPendingBanner from "../chat/ChatPendingBanner";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 const DIAS_SEMANA = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
@@ -476,7 +478,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       const grupo_id = toGroupId(selectedCategory);
       
       // SOLO crear el mensaje. Si esto falla, se revierte el optimista.
-      const newMessage = await base44.entities.ChatMessage.create({
+      const payload = {
+        client_id: newClientId(),
         grupo_id,
         deporte: selectedCategory,
         tipo: "entrenador_a_grupo",
@@ -493,7 +496,16 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         prioridad: "Normal",
         leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }],
         reacciones: []
-      });
+      };
+      let newMessage;
+      try {
+        newMessage = await base44.entities.ChatMessage.create(payload);
+      } catch (err) {
+        if (!isNetworkError(err)) throw err;
+        // Sin cobertura: se guarda en el móvil y se enviará solo
+        queueChatMessage(payload);
+        return { ...payload, id: `pending-${payload.client_id}`, created_date: new Date().toISOString() };
+      }
 
       // Tareas secundarias (galería, notificaciones, log) en SEGUNDO PLANO.
       // No se await-ean: si fallan por rate-limit NO deben revertir el mensaje ya guardado.
@@ -870,6 +882,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         onClose={() => setEditDialogMsg(null)}
         onSave={(m, mensaje) => editMessageMutation.mutate({ id: m.id, mensaje })}
       />
+      <ChatPendingBanner grupoId={toGroupId(selectedCategory || "")} />
       <UnifiedChatInput
         mentionCandidates={mentionCandidates(messages, user?.full_name, categoryPlayers.flatMap(p => [p.nombre_tutor_legal, p.nombre_tutor_2]))}
         onSendMessage={handleSendMessage}

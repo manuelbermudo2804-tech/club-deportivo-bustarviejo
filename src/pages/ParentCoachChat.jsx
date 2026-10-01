@@ -30,6 +30,8 @@ import ChatLocationDialog from "../components/chat/ChatLocationDialog";
 import ChatPollDialog from "../components/chat/ChatPollDialog";
 import { mentionCandidates } from "@/lib/chatMentions";
 import useMentionNames from "@/hooks/useMentionNames";
+import { newClientId, isNetworkError, queueChatMessage } from "@/lib/chatQueue";
+import ChatPendingBanner from "@/components/chat/ChatPendingBanner";
 
 
 const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉", "⚽"];
@@ -304,7 +306,8 @@ export default function ParentCoachChat() {
     mutationFn: async (messageData) => {
        const gid = toGroupId(selectedCategory || "");
 
-       const newMessage = await base44.entities.ChatMessage.create({
+       const payload = {
+         client_id: newClientId(),
          tipo: "padre_a_grupo",
          remitente_email: user.email,
          remitente_nombre: user.full_name,
@@ -317,7 +320,16 @@ export default function ParentCoachChat() {
          grupo_id: gid,
          deporte: selectedCategory,
          leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }],
-       });
+       };
+       let newMessage;
+       try {
+         newMessage = await base44.entities.ChatMessage.create(payload);
+       } catch (err) {
+         if (!isNetworkError(err)) throw err;
+         // Sin cobertura: se guarda en el móvil y se enviará solo
+         queueChatMessage(payload);
+         return { ...payload, id: `pending-${payload.client_id}`, created_date: new Date().toISOString() };
+       }
 
        // Avisar a los entrenadores en SEGUNDO PLANO: no retrasa ni hace fallar el envío
        const categoriaEnvio = selectedCategory;
@@ -603,6 +615,7 @@ export default function ParentCoachChat() {
           )}
           <div ref={messagesEndRef} />
         </div>
+        <ChatPendingBanner grupoId={toGroupId(selectedCategory || "")} />
         <UnifiedChatInput mentionCandidates={mentionCandidates(messages, user?.full_name, [categoryCoach?.full_name, ...teamMentionNames])} onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} onCameraCapture={handleCameraCapture} onLocationClick={() => setShowLocationDlg(true)} onPollClick={() => setShowPollDlg(true)} uploading={uploading || uploadingImage} placeholder="Escribe tu mensaje..." />
         <ChatLocationDialog open={showLocationDlg} onOpenChange={setShowLocationDlg} onSend={handleSendMessage} />
         <ChatPollDialog open={showPollDlg} onOpenChange={setShowPollDlg} onSend={handleSendMessage} />

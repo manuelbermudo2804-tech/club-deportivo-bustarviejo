@@ -43,6 +43,7 @@ import ActiveBanner from "./components/announcements/ActiveBanner";
 import FestiveTheme from "./components/festivo/FestiveTheme";
 import JuntaAppBar from "./components/junta/JuntaAppBar";
 import AutoPushSubscriber from "./components/notifications/AutoPushSubscriber";
+import ChatQueueFlusher from "./components/chat/ChatQueueFlusher";
 import PushPermissionBanner from "./components/notifications/PushPermissionBanner";
 import SponsorRecruitBanner from "./components/sponsors/SponsorRecruitBanner";
 import MandatoryReadModal from "./components/announcements/MandatoryReadModal";
@@ -546,6 +547,7 @@ export default function Layout({ children, currentPageName }) {
               <GlobalErrorHandler />
               <ChatCountsBridge onCounts={setChatCounts} />
               <AutoPushSubscriber user={user} />
+              {user && <ChatQueueFlusher />}
               {user && user.role !== 'admin' && <MandatoryReadModal user={user} />}
               <style>{`html, body { overscroll-behavior-y: none; }`}</style>
 
