@@ -177,6 +177,9 @@ async function findNextMatch(url, cookies, lastKnownJornada) {
 
   // Backwards-compat: return primary "next match" plus the full list
   if (upcomingMatches.length === 0) return { match: null, allMatches: [] };
+  // El "próximo partido" es el más cercano EN FECHA (un aplazado puede tener jornada menor pero jugarse después)
+  const toKey = (f) => { const p = (f || '').split('/'); return p.length === 3 ? `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}` : '9999'; };
+  upcomingMatches.sort((a, b) => toKey(a.match.fecha).localeCompare(toKey(b.match.fecha)));
   return { jornada: upcomingMatches[0].jornada, match: upcomingMatches[0].match, allMatches: upcomingMatches };
 }
 
