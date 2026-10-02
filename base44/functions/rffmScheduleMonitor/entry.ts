@@ -322,10 +322,15 @@ Deno.serve(async (req) => {
 
     // Build map of last known jornada per category (to skip already-scanned jornadas)
     const lastJornadaByCategory = {};
+    // Empezar desde la primera jornada AÚN NO JUGADA (antes usaba la más alta conocida y se saltaba jornadas)
+    const lowestUnplayed = {};
     for (const p of allProximos) {
+      if (!p.jornada) continue;
       const current = lastJornadaByCategory[p.categoria] || 0;
-      if (p.jornada && p.jornada > current) lastJornadaByCategory[p.categoria] = p.jornada;
+      if (p.jornada > current) lastJornadaByCategory[p.categoria] = p.jornada;
+      if (!p.jugado && (!lowestUnplayed[p.categoria] || p.jornada < lowestUnplayed[p.categoria])) lowestUnplayed[p.categoria] = p.jornada;
     }
+    for (const cat of Object.keys(lowestUnplayed)) lastJornadaByCategory[cat] = lowestUnplayed[cat];
 
     // 3. Process categories SEQUENTIALLY with pauses to avoid RFFM rate limiting
     let currentCookies = cookies;
@@ -503,8 +508,14 @@ Deno.serve(async (req) => {
           changeParts.push(`${isLocal ? '🏠 Local' : '✈️ Visitante'}`);
         }
 
-        updateData.estado_convocatoria = 'reprogramada';
-        updateData.motivo_cambio = `Cambio detectado automáticamente desde RFFM (Jornada ${jornada})`;
+        if (callup.publicada) {
+          updateData.estado_convocatoria = 'reprogramada';
+          updateData.motivo_cambio = `Cambio detectado automáticamente desde RFFM (Jornada ${jornada})`;
+        } else {
+          // Borrador: simplemente se corrige con los datos buenos, sin marcarlo como reprogramado
+          delete updateData.fecha_partido_original;
+          delete updateData.hora_partido_original;
+        }
 
         // Update the convocatoria
         await base44.asServiceRole.entities.Convocatoria.update(callup.id, updateData);
