@@ -398,8 +398,10 @@ Deno.serve(async (req) => {
         // Never touch manually-created callups (amistosos, torneos, etc.)
         const callup = openCallups.find(c => 
           c.categoria === config.categoria && (
-            c.entrenador_email === 'sistema@cdbustarviejo.es' ||
-            (c.titulo?.includes(`Jornada ${jornada}`) && c.rival?.toUpperCase() === rival?.toUpperCase())
+            // Borradores del sistema: SOLO el de esta misma jornada (antes cogía cualquiera y mezclaba jornadas)
+            (c.entrenador_email === 'sistema@cdbustarviejo.es' &&
+              (c.titulo?.includes(`Jornada ${jornada} `) || c.descripcion?.includes(`(Jornada ${jornada})`))) ||
+            (c.titulo?.includes(`Jornada ${jornada} `) && c.rival?.toUpperCase() === rival?.toUpperCase())
           )
         );
 
@@ -506,6 +508,12 @@ Deno.serve(async (req) => {
 
         // Update the convocatoria
         await base44.asServiceRole.entities.Convocatoria.update(callup.id, updateData);
+
+        // Borrador sin publicar: las familias aún no lo conocen, no se avisa a nadie
+        if (!callup.publicada) {
+          changes.push({ categoria: config.categoria, rival, jornada, changes: changeParts, callup_id: callup.id, silent: true });
+          return null;
+        }
 
         // Notify parents via AppNotification (links to calendar/matches section)
         const cambiosTexto = changeParts.join(' | ');
