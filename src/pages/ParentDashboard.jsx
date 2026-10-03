@@ -314,7 +314,7 @@ export default function ParentDashboard() {
 
   // Los jugadores ya están filtrados arriba
   const myPlayers = players;
-  const { byJugador: rmPorJugador } = useReconocimientos();
+  const { byJugador: rmPorJugador } = useReconocimientos(myPlayers.length > 0);
   const citasRMPendientes = myPlayers.filter((p) => {
     const uri = rmPorJugador?.[p.id]?.cita_pdf_uri;
     return uri && !localStorage.getItem(`rm_cita_vista_${uri}`);
