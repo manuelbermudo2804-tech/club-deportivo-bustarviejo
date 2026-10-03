@@ -470,8 +470,8 @@ Deno.serve(async (req) => {
         const venueChanged = match.campo && callup.ubicacion && 
           !callup.ubicacion.toUpperCase().includes(match.campo.toUpperCase()) &&
           !match.campo.toUpperCase().includes(callup.ubicacion.toUpperCase());
-        const rivalChanged = rival && callup.rival && 
-          callup.rival.trim().toUpperCase() !== rival.trim().toUpperCase();
+        const norm = (s) => String(s || '').normalize('NFKC').replace(/[\s\u00a0"'“”«»]+/g, ' ').trim().toUpperCase();
+        const rivalChanged = rival && callup.rival && norm(callup.rival) !== norm(rival);
         const localVisitanteChanged = (isLocal ? 'Local' : 'Visitante') !== callup.local_visitante;
 
         if (!dateChanged && !timeChanged && !venueChanged && !rivalChanged && !localVisitanteChanged) return null;
