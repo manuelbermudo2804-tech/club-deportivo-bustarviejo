@@ -43,16 +43,27 @@ Deno.serve(async (req) => {
     const teams = [...g.matchAll(/Codigo_Equipo=(\d+)">([^<]+)<\/a>[\s\S]*?nowrap>&nbsp;([^<]+)</g)].map((m) => ({ c: m[1], n: m[3].trim() }));
     if (!teams.length) throw new Error('No se pudo leer la intranet de la Federación');
 
+    const { buscar } = await req.json().catch(() => ({}));
+    const hallazgos = [];
     const fed = {}; // key -> { fecha, categoria }
     for (const t of teams) {
       const txt = clean(await dec(await fetch(`${B}/nfg/NPcd/NFG_GC_VisLicenciasEquipo?cod_primaria=${CLUB}&Codigo_Equipo=${t.c}`, { headers: { Cookie: ck() } })));
-      const part = txt.slice(txt.indexOf('licencia en vigor'));
-      for (const m of part.matchAll(/\| [0-9A-Z]{8,10} \| ([^|]+?) \| \w+ \| \d\d-\d\d-\d{4} \| \d\d-\d\d-\d{4} \| (\d\d)-(\d\d)-(\d{4}) \|/g)) {
-        const k = key(m[1]); const fecha = `${m[4]}-${m[3]}-${m[2]}`;
+      if (buscar) {
+        const i = txt.toUpperCase().indexOf(buscar.toUpperCase());
+        if (i >= 0) hallazgos.push({ equipo: t.n, texto: txt.slice(Math.max(0, i - 150), i + 200), en_vigor_desde: txt.indexOf('licencia en vigor'), pos: i });
+        continue;
+      }
+      // Incluye fichas en vigor y en tramitación: la última fecha de la fila es la del reconocimiento
+      for (const m of txt.matchAll(/\| [0-9A-Z]{8,10} \| ([^|]+?) \| \w+ \|((?: \d\d-\d\d-\d{4} \|)+)/g)) {
+        const ds = m[2].match(/\d\d-\d\d-\d{4}/g);
+        if (ds.length < 2) continue;
+        const [d, mo, y] = ds[ds.length - 1].split('-');
+        const k = key(m[1]); const fecha = `${y}-${mo}-${d}`;
         if (!fed[k] || fecha > fed[k].fecha) fed[k] = { fecha, categoria: t.n };
       }
     }
 
+    if (buscar) return Response.json({ hallazgos });
     const sr = base44.asServiceRole.entities;
     const players = await sr.Player.filter({ activo: true }, '-created_date', 1000);
     const existentes = await sr.ReconocimientoMedico.list('-created_date', 2000);
