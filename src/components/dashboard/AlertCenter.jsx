@@ -48,6 +48,7 @@ export default function AlertCenter({
   pendingEvaluations = 0,
   pendingSurveys = 0,
   pendingSignatures = 0,
+  pendingCitasRM = 0,
   pendingCallupResponses = 0,
   upcomingEvents = 0,
   pendingClothingOrders = 0,
@@ -283,6 +284,17 @@ const alerts = [];
         description: `${pendingSignatures} firma${pendingSignatures > 1 ? 's' : ''} pendiente${pendingSignatures > 1 ? 's' : ''}`,
         url: createPageUrl("FederationSignatures"),
         color: "bg-yellow-500",
+        priority: 2
+      });
+    }
+    if (pendingCitasRM > 0) {
+      alerts.push({
+        id: "citas-rm",
+        icon: FileSignature,
+        title: "Cita del reconocimiento médico",
+        description: `${pendingCitasRM} cita${pendingCitasRM > 1 ? 's' : ''} lista${pendingCitasRM > 1 ? 's' : ''} para descargar`,
+        url: createPageUrl("FederationSignatures"),
+        color: "bg-red-500",
         priority: 2
       });
     }

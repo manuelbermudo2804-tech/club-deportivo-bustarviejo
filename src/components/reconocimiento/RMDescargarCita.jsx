@@ -7,6 +7,7 @@ export default function RMDescargarCita({ uri, label = "Descargar cita" }) {
   const [cargando, setCargando] = useState(false);
   const abrir = async () => {
     setCargando(true);
+    localStorage.setItem(`rm_cita_vista_${uri}`, "1");
     const { signed_url } = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: uri, expires_in: 600 });
     setCargando(false);
     window.open(signed_url, "_blank");

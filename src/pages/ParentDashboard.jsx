@@ -10,6 +10,7 @@ import { toast } from "sonner";
 
 import SocialLinks from "../components/SocialLinks";
 import AlertCenter from "../components/dashboard/AlertCenter";
+import useReconocimientos from "@/hooks/useReconocimientos";
 import ContactCard from "../components/ContactCard";
 import RenewalStatusWidget from "../components/renewals/RenewalStatusWidget";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
@@ -313,6 +314,11 @@ export default function ParentDashboard() {
 
   // Los jugadores ya están filtrados arriba
   const myPlayers = players;
+  const { byJugador: rmPorJugador } = useReconocimientos();
+  const citasRMPendientes = myPlayers.filter((p) => {
+    const uri = rmPorJugador?.[p.id]?.cita_pdf_uri;
+    return uri && !localStorage.getItem(`rm_cita_vista_${uri}`);
+  }).length;
 
   // Debug log removed
 
@@ -577,6 +583,7 @@ export default function ParentDashboard() {
             overduePayments={0}
             pendingSurveys={activeSurveys.length}
             pendingSignatures={notifications?.pendingSignatures || pendingFederationSignatures}
+            pendingCitasRM={citasRMPendientes}
             upcomingEvents={0}
             newGalleryPhotos={0}
             hasActiveAdminChat={notifications?.hasActiveAdminConversation || hasActiveAdminChat}
