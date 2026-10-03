@@ -6,18 +6,22 @@ const plantilla = (nombre, junta, fecha, esApp) => {
   const boton = esApp
     ? { url: APP_URL, texto: 'Abrir la app y responder' }
     : { url: `${APP_URL}/l/${junta.landing_slug}`, texto: 'Confirmar mi asistencia' };
-  const orden = (junta.orden_dia || []).map((p) => `<li style="margin:4px 0">${p}</li>`).join('');
-  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;border-radius:12px;overflow:hidden;border:1px solid #eee">
-<div style="background:linear-gradient(135deg,#ea580c,#15803d);color:#fff;text-align:center;padding:28px 20px">
-<div style="font-size:12px;letter-spacing:3px;font-weight:bold">CD BUSTARVIEJO TE CONVOCA</div>
-<h1 style="margin:8px 0;font-size:26px">${junta.titulo || 'Junta General de Socios'}</h1>
-<p style="margin:0">Tu voz cuenta y tu presencia es necesaria.</p></div>
-<div style="padding:20px;color:#334155">
-<p>Hola ${nombre || ''},</p>
-<p>📅 <b>${fecha}</b>${junta.lugar ? `<br>📍 <b>${junta.lugar}</b>` : ''}</p>
-${orden ? `<p><b>Lo que decidiremos juntos:</b></p><ol>${orden}</ol>` : ''}
-<p>${esApp ? 'Al abrir la app del club verás el aviso de la junta: confírmanos ahí si vienes, si no puedes o si delegas tu voto.' : 'Confírmanos en este enlace si vienes, si no puedes o si delegas tu voto.'}</p>
-<p style="text-align:center;margin:24px 0"><a href="${boton.url}" style="background:#ea580c;color:#fff;padding:14px 26px;border-radius:10px;text-decoration:none;font-weight:bold">${boton.texto}</a></p>
+  const titulo = junta.titulo || 'Junta General de Socios';
+  const orden = (junta.orden_dia || []).map((p) => `<li style="margin:2px 0">${p}</li>`).join('');
+  const instr = esApp
+    ? 'Entra en la app del club (con tu correo de siempre) y verás el aviso de la junta: ahí nos confirmas si vienes.'
+    : 'Pulsa el botón y confírmanos si vienes. Solo te llevará un minuto.';
+  return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;color:#334155;font-size:15px;line-height:1.45">
+<div style="background:#ea580c;color:#fff;padding:12px 18px;font-weight:bold;font-size:14px">CD Bustarviejo · Convocatoria oficial</div>
+<div style="padding:16px 18px">
+<p style="margin:0 0 10px">Hola ${nombre || ''},</p>
+<p style="margin:0 0 12px">Te convocamos a la <b>${titulo}</b> del CD Bustarviejo. Tu voz cuenta y tu presencia es necesaria.</p>
+<div style="background:#f0fdf4;border-left:4px solid #15803d;padding:10px 12px;margin:0 0 12px">📅 <b>${fecha}</b>${junta.lugar ? `<br>📍 <b>${junta.lugar}</b>` : ''}</div>
+${orden ? `<p style="margin:0 0 4px"><b>Orden del día:</b></p><ol style="margin:0 0 12px;padding-left:20px">${orden}</ol>` : ''}
+<p style="margin:0 0 14px">${instr}</p>
+<table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 6px"><tr><td bgcolor="#ea580c" style="border-radius:8px;text-align:center">
+<a href="${boton.url}" style="display:inline-block;padding:12px 24px;color:#ffffff;font-weight:bold;font-size:15px;text-decoration:none;font-family:Arial,sans-serif">${boton.texto}</a>
+</td></tr></table>
 </div></div>`;
 };
 
