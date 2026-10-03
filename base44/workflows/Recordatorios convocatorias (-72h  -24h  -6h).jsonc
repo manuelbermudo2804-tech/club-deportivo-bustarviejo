@@ -1,23 +1,23 @@
 {
-  "name": "Recordatorios convocatorias (-72h / -24h / -6h)",
-  "description": "Cada hora revisa las convocatorias publicadas. Env\u00eda push + email a los jugadores/familias que a\u00fan no han confirmado, en tres ventanas: -72h, -24h y -6h del partido. Solo notifica a los pendientes.",
   "trigger": {
     "condition": null,
     "config": {
       "trigger_type": "scheduled",
       "events": [],
-      "schedule_mode": "interval",
-      "cron_expression": null,
+      "schedule_mode": "recurring",
+      "cron_expression": "0 18 * * *",
       "one_time_date": null,
-      "timezone": "UTC",
-      "interval_value": 1,
-      "interval_unit": "hours",
-      "interval_anchor": "2026-05-30T19:05:05.125000",
+      "timezone": "Europe/Madrid",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
       "ends_type": "never",
       "ends_on_date": null,
       "ends_after_count": null
     }
   },
+  "description": "Una vez al d\u00eda a las 18:00 (Madrid) avisa por push + email a las familias que a\u00fan no han confirmado la convocatoria del partido de ma\u00f1ana.",
+  "name": "Recordatorios convocatorias (-72h / -24h / -6h)",
   "definition": {
     "document": {
       "dsl": "1.0.0",
@@ -33,7 +33,10 @@
             "function_name": "callupAutoReminder",
             "args": {}
           },
-          "then": "end"
+          "then": "end",
+          "x-base44": {
+            "title": "Avisar pendientes de ma\u00f1ana"
+          }
         }
       }
     ]
