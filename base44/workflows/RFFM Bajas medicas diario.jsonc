@@ -1,6 +1,6 @@
 {
   "name": "RFFM Bajas m\u00e9dicas (diario 7:00)",
-  "description": "Cada d\u00eda a las 7:00 lee de la Federaci\u00f3n los jugadores en baja m\u00e9dica y los marca como no disponibles en la app",
+  "description": "Cada d\u00eda a las 7:00 lee de la Federaci\u00f3n los jugadores en baja m\u00e9dica y las fechas de reconocimiento m\u00e9dico",
   "definition": {
     "document": {
       "dsl": "1.0.0",
@@ -16,10 +16,24 @@
             "function_name": "rffmSyncBajasMedicas",
             "args": {}
           },
-          "then": "end",
+          "then": "sync_reconocimientos",
           "x-base44": {
             "title": "Sincronizar bajas m\u00e9dicas",
             "description": "Lee la intranet de la Federaci\u00f3n"
+          }
+        }
+      },
+      {
+        "sync_reconocimientos": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "rffmSyncReconocimientos",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Sincronizar reconocimientos m\u00e9dicos",
+            "description": "Guarda la fecha de caducidad del reconocimiento de cada jugador"
           }
         }
       }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import FirmasExtraJugador from "@/components/federation/FirmasExtraJugador";
+import ReconocimientoFamilia from "@/components/reconocimiento/ReconocimientoFamilia";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -442,6 +443,8 @@ export default function FederationSignatures() {
         </h1>
         <p className="text-slate-600 mt-1">Gestiona las firmas digitales de tus jugadores</p>
       </div>
+
+      <ReconocimientoFamilia players={myPlayers} />
 
       {/* Barra de progreso global */}
       {totalSignaturesNeeded > 0 && (

@@ -1,0 +1,121 @@
+{
+  "name": "ReconocimientoMedico",
+  "type": "object",
+  "description": "Reconocimiento m\u00e9dico federativo de cada jugador (fecha sincronizada con la Federaci\u00f3n + PDF de la cita subido por el club)",
+  "properties": {
+    "jugador_id": {
+      "type": "string"
+    },
+    "jugador_nombre": {
+      "type": "string"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Equipo de la Federaci\u00f3n donde aparece"
+    },
+    "fecha_vencimiento": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de caducidad del reconocimiento seg\u00fan la Federaci\u00f3n"
+    },
+    "email_padre": {
+      "type": "string"
+    },
+    "email_tutor_2": {
+      "type": "string"
+    },
+    "email_jugador": {
+      "type": "string"
+    },
+    "cita_pdf_uri": {
+      "type": "string",
+      "description": "PDF privado de la cita del reconocimiento"
+    },
+    "cita_pdf_nombre": {
+      "type": "string"
+    },
+    "cita_fecha_subida": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "cita_subida_por": {
+      "type": "string"
+    },
+    "ultima_sincronizacion": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": [
+    "jugador_id",
+    "jugador_nombre"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.puede_gestionar_firmas": true
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "data.email_padre": "{{user.email}}"
+        },
+        {
+          "data.email_tutor_2": "{{user.email}}"
+        },
+        {
+          "data.email_jugador": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_entrenador": true
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_coordinador": true
+          }
+        },
+        {
+          "user_condition": {
+            "data.puede_gestionar_firmas": true
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.puede_gestionar_firmas": true
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

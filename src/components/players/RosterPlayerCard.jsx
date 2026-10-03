@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import RMBadge from "@/components/reconocimiento/RMBadge";
 import { Button } from "@/components/ui/button";
 import { User, Phone, Mail, AlertTriangle, Calendar, Pencil } from "lucide-react";
 import PlayerDetailDialog from "./PlayerDetailDialog";
@@ -107,6 +108,7 @@ export default function RosterPlayerCard({ player, onUpdateAvailability, onUpdat
             {positionEmojis[player.posicion] || "⚽"} {player.posicion || "Sin asignar"}
             <Pencil className="w-2.5 h-2.5 ml-0.5" />
           </button>
+          <div><RMBadge playerId={player.id} className="mt-1" /></div>
         </div>
 
         {/* Número de camiseta */}

@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import PlayerDocsForFederation from "@/components/federation/PlayerDocsForFederation";
 import RecordarFirmaButton from "@/components/federation/RecordarFirmaButton";
 import FirmasExtraAdmin from "@/components/federation/FirmasExtraAdmin";
+import ReconocimientosPanel from "@/components/reconocimiento/ReconocimientosPanel";
 
 export default function FederationSignaturesAdmin() {
   const [user, setUser] = useState(null);
@@ -265,6 +266,8 @@ export default function FederationSignaturesAdmin() {
           </CardContent>
         </Card>
       </div>
+
+      <ReconocimientosPanel players={players} canUpload={isAdmin || user?.puede_gestionar_firmas === true} />
 
       {/* Filtros */}
       <Card className="border-none shadow-lg">
