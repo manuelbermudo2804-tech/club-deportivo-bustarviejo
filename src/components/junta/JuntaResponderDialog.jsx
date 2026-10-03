@@ -57,11 +57,6 @@ export default function JuntaResponderDialog({ open, onOpenChange, forzado, junt
                 <ol className="list-decimal pl-5 space-y-1 text-slate-700">{junta.orden_dia.map((p, i) => <li key={i}>{p}</li>)}</ol>
               </div>
             )}
-            {junta.landing_slug && (
-              <a href={`/l/${junta.landing_slug}`} target="_blank" rel="noreferrer" className="text-sm text-orange-700 font-semibold underline flex items-center gap-1">
-                Ver documentación completa <ExternalLink className="w-3 h-3" />
-              </a>
-            )}
 
             <div>
               <p className="font-bold text-slate-800 mb-2">1. ¿Contamos contigo?</p>
