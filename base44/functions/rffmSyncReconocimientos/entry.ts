@@ -38,6 +38,11 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me().catch(() => null);
     if (user && user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
+    const body = await req.clone().json().catch(() => ({}));
+    // Automático: solo los lunes (los reconocimientos cambian poco). Manual desde la app: siempre.
+    if (body.solo_lunes && new Date().toLocaleDateString('en-US', { weekday: 'short', timeZone: 'Europe/Madrid' }) !== 'Mon') {
+      return Response.json({ omitido: 'Solo se sincroniza los lunes' });
+    }
     const ck = await login();
     const g = await dec(await fetch(`${B}/nfg/NPcd/NFG_GC_GestionLicencias?cod_primaria=${CLUB}`, { headers: { Cookie: ck() } }));
     const teams = [...g.matchAll(/Codigo_Equipo=(\d+)">([^<]+)<\/a>[\s\S]*?nowrap>&nbsp;([^<]+)</g)].map((m) => ({ c: m[1], n: m[3].trim() }));
