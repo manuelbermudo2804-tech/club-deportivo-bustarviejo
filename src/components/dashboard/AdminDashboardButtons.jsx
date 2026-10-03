@@ -7,7 +7,7 @@ export const ALL_ADMIN_BUTTONS = [
   // --- GESTIÓN DE PERSONAS ---
   { id: "jugadores", title: "👥 Jugadores", icon: Users, url: createPageUrl("Players"), gradient: "from-orange-600 to-orange-700", priority: 1 },
   { id: "renovaciones", title: "🔄 Renovaciones", icon: RotateCcw, url: createPageUrl("RenewalDashboard"), gradient: "from-cyan-600 to-cyan-700", priority: 2 },
-  { id: "firmas", title: "🖊️ Firmas Federación", icon: FileSignature, url: createPageUrl("FederationSignaturesAdmin"), gradient: "from-yellow-600 to-orange-600", priority: 3 },
+  { id: "firmas", title: "🖊️ Firmas y Reconocimientos", icon: FileSignature, url: createPageUrl("FederationSignaturesAdmin"), gradient: "from-yellow-600 to-orange-600", priority: 3 },
   { id: "entrenadores", title: "🏃 Entrenadores", icon: Award, url: createPageUrl("CoachProfiles"), gradient: "from-indigo-600 to-indigo-700", priority: 4 },
   { id: "usuarios", title: "👤 Usuarios", icon: Users, url: createPageUrl("UserManagement"), gradient: "from-blue-600 to-blue-700", priority: 5 },
   { id: "invitaciones", title: "📧 Solicitudes Invitación", icon: Mail, url: createPageUrl("InvitationRequests"), gradient: "from-purple-600 to-purple-700", priority: 6 },

@@ -4,6 +4,7 @@ import useReconocimientos from "@/hooks/useReconocimientos";
 import { estadoRM } from "@/lib/reconocimiento";
 import RMSubirCita from "./RMSubirCita";
 import RMDescargarCita from "./RMDescargarCita";
+import RMQuitarCita from "./RMQuitarCita";
 
 // Reconocimiento médico dentro de la ficha de firmas de cada jugador (solo fútbol)
 export default function RMJugadorRow({ player, canUpload }) {
@@ -18,6 +19,7 @@ export default function RMJugadorRow({ player, canUpload }) {
       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${e.cls}`}>{e.label}</span>
       {rm.cita_pdf_uri && <RMDescargarCita uri={rm.cita_pdf_uri} label="Ver cita" />}
       {canUpload && <RMSubirCita rm={rm} />}
+      {canUpload && rm.cita_pdf_uri && <RMQuitarCita rm={rm} />}
     </div>
   );
 }

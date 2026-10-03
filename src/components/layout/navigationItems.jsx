@@ -43,7 +43,7 @@ export function buildAdminNavigation(ctx) {
     { title: "─ GESTIÓN DE PERSONAS ─", section: true },
     { title: "👥 Jugadores", url: createPageUrl("Players"), icon: Users, badge: playersNeedingReview > 0 ? playersNeedingReview : null },
     { title: "🔄 Renovaciones", url: createPageUrl("RenewalDashboard"), icon: RotateCw },
-    { title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature, badge: pendingSignaturesAdmin > 0 ? pendingSignaturesAdmin : null, urgentBadge: pendingSignaturesAdmin > 0 },
+    { title: "🖊️ Firmas y Reconocimientos", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature, badge: pendingSignaturesAdmin > 0 ? pendingSignaturesAdmin : null, urgentBadge: pendingSignaturesAdmin > 0 },
     { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
     { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
     { title: "🔑 Códigos de Acceso", url: createPageUrl("AdminAccessCodes"), icon: KeyRound, badge: pendingInvitations > 0 ? pendingInvitations : null },
@@ -155,7 +155,7 @@ export function buildCoachNavigation(ctx) {
 
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
-    ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
+    ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas y Reconocimientos", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
 
     ...(isPlayer ? [
       { title: "─ MI PERFIL JUGADOR ─", section: true },
@@ -220,7 +220,7 @@ export function buildCoordinatorNavigation(ctx) {
     { title: "🎯 Pizarra Táctica", url: createPageUrl("TacticsBoard"), icon: Calendar },
     { title: "📊 Competición (Técnicos)", url: createPageUrl("CentroCompeticionTecnico"), icon: BarChart3 },
     { title: "⏱️ Control Minutos", url: createPageUrl("MatchMinutesTracker"), icon: Clock },
-    ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
+    ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas y Reconocimientos", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
 
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "🚨 Riesgo de Abandono", url: createPageUrl("RiesgoAbandono"), icon: ShieldAlert },
@@ -283,7 +283,7 @@ export function buildParentNavigation(ctx) {
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "💬 Chats", url: createPageUrl("FamilyChatsHub"), icon: MessageCircle, badge: familyChatTotal(chatMenuCounts) },
     ...(!onlyComplementary ? [{ title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : []),
-    ...(!onlyComplementary ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
+    ...(!onlyComplementary ? [{ title: "🖊️ Firmas y Reconocimientos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
     { title: "💳 Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "👥 Mis Jugadores e Inscripciones", url: createPageUrl("ParentPlayers"), icon: Users },
     { title: "📅 Agenda del club", url: "/AgendaClub", icon: CalendarDays },
@@ -323,7 +323,7 @@ export function buildPlayerNavigation(ctx) {
     { title: "🤖 Asistente Virtual", url: createPageUrl("Chatbot"), icon: MessageCircle },
     { title: "💬 Chats", url: createPageUrl("FamilyChatsHub"), icon: MessageCircle, badge: familyChatTotal(chatMenuCounts) },
     ...(!onlyComplementary ? [{ title: "🏆 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 }] : []),
-    ...(!onlyComplementary ? [{ title: "🖊️ Firmas Federación", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
+    ...(!onlyComplementary ? [{ title: "🖊️ Firmas y Reconocimientos", url: createPageUrl("FederationSignatures"), icon: FileSignature, badge: pendingSignaturesCount > 0 ? pendingSignaturesCount : null, urgentBadge: pendingSignaturesCount > 0 }] : []),
     { title: "💳 Mis Pagos", url: createPageUrl("ParentPayments"), icon: CreditCard },
     { title: "📅 Agenda del club", url: "/AgendaClub", icon: CalendarDays },
     { title: "🤝 Voluntariado y Comunidad", url: createPageUrl("Voluntariado"), icon: Users },

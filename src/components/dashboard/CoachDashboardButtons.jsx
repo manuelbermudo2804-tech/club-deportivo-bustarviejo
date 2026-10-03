@@ -18,7 +18,7 @@ export const ALL_COACH_BUTTONS = [
   { id: "chat_staff", title: "💼 Chat Staff", icon: MessageCircle, url: createPageUrl("StaffChat"), gradient: "from-purple-600 to-purple-700", priority: 9, section: "coach" },
   { id: "reportes", title: "📊 Reportes", icon: Star, url: createPageUrl("CoachEvaluationReports"), gradient: "from-purple-600 to-purple-700", priority: 13, section: "coach" },
   { id: "perfil", title: "👤 Mi Perfil", icon: UserCircle, url: createPageUrl("CoachProfile"), gradient: "from-indigo-600 to-indigo-700", priority: 14, section: "coach" },
-  { id: "firmas", title: "🖊️ Firmas Federación", icon: FileSignature, url: createPageUrl("FederationSignaturesAdmin"), gradient: "from-yellow-600 to-orange-600", priority: 15, conditional: true, conditionKey: "canManageSignatures", section: "coach" },
+  { id: "firmas", title: "🖊️ Firmas y Reconocimientos", icon: FileSignature, url: createPageUrl("FederationSignaturesAdmin"), gradient: "from-yellow-600 to-orange-600", priority: 15, conditional: true, conditionKey: "canManageSignatures", section: "coach" },
   // --- Sección Jugador +18 (si también es jugador) ---
   { id: "perfil_jugador", title: "⚽ Mi Perfil Jugador", icon: UserCircle, url: createPageUrl("PlayerProfile"), gradient: "from-orange-600 to-orange-700", priority: 30, conditional: true, conditionKey: "isPlayer", section: "player" },
   { id: "convocatorias_jugador", title: "🏆 Convocatorias (Jugador)", icon: Bell, url: createPageUrl("ParentCallups"), gradient: "from-yellow-600 to-yellow-700", priority: 31, conditional: true, conditionKey: "isPlayer", section: "player" },

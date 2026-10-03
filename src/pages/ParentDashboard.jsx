@@ -319,6 +319,10 @@ export default function ParentDashboard() {
     const uri = rmPorJugador?.[p.id]?.cita_pdf_uri;
     return uri && !localStorage.getItem(`rm_cita_vista_${uri}`);
   }).length;
+  const rmVencen = myPlayers.map((p) => {
+    const f = rmPorJugador?.[p.id]?.fecha_vencimiento;
+    return f ? { nombre: p.nombre?.split(" ")[0], dias: Math.ceil((new Date(f) - new Date()) / 86400000) } : null;
+  }).filter((x) => x && x.dias <= 30);
 
   // Debug log removed
 
@@ -584,6 +588,7 @@ export default function ParentDashboard() {
             pendingSurveys={activeSurveys.length}
             pendingSignatures={notifications?.pendingSignatures || pendingFederationSignatures}
             pendingCitasRM={citasRMPendientes}
+            rmVencen={rmVencen}
             upcomingEvents={0}
             newGalleryPhotos={0}
             hasActiveAdminChat={notifications?.hasActiveAdminConversation || hasActiveAdminChat}

@@ -49,6 +49,7 @@ export default function AlertCenter({
   pendingSurveys = 0,
   pendingSignatures = 0,
   pendingCitasRM = 0,
+  rmVencen = [],
   pendingCallupResponses = 0,
   upcomingEvents = 0,
   pendingClothingOrders = 0,
@@ -287,6 +288,17 @@ const alerts = [];
         priority: 2
       });
     }
+    rmVencen.forEach((r) => {
+      alerts.push({
+        id: `rm-vence-${r.nombre}`,
+        icon: FileSignature,
+        title: r.dias < 0 ? `Reconocimiento de ${r.nombre} caducado` : `Reconocimiento de ${r.nombre}: quedan ${r.dias} días`,
+        description: "El club te dará cita. La descargarás en Firmas y Reconocimientos.",
+        url: createPageUrl("FederationSignatures"),
+        color: "bg-orange-500",
+        priority: 2
+      });
+    });
     if (pendingCitasRM > 0) {
       alerts.push({
         id: "citas-rm",

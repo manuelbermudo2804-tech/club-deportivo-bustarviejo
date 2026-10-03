@@ -13,6 +13,7 @@ import InjuryReportDialog from "./InjuryReportDialog";
 import { getActiveCustomPlan, getPendingPaymentsCount } from "../payments/paymentHelpers";
 import { base44 } from "@/api/base44Client";
 import PlayerCardRenewal from "./card/PlayerCardRenewal";
+import RMBadge from "@/components/reconocimiento/RMBadge";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -406,6 +407,8 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                 ➕ Apuntar a otra actividad
               </Button>
             )}
+
+            <RMBadge playerId={player.id} className="text-xs" />
 
             {/* ═══════ RENEWAL ═══════ */}
             {player.estado_renovacion === "pendiente" && isParent && seasonConfig?.permitir_renovaciones && (
