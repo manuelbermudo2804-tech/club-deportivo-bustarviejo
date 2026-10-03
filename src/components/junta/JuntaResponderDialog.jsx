@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { CalendarDays, MapPin, ExternalLink, Loader2, Send } from "lucide-react";
 import { RESPUESTAS, fechaLarga, faltaTexto } from "@/lib/juntaUtils";
+import TextoDestacado from "./TextoDestacado";
 
 const ESCUDO = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
@@ -54,7 +55,7 @@ export default function JuntaResponderDialog({ open, onOpenChange, forzado, junt
             {junta.orden_dia?.length > 0 && (
               <div className="rounded-2xl bg-green-50 border border-green-200 p-4 text-sm">
                 <p className="font-bold text-green-800 mb-2">📋 Lo que decidiremos juntos</p>
-                <ol className="list-decimal pl-5 space-y-1 text-slate-700">{junta.orden_dia.map((p, i) => <li key={i}>{p}</li>)}</ol>
+                <ol className="list-decimal pl-5 space-y-1 text-slate-700">{junta.orden_dia.map((p, i) => <li key={i}><TextoDestacado texto={p} /></li>)}</ol>
               </div>
             )}
 

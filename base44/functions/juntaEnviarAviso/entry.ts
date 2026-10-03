@@ -7,7 +7,7 @@ const plantilla = (nombre, junta, fecha, esApp) => {
     ? { url: `${APP_URL}/?junta=1`, texto: 'Abrir la app y responder' }
     : { url: `${APP_URL}/l/${junta.landing_slug}`, texto: 'Confirmar mi asistencia' };
   const titulo = junta.titulo || 'Junta General de Socios';
-  const orden = (junta.orden_dia || []).map((p) => `<li style="margin:2px 0">${p}</li>`).join('');
+  const orden = (junta.orden_dia || []).map((p) => `<li style="margin:2px 0">${String(p).replace(/\*\*([^*]+)\*\*/g, '<b style="color:#c2410c">$1</b>')}</li>`).join('');
   const instr = esApp
     ? 'Entra en la app del club (con tu correo de siempre) y verás el aviso de la junta: ahí nos confirmas si vienes.'
     : 'Pulsa el botón y confírmanos si vienes. Solo te llevará un minuto.';

@@ -34,7 +34,7 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
       <label className="text-sm md:col-span-2 rounded-lg border border-dashed border-amber-400 bg-amber-50 p-3">🧪 Modo prueba: email del único usuario que verá el aviso (déjalo vacío para que lo vean todos los socios)
         <Input value={f.email_prueba || ""} onChange={set("email_prueba")} placeholder="tu@email.com" className="mt-1 bg-white" />
       </label>
-      <label className="text-sm md:col-span-2">Orden del día (un punto por línea)<Textarea rows={4} value={f.orden || ""} onChange={set("orden")} /></label>
+      <label className="text-sm md:col-span-2">Orden del día (un punto por línea · para destacar algo escríbelo entre **dos asteriscos**)<Textarea rows={4} value={f.orden || ""} onChange={set("orden")} /></label>
       <p className="text-xs text-slate-500 md:col-span-2">Pega aquí el enlace de la página que hayas hecho en el Constructor de páginas (con su formulario de asistencia). Las respuestas de esa página se suman solas a las de la app en la tabla de abajo.</p>
       <div className={`flex items-center gap-3 text-sm font-semibold rounded-lg p-3 md:col-span-2 ${f.activa ? "bg-green-50 text-green-800" : "bg-slate-100 text-slate-600"}`}><Switch checked={!!f.activa} onCheckedChange={async (v) => {
         setF({ ...f, activa: v });
