@@ -1,10 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.52';
 
-const APP_URL = 'https://club-deportivo-bustarviejo-copy-92897991.base44.app';
+const APP_URL = 'https://app.cdbustarviejo.com';
 
 const plantilla = (nombre, junta, fecha, esApp) => {
   const boton = esApp
-    ? { url: APP_URL, texto: 'Abrir la app y responder' }
+    ? { url: `${APP_URL}/?junta=1`, texto: 'Abrir la app y responder' }
     : { url: `${APP_URL}/l/${junta.landing_slug}`, texto: 'Confirmar mi asistencia' };
   const titulo = junta.titulo || 'Junta General de Socios';
   const orden = (junta.orden_dia || []).map((p) => `<li style="margin:2px 0">${p}</li>`).join('');

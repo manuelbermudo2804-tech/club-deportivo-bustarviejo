@@ -8,7 +8,7 @@ import JuntaResponderDialog from "./JuntaResponderDialog";
 export default function JuntaAppBar({ user, isAdmin }) {
   const { junta, miRespuesta, refetch } = useJuntaActiva(user);
   const qc = useQueryClient();
-  const [editar, setEditar] = useState(false);
+  const [editar, setEditar] = useState(() => new URLSearchParams(window.location.search).get("junta") === "1");
   const [, tick] = useState(0);
 
   useEffect(() => {
