@@ -92,6 +92,10 @@ Deno.serve(async (req) => {
         email_padre: p.email_padre || '', email_tutor_2: p.email_tutor_2 || '', email_jugador: p.email_jugador || p.acceso_menor_email || '',
         ultima_sincronizacion: now,
       };
+      // Si ya pasó el reconocimiento (la Federación da una fecha nueva y más tarde), la cita ya no sirve: se quita
+      if (prev?.cita_pdf_uri && data.fecha_vencimiento && (!prev.fecha_vencimiento || data.fecha_vencimiento > prev.fecha_vencimiento)) {
+        Object.assign(data, { cita_pdf_uri: null, cita_pdf_nombre: null, cita_fecha_subida: null, cita_subida_por: null });
+      }
       if (prev) actualizar.push({ id: prev.id, ...data }); else crear.push(data);
     }
     for (let i = 0; i < crear.length; i += 200) await sr.ReconocimientoMedico.bulkCreate(crear.slice(i, i + 200));
