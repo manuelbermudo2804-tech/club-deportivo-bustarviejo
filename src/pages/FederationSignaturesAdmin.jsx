@@ -13,6 +13,8 @@ import PlayerDocsForFederation from "@/components/federation/PlayerDocsForFedera
 import RecordarFirmaButton from "@/components/federation/RecordarFirmaButton";
 import FirmasExtraAdmin from "@/components/federation/FirmasExtraAdmin";
 import RMJugadorRow from "@/components/reconocimiento/RMJugadorRow";
+import RMFiltroChips, { rmCoincide } from "@/components/reconocimiento/RMFiltroChips";
+import useReconocimientos from "@/hooks/useReconocimientos";
 
 export default function FederationSignaturesAdmin() {
   const [user, setUser] = useState(null);
@@ -21,6 +23,8 @@ export default function FederationSignaturesAdmin() {
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [rmFilter, setRmFilter] = useState("all");
+  const { byJugador: rmByJugador } = useReconocimientos();
   const [editingPlayer, setEditingPlayer] = useState(null);
   const [editData, setEditData] = useState({});
   
@@ -215,7 +219,7 @@ export default function FederationSignaturesAdmin() {
       (statusFilter === "pendiente" && status === "pendiente") ||
       (statusFilter === "completado" && status === "completado");
     
-    return matchesSearch && matchesCategory && matchesStatus;
+    return matchesSearch && matchesCategory && matchesStatus && rmCoincide(rmFilter, player, rmByJugador);
   });
 
   // Contadores
@@ -308,6 +312,8 @@ export default function FederationSignaturesAdmin() {
               </TabsList>
             </div>
           </Tabs>
+
+          <RMFiltroChips value={rmFilter} onChange={setRmFilter} players={players} byJugador={rmByJugador} />
         </CardContent>
       </Card>
 
