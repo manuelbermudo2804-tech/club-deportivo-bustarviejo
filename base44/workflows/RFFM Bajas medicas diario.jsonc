@@ -1,0 +1,45 @@
+{
+  "name": "RFFM Bajas m\u00e9dicas (diario 7:00)",
+  "description": "Cada d\u00eda a las 7:00 lee de la Federaci\u00f3n los jugadores en baja m\u00e9dica y los marca como no disponibles en la app",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "rffm_bajas_medicas_diario",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "sync_bajas": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "rffmSyncBajasMedicas",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Sincronizar bajas m\u00e9dicas",
+            "description": "Lee la intranet de la Federaci\u00f3n"
+          }
+        }
+      }
+    ]
+  },
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 7 * * *",
+      "one_time_date": null,
+      "timezone": "Europe/Madrid",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  }
+}

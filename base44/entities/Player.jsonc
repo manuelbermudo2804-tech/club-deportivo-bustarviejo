@@ -230,6 +230,21 @@
       "type": "boolean",
       "default": false
     },
+    "baja_medica_rffm": {
+      "type": "boolean",
+      "default": false,
+      "description": "La Federaci\u00f3n tiene al jugador en baja m\u00e9dica (sincronizado autom\u00e1ticamente)"
+    },
+    "fecha_baja_medica_rffm": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de la baja m\u00e9dica en la Federaci\u00f3n"
+    },
+    "lesionado_por_rffm": {
+      "type": "boolean",
+      "default": false,
+      "description": "El 'lesionado' lo puso la sincronizaci\u00f3n con la Federaci\u00f3n (se quita sola al darle el alta)"
+    },
     "sancionado": {
       "type": "boolean",
       "default": false
