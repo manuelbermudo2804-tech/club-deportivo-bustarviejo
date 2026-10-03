@@ -511,92 +511,12 @@ Deno.serve(async (req) => {
           changeParts.push(`${isLocal ? '🏠 Local' : '✈️ Visitante'}`);
         }
 
-        if (callup.publicada) {
-          updateData.estado_convocatoria = 'reprogramada';
-          updateData.motivo_cambio = `Cambio detectado automáticamente desde RFFM (Jornada ${jornada})`;
-        } else {
-          // Borrador: simplemente se corrige con los datos buenos, sin marcarlo como reprogramado
-          delete updateData.fecha_partido_original;
-          delete updateData.hora_partido_original;
-        }
+        // Se corrige en silencio: sin marcar como reprogramada ni avisar a las familias
+        delete updateData.fecha_partido_original;
+        delete updateData.hora_partido_original;
 
-        // Update the convocatoria
         await base44.asServiceRole.entities.Convocatoria.update(callup.id, updateData);
-
-        // Borrador sin publicar: las familias aún no lo conocen, no se avisa a nadie
-        if (!callup.publicada) {
-          changes.push({ categoria: config.categoria, rival, jornada, changes: changeParts, callup_id: callup.id, silent: true });
-          return null;
-        }
-
-        // Notify parents via AppNotification (links to calendar/matches section)
-        const cambiosTexto = changeParts.join(' | ');
-        const notifTitulo = `⚠️ Cambio de horario: ${config.categoria} vs ${rival}`;
-        const notifMensaje = `Jornada ${jornada} — ${cambiosTexto}. ${isLocal ? '🏠 Local' : '✈️ Visitante'}`;
-
-        // Get parents of this category to notify
-        const categoryPlayers = await base44.asServiceRole.entities.Player.filter({
-          categoria_principal: config.categoria, activo: true
-        });
-        const parentEmails = new Set();
-        for (const p of categoryPlayers) {
-          if (p.email_padre) parentEmails.add(p.email_padre);
-          if (p.email_tutor_2) parentEmails.add(p.email_tutor_2);
-          if (p.email_jugador) parentEmails.add(p.email_jugador);
-        }
-
-        // Create AppNotification for each parent → links to CalendarAndSchedules
-        for (const email of parentEmails) {
-          await base44.asServiceRole.entities.AppNotification.create({
-            usuario_email: email,
-            titulo: notifTitulo,
-            mensaje: notifMensaje,
-            tipo: 'urgente',
-            icono: '⚠️',
-            enlace: 'CalendarAndSchedules',
-            vista: false,
-          });
-        }
-
-        // Email a padres de jugadores convocados
-        if (callup.jugadores_convocados?.length) {
-          const emailsToNotify = new Set();
-          for (const jc of callup.jugadores_convocados) {
-            if (jc.email_padre) emailsToNotify.add(jc.email_padre);
-            if (jc.email_jugador) emailsToNotify.add(jc.email_jugador);
-          }
-          const dateFormatted = matchDate ? new Date(matchDate).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }) : callup.fecha_partido;
-          const emailBody = `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background: linear-gradient(to right, #ea580c, #c2410c); padding: 20px; border-radius: 12px 12px 0 0;">
-                <h2 style="color: white; margin: 0;">⚠️ Cambio de horario de partido - ${config.categoria}</h2>
-              </div>
-              <div style="background: #fff; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
-                <p>La <strong>Federación (RFFM)</strong> ha modificado el horario del partido de <strong>${config.categoria}</strong>:</p>
-                <p style="font-size: 18px; font-weight: bold;">CD Bustarviejo vs ${rival}</p>
-                <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px; margin: 16px 0;">
-                  <p style="margin: 0; font-weight: bold;">Cambios detectados:</p>
-                  ${changeParts.map(cp => `<p style="margin: 4px 0;">${cp}</p>`).join('')}
-                </div>
-                <p><strong>Jornada:</strong> ${jornada}</p>
-                <p><strong>Condición:</strong> ${isLocal ? '🏠 Local' : '✈️ Visitante'}</p>
-                <p style="color: #64748b; font-size: 12px; margin-top: 20px;">Información actualizada automáticamente desde la web de la Federación. La convocatoria del entrenador puede llegar por separado.</p>
-              </div>
-            </div>`;
-          for (const email of emailsToNotify) {
-            try {
-              await sendViaResend(email, `⚠️ Cambio de horario de partido - ${config.categoria} vs ${rival}`, emailBody);
-            } catch (emailErr) { /* ignore individual email failures */ }
-          }
-        }
-
-        changes.push({
-          categoria: config.categoria,
-          rival,
-          jornada,
-          changes: changeParts,
-          callup_id: callup.id,
-        });
+        changes.push({ categoria: config.categoria, rival, jornada, changes: changeParts, callup_id: callup.id, silent: true });
 
       } catch (err) {
         errors.push({ categoria: config.categoria, error: err.message });
