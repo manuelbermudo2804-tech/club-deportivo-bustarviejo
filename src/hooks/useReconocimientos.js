@@ -7,6 +7,6 @@ export default function useReconocimientos() {
     queryFn: () => base44.entities.ReconocimientoMedico.list("-created_date", 2000),
     staleTime: 5 * 60 * 1000,
   });
-  const byJugador = Object.fromEntries(data.map((r) => [r.jugador_id, r]));
+  const byJugador = Object.fromEntries(data.filter((r) => !(r.categoria || "").toLowerCase().includes("baloncesto")).map((r) => [r.jugador_id, r]));
   return { list: data, byJugador, isLoading };
 }

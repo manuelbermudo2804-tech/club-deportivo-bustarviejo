@@ -60,6 +60,7 @@ Deno.serve(async (req) => {
     const now = new Date().toISOString();
     const crear = [], actualizar = [];
     for (const p of players) {
+      if (`${p.categoria_principal || ''} ${p.deporte || ''}`.toLowerCase().includes('baloncesto')) continue;
       const f = fed[key(p.nombre)] || null;
       const prev = byJugador[p.id];
       const data = {
