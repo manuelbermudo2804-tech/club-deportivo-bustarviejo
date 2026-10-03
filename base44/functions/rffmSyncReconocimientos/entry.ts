@@ -54,12 +54,14 @@ Deno.serve(async (req) => {
     for (const t of teams) {
       const txt = clean(await dec(await fetch(`${B}/nfg/NPcd/NFG_GC_VisLicenciasEquipo?cod_primaria=${CLUB}&Codigo_Equipo=${t.c}`, { headers: { Cookie: ck() } })));
       if (buscar) {
-        const i = txt.toUpperCase().indexOf(buscar.toUpperCase());
-        if (i >= 0) hallazgos.push({ equipo: t.n, texto: txt.slice(Math.max(0, i - 150), i + 200), en_vigor_desde: txt.indexOf('licencia en vigor'), pos: i });
+        let i = -1;
+        while ((i = txt.toUpperCase().indexOf(buscar.toUpperCase(), i + 1)) >= 0) hallazgos.push({ equipo: t.n, texto: txt.slice(Math.max(0, i - 300), i + 200), pos: i });
         continue;
       }
       // Incluye fichas en vigor y en tramitación: la última fecha de la fila es la del reconocimiento
-      for (const m of txt.matchAll(/\| [0-9A-Z]{8,10} \| ([^|]+?) \| \w+ \|((?: \d\d-\d\d-\d{4} \|)+)/g)) {
+      // Solo tablas con columna R.Médico (las de tramitación traen F.Final de licencia, que NO es el reconocimiento)
+      const rmTxt = txt.split('| Nombre y Apellidos |').slice(1).filter((s) => s.split('Acciones')[0].includes('R.M')).map((s) => '| ' + s).join(' ');
+      for (const m of rmTxt.matchAll(/\| [0-9A-Z]{8,10} \| ([^|]+?) \| \w+ \|((?: \d\d-\d\d-\d{4} \|)+)/g)) {
         const ds = m[2].match(/\d\d-\d\d-\d{4}/g);
         if (ds.length < 2) continue;
         const [d, mo, y] = ds[ds.length - 1].split('-');
