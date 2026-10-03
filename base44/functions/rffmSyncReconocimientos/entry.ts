@@ -59,7 +59,8 @@ Deno.serve(async (req) => {
         if (ds.length < 2) continue;
         const [d, mo, y] = ds[ds.length - 1].split('-');
         const k = key(m[1]); const fecha = `${y}-${mo}-${d}`;
-        if (!fed[k] || fecha > fed[k].fecha) fed[k] = { fecha, categoria: t.n };
+        const [bd, bm, by] = ds[0].split('-');
+        if (!fed[k] || fecha > fed[k].fecha) fed[k] = { fecha, categoria: t.n, nac: `${by}-${bm}-${bd}`, tokens: k.split(' ') };
       }
     }
 
@@ -72,7 +73,17 @@ Deno.serve(async (req) => {
     const crear = [], actualizar = [];
     for (const p of players) {
       if (`${p.categoria_principal || ''} ${p.deporte || ''}`.toLowerCase().includes('baloncesto')) continue;
-      const f = fed[key(p.nombre)] || null;
+      let f = fed[key(p.nombre)] || null;
+      if (!f && p.fecha_nacimiento) {
+        // Nombre escrito distinto (Emma/Enma, un solo apellido...): misma fecha de nacimiento + algún apellido/nombre en común
+        const toks = key(p.nombre).split(' ').filter((x) => x.length > 2);
+        const cands = Object.values(fed).filter((x) => x.nac === p.fecha_nacimiento.slice(0, 10) && toks.some((tk) => x.tokens.includes(tk)));
+        // Desempate (hermanos gemelos): gana el que más palabras comparte, admitiendo 1 letra distinta
+        const near = (a, b) => a === b || (a.length === b.length && a.length > 3 && [...a].filter((c, i) => c !== b[i]).length === 1);
+        const score = (x) => toks.filter((tk) => x.tokens.some((ft) => near(tk, ft))).length;
+        const sc = cands.map(score); const max = Math.max(...sc, 0);
+        if (cands.length && sc.filter((s) => s === max).length === 1) f = cands[sc.indexOf(max)];
+      }
       const prev = byJugador[p.id];
       const data = {
         jugador_id: p.id, jugador_nombre: p.nombre,
