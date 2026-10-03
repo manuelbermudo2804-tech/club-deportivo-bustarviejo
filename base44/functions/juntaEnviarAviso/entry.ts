@@ -12,7 +12,7 @@ const plantilla = (nombre, junta, fecha, esApp) => {
     ? 'Entra en la app del club (con tu correo de siempre) y verás el aviso de la junta: ahí nos confirmas si vienes.'
     : 'Pulsa el botón y confírmanos si vienes. Solo te llevará un minuto.';
   return `<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden;color:#334155;font-size:15px;line-height:1.45">
-<div style="background:#ea580c;color:#fff;padding:12px 18px;font-weight:bold;font-size:14px">CD Bustarviejo · Convocatoria oficial</div>
+<div style="background:#ea580c;color:#fff;padding:10px 18px;font-weight:bold;font-size:14px"><img src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" width="40" height="40" alt="CD Bustarviejo" style="vertical-align:middle;border-radius:50%;background:#fff;margin-right:10px">CD Bustarviejo · Convocatoria oficial</div>
 <div style="padding:16px 18px">
 <p style="margin:0 0 10px">Hola ${nombre || ''},</p>
 <p style="margin:0 0 12px">Te convocamos a la <b>${titulo}</b> del CD Bustarviejo. Tu voz cuenta y tu presencia es necesaria.</p>
