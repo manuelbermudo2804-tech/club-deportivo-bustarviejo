@@ -1,19 +1,19 @@
 import React from "react";
 import { Stethoscope } from "lucide-react";
 import { estadoRM } from "@/lib/reconocimiento";
+import FiltroGrupo from "@/components/federation/FiltroGrupo";
 
 const OPCIONES = [
   { value: "all", label: "Todos", on: "bg-slate-800 text-white border-slate-800" },
   { value: "caducado", label: "Caducado", on: "bg-red-600 text-white border-red-600" },
   { value: "vence", label: "Vence pronto", on: "bg-orange-500 text-white border-orange-500" },
   { value: "vigente", label: "Vigente", on: "bg-green-600 text-white border-green-600" },
-  { value: "sin", label: "Sin reconocimiento", on: "bg-slate-600 text-white border-slate-600" },
-  { value: "cita", label: "Con cita subida", on: "bg-blue-600 text-white border-blue-600" },
+  { value: "sin", label: "Sin fecha", on: "bg-slate-600 text-white border-slate-600" },
+  { value: "cita", label: "Con cita", on: "bg-blue-600 text-white border-blue-600" },
 ];
 
 const esBaloncesto = (p) => `${p.categoria_principal || ""} ${p.deporte || ""}`.toLowerCase().includes("baloncesto");
 
-// Devuelve el estado de reconocimiento de un jugador (null si no aplica: baloncesto)
 export function rmEstadoJugador(player, byJugador) {
   if (esBaloncesto(player)) return null;
   const rm = byJugador[player.id];
@@ -28,24 +28,6 @@ export function rmCoincide(filtro, player, byJugador) {
 }
 
 export default function RMFiltroChips({ value, onChange, players, byJugador }) {
-  const contar = (v) => players.filter((p) => rmCoincide(v, p, byJugador)).length;
-  return (
-    <div>
-      <p className="text-xs font-semibold text-slate-600 mb-2 flex items-center gap-1">
-        <Stethoscope className="w-4 h-4 text-blue-600" /> Reconocimiento médico
-      </p>
-      <div className="flex flex-wrap gap-2">
-        {OPCIONES.map((o) => (
-          <button
-            key={o.value}
-            type="button"
-            onClick={() => onChange(o.value)}
-            className={`text-xs font-medium px-3 py-1.5 rounded-full border ${value === o.value ? o.on : "bg-white text-slate-700 border-slate-200"}`}
-          >
-            {o.label} ({contar(o.value)})
-          </button>
-        ))}
-      </div>
-    </div>
-  );
+  const opciones = OPCIONES.map((o) => ({ ...o, count: players.filter((p) => rmCoincide(o.value, p, byJugador)).length }));
+  return <FiltroGrupo icon={Stethoscope} titulo="Reconocimiento médico" color="bg-blue-50/60 border-blue-100" opciones={opciones} value={value} onChange={onChange} />;
 }

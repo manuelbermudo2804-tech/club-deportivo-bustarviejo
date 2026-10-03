@@ -15,6 +15,7 @@ import FirmasExtraAdmin from "@/components/federation/FirmasExtraAdmin";
 import RMJugadorRow from "@/components/reconocimiento/RMJugadorRow";
 import RMFiltroChips, { rmCoincide } from "@/components/reconocimiento/RMFiltroChips";
 import useReconocimientos from "@/hooks/useReconocimientos";
+import FiltroGrupo from "@/components/federation/FiltroGrupo";
 
 export default function FederationSignaturesAdmin() {
   const [user, setUser] = useState(null);
@@ -298,20 +299,19 @@ export default function FederationSignaturesAdmin() {
             </Select>
           </div>
           
-          <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-            <div className="overflow-x-auto -mx-1 px-1">
-              <TabsList className="bg-white shadow-sm w-max">
-                <TabsTrigger value="all" className="whitespace-nowrap">Todos ({players.length})</TabsTrigger>
-                <TabsTrigger value="sin_enlaces" className="whitespace-nowrap">Sin enlaces ({sinEnlacesCount})</TabsTrigger>
-                <TabsTrigger value="pendiente" className="whitespace-nowrap data-[state=active]:bg-yellow-100 data-[state=active]:text-yellow-700">
-                  Pendientes ({pendienteCount})
-                </TabsTrigger>
-                <TabsTrigger value="completado" className="whitespace-nowrap data-[state=active]:bg-green-100 data-[state=active]:text-green-700">
-                  Completados ({completadoCount})
-                </TabsTrigger>
-              </TabsList>
-            </div>
-          </Tabs>
+          <FiltroGrupo
+            icon={FileSignature}
+            titulo="Firmas federación"
+            color="bg-orange-50/60 border-orange-100"
+            value={statusFilter}
+            onChange={setStatusFilter}
+            opciones={[
+              { value: "all", label: "Todos", count: players.length, on: "bg-slate-800 text-white border-slate-800" },
+              { value: "sin_enlaces", label: "Sin enlaces", count: sinEnlacesCount, on: "bg-slate-600 text-white border-slate-600" },
+              { value: "pendiente", label: "Pendientes", count: pendienteCount, on: "bg-yellow-500 text-white border-yellow-500" },
+              { value: "completado", label: "Completados", count: completadoCount, on: "bg-green-600 text-white border-green-600" },
+            ]}
+          />
 
           <RMFiltroChips value={rmFilter} onChange={setRmFilter} players={players} byJugador={rmByJugador} />
         </CardContent>
