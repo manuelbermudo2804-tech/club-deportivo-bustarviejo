@@ -30,6 +30,13 @@ import { useActiveSeason } from "../components/season/SeasonProvider";
 import { playerInCategory } from "../components/utils/playerCategoryFilter";
 import { useStaffPlayers } from "../hooks/useStaffPlayers";
 
+// Mismo identificador de grupo que usan los chats de equipo (ej: "futbol_alevin")
+const toGroupId = (s) =>
+  (s || "")
+    .replace(/\(.*?\)/g, "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .trim().replace(/\s+/g, " ").toLowerCase().replace(/\s+/g, "_");
+
 export default function CoachCallups() {
   usePageTutorial("coach_callups");
   
@@ -275,7 +282,7 @@ export default function CoachCallups() {
           mensaje: chatMsg,
           tipo: 'entrenador_a_grupo',
           deporte: callup.categoria,
-          grupo_id: callup.categoria,
+          grupo_id: toGroupId(callup.categoria),
         });
       } catch (chatErr) {
         console.error('⚠️ Error enviando chat de convocatoria:', chatErr);
@@ -381,7 +388,7 @@ export default function CoachCallups() {
         mensaje: chatMsg,
         tipo: 'entrenador_a_grupo',
         deporte: callup.categoria,
-        grupo_id: callup.categoria,
+        grupo_id: toGroupId(callup.categoria),
       });
     } catch (chatErr) {
       console.error('⚠️ Error enviando chat de cambio convocatoria:', chatErr);
