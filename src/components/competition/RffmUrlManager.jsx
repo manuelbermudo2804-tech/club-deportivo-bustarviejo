@@ -26,13 +26,15 @@ function deriveUrls(baseUrl) {
     const codGrupo = u.searchParams.get("CodGrupo") || u.searchParams.get("codgrupo");
     const codTemp = u.searchParams.get("CodTemporada") || u.searchParams.get("codtemporada");
 
-    if (!codComp || !codGrupo || !codTemp) {
+    if (!codComp || !codGrupo) {
       return { clasificacion: baseUrl, resultados: "", goleadores: "" };
     }
+    // La temporada es opcional: la Federación usa la actual si no se indica
+    const t = codTemp || "";
 
-    const clasificacion = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${codPrimaria}&codcompeticion=${codComp}&codgrupo=${codGrupo}&codtemporada=${codTemp}`;
-    const resultados = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornada?cod_primaria=${codPrimaria}&CodCompeticion=${codComp}&CodGrupo=${codGrupo}&CodTemporada=${codTemp}&CodJornada=1&cod_agrupacion=1&Sch_Tipo_Juego=`;
-    const goleadores = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${codPrimaria}&CodJornada=0&codcompeticion=${codComp}&codtemporada=${codTemp}&codgrupo=${codGrupo}&cod_agrupacion=1`;
+    const clasificacion = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${codPrimaria}&codcompeticion=${codComp}&codgrupo=${codGrupo}${t ? `&codtemporada=${t}` : ""}`;
+    const resultados = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornada?cod_primaria=${codPrimaria}&CodCompeticion=${codComp}&CodGrupo=${codGrupo}${t ? `&CodTemporada=${t}` : ""}&CodJornada=1&cod_agrupacion=1&Sch_Tipo_Juego=`;
+    const goleadores = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${codPrimaria}&CodJornada=0&codcompeticion=${codComp}${t ? `&codtemporada=${t}` : ""}&codgrupo=${codGrupo}&cod_agrupacion=1`;
 
     return { clasificacion, resultados, goleadores };
   } catch {
