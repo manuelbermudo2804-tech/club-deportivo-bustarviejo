@@ -44,6 +44,10 @@
     "ultima_sincronizacion": {
       "type": "string",
       "format": "date-time"
+    },
+    "aviso_email_vencimiento": {
+      "type": "string",
+      "description": "Fecha de vencimiento para la que ya se envi\u00f3 el email de aviso a la familia (evita repetirlo)"
     }
   },
   "required": [
