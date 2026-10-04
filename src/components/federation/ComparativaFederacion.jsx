@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { GitCompare, Loader2 } from "lucide-react";
+import { GitCompare, Loader2, ChevronUp } from "lucide-react";
 
 const ESTADOS = {
   activa: { label: "Ficha ACTIVA en Federación · marcar firmada", cls: "bg-green-100 text-green-800" },
@@ -32,6 +32,11 @@ export default function ComparativaFederacion() {
           <Button size="sm" onClick={comparar} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700">
             {loading ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <GitCompare className="w-4 h-4 mr-1" />}Comparar
           </Button>
+          {lista && (
+            <Button size="sm" variant="outline" onClick={() => setLista(null)}>
+              <ChevronUp className="w-4 h-4 mr-1" />Plegar
+            </Button>
+          )}
         </div>
         {lista && lista.length === 0 && <p className="text-sm text-green-700">No hay firmas pendientes en la app.</p>}
         {lista?.map((j) => (
