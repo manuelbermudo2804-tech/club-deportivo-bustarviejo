@@ -53,6 +53,15 @@ Deno.serve(async (req) => {
     const fed = {}; // key -> { fecha, categoria }
     for (const t of teams) {
       const txt = clean(await dec(await fetch(`${B}/nfg/NPcd/NFG_GC_VisLicenciasEquipo?cod_primaria=${CLUB}&Codigo_Equipo=${t.c}`, { headers: { Cookie: ck() } })));
+      if (body.estados || body.comparar) {
+        // Estado de cada ficha en la Federación (para comparar con las firmas de la app)
+        for (const m of txt.matchAll(/ [0-9A-Z]{8,10} \| ([^|]+?, [^|]+?) \| \w+ \| (\d\d-\d\d-\d{4}) \|((?:(?! [0-9A-Z]{8,10} \|)[^|]*\|){1,3})/g)) {
+          const k = key(m[1]);
+          const est = m[3].split('|').map((s) => s.trim()).filter((s) => s && !/^[-\d]/.test(s)).join(' · ');
+          (fed[k] ||= { nombre: m[1], nac: m[2].split('-').reverse().join('-'), equipo: t.n, estados: [] }).estados.push(est);
+        }
+        continue;
+      }
       if (buscar) {
         let i = -1;
         while ((i = txt.toUpperCase().indexOf(buscar.toUpperCase(), i + 1)) >= 0) hallazgos.push({ equipo: t.n, texto: txt.slice(Math.max(0, i - 300), i + 200), pos: i });
@@ -72,6 +81,28 @@ Deno.serve(async (req) => {
     }
 
     if (buscar) return Response.json({ hallazgos });
+    if (body.estados && !body.comparar) return Response.json({ fichas: Object.values(fed) });
+    if (body.comparar) {
+      // Jugadores con la firma pendiente en la app vs. su estado real en la Federación
+      const ps = await base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 1000);
+      const lista = Object.values(fed);
+      const out = [];
+      for (const p of ps) {
+        const pj = p.enlace_firma_jugador && !p.firma_jugador_completada;
+        const pt = p.enlace_firma_tutor && !p.firma_tutor_completada;
+        if (!pj && !pt) continue;
+        let f = fed[key(p.nombre)];
+        if (!f && p.fecha_nacimiento) {
+          const toks = key(p.nombre).split(' ').filter((x) => x.length > 2);
+          const c = lista.filter((x) => x.nac === p.fecha_nacimiento.slice(0, 10) && toks.some((tk) => key(x.nombre).split(' ').includes(tk)));
+          if (c.length === 1) f = c[0];
+        }
+        const est = (f?.estados || []).join(' · ');
+        const estado = !f ? 'no_aparece' : /Activa/.test(est) ? 'activa' : /Pte\. Documentaci/.test(est) ? 'pte_documentacion' : 'tramitacion';
+        out.push({ jugador_id: p.id, nombre: p.nombre, categoria: p.categoria_principal || p.deporte || '', estado, equipo_fed: f?.equipo || '', detalle: est.replace(/&oacute;/g, 'ó') });
+      }
+      return Response.json({ jugadores: out });
+    }
     const sr = base44.asServiceRole.entities;
     const players = await sr.Player.filter({ activo: true }, '-created_date', 1000);
     const existentes = await sr.ReconocimientoMedico.list('-created_date', 2000);

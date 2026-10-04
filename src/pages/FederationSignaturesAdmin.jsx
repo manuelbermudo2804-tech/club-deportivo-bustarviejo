@@ -16,6 +16,7 @@ import RMJugadorRow from "@/components/reconocimiento/RMJugadorRow";
 import RMFiltroChips, { rmCoincide } from "@/components/reconocimiento/RMFiltroChips";
 import useReconocimientos from "@/hooks/useReconocimientos";
 import FiltroGrupo from "@/components/federation/FiltroGrupo";
+import ComparativaFederacion from "@/components/federation/ComparativaFederacion";
 
 export default function FederationSignaturesAdmin() {
   const [user, setUser] = useState(null);
@@ -272,6 +273,7 @@ export default function FederationSignaturesAdmin() {
         </Card>
       </div>
 
+      {isAdmin && <ComparativaFederacion />}
 
       {/* Filtros */}
       <Card className="border-none shadow-lg">
