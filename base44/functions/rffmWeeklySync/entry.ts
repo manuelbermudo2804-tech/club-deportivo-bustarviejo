@@ -72,8 +72,8 @@ function extractParams(url) {
   return { cod_primaria: u.searchParams.get('cod_primaria') || '1000128', CodCompeticion: u.searchParams.get('CodCompeticion') || u.searchParams.get('codcompeticion'), CodGrupo: u.searchParams.get('CodGrupo') || u.searchParams.get('codgrupo'), CodTemporada: u.searchParams.get('CodTemporada') || u.searchParams.get('codtemporada') };
 }
 
-function buildJornadaUrl(p, j) { return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornada?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${j}&cod_agrupacion=1&Sch_Tipo_Juego=`; }
-function buildClassUrl(p, j) { let u = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&codcompeticion=${p.CodCompeticion}&codgrupo=${p.CodGrupo}&codtemporada=${p.CodTemporada}`; if (j) u += `&codjornada=${j}`; return u; }
+function buildJornadaUrl(p, j) { return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornada?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}${p.CodTemporada ? `&CodTemporada=${p.CodTemporada}` : ''}&CodJornada=${j}&cod_agrupacion=1&Sch_Tipo_Juego=`; }
+function buildClassUrl(p, j) { let u = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisClasificacion?cod_primaria=${p.cod_primaria}&codcompeticion=${p.CodCompeticion}&codgrupo=${p.CodGrupo}${p.CodTemporada ? `&codtemporada=${p.CodTemporada}` : ''}`; if (j) u += `&codjornada=${j}`; return u; }
 
 // Detecta si un nombre de "equipo" es en realidad un placeholder de descanso o vacío
 function isDescansaOrEmpty(name) {
@@ -291,16 +291,15 @@ async function syncCategory(config, cookies, base44, temporada) {
   // --- RESULTS (latest jornada, scan backwards max 5) ---
   if (config.rfef_results_url || config.rfef_url) {
     try {
-      const url = config.rfef_results_url || config.rfef_url;
-      const p = extractParams(url);
-      const j1Html = await safeFetch(buildJornadaUrl(p, 1));
-      const total = detectTotal(j1Html);
+      // Los resultados se leen del calendario de liga ya sincronizado (el mismo que
+      // se ve en la app), así no dependen de un enlace aparte ni de otro lector.
       let latestJ = null, latestM = null;
-      for (let j = total; j >= Math.max(1, total - 5); j--) {
-        const html = j === 1 ? j1Html : await safeFetch(buildJornadaUrl(p, j));
-        const matches = parseMatches(html);
-        if (matches.some(m => m.jugado)) { latestJ = j; latestM = matches; break; }
-        await sleep(500); // small pause between jornada scans
+      const cache = await retryOnRateLimit(() => base44.asServiceRole.entities.CompetitionCache.filter({ categoria: cat, tipo: 'jornadas' }));
+      const datos = cache[0]?.datos;
+      const jornadas = Array.isArray(datos) ? datos : (datos?.jornadas || []);
+      for (const jd of jornadas) {
+        const ms = (jd.matches || []).filter(m => !isDescansaOrEmpty(m.local) && !isDescansaOrEmpty(m.visitante));
+        if (ms.some(m => m.jugado) && (!latestJ || jd.jornada > latestJ)) { latestJ = jd.jornada; latestM = ms; }
       }
       if (latestJ && latestM) {
         const existing = await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.filter({ categoria: cat, temporada, jornada: latestJ }));
@@ -390,6 +389,11 @@ async function syncCategory(config, cookies, base44, temporada) {
   await sleep(2000);
 
   // --- SCORERS (with retry — most fragile data type) ---
+  // Si falta el enlace de goleadores, se construye solo desde el de clasificación
+  if (!config.rfef_scorers_url && config.rfef_url) {
+    const p = extractParams(config.rfef_url);
+    config.rfef_scorers_url = `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CMP_Goleadores?cod_primaria=${p.cod_primaria}&CodJornada=0&codcompeticion=${p.CodCompeticion}${p.CodTemporada ? `&codtemporada=${p.CodTemporada}` : ''}&codgrupo=${p.CodGrupo}&cod_agrupacion=1`;
+  }
   if (config.rfef_scorers_url) {
     let scorerAttempts = 0;
     const maxScorerAttempts = 3;
