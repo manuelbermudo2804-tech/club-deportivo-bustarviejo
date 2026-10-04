@@ -9,8 +9,7 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { parseChatDate } from "@/lib/chatDate";
 
-const toGroupId = (s = "") =>
-  (s || "").toString().replace(/\(.*?\)/g, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, "_").toLowerCase();
+import { toGroupId } from "@/lib/chatGroupId";
 
 export default function AdminTeamChatsSection() {
   const { data, isLoading } = useQuery({

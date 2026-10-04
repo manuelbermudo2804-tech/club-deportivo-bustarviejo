@@ -9,7 +9,7 @@ const normalize = (s = "") =>
     .replace(/\s+/g, " ")
     .toLowerCase();
 
-const toGroupId = (s = "") => normalize(s).replace(/\s+/g, "_");
+import { toGroupId } from "@/lib/chatGroupId";
 
 const normalizeType = (t) => {
   if (!t) return t;

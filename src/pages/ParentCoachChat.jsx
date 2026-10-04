@@ -46,7 +46,7 @@ const normalizeCategory = (s) =>
     .replace(/\s+/g, " ")
     .toLowerCase();
 
-const toGroupId = (s) => normalizeCategory(s).replace(/\s+/g, "_");
+import { toGroupId } from "@/lib/chatGroupId";
 
 export default function ParentCoachChat() {
   const [user, setUser] = useState(null);

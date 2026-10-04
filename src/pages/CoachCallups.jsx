@@ -30,12 +30,7 @@ import { useActiveSeason } from "../components/season/SeasonProvider";
 import { playerInCategory } from "../components/utils/playerCategoryFilter";
 import { useStaffPlayers } from "../hooks/useStaffPlayers";
 
-// Mismo identificador de grupo que usan los chats de equipo (ej: "futbol_alevin")
-const toGroupId = (s) =>
-  (s || "")
-    .replace(/\(.*?\)/g, "")
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .trim().replace(/\s+/g, " ").toLowerCase().replace(/\s+/g, "_");
+import { toGroupId } from "@/lib/chatGroupId";
 
 export default function CoachCallups() {
   usePageTutorial("coach_callups");

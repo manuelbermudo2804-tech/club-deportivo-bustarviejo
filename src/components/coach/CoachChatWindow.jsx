@@ -46,7 +46,7 @@ const normalizeCategory = (s) =>
     .trim()
     .replace(/\s+/g, ' ')
     .toLowerCase();
-const toGroupId = (s) => normalizeCategory(s).replace(/\s+/g, '_');
+import { toGroupId } from "@/lib/chatGroupId";
 
 export default function CoachChatWindow({ selectedCategory, user, allPlayers }) {
   const [uploadingImage, uploadFile] = useImageUpload();

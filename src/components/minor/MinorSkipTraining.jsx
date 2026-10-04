@@ -15,11 +15,7 @@ import useSinEntrenamiento from "@/hooks/useSinEntrenamiento";
 // Solo Infantil y superiores pueden avisar por su cuenta
 const CATEGORIAS_PERMITIDAS = ["Infantil", "Cadete", "Juvenil", "Aficionado", "Femenino"];
 
-const toGroupId = (s) =>
-  (s || "")
-    .replace(/\(.*?\)/g, "")
-    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-    .trim().replace(/\s+/g, " ").toLowerCase().replace(/\s+/g, "_");
+import { toGroupId } from "@/lib/chatGroupId";
 
 export default function MinorSkipTraining({ player, playerCategory, user }) {
   const [enviado, setEnviado] = useState(false);

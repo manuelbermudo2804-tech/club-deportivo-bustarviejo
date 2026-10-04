@@ -179,6 +179,15 @@ export default function ParentSystemMessages() {
     }
   }, [allMessages]);
 
+  // Marcar como leídos los mensajes del club al abrir la pantalla
+  useEffect(() => {
+    const pendientes = allMessages.filter(m => m.remitente_tipo === 'staff' && !m.leido);
+    if (pendientes.length === 0) return;
+    base44.entities.PrivateMessage.bulkUpdate(pendientes.map(m => ({ id: m.id, leido: true })))
+      .then(() => queryClient.invalidateQueries({ queryKey: ['parentPrivateMessages'] }))
+      .catch(() => {});
+  }, [allMessages]);
+
   // Auto-scroll al final al montar
   useEffect(() => {
     if (messagesEndRef.current && allMessages.length > 0) {

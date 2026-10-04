@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import CoachChatWindow from "../components/coach/CoachChatWindow";
 import CoachAwayMode from "../components/coach/CoachAwayMode";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
+import { toGroupId } from "@/lib/chatGroupId";
 
 
 export default function CoachParentChat({ embedded = false }) {
@@ -24,13 +25,6 @@ export default function CoachParentChat({ embedded = false }) {
   const { counts: chatCounts, markRead, clearActiveChat } = useChatUnreadCounts(user);
 
   // Normalización consistente con backend y useChatUnreadCounts
-  const toGroupId = (s) =>
-    (s || "").toString()
-      .replace(/\(.*?\)/g, "")
-      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-      .trim()
-      .replace(/\s+/g, "_")
-      .toLowerCase();
 
   const normalizeCategory = (cat) => {
    if (!cat) return '';

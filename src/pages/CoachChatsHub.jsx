@@ -12,8 +12,7 @@ import { es } from "date-fns/locale";
 import { parseChatDate } from "@/lib/chatDate";
 import MyKidsChatsSection from "@/components/chat/MyKidsChatsSection";
 
-const toGroupId = (s = "") =>
-  (s || "").toString().replace(/\(.*?\)/g, "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().replace(/\s+/g, "_").toLowerCase();
+import { toGroupId } from "@/lib/chatGroupId";
 
 function ConversationRow({ title, subtitle, lastMessage, lastMessageDate, unreadCount, url, icon: Icon, color, iconBg }) {
   return (
