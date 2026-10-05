@@ -28,8 +28,19 @@ export async function descargarContratoPdf(c) {
     const { signed_url } = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: c.firma_uri });
     const img = await toDataUrl(signed_url);
     ensure(80); y += 8;
-    doc.setFont("helvetica", "bold").text("Firma del voluntario:", 15, y); y += 3;
-    doc.addImage(img, "PNG", 15, y, 70, 30); y += 34;
+    doc.setFont("helvetica", "bold").text(c.es_menor ? "Firma del menor:" : "Firma del voluntario:", 15, y);
+    if (c.es_menor && c.tutor_firma_uri) doc.text(`Firma del tutor (${c.tutor_relacion || ""}):`, 105, y);
+    y += 3;
+    doc.addImage(img, "PNG", 15, y, 70, 30);
+    if (c.es_menor && c.tutor_firma_uri) {
+      const t = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: c.tutor_firma_uri });
+      doc.addImage(await toDataUrl(t.signed_url), "PNG", 105, y, 70, 30);
+    }
+    y += 34;
+    if (c.es_menor) {
+      doc.setFont("helvetica", "normal").setFontSize(8);
+      doc.text(`Tutor: ${c.tutor_nombre || ""}   DNI: ${c.tutor_dni || ""}`, 15, y); y += 4;
+    }
     doc.setFont("helvetica", "normal").setFontSize(8);
     [
       `Nombre: ${c.firma_nombre || c.entrenador_nombre || ""}   DNI: ${c.firma_dni || ""}`,
@@ -37,6 +48,7 @@ export async function descargarContratoPdf(c) {
       `Firmado el: ${new Date(c.firma_fecha).toLocaleString("es-ES", { timeZone: "Europe/Madrid" })}`,
       `Huella del texto (SHA-256): ${c.texto_hash || ""}`,
       `Dispositivo: ${(c.firma_user_agent || "").slice(0, 150)}`,
+      `Protección de datos aceptada: ${c.acepta_privacidad ? "Sí" : "No"}`,
       "Firma electrónica simple (Reglamento UE 910/2014 eIDAS) realizada en la app del club.",
     ].forEach((l) => { doc.splitTextToSize(l, W).forEach((s) => { ensure(4); doc.text(s, 15, y); y += 4; }); });
   }

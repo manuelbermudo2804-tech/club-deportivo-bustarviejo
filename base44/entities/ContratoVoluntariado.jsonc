@@ -1,13 +1,19 @@
 {
   "name": "ContratoVoluntariado",
   "type": "object",
-  "description": "Acuerdo de voluntariado personalizado que firma cada entrenador con el dedo en la app",
+  "description": "Acuerdo de voluntariado personalizado que se firma con el dedo en la app (menores: firma del menor + tutor)",
   "properties": {
     "entrenador_email": {
-      "type": "string"
+      "type": "string",
+      "description": "Email con el que entra en la app quien firma"
     },
     "entrenador_nombre": {
       "type": "string"
+    },
+    "es_menor": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si es menor, tambi\u00e9n firma su padre/madre/tutor"
     },
     "titulo": {
       "type": "string",
@@ -44,6 +50,22 @@
       "type": "string"
     },
     "firma_user_agent": {
+      "type": "string"
+    },
+    "acepta_privacidad": {
+      "type": "boolean",
+      "default": false
+    },
+    "tutor_nombre": {
+      "type": "string"
+    },
+    "tutor_dni": {
+      "type": "string"
+    },
+    "tutor_relacion": {
+      "type": "string"
+    },
+    "tutor_firma_uri": {
       "type": "string"
     }
   },

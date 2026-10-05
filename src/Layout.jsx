@@ -550,7 +550,7 @@ export default function Layout({ children, currentPageName }) {
               <AutoPushSubscriber user={user} />
               {user && <ChatQueueFlusher />}
               {user && user.role !== 'admin' && <MandatoryReadModal user={user} />}
-              {user && (user.es_entrenador || user.es_coordinador) && <FirmarContratoModal user={user} />}
+              {user && (user.es_entrenador || user.es_coordinador || isMinor) && <FirmarContratoModal user={user} />}
               <style>{`html, body { overscroll-behavior-y: none; }`}</style>
 
               <InstallInstructionsModal
