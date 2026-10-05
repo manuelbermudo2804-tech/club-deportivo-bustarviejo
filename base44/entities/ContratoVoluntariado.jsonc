@@ -1,0 +1,90 @@
+{
+  "name": "ContratoVoluntariado",
+  "type": "object",
+  "description": "Acuerdo de voluntariado personalizado que firma cada entrenador con el dedo en la app",
+  "properties": {
+    "entrenador_email": {
+      "type": "string"
+    },
+    "entrenador_nombre": {
+      "type": "string"
+    },
+    "titulo": {
+      "type": "string",
+      "default": "Acuerdo de incorporaci\u00f3n como voluntario"
+    },
+    "texto": {
+      "type": "string",
+      "description": "Texto completo del acuerdo"
+    },
+    "texto_hash": {
+      "type": "string",
+      "description": "Huella SHA-256 del texto al crearlo"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "firmado"
+      ],
+      "default": "pendiente"
+    },
+    "firma_uri": {
+      "type": "string",
+      "description": "Imagen privada de la firma"
+    },
+    "firma_fecha": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "firma_dni": {
+      "type": "string"
+    },
+    "firma_nombre": {
+      "type": "string"
+    },
+    "firma_user_agent": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "entrenador_email",
+    "texto"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "data.entrenador_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.entrenador_email": "{{user.email}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

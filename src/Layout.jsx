@@ -47,6 +47,7 @@ import ChatQueueFlusher from "./components/chat/ChatQueueFlusher";
 import PushPermissionBanner from "./components/notifications/PushPermissionBanner";
 import SponsorRecruitBanner from "./components/sponsors/SponsorRecruitBanner";
 import MandatoryReadModal from "./components/announcements/MandatoryReadModal";
+import FirmarContratoModal from "./components/contratos/FirmarContratoModal";
 const WelcomeScreen = React.lazy(() => import("./components/WelcomeScreen"));
 
 
@@ -549,6 +550,7 @@ export default function Layout({ children, currentPageName }) {
               <AutoPushSubscriber user={user} />
               {user && <ChatQueueFlusher />}
               {user && user.role !== 'admin' && <MandatoryReadModal user={user} />}
+              {user && (user.es_entrenador || user.es_coordinador) && <FirmarContratoModal user={user} />}
               <style>{`html, body { overscroll-behavior-y: none; }`}</style>
 
               <InstallInstructionsModal
