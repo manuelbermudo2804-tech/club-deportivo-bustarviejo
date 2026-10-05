@@ -13,6 +13,9 @@ import { AlertTriangle, Clock, CreditCard } from "lucide-react";
  *
  * Si el jugador está al corriente (ningún interruptor activado) no se muestra nada.
  */
+const esBaloncesto = (p) =>
+  [p.deporte, p.categoria_principal, ...(p.categorias || [])].some((c) => (c || "").includes("Baloncesto"));
+
 export default function ConvocatoriaBlockBanner({ players = [] }) {
   const bloqueados = players.filter((p) => p.bloqueo_convocatoria_activo === true);
   const avisados = players.filter(
@@ -54,6 +57,13 @@ export default function ConvocatoriaBlockBanner({ players = [] }) {
                   como pendiente de pago. Les rogamos que regularicen la situación a la mayor brevedad. Si ya han
                   realizado el pago, pueden ignorar este aviso; se retirará en cuanto quede comprobado.
                 </p>
+                {avisados.some((p) => !esBaloncesto(p)) && (
+                  <p className="text-sm text-amber-900 mt-2 font-semibold">
+                    Les advertimos de que, si la cuota no se regulariza, el siguiente aviso será que{" "}
+                    {avisados.filter((p) => !esBaloncesto(p)).length > 1 ? "los jugadores no podrán ser convocados" : "el jugador no podrá ser convocado"}{" "}
+                    para los partidos hasta que la situación quede resuelta.
+                  </p>
+                )}
               </div>
             )}
 

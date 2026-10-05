@@ -27,6 +27,7 @@ import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSucc
 import ContactCard from "../components/ContactCard";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
 import PlayerRenewalBanner from "../components/renewals/PlayerRenewalBanner";
+import ConvocatoriaBlockBanner from "../components/payments/ConvocatoriaBlockBanner";
 import ShareFormButton from "../components/players/ShareFormButton";
 import SocialLinks from "../components/SocialLinks";
 import DesktopDashboardHeader from "../components/dashboard/DesktopDashboardHeader";
@@ -557,6 +558,9 @@ export default function PlayerDashboard() {
             </div>
           </div>
         )}
+
+        {/* Aviso de cuota pendiente / fuera de convocatorias (interruptores del club) */}
+        <ConvocatoriaBlockBanner players={player ? [player] : []} />
 
         {/* Banner de renovación para jugadores +18 */}
         <PlayerRenewalBanner player={player} seasonConfig={seasonConfig} />
