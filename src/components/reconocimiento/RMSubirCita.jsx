@@ -30,7 +30,7 @@ export default function RMSubirCita({ rm, tipo = "hoja" }) {
       await base44.integrations.Core.SendEmail({
         to, from_name: "CD Bustarviejo",
         subject: `Cita del reconocimiento médico de ${rm.jugador_nombre}`,
-        body: `<p>Hola,</p><p>Ya tienes disponible la <b>cita (día y hora)</b> del reconocimiento médico de <b>${rm.jugador_nombre}</b>, junto con la <b>hoja de reconocimiento</b>.</p><p>Descárgala desde la app en <b>Firmas y Reconocimientos</b>: <a href="https://app.cdbustarviejo.com/FederationSignatures">abrir la app</a>.</p><p>CD Bustarviejo</p>`,
+        body: `<p>Hola,</p><p>Ya tienes disponible la <b>hora de la cita</b> del reconocimiento médico de <b>${rm.jugador_nombre}</b>, junto con la <b>hoja de reconocimiento</b>.</p><p>Descárgala desde la app en <b>Firmas y Reconocimientos</b>: <a href="https://app.cdbustarviejo.com/FederationSignatures">abrir la app</a>.</p><p>CD Bustarviejo</p>`,
       }).catch(() => {});
     }
     qc.invalidateQueries({ queryKey: ["reconocimientos"] });
