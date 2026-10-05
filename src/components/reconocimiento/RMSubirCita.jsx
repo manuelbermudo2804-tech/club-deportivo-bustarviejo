@@ -24,17 +24,18 @@ export default function RMSubirCita({ rm, tipo = "hoja" }) {
     await base44.entities.ReconocimientoMedico.update(rm.id, {
       [d.uri]: file_uri, [d.nombre]: file.name, [d.fecha]: new Date().toISOString(), [d.por]: me.email,
     });
-    const destinos = [...new Set([rm.email_padre, rm.email_tutor_2].filter(Boolean))];
+    // Solo se avisa al subir la cita: así la familia recibe un único email con todo
+    const destinos = tipo === "cita" ? [...new Set([rm.email_padre, rm.email_tutor_2].filter(Boolean))] : [];
     for (const to of destinos) {
       await base44.integrations.Core.SendEmail({
         to, from_name: "CD Bustarviejo",
-        subject: `${tipo === "cita" ? "Cita (día y hora)" : "Hoja"} del reconocimiento médico de ${rm.jugador_nombre}`,
-        body: `<p>Hola,</p><p>Ya tienes disponible la <b>${d.titulo}</b> del reconocimiento médico de <b>${rm.jugador_nombre}</b>.</p><p>Descárgala desde la app en <b>Firmas y Reconocimientos</b>: <a href="https://app.cdbustarviejo.com/FederationSignatures">abrir la app</a>.</p><p>CD Bustarviejo</p>`,
+        subject: `Cita del reconocimiento médico de ${rm.jugador_nombre}`,
+        body: `<p>Hola,</p><p>Ya tienes disponible la <b>cita (día y hora)</b> del reconocimiento médico de <b>${rm.jugador_nombre}</b>, junto con la <b>hoja de reconocimiento</b>.</p><p>Descárgala desde la app en <b>Firmas y Reconocimientos</b>: <a href="https://app.cdbustarviejo.com/FederationSignatures">abrir la app</a>.</p><p>CD Bustarviejo</p>`,
       }).catch(() => {});
     }
     qc.invalidateQueries({ queryKey: ["reconocimientos"] });
     setSubiendo(false);
-    toast.success(destinos.length ? `${d.corto} subida y familia avisada` : `${d.corto} subida (la ficha no tiene email de familia)`);
+    toast.success(tipo === "hoja" ? "Hoja subida (se avisará a la familia al subir la cita)" : destinos.length ? "Cita subida y familia avisada" : "Cita subida (la ficha no tiene email de familia)");
   };
 
   return (
