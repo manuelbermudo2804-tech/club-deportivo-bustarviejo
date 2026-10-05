@@ -315,7 +315,22 @@
       "$or": [
         {
           "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
             "es_entrenador": true
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_entrenador": true
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_coordinador": true
           }
         },
         {
