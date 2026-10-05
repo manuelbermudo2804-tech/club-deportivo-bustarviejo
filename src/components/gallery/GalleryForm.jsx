@@ -38,15 +38,16 @@ export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting, u
     const uploaded = [];
     for (const file of files) {
       try {
-        await validateImage(file);
         if (files.length > 1) toast.info(`Subiendo ${uploaded.length + 1}/${files.length}...`, { duration: 2000 });
-        const response = await base44.functions.invoke('processImage', { image: file });
-        const data = response.data;
-        if (data?.error) {
-          toast.error(data.userMessage || data.error, { duration: 8000 });
-          continue;
-        }
-        uploaded.push({ url: data.file_url, descripcion: "", jugadores_etiquetados: [] });
+        let url = null;
+        try {
+          await validateImage(file);
+          const response = await base44.functions.invoke('processImage', { image: file });
+          url = response.data?.error ? null : response.data?.file_url;
+        } catch {}
+        // Si no se pudo optimizar (formato raro, foto reenviada...), se sube la original
+        if (!url) url = (await base44.integrations.Core.UploadFile({ file })).file_url;
+        uploaded.push({ url, descripcion: "", jugadores_etiquetados: [] });
       } catch (err) {
         if (err?.userMessage) {
           toast.error(err.userMessage, { duration: 10000 });
