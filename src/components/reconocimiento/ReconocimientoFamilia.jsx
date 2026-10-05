@@ -19,7 +19,8 @@ export default function ReconocimientoFamilia({ players }) {
             <div key={rm.id} className="flex flex-wrap items-center gap-2">
               <span className="font-medium text-sm flex-1 min-w-[150px]">{rm.jugador_nombre}</span>
               <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${e.cls}`}>{e.label}</span>
-              {rm.cita_pdf_uri && <RMDescargarCita uri={rm.cita_pdf_uri} />}
+              {rm.cita_pdf_uri && <RMDescargarCita uri={rm.cita_pdf_uri} label="Hoja de reconocimiento" />}
+              {rm.hora_cita_pdf_uri && <RMDescargarCita uri={rm.hora_cita_pdf_uri} label="Cita (día y hora)" />}
             </div>
           );
         })}

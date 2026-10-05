@@ -17,9 +17,12 @@ export default function RMJugadorRow({ player, canUpload }) {
     <div className="flex flex-wrap items-center gap-2 p-2 rounded-lg bg-blue-50 border border-blue-100">
       <span className="text-xs font-semibold text-slate-700 flex items-center gap-1"><Stethoscope className="w-4 h-4 text-blue-600" /> Reconocimiento médico</span>
       <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${e.cls}`}>{e.label}</span>
-      {rm.cita_pdf_uri && <RMDescargarCita uri={rm.cita_pdf_uri} label="Ver cita" />}
-      {canUpload && <RMSubirCita rm={rm} />}
-      {canUpload && rm.cita_pdf_uri && <RMQuitarCita rm={rm} />}
+      {rm.cita_pdf_uri && <RMDescargarCita uri={rm.cita_pdf_uri} label="Ver hoja" />}
+      {canUpload && <RMSubirCita rm={rm} tipo="hoja" />}
+      {canUpload && rm.cita_pdf_uri && <RMQuitarCita rm={rm} tipo="hoja" />}
+      {rm.hora_cita_pdf_uri && <RMDescargarCita uri={rm.hora_cita_pdf_uri} label="Ver cita" />}
+      {canUpload && <RMSubirCita rm={rm} tipo="cita" />}
+      {canUpload && rm.hora_cita_pdf_uri && <RMQuitarCita rm={rm} tipo="cita" />}
     </div>
   );
 }

@@ -316,8 +316,8 @@ export default function ParentDashboard() {
   const myPlayers = players;
   const { byJugador: rmPorJugador } = useReconocimientos(myPlayers.length > 0);
   const citasRMPendientes = myPlayers.filter((p) => {
-    const uri = rmPorJugador?.[p.id]?.cita_pdf_uri;
-    return uri && !localStorage.getItem(`rm_cita_vista_${uri}`);
+    const rm = rmPorJugador?.[p.id];
+    return [rm?.cita_pdf_uri, rm?.hora_cita_pdf_uri].some((uri) => uri && !localStorage.getItem(`rm_cita_vista_${uri}`));
   }).length;
   const rmVencen = myPlayers.map((p) => {
     const f = rmPorJugador?.[p.id]?.fecha_vencimiento;

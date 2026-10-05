@@ -1,7 +1,7 @@
 {
   "name": "ReconocimientoMedico",
   "type": "object",
-  "description": "Reconocimiento m\u00e9dico federativo de cada jugador (fecha sincronizada con la Federaci\u00f3n + PDF de la cita subido por el club)",
+  "description": "Reconocimiento m\u00e9dico federativo de cada jugador (fecha sincronizada con la Federaci\u00f3n + PDFs de la hoja de reconocimiento y de la cita subidos por el club)",
   "properties": {
     "jugador_id": {
       "type": "string"
@@ -29,7 +29,7 @@
     },
     "cita_pdf_uri": {
       "type": "string",
-      "description": "PDF privado de la cita del reconocimiento"
+      "description": "PDF privado de la hoja de reconocimiento"
     },
     "cita_pdf_nombre": {
       "type": "string"
@@ -39,6 +39,20 @@
       "format": "date-time"
     },
     "cita_subida_por": {
+      "type": "string"
+    },
+    "hora_cita_pdf_uri": {
+      "type": "string",
+      "description": "PDF privado de la cita (d\u00eda y hora) del reconocimiento"
+    },
+    "hora_cita_pdf_nombre": {
+      "type": "string"
+    },
+    "hora_cita_fecha_subida": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "hora_cita_subida_por": {
       "type": "string"
     },
     "ultima_sincronizacion": {

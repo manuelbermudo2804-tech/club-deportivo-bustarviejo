@@ -37,8 +37,10 @@ export default function ReconocimientosPanel({ players, canUpload }) {
                   <p className="text-xs text-slate-500">{rm.categoria}</p>
                 </div>
                 <span className={`text-xs font-semibold px-2 py-1 rounded-full border ${e.cls}`}>{e.label}</span>
-                {rm.cita_pdf_uri && <RMDescargarCita uri={rm.cita_pdf_uri} label="Ver cita" />}
-                {canUpload && <RMSubirCita rm={rm} />}
+                {rm.cita_pdf_uri && <RMDescargarCita uri={rm.cita_pdf_uri} label="Ver hoja" />}
+                {canUpload && <RMSubirCita rm={rm} tipo="hoja" />}
+                {rm.hora_cita_pdf_uri && <RMDescargarCita uri={rm.hora_cita_pdf_uri} label="Ver cita" />}
+                {canUpload && <RMSubirCita rm={rm} tipo="cita" />}
               </div>
             ))}
           </div>
