@@ -56,7 +56,7 @@ export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting, u
       }
     }
     if (uploaded.length > 0) {
-      setCurrentAlbum({ ...currentAlbum, fotos: [...currentAlbum.fotos, ...uploaded] });
+      setCurrentAlbum(prev => ({ ...prev, fotos: [...prev.fotos, ...uploaded] }));
       toast.success(`${uploaded.length} foto(s) subida(s) correctamente`);
     }
     setUploadingPhotos(false);
