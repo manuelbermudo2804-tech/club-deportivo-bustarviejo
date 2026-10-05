@@ -49,6 +49,7 @@ export default function AlertCenter({
   pendingSurveys = 0,
   pendingSignatures = 0,
   pendingCitasRM = 0,
+  rmNuevos = [],
   rmVencen = [],
   pendingCallupResponses = 0,
   upcomingEvents = 0,
@@ -303,8 +304,8 @@ const alerts = [];
       alerts.push({
         id: "citas-rm",
         icon: FileSignature,
-        title: "Cita del reconocimiento médico",
-        description: `${pendingCitasRM} cita${pendingCitasRM > 1 ? 's' : ''} lista${pendingCitasRM > 1 ? 's' : ''} para descargar`,
+        title: "Reconocimiento médico: documentos nuevos",
+        description: rmNuevos.length ? `Ya puedes descargar: ${rmNuevos.join(", ")}` : "Documentos listos para descargar",
         url: createPageUrl("FederationSignatures"),
         color: "bg-red-500",
         priority: 2

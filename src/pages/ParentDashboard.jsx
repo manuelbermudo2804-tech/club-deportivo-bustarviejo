@@ -319,6 +319,14 @@ export default function ParentDashboard() {
     const rm = rmPorJugador?.[p.id];
     return [rm?.cita_pdf_uri, rm?.hora_cita_pdf_uri].some((uri) => uri && !localStorage.getItem(`rm_cita_vista_${uri}`));
   }).length;
+  const rmNuevos = myPlayers.flatMap((p) => {
+    const rm = rmPorJugador?.[p.id];
+    const n = p.nombre?.split(" ")[0];
+    const out = [];
+    if (rm?.cita_pdf_uri && !localStorage.getItem(`rm_cita_vista_${rm.cita_pdf_uri}`)) out.push(`hoja de reconocimiento de ${n}`);
+    if (rm?.hora_cita_pdf_uri && !localStorage.getItem(`rm_cita_vista_${rm.hora_cita_pdf_uri}`)) out.push(`hora de la cita de ${n}`);
+    return out;
+  });
   const rmVencen = myPlayers.map((p) => {
     const f = rmPorJugador?.[p.id]?.fecha_vencimiento;
     return f ? { nombre: p.nombre?.split(" ")[0], dias: Math.ceil((new Date(f) - new Date()) / 86400000) } : null;
@@ -588,6 +596,7 @@ export default function ParentDashboard() {
             pendingSurveys={activeSurveys.length}
             pendingSignatures={notifications?.pendingSignatures || pendingFederationSignatures}
             pendingCitasRM={citasRMPendientes}
+            rmNuevos={rmNuevos}
             rmVencen={rmVencen}
             upcomingEvents={0}
             newGalleryPhotos={0}
