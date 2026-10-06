@@ -75,7 +75,7 @@ export function buildAdminNavigation(ctx) {
     { title: "💬 Chats", url: createPageUrl("AdminChatsHub"), icon: MessageCircle, badge: (chatMenuCounts.staffCount || 0) + (chatMenuCounts.coordinatorCount || 0) },
     { title: "📢 Anuncios", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "🗳️ Junta de Socios", url: "/JuntaSocios", icon: Users },
-    { title: "✍️ Acuerdos voluntariado", url: "/ContratosVoluntariado", icon: FileText },
+    { title: "✍️ Documentos para firmar", url: "/ContratosVoluntariado", icon: FileText },
     { title: "📄 Documentos", url: createPageUrl("DocumentManagement"), icon: FileText },
     { title: "📋 Encuestas", url: createPageUrl("Surveys"), icon: FileText },
     { title: "💬 Feedback Usuarios", url: createPageUrl("FeedbackManagement"), icon: MessageCircle, badge: ctx.pendingFeedback > 0 ? ctx.pendingFeedback : null },
