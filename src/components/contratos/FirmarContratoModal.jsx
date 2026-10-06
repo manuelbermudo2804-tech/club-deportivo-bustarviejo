@@ -57,6 +57,9 @@ export default function FirmarContratoModal({ user }) {
         tutor_relacion: tutor.relacion.trim(), tutor_firma_uri: await subirFirma(tutorCanvas),
       });
       await base44.entities.ContratoVoluntariado.update(c.id, data);
+      if (c.grupo !== "familia") {
+        await base44.auth.updateMe({ nombre_completo_oficial: data.firma_nombre, dni_entrenador: data.firma_dni });
+      }
       toast.success("Acuerdo firmado. ¡Gracias!");
       qc.invalidateQueries({ queryKey: ["contratosPendientes"] });
     } catch (e) {

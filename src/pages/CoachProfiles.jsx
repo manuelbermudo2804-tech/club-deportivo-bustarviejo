@@ -6,9 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { User, Mail, Phone, Search, Users, Clock, Loader2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import FichaEntrenadorDialog from "@/components/coach/FichaEntrenadorDialog";
 
 export default function CoachProfiles() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [editando, setEditando] = useState(null);
+  const { data: me } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
+  const isAdmin = me?.role === 'admin';
 
   const { data: coaches = [], isLoading } = useQuery({
     queryKey: ['coaches'],
@@ -82,6 +87,13 @@ export default function CoachProfiles() {
                   )}
                   <h3 className="font-bold text-lg text-slate-900">{coach.full_name}</h3>
                   <p className="text-sm text-slate-600">🏃 Entrenador</p>
+                  {isAdmin && (
+                    <div className="mt-2 text-xs text-slate-600 space-y-0.5">
+                      <p>{coach.nombre_completo_oficial || <span className="text-red-600">Sin nombre completo</span>}</p>
+                      <p>DNI: {coach.dni_entrenador || <span className="text-red-600">pendiente</span>}</p>
+                      <Button size="sm" variant="outline" className="mt-2" onClick={() => setEditando(coach)}>✏️ Editar ficha</Button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Categorías */}
@@ -142,6 +154,8 @@ export default function CoachProfiles() {
           ))
         )}
       </div>
+
+      {editando && <FichaEntrenadorDialog coach={editando} onClose={() => setEditando(null)} />}
 
       {/* Totales */}
       <Card className="bg-slate-50 border-slate-200">
