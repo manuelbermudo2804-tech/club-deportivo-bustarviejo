@@ -24,6 +24,7 @@ export default function FirmarContratoModal({ user }) {
   const [tutorCanvas, setTutorCanvas] = useState(null);
   const [tutor, setTutor] = useState({ nombre: "", dni: "", relacion: "" });
   const [dni, setDni] = useState("");
+  const [nombre, setNombre] = useState("");
   const [acepto, setAcepto] = useState(false);
   const [privacidad, setPrivacidad] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -38,8 +39,8 @@ export default function FirmarContratoModal({ user }) {
   if (!c || later) return null;
   const menor = !!c.es_menor;
 
-  const valido = canvas && acepto && privacidad && dniOk(dni) &&
-    (!menor || (tutorCanvas && tutor.nombre.trim() && dniOk(tutor.dni) && tutor.relacion.trim()));
+  const valido = canvas && acepto && privacidad && dniOk(dni) && nombre.trim().split(/\s+/).length >= 2 &&
+    (!menor || (tutorCanvas && tutor.nombre.trim().split(/\s+/).length >= 2 && dniOk(tutor.dni) && tutor.relacion.trim()));
 
   const firmar = async () => {
     setSaving(true);
@@ -48,7 +49,7 @@ export default function FirmarContratoModal({ user }) {
       if (c.texto_hash && hash !== c.texto_hash) throw new Error("El texto no coincide con el original");
       const data = {
         estado: "firmado", firma_uri: await subirFirma(canvas), firma_fecha: new Date().toISOString(),
-        firma_dni: dni.trim().toUpperCase(), firma_nombre: user.full_name || c.entrenador_nombre,
+        firma_dni: dni.trim().toUpperCase(), firma_nombre: nombre.trim(),
         firma_user_agent: navigator.userAgent, acepta_privacidad: true,
       };
       if (menor) Object.assign(data, {
@@ -71,6 +72,7 @@ export default function FirmarContratoModal({ user }) {
         <div className="text-sm whitespace-pre-wrap bg-slate-50 border rounded-lg p-3 max-h-60 overflow-y-auto">{c.texto}</div>
         <div className="border rounded-lg p-3 space-y-2">
           <p className="font-semibold text-sm">🧑 Firma {menor ? "del menor" : c.grupo === "familia" ? `del padre, madre o tutor de ${c.jugador_nombre}` : "del firmante"}</p>
+          <Input placeholder={`Nombre y apellidos ${menor ? "del menor" : "de quien firma"}`} value={nombre} onChange={(e) => setNombre(e.target.value)} />
           <Input placeholder={`DNI / NIE ${menor ? "del menor" : ""}`} value={dni} onChange={(e) => setDni(e.target.value)} />
           <SignaturePad onChange={setCanvas} />
         </div>
