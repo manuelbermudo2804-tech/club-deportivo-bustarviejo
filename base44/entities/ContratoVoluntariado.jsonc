@@ -1,13 +1,32 @@
 {
   "name": "ContratoVoluntariado",
   "type": "object",
-  "description": "Acuerdo de voluntariado personalizado que se firma con el dedo en la app (menores: firma del menor + tutor)",
+  "description": "Documento personalizado que se firma con el dedo en la app (staff, menores en pr\u00e1cticas con tutor, o familias en casos puntuales)",
   "properties": {
     "entrenador_email": {
       "type": "string",
       "description": "Email con el que entra en la app quien firma"
     },
     "entrenador_nombre": {
+      "type": "string"
+    },
+    "tipo": {
+      "type": "string",
+      "description": "Plantilla usada (voluntariado, codigo_conducta, viaje...)"
+    },
+    "grupo": {
+      "type": "string",
+      "enum": [
+        "staff",
+        "familia"
+      ],
+      "default": "staff"
+    },
+    "jugador_id": {
+      "type": "string",
+      "description": "Jugador al que se refiere (documentos de familia)"
+    },
+    "jugador_nombre": {
       "type": "string"
     },
     "es_menor": {

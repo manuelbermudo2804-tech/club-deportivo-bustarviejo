@@ -70,7 +70,7 @@ export default function FirmarContratoModal({ user }) {
         <DialogHeader><DialogTitle>✍️ {c.titulo}</DialogTitle></DialogHeader>
         <div className="text-sm whitespace-pre-wrap bg-slate-50 border rounded-lg p-3 max-h-60 overflow-y-auto">{c.texto}</div>
         <div className="border rounded-lg p-3 space-y-2">
-          <p className="font-semibold text-sm">🧑 Firma {menor ? "del menor" : "del voluntario"}</p>
+          <p className="font-semibold text-sm">🧑 Firma {menor ? "del menor" : c.grupo === "familia" ? `del padre, madre o tutor de ${c.jugador_nombre}` : "del firmante"}</p>
           <Input placeholder={`DNI / NIE ${menor ? "del menor" : ""}`} value={dni} onChange={(e) => setDni(e.target.value)} />
           <SignaturePad onChange={setCanvas} />
         </div>
@@ -81,12 +81,12 @@ export default function FirmarContratoModal({ user }) {
         </label>
         <label className="flex items-start gap-2 text-sm">
           <Checkbox checked={privacidad} onCheckedChange={(v) => setPrivacidad(!!v)} className="mt-0.5" />
-          <span>Acepto que el CD Bustarviejo trate mis datos (y los del menor, si procede) solo para gestionar este acuerdo de voluntariado, conforme al RGPD. Puedo ejercer mis derechos escribiendo al club. <a href="/Privacidad" target="_blank" className="underline text-orange-700">Política de privacidad</a></span>
+          <span>Acepto que el CD Bustarviejo trate mis datos (y los del menor, si procede) solo para gestionar este documento, conforme al RGPD. Puedo ejercer mis derechos escribiendo al club. <a href="/Privacidad" target="_blank" className="underline text-orange-700">Política de privacidad</a></span>
         </label>
         <div className="flex gap-2 justify-end">
           <Button variant="outline" onClick={() => setLater(true)}>Más tarde</Button>
           <Button disabled={!valido || saving} onClick={firmar} className="bg-orange-600 hover:bg-orange-700">
-            {saving ? "Firmando..." : "Firmar acuerdo"}
+            {saving ? "Firmando..." : "Firmar"}
           </Button>
         </div>
       </DialogContent>

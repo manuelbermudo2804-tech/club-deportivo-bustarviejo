@@ -6,56 +6,82 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { sha256 } from "./contratoPdf";
+import { PLANTILLAS } from "./plantillasDocumentos";
 import { toast } from "sonner";
 
+const rellenar = (t, nombre, jugador) => t.replaceAll("{nombre}", nombre || "").replaceAll("{jugador}", jugador || "");
+
 export default function NuevoContratoForm({ onCreated }) {
-  const [email, setEmail] = useState("");
-  const [titulo, setTitulo] = useState("Acuerdo de incorporación como voluntario");
+  const [tipo, setTipo] = useState("voluntariado");
+  const [destino, setDestino] = useState("");
+  const [titulo, setTitulo] = useState(PLANTILLAS[0].titulo);
   const [texto, setTexto] = useState("");
   const [saving, setSaving] = useState(false);
+  const plantilla = PLANTILLAS.find((p) => p.id === tipo);
+  const familia = plantilla.grupo === "familia";
 
-  // Entrenadores/coordinadores adultos + menores en prácticas (con su acceso de menor)
-  const { data: personas = [] } = useQuery({
+  const { data } = useQuery({
     queryKey: ["firmantesContrato"],
     queryFn: async () => {
-      const [users, players] = await Promise.all([
+      const [users, practicas, jugadores] = await Promise.all([
         base44.entities.User.list(),
         base44.entities.Player.filter({ "entrenador_practicas.activo": true }),
+        base44.entities.Player.filter({ activo: true }),
       ]);
       const staff = users.filter((u) => u.es_entrenador || u.es_coordinador)
-        .map((u) => ({ email: u.email, nombre: u.full_name || u.email, menor: false }));
-      const menores = players.filter((p) => p.acceso_menor_email)
-        .map((p) => ({ email: p.acceso_menor_email, nombre: p.nombre, menor: true }));
-      return [...staff, ...menores];
+        .map((u) => ({ key: u.email, email: u.email, nombre: u.full_name || u.email, menor: false }));
+      const menores = practicas.filter((p) => p.acceso_menor_email)
+        .map((p) => ({ key: p.acceso_menor_email, email: p.acceso_menor_email, nombre: p.nombre, menor: true }));
+      const familias = jugadores.filter((p) => p.email_padre).sort((a, b) => a.nombre.localeCompare(b.nombre))
+        .map((p) => ({ key: p.id, email: p.email_padre, nombre: p.nombre_tutor_legal || p.email_padre, jugador: p }));
+      return { staff: [...staff, ...menores], familias };
     },
   });
+  const lista = (familia ? data?.familias : data?.staff) || [];
+  const elegido = lista.find((s) => s.key === destino);
+
+  const cambiarTipo = (id) => {
+    const p = PLANTILLAS.find((x) => x.id === id);
+    if (p.grupo !== plantilla.grupo) setDestino("");
+    setTipo(id); setTitulo(p.titulo); setTexto(p.texto);
+  };
 
   const crear = async () => {
     setSaving(true);
-    const p = personas.find((s) => s.email === email);
+    const final = rellenar(texto, elegido.nombre, elegido.jugador?.nombre);
     await base44.entities.ContratoVoluntariado.create({
-      entrenador_email: email, entrenador_nombre: p?.nombre || email, es_menor: !!p?.menor,
-      titulo, texto, texto_hash: await sha256(texto), estado: "pendiente",
+      entrenador_email: elegido.email, entrenador_nombre: familia ? `${elegido.jugador.nombre} (familia)` : elegido.nombre,
+      es_menor: !!elegido.menor, tipo, grupo: plantilla.grupo,
+      jugador_id: elegido.jugador?.id, jugador_nombre: elegido.jugador?.nombre,
+      titulo, texto: final, texto_hash: await sha256(final), estado: "pendiente",
     });
-    toast.success("Acuerdo enviado. Le aparecerá al abrir la app.");
-    setEmail(""); setTexto(""); setSaving(false);
+    toast.success("Documento enviado. Le aparecerá al abrir la app.");
+    setDestino(""); setTexto(plantilla.texto); setSaving(false);
     onCreated();
   };
 
   return (
     <div className="bg-white rounded-xl border p-4 space-y-3">
-      <h2 className="font-bold">Nuevo acuerdo</h2>
-      <Select value={email} onValueChange={setEmail}>
-        <SelectTrigger><SelectValue placeholder="Elige quién firma" /></SelectTrigger>
+      <h2 className="font-bold">Nuevo documento</h2>
+      <Select value={tipo} onValueChange={cambiarTipo}>
+        <SelectTrigger><SelectValue /></SelectTrigger>
         <SelectContent>
-          {personas.map((s) => (
-            <SelectItem key={s.email} value={s.email}>{s.nombre}{s.menor ? " · en prácticas (menor)" : ""}</SelectItem>
+          {PLANTILLAS.map((p) => <SelectItem key={p.id} value={p.id}>{p.grupo === "staff" ? "👔 Staff · " : "👪 Familia · "}{p.titulo}</SelectItem>)}
+        </SelectContent>
+      </Select>
+      <Select value={destino} onValueChange={setDestino}>
+        <SelectTrigger><SelectValue placeholder={familia ? "Elige el jugador (firma su familia)" : "Elige quién firma"} /></SelectTrigger>
+        <SelectContent>
+          {lista.map((s) => (
+            <SelectItem key={s.key} value={s.key}>
+              {familia ? `${s.jugador.nombre} · ${s.email}` : `${s.nombre}${s.menor ? " · en prácticas (menor)" : ""}`}
+            </SelectItem>
           ))}
         </SelectContent>
       </Select>
       <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Título" />
-      <Textarea rows={10} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Pega aquí el texto del acuerdo" />
-      <Button disabled={!email || !texto.trim() || saving} onClick={crear} className="w-full bg-orange-600 hover:bg-orange-700">
+      <Textarea rows={10} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Texto del documento" />
+      <Button disabled={!elegido || !texto.trim() || saving} onClick={crear} className="w-full bg-orange-600 hover:bg-orange-700">
         {saving ? "Enviando..." : "Enviar para firmar"}
       </Button>
     </div>

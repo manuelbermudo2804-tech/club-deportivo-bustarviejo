@@ -23,7 +23,7 @@ export default function ContratosVoluntariado() {
 
   return (
     <div className="p-4 lg:p-8 max-w-3xl mx-auto space-y-4">
-      <h1 className="text-2xl font-bold">✍️ Acuerdos de voluntariado</h1>
+      <h1 className="text-2xl font-bold">✍️ Documentos para firmar</h1>
       <NuevoContratoForm onCreated={refetch} />
       <div className="space-y-2">
         {isLoading && <Loader2 className="w-6 h-6 animate-spin mx-auto" />}
