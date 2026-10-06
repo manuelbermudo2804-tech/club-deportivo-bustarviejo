@@ -92,6 +92,7 @@ const AgendaClub = lazy(() => import('@/pages/AgendaClub'));
 const ExpedienteSubvencion = lazy(() => import('@/pages/ExpedienteSubvencion'));
 const JuntaSocios = lazy(() => import('@/pages/JuntaSocios'));
 const ContratosVoluntariado = lazy(() => import('@/pages/ContratosVoluntariado'));
+const MisDocumentos = lazy(() => import('@/pages/MisDocumentos'));
 
 const PageSpinner = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -296,6 +297,7 @@ const AuthenticatedApp = () => {
       <Route path="/ExpedienteSubvencion" element={<LayoutWrapper currentPageName="ExpedienteSubvencion"><ExpedienteSubvencion /></LayoutWrapper>} />
       <Route path="/JuntaSocios" element={<LayoutWrapper currentPageName="JuntaSocios"><JuntaSocios /></LayoutWrapper>} />
       <Route path="/ContratosVoluntariado" element={<LayoutWrapper currentPageName="ContratosVoluntariado"><ContratosVoluntariado /></LayoutWrapper>} />
+      <Route path="/MisDocumentos" element={<LayoutWrapper currentPageName="MisDocumentos"><MisDocumentos /></LayoutWrapper>} />
 
       <Route path="/ShareReceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />
       <Route path="/sharereceiver" element={<LayoutWrapper currentPageName="ShareReceiver"><ShareReceiver /></LayoutWrapper>} />

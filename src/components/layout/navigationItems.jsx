@@ -156,6 +156,7 @@ export function buildCoachNavigation(ctx) {
 
     { title: "📊 Reportes Entrenadores", url: createPageUrl("CoachEvaluationReports"), icon: Star },
     { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
+    { title: "📄 Mis documentos firmados", url: "/MisDocumentos", icon: FileText },
     ...(user?.puede_gestionar_firmas ? [{ title: "🖊️ Firmas y Reconocimientos", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature }] : []),
 
     ...(isPlayer ? [
@@ -231,6 +232,7 @@ export function buildCoordinatorNavigation(ctx) {
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     { title: "📋 Contactos Web", url: createPageUrl("WebContacts"), icon: Users },
     { title: "👤 Mi Perfil Entrenador", url: createPageUrl("CoachProfile"), icon: UserCircle },
+    { title: "📄 Mis documentos firmados", url: "/MisDocumentos", icon: FileText },
     { title: "🎉 San Isidro 2026", url: createPageUrl("SanIsidroAdmin"), icon: Calendar },
     ...(ctx.porraActiva ? [{ title: "🏆 Porra Mundial 2026", url: createPageUrl("MiPorra"), icon: Trophy, highlight: true }] : []),
 
@@ -397,6 +399,7 @@ export function buildMinorNavigation(ctx) {
 
   return [
     { title: "🏠 Inicio", url: createPageUrl("MinorDashboard"), icon: Home },
+    { title: "📄 Mis documentos firmados", url: "/MisDocumentos", icon: FileText },
     { title: "📋 Convocatorias", url: createPageUrl("ParentCallups"), icon: Bell, badge: pendingCallupsCount > 0 ? pendingCallupsCount : null, urgentBadge: pendingCallupsCount > 0 },
     { title: "📅 Agenda del club", url: "/AgendaClub", icon: CalendarDays },
     { title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy },
