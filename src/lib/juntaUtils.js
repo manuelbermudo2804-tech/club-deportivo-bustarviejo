@@ -42,14 +42,17 @@ export function socioEstado(email, nombre, socios) {
   return s.estado_pago === "Pagado" ? "si" : "pendiente";
 }
 
-export function unirRespuestas(appRows, webRows, socios) {
+export function unirRespuestas(appRows, webRows, socios, campos = []) {
+  // Las respuestas web se guardan por id de campo: las traducimos a la pregunta
+  const etiquetas = Object.fromEntries(campos.map((c) => [c.id, c.etiqueta || c.id]));
+  const conEtiquetas = (d) => Object.fromEntries(Object.entries(d || {}).map(([k, v]) => [etiquetas[k] || k, v]));
   const rows = appRows.map((r) => ({
     id: r.id, origen: "App", nombre: r.nombre, email: r.email, telefono: "",
     respuesta: r.respuesta, personas: r.personas || 1, pregunta: r.pregunta || "", ludoteca: r.ludoteca, ninos_ludoteca: r.ninos_ludoteca || 0, fecha: r.updated_date,
   }));
   const emails = new Set(rows.map((r) => norm(r.email)));
   webRows.forEach((w) => {
-    const d = w.datos || {};
+    const d = conEtiquetas(w.datos);
     const email = w.email || pick(d, ["email", "correo"]);
     if (email && emails.has(norm(email))) return;
     rows.push({

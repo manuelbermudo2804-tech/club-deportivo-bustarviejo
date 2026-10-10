@@ -18,12 +18,13 @@ export default function JuntaSocios() {
     queryKey: ["juntaRespuestas", junta?.id, junta?.landing_slug],
     enabled: !!junta,
     queryFn: async () => {
-      const [app, web, socios] = await Promise.all([
+      const [app, web, socios, pages] = await Promise.all([
         base44.entities.JuntaAsistencia.filter({ junta_id: junta.id }, "-updated_date", 1000),
         junta.landing_slug ? base44.entities.LandingSubmission.filter({ landing_slug: junta.landing_slug }, "-created_date", 1000) : [],
         base44.entities.ClubMember.list("-created_date", 2000),
+        junta.landing_slug ? base44.entities.LandingPage.filter({ slug: junta.landing_slug }) : [],
       ]);
-      return unirRespuestas(app, web, socios);
+      return unirRespuestas(app, web, socios, pages?.[0]?.config?.formulario?.campos || []);
     },
   });
 
