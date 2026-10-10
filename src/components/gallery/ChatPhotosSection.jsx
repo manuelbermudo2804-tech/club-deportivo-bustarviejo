@@ -63,7 +63,8 @@ export default function ChatPhotosSection({ myCategories }) {
           60
         );
         msgs.forEach((msg) => {
-          if (msg.eliminado) return;
+          // Solo fotos que comparte el staff (entrenadores/admin), no lo que manda cualquiera
+          if (msg.eliminado || msg.tipo === "padre_a_grupo") return;
           const attachments = msg.archivos_adjuntos || [];
           attachments.forEach((att) => {
             if (att.tipo?.startsWith("image/") || att.url?.match(/\.(jpg|jpeg|png|gif|webp)/i)) {
@@ -86,7 +87,9 @@ export default function ChatPhotosSection({ myCategories }) {
     staleTime: 120000,
   });
 
-  if (!chatPhotos.length) return null;
+  if (!chatPhotos.length) {
+    return <p className="text-sm text-slate-500 py-8 text-center">Todavía no hay fotos compartidas por los entrenadores en el chat de este equipo.</p>;
+  }
 
   return (
     <>

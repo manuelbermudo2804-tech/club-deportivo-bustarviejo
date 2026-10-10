@@ -13,6 +13,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import GalleryForm from "../components/gallery/GalleryForm";
 import GalleryAlbum from "../components/gallery/GalleryAlbum";
 import ContactCard from "../components/ContactCard";
+import TeamFolders, { folderLabel } from "../components/gallery/TeamFolders";
+import ChatPhotosSection from "../components/gallery/ChatPhotosSection";
+import { ArrowLeft } from "lucide-react";
 
 
 export default function Gallery() {
@@ -23,6 +26,7 @@ export default function Gallery() {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState("parent"); // admin, coach, parent, player
   const [myCategories, setMyCategories] = useState([]);
+  const [folderTab, setFolderTab] = useState("albums");
   
   const queryClient = useQueryClient();
 
@@ -185,6 +189,12 @@ export default function Gallery() {
   // Categories to show in filter tabs
   const filterCategories = userRole === "admin" ? activeCategories : myCategories;
 
+  // Carpetas por equipo: las categorías del usuario + las que ya tienen álbumes visibles
+  const baseFolders = userRole === "coach" ? coachCategories : filterCategories;
+  const albumCats = visibleAlbums.map(a => a.categoria).filter(Boolean);
+  const folders = [...new Set([...albumCats.filter(c => c === "Todas las Categorías"), ...baseFolders, ...(userRole === "parent" || userRole === "player" ? [] : albumCats)])]
+    .sort((a, b) => (a === "Todas las Categorías" ? -1 : b === "Todas las Categorías" ? 1 : a.localeCompare(b)));
+
   return (
     <div className="p-4 lg:p-6 space-y-4">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
@@ -269,20 +279,22 @@ export default function Gallery() {
         )}
       </AnimatePresence>
 
-      {/* Category Filter - only show if more than one category available */}
-      {filterCategories.length > 1 && (
-        <Tabs value={categoryFilter} onValueChange={setCategoryFilter}>
-          <TabsList className="flex flex-wrap h-auto p-1">
-            <TabsTrigger value="all" className="text-xs px-2 py-1">Todas</TabsTrigger>
-            {filterCategories.map(cat => (
-              <TabsTrigger key={cat} value={cat} className="text-[10px] px-2 py-1">
-                {cat.includes("Baloncesto")
-                  ? "🏀 Baloncesto"
-                  : `⚽ ${cat.replace(/^Fútbol\s+/, '').replace(/\s*\(Mixto\)$/, '')}`}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+      {/* Carpeta abierta: volver + pestañas Álbumes / Fotos del chat */}
+      {categoryFilter !== "all" && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+          <Button variant="outline" size="sm" onClick={() => { setCategoryFilter("all"); setFolderTab("albums"); }}>
+            <ArrowLeft className="w-4 h-4 mr-1" /> Equipos
+          </Button>
+          <h2 className="text-lg font-bold text-slate-900">{folderLabel(categoryFilter)}</h2>
+          {categoryFilter !== "Todas las Categorías" && (
+            <Tabs value={folderTab} onValueChange={setFolderTab} className="sm:ml-auto">
+              <TabsList>
+                <TabsTrigger value="albums">📁 Álbumes</TabsTrigger>
+                <TabsTrigger value="chat">💬 Fotos del chat</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          )}
+        </div>
       )}
 
       {/* Search */}
@@ -297,12 +309,16 @@ export default function Gallery() {
       </div>
 
       {/* Albums Grid */}
-      {isLoading ? (
+      {folderTab === "chat" && categoryFilter !== "all" ? (
+        <ChatPhotosSection myCategories={[categoryFilter]} />
+      ) : isLoading ? (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {[...Array(6)].map((_, i) => (
             <Skeleton key={i} className="h-48 w-full rounded-lg" />
           ))}
         </div>
+      ) : categoryFilter === "all" && !searchTerm ? (
+        <TeamFolders folders={folders} albums={visibleAlbums} onOpen={setCategoryFilter} />
       ) : filteredAlbums.length === 0 ? (
         <Card className="border-none shadow-lg">
           <div className="py-12 text-center">
