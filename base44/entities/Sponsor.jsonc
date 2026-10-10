@@ -64,6 +64,13 @@
           },
           "marcado_por": {
             "type": "string"
+          },
+          "justificante_uri": {
+            "type": "string",
+            "description": "Recibo o factura adjunta (archivo privado)"
+          },
+          "justificante_nombre": {
+            "type": "string"
           }
         }
       }
