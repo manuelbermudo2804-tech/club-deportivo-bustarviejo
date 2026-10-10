@@ -35,27 +35,33 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
     setQuickUploading(true);
     toast.info(`📤 Subiendo ${files.length} foto(s)...`);
 
+    // Una a una, en calidad original, con reintentos; cada foto se guarda al llegar
+    let fotos = [...(album.fotos || [])];
+    let ok = 0;
+    const fallidas = [];
     try {
-      const uploadPromises = files.map(async (file) => {
-        const { file_url } = await base44.integrations.Core.UploadFile({ file });
-        return {
-          url: file_url,
-          descripcion: "",
-          jugadores_etiquetados: []
-        };
-      });
-
-      const uploadedPhotos = await Promise.all(uploadPromises);
-      const updatedFotos = [...(album.fotos || []), ...uploadedPhotos];
-      
-      if (onQuickUpload) {
-        await onQuickUpload(album.id, updatedFotos);
+      for (const file of files) {
+        let url = null;
+        for (let intento = 0; intento < 3 && !url; intento++) {
+          try {
+            url = (await base44.integrations.Core.UploadFile({ file })).file_url;
+          } catch {
+            await new Promise(r => setTimeout(r, 2000 * (intento + 1)));
+          }
+        }
+        if (!url) { fallidas.push(file.name); continue; }
+        fotos = [...fotos, { url, descripcion: "", jugadores_etiquetados: [] }];
+        if (onQuickUpload) await onQuickUpload(album.id, fotos);
+        ok++;
+        if (files.length > 1) toast.info(`📤 ${ok}/${files.length} guardada(s)`, { duration: 1500 });
       }
-      
-      toast.success(`✅ ${files.length} foto(s) añadida(s) al álbum`);
+      if (ok > 0) toast.success(`✅ ${ok} foto(s) añadida(s) al álbum`);
+      if (fallidas.length > 0) {
+        toast.error(`⚠️ No se pudieron subir ${fallidas.length} foto(s). Si las hiciste con la cámara desde la app, no están en tu carrete: vuelve a intentarlo con mejor cobertura.`, { duration: 15000 });
+      }
     } catch (error) {
       console.error("Error uploading photos:", error);
-      toast.error("Error al subir las fotos");
+      toast.error(`Error al guardar. Se guardaron ${ok} de ${files.length} foto(s).`, { duration: 15000 });
     } finally {
       setQuickUploading(false);
       if (quickUploadRef.current) {
