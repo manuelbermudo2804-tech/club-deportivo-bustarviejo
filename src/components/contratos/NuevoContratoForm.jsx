@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { sha256 } from "./contratoPdf";
 import { PLANTILLAS } from "./plantillasDocumentos";
 import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useFirmaClub } from "./FirmaClubConfig";
 
 const rellenar = (t, nombre, jugador) => t.replaceAll("{nombre}", nombre || "").replaceAll("{jugador}", jugador || "");
 
@@ -17,6 +19,9 @@ export default function NuevoContratoForm({ onCreated }) {
   const [titulo, setTitulo] = useState(PLANTILLAS[0].titulo);
   const [texto, setTexto] = useState("");
   const [saving, setSaving] = useState(false);
+  const [conSello, setConSello] = useState(false);
+  const { data: firmaClub } = useFirmaClub();
+  const hayFirmaClub = !!(firmaClub?.sello_uri || firmaClub?.firma_uri);
   const plantilla = PLANTILLAS.find((p) => p.id === tipo);
   const familia = plantilla.grupo === "familia";
 
@@ -54,6 +59,10 @@ export default function NuevoContratoForm({ onCreated }) {
       es_menor: !!elegido.menor, tipo, grupo: plantilla.grupo,
       jugador_id: elegido.jugador?.id, jugador_nombre: elegido.jugador?.nombre,
       titulo, texto: final, texto_hash: await sha256(final), estado: "pendiente",
+      ...(conSello && hayFirmaClub ? {
+        club_sello_uri: firmaClub.sello_uri, club_firma_uri: firmaClub.firma_uri,
+        club_firmante: [firmaClub.firmante_nombre, firmaClub.firmante_cargo].filter(Boolean).join(" · "),
+      } : {}),
     });
     toast.success("Documento enviado. Le aparecerá al abrir la app.");
     setDestino(""); setTexto(plantilla.texto); setSaving(false);
@@ -81,6 +90,10 @@ export default function NuevoContratoForm({ onCreated }) {
       </Select>
       <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Título" />
       <Textarea rows={10} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Texto del documento" />
+      <label className={`flex items-center gap-2 text-sm ${hayFirmaClub ? "" : "opacity-50"}`}>
+        <Checkbox disabled={!hayFirmaClub} checked={conSello} onCheckedChange={(v) => setConSello(!!v)} />
+        Incluir sello y firma del club{!hayFirmaClub && " (súbelos arriba primero)"}
+      </label>
       <Button disabled={!elegido || !texto.trim() || saving} onClick={crear} className="w-full bg-orange-600 hover:bg-orange-700">
         {saving ? "Enviando..." : "Enviar para firmar"}
       </Button>

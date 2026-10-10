@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, Trash2, Loader2 } from "lucide-react";
 import NuevoContratoForm from "@/components/contratos/NuevoContratoForm";
+import FirmaClubConfig from "@/components/contratos/FirmaClubConfig";
 import { descargarContratoPdf } from "@/components/contratos/contratoPdf";
 
 export default function ContratosVoluntariado() {
@@ -24,6 +25,7 @@ export default function ContratosVoluntariado() {
   return (
     <div className="p-4 lg:p-8 max-w-3xl mx-auto space-y-4">
       <h1 className="text-2xl font-bold">✍️ Documentos para firmar</h1>
+      <FirmaClubConfig />
       <NuevoContratoForm onCreated={refetch} />
       <div className="space-y-2">
         {isLoading && <Loader2 className="w-6 h-6 animate-spin mx-auto" />}

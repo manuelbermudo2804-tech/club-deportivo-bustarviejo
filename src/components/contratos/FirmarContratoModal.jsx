@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import SignaturePad from "./SignaturePad";
 import TutorFirmaBloque from "./TutorFirmaBloque";
+import SelloFirmaClub from "./SelloFirmaClub";
 import { sha256 } from "./contratoPdf";
 import { toast } from "sonner";
 
@@ -73,6 +74,7 @@ export default function FirmarContratoModal({ user }) {
       <DialogContent className="w-[95vw] max-w-2xl max-h-[92vh] overflow-y-auto">
         <DialogHeader><DialogTitle>✍️ {c.titulo}</DialogTitle></DialogHeader>
         <div className="text-sm whitespace-pre-wrap bg-slate-50 border rounded-lg p-3 max-h-60 overflow-y-auto">{c.texto}</div>
+        <SelloFirmaClub sello={c.club_sello_uri} firma={c.club_firma_uri} firmante={c.club_firmante} />
         <div className="border rounded-lg p-3 space-y-2">
           <p className="font-semibold text-sm">🧑 Firma {menor ? "del menor" : c.grupo === "familia" ? `del padre, madre o tutor de ${c.jugador_nombre}` : "del firmante"}</p>
           <Input placeholder={`Nombre y apellidos ${menor ? "del menor" : "de quien firma"}`} value={nombre} onChange={(e) => setNombre(e.target.value)} />

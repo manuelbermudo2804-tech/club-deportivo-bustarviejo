@@ -24,6 +24,19 @@ export async function descargarContratoPdf(c) {
   doc.setFont("helvetica", "normal").setFontSize(10);
   doc.splitTextToSize(c.texto || "", W).forEach((line) => { ensure(6); doc.text(line, 15, y); y += 5; });
 
+  if (c.club_sello_uri || c.club_firma_uri) {
+    ensure(50); y += 6;
+    doc.setFont("helvetica", "bold").text("Por el CD Bustarviejo:", 15, y); y += 3;
+    for (const [uri, x, w] of [[c.club_firma_uri, 15, 60], [c.club_sello_uri, 80, 35]]) {
+      if (!uri) continue;
+      const { signed_url } = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: uri });
+      doc.addImage(await toDataUrl(signed_url), "PNG", x, y, w, 35, undefined, "FAST");
+    }
+    y += 38;
+    doc.setFont("helvetica", "normal").setFontSize(8).text(c.club_firmante || "", 15, y); y += 4;
+    doc.setFontSize(10);
+  }
+
   if (c.estado === "firmado" && c.firma_uri) {
     const { signed_url } = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: c.firma_uri });
     const img = await toDataUrl(signed_url);

@@ -1,0 +1,45 @@
+{
+  "name": "FirmaClub",
+  "type": "object",
+  "description": "Sello del club y firma del responsable que se estampan en los documentos para firmar",
+  "properties": {
+    "sello_uri": {
+      "type": "string",
+      "description": "Imagen privada del sello del club"
+    },
+    "firma_uri": {
+      "type": "string",
+      "description": "Imagen privada de la firma del responsable"
+    },
+    "firmante_nombre": {
+      "type": "string"
+    },
+    "firmante_cargo": {
+      "type": "string",
+      "default": "Presidente"
+    }
+  },
+  "required": [],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
