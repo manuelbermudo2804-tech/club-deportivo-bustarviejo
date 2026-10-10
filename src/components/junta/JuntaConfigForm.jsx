@@ -40,9 +40,9 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
         setF({ ...f, ludoteca: v });
         if (!junta) return;
         const saved = await base44.entities.JuntaSocios.update(junta.id, { ludoteca: v });
-        toast.success(v ? "Ludoteca anunciada en el aviso" : "Ludoteca quitada del aviso");
+        toast.success(v ? "Pregunta de ludoteca activada" : "Pregunta de ludoteca quitada");
         onSaved(saved);
-      }} />{f.ludoteca ? "🧸 Servicio de ludoteca ACTIVADO — se anuncia a los socios" : "🧸 Sin servicio de ludoteca"}</div>
+      }} />{f.ludoteca ? "🧸 Preguntar a las familias si les facilitaría venir con servicio de ludoteca — ACTIVADO" : "🧸 Preguntar a las familias por el servicio de ludoteca"}</div>
       <div className={`flex items-center gap-3 text-sm font-semibold rounded-lg p-3 md:col-span-2 ${f.activa ? "bg-green-50 text-green-800" : "bg-slate-100 text-slate-600"}`}><Switch checked={!!f.activa} onCheckedChange={async (v) => {
         setF({ ...f, activa: v });
         if (!junta) return;

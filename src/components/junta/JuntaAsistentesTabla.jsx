@@ -48,6 +48,7 @@ export default function JuntaAsistentesTabla({ rows }) {
               <div className="flex-1 min-w-[200px]">
                 <p className="font-semibold">{r.nombre}</p>
                 <p className="text-xs text-slate-500">{[r.email, r.telefono].filter(Boolean).join(" · ")}</p>
+                {r.ludoteca === "si" && <p className="text-xs mt-1 text-sky-700 font-semibold">🧸 Le facilitaría la ludoteca ({r.ninos_ludoteca || 1} niños)</p>}
                 {r.pregunta && <p className="text-sm mt-1 bg-purple-50 rounded p-2">❓ {r.pregunta}</p>}
               </div>
               <Badge className={RESPUESTAS[r.respuesta]?.cls}>{RESPUESTAS[r.respuesta]?.emoji} {RESPUESTAS[r.respuesta]?.label}{r.respuesta === "voy" && r.personas > 1 ? ` (${r.personas})` : ""}</Badge>

@@ -29,6 +29,18 @@
     "pregunta": {
       "type": "string",
       "description": "Pregunta o tema para la junta"
+    },
+    "ludoteca": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ],
+      "description": "Si le facilitar\u00eda acudir que hubiera servicio de ludoteca"
+    },
+    "ninos_ludoteca": {
+      "type": "number",
+      "description": "Ni\u00f1os que usar\u00edan la ludoteca"
     }
   },
   "required": [

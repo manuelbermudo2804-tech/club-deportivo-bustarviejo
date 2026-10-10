@@ -12,6 +12,8 @@ export default function JuntaStats({ rows }) {
     { label: "No socios (vienen)", value: voy.filter((r) => r.socio === "no").length, cls: "text-slate-700" },
     { label: "Preguntas recibidas", value: rows.filter((r) => r.pregunta).length, cls: "text-purple-700" },
   ];
+  const ludo = rows.filter((r) => r.ludoteca === "si");
+  if (ludo.length) stats.push({ label: `🧸 Quieren ludoteca (${ludo.reduce((s, r) => s + (r.ninos_ludoteca || 1), 0)} niños)`, value: ludo.length, cls: "text-sky-700" });
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3">
       {stats.map((s) => (

@@ -45,7 +45,7 @@ export function socioEstado(email, nombre, socios) {
 export function unirRespuestas(appRows, webRows, socios) {
   const rows = appRows.map((r) => ({
     id: r.id, origen: "App", nombre: r.nombre, email: r.email, telefono: "",
-    respuesta: r.respuesta, personas: r.personas || 1, pregunta: r.pregunta || "", fecha: r.updated_date,
+    respuesta: r.respuesta, personas: r.personas || 1, pregunta: r.pregunta || "", ludoteca: r.ludoteca, ninos_ludoteca: r.ninos_ludoteca || 0, fecha: r.updated_date,
   }));
   const emails = new Set(rows.map((r) => norm(r.email)));
   webRows.forEach((w) => {

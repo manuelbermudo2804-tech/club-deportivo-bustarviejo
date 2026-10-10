@@ -13,6 +13,8 @@ export default function JuntaResponderDialog({ open, onOpenChange, forzado, junt
   const [respuesta, setRespuesta] = useState(null);
   const [personas, setPersonas] = useState(1);
   const [pregunta, setPregunta] = useState("");
+  const [ludoteca, setLudoteca] = useState(null);
+  const [ninos, setNinos] = useState(1);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -20,11 +22,13 @@ export default function JuntaResponderDialog({ open, onOpenChange, forzado, junt
     setRespuesta(miRespuesta?.respuesta || null);
     setPersonas(miRespuesta?.personas || 1);
     setPregunta(miRespuesta?.pregunta || "");
+    setLudoteca(miRespuesta?.ludoteca || null);
+    setNinos(miRespuesta?.ninos_ludoteca || 1);
   }, [open, miRespuesta]);
 
   const guardar = async () => {
     setSaving(true);
-    const data = { junta_id: junta.id, email: user.email, nombre: user.full_name || user.email, respuesta, personas: respuesta === "voy" ? Number(personas) || 1 : 0, pregunta };
+    const data = { junta_id: junta.id, email: user.email, nombre: user.full_name || user.email, respuesta, personas: respuesta === "voy" ? Number(personas) || 1 : 0, pregunta, ...(ludoteca ? { ludoteca, ninos_ludoteca: ludoteca === "si" ? Number(ninos) || 1 : 0 } : {}) };
     if (miRespuesta) await base44.entities.JuntaAsistencia.update(miRespuesta.id, data);
     else await base44.entities.JuntaAsistencia.create(data);
     setSaving(false);
@@ -50,7 +54,6 @@ export default function JuntaResponderDialog({ open, onOpenChange, forzado, junt
             <div className="rounded-2xl bg-white shadow-lg border border-orange-100 p-4 space-y-2 text-sm">
               <p className="flex items-center gap-2 font-semibold capitalize"><CalendarDays className="w-4 h-4 text-orange-600" />{fechaLarga(junta.fecha)}</p>
               {junta.lugar && <p className="flex items-center gap-2"><MapPin className="w-4 h-4 text-green-700" />{junta.lugar}</p>}
-              {junta.ludoteca && <p className="rounded-lg bg-sky-50 text-sky-800 font-semibold px-3 py-2">🧸 Habrá servicio de ludoteca para los niños, ¡ven con ellos!</p>}
             </div>
 
             {junta.orden_dia?.length > 0 && (
@@ -74,6 +77,17 @@ export default function JuntaResponderDialog({ open, onOpenChange, forzado, junt
               <label className="text-sm block font-semibold">¿Cuántas personas venís (contándote)?
                 <Input type="number" min={1} value={personas} onChange={(e) => setPersonas(e.target.value)} className="mt-1" />
               </label>
+            )}
+            {junta.ludoteca && (
+              <div className="rounded-2xl bg-sky-50 border border-sky-200 p-3 text-sm space-y-2">
+                <p className="font-semibold text-sky-900">🧸 ¿Te facilitaría venir si hubiera servicio de ludoteca para los niños?</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {[["si", "👍 Sí"], ["no", "No lo necesito"]].map(([k, l]) => (
+                    <button key={k} type="button" onClick={() => setLudoteca(k)} className={`rounded-xl border-2 p-2 font-bold ${ludoteca === k ? "border-sky-500 bg-sky-500 text-white" : "border-slate-200 bg-white"}`}>{l}</button>
+                  ))}
+                </div>
+                {ludoteca === "si" && <label className="block font-semibold">¿Cuántos niños?<Input type="number" min={1} value={ninos} onChange={(e) => setNinos(e.target.value)} className="mt-1 bg-white" /></label>}
+              </div>
             )}
             <label className="text-sm block font-semibold">2. ¿Alguna pregunta o tema para la junta? <span className="font-normal text-slate-500">(opcional)</span>
               <Textarea value={pregunta} onChange={(e) => setPregunta(e.target.value)} className="mt-1" rows={3} placeholder="Escribe aquí lo que quieras que se trate…" />
