@@ -416,7 +416,8 @@ export default function ParentDashboard() {
     .filter(Boolean);
 
   // Calcular pagos pendientes para badges
-  const { pendingPayments: pagosPendientesCount } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
+  const { pendingPayments: pagosNoVencidos, overduePayments: pagosVencidosCount } = calculatePaymentStats(allPayments, myPlayers.map(p => p.id), customPaymentPlans);
+  const pagosPendientesCount = pagosNoVencidos + pagosVencidosCount;
 
   // Añadir badges dinámicos
   const menuItems = displayButtons.map(item => {

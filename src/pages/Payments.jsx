@@ -386,12 +386,14 @@ export default function Payments() {
     await updatePaymentMutation.mutateAsync({ id: payment.id, paymentData: updatedData });
     
     // Sincronizar CustomPaymentPlan si es un pago de Plan Especial
-    if (payment.tipo_pago === "Plan Especial" && payment.plan_especial_id) {
+    if (payment.tipo_pago === "Plan Especial") {
       try {
-        const plans = await base44.entities.CustomPaymentPlan.filter({ id: payment.plan_especial_id });
+        const plans = payment.plan_especial_id
+          ? await base44.entities.CustomPaymentPlan.filter({ id: payment.plan_especial_id })
+          : await base44.entities.CustomPaymentPlan.filter({ jugador_id: payment.jugador_id, temporada: payment.temporada });
         const plan = plans?.[0];
         if (plan?.cuotas) {
-          const cuotaNum = parseInt(payment.mes?.replace('Cuota ', '') || '0');
+          const cuotaNum = /^Cuota \d/.test(payment.mes || '') ? parseInt(payment.mes.replace('Cuota ', '')) : 1;
           const updatedCuotas = plan.cuotas.map(c => {
             if (c.numero === cuotaNum) {
               return newStatus === "Pagado" 
