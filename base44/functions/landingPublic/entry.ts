@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
       // personas reales como bots. Por eso SOLO descartamos si el contenido parece
       // realmente de bot (contiene una URL/enlace), no cualquier texto.
       const hp = String(body.honeypot || '').trim();
-      if (hp && /https?:\/\/|www\.|<a\s|\.com|\.ru|\[url\]/i.test(hp)) {
+      if (hp && /https?:\/\/|www\.|<a\s|\[url\]/i.test(hp)) {
         return Response.json({ ok: true, submission_id: 'bot' });
       }
 
