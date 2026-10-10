@@ -55,8 +55,10 @@ export function unirRespuestas(appRows, webRows, socios) {
     rows.push({
       id: w.id, origen: "Web", nombre: w.nombre || pick(d, ["nombre"]) || "—", email: email || "",
       telefono: w.telefono || pick(d, ["telefono", "movil"]) || "", respuesta: webRespuesta(d),
-      personas: Number(pick(d, ["person", "acompa", "cuant"])) || 1,
-      pregunta: pick(d, ["pregunt", "tema", "coment", "duda"]) || "", fecha: w.created_date,
+      personas: Number(pick(Object.fromEntries(Object.entries(d).filter(([k]) => !/nino|ludo/.test(norm(k)))), ["person", "acompa", "cuant"])) || 1,
+      pregunta: pick(d, ["pregunt", "tema", "coment", "duda"]) || "",
+      ludoteca: /^s/.test(norm(pick(d, ["ludoteca"]))) ? "si" : undefined,
+      ninos_ludoteca: Number(pick(d, ["nino"])) || 0, fecha: w.created_date,
     });
   });
   return rows.map((r) => ({ ...r, socio: socioEstado(r.email, r.nombre, socios) }));
