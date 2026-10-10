@@ -71,6 +71,9 @@ Deno.serve(async (req) => {
             device_fingerprint: payload.session_id,
             notas_admin: 'Rescatada automáticamente: el envío falló por red pero los datos estaban completos.',
           });
+          // Igual que un envío normal: email de confirmación y aviso al club
+          base44.asServiceRole.functions.invoke('sendLandingConfirmation', { submissionId: submissionRescatada.id }).catch(() => {});
+          base44.asServiceRole.functions.invoke('notifyLandingSubmission', { submissionId: submissionRescatada.id }).catch(() => {});
           // El pre-registro pasa a "recuperado" porque ya es una inscripción real
           payload.completada = true;
           payload.estado = 'recuperado';
