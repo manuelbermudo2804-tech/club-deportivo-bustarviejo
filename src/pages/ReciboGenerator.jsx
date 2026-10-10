@@ -60,6 +60,7 @@ export default function ReciboGenerator() {
     lugar: "Bustarviejo",
   });
   const [telefonoWA, setTelefonoWA] = useState("");
+  const { sugerido, confirmar } = useNumeracion("recibo");
   const [sharingWA, setSharingWA] = useState(false);
 
   const logoInputRef = useRef(null);
@@ -98,6 +99,7 @@ export default function ReciboGenerator() {
   const handleDownload = async () => {
     try {
       await generateReciboPDF({ ...form, logoUrl, selloUrl, firmaUrl });
+      await confirmar(form.numero);
       toast.success("Recibo descargado");
     } catch (e) {
       console.error(e);
@@ -117,38 +119,7 @@ export default function ReciboGenerator() {
 
       const mensaje = `Hola ${form.recibiDe}, te adjunto el recibo Nº ${form.numero || "—"} por importe de ${form.cantidad}€ en concepto de ${form.concepto}${form.temporada ? ` (Temporada ${form.temporada})` : ""}. ¡Muchas gracias por tu colaboración con el CD Bustarviejo! 🧡`;
 
-      // Intentar Web Share API con archivo (móvil)
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({
-            files: [file],
-            title: `Recibo ${form.numero || ""}`,
-            text: mensaje,
-          });
-          toast.success("Recibo compartido");
-          return;
-        } catch (err) {
-          if (err?.name === "AbortError") return;
-          console.warn("Share API falló, usando fallback:", err);
-        }
-      }
-
-      // Fallback: descargar PDF y abrir WhatsApp con mensaje pre-rellenado
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-      const tel = telefonoWA.replace(/\D/g, "");
-      const waUrl = tel
-        ? `https://wa.me/${tel.startsWith("34") ? tel : "34" + tel}?text=${encodeURIComponent(mensaje)}`
-        : `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-      window.open(waUrl, "_blank");
-      toast.success("PDF descargado. Adjúntalo en WhatsApp 📎");
+      if (await compartirPdfWhatsApp({ blob, filename, mensaje, telefono: telefonoWA })) await confirmar(form.numero);
     } catch (e) {
       console.error(e);
       toast.error("Error al compartir el recibo");
@@ -251,10 +222,7 @@ export default function ReciboGenerator() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <Label className="text-xs">Nº Recibo</Label>
-                    <Input value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} placeholder="001/2025" />
-                  </div>
+                  <NumeroDocumentoInput label="Nº Recibo" value={form.numero} sugerido={sugerido} onChange={(v) => setForm((f) => ({ ...f, numero: v }))} />
                   <div>
                     <Label className="text-xs">Fecha</Label>
                     <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />

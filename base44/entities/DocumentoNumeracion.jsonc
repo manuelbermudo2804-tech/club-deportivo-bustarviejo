@@ -1,0 +1,26 @@
+{
+  "name": "DocumentoNumeracion",
+  "type": "object",
+  "description": "\u00daltimo n\u00famero usado por tipo de documento (recibo, factura, presupuesto) y a\u00f1o",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "recibo",
+        "factura",
+        "presupuesto"
+      ]
+    },
+    "anio": {
+      "type": "number"
+    },
+    "ultimo": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "tipo",
+    "anio"
+  ]
+}

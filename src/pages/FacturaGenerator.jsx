@@ -142,6 +142,7 @@ export default function FacturaGenerator() {
     if (!form.clienteNombre) { toast.error("Indica el nombre del cliente"); return; }
     try {
       await generateFacturaPDF(buildParams());
+      await confirmar(form.numero);
       toast.success("Factura descargada");
     } catch (e) {
       console.error(e);
@@ -157,27 +158,7 @@ export default function FacturaGenerator() {
       const file = new File([blob], filename, { type: "application/pdf" });
       const mensaje = `Hola ${form.clienteNombre}, te adjunto la factura Nº ${form.numero || "—"} del CD Bustarviejo. ¡Muchas gracias! 🧡`;
 
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          await navigator.share({ files: [file], title: `Factura ${form.numero || ""}`, text: mensaje });
-          toast.success("Factura compartida");
-          return;
-        } catch (err) {
-          if (err?.name === "AbortError") return;
-        }
-      }
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = filename;
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
-
-      const tel = telefonoWA.replace(/\D/g, "");
-      const waUrl = tel
-        ? `https://wa.me/${tel.startsWith("34") ? tel : "34" + tel}?text=${encodeURIComponent(mensaje)}`
-        : `https://wa.me/?text=${encodeURIComponent(mensaje)}`;
-      window.open(waUrl, "_blank");
-      toast.success("PDF descargado. Adjúntalo en WhatsApp 📎");
+      if (await compartirPdfWhatsApp({ blob, filename, mensaje, telefono: telefonoWA })) await confirmar(form.numero);
     } catch (e) {
       console.error(e);
       toast.error("Error al compartir la factura");
