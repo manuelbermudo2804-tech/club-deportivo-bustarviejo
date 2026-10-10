@@ -8,7 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import SignaturePad from "./SignaturePad";
 import TutorFirmaBloque from "./TutorFirmaBloque";
 import SelloFirmaClub from "./SelloFirmaClub";
-import { sha256 } from "./contratoPdf";
+import { sha256, ESCUDO_URL } from "./contratoPdf";
 import { toast } from "sonner";
 
 const subirFirma = async (canvas) => {
@@ -72,7 +72,12 @@ export default function FirmarContratoModal({ user }) {
   return (
     <Dialog open onOpenChange={(o) => !o && setLater(true)}>
       <DialogContent className="w-[95vw] max-w-2xl max-h-[92vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>✍️ {c.titulo}</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <img src={ESCUDO_URL} alt="Escudo CD Bustarviejo" className="w-12 h-12 object-contain" />
+            <div><p className="text-xs font-semibold text-slate-500">CD Bustarviejo</p><DialogTitle>{c.titulo}</DialogTitle></div>
+          </div>
+        </DialogHeader>
         <div className="text-sm whitespace-pre-wrap bg-slate-50 border rounded-lg p-3 max-h-60 overflow-y-auto">{c.texto}</div>
         <SelloFirmaClub sello={c.club_sello_uri} firma={c.club_firma_uri} firmante={c.club_firmante} />
         <div className="border rounded-lg p-3 space-y-2">

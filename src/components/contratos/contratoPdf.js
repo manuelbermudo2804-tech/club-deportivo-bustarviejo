@@ -1,6 +1,8 @@
 import { jsPDF } from "jspdf";
 import { base44 } from "@/api/base44Client";
 
+export const ESCUDO_URL = "https://media.base44.com/images/public/6992c6be619d2da592897991/5d59cb383_fc5d50e49_ChatGPTImage18dic202513_39_39.png";
+
 export async function sha256(text) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -18,8 +20,9 @@ export async function descargarContratoPdf(c) {
   let y = 20;
   const ensure = (h) => { if (y + h > 280) { doc.addPage(); y = 20; } };
 
+  doc.addImage(await toDataUrl(ESCUDO_URL), "PNG", 15, 10, 18, 18, undefined, "FAST");
   doc.setFont("helvetica", "bold").setFontSize(14);
-  doc.text("CD Bustarviejo", 15, y); y += 8;
+  doc.text("CD Bustarviejo", 37, y + 2); y += 14;
   doc.setFontSize(12).text(c.titulo || "Acuerdo de voluntariado", 15, y); y += 10;
   doc.setFont("helvetica", "normal").setFontSize(10);
   doc.splitTextToSize(c.texto || "", W).forEach((line) => { ensure(6); doc.text(line, 15, y); y += 5; });
