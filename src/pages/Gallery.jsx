@@ -13,7 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import GalleryForm from "../components/gallery/GalleryForm";
 import GalleryAlbum from "../components/gallery/GalleryAlbum";
 import ContactCard from "../components/ContactCard";
-import TeamFolders, { folderLabel } from "../components/gallery/TeamFolders";
+import TeamFolders, { folderLabel, sameCat, normalizeFolders } from "../components/gallery/TeamFolders";
 import ChatPhotosSection from "../components/gallery/ChatPhotosSection";
 import { ArrowLeft } from "lucide-react";
 
@@ -182,7 +182,7 @@ export default function Gallery() {
     if (categoryFilter === "all") {
       return matchesSearch;
     } else {
-      return matchesSearch && album.categoria === categoryFilter;
+      return matchesSearch && sameCat(album.categoria, categoryFilter);
     }
   });
 
@@ -192,8 +192,7 @@ export default function Gallery() {
   // Carpetas por equipo: las categorías del usuario + las que ya tienen álbumes visibles
   const baseFolders = userRole === "coach" ? coachCategories : filterCategories;
   const albumCats = visibleAlbums.map(a => a.categoria).filter(Boolean);
-  const folders = [...new Set([...albumCats.filter(c => c === "Todas las Categorías"), ...baseFolders, ...(userRole === "parent" || userRole === "player" ? [] : albumCats)])]
-    .sort((a, b) => (a === "Todas las Categorías" ? -1 : b === "Todas las Categorías" ? 1 : a.localeCompare(b)));
+  const folders = normalizeFolders([...new Set([...albumCats.filter(c => c === "Todas las Categorías"), ...baseFolders, ...(userRole === "parent" || userRole === "player" ? [] : albumCats)])]);
 
   return (
     <div className="p-4 lg:p-6 space-y-4">
