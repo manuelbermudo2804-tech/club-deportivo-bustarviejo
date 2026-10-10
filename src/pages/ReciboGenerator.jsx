@@ -7,6 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, Download, FileText, Trash2, Image as ImageIcon, MessageCircle } from "lucide-react";
 import { toast } from "sonner";
+import useNumeracion from "@/hooks/useNumeracion";
+import NumeroDocumentoInput from "@/components/facturas/NumeroDocumentoInput";
+import { compartirPdfWhatsApp } from "@/lib/compartirPdfWhatsApp";
 import ReciboPreview from "@/components/recibos/ReciboPreview";
 import { generateReciboPDF, generateReciboBlob } from "@/components/recibos/reciboPdfGenerator";
 

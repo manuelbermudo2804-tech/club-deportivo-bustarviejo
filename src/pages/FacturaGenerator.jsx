@@ -7,6 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, Download, FileText, Trash2, Image as ImageIcon, MessageCircle, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import useNumeracion from "@/hooks/useNumeracion";
+import NumeroDocumentoInput from "@/components/facturas/NumeroDocumentoInput";
+import { compartirPdfWhatsApp } from "@/lib/compartirPdfWhatsApp";
 import FacturaPreview from "@/components/facturas/FacturaPreview";
 import { generateFacturaPDF, generateFacturaBlob } from "@/components/facturas/facturaPdfGenerator";
 
@@ -95,6 +98,7 @@ export default function FacturaGenerator() {
   ]);
 
   const [telefonoWA, setTelefonoWA] = useState("");
+  const { sugerido, confirmar } = useNumeracion("factura");
   const [sharingWA, setSharingWA] = useState(false);
 
   const logoInputRef = useRef(null);
@@ -284,10 +288,7 @@ export default function FacturaGenerator() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <Label className="text-xs">Nº Factura</Label>
-                    <Input value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} placeholder="2025/001" />
-                  </div>
+                  <NumeroDocumentoInput label="Nº Factura" value={form.numero} sugerido={sugerido} onChange={(v) => setForm((f) => ({ ...f, numero: v }))} />
                   <div>
                     <Label className="text-xs">Fecha</Label>
                     <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />

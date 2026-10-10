@@ -7,6 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Upload, Download, FileText, Trash2, Image as ImageIcon, MessageCircle, Plus, X } from "lucide-react";
 import { toast } from "sonner";
+import useNumeracion from "@/hooks/useNumeracion";
+import NumeroDocumentoInput from "@/components/facturas/NumeroDocumentoInput";
+import { compartirPdfWhatsApp } from "@/lib/compartirPdfWhatsApp";
 import PresupuestoPreview from "@/components/presupuestos/PresupuestoPreview";
 import { generatePresupuestoPDF, generatePresupuestoBlob } from "@/components/presupuestos/presupuestoPdfGenerator";
 
@@ -98,6 +101,7 @@ export default function PresupuestoGenerator() {
   ]);
 
   const [telefonoWA, setTelefonoWA] = useState("");
+  const { sugerido, confirmar } = useNumeracion("presupuesto");
   const [sharingWA, setSharingWA] = useState(false);
 
   const logoInputRef = useRef(null);
@@ -285,10 +289,7 @@ export default function PresupuestoGenerator() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <Label className="text-xs">Nº Presupuesto</Label>
-                    <Input value={form.numero} onChange={(e) => setForm({ ...form, numero: e.target.value })} placeholder="P-2025/001" />
-                  </div>
+                  <NumeroDocumentoInput label="Nº Presupuesto" value={form.numero} sugerido={sugerido} onChange={(v) => setForm((f) => ({ ...f, numero: v }))} />
                   <div>
                     <Label className="text-xs">Fecha</Label>
                     <Input type="date" value={form.fecha} onChange={(e) => setForm({ ...form, fecha: e.target.value })} />

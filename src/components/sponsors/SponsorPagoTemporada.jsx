@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Switch } from "@/components/ui/switch";
 import { CheckCircle2, Clock } from "lucide-react";
 import { toast } from "sonner";
+import SponsorJustificantePago from "./SponsorJustificantePago";
 import { useActiveSeason } from "@/components/season/SeasonProvider";
 import { sameSeason } from "@/lib/sameSeason";
 
@@ -28,8 +29,15 @@ export default function SponsorPagoTemporada({ sponsor }) {
     toast.success(checked ? "Marcado como pagado" : "Marcado como pendiente");
   };
 
+  const guardarJustificante = async (datos) => {
+    const nuevos = pagos.map(p => (sameSeason(p.temporada, activeSeason) ? { ...p, ...datos } : p));
+    await base44.entities.Sponsor.update(sponsor.id, { pagos_temporadas: nuevos });
+    await queryClient.invalidateQueries({ queryKey: ['sponsors'] });
+  };
+
   return (
-    <div className={`mb-4 p-3 rounded-lg border-2 flex items-center justify-between gap-2 ${pago ? 'bg-green-50 border-green-400' : 'bg-red-50 border-red-300'}`}>
+    <div className={`mb-4 p-3 rounded-lg border-2 ${pago ? 'bg-green-50 border-green-400' : 'bg-red-50 border-red-300'}`}>
+    <div className="flex items-center justify-between gap-2">
       <div className="flex items-center gap-2 min-w-0">
         {pago ? <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0" /> : <Clock className="w-5 h-5 text-red-500 shrink-0" />}
         <div className="min-w-0">
@@ -40,6 +48,8 @@ export default function SponsorPagoTemporada({ sponsor }) {
         </div>
       </div>
       <Switch checked={!!pago} disabled={saving} onCheckedChange={toggle} />
+    </div>
+    {pago && <SponsorJustificantePago pago={pago} onSave={guardarJustificante} />}
     </div>
   );
 }
