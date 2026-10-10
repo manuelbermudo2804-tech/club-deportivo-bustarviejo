@@ -212,7 +212,8 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   };
 
   const handleSuggestPlayers = (suggestedIds) => {
-    setSelectedPlayers(suggestedIds);
+    const noDisp = new Set(unavailablePlayers.map(p => p.id));
+    setSelectedPlayers(suggestedIds.filter(id => !noDisp.has(id)));
   };
 
   const handleToggleSuggestions = (enabled) => {
@@ -250,6 +251,12 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     if (selectedPlayers.length === 0) {
       alert("Debes seleccionar al menos un jugador");
       return;
+    }
+
+    const noDisponiblesMarcados = unavailablePlayers.filter(p => selectedPlayers.includes(p.id));
+    if (noDisponiblesMarcados.length > 0) {
+      const nombres = noDisponiblesMarcados.map(p => `• ${p.nombre} (${p.lesionado ? "baja médica" : "sancionado"})`).join("\n");
+      if (!window.confirm(`Estos jugadores están convocados pero NO están disponibles:\n\n${nombres}\n\n¿Seguro que quieres mantenerlos en la convocatoria?\n(Pulsa Cancelar para volver y quitarlos)`)) return;
     }
 
     const data = buildSubmitData();
@@ -620,7 +627,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               </div>
               
               <div className="border-2 border-slate-200 rounded-lg p-4 max-h-96 overflow-y-auto bg-slate-50">
-                {availablePlayers.length === 0 ? (
+                {players.length === 0 ? (
                   <div className="text-center py-6 px-4">
                     <AlertCircle className="w-10 h-10 text-amber-500 mx-auto mb-2" />
                     <p className="text-slate-700 font-semibold mb-1">No hay jugadores activos en {currentCallup.categoria}</p>
@@ -632,8 +639,9 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   </div>
                 ) : (
                   <div className="space-y-2">
-                    {availablePlayers.map((player) => {
+                    {[...availablePlayers, ...unavailablePlayers].map((player) => {
                       const isOverdue = overduePlayerIds.has(player.id);
+                      const noDisponible = player.lesionado || player.sancionado;
                       return (
                         <div
                           key={player.id}
@@ -654,6 +662,9 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                               <p className={`font-medium ${isOverdue ? "text-red-800" : "text-slate-900"}`}>{player.nombre}</p>
                               {player.posicion && player.posicion !== "Sin asignar" && (
                                 <Badge variant="outline" className="text-xs">{player.posicion}</Badge>
+                              )}
+                              {noDisponible && (
+                                <Badge className="bg-red-600 text-white text-xs">{player.lesionado ? "🤕 Baja médica" : "🚫 Sancionado"}</Badge>
                               )}
                               {isOverdue && (
                                 <Badge className="bg-red-100 text-red-700 border-red-300 text-xs">💸 Pago vencido</Badge>
