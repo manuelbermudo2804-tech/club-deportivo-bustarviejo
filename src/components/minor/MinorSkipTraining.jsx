@@ -24,7 +24,7 @@ export default function MinorSkipTraining({ player, playerCategory, user }) {
 
   // Solo para jugadores con acceso juvenil concedido y no revocado
   const tieneAccesoJuvenil = !!player?.acceso_menor_autorizado && !player?.acceso_menor_revocado;
-  const permitida = tieneAccesoJuvenil && CATEGORIAS_PERMITIDAS.some((c) => (playerCategory || "").includes(c));
+  const permitida = tieneAccesoJuvenil;
 
   const { data: schedules = [] } = useQuery({
     queryKey: ["minorSchedules", playerCategory],
@@ -35,18 +35,29 @@ export default function MinorSkipTraining({ player, playerCategory, user }) {
 
   const diasSinEntreno = useSinEntrenamiento();
   const next = schedules.length ? getNextTraining(schedules, new Date(), diasSinEntreno) : null;
-  const storageKey = next && player?.id ? `noVoyEntreno_${player.id}_${next.fechaISO}` : null;
+  // Estado compartido con la familia: el último aviso en el chat del equipo manda
+  const prefijo = next && player?.id ? `novoy_${player.id}_${next.fechaISO}_` : null;
+  const { data: ultimo, refetch } = useQuery({
+    queryKey: ["noVoy", prefijo],
+    queryFn: async () => {
+      const r = await base44.entities.ChatMessage.filter(
+        { grupo_id: toGroupId(playerCategory), client_id: { $regex: `^${prefijo}` } },
+        { sort: "-created_date", limit: 1 }
+      );
+      return r.items?.[0] || null;
+    },
+    enabled: !!prefijo,
+  });
 
   useEffect(() => {
-    if (!storageKey) return;
-    setEnviado(localStorage.getItem(storageKey) === "1");
-  }, [storageKey]);
+    setEnviado(!!ultimo?.client_id?.startsWith(`${prefijo}no_`));
+  }, [ultimo, prefijo]);
 
   if (!permitida || !next || !player?.id) return null;
 
   const cuando = labelEntreno(next);
 
-  const publicar = async (texto) => {
+  const publicar = async (texto, noVa) => {
     const grupoId = toGroupId(playerCategory);
     await base44.entities.ChatMessage.create({
       tipo: "padre_a_grupo",
@@ -55,6 +66,7 @@ export default function MinorSkipTraining({ player, playerCategory, user }) {
       mensaje: texto,
       grupo_id: grupoId,
       deporte: playerCategory,
+      client_id: `${prefijo}${noVa ? "no" : "si"}_${Date.now()}`,
       leido_por: [{ email: user.email, nombre: player.nombre, fecha: new Date().toISOString() }],
     });
 
@@ -81,8 +93,8 @@ export default function MinorSkipTraining({ player, playerCategory, user }) {
     setConfirmOpen(false);
     setSending(true);
     try {
-      await publicar(`🚫 ${player.nombre} no irá al entrenamiento de ${cuando}.`);
-      localStorage.setItem(storageKey, "1");
+      await publicar(`🚫 ${player.nombre} no irá al entrenamiento de ${cuando}.`, true);
+      refetch();
       setEnviado(true);
       toast.success("Avisado al entrenador y al equipo");
     } catch {
@@ -95,8 +107,8 @@ export default function MinorSkipTraining({ player, playerCategory, user }) {
   const handleDeshacer = async () => {
     setSending(true);
     try {
-      await publicar(`✅ Al final ${player.nombre} sí irá al entrenamiento de ${cuando}.`);
-      localStorage.removeItem(storageKey);
+      await publicar(`✅ Al final ${player.nombre} sí irá al entrenamiento de ${cuando}.`, false);
+      refetch();
       setEnviado(false);
       toast.success("Aviso anulado");
     } catch {
@@ -113,7 +125,7 @@ export default function MinorSkipTraining({ player, playerCategory, user }) {
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center text-xl">🚫</div>
             <div className="flex-1 min-w-0">
-              <p className="text-white font-bold text-sm">Has avisado que no vas {cuando}</p>
+              <p className="text-white font-bold text-sm">{ultimo?.remitente_email === user.email ? "Has avisado" : `Ya avisado por ${ultimo?.remitente_nombre}`}: no vas {cuando}</p>
               <p className="text-white/80 text-xs">Tu entrenador y el equipo ya lo saben</p>
             </div>
             <Button size="sm" variant="secondary" onClick={handleDeshacer} disabled={sending} className="flex-shrink-0">

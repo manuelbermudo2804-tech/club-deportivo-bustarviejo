@@ -61,8 +61,10 @@ export function buildWeekAgenda(players = [], schedules = [], callups = [], canc
     if (s.activo === false) return;
     const idx = DIA_A_INDEX[s.dia_semana];
     if (!idx) return;
-    const quienes = playerCats.filter((pc) => pc.cats.has(s.categoria)).map((pc) => pc.nombre);
+    const deCat = playerCats.filter((pc) => pc.cats.has(s.categoria));
+    const quienes = deCat.map((pc) => pc.nombre);
     if (quienes.length === 0) return;
+    const jugadoresIds = deCat.map((pc) => ({ id: pc.id, nombre: players.find((p) => p.id === pc.id)?.nombre || pc.nombre }));
     const fecha = new Date(ini);
     fecha.setDate(ini.getDate() + (idx - 1));
     // No mostrar entrenos antes de la fecha de comienzo de la categoría
@@ -83,6 +85,7 @@ export function buildWeekAgenda(players = [], schedules = [], callups = [], canc
       subtitulo: s.categoria,
       ubicacion: s.ubicacion || "",
       jugadores: quienes,
+      jugadoresIds,
     });
   });
 
