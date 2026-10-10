@@ -10,6 +10,14 @@ import EmptyState from "../components/common/EmptyState";
 import LopiviWidget from "../components/lopivi/LopiviWidget";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
+import MisFirmadosLista from "@/components/contratos/MisFirmadosLista";
+
+const MisFirmadosBloque = () => (
+  <div className="space-y-2">
+    <h2 className="text-lg font-bold text-slate-900">✍️ Documentos que has firmado</h2>
+    <MisFirmadosLista />
+  </div>
+);
 
 export default function ParentDocuments() {
   const [user, setUser] = useState(null);
@@ -91,6 +99,8 @@ export default function ParentDocuments() {
       </div>
 
       <LopiviWidget />
+
+      <MisFirmadosBloque />
 
       <Tabs value={filterType} onValueChange={setFilterType}>
         <TabsList className="bg-white shadow-sm flex-wrap h-auto">
