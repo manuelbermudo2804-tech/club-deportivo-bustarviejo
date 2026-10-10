@@ -39,11 +39,26 @@ export default function NuevoContratoForm({ onCreated }) {
         .map((p) => ({ key: p.acceso_menor_email, email: p.acceso_menor_email, nombre: p.nombre, menor: true }));
       const familias = jugadores.filter((p) => p.email_padre).sort((a, b) => a.nombre.localeCompare(b.nombre))
         .map((p) => ({ key: p.id, email: p.email_padre, nombre: p.nombre_tutor_legal || p.email_padre, jugador: p }));
+      const registrados = new Set(users.map((u) => (u.email || "").toLowerCase()));
+      familias.forEach((f) => {
+        f.tutores = [
+          { email: f.email, nombre: f.nombre },
+          f.jugador.email_tutor_2 && { email: f.jugador.email_tutor_2, nombre: f.jugador.nombre_tutor_2 || f.jugador.email_tutor_2 },
+        ].filter(Boolean).map((t) => ({ ...t, enApp: registrados.has(t.email.toLowerCase()) }));
+      });
       return { staff: [...staff, ...menores], familias };
     },
   });
   const lista = (familia ? data?.familias : data?.staff) || [];
   const elegido = lista.find((s) => s.key === destino);
+  const [quienes, setQuienes] = useState([]);
+  const elegir = (key) => {
+    setDestino(key);
+    const f = lista.find((s) => s.key === key);
+    setQuienes(f?.tutores ? f.tutores.filter((t) => t.enApp).map((t) => t.email).slice(0, 1) : []);
+  };
+  const toggleQuien = (email) => setQuienes((q) => q.includes(email) ? q.filter((e) => e !== email) : [...q, email]);
+  const sinFirmante = familia && elegido && quienes.length === 0;
 
   const cambiarTipo = (id) => {
     const p = PLANTILLAS.find((x) => x.id === id);
@@ -53,9 +68,11 @@ export default function NuevoContratoForm({ onCreated }) {
 
   const crear = async () => {
     setSaving(true);
-    const final = rellenar(texto, elegido.nombre, elegido.jugador?.nombre);
+    const firmantes = familia ? elegido.tutores.filter((t) => t.enApp && quienes.includes(t.email)) : [elegido];
+    for (const f of firmantes) {
+    const final = rellenar(texto, f.nombre, elegido.jugador?.nombre);
     await base44.entities.ContratoVoluntariado.create({
-      entrenador_email: elegido.email, entrenador_nombre: familia ? `${elegido.jugador.nombre} (familia)` : elegido.nombre,
+      entrenador_email: f.email, entrenador_nombre: familia ? `${elegido.jugador.nombre} (familia · ${f.nombre})` : elegido.nombre,
       es_menor: !!elegido.menor, tipo, grupo: plantilla.grupo,
       jugador_id: elegido.jugador?.id, jugador_nombre: elegido.jugador?.nombre,
       titulo, texto: final, texto_hash: await sha256(final), estado: "pendiente",
@@ -64,6 +81,7 @@ export default function NuevoContratoForm({ onCreated }) {
         club_firmante: [firmaClub.firmante_nombre, firmaClub.firmante_cargo].filter(Boolean).join(" · "),
       } : {}),
     });
+    }
     toast.success("Documento enviado. Le aparecerá al abrir la app.");
     setDestino(""); setTexto(plantilla.texto); setSaving(false);
     onCreated();
@@ -78,7 +96,7 @@ export default function NuevoContratoForm({ onCreated }) {
           {PLANTILLAS.map((p) => <SelectItem key={p.id} value={p.id}>{p.grupo === "staff" ? "👔 Staff · " : "👪 Familia · "}{p.titulo}</SelectItem>)}
         </SelectContent>
       </Select>
-      <Select value={destino} onValueChange={setDestino}>
+      <Select value={destino} onValueChange={elegir}>
         <SelectTrigger><SelectValue placeholder={familia ? "Elige el jugador (firma su familia)" : "Elige quién firma"} /></SelectTrigger>
         <SelectContent>
           {lista.map((s) => (
@@ -88,13 +106,25 @@ export default function NuevoContratoForm({ onCreated }) {
           ))}
         </SelectContent>
       </Select>
+      {familia && elegido && (
+        <div className="border rounded-lg p-3 space-y-2 bg-slate-50">
+          <p className="text-sm font-semibold">¿Quién tiene que firmar?</p>
+          {elegido.tutores.map((t) => (
+            <label key={t.email} className={`flex items-center gap-2 text-sm ${t.enApp ? "" : "opacity-50"}`}>
+              <Checkbox disabled={!t.enApp} checked={quienes.includes(t.email)} onCheckedChange={() => toggleQuien(t.email)} />
+              {t.nombre} · {t.email} {!t.enApp && <span className="text-red-600 text-xs">(no tiene la app, no le llegaría)</span>}
+            </label>
+          ))}
+          {sinFirmante && <p className="text-xs text-red-600">Marca al menos un progenitor con la app.</p>}
+        </div>
+      )}
       <Input value={titulo} onChange={(e) => setTitulo(e.target.value)} placeholder="Título" />
       <Textarea rows={10} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Texto del documento" />
       <label className={`flex items-center gap-2 text-sm ${hayFirmaClub ? "" : "opacity-50"}`}>
         <Checkbox disabled={!hayFirmaClub} checked={conSello} onCheckedChange={(v) => setConSello(!!v)} />
         Incluir sello y firma del club{!hayFirmaClub && " (súbelos arriba primero)"}
       </label>
-      <Button disabled={!elegido || !texto.trim() || saving} onClick={crear} className="w-full bg-orange-600 hover:bg-orange-700">
+      <Button disabled={!elegido || sinFirmante || !texto.trim() || saving} onClick={crear} className="w-full bg-orange-600 hover:bg-orange-700">
         {saving ? "Enviando..." : "Enviar para firmar"}
       </Button>
     </div>
