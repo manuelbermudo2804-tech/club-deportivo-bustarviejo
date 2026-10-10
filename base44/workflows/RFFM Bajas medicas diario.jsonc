@@ -1,5 +1,5 @@
 {
-  "description": "Cada d\u00eda a las 7:00 lee de la Federaci\u00f3n los jugadores en baja m\u00e9dica; los lunes tambi\u00e9n las fechas de reconocimiento m\u00e9dico; y avisa por email a las familias 30 d\u00edas antes de que caduque el reconocimiento",
+  "description": "Cada d\u00eda a las 7:00 lee de la Federaci\u00f3n los jugadores en baja m\u00e9dica y las fechas de reconocimiento m\u00e9dico, y avisa por email a las familias 30 d\u00edas antes de que caduque el reconocimiento",
   "trigger": {
     "condition": null,
     "config": {
@@ -45,13 +45,11 @@
           "call": "invoke_backend_function",
           "with": {
             "function_name": "rffmSyncReconocimientos",
-            "args": {
-              "solo_lunes": true
-            }
+            "args": {}
           },
           "then": "aviso_email",
           "x-base44": {
-            "title": "Sincronizar reconocimientos m\u00e9dicos (solo lunes)",
+            "title": "Sincronizar reconocimientos m\u00e9dicos (diario)",
             "description": "Guarda la fecha de caducidad del reconocimiento de cada jugador"
           }
         }
