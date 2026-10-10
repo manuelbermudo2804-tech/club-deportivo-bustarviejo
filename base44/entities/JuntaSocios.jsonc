@@ -30,6 +30,11 @@
       "default": true,
       "description": "Si se muestra el aviso en la app"
     },
+    "ludoteca": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si el club ofrece servicio de ludoteca para los ni\u00f1os durante la junta"
+    },
     "email_prueba": {
       "type": "string",
       "description": "Modo prueba: si tiene un email, el aviso SOLO lo ve ese usuario (aunque sea admin)"

@@ -50,6 +50,7 @@ export default function JuntaResponderDialog({ open, onOpenChange, forzado, junt
             <div className="rounded-2xl bg-white shadow-lg border border-orange-100 p-4 space-y-2 text-sm">
               <p className="flex items-center gap-2 font-semibold capitalize"><CalendarDays className="w-4 h-4 text-orange-600" />{fechaLarga(junta.fecha)}</p>
               {junta.lugar && <p className="flex items-center gap-2"><MapPin className="w-4 h-4 text-green-700" />{junta.lugar}</p>}
+              {junta.ludoteca && <p className="rounded-lg bg-sky-50 text-sky-800 font-semibold px-3 py-2">🧸 Habrá servicio de ludoteca para los niños, ¡ven con ellos!</p>}
             </div>
 
             {junta.orden_dia?.length > 0 && (

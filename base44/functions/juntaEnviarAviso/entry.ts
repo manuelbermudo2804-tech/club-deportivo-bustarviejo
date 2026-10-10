@@ -16,7 +16,7 @@ const plantilla = (nombre, junta, fecha, esApp) => {
 <div style="padding:16px 18px">
 <p style="margin:0 0 10px">Hola ${nombre || ''},</p>
 <p style="margin:0 0 12px">Te convocamos a la <b>${titulo}</b> del CD Bustarviejo. Tu voz cuenta y tu presencia es necesaria.</p>
-<div style="background:#f0fdf4;border-left:4px solid #15803d;padding:10px 12px;margin:0 0 12px">📅 <b>${fecha}</b>${junta.lugar ? `<br>📍 <b>${junta.lugar}</b>` : ''}</div>
+<div style="background:#f0fdf4;border-left:4px solid #15803d;padding:10px 12px;margin:0 0 12px">📅 <b>${fecha}</b>${junta.lugar ? `<br>📍 <b>${junta.lugar}</b>` : ''}${junta.ludoteca ? `<br>🧸 <b>Habrá servicio de ludoteca para los niños</b>` : ''}</div>
 ${orden ? `<p style="margin:0 0 4px"><b>Orden del día:</b></p><ol style="margin:0 0 12px;padding-left:20px">${orden}</ol>` : ''}
 <p style="margin:0 0 14px">${instr}</p>
 <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center" style="margin:0 auto 6px"><tr><td bgcolor="#ea580c" style="border-radius:8px;text-align:center">

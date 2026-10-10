@@ -12,14 +12,14 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
   useEffect(() => {
     setF({
       titulo: junta?.titulo || "Junta General de Socios", fecha: junta?.fecha || "", lugar: junta?.lugar || "",
-      orden: (junta?.orden_dia || []).join("\n"), landing_slug: junta?.landing_slug || "", email_prueba: junta?.email_prueba || "", activa: junta?.activa ?? true,
+      orden: (junta?.orden_dia || []).join("\n"), landing_slug: junta?.landing_slug || "", email_prueba: junta?.email_prueba || "", activa: junta?.activa ?? true, ludoteca: !!junta?.ludoteca,
     });
   }, [junta]);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
   const guardar = async (silencioso) => {
     if (!f.fecha) return toast.error("Pon la fecha y hora");
-    const data = { titulo: f.titulo, fecha: f.fecha, lugar: f.lugar, landing_slug: f.landing_slug.trim().replace(/^.*\/l\//, ""), ...(silencioso === true ? {} : { activa: f.activa }), email_prueba: (f.email_prueba || "").trim(), orden_dia: f.orden.split("\n").map((s) => s.trim()).filter(Boolean) };
+    const data = { titulo: f.titulo, fecha: f.fecha, lugar: f.lugar, landing_slug: f.landing_slug.trim().replace(/^.*\/l\//, ""), ...(silencioso === true ? {} : { activa: f.activa, ludoteca: !!f.ludoteca }), email_prueba: (f.email_prueba || "").trim(), orden_dia: f.orden.split("\n").map((s) => s.trim()).filter(Boolean) };
     const saved = junta ? await base44.entities.JuntaSocios.update(junta.id, data) : await base44.entities.JuntaSocios.create(data);
     toast.success(silencioso === true ? "Cambio guardado ✓" : "Junta creada");
     onSaved(saved);
@@ -36,6 +36,13 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
       </label>
       <label className="text-sm md:col-span-2">Orden del día (un punto por línea · para destacar algo escríbelo entre **dos asteriscos**)<Textarea rows={4} value={f.orden || ""} onChange={set("orden")} /></label>
       <p className="text-xs text-slate-500 md:col-span-2">Pega aquí el enlace de la página que hayas hecho en el Constructor de páginas (con su formulario de asistencia). Las respuestas de esa página se suman solas a las de la app en la tabla de abajo.</p>
+      <div className={`flex items-center gap-3 text-sm font-semibold rounded-lg p-3 md:col-span-2 ${f.ludoteca ? "bg-sky-50 text-sky-800" : "bg-slate-100 text-slate-600"}`}><Switch checked={!!f.ludoteca} onCheckedChange={async (v) => {
+        setF({ ...f, ludoteca: v });
+        if (!junta) return;
+        const saved = await base44.entities.JuntaSocios.update(junta.id, { ludoteca: v });
+        toast.success(v ? "Ludoteca anunciada en el aviso" : "Ludoteca quitada del aviso");
+        onSaved(saved);
+      }} />{f.ludoteca ? "🧸 Servicio de ludoteca ACTIVADO — se anuncia a los socios" : "🧸 Sin servicio de ludoteca"}</div>
       <div className={`flex items-center gap-3 text-sm font-semibold rounded-lg p-3 md:col-span-2 ${f.activa ? "bg-green-50 text-green-800" : "bg-slate-100 text-slate-600"}`}><Switch checked={!!f.activa} onCheckedChange={async (v) => {
         setF({ ...f, activa: v });
         if (!junta) return;
