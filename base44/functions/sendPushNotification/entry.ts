@@ -27,6 +27,13 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Guardar siempre en la campana de la app
+    try {
+      await base44.asServiceRole.entities.AppNotification.create({
+        usuario_email, titulo, mensaje: cuerpo, tipo: 'info', enlace: url || '/', tag: tag || '', vista: false,
+      });
+    } catch (e) { console.error('[bell] error', e.message); }
+
     // Obtener suscripciones activas del usuario
     const subscriptions = await base44.asServiceRole.entities.PushSubscription.filter({
       usuario_email,

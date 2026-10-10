@@ -57,6 +57,13 @@ Deno.serve(async (req) => {
       });
       if (!r.ok) { fallos++; console.log('fallo', email, await r.text()); continue; }
       esApp ? app++ : web++;
+      if (esApp) {
+        await sr.entities.AppNotification.create({
+          usuario_email: email, titulo: `🗳️ ${junta.titulo || 'Junta General de Socios'}`,
+          mensaje: `${fecha}${junta.lugar ? ' — ' + junta.lugar : ''}. Confirma tu asistencia`,
+          tipo: 'importante', enlace: '/?junta=1', tag: `junta-${junta.id}`, vista: false,
+        }).catch(() => {});
+      }
       await new Promise((ok) => setTimeout(ok, 250));
     }
     return Response.json({ app, web, sinWeb, fallos });

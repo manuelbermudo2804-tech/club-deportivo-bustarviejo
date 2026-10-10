@@ -33,6 +33,10 @@
       "type": "string",
       "description": "URL de destino al hacer clic en la notificaci\u00f3n"
     },
+    "tag": {
+      "type": "string",
+      "description": "Identificador del env\u00edo de origen (evita duplicados en la campana)"
+    },
     "vista": {
       "type": "boolean",
       "default": false,

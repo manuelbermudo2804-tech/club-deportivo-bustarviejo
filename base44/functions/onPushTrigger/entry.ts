@@ -10,8 +10,24 @@ if (VAPID_PUBLIC && VAPID_PRIVATE) {
 
 const toGroupId = (s) => (s || '').toString().replace(/\(.*?\)/g, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
 
+// Guarda el aviso en la campana de la app para TODOS los destinatarios
+// (tengan o no las push activadas). Los chats tienen su propio contador y se excluyen.
+async function saveToBell(base44, emails, title, body, url, tag) {
+  if (!emails.length || /^(chat|private|coord|admin|staff)-/.test(tag || '')) return;
+  try {
+    const sr = base44.asServiceRole.entities.AppNotification;
+    const ya = tag ? await sr.filter({ tag }, '-created_date', 2000) : [];
+    const yaSet = new Set(ya.map(n => (n.usuario_email || '').toLowerCase()));
+    const nuevos = emails.filter(e => e && !yaSet.has(e.toLowerCase())).map(e => ({
+      usuario_email: e, titulo: title, mensaje: body || '', tipo: 'info', enlace: url || '/', tag: tag || '', vista: false,
+    }));
+    for (let i = 0; i < nuevos.length; i += 200) await sr.bulkCreate(nuevos.slice(i, i + 200));
+  } catch (e) { console.error('[bell] error', e.message); }
+}
+
 async function sendPushToEmails(base44, emails, title, body, url, tag) {
   const uniqueEmails = [...new Set(emails)];
+  await saveToBell(base44, uniqueEmails, title, body, url, tag);
   if (!uniqueEmails.length || !VAPID_PUBLIC || !VAPID_PRIVATE) return { sent: 0, failed: 0 };
 
   // OPTIMIZACIÓN: filtrar por email en la query en vez de traer TODAS las subs activas.
