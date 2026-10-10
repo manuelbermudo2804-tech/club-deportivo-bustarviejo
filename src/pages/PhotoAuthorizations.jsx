@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import AutorizacionImagenRow from "@/components/lopivi/AutorizacionImagenRow";
+import BuscarJugadorAutorizacion from "@/components/lopivi/BuscarJugadorAutorizacion";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,8 +12,27 @@ import { playerPrimaryCategory } from "@/components/utils/playerCategoryFilter";
 export default function PhotoAuthorizations() {
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [grupos, setGrupos] = useState([]);
-  const [total, setTotal] = useState(0);
+  const [todos, setTodos] = useState([]);
+
+  // Sin autorización = NO AUTORIZO o sin responder
+  const { grupos, total } = useMemo(() => {
+    const sinAuth = todos.filter(p => p.autorizacion_fotografia !== "SI AUTORIZO");
+    const porCategoria = {};
+    for (const p of sinAuth) {
+      const cat = playerPrimaryCategory(p) || "Sin categoría";
+      if (!porCategoria[cat]) porCategoria[cat] = [];
+      porCategoria[cat].push(p);
+    }
+    const ordenado = Object.entries(porCategoria)
+      .map(([categoria, jugadores]) => ({
+        categoria,
+        jugadores: jugadores.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "")),
+      }))
+      .sort((a, b) => a.categoria.localeCompare(b.categoria));
+    return { grupos: ordenado, total: sinAuth.length };
+  }, [todos]);
+
+  const actualizar = (p) => setTodos((prev) => prev.map((x) => (x.id === p.id ? p : x)));
 
   useEffect(() => {
     const load = async () => {
@@ -25,25 +46,7 @@ export default function PhotoAuthorizations() {
         setIsAdmin(true);
 
         const players = await base44.entities.Player.filter({ activo: true }, "nombre", 1000);
-        // Sin autorización = NO AUTORIZO o sin responder
-        const sinAuth = players.filter(p => p.autorizacion_fotografia !== "SI AUTORIZO");
-
-        const porCategoria = {};
-        for (const p of sinAuth) {
-          const cat = playerPrimaryCategory(p) || "Sin categoría";
-          if (!porCategoria[cat]) porCategoria[cat] = [];
-          porCategoria[cat].push(p);
-        }
-
-        const ordenado = Object.entries(porCategoria)
-          .map(([categoria, jugadores]) => ({
-            categoria,
-            jugadores: jugadores.sort((a, b) => (a.nombre || "").localeCompare(b.nombre || "")),
-          }))
-          .sort((a, b) => a.categoria.localeCompare(b.categoria));
-
-        setGrupos(ordenado);
-        setTotal(sinAuth.length);
+        setTodos(players);
       } catch (e) {
         toast.error("Error al cargar las autorizaciones");
       } finally {
@@ -123,6 +126,8 @@ export default function PhotoAuthorizations() {
         </CardContent>
       </Card>
 
+      <BuscarJugadorAutorizacion players={todos} onChanged={actualizar} />
+
       {total === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
@@ -145,14 +150,7 @@ export default function PhotoAuthorizations() {
             <CardContent className="p-0">
               <ul className="divide-y">
                 {g.jugadores.map((p) => (
-                  <li key={p.id} className="flex items-center justify-between px-4 py-2.5">
-                    <span className="text-sm text-slate-800">{(p.nombre || "").trim()}</span>
-                    {p.autorizacion_fotografia === "NO AUTORIZO" ? (
-                      <Badge className="bg-red-100 text-red-700 hover:bg-red-100">NO AUTORIZA</Badge>
-                    ) : (
-                      <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">Sin responder</Badge>
-                    )}
-                  </li>
+                  <AutorizacionImagenRow key={p.id} player={p} onChanged={actualizar} />
                 ))}
               </ul>
             </CardContent>
