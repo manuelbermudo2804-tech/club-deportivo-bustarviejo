@@ -6,7 +6,7 @@ import { toGroupId } from "@/lib/chatGroupId";
 
 // Botón "No voy" para el entreno de hoy de un jugador. El estado se guarda en el chat
 // del equipo, así padre, madre y el propio jugador ven el mismo aviso.
-export default function NoVoyEntrenoButton({ jugador, categoria, fechaISO, user }) {
+export default function NoVoyEntrenoButton({ jugador, categoria, fechaISO, user, solo }) {
   const qc = useQueryClient();
   const [sending, setSending] = useState(false);
   const grupoId = toGroupId(categoria);
@@ -49,18 +49,20 @@ export default function NoVoyEntrenoButton({ jugador, categoria, fechaISO, user 
 
   const nombre = jugador.nombre.split(" ")[0];
   if (avisado) {
-    const quien = ultimo.remitente_email === user.email ? "ti" : ultimo.remitente_nombre;
+    const quien = ultimo.remitente_email === user.email ? "" : ` (${(ultimo.remitente_nombre || "").split(" ")[0]})`;
     return (
-      <span className="text-xs text-amber-700 flex items-center gap-1 flex-wrap">
-        🚫 {nombre}: ya avisado por {quien}
-        <button disabled={sending} onClick={() => enviar(false)} className="underline font-semibold">Sí va</button>
-      </span>
+      <div className="flex items-center gap-2 text-xs">
+        <span className="text-slate-500">{solo ? "No va" : `${nombre} no va`}{quien}</span>
+        <button disabled={sending} onClick={() => enviar(false)} className="text-orange-600 font-semibold hover:underline disabled:opacity-50">
+          Deshacer
+        </button>
+      </div>
     );
   }
   return (
     <button disabled={sending} onClick={() => enviar(true)}
-      className="text-xs font-semibold px-2 py-0.5 rounded-full bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50">
-      {sending ? "..." : `${nombre} no va`}
+      className="text-xs font-medium px-3 py-1 rounded-full border border-slate-300 text-slate-600 bg-white hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 whitespace-nowrap">
+      {sending ? "Avisando..." : solo ? "No voy" : `${nombre} no va`}
     </button>
   );
 }

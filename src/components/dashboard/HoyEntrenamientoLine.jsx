@@ -24,16 +24,22 @@ export default function HoyEntrenamientoLine({ items = [] }) {
   return (
     <div className="mb-3 pb-3 border-b border-orange-200 space-y-1">
       {deHoy.map((it, i) => (
-        <div key={i} className="flex items-center gap-2 text-sm flex-wrap">
+        <div key={i} className="flex items-center gap-2 text-sm">
           <Clock className="w-4 h-4 text-green-600 flex-shrink-0" />
-          <span className="font-semibold text-slate-900">Hoy: Entrenamiento {it.hora}</span>
-          <span className="text-xs text-slate-500 truncate">
-            {it.subtitulo}
-            {it.ubicacion ? ` · ${it.ubicacion}` : ""}
-          </span>
-          {user && (it.jugadoresIds || []).map((j) => (
-            <NoVoyEntrenoButton key={j.id} jugador={j} categoria={it.subtitulo} fechaISO={fechaISO} user={user} />
-          ))}
+          <div className="min-w-0 flex-1">
+            <span className="font-semibold text-slate-900">Hoy: Entrenamiento {it.hora}</span>
+            <span className="block text-xs text-slate-500 truncate">
+              {it.subtitulo}
+              {it.ubicacion ? ` · ${it.ubicacion}` : ""}
+            </span>
+          </div>
+          {user && (
+            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+              {(it.jugadoresIds || []).map((j) => (
+                <NoVoyEntrenoButton key={j.id} jugador={j} categoria={it.subtitulo} fechaISO={fechaISO} user={user} solo={it.jugadoresIds.length === 1} />
+              ))}
+            </div>
+          )}
         </div>
       ))}
     </div>
