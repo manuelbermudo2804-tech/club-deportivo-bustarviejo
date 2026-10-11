@@ -17,6 +17,17 @@ export default function StripeCotejoPanel() {
     return <div className="flex items-center gap-2 py-12 justify-center text-slate-500"><Loader2 className="w-5 h-5 animate-spin" /> Consultando Stripe...</div>;
   }
 
+  if (!data || data.error) {
+    return (
+      <div className="py-12 text-center space-y-3">
+        <p className="text-slate-600">No se han podido cargar los datos de Stripe{data?.error ? `: ${data.error}` : "."}</p>
+        <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
+          <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} /> Reintentar
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
