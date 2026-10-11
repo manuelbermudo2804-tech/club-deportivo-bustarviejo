@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import StripeCotejoPanel from "@/components/financial/stripe/StripeCotejoPanel";
 import { 
   CreditCard, ShoppingBag, Users, TrendingUp, TrendingDown, 
   Download, Euro, Clover, Building2, DollarSign, FileText,
@@ -684,7 +685,7 @@ export default function TreasurerFinancialPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 bg-white border border-slate-200 rounded-xl">
+        <TabsList className="grid w-full grid-cols-5 bg-white border border-slate-200 rounded-xl">
           <TabsTrigger value="resumen" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <BarChart3 className="w-4 h-4" />
             <span className="hidden md:inline">Resumen</span>
@@ -701,7 +702,15 @@ export default function TreasurerFinancialPanel() {
             <Euro className="w-4 h-4" />
             <span className="hidden md:inline">Presupuestos</span>
           </TabsTrigger>
+          <TabsTrigger value="stripe" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+            <Euro className="w-4 h-4" />
+            <span className="hidden md:inline">Stripe</span>
+          </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="stripe" className="mt-6">
+          <StripeCotejoPanel />
+        </TabsContent>
 
         {/* TAB RESUMEN */}
         <TabsContent value="resumen" className="space-y-6 mt-6">
