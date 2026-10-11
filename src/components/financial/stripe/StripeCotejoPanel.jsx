@@ -32,7 +32,7 @@ export default function StripeCotejoPanel() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-slate-600">
-          Desde el {data.desde}: <b>{data.total_cobros}</b> cobros en Stripe, <b>{data.cuadrados}</b> pagos cuadrados.
+          {data.desde ? `Desde el ${data.desde}` : "Todo el historial"}: <b>{data.total_cobros}</b> cobros en Stripe, <b>{data.cuadrados}</b> pagos cuadrados.
         </p>
         <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isFetching}>
           <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? "animate-spin" : ""}`} /> Actualizar

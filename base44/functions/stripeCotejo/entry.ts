@@ -21,9 +21,8 @@ Deno.serve(async (req) => {
     }
 
     const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY'));
-    const now = new Date();
-    const startYear = now.getMonth() + 1 >= 9 ? now.getFullYear() : now.getFullYear() - 1;
-    const desde = body.desde ? new Date(body.desde) : new Date(startYear, 8, 1);
+    // Por defecto: todo el historial de Stripe
+    const desde = body.desde ? new Date(body.desde) : new Date('2015-01-01');
     const gte = Math.floor(desde.getTime() / 1000);
 
     // 1) Cobros de Stripe vs pagos de la app
@@ -84,7 +83,7 @@ Deno.serve(async (req) => {
     }
 
     return Response.json({
-      desde: desde.toISOString().slice(0, 10),
+      desde: body.desde ? desde.toISOString().slice(0, 10) : null,
       total_cobros: cobros.length,
       cuadrados,
       descuadres,
