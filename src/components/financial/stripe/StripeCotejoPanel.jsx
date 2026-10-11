@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
 import StripeDescuadres from "./StripeDescuadres";
 import StripeComisiones from "./StripeComisiones";
+import StripePartidas from "./StripePartidas";
 
 export default function StripeCotejoPanel() {
   const { data, isLoading, isFetching, refetch } = useQuery({
@@ -39,6 +40,7 @@ export default function StripeCotejoPanel() {
         </Button>
       </div>
       <StripeDescuadres descuadres={data.descuadres} sinVincular={data.sin_vincular} onChange={refetch} />
+      <StripePartidas partidas={data.partidas || []} gastos={data.gastos} />
       <StripeComisiones meses={data.comisiones} />
     </div>
   );
