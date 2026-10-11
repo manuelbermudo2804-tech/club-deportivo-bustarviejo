@@ -62,7 +62,7 @@ Deno.serve(async (req) => {
       }
       const ids = new Set(c.jugadores_ids || []);
       const convocados = roster
-        .filter((p) => ids.has(p.id))
+        .filter((p) => ids.has(p.id) && !all.find((x) => x.id === p.id)?.bloqueo_convocatoria_activo)
         .map((p) => ({ jugador_id: p.id, jugador_nombre: p.nombre, confirmacion: 'pendiente' }));
       const saved = await base44.asServiceRole.entities.Convocatoria.create({
         titulo: c.titulo,

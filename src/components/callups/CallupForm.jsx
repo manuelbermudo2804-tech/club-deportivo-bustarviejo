@@ -194,6 +194,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
       if (prev.includes(player.id)) {
         return prev.filter(id => id !== player.id);
       } else {
+        if (overduePlayerIds.has(player.id)) return prev; // bloqueado por impago
         return [...prev, player.id];
       }
     });
@@ -213,7 +214,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
 
   const handleSuggestPlayers = (suggestedIds) => {
     const noDisp = new Set(unavailablePlayers.map(p => p.id));
-    setSelectedPlayers(suggestedIds.filter(id => !noDisp.has(id)));
+    setSelectedPlayers(suggestedIds.filter(id => !noDisp.has(id) && !overduePlayerIds.has(id)));
   };
 
   const handleToggleSuggestions = (enabled) => {
@@ -590,7 +591,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                 <AlertTriangle className="h-4 w-4 text-red-600" />
                 <AlertDescription className="text-red-800 text-sm">
                   <strong>💸 {overduePlayerIds.size} jugador(es) marcados por el club como fuera de convocatorias</strong> por cuota pendiente.
-                  No se seleccionan al pulsar "Seleccionar Todos". Puedes incluirlos manualmente si lo consideras necesario.
+                  No se pueden convocar hasta que el club quite el bloqueo.
                 </AlertDescription>
               </Alert>
             )}
@@ -656,6 +657,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                           <Checkbox
                             checked={selectedPlayers.includes(player.id)}
                             onCheckedChange={() => handlePlayerToggle(player)}
+                            disabled={isOverdue && !selectedPlayers.includes(player.id)}
                           />
                           <div className="flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
