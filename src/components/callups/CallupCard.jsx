@@ -1,4 +1,5 @@
 import React from "react";
+import callupDescripcion from "@/components/callups/callupDescripcion";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -140,9 +141,9 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
           </div>
 
           {/* Description */}
-          {callup.descripcion && (
+          {callupDescripcion(callup) && (
             <div className="bg-slate-50 rounded-lg p-3 border-l-4 border-orange-600">
-              <p className="text-sm text-slate-700 whitespace-pre-wrap">{callup.descripcion}</p>
+              <p className="text-sm text-slate-700 whitespace-pre-wrap">{callupDescripcion(callup)}</p>
             </div>
           )}
 

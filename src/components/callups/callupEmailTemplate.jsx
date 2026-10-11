@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import callupDescripcion from "@/components/callups/callupDescripcion";
 import { es } from "date-fns/locale";
 
 export function buildCallupEmailHtml(callup, jugadorNombre) {
@@ -12,7 +13,7 @@ export function buildCallupEmailHtml(callup, jugadorNombre) {
   const localVisitante = callup.local_visitante === "Local" ? "🏠 Local" : "✈️ Visitante";
   const mapsLink = callup.enlace_ubicacion || "";
   const concentracion = callup.hora_concentracion || "";
-  const descripcion = callup.descripcion || "";
+  const descripcion = callupDescripcion({ ...callup, publicada: true });
   const telefono = callup.entrenador_telefono || "";
   const appUrl = "https://app.cdbustarviejo.com/parentcallups";
 

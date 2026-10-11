@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import callupDescripcion from "@/components/callups/callupDescripcion";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -473,9 +474,9 @@ export default function ParentCallups() {
                   {/* Weather Widget */}
                   <WeatherWidget location={callup.ubicacion} date={callup.fecha_partido} />
 
-                  {callup.descripcion && (
+                  {callupDescripcion(callup) && (
                     <div className="bg-slate-50 rounded-lg p-3 border-l-4 border-orange-600">
-                      <p className="text-sm text-slate-700 whitespace-pre-wrap">{callup.descripcion}</p>
+                      <p className="text-sm text-slate-700 whitespace-pre-wrap">{callupDescripcion(callup)}</p>
                     </div>
                   )}
 
