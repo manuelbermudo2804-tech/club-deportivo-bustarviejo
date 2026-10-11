@@ -54,7 +54,7 @@ export default function TeamFolders({ folders, albums, onOpen }) {
             </div>
             <div className="p-3">
               <p className="font-bold text-slate-900 text-sm">{folderLabel(cat)}</p>
-              <p className="text-xs text-slate-500">{catAlbums.length} álbum{catAlbums.length !== 1 ? "es" : ""}</p>
+              <p className="text-xs text-slate-500">{catAlbums.length} álbum{catAlbums.length !== 1 ? "es" : ""} · {catAlbums.reduce((s, a) => s + (a.fotos?.length || 0), 0)} fotos</p>
             </div>
           </button>
         );
