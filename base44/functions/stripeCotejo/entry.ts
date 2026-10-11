@@ -27,7 +27,9 @@ Deno.serve(async (req) => {
 
     // 1) Cobros de Stripe vs pagos de la app
     const cobros = [];
+    const tipoPorPI = {};
     for await (const s of stripe.checkout.sessions.list({ created: { gte }, limit: 100 })) {
+      if (s.payment_intent) tipoPorPI[s.payment_intent] = s.metadata?.tipo || 'otro';
       if (s.payment_status !== 'paid') continue;
       const m = s.metadata || {};
       const base = {
@@ -70,10 +72,20 @@ Deno.serve(async (req) => {
     }
     const sinVincular = cobros.filter((c) => !c.payment_ids.length && String(c.tipo).startsWith('pago_cuota'));
 
-    // 2) Comisiones por mes
+    // 2) Comisiones por mes y desglose por partidas
     const meses = {};
-    for await (const t of stripe.balanceTransactions.list({ created: { gte }, limit: 100 })) {
+    const partidas = {};
+    const gastos = { devoluciones: 0, otras_comisiones: 0 };
+    for await (const t of stripe.balanceTransactions.list({ created: { gte }, limit: 100, expand: ['data.source'] })) {
+      if (t.type === 'refund' || t.type === 'payment_refund') { gastos.devoluciones += -t.amount / 100; continue; }
+      if (t.type === 'stripe_fee' || t.type === 'adjustment' || t.type === 'payment_failure_refund') { gastos.otras_comisiones += -t.net / 100; continue; }
       if (t.type !== 'charge' && t.type !== 'payment') continue;
+      const tipo = tipoPorPI[t.source?.payment_intent] || 'otro';
+      partidas[tipo] = partidas[tipo] || { tipo, cobros: 0, bruto: 0, comision: 0, neto: 0 };
+      partidas[tipo].cobros++;
+      partidas[tipo].bruto += t.amount / 100;
+      partidas[tipo].comision += t.fee / 100;
+      partidas[tipo].neto += t.net / 100;
       const k = new Date(t.created * 1000).toISOString().slice(0, 7);
       meses[k] = meses[k] || { mes: k, cobros: 0, bruto: 0, comision: 0, neto: 0 };
       meses[k].cobros++;
@@ -88,6 +100,8 @@ Deno.serve(async (req) => {
       cuadrados,
       descuadres,
       sin_vincular: sinVincular,
+      partidas: Object.values(partidas).sort((a, b) => b.bruto - a.bruto),
+      gastos,
       comisiones: Object.values(meses).sort((a, b) => b.mes.localeCompare(a.mes)),
     });
   } catch (error) {
