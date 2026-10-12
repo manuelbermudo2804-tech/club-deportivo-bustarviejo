@@ -14,6 +14,7 @@ import SponsorDashboard from "../components/sponsors/SponsorDashboard";
 import SponsorInterestPanel from "../components/sponsors/SponsorInterestPanel";
 import PropuestasPatrocinioPanel from "../components/sponsors/PropuestasPatrocinioPanel";
 import ColaboraLinkCard from "../components/sponsors/ColaboraLinkCard";
+import CaptacionPanel from "@/components/sponsors/captacion/CaptacionPanel";
 
 export default function Sponsorships() {
   const [showForm, setShowForm] = useState(false);
@@ -221,6 +222,8 @@ export default function Sponsorships() {
           />
         )}
       </AnimatePresence>
+
+      <CaptacionPanel sponsors={sponsors} />
 
       {/* Enlace de colaboración para compartir */}
       <ColaboraLinkCard />
