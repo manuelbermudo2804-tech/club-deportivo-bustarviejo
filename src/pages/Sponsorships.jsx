@@ -175,21 +175,21 @@ export default function Sponsorships() {
           </h1>
           <p className="text-slate-600 mt-1">Administra los patrocinadores del club</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Link to="/PresupuestoGenerator">
-            <Button variant="outline" className="border-blue-400 text-blue-700 hover:bg-blue-50">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2 w-full md:w-auto md:min-w-[280px]">
+          <Link to="/PresupuestoGenerator" className="w-full">
+            <Button variant="outline" className="w-full justify-center border-blue-400 text-blue-700 hover:bg-blue-50">
               <ClipboardList className="w-4 h-4 mr-2" />
               Generar Presupuesto
             </Button>
           </Link>
-          <Link to="/ReciboGenerator">
-            <Button variant="outline" className="border-orange-300 text-orange-700 hover:bg-orange-50">
+          <Link to="/ReciboGenerator" className="w-full">
+            <Button variant="outline" className="w-full justify-center border-orange-300 text-orange-700 hover:bg-orange-50">
               <FileText className="w-4 h-4 mr-2" />
               Generar Recibo
             </Button>
           </Link>
-          <Link to="/FacturaGenerator">
-            <Button variant="outline" className="border-orange-500 text-orange-800 hover:bg-orange-100">
+          <Link to="/FacturaGenerator" className="w-full">
+            <Button variant="outline" className="w-full justify-center border-orange-500 text-orange-800 hover:bg-orange-100">
               <Receipt className="w-4 h-4 mr-2" />
               Generar Factura
             </Button>
@@ -199,7 +199,7 @@ export default function Sponsorships() {
               setEditingSponsor(null);
               setShowForm(!showForm);
             }}
-            className="bg-amber-600 hover:bg-amber-700"
+            className="w-full justify-center bg-amber-600 hover:bg-amber-700"
           >
             <Plus className="w-4 h-4 mr-2" />
             Nuevo Patrocinador
@@ -245,7 +245,7 @@ export default function Sponsorships() {
 
       {/* Filtros */}
       <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 w-full min-w-0">
-        <div className="relative w-full sm:flex-1 min-w-0 sm:max-w-sm">
+        <div className="relative w-full min-w-0 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
             placeholder="Buscar patrocinador..."
@@ -254,27 +254,27 @@ export default function Sponsorships() {
             className="pl-10"
           />
         </div>
-        <div className="flex flex-wrap gap-2 w-full min-w-0">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 w-full min-w-0">
           {["all", "Principal", "Oro", "Plata", "Bronce", "Colaborador"].map(level => (
             <Button
               key={level}
               size="sm"
               variant={filterLevel === level ? "default" : "outline"}
               onClick={() => setFilterLevel(level)}
-              className={filterLevel === level ? "bg-amber-600 hover:bg-amber-700" : ""}
+              className={`w-full justify-center ${filterLevel === level ? "bg-amber-600 hover:bg-amber-700" : ""}`}
             >
               {level === "all" ? "Todos" : level}
             </Button>
           ))}
         </div>
-        <div className="flex flex-wrap gap-2 w-full min-w-0">
+        <div className="grid grid-cols-3 gap-2 w-full min-w-0">
           {["all", "Activo", "Inactivo"].map(status => (
             <Button
               key={status}
               size="sm"
               variant={filterStatus === status ? "default" : "outline"}
               onClick={() => setFilterStatus(status)}
-              className={filterStatus === status ? "bg-slate-700 hover:bg-slate-800" : ""}
+              className={`w-full justify-center ${filterStatus === status ? "bg-slate-700 hover:bg-slate-800" : ""}`}
             >
               {status === "all" ? "Todos" : status}
             </Button>
