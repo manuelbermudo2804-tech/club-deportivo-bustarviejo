@@ -145,8 +145,11 @@ export default function Sponsorships() {
   };
 
   const filteredSponsors = sponsors.filter(s => {
-    const matchesSearch = s.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.contacto_nombre?.toLowerCase().includes(searchTerm.toLowerCase());
+    const term = searchTerm.trim().toLowerCase();
+    const matchesSearch = !term ||
+      s.nombre?.toLowerCase().includes(term) ||
+      s.contacto_nombre?.toLowerCase().includes(term) ||
+      s.contacto_email?.toLowerCase().includes(term);
     const matchesLevel = filterLevel === "all" || s.nivel_patrocinio === filterLevel;
     const matchesStatus = filterStatus === "all" || 
       (filterStatus === "Activo" && s.activo === true) ||
