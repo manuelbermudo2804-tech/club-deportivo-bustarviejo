@@ -14,7 +14,7 @@ const norm = (s) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 
 export default function CaptacionPanel({ sponsors }) {
   const qc = useQueryClient();
-  const [zona, setZona] = useState("Bustarviejo y Sierra Norte de Madrid");
+  const [zona, setZona] = useState("Bustarviejo");
   const [sector, setSector] = useState("");
   const [resultados, setResultados] = useState([]);
   const [buscando, setBuscando] = useState(false);
@@ -23,11 +23,20 @@ export default function CaptacionPanel({ sponsors }) {
 
   const existente = (e) => sponsors.find(s => norm(s.nombre) === norm(e.nombre));
 
-  const buscar = async () => {
+  const buscar = async (mas = false) => {
     setBuscando(true);
-    const r = await buscarEmpresas({ zona, sector, cantidad: 8 }).finally(() => setBuscando(false));
-    setResultados(r);
-    if (!r.length) toast.info("No se encontraron empresas, prueba otro sector o zona");
+    const previos = mas ? resultados : [];
+    const excluir = [...sponsors.map(s => s.nombre), ...previos.map(e => e.nombre)];
+    const r = await buscarEmpresas({ zona, sector, cantidad: 20, excluir }).finally(() => setBuscando(false));
+    const vistos = new Set(excluir.map(norm));
+    const nuevos = r.filter(e => {
+      const n = norm(e.nombre);
+      if (!n || vistos.has(n) || [...vistos].some(v => v.length > 4 && (v.includes(n) || n.includes(v)))) return false;
+      vistos.add(n);
+      return true;
+    });
+    setResultados([...previos, ...nuevos]);
+    if (!nuevos.length) toast.info("No se encontraron empresas nuevas");
   };
 
   const guardar = async (e) => {
@@ -49,7 +58,7 @@ export default function CaptacionPanel({ sponsors }) {
       <div className="flex flex-col md:flex-row gap-2">
         <Input value={zona} onChange={e => setZona(e.target.value)} placeholder="Zona" className="md:max-w-xs bg-white" />
         <Input value={sector} onChange={e => setSector(e.target.value)} placeholder="Sector (opcional)" className="md:max-w-xs bg-white" />
-        <Button onClick={buscar} disabled={buscando || !zona} className="bg-amber-600 hover:bg-amber-700">
+        <Button onClick={() => buscar(false)} disabled={buscando || !zona} className="bg-amber-600 hover:bg-amber-700">
           {buscando ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Buscando...</> : <><Radar className="w-4 h-4 mr-2" />Buscar empresas</>}
         </Button>
       </div>
@@ -64,6 +73,11 @@ export default function CaptacionPanel({ sponsors }) {
               onGuardar={() => guardar(e)} onPropuesta={async () => setPropuesta(await guardar(e))} />
           ))}
         </div>
+      )}
+      {resultados.length > 0 && (
+        <Button variant="outline" className="w-full bg-white" disabled={buscando} onClick={() => buscar(true)}>
+          {buscando ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}Buscar más empresas ({resultados.length} encontradas)
+        </Button>
       )}
       {propuesta && (
         <PropuestaDialog sponsor={propuesta} onClose={() => setPropuesta(null)}

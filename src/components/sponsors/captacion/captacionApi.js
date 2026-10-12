@@ -2,13 +2,14 @@ import { base44 } from "@/api/base44Client";
 
 export const PAQUETES = "Oro 2000€/año (logo en banner principal de la app, menciones en anuncios, galería y newsletters), Plata 1000€/año (banner + anuncios importantes), Bronce 500€/año (banner rotativo), o colaboración personalizada (equipación de un equipo, torneo, eventos)";
 
-export async function buscarEmpresas({ zona, sector, cantidad }) {
+export async function buscarEmpresas({ zona, sector, cantidad, excluir = [] }) {
   const res = await base44.integrations.Core.InvokeLLM({
     model: "gemini_3_flash",
     add_context_from_internet: true,
-    prompt: `Eres un buscador de patrocinadores para el Club Deportivo Bustarviejo (club de fútbol base y aficionado de Bustarviejo, Sierra Norte de Madrid, unos 200 jugadores y sus familias).
-Busca en internet ${cantidad} empresas REALES y en activo ${sector ? `del sector "${sector}"` : "de cualquier sector con potencial de patrocinio deportivo local"} ubicadas en ${zona} o alrededores.
-Prioriza negocios con vínculo local (que les interese llegar a familias de la zona). Para cada una da datos de contacto públicos reales (no inventes: si no encuentras email o teléfono, déjalo vacío).
+    prompt: `Eres un buscador de patrocinadores para el Club Deportivo Bustarviejo (club de fútbol de Bustarviejo, Sierra Norte de Madrid).
+Usa Google Maps y búsquedas web para hacer un listado EXHAUSTIVO de negocios REALES y en activo cuya dirección esté DENTRO del municipio de "${zona}" (no pueblos vecinos salvo que la zona indicada incluya varios). ${sector ? `Solo del sector "${sector}".` : "De todos los sectores: bares, restaurantes, tiendas, alimentación, panaderías, talleres, construcción, reformas, fontaneros, electricistas, inmobiliarias, alojamientos, clínicas, fisioterapia, peluquerías, gimnasios, asesorías, etc."}
+Devuelve hasta ${cantidad} empresas distintas.
+NO incluyas ninguna de estas, porque ya las tenemos: ${excluir.length ? excluir.join("; ") : "(ninguna)"}. Tampoco incluyas organismos públicos ni el propio club. Para cada una da datos de contacto públicos reales (no inventes: si no encuentras email o teléfono, déjalo vacío).
 Explica en una frase por qué encajaría como patrocinador y qué tipo de patrocinio le propondrías.`,
     response_json_schema: {
       type: "object",
