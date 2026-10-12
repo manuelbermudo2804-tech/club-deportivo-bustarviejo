@@ -846,7 +846,7 @@ export default function PaymentReminders() {
       </div>
 
       {/* Resumen */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4"
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
@@ -883,7 +883,7 @@ export default function PaymentReminders() {
             className="w-full"
           />
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 min-w-0">
             <div>
               <label className="text-xs text-slate-600 mb-1 block">Tipo de familia</label>
               <select
