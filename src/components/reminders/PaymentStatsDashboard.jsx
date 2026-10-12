@@ -43,11 +43,11 @@ export default function PaymentStatsDashboard({ payments, players, currentSeason
   const playersOverdue = new Set(overduePayments.map(p => p.jugador_id)).size;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+    <div className="grid w-full min-w-0 grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-6">
       {/* Total Jugadores */}
       <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
+          <div className="flex min-w-0 items-center justify-between gap-3">
             <div>
               <p className="text-sm text-blue-900 mb-1 font-semibold">Total Jugadores</p>
               <p className="text-3xl font-bold text-blue-700">{totalPlayers}</p>
@@ -61,7 +61,7 @@ export default function PaymentStatsDashboard({ payments, players, currentSeason
       {/* Pagos Pendientes */}
       <Card className="border-none shadow-lg bg-gradient-to-br from-red-50 to-red-100">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
+          <div className="flex min-w-0 items-center justify-between gap-3">
             <div>
               <p className="text-sm text-red-900 mb-1 font-semibold">Pendientes</p>
               <p className="text-3xl font-bold text-red-700">{playersWithPending}</p>
@@ -80,7 +80,7 @@ export default function PaymentStatsDashboard({ payments, players, currentSeason
       {/* En Revisión */}
       <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
+          <div className="flex min-w-0 items-center justify-between gap-3">
             <div>
               <p className="text-sm text-orange-900 mb-1 font-semibold">En Revisión</p>
               <p className="text-3xl font-bold text-orange-700">{playersWithReview}</p>
@@ -94,7 +94,7 @@ export default function PaymentStatsDashboard({ payments, players, currentSeason
       {/* Pagados */}
       <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
+          <div className="flex min-w-0 items-center justify-between gap-3">
             <div>
               <p className="text-sm text-green-900 mb-1 font-semibold">Pagados</p>
               <p className="text-3xl font-bold text-green-700">{playersFullyPaid}</p>
@@ -106,15 +106,15 @@ export default function PaymentStatsDashboard({ payments, players, currentSeason
       </Card>
 
       {/* Recaudación */}
-      <Card className="border-none shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 md:col-span-2">
+      <Card className="border-none shadow-lg bg-gradient-to-br from-purple-50 to-purple-100 sm:col-span-2">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2 text-purple-900">
+          <CardTitle className="text-base sm:text-lg flex flex-wrap items-center gap-2 text-purple-900 break-words">
             <Euro className="w-5 h-5" />
             Recaudación Temporada {currentSeason}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid min-w-0 grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             <div>
               <p className="text-xs text-purple-700 mb-1">Recaudado</p>
               <p className="text-2xl font-bold text-purple-800">{totalReceived.toFixed(0)}€</p>
@@ -140,15 +140,15 @@ export default function PaymentStatsDashboard({ payments, players, currentSeason
       </Card>
 
       {/* Progreso por Mes */}
-      <Card className="border-none shadow-lg bg-gradient-to-br from-slate-50 to-slate-100 md:col-span-2">
+      <Card className="border-none shadow-lg bg-gradient-to-br from-slate-50 to-slate-100 sm:col-span-2">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
+          <CardTitle className="text-base sm:text-lg flex flex-wrap items-center gap-2 text-slate-900 break-words">
             <TrendingUp className="w-5 h-5" />
             Progreso por Periodo
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid min-w-0 grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
             {["Junio", "Septiembre", "Diciembre"].map(mes => {
               const mesPagos = seasonPayments.filter(p => p.mes === mes);
               const mesPaid = mesPagos.filter(p => p.estado === "Pagado").length;
