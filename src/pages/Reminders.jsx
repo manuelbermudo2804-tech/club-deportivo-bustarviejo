@@ -848,7 +848,7 @@ Temporada ${reminder.temporada}
   };
 
   return (
-    <div className="p-3 lg:p-8 space-y-4 lg:space-y-6">
+    <div className="w-full min-w-0 max-w-full overflow-x-hidden p-3 sm:p-4 lg:p-8 space-y-4 lg:space-y-6 [&_*]:min-w-0 [&_button]:max-w-full">
       <IndividualReminderDialog
         isOpen={!!selectedReminder}
         onClose={() => {
@@ -860,7 +860,7 @@ Temporada ${reminder.temporada}
         allPlayerPayments={selectedPlayer ? payments.filter(p => p.jugador_id === selectedPlayer.id) : []}
         onSend={handleSendIndividualReminder}
       />
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+      <div className="flex min-w-0 flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
         <div>
           <h1 className="text-xl lg:text-3xl font-bold text-slate-900">Recordatorios de Pago</h1>
           <p className="text-xs lg:text-sm text-slate-600 mt-1">Sistema automático</p>
@@ -1111,7 +1111,7 @@ Temporada ${reminder.temporada}
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-3 gap-2 lg:gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-6">
         <Card className="border-none shadow-lg bg-white">
           <CardHeader className="pb-2 lg:pb-3 p-3 lg:p-6">
             <div className="flex flex-col lg:flex-row items-start lg:items-center lg:justify-between gap-2">
@@ -1305,19 +1305,19 @@ Temporada ${reminder.temporada}
                         </div>
                       </CardHeader>
                       <CardContent className="p-4">
-                        <div className="grid grid-cols-3 gap-3 mb-4">
-                          <div className="bg-red-50 rounded-lg p-3">
+                        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
+                          <div className="min-w-0 bg-red-50 rounded-lg p-2 sm:p-3">
                             <p className="text-xs text-red-700 mb-1">Pendientes</p>
                             <p className="text-2xl font-bold text-red-600">{totalPaymentsDue}</p>
                             {totalPending > 0 && (
                               <p className="text-xs text-red-600">{totalPending.toFixed(0)}€</p>
                             )}
                           </div>
-                          <div className="bg-orange-50 rounded-lg p-3">
+                          <div className="min-w-0 bg-orange-50 rounded-lg p-2 sm:p-3">
                             <p className="text-xs text-orange-700 mb-1">Revisión</p>
                             <p className="text-2xl font-bold text-orange-600">{reviewPayments.length}</p>
                           </div>
-                          <div className="bg-green-50 rounded-lg p-3">
+                          <div className="min-w-0 bg-green-50 rounded-lg p-2 sm:p-3">
                             <p className="text-xs text-green-700 mb-1">Pagados</p>
                             <p className="text-2xl font-bold text-green-600">{paidPayments.length}</p>
                           </div>
