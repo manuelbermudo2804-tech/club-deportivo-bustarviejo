@@ -132,7 +132,7 @@ export default function AgendaClub() {
         : "Próximos 60 días";
 
   return (
-    <div className="p-4 lg:p-6 space-y-4 max-w-6xl mx-auto">
+    <div className="w-full min-w-0 max-w-6xl mx-auto box-border overflow-x-hidden p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5 [&_*]:min-w-0">
       <div>
         <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Agenda del club</h1>
         <p className="text-slate-600 mt-1 text-sm">
