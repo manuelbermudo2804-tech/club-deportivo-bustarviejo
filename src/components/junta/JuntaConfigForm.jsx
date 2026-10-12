@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { CalendarDays, MapPin, Globe, ListChecks, FlaskConical, Baby, Megaphone, Save, Trash2 } from "lucide-react";
 
 export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
   const [f, setF] = useState({});
@@ -26,24 +27,22 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
   };
 
   return (
-    <Card><CardContent className="p-4 grid gap-3 md:grid-cols-2" onBlur={() => junta && guardar(true)}>
-      <label className="text-sm">Título<Input value={f.titulo || ""} onChange={set("titulo")} /></label>
-      <label className="text-sm">Fecha y hora<Input type="datetime-local" value={f.fecha || ""} onChange={set("fecha")} /></label>
-      <label className="text-sm">Lugar<Input value={f.lugar || ""} onChange={set("lugar")} placeholder="Campo municipal" /></label>
-      <label className="text-sm">Página pública (slug o enlace /l/...)<Input value={f.landing_slug || ""} onChange={set("landing_slug")} placeholder="junta-socios-2026" /></label>
-      <label className="text-sm md:col-span-2 rounded-lg border border-dashed border-amber-400 bg-amber-50 p-3">🧪 Modo prueba: email del único usuario que verá el aviso (déjalo vacío para que lo vean todos los socios)
-        <Input value={f.email_prueba || ""} onChange={set("email_prueba")} placeholder="tu@email.com" className="mt-1 bg-white" />
-      </label>
-      <label className="text-sm md:col-span-2">Orden del día (un punto por línea · para destacar algo escríbelo entre **dos asteriscos**)<Textarea rows={4} value={f.orden || ""} onChange={set("orden")} /></label>
-      <p className="text-xs text-slate-500 md:col-span-2">Pega aquí el enlace de la página que hayas hecho en el Constructor de páginas (con su formulario de asistencia). Las respuestas de esa página se suman solas a las de la app en la tabla de abajo.</p>
-      <div className={`flex items-center gap-3 text-sm font-semibold rounded-lg p-3 md:col-span-2 ${f.ludoteca ? "bg-sky-50 text-sky-800" : "bg-slate-100 text-slate-600"}`}><Switch checked={!!f.ludoteca} onCheckedChange={async (v) => {
+    <Card className="overflow-hidden rounded-2xl border-slate-200 shadow-sm"><CardContent className="grid gap-5 p-4 sm:p-5 lg:p-6 md:grid-cols-2">
+      <label className="block space-y-1.5 text-sm font-semibold text-slate-700"><span className="flex items-center gap-2"><ListChecks className="h-4 w-4 text-orange-600" />Título de la convocatoria</span><Input value={f.titulo || ""} onChange={set("titulo")} className="h-11 rounded-lg" placeholder="Junta General de Socios" /></label>
+      <label className="block space-y-1.5 text-sm font-semibold text-slate-700"><span className="flex items-center gap-2"><CalendarDays className="h-4 w-4 text-orange-600" />Fecha y hora</span><Input type="datetime-local" value={f.fecha || ""} onChange={set("fecha")} className="h-11 rounded-lg" /></label>
+      <label className="block space-y-1.5 text-sm font-semibold text-slate-700"><span className="flex items-center gap-2"><MapPin className="h-4 w-4 text-orange-600" />Lugar de celebración</span><Input value={f.lugar || ""} onChange={set("lugar")} placeholder="Campo municipal" className="h-11 rounded-lg" /></label>
+      <label className="block space-y-1.5 text-sm font-semibold text-slate-700"><span className="flex items-center gap-2"><Globe className="h-4 w-4 text-orange-600" />Página pública</span><Input value={f.landing_slug || ""} onChange={set("landing_slug")} placeholder="Pega el slug o enlace /l/..." className="h-11 rounded-lg" /></label>
+      <div className="space-y-2 rounded-xl border border-amber-200 bg-amber-50 p-4 md:col-span-2"><p className="flex items-center gap-2 text-sm font-bold text-amber-900"><FlaskConical className="h-4 w-4" />Modo de prueba de avisos</p><p className="text-xs leading-relaxed text-amber-900/80">Si introduces un correo, el aviso se limita a ese usuario. Déjalo vacío para que el aviso llegue a todos los socios.</p><Input value={f.email_prueba || ""} onChange={set("email_prueba")} placeholder="tu@email.com (opcional)" className="h-11 rounded-lg border-amber-200 bg-white" /></div>
+      <label className="block space-y-2 text-sm font-semibold text-slate-700 md:col-span-2"><span className="flex items-center gap-2"><ListChecks className="h-4 w-4 text-orange-600" />Orden del día</span><span className="block text-xs font-normal text-slate-500">Escribe un punto por línea. Puedes destacar texto con **dos asteriscos**.</span><Textarea rows={5} value={f.orden || ""} onChange={set("orden")} className="rounded-lg leading-relaxed" placeholder={"1. Apertura de la sesión\n2. Presentación de cuentas\n3. Ruegos y preguntas"} /></label>
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs leading-relaxed text-slate-600 md:col-span-2">La página pública se configura desde el Constructor de páginas. Sus respuestas se integran automáticamente en el listado de asistentes de esta pantalla.</div>
+      <div className={`flex items-start gap-3 rounded-xl border p-4 text-sm font-semibold md:col-span-2 ${f.ludoteca ? "border-sky-200 bg-sky-50 text-sky-900" : "border-slate-200 bg-slate-50 text-slate-700"}`}><Baby className="mt-0.5 h-5 w-5 shrink-0" /><Switch checked={!!f.ludoteca} onCheckedChange={async (v) => {
         setF({ ...f, ludoteca: v });
         if (!junta) return;
         const saved = await base44.entities.JuntaSocios.update(junta.id, { ludoteca: v });
         toast.success(v ? "Pregunta de ludoteca activada" : "Pregunta de ludoteca quitada");
         onSaved(saved);
       }} />{f.ludoteca ? "🧸 Preguntar a las familias si les facilitaría venir con servicio de ludoteca — ACTIVADO" : "🧸 Preguntar a las familias por el servicio de ludoteca"}</div>
-      <div className={`flex items-center gap-3 text-sm font-semibold rounded-lg p-3 md:col-span-2 ${f.activa ? "bg-green-50 text-green-800" : "bg-slate-100 text-slate-600"}`}><Switch checked={!!f.activa} onCheckedChange={async (v) => {
+      <div className={`flex items-start gap-3 rounded-xl border p-4 text-sm font-semibold md:col-span-2 ${f.activa ? "border-green-200 bg-green-50 text-green-900" : "border-slate-200 bg-slate-50 text-slate-700"}`}><Megaphone className="mt-0.5 h-5 w-5 shrink-0" /><Switch checked={!!f.activa} onCheckedChange={async (v) => {
         setF({ ...f, activa: v });
         if (!junta) return;
         const saved = await base44.entities.JuntaSocios.update(junta.id, { activa: v });
@@ -56,14 +55,14 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
           toast.success(`Correos enviados: ${data.app} a usuarios de la app, ${data.web} con enlace web${data.sinWeb ? ` · ${data.sinWeb} sin enviar (falta página pública)` : ""}${data.fallos ? ` · ${data.fallos} fallidos` : ""}`);
         }
       }} />{f.activa ? "🟢 Junta ACTIVA — el aviso sale en la app" : "⚪ Junta DESACTIVADA — nadie ve el aviso"}</div>
-      <div className="flex gap-2 md:justify-self-end">
-        {junta && <Button variant="outline" className="text-red-600 border-red-300 hover:bg-red-50" onClick={async () => {
+      <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:justify-end md:col-span-2">
+        {junta && <Button variant="outline" className="h-11 rounded-lg border-red-200 px-4 text-red-600 hover:bg-red-50" onClick={async () => {
           if (!window.confirm("¿Cancelar y borrar esta junta? Desaparecerá el aviso para todos.")) return;
           await base44.entities.JuntaSocios.delete(junta.id);
           toast.success("Junta cancelada");
           onDeleted();
-        }}>Cancelar junta</Button>}
-        {!junta && <Button onClick={() => guardar()} className="bg-orange-600 hover:bg-orange-700">Crear junta</Button>}
+        }}><Trash2 className="mr-2 h-4 w-4" />Cancelar y borrar junta</Button>}
+        {junta ? <Button onClick={() => guardar(false)} className="h-11 rounded-lg bg-orange-600 px-5 font-semibold shadow-sm hover:bg-orange-700"><Save className="mr-2 h-4 w-4" />Guardar cambios</Button> : <Button onClick={() => guardar()} className="h-11 rounded-lg bg-orange-600 px-5 font-semibold shadow-sm hover:bg-orange-700"><Save className="mr-2 h-4 w-4" />Crear junta</Button>}
       </div>
     </CardContent></Card>
   );
