@@ -963,7 +963,6 @@ Temporada ${reminder.temporada}
                   >
                     <Send className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
                     <span>Enviar hoy ({dueToday})</span>
-                    <span className="lg:hidden">{dueToday}</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
