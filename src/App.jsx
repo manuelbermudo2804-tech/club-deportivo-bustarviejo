@@ -93,6 +93,7 @@ const ExpedienteSubvencion = lazy(() => import('@/pages/ExpedienteSubvencion'));
 const JuntaSocios = lazy(() => import('@/pages/JuntaSocios'));
 const ContratosVoluntariado = lazy(() => import('@/pages/ContratosVoluntariado'));
 const MisDocumentos = lazy(() => import('@/pages/MisDocumentos'));
+const OAuthConsent = lazy(() => import('@/pages/OAuthConsent'));
 
 const PageSpinner = () => (
   <div className="fixed inset-0 flex items-center justify-center">
@@ -128,6 +129,13 @@ const AppRouter = () => {
   // /PorraMiPorra y /PorraRanking como páginas 100% públicas sin entorno.
   const urlParams = new URLSearchParams(location.search);
   const fromApp = urlParams.get('from') === 'app';
+  if (cleanPath === '/oauth/consent') {
+    return (
+      <Routes>
+        <Route path="/oauth/consent" element={<OAuthConsent />} />
+      </Routes>
+    );
+  }
   if (isLandingPath) {
     return (
       <Routes>
