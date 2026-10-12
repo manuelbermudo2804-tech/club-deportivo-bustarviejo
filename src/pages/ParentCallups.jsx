@@ -324,25 +324,25 @@ export default function ParentCallups() {
       />
 
       <div className="bg-page-bridge min-h-screen">
-      <div className="p-4 lg:p-8 space-y-6">
+      <div className="p-3 sm:p-5 lg:p-8 space-y-5 lg:space-y-6">
         {/* Header con gradiente */}
-        <div className="bg-gradient-to-r from-orange-600 via-orange-700 to-amber-700 rounded-2xl p-6 shadow-xl">
+        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 rounded-2xl p-4 sm:p-6 shadow-lg ring-1 ring-black/5">
           <div className="flex items-center gap-3 text-white">
-            <div className="w-11 h-11 bg-white/20 rounded-xl flex items-center justify-center">
+            <div className="w-11 h-11 bg-orange-500 rounded-2xl flex items-center justify-center shadow-md">
               <Trophy className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-2xl lg:text-3xl font-bold">Convocatorias</h1>
-              <p className="text-orange-100 text-sm">Confirma la asistencia de tus jugadores</p>
+              <h1 className="text-2xl font-extrabold tracking-tight">Convocatorias</h1>
+              <p className="text-slate-300 text-sm mt-1">Confirma la asistencia de tus jugadores</p>
             </div>
           </div>
           {upcomingCallups.length > 0 && (
-            <div className="flex gap-3 mt-4">
-              <div className="bg-white/15 rounded-xl px-4 py-2 text-center">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 mt-4">
+              <div className="bg-white/10 border border-white/10 rounded-xl px-3 py-2.5 text-center">
                 <div className="text-xl font-bold text-white">{upcomingCallups.length}</div>
                 <p className="text-[10px] text-orange-100 uppercase">Pendientes</p>
               </div>
-              <div className="bg-white/15 rounded-xl px-4 py-2 text-center">
+              <div className="bg-white/10 border border-white/10 rounded-xl px-3 py-2.5 text-center">
                 <div className="text-xl font-bold text-white">
                   {upcomingCallups.reduce((acc, c) => acc + (c.jugadores_convocados?.filter(j => myPlayers.some(p => p.id === j.jugador_id) && j.confirmacion === "pendiente").length || 0), 0)}
                 </div>
@@ -361,7 +361,7 @@ export default function ParentCallups() {
             const plazoVencido = isDeadlinePassed(callup);
 
             return (
-              <Card key={callup.id} className={`border-2 shadow-lg overflow-hidden ${
+              <Card key={callup.id} className={`border border-slate-200/90 shadow-sm rounded-2xl overflow-hidden ${
                 callup.estado_convocatoria === "cancelada" 
                   ? 'border-red-300 opacity-75' 
                   : callup.estado_convocatoria === "reprogramada"
@@ -370,12 +370,12 @@ export default function ParentCallups() {
               }`}>
                 <CardHeader className={`text-white pb-4 ${
                   callup.estado_convocatoria === "cancelada"
-                    ? 'bg-gradient-to-r from-red-600 to-red-700'
+                    ? 'bg-gradient-to-br from-red-700 to-red-600'
                     : callup.estado_convocatoria === "reprogramada"
-                      ? 'bg-gradient-to-r from-amber-600 to-amber-700'
+                      ? 'bg-gradient-to-br from-amber-700 to-amber-600'
                       : hasPending 
-                        ? 'bg-gradient-to-r from-orange-600 via-orange-700 to-red-600' 
-                        : 'bg-gradient-to-r from-green-600 to-green-700'
+                        ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950' 
+                        : 'bg-gradient-to-br from-emerald-800 to-emerald-700'
                 }`}>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -412,7 +412,7 @@ export default function ParentCallups() {
                   </div>
                 </CardHeader>
 
-                <CardContent className="pt-4 space-y-4">
+                <CardContent className="p-3 sm:p-5 space-y-4">
                   {/* Status banner (cancelled/rescheduled) */}
                   <CallupStatusBanner callup={callup} />
 
