@@ -435,13 +435,13 @@ export default function FederationSignatures() {
   const progressPercent = totalSignaturesNeeded > 0 ? Math.round((completedSignatures / totalSignaturesNeeded) * 100) : 0;
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="w-full min-w-0 max-w-full overflow-x-hidden box-border p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6 [&_*]:min-w-0">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
           <FileSignature className="w-8 h-8 text-orange-600" />
           Firmas de Federación
         </h1>
-        <p className="text-slate-600 mt-1">Gestiona las firmas digitales de tus jugadores</p>
+        <p className="text-slate-600 mt-1 text-sm sm:text-base leading-relaxed">Gestiona las firmas digitales de tus jugadores</p>
       </div>
 
       <ReconocimientoFamilia players={myPlayers} />
@@ -473,8 +473,8 @@ export default function FederationSignatures() {
 
       {/* Alerta de pendientes */}
       {playersWithPendingSignatures.length > 0 && (
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-xl p-6">
-          <div className="flex items-start gap-4">
+        <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-4 sm:p-5 shadow-sm">
+          <div className="flex items-start gap-3 sm:gap-4">
             <AlertCircle className="w-8 h-8 text-yellow-600 flex-shrink-0 mt-1" />
             <div>
               <h3 className="text-xl font-bold text-yellow-900 mb-2">
