@@ -558,26 +558,26 @@ export default function CoachCallups() {
         message={successMessage}
         withConfetti={true}
       />
-    <div className="p-4 lg:p-8 space-y-6">
+    <div className="min-h-screen bg-slate-50/70 p-3 sm:p-5 lg:p-8 space-y-5 lg:space-y-6">
       {/* Header con gradiente */}
-      <div className="bg-gradient-to-r from-orange-600 via-orange-700 to-amber-700 rounded-2xl p-5 shadow-xl">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+      <div className="relative overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 rounded-2xl p-4 sm:p-6 shadow-lg shadow-slate-900/10 ring-1 ring-black/5">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-11 h-11 bg-orange-500 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-md shadow-orange-950/30">
             <Trophy className="w-5 h-5 text-white" />
           </div>
           <div className="text-white min-w-0">
-            <h1 className="text-xl lg:text-2xl font-bold leading-tight">Convocatorias</h1>
-            <p className="text-orange-100 text-xs">
+            <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight leading-tight">Convocatorias</h1>
+            <p className="text-slate-300 text-sm mt-1">
               {user.role === "admin" 
                 ? "Gestiona todas las convocatorias del club" 
                 : "Gestiona las convocatorias de tus equipos"}
             </p>
           </div>
         </div>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button
             onClick={handleNewCallup}
-            className="bg-white text-orange-700 hover:bg-orange-50 shadow-lg font-semibold flex-1 sm:flex-none"
+            className="w-full sm:w-auto bg-orange-500 text-white hover:bg-orange-400 shadow-md shadow-orange-950/20 font-semibold rounded-xl min-h-11"
             disabled={!canCreateCallup}
           >
             <Plus className="w-4 h-4 mr-1" />
@@ -594,16 +594,16 @@ export default function CoachCallups() {
 
       {/* Category selector - siempre visible si hay más de 1 categoría, o si solo tiene 1 pero es admin */}
       {(coachCategories.length > 1 || (user.role === "admin" && coachCategories.length > 0)) && (
-        <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+        <Card className="border border-slate-200/80 bg-white shadow-sm rounded-2xl overflow-hidden">
           <CardContent className="pt-5 pb-4">
             <div className="flex items-center gap-4">
-              <div className="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center text-white text-lg shadow">⚽</div>
+              <div className="w-10 h-10 rounded-xl bg-orange-50 border border-orange-100 flex items-center justify-center text-orange-600 text-lg">⚽</div>
               <div className="flex-1">
-                <label className="text-sm font-semibold text-blue-900 mb-1.5 block">
+                <label className="text-sm font-semibold text-slate-800 mb-1.5 block">
                   {user.role === "admin" ? "Categoría:" : "Selecciona categoría:"}
                 </label>
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="bg-white border-blue-200">
+                  <SelectTrigger className="bg-slate-50/70 border-slate-200 rounded-xl min-h-11">
                     <SelectValue placeholder="Selecciona una categoría" />
                   </SelectTrigger>
                   <SelectContent>
@@ -618,7 +618,7 @@ export default function CoachCallups() {
               </div>
             </div>
             {(selectedCategory === "all" || selectedCategory === "admin") && !editingCallup && (
-              <p className="text-sm text-blue-600 mt-2 ml-14">
+              <p className="text-xs text-slate-500 mt-2 sm:ml-14">
                 💡 Selecciona una categoría para crear una nueva convocatoria
               </p>
             )}
@@ -634,26 +634,26 @@ export default function CoachCallups() {
       />
 
       {/* Stats compactos */}
-      <div className="grid grid-cols-3 gap-3 lg:gap-4">
-        <div className="bg-white rounded-xl p-4 shadow-md border border-slate-100 text-center">
-          <div className="w-10 h-10 mx-auto mb-2 bg-orange-100 rounded-xl flex items-center justify-center">
+      <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
+        <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-200/80 text-center transition-shadow hover:shadow-md">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 mx-auto mb-2 bg-orange-50 border border-orange-100 rounded-xl flex items-center justify-center">
             <CalendarCheck className="w-5 h-5 text-orange-600" />
           </div>
-          <div className="text-2xl font-bold text-orange-600">{upcomingCallups.length}</div>
+          <div className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">{upcomingCallups.length}</div>
           <p className="text-xs text-slate-500 mt-0.5">Próximas</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-md border border-slate-100 text-center">
-          <div className="w-10 h-10 mx-auto mb-2 bg-green-100 rounded-xl flex items-center justify-center">
+        <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-200/80 text-center transition-shadow hover:shadow-md">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 mx-auto mb-2 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center justify-center">
             <UserCheck className="w-5 h-5 text-green-600" />
           </div>
-          <div className="text-2xl font-bold text-green-600">{totalConfirmed}</div>
+          <div className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">{totalConfirmed}</div>
           <p className="text-xs text-slate-500 mt-0.5">Confirmados</p>
         </div>
-        <div className="bg-white rounded-xl p-4 shadow-md border border-slate-100 text-center">
-          <div className="w-10 h-10 mx-auto mb-2 bg-amber-100 rounded-xl flex items-center justify-center">
+        <div className="bg-white rounded-2xl p-3 sm:p-4 shadow-sm border border-slate-200/80 text-center transition-shadow hover:shadow-md">
+          <div className="w-9 h-9 sm:w-10 sm:h-10 mx-auto mb-2 bg-amber-50 border border-amber-100 rounded-xl flex items-center justify-center">
             <Clock className="w-5 h-5 text-amber-600" />
           </div>
-          <div className="text-2xl font-bold text-amber-600">{totalPending}</div>
+          <div className="text-xl sm:text-2xl font-extrabold tracking-tight text-slate-900">{totalPending}</div>
           <p className="text-xs text-slate-500 mt-0.5">Pendientes</p>
         </div>
       </div>
@@ -663,7 +663,7 @@ export default function CoachCallups() {
         const draftCount = upcomingCallups.filter(c => !c.publicada).length;
         return (
           <Tabs value={statusFilter} onValueChange={setStatusFilter} className="mt-4">
-            <TabsList>
+            <TabsList className="w-full sm:w-auto bg-slate-100 p-1 rounded-xl h-auto grid grid-cols-3 sm:flex">
               <TabsTrigger value="all">Todas ({upcomingCallups.length})</TabsTrigger>
               <TabsTrigger value="published">✅ Publicadas ({publishedCount})</TabsTrigger>
               <TabsTrigger value="draft">📝 Borradores ({draftCount})</TabsTrigger>
