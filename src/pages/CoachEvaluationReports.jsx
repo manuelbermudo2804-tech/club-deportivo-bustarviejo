@@ -618,10 +618,13 @@ CD Bustarviejo
         </DialogContent>
       </Dialog>
 
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900">📊 Reportes de entrenadores</h1>
-          <p className="text-slate-600 mt-1">
+      <div className="rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 border border-orange-500/40 p-4 sm:p-5 shadow-lg flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+        <div className="w-11 h-11 shrink-0 rounded-xl bg-orange-600 flex items-center justify-center shadow-md">
+          <Star className="w-5 h-5 text-white fill-white" />
+        </div>
+        <div className="min-w-0">
+          <h1 className="text-lg sm:text-2xl lg:text-3xl font-bold leading-tight text-white">Reportes de entrenadores</h1>
+          <p className="text-orange-100/90 text-sm mt-1">
             {user?.role === "admin" || user?.es_coordinador
               ? "Selecciona una categoría para ver los jugadores evaluados" 
               : "Tus categorías y jugadores evaluados"}
@@ -646,11 +649,11 @@ CD Bustarviejo
         </Card>
       ) : (
         <Tabs value={selectedCategory || categories[0]} onValueChange={setSelectedCategory} className="space-y-4">
-          <TabsList className="flex w-full h-auto justify-start gap-1.5 overflow-x-auto rounded-xl bg-slate-100 p-1.5 scrollbar-hide">
+          <TabsList className="flex w-full h-auto min-h-12 justify-start gap-1.5 overflow-x-auto rounded-xl border border-slate-200 bg-white p-1.5 shadow-sm scrollbar-hide">
             {categories.map(cat => {
               const categoryPlayers = evaluationsByCategory[cat] ? Object.keys(evaluationsByCategory[cat]).length : 0;
               return (
-                <TabsTrigger key={cat} value={cat} className="flex-none min-w-max rounded-lg px-3 py-2 text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
+                <TabsTrigger key={cat} value={cat} className="flex-none min-h-10 min-w-max rounded-lg px-3 py-2 text-sm font-semibold text-slate-600 transition-colors data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-sm">
                   {cat.replace('Fútbol ', '').replace(' (Mixto)', '')}
                   {categoryPlayers > 0 && (
                     <Badge className="ml-2 bg-orange-600">{categoryPlayers}</Badge>
@@ -676,14 +679,14 @@ CD Bustarviejo
                   </Card>
                 ) : (
                   <>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                      <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-white shadow-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                      <Card className="rounded-xl border-orange-200 bg-gradient-to-br from-orange-50 to-white shadow-sm">
                         <CardContent className="pt-4 text-center">
                           <p className="text-xs text-orange-800 mb-1">Jugadores Evaluados</p>
                           <p className="text-3xl font-bold text-orange-600">{playersInCategory.length}</p>
                         </CardContent>
                       </Card>
-                      <Card className="border-green-200 bg-gradient-to-br from-green-50 to-white shadow-sm">
+                      <Card className="rounded-xl border-green-200 bg-gradient-to-br from-green-50 to-white shadow-sm">
                         <CardContent className="pt-4 text-center">
                           <p className="text-xs text-green-800 mb-1">Promedio Categoría</p>
                           <div className="flex items-center justify-center gap-1">
@@ -694,7 +697,7 @@ CD Bustarviejo
                           </div>
                         </CardContent>
                       </Card>
-                      <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-white shadow-sm">
+                      <Card className="rounded-xl border-blue-200 bg-gradient-to-br from-blue-50 to-white shadow-sm">
                         <CardContent className="pt-4 text-center">
                           <p className="text-xs text-blue-800 mb-1">Total Evaluaciones</p>
                           <p className="text-3xl font-bold text-blue-600">
@@ -704,7 +707,7 @@ CD Bustarviejo
                       </Card>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4 pt-1">
                       {playersInCategory.map(playerData => (
                         <PlayerAttendanceCard
                           key={playerData.jugador.id}
