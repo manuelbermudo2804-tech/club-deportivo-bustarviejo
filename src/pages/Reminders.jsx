@@ -865,16 +865,16 @@ Temporada ${reminder.temporada}
           <h1 className="text-xl lg:text-3xl font-bold text-slate-900">Recordatorios de Pago</h1>
           <p className="text-xs lg:text-sm text-slate-600 mt-1">Sistema automático</p>
         </div>
-        <div className="space-y-3">
+        <div className="w-full min-w-0 xl:w-auto space-y-3">
           <TooltipProvider>
-            <div className="flex gap-2 flex-wrap">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:flex xl:flex-wrap gap-2 w-full min-w-0">
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
                     onClick={exportPaymentsPDF}
                     variant="outline"
                     size="sm"
-                    className="shadow-lg text-xs lg:text-sm"
+                    className="w-full min-w-0 shadow-lg text-xs lg:text-sm"
                   >
                     <FileDown className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
                     <span className="hidden lg:inline">Exportar CSV</span>
@@ -892,7 +892,7 @@ Temporada ${reminder.temporada}
                     disabled={isRefreshing}
                     variant="outline"
                     size="sm"
-                    className="shadow-lg text-xs lg:text-sm"
+                    className="w-full min-w-0 shadow-lg text-xs lg:text-sm"
                   >
                     <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
                   </Button>
@@ -908,7 +908,7 @@ Temporada ${reminder.temporada}
                     onClick={fixPaymentAmounts}
                     disabled={isGenerating}
                     size="sm"
-                    className="bg-purple-600 hover:bg-purple-700 shadow-lg text-xs lg:text-sm"
+                    className="w-full min-w-0 bg-purple-600 hover:bg-purple-700 shadow-lg text-xs lg:text-sm"
                   >
                     <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
                     <span className="hidden lg:inline">Corregir Cantidades</span>
@@ -925,7 +925,7 @@ Temporada ${reminder.temporada}
                     onClick={generatePaymentsForSeason}
                     disabled={isGenerating}
                     size="sm"
-                    className="bg-blue-600 hover:bg-blue-700 shadow-lg text-xs lg:text-sm"
+                    className="w-full min-w-0 bg-blue-600 hover:bg-blue-700 shadow-lg text-xs lg:text-sm"
                   >
                     <Plus className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
                     <span className="hidden lg:inline">Generar Pagos</span>
@@ -942,7 +942,7 @@ Temporada ${reminder.temporada}
                     onClick={generateStaggeredReminders}
                     disabled={isGenerating}
                     size="sm"
-                    className="bg-green-600 hover:bg-green-700 shadow-lg text-xs lg:text-sm"
+                    className="w-full min-w-0 bg-green-600 hover:bg-green-700 shadow-lg text-xs lg:text-sm"
                   >
                     <Zap className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
                     <span className="hidden lg:inline">Recordatorios</span>
@@ -959,7 +959,7 @@ Temporada ${reminder.temporada}
                     onClick={sendTodayReminders}
                     disabled={dueToday === 0}
                     size="sm"
-                    className="bg-orange-600 hover:bg-orange-700 shadow-lg text-xs lg:text-sm"
+                    className="w-full min-w-0 bg-orange-600 hover:bg-orange-700 shadow-lg text-xs lg:text-sm"
                   >
                     <Send className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
                     <span className="hidden lg:inline">Hoy ({dueToday})</span>
