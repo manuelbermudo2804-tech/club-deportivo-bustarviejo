@@ -166,7 +166,7 @@ export default function Sponsorships() {
   }
 
   return (
-    <div className="p-4 lg:p-6 space-y-6">
+    <div className="w-full min-w-0 max-w-full overflow-x-hidden p-3 sm:p-4 lg:p-6 space-y-5 sm:space-y-6 [&_*]:min-w-0 [&_input]:max-w-full [&_button]:max-w-full">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
