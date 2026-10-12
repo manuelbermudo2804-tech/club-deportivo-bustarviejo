@@ -874,10 +874,10 @@ Temporada ${reminder.temporada}
                     onClick={exportPaymentsPDF}
                     variant="outline"
                     size="sm"
-                    className="w-full min-w-0 shadow-lg text-xs lg:text-sm"
+                    className="w-full min-w-0 justify-start gap-2 whitespace-normal text-left h-auto min-h-10 py-2 shadow-sm text-xs sm:text-sm"
                   >
                     <FileDown className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
-                    <span className="hidden lg:inline">Exportar CSV</span>
+                    <span>Exportar CSV</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -892,7 +892,7 @@ Temporada ${reminder.temporada}
                     disabled={isRefreshing}
                     variant="outline"
                     size="sm"
-                    className="w-full min-w-0 shadow-lg text-xs lg:text-sm"
+                    className="w-full min-w-0 justify-start gap-2 whitespace-normal text-left h-auto min-h-10 py-2 shadow-sm text-xs sm:text-sm"
                   >
                     <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
                   </Button>
@@ -908,10 +908,10 @@ Temporada ${reminder.temporada}
                     onClick={fixPaymentAmounts}
                     disabled={isGenerating}
                     size="sm"
-                    className="w-full min-w-0 bg-purple-600 hover:bg-purple-700 shadow-lg text-xs lg:text-sm"
+                    className="w-full min-w-0 justify-start gap-2 whitespace-normal text-left h-auto min-h-10 py-2 bg-purple-600 hover:bg-purple-700 shadow-sm text-xs sm:text-sm"
                   >
                     <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-                    <span className="hidden lg:inline">Corregir Cantidades</span>
+                    <span>Corregir importes</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
@@ -925,10 +925,10 @@ Temporada ${reminder.temporada}
                     onClick={generatePaymentsForSeason}
                     disabled={isGenerating}
                     size="sm"
-                    className="w-full min-w-0 bg-blue-600 hover:bg-blue-700 shadow-lg text-xs lg:text-sm"
+                    className="w-full min-w-0 justify-start gap-2 whitespace-normal text-left h-auto min-h-10 py-2 bg-blue-600 hover:bg-blue-700 shadow-sm text-xs sm:text-sm"
                   >
                     <Plus className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-                    <span className="hidden lg:inline">Generar Pagos</span>
+                    <span>Generar pagos</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
@@ -942,10 +942,10 @@ Temporada ${reminder.temporada}
                     onClick={generateStaggeredReminders}
                     disabled={isGenerating}
                     size="sm"
-                    className="w-full min-w-0 bg-green-600 hover:bg-green-700 shadow-lg text-xs lg:text-sm"
+                    className="w-full min-w-0 justify-start gap-2 whitespace-normal text-left h-auto min-h-10 py-2 bg-green-600 hover:bg-green-700 shadow-sm text-xs sm:text-sm"
                   >
                     <Zap className={`w-4 h-4 lg:w-5 lg:h-5 lg:mr-2 ${isGenerating ? 'animate-spin' : ''}`} />
-                    <span className="hidden lg:inline">Recordatorios</span>
+                    <span>Crear avisos</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent className="max-w-xs">
@@ -959,10 +959,10 @@ Temporada ${reminder.temporada}
                     onClick={sendTodayReminders}
                     disabled={dueToday === 0}
                     size="sm"
-                    className="w-full min-w-0 bg-orange-600 hover:bg-orange-700 shadow-lg text-xs lg:text-sm"
+                    className="w-full min-w-0 justify-start gap-2 whitespace-normal text-left h-auto min-h-10 py-2 bg-orange-600 hover:bg-orange-700 shadow-sm text-xs sm:text-sm"
                   >
                     <Send className="w-4 h-4 lg:w-5 lg:h-5 lg:mr-2" />
-                    <span className="hidden lg:inline">Hoy ({dueToday})</span>
+                    <span>Enviar hoy ({dueToday})</span>
                     <span className="lg:hidden">{dueToday}</span>
                   </Button>
                 </TooltipTrigger>
