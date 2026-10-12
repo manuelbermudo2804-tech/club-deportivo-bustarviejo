@@ -721,7 +721,7 @@ export default function PaymentReminders() {
         onComplete={() => setShowSuccess(false)}
         message={successMessage}
       />
-      <div className="p-3 lg:p-8 space-y-4 lg:space-y-6">
+      <div className="w-full min-w-0 max-w-full overflow-x-hidden box-border p-3 sm:p-4 lg:p-8 space-y-4 lg:space-y-6 [&_*]:min-w-0">
         <SocialLinks />
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
@@ -747,7 +747,7 @@ export default function PaymentReminders() {
             El sistema envía recordatorios <strong>automáticamente</strong> por Email + Chat privado "🔔 Mensajes del Club" en estas fechas:
           </p>
           
-          <div className="grid md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             <div className="bg-white rounded-lg p-3 border-2 border-blue-200">
               <p className="font-bold text-blue-900 text-sm mb-1">📅 Junio (Límite: 30 Jun)</p>
               <ul className="text-xs text-slate-700 space-y-1">
@@ -784,7 +784,7 @@ export default function PaymentReminders() {
         </CardContent>
       </Card>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
         <Alert className="bg-blue-50 border-blue-300">
           <Info className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-900">
@@ -846,7 +846,7 @@ export default function PaymentReminders() {
       </div>
 
       {/* Resumen */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4"
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
