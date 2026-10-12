@@ -134,8 +134,8 @@ export default function AgendaClub() {
   return (
     <div className="w-full min-w-0 max-w-6xl mx-auto box-border overflow-x-hidden p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5 [&_*]:min-w-0">
       <div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Agenda del club</h1>
-        <p className="text-slate-600 mt-1 text-sm">
+        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Agenda del club</h1>
+        <p className="text-slate-600 mt-1 text-sm sm:text-base leading-relaxed">
           Entrenamientos, partidos y eventos en un único sitio, ordenados por fecha.
         </p>
       </div>
@@ -152,8 +152,8 @@ export default function AgendaClub() {
       )}
 
       {/* Selector de vista + navegación */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex bg-white rounded-lg border border-slate-200 p-1">
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+        <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 w-full">
           {VISTAS.map((v) => (
             <Button
               key={v.id}
@@ -168,13 +168,13 @@ export default function AgendaClub() {
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between gap-2 w-full min-w-0">
           {vista !== "lista" && (
             <Button size="sm" variant="outline" onClick={() => navegar(-1)}>
               <ChevronLeft className="w-4 h-4" />
             </Button>
           )}
-          <span className="text-sm font-semibold text-slate-700 capitalize min-w-[150px] text-center">
+          <span className="flex-1 text-xs sm:text-sm font-semibold text-slate-700 capitalize text-center break-words">
             {tituloRango}
           </span>
           {vista !== "lista" && (
@@ -186,7 +186,7 @@ export default function AgendaClub() {
       </div>
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-1.5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {FILTROS_TIPO.map((f) => (
           <Button
             key={f.id}
@@ -207,7 +207,7 @@ export default function AgendaClub() {
       />
 
       {/* Leyenda */}
-      <div className="flex flex-wrap gap-3 text-xs text-slate-600">
+      <div className="flex flex-wrap gap-x-3 gap-y-2 rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5 text-xs text-slate-600">
         {Object.entries(KIND_STYLES).map(([kind, style]) => (
           <span key={kind} className="flex items-center gap-1.5">
             <span className={`w-2.5 h-2.5 rounded-full ${style.dot}`} />
@@ -231,7 +231,7 @@ export default function AgendaClub() {
 
       {/* Detalle de un día */}
       <Dialog open={!!diaSeleccionado} onOpenChange={(open) => !open && setDiaSeleccionado(null)}>
-        <DialogContent className="max-w-lg max-h-[80vh] overflow-y-auto">
+        <DialogContent className="w-[calc(100%-1.5rem)] max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
             <DialogTitle className="capitalize">
               {diaSeleccionado && format(diaSeleccionado, "EEEE d 'de' MMMM", { locale: es })}
