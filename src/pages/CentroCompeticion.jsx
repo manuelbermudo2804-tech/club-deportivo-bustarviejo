@@ -442,52 +442,52 @@ export default function CentroCompeticion() {
   };
 
   const ViewToggle = () => (
-    <div className="w-full grid grid-cols-5 rounded-xl overflow-hidden bg-white/10 border border-white/20">
+    <div className="w-full flex gap-1 overflow-x-auto rounded-xl bg-slate-950/40 border border-white/15 p-1 scrollbar-hide">
       <button
         onClick={() => setView('clasificacion')}
-        className={`flex items-center justify-center gap-1 h-11 text-[10px] sm:text-sm font-semibold transition-all ${view === 'clasificacion' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+        className={`flex shrink-0 items-center justify-center gap-1.5 min-h-11 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-sm font-semibold whitespace-nowrap transition-all ${view === 'clasificacion' ? 'bg-orange-600 text-white shadow-md' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <Trophy className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Clasif.
+        <Trophy className="w-4 h-4 shrink-0" /> <span>Clasificación</span>
       </button>
       <button
         onClick={() => setView('resultados')}
-        className={`flex items-center justify-center gap-1 h-11 text-[10px] sm:text-sm font-semibold transition-all ${view === 'resultados' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+        className={`flex shrink-0 items-center justify-center gap-1.5 min-h-11 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-sm font-semibold whitespace-nowrap transition-all ${view === 'resultados' ? 'bg-orange-600 text-white shadow-md' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <List className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Result.
+        <List className="w-4 h-4 shrink-0" /> <span>Resultados</span>
       </button>
       <button
         onClick={() => setView('goleadores')}
-        className={`flex items-center justify-center gap-1 h-11 text-[10px] sm:text-sm font-semibold transition-all ${view === 'goleadores' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+        className={`flex shrink-0 items-center justify-center gap-1.5 min-h-11 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-sm font-semibold whitespace-nowrap transition-all ${view === 'goleadores' ? 'bg-orange-600 text-white shadow-md' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <Users className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Golea.
+        <Users className="w-4 h-4 shrink-0" /> <span>Goleadores</span>
       </button>
       <button
         onClick={() => setView('cruces')}
-        className={`flex items-center justify-center gap-1 h-11 text-[10px] sm:text-sm font-semibold transition-all ${view === 'cruces' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+        className={`flex shrink-0 items-center justify-center gap-1.5 min-h-11 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-sm font-semibold whitespace-nowrap transition-all ${view === 'cruces' ? 'bg-orange-600 text-white shadow-md' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <Grid3X3 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Cruces
+        <Grid3X3 className="w-4 h-4 shrink-0" /> <span>Cruces</span>
       </button>
       <button
         onClick={() => setView('jornadas')}
-        className={`flex items-center justify-center gap-1 h-11 text-[10px] sm:text-sm font-semibold transition-all ${view === 'jornadas' ? 'bg-orange-600 text-white shadow-lg' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
+        className={`flex shrink-0 items-center justify-center gap-1.5 min-h-11 px-2.5 sm:px-3 rounded-lg text-[11px] sm:text-sm font-semibold whitespace-nowrap transition-all ${view === 'jornadas' ? 'bg-orange-600 text-white shadow-md' : 'text-slate-300 hover:text-white hover:bg-white/10'}`}
       >
-        <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Jornadas
+        <Calendar className="w-4 h-4 shrink-0" /> <span>Jornadas</span>
       </button>
     </div>
   );
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-6 overflow-x-hidden">
+    <div className="w-full max-w-6xl mx-auto min-w-0 px-3 py-4 sm:p-4 md:p-6 overflow-x-hidden">
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-900 to-slate-800 rounded-2xl p-5 mb-5 shadow-lg border-2 border-orange-500/30">
+      <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 rounded-2xl p-4 sm:p-5 mb-4 sm:mb-5 shadow-lg border border-orange-500/40 min-w-0">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="bg-gradient-to-br from-orange-500 to-orange-600 w-12 h-12 rounded-xl flex items-center justify-center shadow-lg">
               <Trophy className="w-7 h-7 text-white" />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-bold text-white">Centro de Competición</h1>
-              <p className="text-sm text-orange-300">CD Bustarviejo — Temporada {(() => { const n = new Date(); const y = n.getFullYear(); return n.getMonth() >= 6 ? `${y}/${y+1}` : `${y-1}/${y}`; })()}</p>
+              <h1 className="text-lg sm:text-xl md:text-2xl font-bold leading-tight text-white">Centro de Competición</h1>
+              <p className="text-xs sm:text-sm text-orange-200 mt-1">CD Bustarviejo · Temporada {(() => { const n = new Date(); const y = n.getFullYear(); return n.getMonth() >= 6 ? `${y}/${y+1}` : `${y-1}/${y}`; })()}</p>
             </div>
             {fav ? (
               <Button variant="ghost" size="icon" onClick={toggleFav} title="Quitar favorito" className="text-yellow-400 hover:text-yellow-300"><Star className="w-5 h-5"/></Button>
@@ -782,12 +782,12 @@ export default function CentroCompeticion() {
 
 
       {/* Categorías - nombres acortados */}
-      <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+      <div className="flex gap-2 overflow-x-auto pb-3 -mx-1 px-1 scrollbar-hide snap-x">
         {(visibleCats && visibleCats.length ? visibleCats : CATEGORIES).map(cat => (
           <button
             key={cat}
             onClick={() => { setCategory(cat); setFav(localStorage.getItem('fav_comp_cat') === cat); }}
-            className={`px-4 py-2.5 rounded-xl whitespace-nowrap border-2 text-sm font-medium transition-all ${category === cat ? 'bg-orange-600 text-white border-orange-600 shadow-lg shadow-orange-600/30' : 'bg-white hover:bg-orange-50 hover:border-orange-300 border-slate-200'}`}
+            className={`shrink-0 snap-start px-3.5 sm:px-4 py-2.5 rounded-xl whitespace-nowrap border text-sm font-semibold transition-all ${category === cat ? 'bg-orange-600 text-white border-orange-600 shadow-lg shadow-orange-600/30' : 'bg-white hover:bg-orange-50 hover:border-orange-300 border-slate-200'}`}
             title={cat}
           >
             {getShortCategoryName(cat)}
@@ -797,9 +797,9 @@ export default function CentroCompeticion() {
 
       {/* Buscador */}
       <div className="mt-3 mb-5 flex items-center gap-2">
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 min-w-0 max-w-md">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={view === 'goleadores' ? 'Buscar jugador o equipo...' : 'Buscar equipo...'} className="pl-9 rounded-xl border-2"/>
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={view === 'goleadores' ? 'Buscar jugador o equipo...' : 'Buscar equipo...'} className="pl-9 h-11 rounded-xl border border-slate-200 bg-white shadow-sm focus-visible:ring-orange-500"/>
         </div>
         <Badge className="bg-orange-100 text-orange-800 border-orange-300 hidden md:inline-flex">{category}</Badge>
       </div>
