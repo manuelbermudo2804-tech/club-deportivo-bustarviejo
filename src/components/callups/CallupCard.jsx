@@ -33,7 +33,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
     >
-      <Card className={`border-2 shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden ${
+      <Card className={`border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow duration-200 rounded-2xl overflow-hidden ${
         !callup.publicada && !canDelete
           ? 'border-dashed border-slate-400 bg-slate-50/50'
           : canDelete ? 'border-slate-200 opacity-70' 
@@ -41,12 +41,12 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
       }`}>
         <CardHeader className={`text-white pb-4 ${
           !callup.publicada && !canDelete
-            ? 'bg-gradient-to-r from-slate-600 to-slate-700'
+            ? 'bg-gradient-to-br from-slate-800 to-slate-700'
             : canDelete 
-              ? 'bg-gradient-to-r from-slate-500 to-slate-600' 
+              ? 'bg-gradient-to-br from-slate-600 to-slate-500' 
               : pending > 0 
-                ? 'bg-gradient-to-r from-orange-600 via-orange-700 to-amber-700'
-                : 'bg-gradient-to-r from-green-600 to-green-700'
+                ? 'bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950'
+                : 'bg-gradient-to-br from-emerald-800 to-emerald-700'
         }`}>
           <div className="flex items-start justify-between">
             <div className="flex-1">
@@ -98,12 +98,12 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
           </div>
         </CardHeader>
 
-        <CardContent className="pt-4 space-y-3">
+        <CardContent className="p-3 sm:p-5 space-y-3">
           {/* Status banner (cancelled/rescheduled) */}
           <CallupStatusBanner callup={callup} />
 
           {/* Date & Time Info - compacto */}
-          <div className="bg-slate-50 rounded-xl p-3 space-y-1.5">
+          <div className="bg-slate-50/80 border border-slate-100 rounded-xl p-3 sm:p-4 space-y-2">
             <div className="flex items-center gap-2 text-slate-700">
               <Calendar className="w-4 h-4 text-orange-600 flex-shrink-0" />
               <span className="font-semibold text-sm capitalize">
@@ -253,7 +253,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
 
           {/* Actions */}
           {isCoach && (
-            <div className="flex flex-wrap gap-2 pt-2">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 pt-3 border-t border-slate-100">
               {!canDelete && callup.estado_convocatoria !== "cancelada" && (
                 <>
                   {/* Botón PUBLICAR — solo activo si hay jugadores convocados */}
@@ -276,7 +276,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                       <Button
                         onClick={() => onPublish?.(callup)}
                         size="sm"
-                        className="w-full bg-green-600 hover:bg-green-700 text-white shadow-lg font-semibold mb-1"
+                        className="w-full sm:basis-full bg-orange-500 hover:bg-orange-600 text-white shadow-sm rounded-xl font-semibold mb-1 min-h-10"
                       >
                         <Send className="w-4 h-4 mr-2" />
                         🚀 Publicar y Enviar Convocatoria ({jugadores.length} convocados)
@@ -287,7 +287,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                     onClick={() => onEdit?.(callup)}
                     variant="outline"
                     size="sm"
-                    className="flex-1 min-w-[100px]"
+                    className="w-full sm:flex-1 min-w-0 rounded-xl min-h-10"
                   >
                     <Edit className="w-4 h-4 mr-1" />
                     Editar
@@ -297,7 +297,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                       onClick={() => onCloseNow?.(callup)}
                       variant="secondary"
                       size="sm"
-                      className="flex-1 min-w-[100px]"
+                      className="w-full sm:flex-1 min-w-0 rounded-xl min-h-10"
                     >
                       <Lock className="w-4 h-4 mr-1" />
                       Cerrar
@@ -307,7 +307,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                       onClick={() => onReopen?.(callup)}
                       variant="outline"
                       size="sm"
-                      className="flex-1 min-w-[100px]"
+                      className="w-full sm:flex-1 min-w-0 rounded-xl min-h-10"
                     >
                       <Unlock className="w-4 h-4 mr-1" />
                       Reabrir
@@ -317,7 +317,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                     onClick={() => onReschedule?.(callup)}
                     variant="outline"
                     size="sm"
-                    className="flex-1 min-w-[120px] border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800"
+                    className="w-full sm:flex-1 min-w-0 rounded-xl min-h-10 border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800"
                   >
                     <RefreshCw className="w-4 h-4 mr-1" />
                     Reprogramar
@@ -338,7 +338,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                   onClick={() => onDelete?.(callup)}
                   variant="destructive"
                   size="sm"
-                  className="flex-1 bg-red-600 hover:bg-red-700"
+                  className="w-full sm:flex-1 rounded-xl min-h-10 bg-red-600 hover:bg-red-700"
                 >
                   <Trash2 className="w-4 h-4 mr-2" />
                   Eliminar Convocatoria
