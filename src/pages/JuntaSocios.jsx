@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
-import { Loader2, Users, CalendarDays, ClipboardList, PlusCircle } from "lucide-react";
+import { Loader2, Users, CalendarDays, ClipboardList } from "lucide-react";
 import JuntaConfigForm from "@/components/junta/JuntaConfigForm";
 import JuntaStats from "@/components/junta/JuntaStats";
 import JuntaAsistentesTabla from "@/components/junta/JuntaAsistentesTabla";
