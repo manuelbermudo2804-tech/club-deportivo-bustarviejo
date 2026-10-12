@@ -170,7 +170,7 @@ export default function Sponsorships() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 flex flex-wrap items-center gap-2 break-words">
             💰 Gestión de Patrocinios
           </h1>
           <p className="text-slate-600 mt-1">Administra los patrocinadores del club</p>
@@ -244,8 +244,8 @@ export default function Sponsorships() {
       />
 
       {/* Filtros */}
-      <div className="flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[200px] max-w-sm">
+      <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 w-full min-w-0">
+        <div className="relative w-full sm:flex-1 min-w-0 sm:max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
             placeholder="Buscar patrocinador..."
@@ -254,7 +254,7 @@ export default function Sponsorships() {
             className="pl-10"
           />
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full min-w-0">
           {["all", "Principal", "Oro", "Plata", "Bronce", "Colaborador"].map(level => (
             <Button
               key={level}
@@ -267,7 +267,7 @@ export default function Sponsorships() {
             </Button>
           ))}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 w-full min-w-0">
           {["all", "Activo", "Inactivo"].map(status => (
             <Button
               key={status}
