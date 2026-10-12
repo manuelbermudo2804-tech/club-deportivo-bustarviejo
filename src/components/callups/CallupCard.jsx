@@ -253,7 +253,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
 
           {/* Actions */}
           {isCoach && (
-            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 pt-3 border-t border-slate-100">
+            <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 pt-3 border-t border-slate-100 min-w-0">
               {!canDelete && callup.estado_convocatoria !== "cancelada" && (
                 <>
                   {/* Botón PUBLICAR — solo activo si hay jugadores convocados */}
@@ -276,7 +276,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                       <Button
                         onClick={() => onPublish?.(callup)}
                         size="sm"
-                        className="w-full sm:basis-full bg-orange-500 hover:bg-orange-600 text-white shadow-sm rounded-xl font-semibold mb-1 min-h-10"
+                        className="col-span-2 sm:basis-full w-full min-w-0 whitespace-normal break-words leading-snug px-3 py-3 h-auto min-h-12 text-center bg-orange-500 hover:bg-orange-600 text-white shadow-sm rounded-xl font-semibold mb-1"
                       >
                         <Send className="w-4 h-4 mr-2" />
                         🚀 Publicar y Enviar Convocatoria ({jugadores.length} convocados)
@@ -287,7 +287,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                     onClick={() => onEdit?.(callup)}
                     variant="outline"
                     size="sm"
-                    className="w-full sm:flex-1 min-w-0 rounded-xl min-h-10"
+                    className="w-full min-w-0 whitespace-normal rounded-xl min-h-12 px-2"
                   >
                     <Edit className="w-4 h-4 mr-1" />
                     Editar
@@ -297,7 +297,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                       onClick={() => onCloseNow?.(callup)}
                       variant="secondary"
                       size="sm"
-                      className="w-full sm:flex-1 min-w-0 rounded-xl min-h-10"
+                      className="w-full min-w-0 whitespace-normal rounded-xl min-h-12 px-2"
                     >
                       <Lock className="w-4 h-4 mr-1" />
                       Cerrar
@@ -307,7 +307,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                       onClick={() => onReopen?.(callup)}
                       variant="outline"
                       size="sm"
-                      className="w-full sm:flex-1 min-w-0 rounded-xl min-h-10"
+                      className="w-full min-w-0 whitespace-normal rounded-xl min-h-12 px-2"
                     >
                       <Unlock className="w-4 h-4 mr-1" />
                       Reabrir
@@ -317,7 +317,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                     onClick={() => onReschedule?.(callup)}
                     variant="outline"
                     size="sm"
-                    className="w-full sm:flex-1 min-w-0 rounded-xl min-h-10 border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800"
+                    className="w-full min-w-0 whitespace-normal rounded-xl min-h-12 px-2 border-amber-200 bg-amber-50 hover:bg-amber-100 text-amber-800"
                   >
                     <RefreshCw className="w-4 h-4 mr-1" />
                     Reprogramar
@@ -326,7 +326,7 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
                     onClick={() => onCancel?.(callup)}
                     variant="outline"
                     size="sm"
-                    className="flex-1 min-w-[100px] border-red-300 bg-red-50 hover:bg-red-100 text-red-700"
+                    className="w-full min-w-0 whitespace-normal rounded-xl min-h-12 px-2 border-red-300 bg-red-50 hover:bg-red-100 text-red-700"
                   >
                     <Ban className="w-4 h-4 mr-1" />
                     Cancelar
