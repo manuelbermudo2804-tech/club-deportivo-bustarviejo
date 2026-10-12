@@ -824,10 +824,10 @@ export default function Payments() {
   };
 
   return (
-    <div className="min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6 pb-28">
+    <div className="min-h-screen w-full min-w-0 max-w-full overflow-x-hidden overflow-y-auto box-border p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6 pb-28 [&_*]:min-w-0">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 break-words">
             {isAdmin ? "Gestión de Pagos" : isCoach ? "Mis Pagos" : "Pagos"}
           </h1>
           <p className="text-slate-600 mt-1">
@@ -852,7 +852,7 @@ export default function Payments() {
             </div>
           )}
         </div>
-        <div className="flex flex-wrap gap-2 w-full md:w-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-3 xl:flex gap-2 w-full xl:w-auto min-w-0">
           {filteredPayments.length > 0 && (
             <ExportButton
               data={prepareExportData()}
@@ -873,7 +873,7 @@ export default function Payments() {
               }
             }}
             variant="outline"
-            className="shadow-lg"
+            className="w-full min-w-0 shadow-lg"
           >
             <RefreshCw className="w-5 h-5" />
           </Button>
@@ -903,10 +903,10 @@ export default function Payments() {
       </div>
 
       {/* Stats mejoradas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-3 sm:gap-4">
         <Card onClick={() => { if (!isAdmin) return; setActiveTab('pagos'); setShowOverdueOnly(false); setEstadoFilter('Pendiente'); }} className="border-none shadow-lg bg-white cursor-pointer hover:ring-2 hover:ring-orange-300">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="flex min-w-0 items-center justify-between gap-3">
               <div className="flex-1">
                 <p className="text-sm text-slate-600 mb-1">Pendientes</p>
                 <p className="text-3xl font-bold text-red-600">{pendingCount}</p>
@@ -919,7 +919,7 @@ export default function Payments() {
 
         <Card onClick={() => { if (!isAdmin) return; setActiveTab('pagos'); setShowOverdueOnly(false); setEstadoFilter('En revisión'); }} className="border-none shadow-lg bg-white cursor-pointer hover:ring-2 hover:ring-orange-300">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="flex min-w-0 items-center justify-between gap-3">
               <div className="flex-1">
                 <p className="text-sm text-slate-600 mb-1">En Revisión</p>
                 <p className="text-3xl font-bold text-orange-600">{inReviewCount}</p>
@@ -932,7 +932,7 @@ export default function Payments() {
 
         <Card onClick={() => { if (!isAdmin) return; setActiveTab('pagos'); setShowOverdueOnly(false); setEstadoFilter('Pagado'); }} className="border-none shadow-lg bg-white cursor-pointer hover:ring-2 hover:ring-orange-300">
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="flex min-w-0 items-center justify-between gap-3">
               <div className="flex-1">
                 <p className="text-sm text-slate-600 mb-1">Pagados</p>
                 <p className="text-3xl font-bold text-green-600">{paidCount}</p>
@@ -947,7 +947,7 @@ export default function Payments() {
           <>
             <Card onClick={() => { if (!isAdmin) return; setActiveTab('pagos'); setEstadoFilter('all'); setShowOverdueOnly(true); }} className="border-none shadow-lg bg-gradient-to-br from-red-50 to-red-100 border-red-200 cursor-pointer hover:ring-2 hover:ring-red-300">
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
+                <div className="flex min-w-0 items-center justify-between gap-3">
                   <div className="flex-1">
                     <p className="text-sm text-red-900 mb-1 font-semibold">Vencidos</p>
                     <p className="text-3xl font-bold text-red-700">{overdueCount}</p>
@@ -960,7 +960,7 @@ export default function Payments() {
 
             <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
+                <div className="flex min-w-0 items-center justify-between gap-3">
                   <div className="flex-1">
                     <p className="text-sm text-green-900 mb-1 font-semibold">Recaudado</p>
                     <p className="text-2xl font-bold text-green-700">{totalRecaudado.toFixed(0)}€</p>
@@ -1009,14 +1009,14 @@ export default function Payments() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full">
-          <TabsTrigger value="pagos" className="flex-1">Gestión de Pagos</TabsTrigger>
+        <TabsList className="w-full h-auto flex flex-wrap sm:flex-nowrap gap-1">
+          <TabsTrigger value="pagos" className="flex-1 min-w-0 whitespace-normal text-xs sm:text-sm py-2">Gestión de Pagos</TabsTrigger>
           {isAdmin && (
             <>
-              <TabsTrigger value="planes" className="flex-1">
+              <TabsTrigger value="planes" className="flex-1 min-w-0 whitespace-normal text-xs sm:text-sm py-2">
                  💰 Planes Especiales ({customPlans.filter(p => p.estado === "Activo").length})
                </TabsTrigger>
-              <TabsTrigger value="reconciliacion" className="flex-1">
+              <TabsTrigger value="reconciliacion" className="flex-1 min-w-0 whitespace-normal text-xs sm:text-sm py-2">
                 <FileSpreadsheet className="w-4 h-4 mr-2" />
                 Reconciliación Bancaria
               </TabsTrigger>
@@ -1468,7 +1468,7 @@ export default function Payments() {
                             {/* Banner de ajuste de cuota */}
                             {player.ajuste_cuota?.cuota_ajustada != null && (
                               <div className="mb-3 p-2 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
-                                <div className="flex items-center justify-between">
+                                <div className="flex min-w-0 items-center justify-between gap-3">
                                   <div>
                                     <p className="text-xs font-bold text-yellow-900">💰 Cuota Ajustada</p>
                                     <div className="flex items-center gap-2 mt-1">
