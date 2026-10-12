@@ -950,7 +950,7 @@ export default function PaymentReminders() {
       </Card>
 
       {/* Acciones masivas */}
-      <div className="flex gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full min-w-0">
         <Button
           onClick={selectAll}
           variant="outline"
@@ -962,7 +962,7 @@ export default function PaymentReminders() {
         <Button
           onClick={sendMassiveReminders}
           disabled={selectedFamilies.length === 0 || sendingMassive}
-          className="bg-orange-600 hover:bg-orange-700 active:scale-95 transition-transform"
+          className="w-full min-w-0 whitespace-normal h-auto min-h-10 py-2 bg-orange-600 hover:bg-orange-700 active:scale-95 transition-transform"
         >
           {sendingMassive ? (
             <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Enviando...</>
@@ -1000,8 +1000,8 @@ export default function PaymentReminders() {
           filteredFamilies.map(family => (
             <Card key={family.email} className="hover:shadow-lg transition-shadow">
               <CardHeader className="bg-slate-50 border-b">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 flex-1">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
                     <input
                       type="checkbox"
                       checked={selectedFamilies.includes(family.email)}
@@ -1009,7 +1009,7 @@ export default function PaymentReminders() {
                       className="w-5 h-5 rounded border-slate-300"
                     />
                     <div className="flex-1">
-                     <div className="flex items-center gap-2 mb-1">
+                     <div className="flex flex-wrap items-center gap-2 mb-1">
                        <CardTitle className="text-base">{family.nombre_tutor}</CardTitle>
                        {family.isStaff && (
                          <Badge className="bg-purple-500 text-white text-xs">
@@ -1017,7 +1017,7 @@ export default function PaymentReminders() {
                          </Badge>
                        )}
                      </div>
-                     <p className="text-xs text-slate-600">{family.email}</p>
+                     <p className="text-xs text-slate-600 break-all">{family.email}</p>
                      {family.recordatorioVeces > 0 ? (
                        <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-1.5 py-0.5 inline-block mt-1">
                          📨 Último recordatorio: {family.recordatorioUltimaFecha ? format(new Date(family.recordatorioUltimaFecha), "d MMM yyyy 'a las' HH:mm", { locale: es }) : "—"} · {family.recordatorioVeces} {family.recordatorioVeces === 1 ? "vez" : "veces"}
@@ -1045,8 +1045,8 @@ export default function PaymentReminders() {
                      )}
                     </div>
                     </div>
-                  <div className="text-right">
-                    <Badge className="bg-red-500 text-white mb-1">
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:text-right pl-8 sm:pl-0">
+                    <Badge className="max-w-full whitespace-normal text-center bg-red-500 text-white mb-1">
                       {family.totalPendingPayments} pendientes
                     </Badge>
                     <p className="text-lg font-bold text-red-600">{family.totalFamilyDue.toFixed(0)}€</p>
@@ -1056,7 +1056,7 @@ export default function PaymentReminders() {
               <CardContent className="p-4">
                 <div className="space-y-3">
                   {family.jugadores.map(jugador => (
-                    <div key={jugador.id} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg">
+                    <div key={jugador.id} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg min-w-0">
                       {jugador.foto_url ? (
                         <img src={jugador.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
                       ) : (
@@ -1070,7 +1070,7 @@ export default function PaymentReminders() {
                         {jugador.hasPendingPayments && (
                           <div className="mt-2 space-y-1">
                             {jugador.pendingMonths.map(m => (
-                              <div key={m.mes} className="flex justify-between text-xs">
+                              <div key={m.mes} className="flex flex-wrap justify-between gap-x-3 text-xs">
                                 <span className="text-red-600">• {m.mes}</span>
                                 <span className="font-semibold text-red-700">{m.cantidad}€</span>
                               </div>
@@ -1091,7 +1091,7 @@ export default function PaymentReminders() {
                   ))}
                 </div>
 
-                <div className="mt-4 pt-4 border-t flex justify-between items-center">
+                <div className="mt-4 pt-4 border-t flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                   <div>
                     <p className="text-sm font-semibold text-slate-700">Total familia:</p>
                     <p className="text-2xl font-bold text-red-600">{family.totalFamilyDue.toFixed(0)}€</p>
