@@ -90,7 +90,7 @@ export default function DeportistasTab({ exp, updateExp }) {
           ? "Temporada en curso: el listado se actualiza solo con cada nueva inscripción y queda guardado en el expediente."
           : `Listado guardado de la temporada${exp.snapshot_fecha ? ` (última actualización ${fmtDate(exp.snapshot_fecha)})` : ""}. Ya no cambia aunque se resetee o se inscriban jugadores nuevos.`}
       </div>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <IndicadorCard label="Deportistas" value={rows.length} />
         <IndicadorCard label="Menores de 18" value={data.menores} />
         <IndicadorCard label="Categorías" value={Object.keys(data.porCat).length} />
@@ -102,14 +102,14 @@ export default function DeportistasTab({ exp, updateExp }) {
         <p className="text-sm text-amber-700 flex items-center gap-1"><AlertTriangle className="w-4 h-4" /> Nombres repetidos (revísalos): {data.duplicados.join(", ")}</p>
       )}
       <div className="flex flex-wrap gap-2">
-        <Button onClick={exportarPdf} disabled={generando} className="bg-green-700 hover:bg-green-800">
+        <Button onClick={exportarPdf} disabled={generando} className="rounded-xl bg-orange-600 font-semibold hover:bg-orange-700">
           {generando ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <FileText className="w-4 h-4 mr-2" />} Descargar listado en PDF
         </Button>
         <Button onClick={exportar} variant="outline"><Download className="w-4 h-4 mr-2" /> Excel</Button>
       </div>
       <div className="grid md:grid-cols-2 gap-3">
         {Object.keys(data.porCat).sort().map((cat) => (
-          <Card key={cat} className="rounded-xl">
+          <Card key={cat} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <CardContent className="p-3">
               <p className="font-semibold text-sm text-slate-800 mb-1">{cat} · {data.porCat[cat].length}</p>
               <p className="text-xs text-slate-500 leading-relaxed">{data.porCat[cat].map((r) => r.nombre).join(" · ")}</p>
