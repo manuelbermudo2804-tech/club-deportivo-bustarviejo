@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Clock, MapPin, Calendar, Trash2, ExternalLink, Info } from "lucide-react";
+import { Plus, Clock, MapPin, Calendar, Trash2, ExternalLink, Info, CalendarDays } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
