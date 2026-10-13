@@ -129,8 +129,8 @@ export default function FamilyChatsHub() {
 
   const ConversationRow = ({ title, subtitle, lastMessage, lastMessageDate, unreadCount, url, icon: Icon, color, iconBg }) => (
     <Link to={url}>
-      <Card className="hover:shadow-lg transition-all cursor-pointer border-l-4" style={{ borderLeftColor: color }}>
-        <CardContent className="p-4">
+      <Card className="group cursor-pointer rounded-2xl border border-slate-200 border-l-4 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md" style={{ borderLeftColor: color }}>
+        <CardContent className="p-3 sm:p-4">
           <div className="flex items-center gap-3">
             <div className={`w-12 h-12 ${iconBg} rounded-full flex items-center justify-center flex-shrink-0`}>
               <Icon className="w-6 h-6 text-white" />
@@ -162,17 +162,15 @@ export default function FamilyChatsHub() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-4 py-6 pb-24 space-y-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
-            <MessageCircle className="w-6 h-6 text-white" />
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <div className="w-full min-w-0 space-y-6">
+        <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+          <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><MessageCircle className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+            <div className="min-w-0"><p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Comunicación · Club Deportivo Bustarviejo</p><h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Mis Conversaciones</h1><p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Todos tus chats con el club, equipos y coordinación.</p></div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">💬 Mis Conversaciones</h1>
-            <p className="text-sm text-slate-600">Todos tus chats con el club</p>
-          </div>
-        </div>
+        </section>
 
         {/* SECCIÓN 1: EQUIPOS - siempre una fila por cada categoría de mis hijos */}
         {myCategories.length > 0 && (
