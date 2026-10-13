@@ -42,10 +42,10 @@ export default function EquidadMinutosPanel({ players, matchStructure }) {
   const enRiesgo = filas.filter(f => f.nivel !== "verde").length;
 
   return (
-    <Card className="border-amber-200">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <Scale className="w-5 h-5 text-amber-600" />
+    <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <CardHeader className="border-b border-slate-100 bg-slate-50/80 p-4 pb-3 sm:p-5">
+        <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50"><Scale className="h-5 w-5 text-orange-600" /></div>
           Minuto de Oro · equidad del reparto
         </CardTitle>
         <p className="text-xs text-slate-500">
@@ -54,15 +54,15 @@ export default function EquidadMinutosPanel({ players, matchStructure }) {
             : `${enRiesgo} jugador(es) por debajo de la media`}
         </p>
       </CardHeader>
-      <CardContent className="space-y-1.5">
+      <CardContent className="space-y-1.5 p-4 sm:p-5">
         {filas.map(f => {
           const est = ESTILOS[f.nivel];
           return (
-            <div key={f.id} className="flex items-center gap-3 py-1.5 border-b last:border-0">
+            <div key={f.id} className="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1 border-b border-slate-100 py-2.5 last:border-0">
               <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${est.punto}`} />
-              <span className="flex-1 text-sm font-medium text-slate-800 truncate">{f.nombre}</span>
-              <span className="text-xs text-slate-500 w-16 text-right">{f.total} min</span>
-              <span className={`text-xs font-bold w-20 text-right ${est.texto}`}>
+              <span className="min-w-0 flex-1 truncate text-sm font-medium text-slate-800">{f.nombre}</span>
+              <span className="w-16 shrink-0 text-right text-xs text-slate-500">{f.total} min</span>
+              <span className={`w-20 shrink-0 text-right text-xs font-bold ${est.texto}`}>
                 {f.dif > 0 ? "+" : ""}{f.dif} min
               </span>
               <Badge variant="outline" className={`hidden sm:inline-flex text-[10px] ${est.texto}`}>
