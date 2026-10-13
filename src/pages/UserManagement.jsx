@@ -735,13 +735,19 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Gestión de Usuarios</h1>
-        <p className="text-slate-600 mt-1">Control de acceso, roles, permisos y entrenadores</p>
-        <div className="mt-3 flex flex-wrap gap-2">
+    <div className="min-w-0 space-y-5 p-3 sm:p-5 lg:p-8 bg-slate-50/70">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 sm:p-7 text-white shadow-lg">
+        <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <div className="mb-2 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-orange-500 shadow-md shadow-orange-950/30">
+              <Users className="h-6 w-6 text-white" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Gestión de Usuarios</h1>
+            <p className="mt-1 text-sm sm:text-base text-slate-300">Control de acceso, roles, permisos y entrenadores</p>
+          </div>
+          <div className="mt-1 flex w-full flex-wrap gap-2 sm:w-auto">
           <Button
-            className="bg-orange-600 hover:bg-orange-700"
+            className="w-full whitespace-normal rounded-xl bg-orange-500 hover:bg-orange-600 text-white shadow-sm sm:w-auto"
             onClick={() => {
               setPairingContext({ user: null, playerId: "", partnerEmail: "" });
               setShowPairDialog(true);
@@ -749,7 +755,9 @@ export default function UserManagement() {
           >
             👨‍👩‍👧 Casar progenitores manualmente
           </Button>
+          </div>
         </div>
+        <div className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-orange-500/10 blur-2xl" />
       </div>
 
       <EmailRelationLookup players={players} users={users} />
@@ -807,14 +815,14 @@ export default function UserManagement() {
         onDetectPairs={handleDetectPairs}
       />
 
-      <Card className="border-none shadow-lg">
-        <CardHeader className="py-3">
-          <CardTitle className="flex items-center gap-2 text-base">
+      <Card className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+        <CardHeader className="border-b border-slate-100 bg-white px-4 py-4 sm:px-5">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
             <Users className="w-4 h-4 text-orange-600" />
             Usuarios ({filteredUsers.length})
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-3">
+        <CardContent className="min-w-0 bg-white p-2 sm:p-4">
           {isLoading ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
