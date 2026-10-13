@@ -109,7 +109,7 @@ export default function MinorFifaCard({
       <div
         className="relative overflow-hidden"
         style={{
-          clipPath: "polygon(10% 0, 90% 0, 100% 8%, 100% 84%, 90% 100%, 10% 100%, 0 84%, 0 8%)",
+          clipPath: "polygon(28% 0, 72% 0, 83% 3%, 91% 10%, 97% 22%, 97% 77%, 88% 91%, 50% 100%, 12% 91%, 3% 77%, 3% 22%, 9% 10%, 17% 3%)",
           background: "linear-gradient(135deg, #fff0a8 0%, #b97819 12%, #fff4bd 25%, #d99527 52%, #fff0a8 78%, #9b5a12 100%)",
           padding: 2,
           filter: "drop-shadow(0 18px 25px rgba(0,0,0,.42))",
@@ -118,7 +118,7 @@ export default function MinorFifaCard({
         <div
           className="relative overflow-hidden"
           style={{
-            clipPath: "polygon(10% 0, 90% 0, 100% 8%, 100% 84%, 90% 100%, 10% 100%, 0 84%, 0 8%)",
+            clipPath: "polygon(28% 0, 72% 0, 83% 3%, 91% 10%, 97% 22%, 97% 77%, 88% 91%, 50% 100%, 12% 91%, 3% 77%, 3% 22%, 9% 10%, 17% 3%)",
             background: "linear-gradient(145deg, #fff9df 0%, #f3d58a 36%, #fff1bd 68%, #d7a34c 100%)",
           }}
         >
