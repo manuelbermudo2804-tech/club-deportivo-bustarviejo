@@ -854,34 +854,29 @@ export default function PaymentReminders() {
 
       {/* Resumen */}
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-red-600">{totalFamilies}</div>
-              <p className="text-xs text-slate-600 mt-1">Familias con pagos pendientes</p>
-            </div>
+        <Card className="rounded-2xl border border-red-200 bg-red-50/70 shadow-sm">
+          <CardContent className="flex items-center gap-4 p-4 sm:p-5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-red-100 text-red-700"><Users className="h-5 w-5" /></div>
+            <div className="min-w-0"><p className="text-xs font-medium text-red-800 sm:text-sm">Familias con deuda</p><p className="mt-1 text-3xl font-bold tracking-tight text-slate-950">{totalFamilies}</p></div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-orange-600">{totalPendingPayments}</div>
-              <p className="text-xs text-slate-600 mt-1">Pagos pendientes</p>
-            </div>
+        <Card className="rounded-2xl border border-orange-200 bg-orange-50/70 shadow-sm">
+          <CardContent className="flex items-center gap-4 p-4 sm:p-5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-700"><Bell className="h-5 w-5" /></div>
+            <div className="min-w-0"><p className="text-xs font-medium text-orange-800 sm:text-sm">Pagos pendientes</p><p className="mt-1 text-3xl font-bold tracking-tight text-slate-950">{totalPendingPayments}</p></div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-600">{totalPendingAmount.toFixed(0)}€</div>
-              <p className="text-xs text-slate-600 mt-1">Total pendiente</p>
-            </div>
+        <Card className="rounded-2xl border border-emerald-200 bg-emerald-50/70 shadow-sm">
+          <CardContent className="flex items-center gap-4 p-4 sm:p-5">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700"><Mail className="h-5 w-5" /></div>
+            <div className="min-w-0"><p className="text-xs font-medium text-emerald-800 sm:text-sm">Importe total pendiente</p><p className="mt-1 text-3xl font-bold tracking-tight text-slate-950">{totalPendingAmount.toFixed(0)}€</p></div>
           </CardContent>
         </Card>
       </div>
 
       {/* Búsqueda y filtros */}
-      <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm">
+      <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-100 px-4 py-3 sm:px-5"><CardTitle className="text-sm font-semibold text-slate-800">Buscar y filtrar familias</CardTitle></CardHeader>
         <CardContent className="min-w-0 space-y-3 p-3 sm:p-4">
           <Input
             placeholder="🔍 Buscar familia o jugador..."
