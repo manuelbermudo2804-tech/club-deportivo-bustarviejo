@@ -3,9 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 
 function Kpi({ value, label, hint, color }) {
   return (
-    <Card>
+    <Card className="rounded-xl border-slate-200/80 shadow-sm transition-shadow hover:shadow-md">
       <CardContent className="p-4">
-        <div className={`text-2xl font-bold ${color}`}>{value}</div>
+        <div className={`text-2xl font-bold tracking-tight ${color}`}>{value}</div>
         <div className="text-xs text-slate-600">{label}</div>
         {hint && <div className="text-xs text-slate-400">{hint}</div>}
       </CardContent>
