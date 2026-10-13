@@ -187,35 +187,29 @@ export default function SocialHub() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-      <div className="px-4 lg:px-8 py-6 space-y-5 max-w-2xl mx-auto">
+    <div className="min-h-screen bg-slate-50">
+      <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
 
-        {/* Header */}
-        <div className="text-center">
-          <div className="flex items-center justify-center gap-3 mb-3">
-            <div className="w-14 h-14 bg-gradient-to-br from-sky-400 to-blue-600 rounded-2xl flex items-center justify-center shadow-xl ring-2 ring-sky-400/30">
-              <Send className="w-7 h-7 text-white" />
+        {/* Cabecera común del club */}
+        <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 sm:h-14 sm:w-14">
+                <Send className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
+              </div>
+              <div className="min-w-0">
+                <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Comunicación y redes sociales</p>
+                <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Centro de Difusión Social</h1>
+                <p className="mt-1 text-sm text-slate-300"><span className="font-semibold text-orange-300">IA</span> · Telegram · App · WhatsApp · Redes</p>
+              </div>
             </div>
-            <div className="text-slate-500 text-2xl font-light">+</div>
-            <div className="w-14 h-14 bg-gradient-to-br from-orange-400 to-red-600 rounded-2xl flex items-center justify-center shadow-xl ring-2 ring-orange-400/30">
-              <Sparkles className="w-7 h-7 text-white" />
-            </div>
-          </div>
-          <h1 className="text-2xl lg:text-3xl font-black text-white tracking-tight">
-            Centro de Difusión Social
-          </h1>
-          <p className="text-slate-400 text-sm mt-1.5">
-            <span className="text-orange-400 font-semibold">IA</span> · Telegram · App · WhatsApp · Redes
-          </p>
-
-          {history.length > 0 && (
-            <div className="flex items-center justify-center gap-2 mt-3 flex-wrap">
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-700 text-xs text-slate-300">
-                <Clock className="w-3 h-3" />
-                {history.length} publicaciones
+            {history.length > 0 && (
+              <span className="inline-flex w-fit shrink-0 items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-2 text-xs font-medium text-slate-200">
+                <Clock className="h-3.5 w-3.5 text-orange-300" />
+                {history.length} publicaciones recientes
               </span>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {view === 'menu' && (
@@ -226,15 +220,15 @@ export default function SocialHub() {
             <ContentTypeGrid onSelect={selectType} search={search} />
 
             {history.length > 0 && (
-              <div className="bg-slate-800/60 rounded-2xl p-4 space-y-2">
-                <p className="text-slate-300 text-xs font-bold flex items-center gap-1.5">
-                  <Clock className="w-3.5 h-3.5" /> Últimas publicaciones
+              <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                <p className="flex items-center gap-2 text-sm font-bold text-slate-900">
+                  <Clock className="h-4 w-4 text-orange-600" /> Últimas publicaciones
                 </p>
                 {history.slice(0, 5).map((post) => (
-                  <div key={post.id} className="flex items-center gap-2 text-sm">
-                    <span className="text-green-400">✓</span>
-                    <span className="text-slate-300 truncate flex-1">{post.titulo}</span>
-                    <span className="text-slate-500 text-xs">{moment(post.created_date).format("DD/MM")}</span>
+                  <div key={post.id} className="flex min-w-0 items-center gap-3 border-t border-slate-100 pt-3 text-sm">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-emerald-700">✓</span>
+                    <span className="min-w-0 flex-1 truncate text-slate-700">{post.titulo}</span>
+                    <span className="shrink-0 text-xs text-slate-400">{moment(post.created_date).format("DD/MM")}</span>
                   </div>
                 ))}
               </div>
