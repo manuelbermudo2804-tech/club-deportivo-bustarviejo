@@ -825,13 +825,16 @@ export default function Payments() {
 
   return (
     <div className="min-h-screen w-full min-w-0 max-w-full overflow-x-hidden overflow-y-auto box-border p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6 pb-28 [&_*]:min-w-0">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 break-words">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-xl sm:p-7 lg:p-8">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+        <div className="min-w-0">
+          <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-orange-300"><span className="h-2 w-2 rounded-full bg-orange-400" /> Administración · Finanzas</div>
+          <h1 className="text-2xl font-bold tracking-tight text-white break-words sm:text-3xl lg:text-4xl">
             {isAdmin ? "Gestión de Pagos" : isCoach ? "Mis Pagos" : "Pagos"}
           </h1>
-          <p className="text-slate-600 mt-1">
-            {isAdmin ? "Gestiona las cuotas y justificantes de todos los jugadores" : "Gestiona tus cuotas y justificantes"}
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
+            {isAdmin ? "Controla las cuotas, revisa justificantes y consulta la recaudación del club desde un único lugar." : "Gestiona tus cuotas y justificantes"}
           </p>
           {filteredPlayer && (
             <div className="flex items-center gap-2 mt-3">
@@ -852,7 +855,7 @@ export default function Payments() {
             </div>
           )}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 xl:flex gap-2 w-full xl:w-auto min-w-0">
+        <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 xl:w-auto xl:min-w-[480px]">
           {filteredPayments.length > 0 && (
             <ExportButton
               data={prepareExportData()}
@@ -873,13 +876,13 @@ export default function Payments() {
               }
             }}
             variant="outline"
-            className="w-full min-w-0 shadow-lg"
+            className="h-11 w-full min-w-0 rounded-xl border-white/20 bg-white/10 text-white shadow-none hover:bg-white/15 hover:text-white"
           >
             <RefreshCw className="w-5 h-5" />
           </Button>
           {isAdmin && (
             <Link to={createPageUrl("MorososManagement")} className="flex-1 sm:flex-none min-w-0">
-              <Button variant="outline" className="border-red-400 text-red-700 hover:bg-red-50 shadow-lg w-full justify-center min-w-0">
+              <Button variant="outline" className="h-11 w-full min-w-0 justify-center rounded-xl border-red-300/50 bg-red-500/10 text-red-100 shadow-none hover:bg-red-500/20 hover:text-white">
                 <ShieldAlert className="w-5 h-5 mr-2 flex-shrink-0" />
                 <span className="truncate">Gestión de Morosos</span>
               </Button>
@@ -894,16 +897,17 @@ export default function Payments() {
                 }, 100);
               }
             }}
-            className="bg-orange-600 hover:bg-orange-700 shadow-lg flex-1 sm:flex-none justify-center min-w-0"
+            className="h-11 min-w-0 justify-center rounded-xl bg-orange-500 shadow-md hover:bg-orange-400 sm:col-span-1"
           >
             <Plus className="w-5 h-5 mr-2 flex-shrink-0" />
             <span className="truncate">Registrar Pago</span>
           </Button>
         </div>
-      </div>
+        </div>
+      </section>
 
-      {/* Stats mejoradas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 gap-3 sm:gap-4">
+      {/* Resumen de pagos */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5 sm:gap-4">
         <Card onClick={() => { if (!isAdmin) return; setActiveTab('pagos'); setShowOverdueOnly(false); setEstadoFilter('Pendiente'); }} className="border-none shadow-lg bg-white cursor-pointer hover:ring-2 hover:ring-orange-300">
           <CardContent className="pt-6">
             <div className="flex min-w-0 items-center justify-between gap-3">
@@ -1009,14 +1013,14 @@ export default function Payments() {
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="w-full h-auto flex flex-wrap sm:flex-nowrap gap-1">
-          <TabsTrigger value="pagos" className="flex-1 min-w-0 whitespace-normal text-xs sm:text-sm py-2">Gestión de Pagos</TabsTrigger>
+        <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1.5 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:flex-nowrap">
+          <TabsTrigger value="pagos" className="min-w-0 flex-1 whitespace-normal rounded-xl py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">Gestión de Pagos</TabsTrigger>
           {isAdmin && (
             <>
-              <TabsTrigger value="planes" className="flex-1 min-w-0 whitespace-normal text-xs sm:text-sm py-2">
+              <TabsTrigger value="planes" className="min-w-0 flex-1 whitespace-normal rounded-xl py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">
                  💰 Planes Especiales ({customPlans.filter(p => p.estado === "Activo").length})
                </TabsTrigger>
-              <TabsTrigger value="reconciliacion" className="flex-1 min-w-0 whitespace-normal text-xs sm:text-sm py-2">
+              <TabsTrigger value="reconciliacion" className="min-w-0 flex-1 whitespace-normal rounded-xl py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">
                 <FileSpreadsheet className="w-4 h-4 mr-2" />
                 Reconciliación Bancaria
               </TabsTrigger>
@@ -1027,15 +1031,15 @@ export default function Payments() {
         <TabsContent value="pagos" className="space-y-6">
           {/* Filtros avanzados */}
           {isAdmin && (
-            <Card className="border-none shadow-lg bg-white">
-              <CardHeader className="border-b border-slate-100">
+            <Card className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+              <CardHeader className="border-b border-slate-100 bg-slate-50/80 px-4 py-4 sm:px-6">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Filter className="w-5 h-5" />
                   Filtros Avanzados
                 </CardTitle>
               </CardHeader>
-              <CardContent className="pt-4">
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <CardContent className="p-4 sm:p-6">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-5">
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Jugador</label>
                     <Select value={playerFilter} onValueChange={setPlayerFilter}>
