@@ -6,7 +6,7 @@ import { createPageUrl } from "@/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Trophy, Plus, Settings, Trash2, Calendar } from "lucide-react";
+import { Trophy, Plus, Settings, Trash2, Calendar, Medal } from "lucide-react";
 import { toast } from "sonner";
 import TorneoForm from "@/components/torneos/TorneoForm";
 
@@ -47,20 +47,27 @@ export default function TorneosAdmin() {
   }
 
   return (
-    <div className="p-4 lg:p-6 max-w-3xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-amber-500" /> Torneos
-          </h1>
-          <p className="text-slate-500 text-sm">Constructor de torneos multideporte</p>
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+      <section className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 px-5 py-6 shadow-lg sm:px-7 sm:py-7">
+        <div className="absolute -right-8 -top-10 h-40 w-40 rounded-full bg-orange-500/10 blur-2xl" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-orange-400/30 bg-orange-500/15">
+              <Trophy className="h-6 w-6 text-orange-300" />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Competición</p>
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Torneos</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Crea y organiza torneos multideporte, sus sedes, fechas y sistemas de puntuación.</p>
+            </div>
+          </div>
+          {!creando && (
+            <Button onClick={() => setCreando(true)} className="w-full shrink-0 bg-orange-500 text-white hover:bg-orange-600 sm:w-auto">
+              <Plus className="mr-1 h-4 w-4" /> Nuevo torneo
+            </Button>
+          )}
         </div>
-        {!creando && (
-          <Button onClick={() => setCreando(true)}>
-            <Plus className="w-4 h-4 mr-1" /> Nuevo torneo
-          </Button>
-        )}
-      </div>
+      </section>
 
       {creando && (
         <TorneoForm
@@ -73,9 +80,11 @@ export default function TorneosAdmin() {
       {isLoading ? (
         <p className="text-center text-slate-400 py-8">Cargando...</p>
       ) : torneos.length === 0 && !creando ? (
-        <div className="text-center py-12 text-slate-400">
-          <Trophy className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p>Aún no hay torneos. Crea el primero.</p>
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-12 text-center text-slate-500">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-orange-500"><Trophy className="h-7 w-7" /></div>
+          <p className="font-semibold text-slate-800">Todavía no hay torneos</p>
+          <p className="mt-1 text-sm">Crea el primero para empezar a configurar la competición.</p>
+          <Button onClick={() => setCreando(true)} className="mt-4 bg-orange-500 text-white hover:bg-orange-600"><Plus className="mr-1 h-4 w-4" /> Crear torneo</Button>
         </div>
       ) : (
         <div className="space-y-2">
