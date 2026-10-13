@@ -82,14 +82,14 @@ export default function SubirContenidoForm({ user, onDone }) {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-5">
-      <p className="text-sm text-slate-600 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-        Los tres pasos son obligatorios: <strong>de qué equipo es</strong>, <strong>las fotos o el vídeo</strong> y <strong>qué se ve</strong>.
+    <div className="space-y-5 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+      <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm leading-relaxed text-slate-600">
+        Para enviarlo, completa los tres pasos: <strong className="text-slate-800">equipo</strong>, <strong className="text-slate-800">archivo</strong> y <strong className="text-slate-800">descripción</strong>.
       </p>
 
       {/* Paso 1 */}
       <div>
-        <p className="font-bold text-slate-800 mb-2">1. ¿De qué equipo es? <span className="text-red-600">*</span></p>
+        <p className="mb-2 font-bold text-slate-800">1. ¿De qué equipo es? <span className="text-orange-600">*</span></p>
         <Select value={equipo} onValueChange={setEquipo}>
           <SelectTrigger className="h-12 text-base">
             <SelectValue placeholder="Elige el equipo" />
@@ -104,7 +104,7 @@ export default function SubirContenidoForm({ user, onDone }) {
 
       {/* Paso 2 */}
       <div>
-        <p className="font-bold text-slate-800 mb-2">2. Elige las fotos o el vídeo <span className="text-red-600">*</span></p>
+        <p className="mb-2 font-bold text-slate-800">2. Elige las fotos o el vídeo <span className="text-orange-600">*</span></p>
         <input
           ref={inputRef}
           type="file"
@@ -116,7 +116,7 @@ export default function SubirContenidoForm({ user, onDone }) {
         <button
           type="button"
           onClick={() => inputRef.current?.click()}
-          className="w-full border-2 border-dashed border-orange-300 bg-orange-50 rounded-2xl py-8 flex flex-col items-center gap-2 hover:bg-orange-100"
+          className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-orange-300 bg-orange-50 px-4 py-8 transition-colors hover:bg-orange-100 sm:py-10"
         >
           <Camera className="w-9 h-9 text-orange-500" />
           <span className="font-bold text-orange-700">Pulsa aquí para elegir</span>
@@ -148,7 +148,7 @@ export default function SubirContenidoForm({ user, onDone }) {
 
       {/* Paso 3 */}
       <div>
-        <p className="font-bold text-slate-800 mb-2">3. ¿Qué se ve? <span className="text-red-600">*</span></p>
+        <p className="mb-2 font-bold text-slate-800">3. ¿Qué se ve? <span className="text-orange-600">*</span></p>
         <Textarea
           value={descripcion}
           onChange={(e) => setDescripcion(e.target.value)}
@@ -174,7 +174,7 @@ export default function SubirContenidoForm({ user, onDone }) {
       <Button
         onClick={enviar}
         disabled={subiendo}
-        className="w-full h-14 text-lg font-bold bg-orange-600 hover:bg-orange-700"
+        className="h-14 w-full rounded-xl bg-orange-600 text-base font-bold text-white shadow-sm hover:bg-orange-700 sm:text-lg"
       >
         {subiendo ? (
           <>
