@@ -783,61 +783,67 @@ export default function Players() {
         </div>
       )}
 
-      <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm sm:p-4">
-        <div className="mb-3 flex items-center gap-2 px-1"><div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-600"><Contact className="h-4 w-4" /></div><div><h2 className="text-sm font-bold text-slate-900 sm:text-base">Herramientas de gestión</h2><p className="text-xs text-slate-500">Altas, exportaciones y mantenimiento de fichas</p></div></div>
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="flex flex-col gap-3 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-700 ring-1 ring-orange-200"><Contact className="h-5 w-5" /></div>
+            <div className="min-w-0"><h2 className="text-base font-bold leading-tight text-slate-900 sm:text-lg">Herramientas de gestión</h2><p className="mt-1 text-xs leading-relaxed text-slate-500 sm:text-sm">Altas, exportaciones y mantenimiento de fichas</p></div>
+          </div>
+          <span className="self-start rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold text-slate-500 sm:self-auto">Acciones de plantilla</span>
+        </div>
+        <div className="grid grid-cols-1 gap-2 p-3 min-[420px]:grid-cols-2 sm:gap-3 sm:p-4 lg:grid-cols-3 2xl:flex 2xl:flex-wrap">
           {isAdmin && filteredPlayers.length > 0 && (
             <Button
               onClick={handleDownloadContactsVcf}
               variant="outline"
-              className="border-green-600 text-green-700 hover:bg-green-50 bg-green-50/50 w-full sm:w-auto justify-center min-w-0"
+              className="h-auto min-h-11 w-full min-w-0 justify-start whitespace-normal rounded-xl border-green-200 bg-green-50/70 px-3 py-2 text-left text-sm leading-snug text-green-800 hover:border-green-300 hover:bg-green-100 sm:justify-center sm:text-center 2xl:w-auto"
               title="Descarga un archivo de contactos del filtro actual. Ábrelo en el móvil para guardarlos en tu agenda y crear grupos en WhatsApp."
             >
-              <Contact className="w-5 h-5 mr-2 flex-shrink-0" />
-              <span className="truncate">Descargar contactos</span>
+              <Contact className="mr-2 h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
+              <span>Descargar contactos</span>
             </Button>
           )}
           {isAdmin && filteredPlayers.length > 0 && (
             <Button
               onClick={handleExportPlayers}
               variant="outline"
-              className="border-green-600 text-green-600 hover:bg-green-50 w-full sm:w-auto justify-center min-w-0"
+              className="h-auto min-h-11 w-full min-w-0 justify-start whitespace-normal rounded-xl border-green-200 bg-white px-3 py-2 text-left text-sm leading-snug text-green-800 hover:bg-green-50 sm:justify-center sm:text-center 2xl:w-auto"
             >
-              <Download className="w-5 h-5 mr-2 flex-shrink-0" />
-              <span className="truncate">Exportar CSV ({filteredPlayers.length})</span>
+              <Download className="mr-2 h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
+              <span>Exportar CSV ({filteredPlayers.length})</span>
             </Button>
           )}
           {isAdmin && allPlayers.length > 0 && (
             <Button
               onClick={handleBackupExcel}
               variant="outline"
-              className="border-blue-600 text-blue-600 hover:bg-blue-50 w-full sm:w-auto justify-center min-w-0"
+              className="h-auto min-h-11 w-full min-w-0 justify-start whitespace-normal rounded-xl border-blue-200 bg-white px-3 py-2 text-left text-sm leading-snug text-blue-800 hover:bg-blue-50 sm:justify-center sm:text-center 2xl:w-auto"
               title="Descargar backup completo de TODOS los jugadores en Excel"
             >
-              <Download className="w-5 h-5 mr-2 flex-shrink-0" />
-              <span className="truncate">Backup Excel ({allPlayers.length})</span>
+              <Download className="mr-2 h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
+              <span>Backup Excel ({allPlayers.length})</span>
             </Button>
           )}
           {isAdmin && (
             <Button
               onClick={() => setShowBulkMove(true)}
               variant="outline"
-              className="border-orange-600 text-orange-700 hover:bg-orange-50 w-full sm:w-auto justify-center min-w-0"
+              className="h-auto min-h-11 w-full min-w-0 justify-start whitespace-normal rounded-xl border-orange-200 bg-orange-50/50 px-3 py-2 text-left text-sm leading-snug text-orange-800 hover:bg-orange-100 sm:justify-center sm:text-center 2xl:w-auto"
               title="Mover varios jugadores de una categoría a otra sin cambiar sus cuotas"
             >
-              <Users className="w-5 h-5 mr-2 flex-shrink-0" />
-              <span className="truncate">Juntar categorías</span>
+              <Users className="mr-2 h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
+              <span>Juntar categorías</span>
             </Button>
           )}
           {isAdmin && (
             <Button
               onClick={() => setShowEmailChange(true)}
               variant="outline"
-              className="border-purple-600 text-purple-700 hover:bg-purple-50 w-full sm:w-auto justify-center min-w-0"
+              className="h-auto min-h-11 w-full min-w-0 justify-start whitespace-normal rounded-xl border-purple-200 bg-purple-50/50 px-3 py-2 text-left text-sm leading-snug text-purple-800 hover:bg-purple-100 sm:justify-center sm:text-center 2xl:w-auto"
               title="Cambiar el correo de una familia manteniendo todos los datos del jugador"
             >
-              <Mail className="w-5 h-5 mr-2 flex-shrink-0" />
-              <span className="truncate">Cambiar correo</span>
+              <Mail className="mr-2 h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
+              <span>Cambiar correo</span>
             </Button>
           )}
           {isAdmin && (
@@ -846,14 +852,14 @@ export default function Players() {
                 setEditingPlayer(null);
                 setShowForm(!showForm);
               }}
-              className="bg-orange-600 hover:bg-orange-700 shadow-lg w-full sm:w-auto justify-center min-w-0"
+              className="h-auto min-h-11 w-full min-w-0 justify-start whitespace-normal rounded-xl bg-orange-600 px-3 py-2 text-left text-sm leading-snug text-white shadow-sm hover:bg-orange-700 sm:justify-center sm:text-center 2xl:w-auto"
             >
-              <Plus className="w-5 h-5 mr-2 flex-shrink-0" />
-              <span className="truncate">Nuevo Jugador</span>
+              <Plus className="mr-2 h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
+              <span>Nuevo jugador</span>
             </Button>
           )}
         </div>
-      </div>
+      </section>
 
       <AnimatePresence>
         {showForm && (
