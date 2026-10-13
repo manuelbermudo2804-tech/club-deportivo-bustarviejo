@@ -115,14 +115,22 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
   };
   const attendedStatus = status => ["presente", "tardanza", "asistio", "asistió"].includes(status);
 
+  // Las faltas justificadas no rompen la racha (tampoco suman)
   let racha = 0;
   for (const att of playerAttendances) {
-    if (attendedStatus(getAttendanceStatus(att))) {
-      racha++;
-    } else {
-      break;
-    }
+    const status = getAttendanceStatus(att);
+    if (status === "justificado") continue;
+    if (attendedStatus(status)) racha++;
+    else break;
   }
+
+  // Si no hay evaluaciones formales, usar la nota de actitud que pone el entrenador al pasar lista
+  const actitudScores = playerAttendances
+    .map(a => Number(a.asistencias?.find(x => String(x.jugador_id) === String(playerId))?.actitud))
+    .filter(v => Number.isFinite(v) && v > 0);
+  const avgEvalFinal = avgEval ?? (actitudScores.length > 0
+    ? (actitudScores.reduce((s, v) => s + v, 0) / actitudScores.length).toFixed(1)
+    : null);
 
   // Total entrenamientos asistidos
   const totalTrainings = playerAttendances.filter(a => attendedStatus(getAttendanceStatus(a))).length;
@@ -146,7 +154,7 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
 
   const stats = [
     { icon: "🏟️", label: "Convocatorias", value: `${convocatoriasConfirmadas}/${totalConvocatorias}`, color: "text-blue-700 bg-blue-50 border-blue-200", show: totalConvocatorias > 0 },
-    { icon: "⭐", label: "Evaluación", value: avgEval ? `${avgEval}/5` : "—", color: "text-yellow-700 bg-yellow-50 border-yellow-200", show: true },
+    { icon: "⭐", label: "Evaluación", value: avgEvalFinal ? `${avgEvalFinal}/5` : "—", color: "text-yellow-700 bg-yellow-50 border-yellow-200", show: true },
     { icon: "📋", label: "Entrenamientos", value: `${totalTrainings}/${totalTrainingsSessions}`, color: "text-purple-700 bg-purple-50 border-purple-200", show: totalTrainingsSessions > 0 },
     { icon: "🔥", label: "Racha", value: racha > 0 ? `${racha} seguidos` : "—", color: "text-orange-700 bg-orange-50 border-orange-200", show: true },
     { icon: "💳", label: "Pagos", value: paymentStatus ? "Al día ✅" : pendingPayments > 0 ? `${pendingPayments} pend.` : paymentsInReview > 0 ? `${paymentsInReview} en revisión` : "—", color: paymentStatus ? "text-green-700 bg-green-50 border-green-200" : "text-amber-700 bg-amber-50 border-amber-200", show: seasonPayments.length > 0 },
@@ -208,7 +216,7 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
       </div>
 
       {/* Logros */}
-      {(racha >= 5 || totalTrainings >= 20 || Number(avgEval) >= 4) && (
+      {(racha >= 5 || totalTrainings >= 20 || Number(avgEvalFinal) >= 4) && (
         <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-xl p-3">
           <p className="text-xs font-bold text-yellow-900 mb-2">🏅 Logros</p>
           <div className="flex flex-wrap gap-2">
@@ -216,7 +224,7 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
             {racha >= 10 && <Badge className="bg-orange-200 text-orange-900 text-xs">💪 Racha +10 entrenamientos</Badge>}
             {totalTrainings >= 20 && <Badge className="bg-purple-100 text-purple-800 text-xs">📋 +20 entrenamientos</Badge>}
             {totalTrainings >= 50 && <Badge className="bg-purple-200 text-purple-900 text-xs">🏆 +50 entrenamientos</Badge>}
-            {avgEval >= 4 && <Badge className="bg-yellow-100 text-yellow-800 text-xs">⭐ Evaluación destacada</Badge>}
+            {Number(avgEvalFinal) >= 4 && <Badge className="bg-yellow-100 text-yellow-800 text-xs">⭐ Evaluación destacada</Badge>}
             {antiguedad >= 3 && <Badge className="bg-slate-200 text-slate-800 text-xs">🏅 Veterano ({antiguedad} temp.)</Badge>}
           </div>
         </div>
