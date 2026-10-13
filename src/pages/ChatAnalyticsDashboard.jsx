@@ -107,15 +107,23 @@ export default function ChatAnalyticsDashboard() {
   }));
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900">📊 Estadísticas de Chat</h1>
-        <p className="text-slate-600">Monitoreo de participación y actividad en últimos 30 días</p>
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 sm:h-14 sm:w-14">
+            <MessageSquare className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
+          </div>
+          <div className="min-w-0">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Actividad y participación</p>
+            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Estadísticas de Chat</h1>
+            <p className="mt-1 text-sm text-slate-300">Participación, tiempos de respuesta y actividad de los últimos 30 días</p>
+          </div>
+        </div>
       </div>
 
       {/* KPIs */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-slate-600">Total Mensajes</CardTitle>
           </CardHeader>
@@ -125,7 +133,7 @@ export default function ChatAnalyticsDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-slate-600">Usuarios Activos</CardTitle>
           </CardHeader>
@@ -135,7 +143,7 @@ export default function ChatAnalyticsDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-slate-600">Inactivos</CardTitle>
           </CardHeader>
@@ -145,7 +153,7 @@ export default function ChatAnalyticsDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-slate-600">Engagement</CardTitle>
           </CardHeader>
@@ -176,7 +184,7 @@ export default function ChatAnalyticsDashboard() {
 
       {/* NUEVA SECCIÓN: Tiempo de Primera Respuesta */}
       {firstResponseData.length > 0 && (
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <CardHeader>
             <CardTitle className="text-blue-700 flex items-center gap-2">
               <Timer className="w-5 h-5" /> ⏱️ Tiempo de Primera Respuesta por Rol
@@ -192,7 +200,7 @@ export default function ChatAnalyticsDashboard() {
                 <Bar dataKey="tiempo" fill="#3b82f6" />
               </BarChart>
             </ResponsiveContainer>
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
               {firstResponseData.map(item => (
                 <div key={item.rol} className="bg-white rounded-lg p-3 text-center border border-blue-200">
                   <p className="text-xs text-slate-600 mb-1">{item.rol}</p>
@@ -208,7 +216,7 @@ export default function ChatAnalyticsDashboard() {
       {/* NUEVA SECCIÓN: Historial de Escalados */}
       {escalationData.length > 0 && (
         <div className="space-y-4">
-          <Card className="border-orange-200 bg-orange-50">
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <CardHeader>
               <CardTitle className="text-orange-700 flex items-center gap-2">
                 <ArrowUpRight className="w-5 h-5" /> 🔄 Historial de Escalados (últimos 20)
@@ -216,7 +224,7 @@ export default function ChatAnalyticsDashboard() {
             </CardHeader>
             <CardContent>
               {/* Resumen de escalados */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 <div className="bg-white rounded-lg p-3 text-center border border-orange-200">
                   <p className="text-xs text-slate-600 mb-1">Total</p>
                   <p className="text-2xl font-bold text-orange-600">{escalationStats.total}</p>
@@ -247,7 +255,7 @@ export default function ChatAnalyticsDashboard() {
               )}
 
               {/* Lista de escalados */}
-              <div className="space-y-2 max-h-96 overflow-y-auto">
+              <div className="max-h-96 space-y-2 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 p-2 sm:p-3">
                 {escalationData.map((escalation, idx) => (
                   <div key={idx} className="p-3 bg-white rounded-lg border border-orange-200">
                     <div className="flex items-start justify-between mb-2">
@@ -330,7 +338,7 @@ export default function ChatAnalyticsDashboard() {
 
        {/* Comparativa semanal */}
        {weeklyData.length > 0 && (
-         <Card>
+         <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
            <CardHeader>
              <CardTitle>📈 Evolución Semanal</CardTitle>
            </CardHeader>
@@ -352,7 +360,7 @@ export default function ChatAnalyticsDashboard() {
 
        {/* Tiempo de respuesta */}
        {responseTimeData.length > 0 && (
-         <Card>
+         <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
            <CardHeader>
              <CardTitle>⏱️ Tiempo Promedio de Respuesta</CardTitle>
            </CardHeader>
@@ -372,7 +380,7 @@ export default function ChatAnalyticsDashboard() {
 
        {/* Actividad por equipo */}
        {teamActivityData.length > 0 && (
-         <Card>
+         <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
            <CardHeader>
              <CardTitle>🏆 Actividad por Equipo/Categoría</CardTitle>
            </CardHeader>
@@ -394,7 +402,7 @@ export default function ChatAnalyticsDashboard() {
 
        {/* Contenido compartido */}
        {sharedContentData.some(item => item.value > 0) && (
-         <Card>
+         <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
            <CardHeader>
              <CardTitle>📎 Contenido Compartido</CardTitle>
            </CardHeader>
@@ -567,7 +575,7 @@ export default function ChatAnalyticsDashboard() {
           </div>
 
           {/* Gráfico de distribución de sentimiento */}
-          <Card>
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <CardHeader>
               <CardTitle>📊 Distribución de Sentimiento</CardTitle>
             </CardHeader>
@@ -636,7 +644,7 @@ export default function ChatAnalyticsDashboard() {
 
           {/* Sentimiento por categoría - MEJORADO */}
           {Object.keys(analytics.sentiment.byCategory).length > 0 && (
-            <Card>
+            <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
               <CardHeader>
                 <CardTitle>🎯 Sentimiento por Equipo/Categoría</CardTitle>
                 <p className="text-sm text-slate-600 mt-1">Identifica áreas de mejora en la comunicación</p>
@@ -693,7 +701,7 @@ export default function ChatAnalyticsDashboard() {
 
        {/* KPIs de Tendencias */}
        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
               <TrendingUp className="w-4 h-4" /> Tendencia Participación
@@ -705,7 +713,7 @@ export default function ChatAnalyticsDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
               <Clock className="w-4 h-4" /> Horario Pico
@@ -717,7 +725,7 @@ export default function ChatAnalyticsDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-sm font-medium text-slate-600 flex items-center gap-2">
               <Zap className="w-4 h-4" /> Velocidad Respuesta
