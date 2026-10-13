@@ -102,17 +102,17 @@ export default function LoteriaCampanaAdmin() {
 
   return (
     <div className="space-y-4">
-      <Card className="border-2 border-red-200">
-        <CardHeader className="bg-gradient-to-r from-red-50 to-green-50">
-          <CardTitle className="text-lg flex items-center justify-between gap-3">
+      <Card className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 text-white">
+          <CardTitle className="flex items-center justify-between gap-3 text-lg text-white">
             <span>🎄 Campaña de lotería (página pública)</span>
-            <a href="/loteria" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 flex items-center gap-1">
+            <a href="/loteria" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-sm text-orange-300 hover:text-white">
               Ver página <ExternalLink className="w-4 h-4" />
             </a>
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4 space-y-4">
-          <div className="flex items-center justify-between bg-slate-50 rounded-xl p-3">
+          <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <div>
               <p className="font-semibold text-slate-900">Página pública activa</p>
               <p className="text-xs text-slate-600">Si la desactivas, la página deja de mostrar la campaña</p>
@@ -120,7 +120,7 @@ export default function LoteriaCampanaAdmin() {
             <Switch checked={form.activa === true} onCheckedChange={(v) => setForm({ ...form, activa: v })} />
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div className="space-y-1">
               <Label>Título</Label>
               <Input value={form.titulo || ""} onChange={(e) => setForm({ ...form, titulo: e.target.value })} />
@@ -165,7 +165,7 @@ export default function LoteriaCampanaAdmin() {
             </div>
           </div>
 
-          <Button onClick={() => guardarCampana.mutate(form)} disabled={guardarCampana.isPending} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={() => guardarCampana.mutate(form)} disabled={guardarCampana.isPending} className="bg-orange-600 font-semibold hover:bg-orange-700">
             {guardarCampana.isPending ? "Guardando..." : "Guardar campaña"}
           </Button>
         </CardContent>
@@ -173,9 +173,9 @@ export default function LoteriaCampanaAdmin() {
 
       <LoteriaPremioAdmin campana={campana} />
 
-      <Card className="border-2 border-orange-200">
-        <CardHeader className="bg-orange-50 flex-row items-center justify-between">
-          <CardTitle className="text-lg">🏪 Comercios colaboradores</CardTitle>
+      <Card className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="flex-row items-center justify-between gap-3 bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 text-white">
+          <CardTitle className="text-lg text-white">🏪 Comercios colaboradores</CardTitle>
           <Button size="sm" onClick={() => setEditando("nuevo")} className="bg-orange-600 hover:bg-orange-700">
             <Plus className="w-4 h-4 mr-1" /> Añadir
           </Button>
@@ -201,7 +201,7 @@ export default function LoteriaCampanaAdmin() {
                 onCancel={() => setEditando(null)}
               />
             ) : (
-              <div key={c.id} className="flex items-center gap-3 bg-white border rounded-xl p-3">
+              <div key={c.id} className="flex min-w-0 flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:flex-nowrap">
                 <div className="flex flex-col gap-1 shrink-0">
                   <Button size="sm" variant="outline" className="h-6 w-7 p-0" disabled={index === 0} onClick={() => reordenar(index, index - 1)}>
                     <ArrowUp className="w-3 h-3" />
