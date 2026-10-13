@@ -291,18 +291,20 @@ export default function CategoryManagement() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">🏷️ Gestión de Categorías y Cuotas</h1>
-          <p className="text-slate-600 mt-1">Configura las categorías del club y sus cuotas por temporada</p>
+    <div className="min-w-0 space-y-5 bg-slate-50/70 p-3 sm:p-5 lg:p-7">
+      <div className="relative flex flex-col items-start justify-between gap-4 overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-xl sm:flex-row sm:items-center sm:p-7">
+        <div className="relative z-10 min-w-0">
+          <div className="mb-2 flex h-11 w-11 items-center justify-center rounded-xl bg-orange-500 shadow-md shadow-orange-950/30"><Settings className="h-6 w-6 text-white" /></div>
+          <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Categorías y cuotas</h1>
+          <p className="mt-1 text-sm text-slate-300 sm:text-base">Organiza los equipos y sus cuotas por temporada</p>
+          <p className="mt-3 inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-sm text-white/90"><Calendar className="mr-2 h-4 w-4" />Temporada {activeSeason?.temporada || "actual"}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="relative z-10 flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
           {categories.length === 0 && (
             <Button
               onClick={createDefaultCategories}
               variant="outline"
-              className="border-green-500 text-green-700 hover:bg-green-50"
+              className="w-full rounded-xl border-white/30 bg-white/10 text-white hover:bg-white/20 sm:w-auto"
             >
               <CheckCircle2 className="w-4 h-4 mr-2" />
               Crear Categorías por Defecto
@@ -313,16 +315,17 @@ export default function CategoryManagement() {
               resetForm();
               setShowForm(true);
             }}
-            className="bg-orange-600 hover:bg-orange-700"
+            className="w-full rounded-xl bg-orange-500 text-white shadow-sm hover:bg-orange-600 sm:w-auto"
           >
             <Plus className="w-4 h-4 mr-2" />
             Nueva Categoría
           </Button>
         </div>
+        <div className="pointer-events-none absolute -right-10 -top-12 h-48 w-48 rounded-full bg-orange-500/10 blur-2xl" />
       </div>
 
       {/* Info de fechas de pago */}
-      <Alert className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-300">
+      <Alert className="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <Calendar className="w-5 h-5 text-blue-600" />
         <AlertDescription className="text-blue-900 ml-2">
           <strong>📅 Fechas límite de pago:</strong>
@@ -342,7 +345,7 @@ export default function CategoryManagement() {
 
       {/* Formulario */}
       {showForm && (
-        <Card className="border-2 border-orange-200">
+        <Card className="overflow-hidden rounded-2xl border border-orange-200 shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Settings className="w-5 h-5 text-orange-600" />
@@ -573,8 +576,8 @@ export default function CategoryManagement() {
 
       {/* Tabla de categorías */}
       {categories.length > 0 ? (
-        <Card>
-          <CardHeader>
+        <Card className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
+          <CardHeader className="border-b border-slate-100 bg-white">
             <CardTitle className="flex items-center gap-2">
               <Euro className="w-5 h-5 text-green-600" />
               Cuotas por Categoría - Temporada {activeSeason?.temporada || "Actual"}
