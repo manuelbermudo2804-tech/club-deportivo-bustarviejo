@@ -3,8 +3,8 @@ import { motion } from "framer-motion";
 import { Zap, Flame, TrendingUp, Clock, Award, Goal, Target, Trophy } from "lucide-react";
 
 /**
- * Carta tipo FIFA Ultimate Team (estilo referencia EA Sports).
- * Forma con corona arriba, foto circular grande, stats en píldoras de colores.
+ * Carta coleccionable propia del C.D. Bustarviejo.
+ * Estética premium negra y naranja, conservando los datos y cálculos del jugador.
  */
 
 const calcularEdad = (fechaNac) => {
@@ -124,16 +124,16 @@ export default function MinorFifaCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: "spring", bounce: 0.3, duration: 0.8 }}
       className="relative mx-auto w-full"
-      style={{ maxWidth: 360 }}
+      style={{ maxWidth: 340 }}
     >
       {/* Glow exterior naranja */}
       <div
         className="absolute -inset-6 rounded-full blur-3xl opacity-50 pointer-events-none"
-        style={{ background: "radial-gradient(circle at center, #fb923c, transparent 65%)" }}
+        style={{ background: "radial-gradient(circle at center, rgba(249,115,22,0.42), transparent 68%)" }}
       />
 
       {/* SVG card shape con forma FIFA (corona arriba, base tipo escudo) */}
-      <div className="relative" style={{ filter: "drop-shadow(0 20px 40px rgba(234,88,12,0.5))" }}>
+      <div className="relative" style={{ filter: "drop-shadow(0 18px 28px rgba(0,0,0,0.48))" }}>
         <svg
           viewBox="0 0 360 540"
           className="w-full h-auto"
@@ -142,10 +142,10 @@ export default function MinorFifaCard({
           <defs>
             {/* Gradiente naranja FIFA */}
             <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#fb923c" />
-              <stop offset="35%" stopColor="#f97316" />
-              <stop offset="70%" stopColor="#ea580c" />
-              <stop offset="100%" stopColor="#c2410c" />
+              <stop offset="0%" stopColor="#262626" />
+              <stop offset="38%" stopColor="#111111" />
+              <stop offset="72%" stopColor="#202020" />
+              <stop offset="100%" stopColor="#090909" />
             </linearGradient>
             {/* Brillo lateral */}
             <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -155,9 +155,9 @@ export default function MinorFifaCard({
             </linearGradient>
             {/* Borde dorado */}
             <linearGradient id="border" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#fcd34d" />
-              <stop offset="50%" stopColor="#f59e0b" />
-              <stop offset="100%" stopColor="#fcd34d" />
+              <stop offset="0%" stopColor="#FDBA74" />
+              <stop offset="48%" stopColor="#F97316" />
+              <stop offset="100%" stopColor="#9A3412" />
             </linearGradient>
           </defs>
           {/* Forma de la carta FIFA: corona arriba con curva, base con bordes redondeados */}
@@ -225,7 +225,7 @@ export default function MinorFifaCard({
               </div>
               {/* Escudo */}
               <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm border border-white/40">
-                <span className="text-white text-[10px] font-black">CB</span>
+                <span className="text-white text-[10px] font-black">CDB</span>
               </div>
             </div>
           </div>
@@ -237,9 +237,9 @@ export default function MinorFifaCard({
               <div
                 className="absolute inset-0 rounded-full"
                 style={{
-                  background: "linear-gradient(135deg, #e0f2fe, #7dd3fc, #38bdf8, #0ea5e9, #e0f2fe)",
+                  background: "linear-gradient(135deg, #FED7AA, #F97316, #9A3412, #FB923C)",
                   padding: 4,
-                  boxShadow: "0 0 25px rgba(255,255,255,0.5)",
+                  boxShadow: "0 0 22px rgba(249,115,22,0.28)",
                 }}
               >
                 <div className="w-full h-full rounded-full bg-orange-600 overflow-hidden">
@@ -274,7 +274,7 @@ export default function MinorFifaCard({
           <div className="space-y-1.5 mt-3">
             <StatPill
               icon={Zap}
-              color="linear-gradient(135deg, #22c55e, #15803d)"
+              color="linear-gradient(135deg, #FB923C, #EA580C)"
               label="Asistencia"
               value={`${asistenciaPct}%`}
             />
@@ -287,14 +287,14 @@ export default function MinorFifaCard({
             {!isComplementaria && (
               <StatPill
                 icon={Goal}
-                color="linear-gradient(135deg, #38bdf8, #0284c7)"
+                color="linear-gradient(135deg, #525252, #171717)"
                 label="Goles"
                 value={goles}
               />
             )}
             <StatPill
               icon={Target}
-              color="linear-gradient(135deg, #a78bfa, #7c3aed)"
+              color="linear-gradient(135deg, #F97316, #9A3412)"
               label="Convocatorias"
               value={callupsCount}
             />
