@@ -47,21 +47,12 @@ export default function CentroDatos() {
             <div className="mt-0.5 text-xs text-slate-400">Indicadores y herramientas</div>
           </div>
         </div>
-        <div className="relative mt-6 grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
-          {[
-            { label: "Resumen", icon: BarChart3 },
-            { label: "Crecimiento", icon: MapPin },
-            { label: "Club IA", icon: Brain },
-          ].map(({ label, icon: Icon }) => (
-            <div key={label} className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-xs font-medium text-slate-200 sm:text-sm">
-              <Icon className="h-4 w-4 shrink-0 text-orange-300" />
-              <span>{label}</span>
-            </div>
-          ))}
-          <div className="col-span-2 flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2.5 text-xs font-medium text-slate-200 sm:col-span-1 sm:text-sm">
-            <Activity className="h-4 w-4 shrink-0 text-orange-300" />
-            <span>Uso de la app · Salud del sistema</span>
-          </div>
+        <div className="relative mt-5 flex flex-wrap items-center gap-2 text-xs text-slate-300 sm:text-sm">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.06] px-3 py-2">
+            <Activity className="h-4 w-4 text-orange-300" />
+            5 áreas de análisis
+          </span>
+          <span className="text-slate-400">Indicadores · Crecimiento · IA · Analítica · Salud</span>
         </div>
       </section>
 
