@@ -45,15 +45,6 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
   const currentSeason = getCurrentSeason();
   const normalizedSeason = currentSeason.replace(/-/g, "/").trim();
 
-  // Goles de la temporada
-  const { data: matchResults = [] } = useQuery({
-    queryKey: ["playerGoals", playerId, playerCategory],
-    queryFn: () => base44.entities.MatchResult.filter({ categoria: playerCategory }),
-    staleTime: 300_000,
-    refetchOnWindowFocus: false,
-    enabled: !!playerCategory,
-  });
-
   // Evaluaciones del entrenador
   const { data: evaluations = [] } = useQuery({
     queryKey: ["playerEvals", playerId],
