@@ -45,7 +45,7 @@ export default function UserFilters({
   ];
 
   return (
-    <div className="bg-white rounded-lg shadow p-3 space-y-3">
+    <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm space-y-4 sm:p-4">
       <div className="flex flex-col md:flex-row gap-2">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -68,7 +68,7 @@ export default function UserFilters({
         size="sm"
         onClick={onDetectPairs}
         disabled={isDetectingPairs}
-        className="bg-gradient-to-r from-pink-600 to-purple-600 hover:from-pink-700 hover:to-purple-700 text-sm"
+        className="w-full justify-center rounded-xl border border-orange-200 bg-orange-50 text-sm font-semibold text-orange-800 shadow-none hover:bg-orange-100 sm:w-auto"
       >
         {isDetectingPairs ? (
           <>
@@ -83,22 +83,37 @@ export default function UserFilters({
         )}
       </Button>
 
-      <div className="flex flex-wrap gap-1">
-        {filters.map((f) => (
-          <button
-            key={f.key}
-            onClick={() => setRoleFilter(f.key)}
-            className={`px-2 py-1 rounded text-xs font-medium transition-colors ${
-              roleFilter === f.key
-                ? "bg-orange-600 text-white"
-                : f.highlight && f.count > 0
-                ? "bg-red-100 text-red-700 hover:bg-red-200 animate-pulse"
-                : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-            }`}
-          >
-            {f.label} ({f.count})
-          </button>
-        ))}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Filtrar usuarios</p>
+            <p className="text-xs text-slate-500">Selecciona un grupo para ver sus cuentas</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{filters.find((f) => f.key === roleFilter)?.count ?? 0} usuarios</span>
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+          {filters.map((f) => {
+            const selected = roleFilter === f.key;
+            const warning = f.highlight && f.count > 0;
+            return (
+              <button
+                key={f.key}
+                onClick={() => setRoleFilter(f.key)}
+                aria-pressed={selected}
+                className={`flex min-h-[58px] min-w-0 items-center justify-between gap-2 rounded-xl border px-3 py-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${
+                  selected
+                    ? "border-orange-600 bg-orange-600 text-white shadow-sm"
+                    : warning
+                    ? "border-red-200 bg-red-50 text-red-800 hover:bg-red-100"
+                    : "border-slate-200 bg-white text-slate-700 hover:border-orange-200 hover:bg-orange-50/60"
+                }`}
+              >
+                <span className="min-w-0 text-xs font-medium leading-snug sm:text-sm">{f.label.replace(/^👨‍👩‍👧 /, "").replace(/^👔 /, "").replace(/^🎓 /, "").replace(/^⚽ /, "").replace(/^🧒 /, "").replace(/^🏃 /, "").replace(/^💰 /, "").replace(/^🚫 /, "").replace(/^📲 /, "").replace(/^📵 /, "").replace(/^👻 /, "").replace(/^🔴 /, "")}</span>
+                <span className={`shrink-0 rounded-lg px-2 py-1 text-xs font-bold tabular-nums ${selected ? "bg-white/20 text-white" : warning ? "bg-red-100 text-red-800" : "bg-slate-100 text-slate-700"}`}>{f.count}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
