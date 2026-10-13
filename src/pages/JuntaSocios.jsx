@@ -38,20 +38,21 @@ export default function JuntaSocios() {
   if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-orange-600" /></div>;
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
-      <header className="flex flex-col gap-4 rounded-2xl border border-orange-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4 shadow-lg sm:p-5 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-600 shadow-md">
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <header className="relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7 lg:flex-row lg:items-center lg:justify-between"><div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14">
             <Users className="h-6 w-6 text-white" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl font-extrabold leading-tight tracking-tight text-white sm:text-2xl">📣 JUNTA GENERAL DE SOCIOS</h1>
-            <p className="mt-1 text-sm leading-relaxed text-orange-100/90">Convocatoria, respuestas, participación y control de asistentes</p>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Participación · Club Deportivo Bustarviejo</p>
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Junta de Socios</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Gestiona la convocatoria, revisa las respuestas y organiza la asistencia de los socios.</p>
           </div>
         </div>
-        <div className="w-full min-w-0 lg:w-auto lg:min-w-72">
-          <label htmlFor="junta-selector" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-300">Junta que estás gestionando</label>
-          <select id="junta-selector" className="w-full rounded-lg border border-slate-600 bg-white px-3 py-2.5 text-sm font-medium text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-orange-500" value={juntaId || ""} onChange={(e) => setJuntaId(e.target.value || null)}>
+        <div className="relative w-full min-w-0 rounded-2xl border border-white/10 bg-white/5 p-3 backdrop-blur-sm lg:w-auto lg:min-w-72">
+          <label htmlFor="junta-selector" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-orange-200">Junta que estás gestionando</label>
+          <select id="junta-selector" className="w-full min-w-0 rounded-xl border border-slate-300 bg-white px-3 py-3 text-sm font-semibold text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-orange-500" value={juntaId || ""} onChange={(e) => setJuntaId(e.target.value || null)}>
             {juntas.length === 0 && <option value="">Crear la primera junta</option>}
             {juntas.map((j) => <option key={j.id} value={j.id}>{j.titulo || "Junta General"} · {j.fecha?.slice(0, 10) || "Sin fecha"}</option>)}
             {juntas.length > 0 && <option value="">+ Nueva junta</option>}
@@ -59,7 +60,7 @@ export default function JuntaSocios() {
         </div>
       </header>
 
-      <div className="flex items-start gap-3 rounded-xl border border-orange-100 bg-orange-50/70 p-3.5 sm:p-4">
+      <div className="flex min-w-0 items-start gap-3 rounded-2xl border border-orange-100 bg-white p-4 shadow-sm sm:p-5">
         <ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
         <div>
           <p className="text-sm font-semibold text-slate-800">{junta ? "Estás editando una junta existente" : "Crear una nueva junta"}</p>
@@ -67,10 +68,10 @@ export default function JuntaSocios() {
         </div>
       </div>
 
-      <section className="space-y-3">
-        <div className="flex items-center gap-2 px-1">
-          <CalendarDays className="h-5 w-5 text-orange-600" />
-          <h2 className="text-base font-bold text-slate-900 sm:text-lg">Datos y configuración</h2>
+      <section className="min-w-0 space-y-3">
+        <div className="flex items-center gap-3 px-1">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 ring-1 ring-orange-100"><CalendarDays className="h-5 w-5 text-orange-600" /></div>
+          <div className="min-w-0"><h2 className="text-base font-bold text-slate-900 sm:text-lg">Datos y configuración</h2><p className="text-xs text-slate-500 sm:text-sm">Prepara y publica la convocatoria de la junta.</p></div>
         </div>
         <JuntaConfigForm junta={junta} onSaved={onSaved} onDeleted={() => {
           setJuntaId(null);
@@ -80,10 +81,10 @@ export default function JuntaSocios() {
       </section>
 
       {junta && (loadingRows ? <div className="rounded-2xl border border-slate-200 bg-white py-12 text-center shadow-sm"><Loader2 className="mx-auto h-7 w-7 animate-spin text-orange-600" /><p className="mt-3 text-sm text-slate-500">Cargando respuestas y asistentes…</p></div> : (
-        <section className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <Users className="h-5 w-5 text-orange-600" />
-            <h2 className="text-base font-bold text-slate-900 sm:text-lg">Asistencia y participación</h2>
+        <section className="min-w-0 space-y-4">
+          <div className="flex items-center gap-3 px-1">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 ring-1 ring-orange-100"><Users className="h-5 w-5 text-orange-600" /></div>
+            <div className="min-w-0"><h2 className="text-base font-bold text-slate-900 sm:text-lg">Asistencia y participación</h2><p className="text-xs text-slate-500 sm:text-sm">Resumen de respuestas y listado completo de participantes.</p></div>
           </div>
           <JuntaStats rows={rows} />
           <div className="flex items-start gap-2 rounded-xl border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-600 shadow-sm sm:text-sm">
