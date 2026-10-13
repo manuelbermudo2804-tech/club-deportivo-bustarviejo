@@ -370,12 +370,23 @@ export default function PlayerDashboard() {
   // Próximo partido (convocatoria más cercana)
   const nextMatch = callups.length > 0 ? callups[0] : null;
 
-  // Calcular racha de asistencias
-  const myAttendances = attendances.filter(a => 
-    a.categoria === player?.deporte &&
-    a.asistencias?.some(asist => asist.jugador_id === player?.id && asist.estado === "presente")
-  );
-  const attendanceStreak = myAttendances.slice(0, 10).length; // Últimas 10 asistencias
+  // Racha real: contar sesiones consecutivas desde la más reciente.
+  const myAttendances = attendances
+    .filter(a =>
+      a.categoria === (player?.categoria_principal || player?.deporte) &&
+      a.asistencias?.some(asist => asist.jugador_id === player?.id)
+    )
+    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+  let attendanceStreak = 0;
+  for (const attendance of myAttendances) {
+    const entry = attendance.asistencias?.find(asist => asist.jugador_id === player?.id);
+    if (entry?.estado === "presente" || entry?.estado === "tardanza") {
+      attendanceStreak++;
+    } else {
+      break;
+    }
+  }
 
   if (!user) {
     return (
