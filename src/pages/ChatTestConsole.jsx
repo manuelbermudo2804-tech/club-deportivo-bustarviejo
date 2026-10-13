@@ -676,7 +676,7 @@ export default function ChatTestConsole() {
 
    return (
     <div className="min-h-screen w-full min-w-0 overflow-x-hidden bg-slate-50 px-3 pb-24 pt-4 sm:px-5 lg:px-8 lg:pt-7">
-      <div className="max-w-6xl mx-auto grid gap-4">
+      <div className="mx-auto grid w-full min-w-0 max-w-[1600px] gap-5 lg:gap-6">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold flex items-center gap-2">
             <Rocket className="w-5 h-5 text-orange-600" /> Consola de Pruebas de Chat (Admin)
