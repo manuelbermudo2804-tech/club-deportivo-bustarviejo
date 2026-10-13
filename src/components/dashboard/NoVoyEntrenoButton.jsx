@@ -48,13 +48,13 @@ export default function NoVoyEntrenoButton({ jugador, categoria, fechaISO, user,
   if (avisado) {
     const quien = ultimo.remitente_email === user.email ? "" : ` (${(ultimo.remitente_nombre || "").split(" ")[0]})`;
     return (
-      <div className="flex items-center gap-2 text-xs flex-wrap">
-        <span className="px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 font-semibold whitespace-nowrap">
-          🚫 {solo ? "Avisado: no vas" : `Avisado: ${nombre} no va`}{quien}
+      <div className="flex flex-col items-end gap-1 text-xs shrink-0">
+        <span className="px-2 py-0.5 rounded-full bg-red-50 border border-red-200 text-red-700 font-semibold whitespace-nowrap">
+          🚫 {solo ? "No vas" : `${nombre} no va`}{quien}
         </span>
         <button disabled={sending} onClick={() => enviar(false)}
-          className="px-3 py-1 rounded-full border border-green-300 bg-green-50 text-green-700 font-semibold hover:bg-green-100 disabled:opacity-50 whitespace-nowrap">
-          {sending ? "Enviando..." : solo ? "✅ Al final sí voy" : `✅ Al final sí va`}
+          className="px-2 py-0.5 rounded-full border border-green-300 bg-green-50 text-green-700 font-semibold hover:bg-green-100 disabled:opacity-50 whitespace-nowrap">
+          {sending ? "Enviando..." : solo ? "✅ Sí voy" : "✅ Sí va"}
         </button>
       </div>
     );
