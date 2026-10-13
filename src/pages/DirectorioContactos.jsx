@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Download, Users } from "lucide-react";
+import { Search, Download, Users, ShieldCheck } from "lucide-react";
 import { buildDirectorioContactos } from "@/lib/buildDirectorioContactos";
 import DirectorioTabla from "@/components/directorio/DirectorioTabla";
 import DirectorioFiltros from "@/components/directorio/DirectorioFiltros";
@@ -109,13 +109,12 @@ export default function DirectorioContactos() {
           </div>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
-                <Input
-                  placeholder="Buscar nombre, email, teléfono..."
-                  value={busqueda}
-                  onChange={(e) => setBusqueda(e.target.value)}
-                  className="h-11 w-full rounded-xl border-slate-200 bg-slate-50 pl-9"
-                />
-              </div>
+            <Input
+              placeholder="Buscar nombre, email, teléfono o detalle..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              className="h-11 w-full rounded-xl border-slate-200 bg-slate-50 pl-9"
+            />
           </div>
           <DirectorioFiltros
             origenes={origenes}
