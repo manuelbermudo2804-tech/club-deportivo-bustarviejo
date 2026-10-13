@@ -284,20 +284,21 @@ export default function FederationSignaturesAdmin() {
       {isAdmin && <ComparativaFederacion />}
 
       {/* Filtros */}
-      <Card className="border-none shadow-lg">
-        <CardContent className="p-4 space-y-4">
-          <div className="flex flex-col md:flex-row gap-4">
+      <Card className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+        <CardContent className="space-y-4 p-3 sm:p-5">
+          <div className="flex items-center gap-2"><div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-600"><Search className="h-4 w-4" /></div><div><h2 className="text-sm font-bold text-slate-900 sm:text-base">Buscar y filtrar</h2><p className="text-xs text-slate-500">Localiza jugadores y revisa su estado documental</p></div></div>
+          <div className="flex flex-col gap-3 md:flex-row md:gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
               <Input
                 placeholder="Buscar por nombre o email..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 focus-visible:bg-white"
               />
             </div>
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-full md:w-64">
+              <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 md:w-64">
                 <SelectValue placeholder="Categoría" />
               </SelectTrigger>
               <SelectContent>
@@ -342,15 +343,15 @@ export default function FederationSignaturesAdmin() {
             const isEditing = editingPlayer === player.id;
 
             return (
-              <Card key={player.id} className={`border-2 transition-colors ${
-                status === "completado" ? "border-green-200 bg-green-50/30" :
-                status === "pendiente" ? "border-yellow-200 bg-yellow-50/30" :
-                "border-slate-200"
+              <Card key={player.id} className={`overflow-hidden rounded-2xl border shadow-sm transition-all duration-200 hover:shadow-md ${
+                status === "completado" ? "border-green-200 bg-gradient-to-br from-green-50/70 to-white" :
+                status === "pendiente" ? "border-amber-200 bg-gradient-to-br from-amber-50/70 to-white" :
+                "border-slate-200 bg-white"
               }`}>
-                <CardContent className="p-4">
-                  <div className="flex flex-col lg:flex-row lg:items-start gap-4">
+                <CardContent className="p-3 sm:p-5">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-start">
                     {/* Info del jugador */}
-                    <div className="flex items-center gap-3 lg:w-64 flex-shrink-0">
+                    <div className="flex min-w-0 items-center gap-3 border-b border-slate-100 pb-3 lg:w-64 lg:shrink-0 lg:border-b-0 lg:border-r lg:pb-0 lg:pr-4">
                       {player.foto_url ? (
                         <img src={player.foto_url} alt={player.nombre} className="w-12 h-12 rounded-full object-cover border-2 border-white shadow" />
                       ) : (
@@ -471,7 +472,7 @@ export default function FederationSignaturesAdmin() {
                     </div>
 
                     {/* Acciones */}
-                    <div className="flex gap-2 lg:flex-shrink-0">
+                    <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-3 lg:shrink-0 lg:border-t-0 lg:pt-0">
                       {isEditing ? (
                         <>
                           <Button
