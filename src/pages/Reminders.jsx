@@ -991,17 +991,17 @@ Temporada ${reminder.temporada}
       />
 
       {/* Información del Sistema Automático */}
-      <Card className="border-2 border-blue-300 shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
-        <CardHeader className="border-b border-blue-200">
-          <CardTitle className="text-lg text-blue-900 flex items-center gap-2">
+      <Card className="min-w-0 overflow-hidden rounded-2xl border border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 shadow-sm">
+        <CardHeader className="border-b border-blue-200 p-4 sm:p-6">
+          <CardTitle className="flex min-w-0 items-start gap-2 text-base leading-snug text-blue-900 sm:text-lg">
             <Calendar className="w-5 h-5" />
             📅 Calendario de Recordatorios Automáticos
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-4 space-y-4">
+        <CardContent className="min-w-0 space-y-4 p-3 pt-4 sm:p-6">
           <div className="bg-white rounded-lg p-4 border-2 border-blue-200">
             <p className="font-bold text-blue-900 mb-3">📌 Fechas de Vencimiento por Periodo:</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
+            <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
               <div className="bg-blue-50 rounded p-3">
                 <p className="font-bold text-blue-800">Junio</p>
                 <p className="text-blue-600">Vence: 30 de Junio</p>
@@ -1110,7 +1110,7 @@ Temporada ${reminder.temporada}
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 lg:gap-6">
+      <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-3 lg:gap-6">
         <Card className="border-none shadow-lg bg-white">
           <CardHeader className="pb-2 lg:pb-3 p-3 lg:p-6">
             <div className="flex flex-col lg:flex-row items-start lg:items-center lg:justify-between gap-2">
@@ -1169,11 +1169,11 @@ Temporada ${reminder.temporada}
         </Card>
       </div>
 
-      <Card className="border-none shadow-lg bg-white">
-        <CardHeader className="border-b border-slate-100 p-3 lg:p-6">
+      <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-100 p-3 sm:p-4 lg:p-6">
           <CardTitle className="text-base lg:text-xl">Pagos por Jugador</CardTitle>
         </CardHeader>
-        <CardContent className="p-3 lg:p-6">
+        <CardContent className="min-w-0 p-3 sm:p-4 lg:p-6">
           {isLoading ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
@@ -1270,8 +1270,8 @@ Temporada ${reminder.temporada}
                   return (
                     <Card key={playerData.jugador_id} className="border hover:shadow-lg transition-shadow">
                       <CardHeader className="bg-white border-b p-4">
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-3 min-w-0">
+                        <div className="flex flex-col items-stretch justify-between gap-3 min-[420px]:flex-row min-[420px]:items-center">
+                          <div className="flex min-w-0 items-center gap-3">
                             {player?.foto_url ? (
                               <img src={player.foto_url} className="w-10 h-10 rounded-full object-cover flex-shrink-0" alt="" />
                             ) : (
@@ -1295,7 +1295,7 @@ Temporada ${reminder.temporada}
                               }
                             }}
                             size="sm"
-                            className="bg-purple-600 hover:bg-purple-700 text-xs flex-shrink-0"
+                            className="w-full flex-shrink-0 bg-purple-600 text-xs hover:bg-purple-700 min-[420px]:w-auto"
                             disabled={!player}
                           >
                             <Send className="w-4 h-4 mr-1" />
@@ -1304,7 +1304,7 @@ Temporada ${reminder.temporada}
                         </div>
                       </CardHeader>
                       <CardContent className="p-4">
-                        <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-4">
+                        <div className="mb-4 grid grid-cols-1 gap-2 min-[400px]:grid-cols-3 sm:gap-3">
                           <div className="min-w-0 bg-red-50 rounded-lg p-2 sm:p-3">
                             <p className="text-xs text-red-700 mb-1">Pendientes</p>
                             <p className="text-2xl font-bold text-red-600">{totalPaymentsDue}</p>
@@ -1327,10 +1327,10 @@ Temporada ${reminder.temporada}
                             const isPaid = pago.estado === "Pagado";
 
                             return (
-                              <div key={pago.id} className="flex items-center justify-between py-2">
-                                <div className="flex items-center gap-3 flex-1">
+                              <div key={pago.id} className="flex min-w-0 items-center justify-between gap-3 border-b border-slate-100 py-2 last:border-b-0">
+                                <div className="flex min-w-0 flex-1 items-center gap-3">
                                   <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isPaid ? 'bg-green-500' : 'bg-red-500'}`} />
-                                  <div className="flex-1">
+                                  <div className="min-w-0 flex-1">
                                     <p className="text-sm font-medium text-slate-900">{pago.mes}</p>
                                     {pago.cantidad > 0 && (
                                       <p className="text-xs text-slate-600">{pago.cantidad}€</p>
