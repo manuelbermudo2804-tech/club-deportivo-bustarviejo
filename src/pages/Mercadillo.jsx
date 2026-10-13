@@ -148,33 +148,34 @@ export default function Mercadillo() {
   const statsDonacion = listings.filter(l => l.tipo === 'donacion' && l.estado === 'activo').length;
 
   return (
-    <div className="max-w-6xl mx-auto p-4 lg:p-6 space-y-5">
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-black text-slate-900 flex items-center gap-2">
-            <ShoppingBag className="w-7 h-7 text-orange-600" />
-            Mercadillo Deportivo
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">Compra, vende o dona material deportivo del club</p>
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="flex items-center gap-3 text-2xl font-black tracking-tight sm:text-3xl">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15"><ShoppingBag className="h-6 w-6 text-orange-400" /></span>
+              Mercadillo Deportivo
+            </h1>
+            <p className="mt-2 text-sm text-slate-300">Compra, vende o dona material deportivo del club</p>
+          </div>
+          <Button onClick={() => { setEditing(null); setShowForm(true); }} className="w-full shrink-0 bg-orange-600 font-semibold text-white shadow-lg hover:bg-orange-700 sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" /> Publicar anuncio
+          </Button>
         </div>
-        <Button onClick={() => { setEditing(null); setShowForm(true); }} className="bg-orange-600 hover:bg-orange-700 shadow-lg">
-          <Plus className="w-4 h-4 mr-2" />
-          Publicar anuncio
-        </Button>
       </div>
 
       {/* Stats rápidas */}
-      <div className="grid grid-cols-3 gap-3">
-        <div className="bg-white rounded-xl border p-3 text-center">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm">
           <p className="text-2xl font-black text-slate-900">{listings.filter(l => l.estado === 'activo').length}</p>
           <p className="text-xs text-slate-500">Anuncios activos</p>
         </div>
-        <div className="bg-white rounded-xl border p-3 text-center">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm">
           <p className="text-2xl font-black text-orange-600">{statsVenta}</p>
           <p className="text-xs text-slate-500 flex items-center justify-center gap-1"><Tag className="w-3 h-3" /> En venta</p>
         </div>
-        <div className="bg-white rounded-xl border p-3 text-center">
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center shadow-sm">
           <p className="text-2xl font-black text-green-600">{statsDonacion}</p>
           <p className="text-xs text-slate-500 flex items-center justify-center gap-1"><Gift className="w-3 h-3" /> Donaciones</p>
         </div>
@@ -188,7 +189,7 @@ export default function Mercadillo() {
       )}
 
       {/* Barra de búsqueda + filtros */}
-      <div className="bg-white rounded-xl border shadow-sm p-3 space-y-3">
+      <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
         <div className="flex gap-2">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -202,7 +203,7 @@ export default function Mercadillo() {
         </div>
 
         {showFilters && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t">
+          <div className="grid grid-cols-1 gap-2 border-t border-slate-100 pt-3 sm:grid-cols-2 lg:grid-cols-4">
             <Select value={category} onValueChange={setCategory}>
               <SelectTrigger className="text-sm"><SelectValue placeholder="Categoría" /></SelectTrigger>
               <SelectContent>
@@ -298,7 +299,7 @@ export default function Mercadillo() {
       )}
 
       {/* Normas */}
-      <div className="bg-slate-50 rounded-xl border p-4 space-y-2">
+      <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
         <p className="font-bold text-sm text-slate-700">ℹ️ Normas del Mercadillo</p>
         <ul className="text-xs text-slate-600 space-y-1 list-disc list-inside">
           <li>Solo material deportivo (equipación, calzado, protecciones, accesorios).</li>
