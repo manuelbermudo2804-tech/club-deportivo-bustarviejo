@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Table2, Users, Euro, Shirt, ExternalLink, Loader2 } from "lucide-react";
+import { Table2, Users, Euro, Shirt, ExternalLink, Loader2, FileSpreadsheet } from "lucide-react";
 import { toast } from "sonner";
 
 const EXPORTS = [
@@ -32,19 +32,27 @@ export default function ExportarSheets() {
   };
 
   return (
-    <div className="p-4 lg:p-8 max-w-3xl mx-auto space-y-4">
-      <div className="flex items-center gap-2">
-        <Table2 className="w-6 h-6 text-emerald-600" />
-        <h1 className="text-xl lg:text-2xl font-bold">Exportar a Google Sheets</h1>
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 sm:h-14 sm:w-14">
+            <FileSpreadsheet className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
+          </div>
+          <div className="min-w-0">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Datos y administración</p>
+            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Exportar a Google Sheets</h1>
+            <p className="mt-1 text-sm text-slate-300">Crea hojas actualizadas en el Google Drive del club</p>
+          </div>
+        </div>
       </div>
-      <p className="text-sm text-slate-600">
-        Cada exportación crea una hoja de cálculo nueva en el Google Drive del club con los datos actualizados.
-      </p>
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm leading-relaxed text-slate-600 shadow-sm sm:p-5">
+        Cada exportación crea una hoja de cálculo nueva con los datos actualizados. Revisa el tipo de información antes de compartir el enlace, especialmente cuando incluya contactos o datos de pagos.
+      </div>
 
       {EXPORTS.map((e) => (
-        <Card key={e.tipo}>
+        <Card key={e.tipo} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <CardHeader className="pb-2">
-            <CardTitle className="text-base flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
               <e.icon className={`w-4 h-4 ${e.color}`} />
               {e.titulo}
             </CardTitle>
@@ -52,7 +60,7 @@ export default function ExportarSheets() {
           <CardContent className="space-y-2">
             <p className="text-sm text-slate-500">{e.desc}</p>
             <div className="flex flex-wrap items-center gap-2">
-              <Button size="sm" onClick={() => exportar(e.tipo)} disabled={cargando === e.tipo}>
+              <Button size="sm" onClick={() => exportar(e.tipo)} disabled={cargando === e.tipo} className="h-10 rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700">
                 {cargando === e.tipo
                   ? <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   : <Table2 className="w-4 h-4 mr-2" />}
