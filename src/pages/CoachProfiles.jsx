@@ -94,10 +94,10 @@ export default function CoachProfiles() {
                     <img
                       src={coach.foto_perfil_url}
                       alt={coach.full_name}
-                      className="mb-3 h-20 w-20 rounded-full border-4 border-white object-cover shadow-md ring-2 ring-orange-100 sm:h-24 sm:w-24"
+                      className="mb-4 h-32 w-32 rounded-full border-4 border-white object-cover shadow-lg ring-4 ring-orange-100 sm:h-36 sm:w-36 lg:h-40 lg:w-40"
                     />
                   ) : (
-                    <div className="mb-3 flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-slate-700 to-slate-900 text-2xl font-bold text-white shadow-md ring-2 ring-orange-200 sm:h-24 sm:w-24">
+                    <div className="mb-4 flex h-32 w-32 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-slate-700 to-slate-900 text-4xl font-bold text-white shadow-lg ring-4 ring-orange-200 sm:h-36 sm:w-36 lg:h-40 lg:w-40">
                       {coach.full_name?.charAt(0).toUpperCase() || <User className="h-8 w-8" />}
                     </div>
                   )}
