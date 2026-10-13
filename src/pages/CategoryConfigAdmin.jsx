@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock, Loader2, Smartphone, Dumbbell, Activity } from "lucide-react";
+import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock, Loader2, Smartphone, Dumbbell, Activity, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import PlazasCategoriaPanel from "@/components/categories/PlazasCategoriaPanel";
 
@@ -69,7 +69,7 @@ export default function CategoryConfigAdmin() {
       try {
         const currentUser = await base44.auth.me();
         setUser(currentUser);
-        setIsAdmin(currentUser.role === "admin");
+        setIsAdmin(currentUser.role === "admin" || currentUser.es_tesorero === true);
       } catch (error) {
         console.error("Error fetching user:", error);
       }
