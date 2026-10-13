@@ -199,7 +199,7 @@ export default function ChatTestConsole() {
     (async () => {
       const u = await base44.auth.me();
       setMe(u);
-      const allUsers = await base44.entities.User.list();
+      const allUsers = u?.role === 'admin' ? await base44.entities.User.list() : [];
       setUsers(allUsers);
       const allPlayers = await base44.entities.Player.list();
       setPlayers(allPlayers);
