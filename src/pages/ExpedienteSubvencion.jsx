@@ -55,17 +55,17 @@ export default function ExpedienteSubvencion() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-4 lg:p-6 space-y-5">
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
       <ExpedienteHeader exp={exp} temporada={temporada} temporadas={temporadasDisponibles()} onTemporada={setTemporada} updateExp={updateExp} />
       {!exp ? (
         <div className="flex justify-center py-16"><Loader2 className="w-8 h-8 text-emerald-600 animate-spin" /></div>
       ) : (
         <Tabs value={tab} onValueChange={setTab}>
-          <TabsList className="flex-wrap h-auto">
-            <TabsTrigger value="documentos">Documentos</TabsTrigger>
-            <TabsTrigger value="gastos">Gastos</TabsTrigger>
-            <TabsTrigger value="cuadro">Ingresos y gastos</TabsTrigger>
-            <TabsTrigger value="deportistas">Deportistas</TabsTrigger>
+          <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1 sm:flex sm:flex-wrap sm:w-fit">
+            <TabsTrigger value="documentos" className="min-w-0 rounded-xl px-2 py-2.5 text-xs sm:px-3 sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">Documentos</TabsTrigger>
+            <TabsTrigger value="gastos" className="min-w-0 rounded-xl px-2 py-2.5 text-xs sm:px-3 sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">Gastos</TabsTrigger>
+            <TabsTrigger value="cuadro" className="min-w-0 rounded-xl px-2 py-2.5 text-xs sm:px-3 sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">Ingresos y gastos</TabsTrigger>
+            <TabsTrigger value="deportistas" className="min-w-0 rounded-xl px-2 py-2.5 text-xs sm:px-3 sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">Deportistas</TabsTrigger>
           </TabsList>
           <TabsContent value="documentos" className="mt-4"><DocumentosTab exp={exp} updateExp={updateExp} onGoTab={setTab} /></TabsContent>
           <TabsContent value="gastos" className="mt-4"><GastosTab exp={exp} /></TabsContent>
