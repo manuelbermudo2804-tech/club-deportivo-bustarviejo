@@ -40,11 +40,8 @@ export default function MinorSkipTraining({ player, playerCategory, user }) {
   const { data: ultimo, refetch } = useQuery({
     queryKey: ["noVoy", prefijo],
     queryFn: async () => {
-      const r = await base44.entities.ChatMessage.filter(
-        { grupo_id: toGroupId(playerCategory), client_id: { $regex: `^${prefijo}` } },
-        { sort: "-created_date", limit: 1 }
-      );
-      return r.items?.[0] || null;
+      const r = await base44.functions.invoke("noVoyEstado", { jugador_id: player.id, fecha: next.fechaISO, grupo_id: toGroupId(playerCategory) });
+      return r.data?.ultimo || null;
     },
     enabled: !!prefijo,
   });

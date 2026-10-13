@@ -24,7 +24,8 @@ export default function HoyEntrenamientoLine({ items = [] }) {
   return (
     <div className="mb-3 pb-3 border-b border-orange-200 space-y-1">
       {deHoy.map((it, i) => (
-        <div key={i} className="flex items-center gap-2 text-sm">
+        <div key={i} className="text-sm space-y-1.5">
+          <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-green-600 flex-shrink-0" />
           <div className="min-w-0 flex-1">
             <span className="font-semibold text-slate-900">Hoy: Entrenamiento {it.hora}</span>
@@ -33,8 +34,9 @@ export default function HoyEntrenamientoLine({ items = [] }) {
               {it.ubicacion ? ` · ${it.ubicacion}` : ""}
             </span>
           </div>
+          </div>
           {user && (
-            <div className="flex flex-col items-end gap-1 flex-shrink-0">
+            <div className="flex flex-col items-start gap-1 pl-6">
               {(it.jugadoresIds || []).map((j) => (
                 <NoVoyEntrenoButton key={j.id} jugador={j} categoria={it.subtitulo} fechaISO={fechaISO} user={user} solo={it.jugadoresIds.length === 1} />
               ))}
