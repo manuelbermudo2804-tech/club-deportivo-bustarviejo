@@ -227,15 +227,15 @@ function NextCallupBanner({ callup }) {
     return (
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }}>
         <Link to={"/AgendaClub"}>
-          <Card className="border-none shadow-lg bg-gradient-to-r from-slate-100 to-green-50 overflow-hidden">
+          <Card className="border border-orange-100 shadow-md bg-white overflow-hidden">
             <CardContent className="p-4 relative">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 rounded-2xl bg-slate-200 flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center">
                   <span className="text-2xl">📅</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-slate-700 text-sm">No estás convocado aún</h3>
-                  <p className="text-slate-500 text-xs">Toca para ver los partidos del club →</p>
+                  <h3 className="font-bold text-slate-900 text-sm">Aún no tienes convocatoria</h3>
+                  <p className="text-slate-500 text-xs">Consulta el calendario de partidos del club →</p>
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-400" />
               </div>
@@ -258,7 +258,7 @@ function NextCallupBanner({ callup }) {
       transition={{ delay: 0.3 }}
     >
       <Link to={createPageUrl("ParentCallups")}>
-        <Card className="border-none shadow-xl bg-gradient-to-r from-orange-500 via-red-500 to-pink-500 overflow-hidden">
+        <Card className="border-none shadow-md bg-gradient-to-r from-orange-600 to-orange-500 overflow-hidden">
           <CardContent className="p-4 relative">
             <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Ccircle%20cx%3D%2210%22%20cy%3D%2210%22%20r%3D%221%22%20fill%3D%22rgba(255%2C255%2C255%2C0.1)%22%2F%3E%3C%2Fsvg%3E')] opacity-50" />
             <div className="relative flex items-center gap-4">
@@ -440,11 +440,11 @@ export default function MinorDashboard() {
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay }}
-      className="flex items-center gap-2 px-1 pt-3 pb-1"
+      className="flex items-center gap-2 px-1 pt-4 pb-2"
     >
       <SIcon className={`w-4 h-4 ${color}`} />
-      <h2 className="font-bold text-slate-600 text-xs uppercase tracking-widest">{title}</h2>
-      <div className="flex-1 h-px bg-slate-200 ml-2" />
+      <h2 className="font-black text-slate-800 text-xs uppercase tracking-[0.16em]">{title}</h2>
+      <div className="flex-1 h-px bg-orange-200 ml-2" />
     </motion.div>
   );
 
