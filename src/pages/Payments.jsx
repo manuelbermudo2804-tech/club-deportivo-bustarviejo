@@ -860,6 +860,7 @@ export default function Payments() {
             <ExportButton
               data={prepareExportData()}
               filename="pagos_club"
+              className="h-11 w-full min-w-0 justify-center rounded-xl border border-white/25 bg-white text-slate-900 font-semibold shadow-sm hover:bg-slate-100 hover:text-slate-950"
             />
           )}
           <Button
@@ -876,13 +877,15 @@ export default function Payments() {
               }
             }}
             variant="outline"
-            className="h-11 w-full min-w-0 rounded-xl border-white/20 bg-white/10 text-white shadow-none hover:bg-white/15 hover:text-white"
+            aria-label="Actualizar datos"
+            title="Actualizar datos"
+            className="h-11 w-full min-w-0 justify-center rounded-xl border border-white/30 bg-slate-800 text-white shadow-sm hover:bg-slate-700 hover:text-white focus-visible:ring-2 focus-visible:ring-orange-300"
           >
             <RefreshCw className="w-5 h-5" />
           </Button>
           {isAdmin && (
             <Link to={createPageUrl("MorososManagement")} className="flex-1 sm:flex-none min-w-0">
-              <Button variant="outline" className="h-11 w-full min-w-0 justify-center rounded-xl border-red-300/50 bg-red-500/10 text-red-100 shadow-none hover:bg-red-500/20 hover:text-white">
+              <Button variant="outline" className="h-11 w-full min-w-0 justify-center rounded-xl border border-red-300/60 bg-red-950/70 text-white font-semibold shadow-sm hover:bg-red-900 hover:text-white focus-visible:ring-2 focus-visible:ring-orange-300">
                 <ShieldAlert className="w-5 h-5 mr-2 flex-shrink-0" />
                 <span className="truncate">Gestión de Morosos</span>
               </Button>
@@ -897,9 +900,9 @@ export default function Payments() {
                 }, 100);
               }
             }}
-            className="h-11 min-w-0 justify-center rounded-xl bg-orange-500 shadow-md hover:bg-orange-400 sm:col-span-1"
+            className="h-11 min-w-0 justify-center rounded-xl border border-orange-300 bg-orange-500 px-4 font-bold text-white shadow-md hover:bg-orange-400 hover:text-white focus-visible:ring-2 focus-visible:ring-white sm:col-span-1"
           >
-            <Plus className="w-5 h-5 mr-2 flex-shrink-0" />
+            <Plus className="w-5 h-5 mr-2 flex-shrink-0 text-white" />
             <span className="truncate">Registrar Pago</span>
           </Button>
         </div>
