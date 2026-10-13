@@ -766,9 +766,7 @@ export default function ParentPayments() {
             Pagar / Registrar
           </Button>
         </div>
-      </div>
-
-
+      </header>
 
       {/* Modal selector rápido Tarjeta / Transferencia */}
       <QuickPaySelector
