@@ -373,7 +373,7 @@ export default function PlayerDashboard() {
   // Racha real: contar sesiones consecutivas desde la más reciente.
   const myAttendances = attendances
     .filter(a =>
-      a.categoria === (player?.categoria_principal || player?.deporte) &&
+      a.categoria === player?.deporte &&
       a.asistencias?.some(asist => asist.jugador_id === player?.id)
     )
     .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
