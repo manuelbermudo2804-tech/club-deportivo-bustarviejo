@@ -95,53 +95,53 @@ export default function PorraAdmin() {
   const bote = recaudado - comisionClub;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-orange-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto space-y-4">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-red-600 to-orange-600 text-white rounded-2xl p-6 shadow-xl">
-          <div className="flex items-start justify-between flex-wrap gap-3">
+    <div className="min-h-screen w-full bg-slate-50 px-3 py-4 sm:px-5 lg:px-6">
+      <div className="mx-auto w-full max-w-[1600px] space-y-5">
+        {/* Cabecera común */}
+        <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-6 lg:p-7">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <h1 className="text-2xl md:text-3xl font-black flex items-center gap-2">
-                <Trophy className="w-8 h-8 text-yellow-300" />
-                Porra Mundial 2026 — Admin
-              </h1>
-              <p className="text-white/80 mt-1">Gestiona el torneo desde aquí</p>
+              <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-orange-500/15 ring-1 ring-orange-400/30">
+                <Trophy className="h-6 w-6 text-orange-300" />
+              </div>
+              <h1 className="text-2xl font-black tracking-tight sm:text-3xl">Porra Mundial 2026</h1>
+              <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Panel de gestión del torneo, participantes, resultados y premios.</p>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={copiarUrlPublica} variant="secondary" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
-                <Copy className="w-4 h-4 mr-2" /> Copiar URL pública
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:flex-wrap">
+              <Button onClick={copiarUrlPublica} variant="secondary" className="w-full border border-white/20 bg-white/10 text-white hover:bg-white/20 sm:w-auto">
+                <Copy className="mr-2 h-4 w-4" /> Copiar URL pública
               </Button>
-              <Button onClick={() => window.open('/Porra', '_blank')} variant="secondary" className="bg-white text-red-700 hover:bg-yellow-100">
-                <Eye className="w-4 h-4 mr-2" /> Ver landing
+              <Button onClick={() => window.open('/Porra', '_blank')} variant="secondary" className="w-full bg-orange-500 font-semibold text-white hover:bg-orange-400 sm:w-auto">
+                <Eye className="mr-2 h-4 w-4" /> Ver landing
               </Button>
             </div>
           </div>
         </div>
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <Card className="bg-white shadow">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <CardContent className="p-4">
               <div className="text-xs text-slate-500 font-bold uppercase">Participantes</div>
               <div className="text-3xl font-black text-slate-900">{totalPagados}</div>
               <div className="text-xs text-slate-500">{participantes.length - totalPagados} pendientes</div>
             </CardContent>
           </Card>
-          <Card className="bg-white shadow">
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <CardContent className="p-4">
               <div className="text-xs text-slate-500 font-bold uppercase">Recaudado</div>
               <div className="text-3xl font-black text-green-600">{recaudado.toFixed(0)}€</div>
               <div className="text-xs text-slate-500">{config?.precio_entrada || 15}€ x participante</div>
             </CardContent>
           </Card>
-          <Card className="bg-white shadow">
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <CardContent className="p-4">
               <div className="text-xs text-slate-500 font-bold uppercase">Para el club</div>
               <div className="text-3xl font-black text-orange-600">{comisionClub.toFixed(0)}€</div>
               <div className="text-xs text-slate-500">{config?.comision_club_porcentaje || 10}% de comisión</div>
             </CardContent>
           </Card>
-          <Card className="bg-white shadow">
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <CardContent className="p-4">
               <div className="text-xs text-slate-500 font-bold uppercase">Bote premios</div>
               <div className="text-3xl font-black text-purple-600">{bote.toFixed(0)}€</div>
@@ -151,10 +151,10 @@ export default function PorraAdmin() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="ranking">
-          {/* En móvil: scroll horizontal con pestillas auto-ancho. En desktop (lg+): grid de 7 columnas */}
-          <div className="-mx-4 md:mx-0 overflow-x-auto lg:overflow-visible scrollbar-thin">
-            <TabsList className="flex w-max lg:w-full lg:grid lg:grid-cols-10 gap-1 px-4 lg:px-0">
+        <Tabs defaultValue="ranking" className="space-y-4">
+          {/* En móvil las pestañas se desplazan sin provocar desbordamiento de toda la página */}
+          <div className="-mx-3 overflow-x-auto rounded-xl sm:mx-0">
+            <TabsList className="flex h-auto w-max min-w-full gap-1 rounded-xl border border-slate-200 bg-white p-1.5 sm:w-full sm:flex-wrap sm:justify-start">
               <TabsTrigger value="ranking" className="flex-shrink-0 whitespace-nowrap data-[state=active]:bg-orange-100 data-[state=active]:text-orange-900"><Trophy className="w-4 h-4 mr-1" />Ranking</TabsTrigger>
               <TabsTrigger value="config" className="flex-shrink-0 whitespace-nowrap"><Settings className="w-4 h-4 mr-1" />Configuración</TabsTrigger>
               <TabsTrigger value="equipos" className="flex-shrink-0 whitespace-nowrap">🏳️ Equipos ({equipos.length})</TabsTrigger>
