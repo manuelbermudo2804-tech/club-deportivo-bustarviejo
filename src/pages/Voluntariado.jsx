@@ -319,24 +319,22 @@ export default function Voluntariado() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-4 lg:p-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold">🤝 Voluntariado y Comunidad</h1>
-          <p className="text-sm text-slate-500">Voluntariado y conexión entre familias</p>
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><Users className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+            <div className="min-w-0"><p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Participación del club</p><h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Voluntariado y Comunidad</h1><p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Voluntariado y conexión entre familias.</p></div>
+          </div>
+          {isStaff && <Button size="sm" onClick={() => setOpenOpp(true)} className="w-full shrink-0 rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700 sm:w-auto"><Plus className="mr-2 h-4 w-4" />Nueva oportunidad</Button>}
         </div>
-        {isStaff && (
-          <Button size="sm" onClick={() => setOpenOpp(true)} className="bg-green-600 hover:bg-green-700">
-            <Plus className="w-4 h-4 mr-1" /> Nueva oportunidad
-          </Button>
-        )}
-      </div>
+      </section>
 
       <Tabs defaultValue="voluntariado" className="space-y-5">
-        <TabsList className="grid grid-cols-2 w-full">
-          <TabsTrigger value="voluntariado">🤝 Voluntariado</TabsTrigger>
-          <TabsTrigger value="conecta">💚 Conecta con familias</TabsTrigger>
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1">
+          <TabsTrigger value="voluntariado" className="min-w-0 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">🤝 Voluntariado</TabsTrigger>
+          <TabsTrigger value="conecta" className="min-w-0 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">💚 Conecta con familias</TabsTrigger>
         </TabsList>
 
         <TabsContent value="conecta">
