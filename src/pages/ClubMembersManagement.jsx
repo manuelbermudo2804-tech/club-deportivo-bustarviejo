@@ -1468,7 +1468,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
             <Card key={member.id} className="group overflow-hidden rounded-2xl border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:border-orange-200 hover:shadow-md">
               <CardContent className="p-0">
                 <div className="flex min-w-0 flex-col xl:flex-row xl:items-stretch">
-                  <div className={`w-full xl:w-1.5 shrink-0 ${member.estado_pago === "Pagado" ? "bg-emerald-500" : member.estado_pago === "En revisión" ? "bg-amber-400" : member.estado_pago === "Fallido" ? "bg-red-500" : "bg-orange-400"}`} />
+                  <div className={`h-1 w-full shrink-0 xl:h-auto xl:w-1.5 ${member.estado_pago === "Pagado" ? "bg-emerald-500" : member.estado_pago === "En revisión" ? "bg-amber-400" : member.estado_pago === "Fallido" ? "bg-red-500" : "bg-orange-400"}`} />
                   <div className="min-w-0 flex-1 p-3 sm:p-4 lg:p-5">
                   <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                     <div className="hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-700 ring-1 ring-orange-100">
