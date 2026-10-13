@@ -472,31 +472,37 @@ Bustarviejo, Madrid
   const importantCount = visibleAnnouncements.filter(a => a.prioridad === "Importante").length;
 
   return (
-    <div className="p-4 lg:p-6 space-y-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <Megaphone className="w-6 h-6 text-orange-600" />
-            Anuncios
-          </h1>
-          <p className="text-slate-600 mt-1 text-sm">Comunicados del club</p>
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14">
+              <Megaphone className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Comunicación · Club Deportivo Bustarviejo</p>
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Anuncios</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Comunicados, avisos importantes y novedades del club.</p>
+            </div>
+          </div>
+          {canManage && (
+            <Button
+              onClick={() => {
+                setEditingAnnouncement(null);
+                setShowForm(!showForm);
+              }}
+              className="w-full shrink-0 bg-orange-500 text-white hover:bg-orange-600 sm:w-auto"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nuevo anuncio
+            </Button>
+          )}
         </div>
-        {canManage && (
-          <Button
-            onClick={() => {
-              setEditingAnnouncement(null);
-              setShowForm(!showForm);
-            }}
-            className="bg-orange-600 hover:bg-orange-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo
-          </Button>
-        )}
-      </div>
+      </section>
 
       {isAdmin && (
-        <div className="grid gap-4">
+        <div className="grid min-w-0 gap-4 xl:grid-cols-2">
           <AIGenerator />
           <TemplateManager />
         </div>
@@ -517,7 +523,7 @@ Bustarviejo, Madrid
       </AnimatePresence>
 
       <Tabs value={priorityFilter} onValueChange={setPriorityFilter}>
-        <TabsList className="bg-white shadow-sm flex-wrap h-auto p-1">
+        <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:w-auto">
           <TabsTrigger value="all" className="data-[state=active]:bg-orange-100 data-[state=active]:text-orange-700 text-xs px-2 py-1">
             Todos
           </TabsTrigger>
@@ -544,7 +550,7 @@ Bustarviejo, Madrid
           message="Aquí verás los comunicados oficiales del club: avisos importantes, novedades de la temporada y recordatorios. Te llegarán como notificación."
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        <div className="grid min-w-0 grid-cols-1 gap-3 xl:grid-cols-2">
             <AnimatePresence mode="popLayout">
               {sortedAnnouncements.map((announcement) => (
                 <div key={announcement.id} id={`announcement-${announcement.id}`}>
