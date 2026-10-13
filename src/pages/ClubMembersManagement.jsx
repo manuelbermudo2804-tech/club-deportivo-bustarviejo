@@ -977,7 +977,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
   }
 
   return (
-    <div className="p-4 lg:p-6 space-y-6">
+    <div className="club-members-management mx-auto w-full max-w-[1500px] p-3 sm:p-4 lg:p-6 space-y-5 sm:space-y-6">
       {/* Diálogos */}
       <RenewalReminderDialog
         open={showReminderDialog}
@@ -1189,16 +1189,18 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
         </DialogContent>
       </Dialog>
 
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <Users className="w-8 h-8 text-orange-600" />
+      {/* Cabecera */}
+      <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-white to-orange-50/70 p-4 sm:p-5 lg:p-6 shadow-sm">
+        <div className="flex flex-col xl:flex-row xl:justify-between xl:items-center gap-4">
+        <div className="min-w-0">
+          <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] text-orange-700 mb-2">Administración del club</p>
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 flex items-center gap-2">
+            <span className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center shrink-0"><Users className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" /></span>
             Gestión de Socios
           </h1>
-          <p className="text-slate-600 mt-1">Administra los socios del club · Temporada {seasonConfig?.temporada}</p>
+          <p className="text-sm text-slate-500 mt-2">Administra las altas, los pagos y la temporada {seasonConfig?.temporada || "actual"}.</p>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:flex gap-2 w-full xl:w-auto">
           <label className="cursor-pointer">
             <input
               type="file"
@@ -1206,44 +1208,47 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
               onChange={handleFileUpload}
               className="hidden"
             />
-            <Button variant="outline" className="pointer-events-none">
+            <Button variant="outline" className="pointer-events-none w-full xl:w-auto rounded-xl border-slate-200 bg-white">
               <Upload className="w-4 h-4 mr-2" /> Importar CSV
             </Button>
           </label>
           <Button
             onClick={() => setShowManualImportForm(true)}
-            className="bg-blue-600 hover:bg-blue-700"
+            className="w-full xl:w-auto rounded-xl bg-slate-900 hover:bg-slate-800"
           >
             <UserPlus className="w-4 h-4 mr-2" /> Importar Manual
           </Button>
           <Button
             onClick={() => setShowReminderDialog(true)}
-            className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+            className="w-full xl:w-auto rounded-xl bg-emerald-600 hover:bg-emerald-700"
           >
             <Mail className="w-4 h-4 mr-2" /> Enviar Recordatorios
           </Button>
         </div>
+        </div>
       </div>
 
-      {/* Tabs: Lista vs Estadísticas */}
+      {/* Navegación adaptable: desplazamiento horizontal en móvil */}
       <Tabs defaultValue="lista" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-5 max-w-4xl">
-          <TabsTrigger value="lista" className="flex items-center gap-2">
-            <Users className="w-4 h-4" /> Lista de Socios
-          </TabsTrigger>
-          <TabsTrigger value="estadisticas" className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" /> Estadísticas
-          </TabsTrigger>
-          <TabsTrigger value="historico" className="flex items-center gap-2">
-            <Clock className="w-4 h-4" /> Histórico
-          </TabsTrigger>
-          <TabsTrigger value="no-renovados" className="flex items-center gap-2">
-            <AlertCircle className="w-4 h-4" /> No Renovados {noRenovados.length > 0 && `(${noRenovados.length})`}
-          </TabsTrigger>
-          <TabsTrigger value="cotejar" className="flex items-center gap-2">
-            <FileSpreadsheet className="w-4 h-4" /> Cotejar archivo
-          </TabsTrigger>
-        </TabsList>
+        <div className="w-full overflow-x-auto pb-1 -mb-1">
+          <TabsList className="flex h-auto w-max min-w-full sm:min-w-0 sm:w-full sm:grid sm:grid-cols-5 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+            <TabsTrigger value="lista" className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+              <Users className="w-4 h-4" /><span>Lista</span><span className="hidden lg:inline"> de Socios</span>
+            </TabsTrigger>
+            <TabsTrigger value="estadisticas" className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+              <BarChart3 className="w-4 h-4" /><span>Estadísticas</span>
+            </TabsTrigger>
+            <TabsTrigger value="historico" className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+              <Clock className="w-4 h-4" /><span>Histórico</span>
+            </TabsTrigger>
+            <TabsTrigger value="no-renovados" className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+              <AlertCircle className="w-4 h-4" /><span>No renovados {noRenovados.length > 0 && `(${noRenovados.length})`}</span>
+            </TabsTrigger>
+            <TabsTrigger value="cotejar" className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+              <FileSpreadsheet className="w-4 h-4" /><span>Cotejar</span><span className="hidden lg:inline"> archivo</span>
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="cotejar">
           <CotejarArchivoPanel members={members} temporada={seasonConfig?.temporada} />
