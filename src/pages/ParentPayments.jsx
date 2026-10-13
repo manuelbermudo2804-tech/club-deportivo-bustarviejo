@@ -750,7 +750,7 @@ export default function ParentPayments() {
               queryClient.invalidateQueries({ queryKey: ['myPayments'] });
               toast.success("Actualizando datos...");
             }}
-            className="bg-white"
+            className="h-10 w-10 shrink-0 border border-white/30 bg-white/10 p-0 text-white hover:bg-white/20 hover:text-white"
             title="Refrescar datos"
           >
             <RefreshCw className={`w-5 h-5 ${loadingPlayers || loadingPayments ? 'animate-spin' : ''}`} />
