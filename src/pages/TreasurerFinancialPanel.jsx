@@ -1524,26 +1524,21 @@ export default function TreasurerFinancialPanel() {
         {/* TAB ANÁLISIS AVANZADOS */}
         <TabsContent value="analisis" className="space-y-6 mt-6">
           <Tabs value={activeAnalysisTab} onValueChange={setActiveAnalysisTab}>
-            <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:grid-cols-3 lg:grid-cols-5">
-              <TabsTrigger value="rentabilidad" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-                <span className="hidden md:inline">💰 Rentabilidad</span>
-                <span className="md:hidden">💰</span>
+            <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm min-[420px]:grid-cols-3 lg:grid-cols-5">
+              <TabsTrigger value="rentabilidad" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs font-medium leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+                <span className="inline">💰 Rentabilidad</span>
               </TabsTrigger>
-              <TabsTrigger value="retencion" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-                <span className="hidden md:inline">🔄 Retención</span>
-                <span className="md:hidden">🔄</span>
+              <TabsTrigger value="retencion" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs font-medium leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+                <span className="inline">🔄 Retención</span>
               </TabsTrigger>
-              <TabsTrigger value="flujo" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-                <span className="hidden md:inline">📊 Flujo Caja</span>
-                <span className="md:hidden">📊</span>
+              <TabsTrigger value="flujo" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs font-medium leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+                <span className="inline">📊 Flujo de caja</span>
               </TabsTrigger>
-              <TabsTrigger value="ratios" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-                <span className="hidden md:inline">📈 Ratios</span>
-                <span className="md:hidden">📈</span>
+              <TabsTrigger value="ratios" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs font-medium leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+                <span className="inline">📈 Ratios</span>
               </TabsTrigger>
-              <TabsTrigger value="estacionalidad" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-                <span className="hidden md:inline">📅 Estacionalidad</span>
-                <span className="md:hidden">📅</span>
+              <TabsTrigger value="estacionalidad" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs font-medium leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+                <span className="inline">📅 Estacionalidad</span>
               </TabsTrigger>
             </TabsList>
 
