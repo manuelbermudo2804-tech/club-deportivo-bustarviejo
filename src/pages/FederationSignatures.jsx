@@ -435,14 +435,20 @@ export default function FederationSignatures() {
   const progressPercent = totalSignaturesNeeded > 0 ? Math.round((completedSignatures / totalSignaturesNeeded) * 100) : 0;
 
   return (
-    <div className="w-full min-w-0 max-w-full overflow-x-hidden box-border p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6 [&_*]:min-w-0">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
-          <FileSignature className="w-8 h-8 text-orange-600" />
-          Firmas de Federación
-        </h1>
-        <p className="text-slate-600 mt-1 text-sm sm:text-base leading-relaxed">Gestiona las firmas digitales de tus jugadores</p>
-      </div>
+    <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-5 lg:px-8 lg:pt-7 [&_*]:min-w-0">
+      <header className="relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7 md:flex-row md:items-center md:justify-between">
+        <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-orange-500/10 blur-3xl" />
+        <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 sm:h-14 sm:w-14">
+            <FileSignature className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
+          </div>
+          <div className="min-w-0">
+            <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-300">Familias · Documentación</p>
+            <h1 className="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">Firmas y reconocimientos</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Consulta las firmas de federación, completa los trámites pendientes y revisa los reconocimientos de tus jugadores.</p>
+          </div>
+        </div>
+      </header>
 
       <ReconocimientoFamilia players={myPlayers} />
 
@@ -509,7 +515,7 @@ export default function FederationSignatures() {
             <Clock className="w-5 h-5 text-yellow-600" />
             Firmas Pendientes ({playersWithPendingSignatures.length})
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
             {playersWithPendingSignatures.map(player => renderPlayerSignatures(player, true))}
           </div>
         </div>
@@ -522,7 +528,7 @@ export default function FederationSignatures() {
             <CheckCircle2 className="w-5 h-5 text-green-600" />
             Firmas Completadas ({playersWithCompletedSignatures.length})
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
             {playersWithCompletedSignatures.map(player => renderPlayerSignatures(player, false))}
           </div>
         </div>
