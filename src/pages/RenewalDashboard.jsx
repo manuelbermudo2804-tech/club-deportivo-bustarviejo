@@ -268,40 +268,45 @@ CD Bustarviejo`
         onComplete={() => setShowSuccess(false)}
         message={successMessage}
       />
-      <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">🔄 Centro de Renovaciones</h1>
-          <p className="text-slate-600">Control total del proceso de renovación - Temporada {seasonConfig?.temporada}</p>
+      <div className="mx-auto w-full max-w-[1600px] space-y-5 px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><RefreshCw className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+            <div className="min-w-0">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Temporada deportiva</p>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Centro de Renovaciones</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Controla el proceso, consulta las familias pendientes y revisa el avance de la plantilla.</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 sm:min-w-[180px] sm:flex-col sm:items-start">
+            <div><p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Temporada</p><p className="mt-1 text-sm font-bold text-white">{seasonConfig?.temporada || "Sin temporada activa"}</p></div>
+            <div className="text-right sm:text-left"><p className="text-2xl font-bold text-emerald-300">{stats.tasaRenovacion}%</p><p className="text-xs text-slate-300">Completado</p></div>
+          </div>
         </div>
-        <Badge className="bg-blue-600 text-white text-lg px-4 py-2">
-          {stats.tasaRenovacion}% Completado
-        </Badge>
-      </div>
+      </section>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5 lg:w-auto">
-          <TabsTrigger value="overview" className="gap-2">
-            <BarChart3 className="w-4 h-4" />
-            Resumen
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-5 sm:space-y-6">
+        <div className="-mx-1 overflow-x-auto px-1 pb-1">
+          <TabsList className="flex h-auto w-max min-w-full justify-start gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm lg:w-auto lg:min-w-0">
+          <TabsTrigger value="overview" className="min-h-10 shrink-0 gap-2 rounded-xl px-3 text-xs sm:px-4 sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+            <BarChart3 className="h-4 w-4" /> Resumen
           </TabsTrigger>
-          <TabsTrigger value="actions" className="gap-2">
-            <Zap className="w-4 h-4" />
-            Acciones
+          <TabsTrigger value="actions" className="min-h-10 shrink-0 gap-2 rounded-xl px-3 text-xs sm:px-4 sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+            <Zap className="h-4 w-4" /> Acciones
           </TabsTrigger>
-          <TabsTrigger value="families" className="gap-2">
-            <Users className="w-4 h-4" />
-            Familias
+          <TabsTrigger value="families" className="min-h-10 shrink-0 gap-2 rounded-xl px-3 text-xs sm:px-4 sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+            <Users className="h-4 w-4" /> Familias
           </TabsTrigger>
-          <TabsTrigger value="individual" className="gap-2">
-            <Search className="w-4 h-4" />
-            Individual
+          <TabsTrigger value="individual" className="min-h-10 shrink-0 gap-2 rounded-xl px-3 text-xs sm:px-4 sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+            <Search className="h-4 w-4" /> Individual
           </TabsTrigger>
-          <TabsTrigger value="stats" className="gap-2">
-            <BarChart3 className="w-4 h-4" />
-            Estadísticas
+          <TabsTrigger value="stats" className="min-h-10 shrink-0 gap-2 rounded-xl px-3 text-xs sm:px-4 sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
+            <BarChart3 className="h-4 w-4" /> Estadísticas
           </TabsTrigger>
-        </TabsList>
+          </TabsList>
+        </div>
 
         {/* TAB: RESUMEN */}
         <TabsContent value="overview" className="space-y-6">
