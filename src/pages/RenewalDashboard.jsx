@@ -314,7 +314,7 @@ CD Bustarviejo`
           {seasonConfig?.fecha_limite_renovaciones && (
         <Card className={`border-2 ${diasRestantes > 7 ? 'border-blue-300 bg-blue-50' : diasRestantes > 0 ? 'border-orange-300 bg-orange-50' : 'border-red-300 bg-red-50'}`}>
           <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <Clock className={`w-8 h-8 ${diasRestantes > 7 ? 'text-blue-600' : diasRestantes > 0 ? 'text-orange-600' : 'text-red-600'}`} />
                 <div>
@@ -337,53 +337,53 @@ CD Bustarviejo`
           )}
 
           {/* Estadísticas globales */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-none shadow-lg">
-          <CardContent className="pt-6">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <Card className="rounded-2xl border border-slate-200/80 shadow-sm">
+          <CardContent className="p-4 sm:p-6">
             <div className="text-center">
-              <p className="text-sm text-slate-600 mb-1">Total Jugadores</p>
-              <p className="text-4xl font-bold text-slate-900">{stats.total}</p>
+              <p className="mb-1 text-xs text-slate-600 sm:text-sm">Total jugadores</p>
+              <p className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">{stats.total}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="pt-6">
+        <Card className="rounded-2xl border border-green-200 bg-green-50/80">
+          <CardContent className="p-4 sm:p-6">
             <div className="text-center">
-              <CheckCircle2 className="w-8 h-8 text-green-600 mx-auto mb-2" />
-              <p className="text-sm text-green-700 mb-1">Renovados</p>
-              <p className="text-4xl font-bold text-green-700">{stats.renovados}</p>
+              <CheckCircle2 className="mx-auto mb-2 h-6 w-6 text-green-600 sm:h-8 sm:w-8" />
+              <p className="mb-1 text-xs text-green-700 sm:text-sm">Renovados</p>
+              <p className="text-3xl font-bold tracking-tight text-green-700 sm:text-4xl">{stats.renovados}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-orange-200 bg-orange-50">
-          <CardContent className="pt-6">
+        <Card className="rounded-2xl border border-orange-200 bg-orange-50/80">
+          <CardContent className="p-4 sm:p-6">
             <div className="text-center">
-              <AlertTriangle className="w-8 h-8 text-orange-600 mx-auto mb-2 animate-pulse" />
-              <p className="text-sm text-orange-700 mb-1">Pendientes</p>
-              <p className="text-4xl font-bold text-orange-700">{stats.pendientes}</p>
+              <AlertTriangle className="mx-auto mb-2 h-6 w-6 text-orange-600 sm:h-8 sm:w-8" />
+              <p className="mb-1 text-xs text-orange-700 sm:text-sm">Pendientes</p>
+              <p className="text-3xl font-bold tracking-tight text-orange-700 sm:text-4xl">{stats.pendientes}</p>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-red-200 bg-red-50">
-          <CardContent className="pt-6">
+        <Card className="rounded-2xl border border-red-200 bg-red-50/80">
+          <CardContent className="p-4 sm:p-6">
             <div className="text-center">
-              <XCircle className="w-8 h-8 text-red-600 mx-auto mb-2" />
-              <p className="text-sm text-red-700 mb-1">No Renuevan</p>
-              <p className="text-4xl font-bold text-red-700">{stats.noRenuevan}</p>
+              <XCircle className="mx-auto mb-2 h-6 w-6 text-red-600 sm:h-8 sm:w-8" />
+              <p className="mb-1 text-xs text-red-700 sm:text-sm">No renuevan</p>
+              <p className="text-3xl font-bold tracking-tight text-red-700 sm:text-4xl">{stats.noRenuevan}</p>
             </div>
           </CardContent>
           </Card>
           </div>
 
           {/* Tasa de renovación */}
-      <Card className="border-none shadow-lg">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-4">
-            <p className="font-bold text-slate-900">Progreso de Renovaciones</p>
-            <p className="text-3xl font-bold text-green-600">{stats.tasaRenovacion}%</p>
+      <Card className="rounded-2xl border border-slate-200/80 shadow-sm">
+        <CardContent className="p-4 sm:p-6">
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+            <p className="font-bold text-slate-900">Progreso de renovaciones</p>
+            <p className="text-2xl font-bold text-green-600 sm:text-3xl">{stats.tasaRenovacion}%</p>
           </div>
           <Progress value={stats.tasaRenovacion} className="h-4" />
           <div className="flex justify-between text-sm mt-2">
