@@ -60,7 +60,7 @@ export default function MercadilloAdminPanel({ listings, user, onEdit, onChanged
   const pendientes = listings.filter(l => l.estado === 'pendiente').length;
 
   return (
-    <Card className="border-purple-200 bg-purple-50/40">
+    <Card className="overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
       <CardHeader className="pb-3">
         <button onClick={() => setOpen(!open)} className="flex items-center justify-between w-full text-left">
           <CardTitle className="text-base flex items-center gap-2 text-purple-900">
