@@ -240,35 +240,43 @@ export default function FederationSignaturesAdmin() {
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-          <FileSignature className="w-8 h-8 text-orange-600" />
-          Gestión de Firmas Federación
-        </h1>
-        <p className="text-slate-600 mt-1">
-          {isAdmin ? "Añade los enlaces de firma para cada jugador" : "Gestiona las firmas de tus equipos"}
-        </p>
-      </div>
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><FileSignature className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+            <div className="min-w-0">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Documentación</p>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Firmas y reconocimientos</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Gestiona las firmas de federación, la documentación de los jugadores y los reconocimientos médicos.</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:min-w-[220px]">
+            <div className="rounded-xl border border-white/10 bg-white/[0.06] px-3 py-3"><p className="text-[10px] text-slate-400">Pendientes</p><p className="mt-1 text-2xl font-bold text-amber-300">{pendienteCount}</p></div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.06] px-3 py-3"><p className="text-[10px] text-slate-400">Completados</p><p className="mt-1 text-2xl font-bold text-emerald-300">{completadoCount}</p></div>
+          </div>
+        </div>
+      </section>
 
       {/* Resumen */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card className="border-2 border-slate-200">
-          <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-slate-600">{sinEnlacesCount}</p>
-            <p className="text-sm text-slate-500">Sin enlaces</p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
+        <Card className="rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+          <CardContent className="p-4 sm:p-5">
+            <p className="text-2xl font-bold tracking-tight text-slate-600 sm:text-3xl">{sinEnlacesCount}</p>
+            <p className="mt-1 text-xs font-medium text-slate-500 sm:text-sm">Sin enlaces</p>
           </CardContent>
         </Card>
-        <Card className="border-2 border-yellow-200 bg-yellow-50">
-          <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-yellow-600">{pendienteCount}</p>
-            <p className="text-sm text-yellow-700">Pendientes de firma</p>
+        <Card className="rounded-2xl border border-amber-200 bg-amber-50/80 shadow-sm">
+          <CardContent className="p-4 sm:p-5">
+            <p className="text-2xl font-bold tracking-tight text-amber-600 sm:text-3xl">{pendienteCount}</p>
+            <p className="mt-1 text-xs font-medium text-amber-700 sm:text-sm">Pendientes de firma</p>
           </CardContent>
         </Card>
-        <Card className="border-2 border-green-200 bg-green-50">
-          <CardContent className="p-4 text-center">
-            <p className="text-3xl font-bold text-green-600">{completadoCount}</p>
-            <p className="text-sm text-green-700">Completados</p>
+        <Card className="col-span-2 rounded-2xl border border-green-200 bg-green-50/80 shadow-sm sm:col-span-1">
+          <CardContent className="p-4 sm:p-5">
+            <p className="text-2xl font-bold tracking-tight text-green-600 sm:text-3xl">{completadoCount}</p>
+            <p className="mt-1 text-xs font-medium text-green-700 sm:text-sm">Completados</p>
           </CardContent>
         </Card>
       </div>
