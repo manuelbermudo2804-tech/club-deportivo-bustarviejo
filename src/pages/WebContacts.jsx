@@ -66,22 +66,25 @@ fetch("TU_URL_DE_FUNCION/receiveContactForm", {
   };
 
   return (
-    <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-4">
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center shadow-lg">
-            <Globe className="w-5 h-5 text-white" />
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15">
+            <Globe className="h-6 w-6 text-orange-400" />
           </div>
-          <div>
-            <h1 className="text-xl font-black text-slate-900">Contactos Web</h1>
-            <p className="text-xs text-slate-500">Formularios recibidos desde la web externa</p>
+          <div className="min-w-0">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Administración del club</p>
+            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Contactos Web</h1>
+            <p className="mt-1 text-sm text-slate-300">Formularios recibidos desde la web externa</p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setShowIntegration(!showIntegration)} className="text-xs gap-1.5">
+        <Button variant="outline" size="sm" onClick={() => setShowIntegration(!showIntegration)} className="gap-1.5 rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15">
           <Info className="w-3.5 h-3.5" />
           Cómo conectar mi web
         </Button>
+      </div>
       </div>
 
       {/* Panel de integración */}
@@ -106,7 +109,7 @@ fetch("TU_URL_DE_FUNCION/receiveContactForm", {
       )}
 
       {/* Estadísticas rápidas */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <button onClick={() => setFilterEstado(filterEstado === "nuevo" ? "todos" : "nuevo")} className={`rounded-xl p-2.5 text-center transition-all ${filterEstado === "nuevo" ? "bg-blue-600 text-white shadow-lg" : "bg-blue-50 text-blue-800 hover:bg-blue-100"}`}>
           <div className="text-lg font-black">{nuevos}</div>
           <div className="text-[10px] font-medium">Nuevos</div>
@@ -143,7 +146,7 @@ fetch("TU_URL_DE_FUNCION/receiveContactForm", {
           <p className="text-slate-500 text-sm mt-2">Cargando contactos...</p>
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-12 bg-slate-50 rounded-2xl">
+        <div className="rounded-2xl border border-slate-200 bg-white py-12 text-center shadow-sm">
           <Globe className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="font-bold text-slate-700">No hay contactos</h3>
           <p className="text-xs text-slate-500 mt-1">
