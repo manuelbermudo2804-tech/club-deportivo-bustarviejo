@@ -61,53 +61,61 @@ export default function DirectorioContactos() {
   };
 
   return (
-    <div className="p-4 lg:p-8 max-w-6xl mx-auto space-y-5">
-      <div>
-        <h1 className="flex items-center gap-2">
-          <Users className="w-7 h-7 text-orange-600" />
-          Directorio de contactos
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">
-          Todas las personas registradas en la app: familias, jugadores, socios, porra, inscripciones y
-          pre-inscripciones web (torneos, maratón, San Isidro), contactos de la web, solicitudes de
-          acceso, voluntariado, interés en femenino y patrocinadores. Sin duplicados. Para uso interno del club: solo puedes hacer comunicación comercial a
-          quien ha dado su consentimiento.
-        </p>
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 sm:h-14 sm:w-14">
+            <Users className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
+          </div>
+          <div className="min-w-0">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Base de datos de contactos</p>
+            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Directorio de contactos</h1>
+            <p className="mt-1 max-w-4xl text-sm leading-relaxed text-slate-300">Personas de familias, jugadores, socios, inscripciones, web, voluntariado y patrocinadores, agrupadas sin duplicados. El uso comercial requiere consentimiento específico.</p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-3xl font-bold text-slate-900">{contactos.length}</p>
-            <p className="text-xs text-slate-500 mt-1">Personas distintas</p>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <CardContent className="flex items-center justify-between gap-3 p-4 sm:p-5">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Personas distintas</p>
+              <p className="mt-1 text-3xl font-black tracking-tight text-slate-900">{contactos.length}</p>
+            </div>
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-slate-700"><Users className="h-5 w-5" /></div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-3xl font-bold text-green-700">{conConsentimiento}</p>
-            <p className="text-xs text-slate-500 mt-1">Con consentimiento comercial</p>
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <CardContent className="flex items-center justify-between gap-3 p-4 sm:p-5">
+            <div>
+              <p className="text-sm font-medium text-slate-500">Con consentimiento comercial</p>
+              <p className="mt-1 text-3xl font-black tracking-tight text-emerald-700">{conConsentimiento}</p>
+            </div>
+            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700"><ShieldCheck className="h-5 w-5" /></div>
           </CardContent>
         </Card>
       </div>
 
-      <Card>
-        <CardHeader className="space-y-3">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <CardTitle className="text-lg">Listado ({filtrados.length})</CardTitle>
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+      <Card className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="space-y-4 border-b border-slate-100 p-4 sm:p-5">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <CardTitle className="text-lg">Listado de contactos</CardTitle>
+              <p className="mt-1 text-sm text-slate-500">Mostrando {filtrados.length} de {contactos.length} personas</p>
+            </div>
+            <Button variant="outline" onClick={exportarCSV} disabled={filtrados.length === 0} className="h-11 w-full rounded-xl border-slate-200 sm:w-auto">
+              <Download className="mr-2 h-4 w-4" /> Exportar listado
+            </Button>
+          </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                 <Input
                   placeholder="Buscar nombre, email, teléfono..."
                   value={busqueda}
                   onChange={(e) => setBusqueda(e.target.value)}
-                  className="pl-9 w-full sm:w-64"
+                  className="h-11 w-full rounded-xl border-slate-200 bg-slate-50 pl-9"
                 />
               </div>
-              <Button variant="outline" onClick={exportarCSV} disabled={filtrados.length === 0}>
-                <Download className="w-4 h-4 mr-2" /> Exportar
-              </Button>
-            </div>
           </div>
           <DirectorioFiltros
             origenes={origenes}
@@ -117,7 +125,7 @@ export default function DirectorioContactos() {
             onConsentChange={setConsent}
           />
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3 sm:p-5">
           {isLoading ? (
             <div className="py-12 text-center text-slate-500 text-sm">Reuniendo contactos...</div>
           ) : (
