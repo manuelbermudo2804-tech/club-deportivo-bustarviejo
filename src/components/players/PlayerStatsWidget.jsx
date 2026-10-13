@@ -92,8 +92,9 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
   }).length;
 
   // Media de evaluación: usar solo puntuaciones numéricas existentes para evitar NaN.
-  const playerEvals = evaluations.filter(e => e.jugador_id === playerId);
-  const evaluationScores = playerEvals
+  // La consulta ya está filtrada por jugador. No volver a filtrar por jugador_id,
+  // porque algunas evaluaciones históricas pueden devolver ese campo con otro formato.
+  const evaluationScores = evaluations
     .map(e => [e.tecnica, e.tactica, e.fisica, e.actitud, e.trabajo_equipo]
       .map(value => value === "" || value === null || value === undefined ? null : Number(value))
       .filter(value => value !== null && Number.isFinite(value)))
@@ -105,13 +106,18 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
 
   // Racha de asistencia
   const playerAttendances = attendances
-    .filter(a => a.asistencias?.some(att => att.jugador_id === playerId))
-    .sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-  
+    .filter(a => a.asistencias?.some(att => String(att.jugador_id) === String(playerId)))
+    .sort((a, b) => new Date(b.fecha || b.created_date || 0) - new Date(a.fecha || a.created_date || 0));
+
+  const getAttendanceStatus = (attendance) => {
+    const entry = attendance.asistencias?.find(a => String(a.jugador_id) === String(playerId));
+    return String(entry?.estado || "").trim().toLowerCase();
+  };
+  const attendedStatus = status => ["presente", "tardanza", "asistio", "asistió"].includes(status);
+
   let racha = 0;
   for (const att of playerAttendances) {
-    const playerAtt = att.asistencias.find(a => a.jugador_id === playerId);
-    if (playerAtt?.estado === "presente" || playerAtt?.estado === "tardanza") {
+    if (attendedStatus(getAttendanceStatus(att))) {
       racha++;
     } else {
       break;
@@ -119,10 +125,7 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
   }
 
   // Total entrenamientos asistidos
-  const totalTrainings = playerAttendances.filter(a => {
-    const p = a.asistencias.find(att => att.jugador_id === playerId);
-    return p?.estado === "presente" || p?.estado === "tardanza";
-  }).length;
+  const totalTrainings = playerAttendances.filter(a => attendedStatus(getAttendanceStatus(a))).length;
   const totalTrainingsSessions = playerAttendances.length;
 
   // Pagos al día
