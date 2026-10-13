@@ -102,14 +102,14 @@ export default function MinorFifaCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: "spring", bounce: 0.2, duration: 0.65 }}
       className="relative mx-auto w-full"
-      style={{ width: "100%", maxWidth: 560, aspectRatio: "1 / 1" }}
+      style={{ width: "100%", maxWidth: 440 }}
     >
       <div className="pointer-events-none absolute -inset-3 rounded-[2.5rem] bg-orange-500/10 blur-2xl" />
 
       <div
         className="relative overflow-hidden"
         style={{
-          clipPath: "polygon(24% 0, 76% 0, 87% 4%, 96% 13%, 100% 25%, 100% 87%, 88% 100%, 12% 100%, 0 87%, 0 25%, 4% 13%, 13% 4%)",
+          clipPath: "polygon(18% 0, 82% 0, 100% 8%, 100% 92%, 82% 100%, 18% 100%, 0 92%, 0 8%)",
           background: "linear-gradient(135deg, #fff0a8 0%, #b97819 12%, #fff4bd 25%, #d99527 52%, #fff0a8 78%, #9b5a12 100%)",
           padding: 2,
           filter: "drop-shadow(0 18px 25px rgba(0,0,0,.42))",
@@ -118,7 +118,7 @@ export default function MinorFifaCard({
         <div
           className="relative overflow-hidden"
           style={{
-            clipPath: "polygon(24% 0, 76% 0, 87% 4%, 96% 13%, 100% 25%, 100% 87%, 88% 100%, 12% 100%, 0 87%, 0 25%, 4% 13%, 13% 4%)",
+            clipPath: "polygon(18% 0, 82% 0, 100% 8%, 100% 92%, 82% 100%, 18% 100%, 0 92%, 0 8%)",
             background: "linear-gradient(145deg, #fff9df 0%, #f3d58a 36%, #fff1bd 68%, #d7a34c 100%)",
           }}
         >
@@ -130,7 +130,7 @@ export default function MinorFifaCard({
             <div className="absolute bottom-0 right-0 h-1 w-1/2 bg-gradient-to-l from-orange-500 to-transparent" />
           </div>
 
-          <div className="relative flex h-full flex-col px-5 pb-5 pt-5">
+          <div className="relative px-7 pb-7 pt-6">
             {/* Identity row */}
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -148,7 +148,7 @@ export default function MinorFifaCard({
             </div>
 
             {/* Portrait as the visual centrepiece */}
-            <div className="relative mt-4 overflow-hidden border-2 border-amber-700/70 bg-gradient-to-br from-amber-100 via-stone-200 to-orange-100 shadow-inner" style={{ minHeight: 0, flex: "1 1 auto" }}>
+            <div className="relative mt-4 overflow-hidden border-2 border-amber-700/70 bg-gradient-to-br from-amber-100 via-stone-200 to-orange-100 shadow-inner" style={{ height: 360, clipPath: "polygon(7% 0, 100% 0, 100% 91%, 92% 100%, 0 100%, 0 12%)" }}>
               {player?.foto_url ? (
                 <img src={player.foto_url} alt={player.nombre || "Foto del jugador"} className="absolute inset-0 h-full w-full object-contain object-bottom" />
               ) : (
