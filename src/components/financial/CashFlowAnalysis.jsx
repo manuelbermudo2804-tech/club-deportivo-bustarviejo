@@ -69,16 +69,16 @@ export default function CashFlowAnalysis({ payments, transactions, clothingOrder
   };
 
   return (
-    <Card className="border-none shadow-lg">
+    <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <TrendingUp className="w-5 h-5 text-blue-600" />
           Flujo de Caja Mensual
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="min-w-0 space-y-5 p-3 sm:space-y-6 sm:p-6">
         {/* Resumen */}
-        <div className="grid grid-cols-3 gap-2 md:gap-4">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
           <div className="bg-green-50 rounded-xl p-3 md:p-4 text-center border-2 border-green-200">
             <p className="text-[10px] md:text-xs text-green-600 font-medium mb-1">Total Ingresos</p>
             <p className="text-lg md:text-2xl font-bold text-green-700">
@@ -104,7 +104,8 @@ export default function CashFlowAnalysis({ payments, transactions, clothingOrder
         </div>
 
         {/* Gráfico flujo mensual */}
-        <ResponsiveContainer width="100%" height={400}>
+        <div className="w-full min-w-0 overflow-hidden rounded-xl border border-slate-100 bg-white p-2 sm:p-3">
+        <ResponsiveContainer width="100%" height={320}>
           <ComposedChart data={monthlyData}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis 
@@ -128,11 +129,13 @@ export default function CashFlowAnalysis({ payments, transactions, clothingOrder
             <Line type="monotone" dataKey="flujo" stroke="#3b82f6" strokeWidth={3} name="Flujo Neto" />
           </ComposedChart>
         </ResponsiveContainer>
+        </div>
 
         {/* Desglose de ingresos */}
         <div>
           <h4 className="font-bold text-slate-900 mb-3">Desglose de Ingresos por Mes</h4>
-          <ResponsiveContainer width="100%" height={300}>
+          <div className="w-full min-w-0 overflow-hidden rounded-xl border border-slate-100 bg-white p-2 sm:p-3">
+          <ResponsiveContainer width="100%" height={280}>
             <BarChart data={monthlyData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis 
@@ -157,6 +160,7 @@ export default function CashFlowAnalysis({ payments, transactions, clothingOrder
               <Bar dataKey="socios" stackId="a" fill="#6366f1" name="Socios" />
             </BarChart>
           </ResponsiveContainer>
+          </div>
         </div>
       </CardContent>
     </Card>
