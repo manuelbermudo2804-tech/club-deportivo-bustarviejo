@@ -1,11 +1,6 @@
 import React, { useMemo } from "react";
 import { motion } from "framer-motion";
-import { Zap, Flame, TrendingUp, Clock, Award, Goal, Target, Trophy } from "lucide-react";
-
-/**
- * Carta coleccionable propia del C.D. Bustarviejo.
- * Estética premium negra y naranja, conservando los datos y cálculos del jugador.
- */
+import { Zap, Flame, Goal, Target, Trophy, Shield, Star } from "lucide-react";
 
 const calcularEdad = (fechaNac) => {
   if (!fechaNac) return null;
@@ -40,38 +35,21 @@ function calcRacha(attendances, playerId) {
   return racha;
 }
 
-// Posición → código corto FIFA
 function posCorta(posicion) {
   if (!posicion || posicion === "Sin asignar") return "JUG";
-  const map = { "Portero": "POR", "Defensa": "DEF", "Medio": "MED", "Delantero": "DEL" };
+  const map = { Portero: "POR", Defensa: "DEF", Medio: "MED", Delantero: "DEL" };
   return map[posicion] || posicion.substring(0, 3).toUpperCase();
 }
 
-// Píldora de stat con icono coloreado a la izquierda
-function StatPill({ icon: Icon, color, label, value }) {
+function StatTile({ icon: Icon, label, value, accent = false }) {
   return (
-    <div className="relative flex items-center bg-white/20 rounded-full overflow-hidden backdrop-blur-sm">
-      {/* Icono circular a la izquierda */}
-      <div
-        className="flex items-center justify-center rounded-full shrink-0"
-        style={{
-          width: 34,
-          height: 34,
-          background: color,
-          boxShadow: `0 2px 6px ${color}80`,
-        }}
-      >
-        <Icon className="w-4 h-4 text-white" strokeWidth={2.5} />
+    <div className="relative min-w-0 overflow-hidden rounded-xl border border-white/10 bg-black/35 px-3 py-2.5">
+      {accent && <div className="absolute inset-y-0 left-0 w-1 bg-orange-500" />}
+      <div className="flex items-center gap-1.5 text-white/65">
+        <Icon className="h-3.5 w-3.5 text-orange-400" strokeWidth={2.5} />
+        <span className="truncate text-[9px] font-extrabold uppercase tracking-[0.12em]">{label}</span>
       </div>
-      {/* Texto */}
-      <div className="flex-1 flex items-center justify-between px-3">
-        <span className="text-white font-extrabold text-[11px] tracking-wider uppercase drop-shadow">
-          {label}
-        </span>
-        <span className="text-white font-black text-base drop-shadow">
-          {value}
-        </span>
-      </div>
+      <div className="mt-1 text-2xl font-black leading-none tracking-tight text-white">{value}</div>
     </div>
   );
 }
@@ -86,7 +64,7 @@ export default function MinorFifaCard({
 }) {
   const fullName = (player?.nombre || user?.full_name || "Jugador").toUpperCase();
   const edad = calcularEdad(player?.fecha_nacimiento);
-  const dorsal = player?.numero_camiseta || "?";
+  const dorsal = player?.numero_camiseta || "—";
   const posicion = posCorta(player?.posicion);
   const categoria = player?.categoria_principal || player?.deporte || "Jugador";
 
@@ -95,7 +73,6 @@ export default function MinorFifaCard({
     racha: calcRacha(attendances, player?.id),
   }), [attendances, player?.id]);
 
-  // Nivel y XP (basado en stats reales)
   const { nivel, xpPct } = useMemo(() => {
     const score = asistenciaPct * 0.4 + Math.min(racha * 6, 100) * 0.2
       + Math.min(callupsCount * 8, 100) * 0.2 + Math.min(goles * 5, 100) * 0.2;
@@ -104,7 +81,6 @@ export default function MinorFifaCard({
     return { nivel: nivelNum, xpPct: pct };
   }, [asistenciaPct, racha, callupsCount, goles]);
 
-  // Logros: cuántos badges desbloqueados
   const logrosCount = useMemo(() => {
     let n = 0;
     if (asistenciaPct >= 70) n++;
@@ -120,208 +96,117 @@ export default function MinorFifaCard({
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 30, scale: 0.9 }}
+      initial={{ opacity: 0, y: 22, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ type: "spring", bounce: 0.3, duration: 0.8 }}
+      transition={{ type: "spring", bounce: 0.2, duration: 0.65 }}
       className="relative mx-auto w-full"
       style={{ maxWidth: 340 }}
     >
-      {/* Glow exterior naranja */}
+      <div className="pointer-events-none absolute -inset-3 rounded-[2.5rem] bg-orange-500/10 blur-2xl" />
+
       <div
-        className="absolute -inset-6 rounded-full blur-3xl opacity-50 pointer-events-none"
-        style={{ background: "radial-gradient(circle at center, rgba(249,115,22,0.42), transparent 68%)" }}
-      />
-
-      {/* SVG card shape con forma FIFA (corona arriba, base tipo escudo) */}
-      <div className="relative" style={{ filter: "drop-shadow(0 18px 28px rgba(0,0,0,0.48))" }}>
-        <svg
-          viewBox="0 0 360 540"
-          className="w-full h-auto"
-          preserveAspectRatio="xMidYMid meet"
+        className="relative overflow-hidden"
+        style={{
+          clipPath: "polygon(9% 0, 91% 0, 100% 7%, 100% 91%, 91% 100%, 9% 100%, 0 91%, 0 7%)",
+          background: "linear-gradient(145deg, #3b3b3b 0%, #141414 24%, #080808 72%, #262626 100%)",
+          padding: 2,
+          filter: "drop-shadow(0 18px 25px rgba(0,0,0,.42))",
+        }}
+      >
+        <div
+          className="relative overflow-hidden"
+          style={{
+            clipPath: "polygon(9% 0, 91% 0, 100% 7%, 100% 91%, 91% 100%, 9% 100%, 0 91%, 0 7%)",
+            background: "linear-gradient(155deg, #202020, #090909 60%, #191919)",
+          }}
         >
-          <defs>
-            {/* Gradiente naranja FIFA */}
-            <linearGradient id="cardBg" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#262626" />
-              <stop offset="38%" stopColor="#111111" />
-              <stop offset="72%" stopColor="#202020" />
-              <stop offset="100%" stopColor="#090909" />
-            </linearGradient>
-            {/* Brillo lateral */}
-            <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="white" stopOpacity="0" />
-              <stop offset="50%" stopColor="white" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="white" stopOpacity="0" />
-            </linearGradient>
-            {/* Borde dorado */}
-            <linearGradient id="border" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#FDBA74" />
-              <stop offset="48%" stopColor="#F97316" />
-              <stop offset="100%" stopColor="#9A3412" />
-            </linearGradient>
-          </defs>
-          {/* Forma de la carta FIFA: corona arriba con curva, base con bordes redondeados */}
-          <path
-            d="M 60 30
-               Q 100 30 130 18
-               Q 180 0 230 18
-               Q 260 30 300 30
-               L 320 60
-               Q 340 80 340 110
-               L 340 480
-               Q 340 510 310 520
-               Q 270 535 180 535
-               Q 90 535 50 520
-               Q 20 510 20 480
-               L 20 110
-               Q 20 80 40 60
-               Z"
-            fill="url(#cardBg)"
-            stroke="url(#border)"
-            strokeWidth="3"
-          />
-          {/* Líneas de brillo diagonal */}
-          <path
-            d="M 60 30 Q 100 30 130 18 Q 180 0 230 18 Q 260 30 300 30 L 320 60 Q 340 80 340 110 L 340 480 Q 340 510 310 520 Q 270 535 180 535 Q 90 535 50 520 Q 20 510 20 480 L 20 110 Q 20 80 40 60 Z"
-            fill="url(#shine)"
-            opacity="0.4"
-          />
-        </svg>
+          {/* Graphic texture and orange angular accents */}
+          <div className="pointer-events-none absolute inset-0 overflow-hidden">
+            <div className="absolute -right-16 top-20 h-56 w-56 rotate-45 border border-orange-500/20" />
+            <div className="absolute -right-10 top-28 h-44 w-44 rotate-45 border border-orange-500/10" />
+            <div className="absolute left-0 top-0 h-1 w-2/3 bg-gradient-to-r from-orange-400 via-orange-600 to-transparent" />
+            <div className="absolute bottom-0 right-0 h-1 w-1/2 bg-gradient-to-l from-orange-500 to-transparent" />
+          </div>
 
-        {/* Contenido superpuesto */}
-        <div className="absolute inset-0 flex flex-col px-6 pt-5 pb-4">
-
-          {/* HEADER: dorsal+pos izquierda, nivel+xp derecha */}
-          <div className="flex items-start justify-between">
-            {/* Dorsal + Posición */}
-            <div className="flex items-baseline gap-2">
-              <span className="text-white text-4xl font-black leading-none drop-shadow-lg">
-                {dorsal}
-              </span>
-              <span className="text-white text-lg font-extrabold tracking-wider drop-shadow">
-                {posicion}
-              </span>
+          <div className="relative px-5 pb-5 pt-5">
+            {/* Identity row */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-[9px] font-black uppercase tracking-[0.28em] text-orange-400">C.D. BUSTARVIEJO</div>
+                <div className="mt-1 flex items-end gap-2">
+                  <span className="text-4xl font-black leading-none tracking-tighter text-white">{dorsal}</span>
+                  <span className="mb-0.5 rounded-md border border-orange-500/50 bg-orange-500/10 px-2 py-1 text-[10px] font-black tracking-widest text-orange-300">{posicion}</span>
+                </div>
+                <div className="mt-1 max-w-[180px] truncate text-[10px] font-bold uppercase tracking-wider text-white/55">{categoria}{edad ? ` · ${edad} AÑOS` : ""}</div>
+              </div>
+              <div className="flex shrink-0 flex-col items-center">
+                <div className="flex h-12 w-12 items-center justify-center border border-orange-400/70 bg-gradient-to-br from-orange-500/25 to-black shadow-[inset_0_0_18px_rgba(249,115,22,.12)]" style={{ clipPath: "polygon(50% 0, 94% 18%, 88% 72%, 50% 100%, 12% 72%, 6% 18%)" }}>
+                  <Shield className="absolute h-7 w-7 text-orange-400/35" strokeWidth={1.3} />
+                  <span className="relative text-[10px] font-black tracking-tight text-white">CDB</span>
+                </div>
+                <span className="mt-1.5 text-[9px] font-extrabold uppercase tracking-widest text-orange-300">Nivel {nivel}</span>
+              </div>
             </div>
 
-            {/* Escudo del club (placeholder simple) + Nivel/XP */}
-            <div className="flex items-center gap-2">
-              <div className="flex flex-col items-end">
-                <span className="text-white text-[11px] font-extrabold tracking-wider drop-shadow">
-                  NIVEL {nivel}
-                </span>
-                <div className="flex items-center gap-1 mt-0.5">
-                  <span className="text-white/90 text-[9px] font-bold">XP</span>
-                  <div className="w-16 h-1.5 bg-black/30 rounded-full overflow-hidden">
-                    <div
-                      className="h-full rounded-full transition-all"
-                      style={{
-                        width: `${xpPct}%`,
-                        background: "linear-gradient(90deg, #4ade80, #22c55e)",
-                      }}
-                    />
+            {/* Portrait as the visual centrepiece */}
+            <div className="relative mt-4 overflow-hidden border border-orange-400/50 bg-gradient-to-br from-zinc-800 via-zinc-900 to-orange-950/40" style={{ height: 205, clipPath: "polygon(7% 0, 100% 0, 100% 87%, 91% 100%, 0 100%, 0 13%)" }}>
+              {player?.foto_url ? (
+                <img src={player.foto_url} alt={player.nombre || "Foto del jugador"} className="absolute inset-0 h-full w-full object-cover object-top" />
+              ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-700 via-zinc-900 to-black">
+                  <div className="text-center">
+                    <div className="text-6xl">⚽</div>
+                    <div className="mt-2 text-[9px] font-bold uppercase tracking-[0.25em] text-white/35">Jugador CDB</div>
                   </div>
                 </div>
-                <span className="text-white/90 text-[9px] font-bold mt-0.5">{xpPct}%</span>
-              </div>
-              {/* Escudo */}
-              <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm border border-white/40">
-                <span className="text-white text-[10px] font-black">CDB</span>
-              </div>
-            </div>
-          </div>
-
-          {/* FOTO circular con anillo plateado/azul */}
-          <div className="flex justify-center mt-3">
-            <div className="relative" style={{ width: 130, height: 130 }}>
-              {/* Anillo exterior con brillo */}
-              <div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: "linear-gradient(135deg, #FED7AA, #F97316, #9A3412, #FB923C)",
-                  padding: 4,
-                  boxShadow: "0 0 22px rgba(249,115,22,0.28)",
-                }}
-              >
-                <div className="w-full h-full rounded-full bg-orange-600 overflow-hidden">
-                  {player?.foto_url ? (
-                    <img
-                      src={player.foto_url}
-                      alt={player.nombre}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-5xl">⚽</div>
-                  )}
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 h-1 bg-gradient-to-r from-transparent via-orange-500 to-transparent" />
+              <div className="absolute bottom-3 left-3 right-3">
+                <div className="text-[8px] font-black uppercase tracking-[0.3em] text-orange-300">Jugador · Temporada</div>
+                <div className="break-words text-xl font-black uppercase leading-tight tracking-tight text-white drop-shadow-lg" style={{ fontSize: fullName.length > 19 ? 15 : fullName.length > 14 ? 18 : 22 }}>
+                  {fullName}
                 </div>
               </div>
+              <div className="absolute right-3 top-3 flex h-9 w-9 items-center justify-center rounded-full border border-white/25 bg-black/55 backdrop-blur-sm">
+                <Star className="h-4 w-4 fill-orange-400 text-orange-400" />
+              </div>
+            </div>
+
+            {/* XP is a compact progression bar, not a competing headline */}
+            <div className="mt-4 rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2">
+              <div className="mb-1.5 flex items-center justify-between gap-2">
+                <span className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-white/60">Progreso al siguiente nivel</span>
+                <span className="text-[10px] font-black text-orange-300">{xpPct}%</span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full rounded-full bg-gradient-to-r from-orange-700 via-orange-500 to-amber-300 transition-all duration-500" style={{ width: `${xpPct}%` }} />
+              </div>
+            </div>
+
+            {/* Stats are now a clean 2x2 grid, instead of identical colourful pills */}
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <StatTile icon={Zap} label="Asistencia" value={`${asistenciaPct}%`} accent />
+              <StatTile icon={Flame} label="Racha" value={racha} />
+              {!isComplementaria && <StatTile icon={Goal} label="Goles" value={goles} accent />}
+              <StatTile icon={Target} label="Convocatorias" value={callupsCount} accent />
+            </div>
+
+            {/* Achievement footer */}
+            <div className="mt-4 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
+              <div>
+                <div className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-white/50">Colección de logros</div>
+                <div className="mt-1 text-sm font-black text-white">{logrosCount}<span className="ml-1 text-[10px] font-bold text-white/45">DESBLOQUEADOS</span></div>
+              </div>
+              <div className="flex items-center gap-1.5">
+                {[Trophy, Goal, Flame, Target].map((Ic, i) => (
+                  <div key={i} className={`flex h-7 w-7 items-center justify-center rounded-lg border ${i < logrosCount ? "border-orange-300/60 bg-orange-500/20" : "border-white/10 bg-white/5"}`}>
+                    <Ic className={`h-3.5 w-3.5 ${i < logrosCount ? "text-orange-300" : "text-white/20"}`} strokeWidth={2.2} />
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-
-          {/* NOMBRE */}
-          <div className="text-center mt-2">
-            <div
-              className="text-white font-black uppercase tracking-wide leading-tight drop-shadow-lg"
-              style={{ fontSize: fullName.length > 14 ? 18 : 22 }}
-            >
-              {fullName}
-            </div>
-            <div className="text-white/90 text-[10px] font-bold tracking-widest uppercase mt-0.5 drop-shadow">
-              {categoria} {edad ? `· ${edad} AÑOS` : ""}
-            </div>
-          </div>
-
-          {/* STATS píldoras */}
-          <div className="space-y-1.5 mt-3">
-            <StatPill
-              icon={Zap}
-              color="linear-gradient(135deg, #FB923C, #EA580C)"
-              label="Asistencia"
-              value={`${asistenciaPct}%`}
-            />
-            <StatPill
-              icon={Flame}
-              color="linear-gradient(135deg, #fb923c, #ea580c)"
-              label="Racha"
-              value={racha}
-            />
-            {!isComplementaria && (
-              <StatPill
-                icon={Goal}
-                color="linear-gradient(135deg, #525252, #171717)"
-                label="Goles"
-                value={goles}
-              />
-            )}
-            <StatPill
-              icon={Target}
-              color="linear-gradient(135deg, #F97316, #9A3412)"
-              label="Convocatorias"
-              value={callupsCount}
-            />
-          </div>
-
-          {/* LOGROS */}
-          <div className="flex flex-col items-center mt-3">
-            <div className="flex items-center gap-2">
-              {[Trophy, Goal, Flame, Target].map((Ic, i) => (
-                <div
-                  key={i}
-                  className="w-7 h-7 rounded-full flex items-center justify-center"
-                  style={{
-                    background: i < logrosCount
-                      ? "linear-gradient(135deg, #fde047, #facc15)"
-                      : "rgba(0,0,0,0.25)",
-                  }}
-                >
-                  <Ic className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
-                </div>
-              ))}
-            </div>
-            <div className="text-white text-[10px] font-bold tracking-widest uppercase mt-1 drop-shadow">
-              {logrosCount} LOGRO{logrosCount === 1 ? "" : "S"}
-            </div>
-          </div>
-
         </div>
       </div>
     </motion.div>
