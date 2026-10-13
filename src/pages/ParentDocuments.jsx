@@ -89,10 +89,10 @@ export default function ParentDocuments() {
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-5 lg:px-8 lg:pt-7 [&_*]:min-w-0">
       <div>
-        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-          <FileText className="w-8 h-8 text-orange-600" />
+        <h1 className="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">
+          <FileText className="h-6 w-6 shrink-0 text-orange-400 sm:h-7 sm:w-7" />
           Documentos y LOPIVI
         </h1>
         <p className="text-slate-600 mt-1">Protección del menor, estatutos, reglamentos e información del club</p>
