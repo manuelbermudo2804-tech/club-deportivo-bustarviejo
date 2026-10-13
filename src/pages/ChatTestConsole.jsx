@@ -677,8 +677,10 @@ export default function ChatTestConsole() {
    return (
     <div className="min-h-screen w-full min-w-0 overflow-x-hidden bg-slate-50 px-3 pb-24 pt-4 sm:px-5 lg:px-8 lg:pt-7">
       <div className="mx-auto grid w-full min-w-0 max-w-[1600px] gap-5 lg:gap-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-bold flex items-center gap-2">
+        <header className="relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7 md:flex-row md:items-center md:justify-between">
+          <div className="min-w-0">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Herramientas de administración · C.D. Bustarviejo</p>
+          <h1 className="flex items-center gap-3 break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">
             <Rocket className="w-5 h-5 text-orange-600" /> Consola de Pruebas de Chat (Admin)
           </h1>
           <Badge className="bg-slate-800 text-white">{me.email}</Badge>
