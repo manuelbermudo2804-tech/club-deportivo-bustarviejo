@@ -105,7 +105,7 @@ export default function ParentDocuments() {
       <MisFirmadosBloque />
 
       <Tabs value={filterType} onValueChange={setFilterType}>
-        <TabsList className="bg-white shadow-sm flex-wrap h-auto">
+        <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-2xl bg-white p-2 shadow-sm">
           <TabsTrigger value="all">
             Todos
           </TabsTrigger>
@@ -137,9 +137,9 @@ export default function ParentDocuments() {
             : `No hay documentos de tipo "${filterType}" por ahora. Prueba con otra categoría.`}
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {filteredDocuments.map((document) => (
-            <Card key={document.id} className="border-2 border-slate-200 hover:border-orange-300 transition-colors hover:shadow-lg">
+            <Card key={document.id} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 transition-colors hover:border-orange-300 hover:shadow-lg">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between gap-2">
                   <Badge className={getTypeColor(document.tipo)}>
