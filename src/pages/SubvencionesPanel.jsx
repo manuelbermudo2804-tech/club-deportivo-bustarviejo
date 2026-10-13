@@ -89,41 +89,43 @@ export default function SubvencionesPanel() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 lg:p-6 space-y-5">
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
       {/* Header */}
-      <div className="bg-gradient-to-br from-emerald-900 to-emerald-800 rounded-3xl p-6 lg:p-8 text-white">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center">
-            <Landmark className="w-6 h-6 text-emerald-300" />
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14">
+            <Landmark className="h-6 w-6 text-orange-300" />
           </div>
-          <div className="flex-1">
-            <h1 className="text-2xl lg:text-3xl font-bold">Vigilancia de Subvenciones</h1>
-            <p className="text-emerald-100 text-sm">Detecta ayudas nuevas desde la Base de Datos Nacional de Subvenciones (BDNS) y te avisa de los plazos</p>
+          <div className="min-w-0 flex-1">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Ayudas públicas</p>
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Vigilancia de subvenciones</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Detecta nuevas ayudas de la BDNS, controla las fuentes y revisa los plazos de convocatoria.</p>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Button onClick={runCheck} disabled={checking || sources.length === 0} className="bg-emerald-600 hover:bg-emerald-700">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+        <Button onClick={runCheck} disabled={checking || sources.length === 0} className="w-full rounded-xl bg-orange-600 font-semibold hover:bg-orange-700 sm:w-auto">
           {checking ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
           Revisar ahora
         </Button>
-        <Button variant="outline" onClick={() => { setEditingSource(null); setFormOpen(true); }} className="rounded-lg">
+        <Button variant="outline" onClick={() => { setEditingSource(null); setFormOpen(true); }} className="w-full rounded-xl border-slate-200 sm:w-auto">
           <Plus className="w-4 h-4 mr-2" /> Añadir fuente
         </Button>
         {noLeidas > 0 && <Badge className="bg-orange-100 text-orange-700">{noLeidas} sin leer</Badge>}
       </div>
 
       <Tabs defaultValue="alertas">
-        <TabsList>
-          <TabsTrigger value="alertas">Subvenciones ({alerts.length})</TabsTrigger>
-          <TabsTrigger value="fuentes">Fuentes ({sources.length})</TabsTrigger>
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1 sm:inline-grid sm:w-auto">
+          <TabsTrigger value="alertas" className="min-w-0 rounded-xl px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">Subvenciones ({alerts.length})</TabsTrigger>
+          <TabsTrigger value="fuentes" className="min-w-0 rounded-xl px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">Fuentes ({sources.length})</TabsTrigger>
         </TabsList>
 
         {/* Alertas */}
         <TabsContent value="alertas" className="space-y-4 mt-4">
           <Select value={filtroEstado} onValueChange={setFiltroEstado}>
-            <SelectTrigger className="w-52"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="w-full rounded-xl sm:max-w-xs"><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas</SelectItem>
               <SelectItem value="no_leidas">Sin leer</SelectItem>
@@ -164,8 +166,8 @@ export default function SubvencionesPanel() {
             [...sources].sort((a, b) => (b.prioridad || 0) - (a.prioridad || 0)).map((src) => {
               const esManual = src.tipo === "manual" || !(src.rss_url || "").trim();
               return (
-              <Card key={src.id} className="rounded-2xl border-slate-200">
-                <CardContent className="p-4 flex items-center gap-3">
+              <Card key={src.id} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <CardContent className="flex min-w-0 flex-col gap-3 p-3 sm:flex-row sm:items-center sm:gap-3 sm:p-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <h3 className="font-semibold text-slate-800 truncate">{src.nombre}</h3>
@@ -194,8 +196,9 @@ export default function SubvencionesPanel() {
                       )}
                     </div>
                   </div>
-                  <Switch checked={src.activa} onCheckedChange={() => toggleSource(src)} />
-                  <Button variant="ghost" size="icon" onClick={() => { setEditingSource(src); setFormOpen(true); }} className="h-8 w-8 text-slate-400">
+                  <div className="flex items-center justify-between gap-3 border-t border-slate-100 pt-3 sm:border-0 sm:pt-0"><span className="text-xs font-medium text-slate-500 sm:hidden">{src.activa ? "Fuente activa" : "Fuente pausada"}</span><Switch checked={src.activa} onCheckedChange={() => toggleSource(src)} aria-label={`${src.activa ? "Desactivar" : "Activar"} fuente ${src.nombre}`} />
+                  <Button variant="ghost" size="icon" onClick={() => { setEditingSource(src); setFormOpen(true); }} className="h-9 w-9 shrink-0 rounded-xl text-slate-500 hover:bg-orange-50 hover:text-orange-700 sm:hidden"><Pencil className="w-4 h-4" /></Button></div>
+                  <Button variant="ghost" size="icon" onClick={() => { setEditingSource(src); setFormOpen(true); }} className="hidden h-9 w-9 shrink-0 rounded-xl text-slate-500 hover:bg-orange-50 hover:text-orange-700 sm:inline-flex">
                     <Pencil className="w-4 h-4" />
                   </Button>
                 </CardContent>
