@@ -895,6 +895,7 @@ Temporada ${reminder.temporada}
                     className="w-full min-w-0 justify-start gap-2 whitespace-normal text-left h-auto min-h-10 py-2 shadow-sm text-xs sm:text-sm"
                   >
                     <RefreshCw className={`w-4 h-4 lg:w-5 lg:h-5 ${isRefreshing ? 'animate-spin' : ''}`} />
+                    <span>Actualizar</span>
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -972,7 +973,7 @@ Temporada ${reminder.temporada}
             </div>
           </TooltipProvider>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs space-y-1">
+          <div className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs space-y-1 sm:p-4">
             <p className="text-blue-900"><strong>📥 Exportar CSV:</strong> Descarga lista de pagos en Excel</p>
             <p className="text-blue-900"><strong>🔄 Actualizar:</strong> Recarga los datos más recientes</p>
             <p className="text-blue-900"><strong>💰 Corregir Cantidades:</strong> Actualiza importes según cuotas configuradas</p>
@@ -1268,8 +1269,8 @@ Temporada ${reminder.temporada}
                   const totalPending = pendingPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
 
                   return (
-                    <Card key={playerData.jugador_id} className="border hover:shadow-lg transition-shadow">
-                      <CardHeader className="bg-white border-b p-4">
+                    <Card key={playerData.jugador_id} className="min-w-0 overflow-hidden rounded-xl border border-slate-200 shadow-sm transition-shadow hover:shadow-md">
+                      <CardHeader className="border-b bg-white p-3 sm:p-4">
                         <div className="flex flex-col items-stretch justify-between gap-3 min-[420px]:flex-row min-[420px]:items-center">
                           <div className="flex min-w-0 items-center gap-3">
                             {player?.foto_url ? (
@@ -1303,7 +1304,7 @@ Temporada ${reminder.temporada}
                           </Button>
                         </div>
                       </CardHeader>
-                      <CardContent className="p-4">
+                      <CardContent className="min-w-0 p-3 sm:p-4">
                         <div className="mb-4 grid grid-cols-1 gap-2 min-[400px]:grid-cols-3 sm:gap-3">
                           <div className="min-w-0 bg-red-50 rounded-lg p-2 sm:p-3">
                             <p className="text-xs text-red-700 mb-1">Pendientes</p>
