@@ -11,21 +11,21 @@ import AdminTeamChatsSection from "@/components/chat/AdminTeamChatsSection";
 function ConversationRow({ title, subtitle, unreadCount, url, icon: Icon, color, iconBg }) {
   return (
     <Link to={url} className="block">
-      <Card className="p-4 hover:shadow-md transition-all border-l-4" style={{ borderLeftColor: color }}>
-        <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-full ${iconBg} flex items-center justify-center flex-shrink-0`}>
-            <Icon className="w-6 h-6 text-white" />
+      <Card className="group rounded-2xl border border-slate-200 border-l-4 bg-white shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md" style={{ borderLeftColor: color }}>
+        <div className="flex items-center gap-3 p-3 sm:p-4">
+          <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full ${iconBg}`}>
+            <Icon className="h-6 w-6 text-white" />
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2 mb-1">
-              <h3 className="font-bold text-slate-900 truncate">{title}</h3>
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-2">
+              <h3 className="truncate text-sm font-bold text-slate-900">{title}</h3>
               {unreadCount > 0 && (
                 <Badge className="bg-red-500 text-white">{unreadCount}</Badge>
               )}
             </div>
-            <p className="text-sm text-slate-600 truncate">{subtitle}</p>
+            <p className="truncate text-xs text-slate-500">{subtitle}</p>
           </div>
-          <ChevronRight className="w-5 h-5 text-slate-400 flex-shrink-0" />
+          <ChevronRight className="h-5 w-5 shrink-0 text-slate-400" />
         </div>
       </Card>
     </Link>
@@ -53,12 +53,21 @@ export default function AdminChatsHub() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-      <div className="max-w-4xl mx-auto space-y-4">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">💬 Mis Chats</h1>
-          <p className="text-slate-600">Todas tus conversaciones en un solo lugar</p>
-        </div>
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <div className="w-full min-w-0 space-y-6">
+        <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+          <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14">
+              <MessageCircle className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Comunicación · Club Deportivo Bustarviejo</p>
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Mis Chats</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Todas tus conversaciones en un solo lugar.</p>
+            </div>
+          </div>
+        </section>
 
         {/* Chat Familias (Coordinador) */}
         <ConversationRow
@@ -82,7 +91,7 @@ export default function AdminChatsHub() {
           iconBg="bg-purple-600"
         />
 
-        <div className="pt-4">
+        <div className="space-y-3 pt-2">
           <AdminTeamChatsSection />
         </div>
       </div>
