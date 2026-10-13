@@ -1328,7 +1328,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
       )}
 
       {/* Estadísticas */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-8 gap-2 sm:gap-3">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardContent className="pt-4 text-center">
             <Users className="w-5 h-5 text-blue-600 mx-auto mb-1" />
@@ -1403,10 +1403,10 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
       />
 
       {/* Filtro Externos/Padres + Origen + Envío masivo */}
-      <div className="flex flex-col md:flex-row gap-3 items-start md:items-center justify-between">
-        <div className="flex items-center gap-3 flex-wrap">
+      <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between rounded-2xl border border-slate-200 bg-white p-3 sm:p-4 shadow-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex gap-2 sm:gap-3">
           <Select value={memberTypeFilter} onValueChange={setMemberTypeFilter}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full lg:w-48 rounded-xl">
               <SelectValue placeholder="Tipo de socio" />
             </SelectTrigger>
             <SelectContent>
@@ -1416,7 +1416,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
             </SelectContent>
           </Select>
           <Select value={originFilter} onValueChange={setOriginFilter}>
-            <SelectTrigger className="w-56">
+            <SelectTrigger className="w-full lg:w-56 rounded-xl">
               <SelectValue placeholder="Origen del pago" />
             </SelectTrigger>
             <SelectContent>
@@ -1440,7 +1440,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
         <Button
           onClick={sendBulkEmails}
           disabled={sendingBulkEmails || filteredMembers.filter(m => m.email).length === 0}
-          className="bg-orange-600 hover:bg-orange-700"
+          className="w-full lg:w-auto rounded-xl bg-orange-600 hover:bg-orange-700"
         >
           {sendingBulkEmails ? (
             <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Enviando...</>
@@ -1451,8 +1451,9 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
       </div>
 
       {/* Resultados */}
-      <div className="text-sm text-slate-600">
-        Mostrando {filteredMembers.length} de {members.length} socios
+      <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-100/80 px-3 py-2 text-xs sm:text-sm text-slate-600">
+        <span>Resultados de la búsqueda</span>
+        <span className="font-semibold tabular-nums text-slate-800">Mostrando {filteredMembers.length} de {members.length}</span>
       </div>
 
       {/* Lista de socios */}
@@ -1464,10 +1465,10 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
           </div>
         ) : (
           filteredMembers.map(member => (
-            <Card key={member.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="flex-1 cursor-pointer" onClick={() => setViewingMember(member)}>
+            <Card key={member.id} className="rounded-2xl border-slate-200/80 shadow-sm transition-all duration-200 hover:border-orange-200 hover:shadow-md">
+              <CardContent className="p-3 sm:p-4">
+                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
+                  <div className="min-w-0 flex-1 cursor-pointer" onClick={() => setViewingMember(member)}>
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <h3 className="font-semibold text-slate-900">{member.nombre_completo}</h3>
                       <Badge variant="outline" className="text-xs">{member.numero_socio || "Sin nº"}</Badge>
@@ -1539,13 +1540,15 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-slate-600 space-y-0.5">
-                      <p>📧 {member.email} | 📱 {member.telefono}</p>
-                      <p>🪪 {member.dni} | 📍 {member.municipio}</p>
+                    <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs sm:text-sm text-slate-600">
+                      <p className="break-all">📧 {member.email || "Sin email"}</p>
+                      <p>📱 {member.telefono || "Sin teléfono"}</p>
+                      <p>🪪 {member.dni || "Sin DNI"}</p>
+                      <p>📍 {member.municipio || "Sin municipio"}</p>
                     </div>
                   </div>
                   
-                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 xl:border-t-0 xl:border-l xl:pl-4 xl:pt-0">
                     {/* Botones de acción */}
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" onClick={() => setViewingMember(member)} title="Ver detalle">
