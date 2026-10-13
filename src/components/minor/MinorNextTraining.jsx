@@ -40,19 +40,19 @@ export default function MinorNextTraining({ playerCategory }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.1 }}
     >
-      <Card className="border-none shadow-lg bg-gradient-to-r from-blue-600 to-cyan-600 overflow-hidden">
+      <Card className="border border-orange-100 shadow-md bg-white overflow-hidden">
         <CardContent className="p-4 relative">
           <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-white/10 rounded-full blur-xl" />
+            <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-orange-100/70 rounded-full blur-xl" />
           </div>
           <div className="relative flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Clock className="w-6 h-6 text-white" />
+            <div className="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center">
+              <Clock className="w-6 h-6 text-orange-600" />
             </div>
             <div className="flex-1">
-              <p className="text-white/70 text-xs font-medium">Próximo entrenamiento</p>
-              <h3 className="text-white font-black text-lg">{dayLabel}</h3>
-              <p className="text-white/80 text-sm">
+              <p className="text-slate-500 text-xs font-semibold">PRÓXIMO ENTRENAMIENTO</p>
+              <h3 className="text-slate-900 font-black text-xl">{dayLabel}</h3>
+              <p className="text-slate-600 text-sm">
                 {best.hora_inicio} - {best.hora_fin} {best.ubicacion ? `· ${best.ubicacion}` : ""}
               </p>
             </div>
