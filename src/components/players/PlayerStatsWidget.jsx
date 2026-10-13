@@ -95,7 +95,8 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
   const playerEvals = evaluations.filter(e => e.jugador_id === playerId);
   const evaluationScores = playerEvals
     .map(e => [e.tecnica, e.tactica, e.fisica, e.actitud, e.trabajo_equipo]
-      .filter(value => typeof value === "number" && Number.isFinite(value)))
+      .map(value => value === "" || value === null || value === undefined ? null : Number(value))
+      .filter(value => value !== null && Number.isFinite(value)))
     .filter(values => values.length > 0)
     .map(values => values.reduce((sum, value) => sum + value, 0) / values.length);
   const avgEval = evaluationScores.length > 0
@@ -110,7 +111,7 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
   let racha = 0;
   for (const att of playerAttendances) {
     const playerAtt = att.asistencias.find(a => a.jugador_id === playerId);
-    if (playerAtt?.estado === "presente") {
+    if (playerAtt?.estado === "presente" || playerAtt?.estado === "tardanza") {
       racha++;
     } else {
       break;
@@ -120,7 +121,7 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
   // Total entrenamientos asistidos
   const totalTrainings = playerAttendances.filter(a => {
     const p = a.asistencias.find(att => att.jugador_id === playerId);
-    return p?.estado === "presente";
+    return p?.estado === "presente" || p?.estado === "tardanza";
   }).length;
   const totalTrainingsSessions = playerAttendances.length;
 
