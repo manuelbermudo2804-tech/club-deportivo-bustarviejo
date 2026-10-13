@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Clock, BarChart3, Loader2 } from "lucide-react";
+import { Clock, BarChart3, Loader2, Users, CalendarDays, ShieldCheck } from "lucide-react";
 
 import MinutesSpreadsheet from "../components/minutes/MinutesSpreadsheet";
 import MinutesStatsPanel from "../components/minutes/MinutesStatsPanel";
@@ -216,38 +216,33 @@ export default function MatchMinutesTracker() {
   const isLoading = loadingMinutes;
 
   return (
-    <div className="p-4 lg:p-8 space-y-4">
-      {/* Header */}
-      <div className="bg-gradient-to-r from-slate-800 via-slate-700 to-blue-800 rounded-2xl p-5 lg:p-8 text-white shadow-xl">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-extrabold flex items-center gap-2">
-              <Clock className="w-7 h-7" /> Control de Minutos
-            </h1>
-            <p className="text-slate-300 mt-1 text-sm">
-              Minutos jugados por cada jugador en cada partido de liga
-            </p>
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      {/* Cabecera homogénea */}
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><Clock className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+            <div className="min-w-0 flex-1">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Área deportiva · Rendimiento del equipo</p>
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Control de minutos</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Registra los minutos jugados por cada jugador en los partidos de liga y consulta el reparto de participación del equipo.</p>
+            </div>
           </div>
-          <Button
-            variant={showStats ? "default" : "outline"}
-            onClick={() => setShowStats(!showStats)}
-            className={showStats ? "bg-amber-600 hover:bg-amber-700 text-white" : "border-white/30 text-white hover:bg-white/10"}
-            size="sm"
-          >
-            <BarChart3 className="w-4 h-4 mr-1" />
-            {showStats ? "Ocultar Stats" : "Ver Stats"}
+          <Button variant={showStats ? "default" : "outline"} onClick={() => setShowStats(!showStats)} className={showStats ? "w-full shrink-0 rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700 sm:w-auto" : "w-full shrink-0 rounded-xl border-white/25 bg-white/5 font-semibold text-white hover:bg-white/10 sm:w-auto"} size="sm">
+            <BarChart3 className="mr-2 h-4 w-4" />{showStats ? "Ocultar estadísticas" : "Ver estadísticas"}
           </Button>
         </div>
-      </div>
+      </section>
 
       {/* Selector categoría */}
       {allCategories.length > 1 && (
-        <Card>
-          <CardContent className="p-3">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-semibold text-slate-600">Categoría:</span>
+        <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <CardContent className="p-4 sm:p-5">
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <span className="flex items-center gap-2 text-sm font-semibold text-slate-700"><Users className="h-4 w-4 text-orange-600" />Categoría del equipo</span>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                <SelectTrigger className="w-[260px]">
+                <SelectTrigger className="w-full rounded-xl sm:max-w-xs">
                   <SelectValue placeholder="Selecciona" />
                 </SelectTrigger>
                 <SelectContent>
@@ -263,18 +258,16 @@ export default function MatchMinutesTracker() {
 
       {allCategories.length === 1 && (
         <div className="flex items-center gap-2">
-          <Badge className="bg-blue-100 text-blue-800 text-sm px-3 py-1">{selectedCategory}</Badge>
+          <Badge className="w-fit rounded-lg border border-orange-100 bg-orange-50 px-3 py-1.5 text-sm font-semibold text-orange-800"><Users className="mr-1.5 inline h-3.5 w-3.5" />{selectedCategory}</Badge>
         </div>
       )}
 
       {isLoading ? (
-        <div className="flex justify-center py-12">
-          <Loader2 className="w-8 h-8 text-slate-400 animate-spin" />
-        </div>
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm"><CardContent className="py-12 text-center"><Loader2 className="mx-auto h-8 w-8 animate-spin text-orange-600" /><p className="mt-3 text-sm text-slate-500">Cargando control de minutos...</p></CardContent></Card>
       ) : rivals.length === 0 ? (
-        <Card className="border-dashed border-2 border-slate-300">
-          <CardContent className="p-8 text-center text-slate-500">
-            <Clock className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+        <Card className="rounded-2xl border border-dashed border-slate-300 bg-white shadow-sm">
+          <CardContent className="p-6 text-center text-slate-500 sm:p-10">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50"><CalendarDays className="h-7 w-7 text-orange-600" /></div>
             <h3 className="font-bold text-lg mb-1">Sin datos de competición</h3>
             <p className="text-sm">No se han encontrado clasificaciones para esta categoría. Los rivales se cargan automáticamente desde los datos de la federación.</p>
           </CardContent>
@@ -299,9 +292,7 @@ export default function MatchMinutesTracker() {
             />
           )}
 
-          <div className="text-xs text-slate-500 text-center">
-            Haz clic en cualquier celda para editar. Los rivales se cargan de la clasificación de la federación.
-          </div>
+          <div className="flex items-start justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-xs leading-relaxed text-slate-500"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" /><span>Haz clic en cualquier celda para editar los minutos. Los rivales se cargan automáticamente desde la clasificación de la federación.</span></div>
         </>
       )}
     </div>
