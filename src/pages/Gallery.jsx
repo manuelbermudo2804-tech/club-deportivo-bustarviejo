@@ -195,32 +195,38 @@ export default function Gallery() {
   const folders = normalizeFolders([...new Set([...albumCats.filter(c => c === "Todas las Categorías"), ...baseFolders, ...(userRole === "parent" || userRole === "player" ? [] : albumCats)])]);
 
   return (
-    <div className="p-4 lg:p-6 space-y-4">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">📸 Galería de Fotos</h1>
-          <p className="text-slate-600 mt-1 text-sm">
-            {canEdit ? (userRole === "coach" ? "Sube fotos de tus equipos" : "Álbumes del club") : "Revive los mejores momentos del club"}
-          </p>
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 sm:h-14 sm:w-14">
+              <ImageIcon className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Fotos y recuerdos del club</p>
+              <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Galería de Fotos</h1>
+              <p className="mt-1 text-sm text-slate-300">{canEdit ? (userRole === "coach" ? "Sube fotos de tus equipos" : "Álbumes y recuerdos del club") : "Revive los mejores momentos de tus equipos"}</p>
+            </div>
+          </div>
+          {canEdit && (
+            <Button
+              onClick={() => {
+                setEditingAlbum(null);
+                setShowForm(!showForm);
+              }}
+              className="w-full shrink-0 rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700 sm:w-auto"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nuevo álbum
+            </Button>
+          )}
         </div>
-        {canEdit && (
-          <Button
-            onClick={() => {
-              setEditingAlbum(null);
-              setShowForm(!showForm);
-            }}
-            className="bg-orange-600 hover:bg-orange-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nuevo Álbum
-          </Button>
-        )}
       </div>
 
       {/* Stats for Player view */}
       {userRole === "player" && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="border-none shadow-lg bg-gradient-to-br from-orange-50 to-orange-100">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -232,7 +238,7 @@ export default function Gallery() {
             </div>
           </Card>
 
-          <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-green-100">
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -244,7 +250,7 @@ export default function Gallery() {
             </div>
           </Card>
 
-          <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-blue-100">
+          <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
             <div className="p-6">
               <div className="flex items-center justify-between">
                 <div>
@@ -297,13 +303,13 @@ export default function Gallery() {
       )}
 
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+      <div className="relative rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+        <Search className="absolute left-6 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <Input
           placeholder="Buscar álbum..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9 bg-white shadow-sm text-sm"
+          className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 text-sm focus-visible:ring-orange-500"
         />
       </div>
 
@@ -319,7 +325,7 @@ export default function Gallery() {
       ) : categoryFilter === "all" && !searchTerm ? (
         <TeamFolders folders={folders} albums={visibleAlbums} onOpen={setCategoryFilter} />
       ) : filteredAlbums.length === 0 ? (
-        <Card className="border-none shadow-lg">
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="py-12 text-center">
             <ImageIcon className="w-16 h-16 text-slate-300 mx-auto mb-4" />
             <p className="text-slate-500 text-lg">No hay álbumes disponibles</p>
