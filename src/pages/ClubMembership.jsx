@@ -721,7 +721,7 @@ export default function ClubMembership() {
       {isRenewal && renewalMember && (
         <Card className="border border-orange-200 bg-orange-50 shadow-sm">
           <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
+            <div className="flex min-w-0 items-start gap-3 sm:items-center sm:gap-4">
               <div className="w-12 h-12 rounded-xl bg-orange-100 flex items-center justify-center">
                 <CheckCircle2 className="w-6 h-6 text-orange-600" />
               </div>
@@ -753,7 +753,7 @@ export default function ClubMembership() {
           {currentUser && seasonConfig?.programa_referidos_activo && (
             <div className="border-t border-slate-200 pt-4 mt-4">
               <p className="text-center text-sm font-semibold text-slate-700 mb-3">🎁 Tu Programa "Trae un Socio Amigo"</p>
-              <div className="grid grid-cols-2 gap-3 text-center">
+              <div className="grid min-w-0 grid-cols-1 gap-3 text-center sm:grid-cols-2">
                 <div className="bg-orange-50 rounded-xl p-3 border border-orange-100">
                   <p className="text-2xl font-bold text-orange-700">{currentUser.referrals_count || 0}</p>
                   <p className="text-xs text-slate-600">Amigos referidos</p>
@@ -781,8 +781,8 @@ export default function ClubMembership() {
           </CardTitle>
         </CardHeader>
         <CardContent className="relative space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="flex items-start gap-3 bg-slate-50 rounded-xl p-3 border border-slate-100">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
               <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                 <Heart className="w-5 h-5 text-orange-600" />
               </div>
@@ -791,7 +791,7 @@ export default function ClubMembership() {
                 <p className="text-xs text-slate-600">Tu aportación es vital para el desarrollo de nuestros jóvenes deportistas</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 bg-slate-50 rounded-xl p-3 border border-slate-100">
+            <div className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
               <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                 <Users className="w-5 h-5 text-orange-600" />
               </div>
@@ -800,7 +800,7 @@ export default function ClubMembership() {
                 <p className="text-xs text-slate-600">Únete a la gran familia del club y vive la pasión por el deporte en Bustarviejo</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 bg-slate-50 rounded-xl p-3 border border-slate-100">
+            <div className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
               <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                 <PartyPopper className="w-5 h-5 text-orange-600" />
               </div>
@@ -809,7 +809,7 @@ export default function ClubMembership() {
                 <p className="text-xs text-slate-600">Participa en las actividades del club y comparte experiencias únicas</p>
               </div>
             </div>
-            <div className="flex items-start gap-3 bg-slate-50 rounded-xl p-3 border border-slate-100">
+            <div className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
               <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0">
                 <Sparkles className="w-5 h-5 text-orange-600" />
               </div>
