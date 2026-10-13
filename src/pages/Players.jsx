@@ -775,7 +775,7 @@ export default function Players() {
             {isAdmin || isTreasurer ? "Jugadores" : isCoach ? "Mis Hijos" : "Mis Jugadores"}
           </h1>
           <p className="text-slate-600 mt-1">
-            {isAdmin || isTreasurer ? "Gestión de fichas y plantilla" : "Jugadores registrados a tu nombre"}
+            {isAdmin || isTreasurer ? "Gestión de fichas, categorías y plantilla del club" : "Jugadores registrados a tu nombre"}
           </p>
         </div>
         <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 sm:gap-3 w-full md:w-auto">
