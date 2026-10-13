@@ -98,25 +98,28 @@ export default function PhotoAuthorizations() {
   }
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
-      <div className="flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <h1 className="flex items-center gap-2 text-2xl font-bold text-slate-900">
-            <Camera className="w-6 h-6 text-orange-600" />
-            Autorización de Imagen
-          </h1>
-          <p className="text-slate-500 text-sm mt-1">
-            Jugadores que <strong>NO</strong> autorizan el uso de fotos y vídeos, agrupados por equipo.
-          </p>
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 sm:h-14 sm:w-14">
+              <Camera className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Privacidad y protección de jugadores</p>
+              <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Autorización de Imagen</h1>
+              <p className="mt-1 text-sm text-slate-300">Control de autorizaciones de fotos y vídeos por equipo</p>
+            </div>
+          </div>
+          {total > 0 && (
+            <Button onClick={copiarTodo} variant="outline" className="w-full gap-2 rounded-xl border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white sm:w-auto">
+              <Copy className="h-4 w-4" /> Copiar todo
+            </Button>
+          )}
         </div>
-        {total > 0 && (
-          <Button onClick={copiarTodo} variant="outline" className="gap-2">
-            <Copy className="w-4 h-4" /> Copiar todo
-          </Button>
-        )}
       </div>
 
-      <Card className="border-orange-200 bg-orange-50">
+      <Card className="rounded-2xl border border-orange-200 bg-orange-50 shadow-sm">
         <CardContent className="py-4 flex items-center gap-3">
           <AlertTriangle className="w-5 h-5 text-orange-600 shrink-0" />
           <p className="text-sm text-orange-800">
@@ -129,7 +132,7 @@ export default function PhotoAuthorizations() {
       <BuscarJugadorAutorizacion players={todos} onChanged={actualizar} />
 
       {total === 0 ? (
-        <Card>
+        <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
           <CardContent className="py-12 text-center">
             <Users className="w-12 h-12 text-green-500 mx-auto mb-3" />
             <p className="text-slate-600 font-medium">Todos los jugadores activos tienen autorización de imagen.</p>
@@ -137,7 +140,7 @@ export default function PhotoAuthorizations() {
         </Card>
       ) : (
         grupos.map((g) => (
-          <Card key={g.categoria} className="overflow-hidden">
+          <Card key={g.categoria} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <CardHeader className="bg-slate-50 py-3 flex-row items-center justify-between space-y-0">
               <CardTitle className="text-base flex items-center gap-2">
                 {g.categoria}
@@ -159,7 +162,7 @@ export default function PhotoAuthorizations() {
       )}
 
       {/* Texto oficial de la autorización */}
-      <Card className="border-slate-200">
+      <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
         <CardHeader className="py-3">
           <CardTitle className="text-base flex items-center gap-2 text-slate-700">
             <FileText className="w-4 h-4" /> Texto de la autorización (formulario de inscripción)
