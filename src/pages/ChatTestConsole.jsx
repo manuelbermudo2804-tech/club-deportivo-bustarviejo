@@ -683,8 +683,9 @@ export default function ChatTestConsole() {
           <h1 className="flex items-center gap-3 break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">
             <Rocket className="w-5 h-5 text-orange-600" /> Consola de Pruebas de Chat (Admin)
           </h1>
-          <Badge className="bg-slate-800 text-white">{me.email}</Badge>
-        </div>
+          </div>
+          <Badge className="bg-white/10 text-white">{me.email}</Badge>
+        </header>
 
         {/* Configuración de prueba */}
         <Card>
