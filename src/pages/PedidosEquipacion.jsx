@@ -206,36 +206,45 @@ export default function PedidosEquipacion() {
   };
 
   return (
-    <div className="p-4 lg:p-8 max-w-4xl mx-auto space-y-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2">
-          <Shirt className="w-6 h-6 text-orange-600" />
-          <h1 className="text-xl lg:text-2xl font-bold">Pedidos de equipación</h1>
+    <div className="mx-auto min-h-screen w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-28 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14">
+              <Shirt className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Equipación oficial</p>
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Pedidos de equipación</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Controla los pedidos recibidos, identifica a cada jugador y localiza rápidamente quién tiene pendiente la equipación.</p>
+            </div>
+          </div>
+          <Button onClick={() => sync.mutate()} disabled={sync.isPending} size="sm" className="w-full shrink-0 bg-orange-500 text-white hover:bg-orange-600 sm:w-auto">
+            <RefreshCw className={`mr-2 h-4 w-4 ${sync.isPending ? "animate-spin" : ""}`} />
+            Sincronizar pedidos
+          </Button>
         </div>
-        <Button onClick={() => sync.mutate()} disabled={sync.isPending} size="sm">
-          <RefreshCw className={`w-4 h-4 mr-2 ${sync.isPending ? "animate-spin" : ""}`} />
-          Sincronizar
-        </Button>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-3 gap-2">
-        <Card><CardContent className="p-3 text-center">
-          <p className="text-2xl font-bold text-green-600">{conPedido}</p>
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3">
+        <Card className="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm"><CardContent className="p-4 text-center sm:p-5">
+          <p className="text-2xl font-extrabold tracking-tight text-emerald-600 sm:text-3xl">{conPedido}</p>
           <p className="text-xs text-slate-500">Han pedido</p>
         </CardContent></Card>
-        <Card><CardContent className="p-3 text-center">
-          <p className="text-2xl font-bold text-slate-700">{jugadoresBase.length - conPedido}</p>
+        <Card className="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm"><CardContent className="p-4 text-center sm:p-5">
+          <p className="text-2xl font-extrabold tracking-tight text-slate-700 sm:text-3xl">{jugadoresBase.length - conPedido}</p>
           <p className="text-xs text-slate-500">Sin pedido</p>
         </CardContent></Card>
-        <Card><CardContent className="p-3 text-center">
-          <p className="text-2xl font-bold text-orange-600">{sinIdentificar.length}</p>
+        <Card className="min-w-0 rounded-2xl border border-slate-200 bg-white shadow-sm"><CardContent className="p-4 text-center sm:p-5">
+          <p className="text-2xl font-extrabold tracking-tight text-orange-600 sm:text-3xl">{sinIdentificar.length}</p>
           <p className="text-xs text-slate-500">Sin identificar</p>
         </CardContent></Card>
       </div>
 
       {sinIdentificar.length > 0 && (
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="min-w-0 overflow-hidden rounded-2xl border border-orange-200 bg-white shadow-sm">
+          <CardHeader className="border-b border-orange-100 bg-orange-50/70 p-4 sm:p-5">
             <CardTitle className="text-base flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-orange-600" />
               Pedidos sin identificar ({sinIdentificar.length})
@@ -254,22 +263,23 @@ export default function PedidosEquipacion() {
         </Card>
       )}
 
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base">Jugadores</CardTitle>
+      <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-100 bg-slate-50/80 p-4 sm:p-5">
+          <CardTitle className="text-base font-bold text-slate-900 sm:text-lg">Seguimiento por jugador</CardTitle>
+          <p className="text-sm text-slate-500">Busca, filtra y contacta a las familias con el pedido pendiente.</p>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex flex-col sm:flex-row gap-2">
+        <CardContent className="min-w-0 space-y-4 p-4 sm:p-5">
+          <div className="grid min-w-0 grid-cols-1 gap-2 lg:grid-cols-[minmax(0,1fr)_220px_220px]">
             <Input placeholder="Buscar jugador..." value={busqueda} onChange={(e) => setBusqueda(e.target.value)} />
             <Select value={filtroCat} onValueChange={setFiltroCat}>
-              <SelectTrigger className="sm:w-56"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full min-w-0"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="todas">Todas las categorías</SelectItem>
                 {categorias.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
               </SelectContent>
             </Select>
             <Select value={filtroTipo} onValueChange={setFiltroTipo}>
-              <SelectTrigger className="sm:w-56"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="w-full min-w-0"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos los jugadores</SelectItem>
                 <SelectItem value="nuevos">Solo nuevas inscripciones</SelectItem>
@@ -278,7 +288,7 @@ export default function PedidosEquipacion() {
             </Select>
           </div>
           {faltan.length > 0 && (
-            <div className="flex flex-col sm:flex-row gap-2">
+            <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap">
               <Button size="sm" onClick={copiarSoloNombres} className="bg-green-600 hover:bg-green-700">
                 <MessageCircle className="w-4 h-4 mr-2" /> Copiar solo nombres ({faltan.length}) para WhatsApp
               </Button>
