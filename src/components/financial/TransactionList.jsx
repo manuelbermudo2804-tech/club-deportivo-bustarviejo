@@ -79,9 +79,9 @@ export default function TransactionList({
   };
 
   return (
-    <Card>
+    <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
       <CardHeader>
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
           <CardTitle className="flex items-center gap-2">
             <FileText className="h-5 w-5 text-orange-600" />
             Movimientos Financieros
@@ -93,7 +93,7 @@ export default function TransactionList({
           </Button>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-w-0 p-3 sm:p-6">
         {/* Filtros */}
         <div className="flex flex-wrap gap-3 mb-4">
           <div className="flex-1 min-w-[200px]">
