@@ -985,7 +985,6 @@ Email: info@cdbustarviejo.com
               </Button>
             )}
           </div>
-        </div>
       </header>
 
       <div className="rounded-2xl border border-blue-200 bg-blue-50/80 p-3 text-xs leading-relaxed text-blue-800 sm:p-4 sm:text-sm">
