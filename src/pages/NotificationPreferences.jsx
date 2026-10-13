@@ -93,7 +93,7 @@ export default function NotificationPreferences() {
 
   if (!user) {
     return (
-      <div className="p-6 lg:p-8">
+      <div className="mx-auto w-full max-w-[1600px] p-3 sm:p-5 lg:p-6">
         <p className="text-slate-600">Cargando...</p>
       </div>
     );
@@ -101,8 +101,20 @@ export default function NotificationPreferences() {
 
   if (!isStaff) {
     return (
-      <div className="p-6 lg:p-8 space-y-6">
-        <Card className="border-orange-200 bg-orange-50">
+      <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+        <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 sm:h-14 sm:w-14">
+              <Bell className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Comunicación y avisos</p>
+              <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Preferencias de notificaciones</h1>
+              <p className="mt-1 text-sm text-slate-300">Estado de las notificaciones y avisos importantes del club</p>
+            </div>
+          </div>
+        </div>
+        <Card className="rounded-2xl border border-orange-200 bg-orange-50 shadow-sm">
           <CardContent className="pt-6">
             <div className="text-center space-y-3">
               <AlertCircle className="w-16 h-16 text-orange-600 mx-auto" />
@@ -137,38 +149,43 @@ export default function NotificationPreferences() {
 
   if (isLoading || !localPrefs) {
     return (
-      <div className="p-6 lg:p-8">
+      <div className="mx-auto w-full max-w-[1600px] p-3 sm:p-5 lg:p-6">
         <p className="text-slate-600">Cargando preferencias...</p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-          <Bell className="w-8 h-8 text-orange-600" />
-          Preferencias de Notificaciones
-        </h1>
-        <p className="text-slate-600 mt-1">Personaliza cómo y cuándo recibes notificaciones</p>
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 sm:h-14 sm:w-14">
+            <Bell className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
+          </div>
+          <div className="min-w-0">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Comunicación y avisos</p>
+            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Preferencias de notificaciones</h1>
+            <p className="mt-1 text-sm text-slate-300">Personaliza qué avisos recibes y cuándo te llegan</p>
+          </div>
+        </div>
       </div>
 
 
 
       <PushStatusCard user={user} />
 
-      <Alert className="bg-blue-50 border-blue-200">
+      <Alert className="rounded-xl border border-blue-200 bg-blue-50">
         <AlertDescription className="text-blue-800">
           ℹ️ Como miembro del staff, puedes personalizar tus notificaciones. Los padres recibirán todas las notificaciones importantes automáticamente.
         </AlertDescription>
       </Alert>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>🔔 Tipos de Notificaciones</CardTitle>
+      <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-100">
+          <CardTitle>🔔 Tipos de notificaciones</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:p-4">
             <div>
               <Label className="font-semibold">Convocatorias</Label>
               <p className="text-sm text-slate-600">Nuevas convocatorias y recordatorios</p>
@@ -179,7 +196,7 @@ export default function NotificationPreferences() {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:p-4">
             <div>
               <Label className="font-semibold">Pagos</Label>
               <p className="text-sm text-slate-600">Cambios de estado y recordatorios de pago</p>
@@ -190,7 +207,7 @@ export default function NotificationPreferences() {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:p-4">
             <div>
               <Label className="font-semibold">Recordatorios de Pago</Label>
               <p className="text-sm text-slate-600">Recordatorios de pagos próximos a vencer</p>
@@ -201,7 +218,7 @@ export default function NotificationPreferences() {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:p-4">
             <div>
               <Label className="font-semibold">Mensajes Chat de Grupo</Label>
               <p className="text-sm text-slate-600">Mensajes nuevos en chats de categoría</p>
@@ -212,7 +229,7 @@ export default function NotificationPreferences() {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:p-4">
             <div>
               <Label className="font-semibold">Mensajes del Club</Label>
               <p className="text-sm text-slate-600">Mensajes privados del sistema/administración</p>
@@ -223,7 +240,7 @@ export default function NotificationPreferences() {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:p-4">
             <div>
               <Label className="font-semibold">Chats Urgentes</Label>
               <p className="text-sm text-slate-600">Mensajes marcados como urgentes</p>
@@ -234,7 +251,7 @@ export default function NotificationPreferences() {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:p-4">
             <div>
               <Label className="font-semibold">Evaluaciones</Label>
               <p className="text-sm text-slate-600">Nuevas evaluaciones de jugadores</p>
@@ -245,7 +262,7 @@ export default function NotificationPreferences() {
             />
           </div>
 
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:p-4">
             <div>
               <Label className="font-semibold">Anuncios</Label>
               <p className="text-sm text-slate-600">Anuncios importantes del club</p>
@@ -258,20 +275,20 @@ export default function NotificationPreferences() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>⏱️ Modo de Entrega</CardTitle>
+      <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-100">
+          <CardTitle>⏱️ Modo de entrega</CardTitle>
         </CardHeader>
         <CardContent>
           <RadioGroup value={localPrefs.modo_entrega} onValueChange={(value) => setLocalPrefs({...localPrefs, modo_entrega: value})}>
-            <div className="flex items-center space-x-2 p-3 border rounded-lg">
+            <div className="flex items-start space-x-2 rounded-xl border border-slate-200 p-3 sm:p-4">
               <RadioGroupItem value="inmediato" id="inmediato" />
               <Label htmlFor="inmediato" className="flex-1 cursor-pointer">
                 <div className="font-semibold">Inmediato</div>
                 <div className="text-sm text-slate-600">Recibir notificaciones al instante</div>
               </Label>
             </div>
-            <div className="flex items-center space-x-2 p-3 border rounded-lg">
+            <div className="flex items-start space-x-2 rounded-xl border border-slate-200 p-3 sm:p-4">
               <RadioGroupItem value="resumen_diario" id="resumen_diario" />
               <Label htmlFor="resumen_diario" className="flex-1 cursor-pointer">
                 <div className="font-semibold">Resumen Diario</div>
@@ -282,12 +299,12 @@ export default function NotificationPreferences() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>🌙 Horario de Silencio</CardTitle>
+      <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-100">
+          <CardTitle>🌙 Horario de silencio</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:p-4">
             <div>
               <Label className="font-semibold">Silenciar fuera de horario</Label>
               <p className="text-sm text-slate-600">No recibir notificaciones en horario nocturno</p>
@@ -321,12 +338,12 @@ export default function NotificationPreferences() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
+      <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-100">
           <CardTitle>📧 Email</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+          <div className="flex items-center justify-between gap-4 rounded-xl border border-slate-100 bg-slate-50 p-3 sm:p-4">
             <div>
               <Label className="font-semibold">Resumen Semanal</Label>
               <p className="text-sm text-slate-600">Recibir resumen semanal por email (lunes, 9:00)</p>
@@ -343,7 +360,7 @@ export default function NotificationPreferences() {
 
       <Button
         onClick={handleSave}
-        className="w-full bg-orange-600 hover:bg-orange-700 font-bold py-6 text-lg"
+        className="h-12 w-full rounded-xl bg-orange-600 text-base font-bold text-white hover:bg-orange-700 sm:h-14"
         disabled={saveMutation.isPending}
       >
         <Save className="w-5 h-5 mr-2" />
