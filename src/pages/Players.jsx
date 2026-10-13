@@ -687,7 +687,7 @@ export default function Players() {
   const noRenuevanCount = allPlayers.filter(p => p.estado_renovacion === "no_renueva" && p.temporada_renovacion === activeSeason?.temporada).length;
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
       {/* Panel de estadísticas de renovación - SOLO SI HAY RENOVACIONES PERMITIDAS Y HAY JUGADORES PENDIENTES */}
       {isAdmin && activeSeason?.permitir_renovaciones && allPlayers.some(p => p.estado_renovacion === "pendiente" && p.temporada_renovacion === activeSeason?.temporada) && (
         <RenewalStatsPanel allPlayers={allPlayers} seasonConfig={activeSeason} />
