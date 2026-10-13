@@ -117,30 +117,27 @@ export default function Surveys() {
   }
 
   return (
-    <div className="p-4 lg:p-8 space-y-4 lg:space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 lg:gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <MessageCircle className="w-6 h-6 lg:w-8 lg:h-8 text-orange-600" />
-            Encuestas y Feedback
-          </h1>
-          <p className="text-slate-600 mt-1 text-sm lg:text-base">
-            {isAdmin ? "Gestiona encuestas y consulta resultados" : "Participa en las encuestas del club"}
-          </p>
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14">
+              <MessageCircle className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Participación · Club Deportivo Bustarviejo</p>
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Encuestas y Feedback</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">{isAdmin ? "Gestiona encuestas, consulta resultados y escucha a las familias del club." : "Participa en las encuestas y comparte tu opinión con el club."}</p>
+            </div>
+          </div>
+          {isAdmin && (
+            <Button onClick={() => { setEditingSurvey(null); setShowForm(!showForm); }} className="w-full shrink-0 bg-orange-500 text-white hover:bg-orange-600 sm:w-auto">
+              <Plus className="mr-2 h-4 w-4" /> Nueva encuesta
+            </Button>
+          )}
         </div>
-        {isAdmin && (
-          <Button
-            onClick={() => {
-              setEditingSurvey(null);
-              setShowForm(!showForm);
-            }}
-            className="bg-orange-600 hover:bg-orange-700 w-full md:w-auto"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Nueva Encuesta
-          </Button>
-        )}
-      </div>
+      </section>
 
       <AnimatePresence>
         {showForm && isAdmin && (
@@ -160,7 +157,7 @@ export default function Surveys() {
         {activeSurveys.length > 0 && (
           <div>
             <h2 className="text-lg lg:text-xl font-bold text-slate-900 mb-3 lg:mb-4">Encuestas Activas</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4">
+            <div className="grid min-w-0 grid-cols-1 gap-3 xl:grid-cols-2">
               {activeSurveys.map(survey => (
                 <SurveyCard
                   key={survey.id}
@@ -178,7 +175,7 @@ export default function Surveys() {
         {closedSurveys.length > 0 && isAdmin && (
           <div>
             <h2 className="text-lg lg:text-xl font-bold text-slate-500 mb-3 lg:mb-4">Encuestas Cerradas</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-4 opacity-60">
+            <div className="grid min-w-0 grid-cols-1 gap-3 opacity-70 xl:grid-cols-2">
               {closedSurveys.map(survey => (
                 <SurveyCard
                   key={survey.id}
@@ -194,7 +191,7 @@ export default function Surveys() {
         )}
 
         {activeSurveys.length === 0 && !isAdmin && (
-          <div className="text-center py-12 bg-white rounded-xl shadow-md">
+          <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-10 text-center shadow-sm">
             <MessageCircle className="w-12 h-12 lg:w-16 lg:h-16 text-slate-300 mx-auto mb-3" />
             <p className="text-slate-500 text-sm lg:text-base">No hay encuestas activas en este momento</p>
           </div>
