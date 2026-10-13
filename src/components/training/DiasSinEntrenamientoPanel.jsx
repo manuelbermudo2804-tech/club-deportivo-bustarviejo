@@ -69,19 +69,19 @@ export default function DiasSinEntrenamientoPanel({ canEdit = false, categorias 
   if (!canEdit && proximos.length === 0) return null;
 
   return (
-    <Card className="border-none shadow-lg bg-white">
-      <CardHeader className="flex flex-row items-center justify-between gap-4">
-        <CardTitle className="text-lg flex items-center gap-2 text-slate-900">
+    <Card className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <CardHeader className="flex flex-col gap-3 border-b border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
           <CalendarOff className="w-5 h-5 text-red-600" />
           Días sin entrenamiento
         </CardTitle>
         {canEdit && (
-          <Button size="sm" onClick={() => setShowForm(!showForm)} className="bg-slate-800 hover:bg-slate-900">
+          <Button size="sm" onClick={() => setShowForm(!showForm)} className="w-full rounded-xl bg-orange-600 hover:bg-orange-700 sm:w-auto">
             <Plus className="w-4 h-4 mr-1" /> Marcar días
           </Button>
         )}
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 px-4 py-4 sm:px-5">
         <p className="text-sm text-slate-500">
           {canEdit
             ? "Marca aquí las fiestas patronales, puentes o cierres de instalaciones. Esos días la app no avisará de entrenamientos a familias ni jugadores."
@@ -89,8 +89,8 @@ export default function DiasSinEntrenamientoPanel({ canEdit = false, categorias 
         </p>
 
         {showForm && canEdit && (
-          <div className="border rounded-xl p-4 space-y-3 bg-slate-50">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-3 sm:p-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
                 <Label>Desde</Label>
                 <Input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
@@ -125,7 +125,7 @@ export default function DiasSinEntrenamientoPanel({ canEdit = false, categorias 
                 </div>
               </div>
             )}
-            <div className="flex gap-2">
+            <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button
                 onClick={() => crear.mutate()}
                 disabled={!fecha || crear.isPending}
@@ -143,14 +143,14 @@ export default function DiasSinEntrenamientoPanel({ canEdit = false, categorias 
         ) : (
           <div className="space-y-2">
             {proximos.map((d) => (
-              <div key={d.id} className="flex items-center gap-3 border rounded-lg p-3">
-                <CalendarOff className="w-4 h-4 text-red-500 flex-shrink-0" />
+              <div key={d.id} className="flex min-w-0 items-center gap-2.5 rounded-xl border border-slate-200 bg-white p-2.5 sm:gap-3 sm:p-3">
+                <CalendarOff className="h-4 w-4 shrink-0 text-orange-600" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-800 text-sm capitalize">
+                  <p className="text-sm font-semibold capitalize leading-snug text-slate-800">
                     {formatoDia(d.fecha)}
                     {d.fecha_fin && d.fecha_fin !== d.fecha ? ` → ${formatoDia(d.fecha_fin)}` : ""}
                   </p>
-                  <p className="text-xs text-slate-500">
+                  <p className="mt-0.5 break-words text-xs leading-relaxed text-slate-500">
                     {d.motivo || "Sin entrenamiento"}
                     {" · "}
                     {(d.categorias || []).length === 0 ? "Todas las categorías" : (d.categorias || []).join(", ")}
@@ -160,7 +160,7 @@ export default function DiasSinEntrenamientoPanel({ canEdit = false, categorias 
                   <Button
                     size="sm"
                     variant="ghost"
-                    className="text-red-600"
+                    className="h-8 w-8 shrink-0 rounded-lg text-red-600"
                     onClick={() => borrar.mutate(d.id)}
                   >
                     <Trash2 className="w-4 h-4" />
