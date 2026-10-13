@@ -855,7 +855,7 @@ export default function Payments() {
             </div>
           )}
         </div>
-        <div className="grid w-full grid-cols-2 gap-2 sm:grid-cols-3 xl:w-auto xl:min-w-[480px]">
+        <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:w-auto xl:min-w-[480px] xl:grid-cols-2">
           {filteredPayments.length > 0 && (
             <ExportButton
               data={prepareExportData()}
@@ -881,13 +881,14 @@ export default function Payments() {
             title="Actualizar datos"
             className="h-11 w-full min-w-0 justify-center rounded-xl border border-white/30 bg-slate-800 text-white shadow-sm hover:bg-slate-700 hover:text-white focus-visible:ring-2 focus-visible:ring-orange-300"
           >
-            <RefreshCw className="w-5 h-5" />
+            <RefreshCw className="mr-2 h-4 w-4 shrink-0" />
+            <span className="whitespace-nowrap">Actualizar</span>
           </Button>
           {isAdmin && (
             <Link to={createPageUrl("MorososManagement")} className="flex-1 sm:flex-none min-w-0">
-              <Button variant="outline" className="h-11 w-full min-w-0 justify-center rounded-xl border border-red-300/60 bg-red-950/70 text-white font-semibold shadow-sm hover:bg-red-900 hover:text-white focus-visible:ring-2 focus-visible:ring-orange-300">
+              <Button variant="outline" className="h-auto min-h-11 w-full min-w-0 whitespace-normal px-3 py-3 text-center leading-tight justify-center rounded-xl border border-red-300/60 bg-red-950/70 text-white font-semibold shadow-sm hover:bg-red-900 hover:text-white focus-visible:ring-2 focus-visible:ring-orange-300">
                 <ShieldAlert className="w-5 h-5 mr-2 flex-shrink-0" />
-                <span className="truncate">Gestión de Morosos</span>
+                <span className="whitespace-normal">Gestión de Morosos</span>
               </Button>
             </Link>
           )}
@@ -900,10 +901,10 @@ export default function Payments() {
                 }, 100);
               }
             }}
-            className="h-11 min-w-0 justify-center rounded-xl border border-orange-300 bg-orange-500 px-4 font-bold text-white shadow-md hover:bg-orange-400 hover:text-white focus-visible:ring-2 focus-visible:ring-white sm:col-span-1"
+            className="h-auto min-h-11 w-full min-w-0 justify-center whitespace-normal rounded-xl border border-orange-300 bg-orange-500 px-3 py-3 text-center font-bold leading-tight text-white shadow-md hover:bg-orange-400 hover:text-white focus-visible:ring-2 focus-visible:ring-white"
           >
             <Plus className="w-5 h-5 mr-2 flex-shrink-0 text-white" />
-            <span className="truncate">Registrar Pago</span>
+            <span className="whitespace-normal">Registrar Pago</span>
           </Button>
         </div>
         </div>
