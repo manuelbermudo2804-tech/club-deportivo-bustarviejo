@@ -450,7 +450,7 @@ export default function MinorDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-slate-100">
-      <div className="max-w-lg mx-auto p-4 space-y-3 pb-24">
+      <div className="max-w-lg mx-auto w-full px-4 sm:px-5 space-y-3 pb-24">
         {/* ─── PESTAÑAS: Jugador / Entrenador en prácticas ─── */}
         {esPracticas && <MinorPanelTabs value={panel} onChange={setPanel} />}
 
@@ -485,7 +485,7 @@ export default function MinorDashboard() {
         )}
         
         {/* Row compacta: Racha + Goles en horizontal (solo competitivas muestran goles) */}
-        <div className={`grid ${isComplementaria ? 'grid-cols-1' : 'grid-cols-2'} gap-3`}>
+        <div className={`grid items-stretch ${isComplementaria ? 'grid-cols-1' : 'grid-cols-2'} gap-3 [&>*]:min-w-0 [&>*]:h-full`}>
           {linkedPlayer?.id && attendances.length > 0 && (
             <MinorStreakWidget attendances={attendances} playerId={linkedPlayer.id} compact />
           )}
