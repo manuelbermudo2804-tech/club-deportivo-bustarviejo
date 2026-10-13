@@ -69,8 +69,8 @@ export default function DiasSinEntrenamientoPanel({ canEdit = false, categorias 
   if (!canEdit && proximos.length === 0) return null;
 
   return (
-    <Card className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-      <CardHeader className="flex flex-col gap-3 border-b border-slate-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+    <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+      <CardHeader className="flex flex-col gap-3 border-b border-slate-200 bg-slate-50 px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
         <CardTitle className="flex items-center gap-2 text-base font-bold text-slate-900">
           <CalendarOff className="w-5 h-5 text-red-600" />
           Días sin entrenamiento
@@ -81,7 +81,7 @@ export default function DiasSinEntrenamientoPanel({ canEdit = false, categorias 
           </Button>
         )}
       </CardHeader>
-      <CardContent className="space-y-3 px-4 py-4 sm:px-5">
+      <CardContent className="space-y-3 p-3 sm:p-4">
         <p className="text-sm text-slate-500">
           {canEdit
             ? "Marca aquí las fiestas patronales, puentes o cierres de instalaciones. Esos días la app no avisará de entrenamientos a familias ni jugadores."
@@ -113,10 +113,10 @@ export default function DiasSinEntrenamientoPanel({ canEdit = false, categorias 
                       key={c}
                       type="button"
                       onClick={() => toggleCat(c)}
-                      className={`text-xs px-3 py-1 rounded-full border ${
+                      className={`rounded-lg border px-2.5 py-1.5 text-xs transition-colors ${
                         cats.includes(c)
                           ? "bg-orange-600 text-white border-orange-600"
-                          : "bg-white text-slate-600 border-slate-300"
+                          : "bg-white text-slate-600 border-slate-200 hover:border-orange-300"
                       }`}
                     >
                       {c}

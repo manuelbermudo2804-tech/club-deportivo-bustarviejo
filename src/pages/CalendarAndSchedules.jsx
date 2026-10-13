@@ -393,15 +393,13 @@ export default function CalendarAndSchedules() {
   const isParentOrPlayer = userRole === "parent" || userRole === "player";
 
   return (
-    <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7 [&_*]:min-w-0">
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
       {/* Cabecera común de la aplicación */}
       <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
         <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
         <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><CalendarCheck className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
-          <div className="min-w-0 flex-1">
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Club deportivo · Organización</p>
+          <div className="min-w-0"><p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Organización deportiva</p>
             {newEventsCount > 0 && !isAdmin && (
               <Badge className="bg-red-500 text-white text-xs">
                 <Bell className="w-3 h-3 mr-1" />
@@ -419,33 +417,33 @@ export default function CalendarAndSchedules() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:grid-cols-4 lg:inline-flex">
-          <TabsTrigger value="partidos" className="flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1 sm:grid-cols-4 lg:inline-flex">
+          <TabsTrigger value="partidos" className="min-w-0 gap-1.5 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:gap-2 sm:text-sm">
             <Trophy className="w-4 h-4" />
             Partidos
           </TabsTrigger>
-          <TabsTrigger value="jornadas" className="flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">
+          <TabsTrigger value="jornadas" className="min-w-0 gap-1.5 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:gap-2 sm:text-sm">
             <CalendarIcon className="w-4 h-4" />
             Jornadas
           </TabsTrigger>
-          <TabsTrigger value="calendario" className="flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">
+          <TabsTrigger value="calendario" className="min-w-0 gap-1.5 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:gap-2 sm:text-sm">
             <CalendarIcon className="w-4 h-4" />
             Calendario
           </TabsTrigger>
-          <TabsTrigger value="horarios" className="flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2 py-2 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">
+          <TabsTrigger value="horarios" className="min-w-0 gap-1.5 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:gap-2 sm:text-sm">
             <Clock className="w-4 h-4" />
             Horarios
           </TabsTrigger>
         </TabsList>
 
         {/* PARTIDOS TAB */}
-        <TabsContent value="partidos" className="space-y-4 mt-4">
+        <TabsContent value="partidos" className="mt-4 space-y-4">
           <UpcomingMatchesSection myCategories={myCategories} />
           <ContactCard />
         </TabsContent>
 
         {/* JORNADAS TAB */}
-        <TabsContent value="jornadas" className="space-y-4 mt-4">
+        <TabsContent value="jornadas" className="mt-4 space-y-4">
           <div>
             <h2 className="text-lg font-bold text-slate-800 mb-1">Calendario de Liga</h2>
             <p className="text-sm text-slate-500 mb-4">Todas las jornadas de tus equipos: resultados y partidos pendientes</p>
@@ -454,7 +452,7 @@ export default function CalendarAndSchedules() {
         </TabsContent>
 
         {/* CALENDARIO TAB */}
-        <TabsContent value="calendario" className="space-y-4 mt-4">
+        <TabsContent value="calendario" className="mt-4 space-y-4">
           {/* Calendar controls */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
@@ -715,7 +713,7 @@ export default function CalendarAndSchedules() {
         </TabsContent>
 
         {/* HORARIOS TAB */}
-        <TabsContent value="horarios" className="mt-4 min-w-0 space-y-4 sm:space-y-5">
+        <TabsContent value="horarios" className="mt-4 space-y-4">
           {/* Header for schedules */}
           <div className="flex min-w-0 flex-col items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:p-5">
             <div>
@@ -749,18 +747,18 @@ export default function CalendarAndSchedules() {
           <DiasSinEntrenamientoPanel canEdit={canEditSchedules} categorias={Object.keys(schedulesByCategory).sort()} />
 
           {/* Location Card */}
-          <Card className="overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-white shadow-sm">
+          <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
             <CardContent className="p-4 sm:p-5">
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                <div className="flex items-start gap-3 flex-1">
-                  <MapPin className="w-6 h-6 text-green-700 mt-1" />
+              <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex min-w-0 items-start gap-3">
+                  <MapPin className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
                   <div>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">Ubicación habitual</p>
+                    <p className="mb-1 text-xs font-bold uppercase tracking-wide text-slate-500">Ubicación habitual</p>
                     <p className="text-base font-bold text-slate-900 sm:text-lg">Campo Municipal de Bustarviejo</p>
                   </div>
                 </div>
                 <a href={UBICACION_MAPS_URL} target="_blank" rel="noopener noreferrer">
-                  <Button className="w-full rounded-xl bg-emerald-700 shadow-sm hover:bg-emerald-800 sm:w-auto">
+                  <Button className="w-full rounded-xl bg-orange-600 shadow-sm hover:bg-orange-700 sm:w-auto">
                     <ExternalLink className="w-4 h-4 mr-2" />
                     Ver en Google Maps
                   </Button>
@@ -781,7 +779,7 @@ export default function CalendarAndSchedules() {
 
           {/* Players Summary for Parents */}
           {userRole === "parent" && myPlayers.length > 0 && (
-            <Card className="rounded-2xl border border-orange-200 bg-orange-50/70 shadow-sm">
+            <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               <CardHeader className="px-4 pb-2 pt-4 sm:px-5">
                 <CardTitle className="text-base text-orange-950">Tus jugadores</CardTitle>
               </CardHeader>
@@ -818,16 +816,16 @@ export default function CalendarAndSchedules() {
               <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
             </div>
           ) : (userRole === "parent" || userRole === "player") && myPlayers.length === 0 ? (
-            <Card className="border-none shadow-lg bg-white">
-              <CardContent className="py-12 text-center">
+            <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <CardContent className="px-4 py-8 text-center sm:py-10">
                 <Clock className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-500 text-lg">No tienes jugadores registrados</p>
                 <p className="text-sm text-slate-400 mt-2">Registra un jugador para ver sus horarios de entrenamientos</p>
               </CardContent>
             </Card>
           ) : Object.keys(schedulesByCategory).length === 0 ? (
-            <Card className="border-none shadow-lg bg-white">
-              <CardContent className="py-12 text-center">
+            <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <CardContent className="px-4 py-8 text-center sm:py-10">
                 <Clock className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                 <p className="text-slate-500 text-lg">No hay horarios disponibles</p>
                 <p className="text-sm text-slate-400 mt-2">
