@@ -675,7 +675,7 @@ export default function ChatTestConsole() {
   };
 
    return (
-    <div className="min-h-screen p-4 lg:p-6 bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen w-full min-w-0 overflow-x-hidden bg-slate-50 px-3 pb-24 pt-4 sm:px-5 lg:px-8 lg:pt-7">
       <div className="max-w-6xl mx-auto grid gap-4">
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-bold flex items-center gap-2">
