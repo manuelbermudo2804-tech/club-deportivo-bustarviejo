@@ -2,6 +2,54 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Diseño premium acotado a Mi perfil de jugadores +18 */
+.player-profile-wow .profile-hero-pattern {
+  background-image: radial-gradient(rgba(255,255,255,.7) 1px, transparent 1px);
+  background-size: 15px 15px;
+  mask-image: linear-gradient(to left, black, transparent);
+}
+.player-profile-wow .profile-hero {
+  box-shadow: 0 24px 55px -32px rgba(15, 23, 42, .55);
+}
+.player-profile-wow > .rounded-2xl,
+.player-profile-wow > [data-radix-tabs-content] {
+  animation: profileFadeIn .28s ease-out both;
+}
+.player-profile-wow [data-radix-tabs-content] > .rounded-xl,
+.player-profile-wow [data-radix-tabs-content] > .rounded-lg,
+.player-profile-wow [data-radix-tabs-content] > .border,
+.player-profile-wow [data-radix-tabs-content] > div > .rounded-xl {
+  border-color: rgb(226 232 240 / 90%);
+  border-radius: 1.1rem;
+  box-shadow: 0 4px 18px rgb(15 23 42 / 4%);
+}
+.player-profile-wow [data-radix-tabs-content] [class*="CardHeader"] {
+  border-bottom: 1px solid rgb(226 232 240 / 70%);
+  padding-bottom: 1rem;
+  margin-bottom: .25rem;
+}
+.player-profile-wow [data-radix-tabs-content] input:not([type="checkbox"]):not([type="radio"]),
+.player-profile-wow [data-radix-tabs-content] select,
+.player-profile-wow [data-radix-tabs-content] textarea {
+  border-color: rgb(203 213 225 / 85%);
+  background-color: white;
+  box-shadow: 0 1px 2px rgb(15 23 42 / 3%);
+}
+.player-profile-wow [data-radix-tabs-content] input:focus,
+.player-profile-wow [data-radix-tabs-content] select:focus,
+.player-profile-wow [data-radix-tabs-content] textarea:focus {
+  border-color: rgb(249 115 22 / 70%);
+  box-shadow: 0 0 0 3px rgb(249 115 22 / 10%);
+}
+@keyframes profileFadeIn {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .player-profile-wow > .rounded-2xl,
+  .player-profile-wow > [data-radix-tabs-content] { animation: none; }
+}
+
 /* Pulido visual global: sutil, coherente y sin cambiar la estructura de las pantallas */
 body {
   -webkit-font-smoothing: antialiased;
