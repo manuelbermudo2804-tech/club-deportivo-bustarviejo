@@ -1074,7 +1074,7 @@ export default function TreasurerFinancialPanel() {
                 </div>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                   <div className="flex flex-col items-center p-3 bg-slate-50 rounded-lg">
                     <span className="text-xs text-slate-600 mb-1">Total</span>
                     <span className="text-xl font-bold text-slate-700">{stats.loteriaTotal.toFixed(0)}€</span>
@@ -1101,7 +1101,7 @@ export default function TreasurerFinancialPanel() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 sm:gap-4">
                 <div className="text-center">
                   <p className="text-2xl font-bold text-blue-700">{players.filter(p => p.activo).length}</p>
                   <p className="text-xs text-slate-600 mt-1">Jugadores Activos</p>
@@ -1217,7 +1217,7 @@ export default function TreasurerFinancialPanel() {
           </Card>
 
           {/* Accesos Rápidos - Rediseñado */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <Link to={createPageUrl("Payments")}>
               <div className="group bg-gradient-to-br from-blue-600 to-cyan-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
                 <div className="flex flex-col items-center text-white text-center">
@@ -1343,7 +1343,7 @@ export default function TreasurerFinancialPanel() {
                   </ResponsiveContainer>
                   
                   {/* Leyenda personalizada compacta */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 w-full mt-4">
+                  <div className="mt-4 grid w-full grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                     {pieData.filter(d => d.value > 0).map((item, index) => {
                       const total = pieData.reduce((sum, d) => sum + d.value, 0);
                       const percent = total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
@@ -1498,7 +1498,7 @@ export default function TreasurerFinancialPanel() {
               </CardHeader>
               <CardContent>
                 <div className="bg-slate-50 rounded-lg p-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     <div>
                       <p className="text-sm text-slate-600">Cuota Única</p>
                       <p className="text-2xl font-bold text-slate-900">{activeSeason.cuota_unica}€</p>
@@ -1675,7 +1675,7 @@ export default function TreasurerFinancialPanel() {
               {/* Resumen del Presupuesto */}
               <Card className="border-none shadow-xl bg-gradient-to-r from-slate-900 to-slate-800 text-white">
                 <CardContent className="p-6">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 sm:gap-4">
                     <div className="text-center">
                       <p className="text-sm text-slate-300 mb-1">Presupuesto Total</p>
                       <p className="text-3xl font-bold">
