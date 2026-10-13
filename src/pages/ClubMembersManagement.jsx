@@ -1190,15 +1190,15 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
       </Dialog>
 
       {/* Cabecera */}
-      <div className="rounded-2xl border border-slate-200/80 bg-gradient-to-br from-white via-white to-orange-50/70 p-4 sm:p-5 lg:p-6 shadow-sm">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
         <div className="flex flex-col xl:flex-row xl:justify-between xl:items-center gap-4">
         <div className="min-w-0">
-          <p className="text-[10px] sm:text-xs font-bold uppercase tracking-[0.18em] text-orange-700 mb-2">Administración del club</p>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 flex items-center gap-2">
-            <span className="w-10 h-10 rounded-xl bg-orange-100 flex items-center justify-center shrink-0"><Users className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" /></span>
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Administración del club</p>
+          <h1 className="flex items-center gap-3 text-2xl font-black tracking-tight text-white sm:text-3xl">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15"><Users className="h-5 w-5 text-orange-400 sm:h-6 sm:w-6" /></span>
             Gestión de Socios
           </h1>
-          <p className="text-sm text-slate-500 mt-2">Administra las altas, los pagos y la temporada {seasonConfig?.temporada || "actual"}.</p>
+          <p className="mt-2 text-sm text-slate-300">Administra las altas, los pagos y la temporada {seasonConfig?.temporada || "actual"}.</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:flex gap-2 w-full xl:w-auto">
           <label className="cursor-pointer">
@@ -1208,19 +1208,19 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
               onChange={handleFileUpload}
               className="hidden"
             />
-            <Button variant="outline" className="pointer-events-none w-full xl:w-auto rounded-xl border-slate-200 bg-white">
+            <Button variant="outline" className="pointer-events-none w-full rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15 xl:w-auto">
               <Upload className="w-4 h-4 mr-2" /> Importar CSV
             </Button>
           </label>
           <Button
             onClick={() => setShowManualImportForm(true)}
-            className="w-full xl:w-auto rounded-xl bg-slate-900 hover:bg-slate-800"
+            className="w-full rounded-xl bg-orange-600 hover:bg-orange-700 xl:w-auto"
           >
             <UserPlus className="w-4 h-4 mr-2" /> Importar Manual
           </Button>
           <Button
             onClick={() => setShowReminderDialog(true)}
-            className="w-full xl:w-auto rounded-xl bg-emerald-600 hover:bg-emerald-700"
+            className="w-full rounded-xl bg-white/10 text-white ring-1 ring-white/20 hover:bg-white/15 xl:w-auto"
           >
             <Mail className="w-4 h-4 mr-2" /> Enviar Recordatorios
           </Button>
@@ -1231,7 +1231,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
       {/* Navegación adaptable: desplazamiento horizontal en móvil */}
       <Tabs defaultValue="lista" className="space-y-4">
         <div className="w-full overflow-x-auto pb-1 -mb-1">
-          <TabsList className="flex h-auto w-max min-w-full sm:min-w-0 sm:w-full sm:grid sm:grid-cols-5 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+          <TabsList className="flex h-auto w-max min-w-full gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:min-w-0 sm:w-full sm:grid sm:grid-cols-5">
             <TabsTrigger value="lista" className="flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">
               <Users className="w-4 h-4" /><span>Lista</span><span className="hidden lg:inline"> de Socios</span>
             </TabsTrigger>
