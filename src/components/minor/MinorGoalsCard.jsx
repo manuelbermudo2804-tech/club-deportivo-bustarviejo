@@ -22,7 +22,7 @@ function normalizeName(name) {
   return n.replace(/\s+/g, " ").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
-export default function MinorGoalsCard({ playerName, playerCategory }) {
+export default function MinorGoalsCard({ playerName, playerCategory, compact = false }) {
   const { data: scorers = [] } = useQuery({
     queryKey: ["minorScorers", playerCategory],
     queryFn: () => base44.entities.Goleador.filter({ categoria: playerCategory, equipo: "C.D. BUSTARVIEJO" }),
@@ -44,15 +44,15 @@ export default function MinorGoalsCard({ playerName, playerCategory }) {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", delay: 0.2 }}
     >
-      <Card className="border-none shadow-xl bg-gradient-to-br from-yellow-400 via-amber-500 to-orange-500 overflow-hidden">
-        <CardContent className="p-5 relative">
+      <Card className={`h-full border border-orange-200 shadow-md bg-gradient-to-br from-amber-400 to-orange-500 overflow-hidden ${compact ? "min-h-[122px]" : ""}`}>
+        <CardContent className={`h-full p-4 relative flex items-center ${compact ? "min-h-[122px]" : ""}`}>
           {/* Background decoration */}
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
             <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-white/10 rounded-full blur-xl" />
           </div>
           
-          <div className="relative z-10 flex items-center gap-4">
+          <div className="relative z-10 flex items-center gap-3 w-full min-w-0">
             <motion.div 
               className="text-5xl"
               animate={{ rotate: [0, -10, 10, -10, 0], scale: [1, 1.1, 1] }}
