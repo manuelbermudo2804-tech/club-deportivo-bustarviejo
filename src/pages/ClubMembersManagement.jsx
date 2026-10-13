@@ -1465,13 +1465,26 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
           </div>
         ) : (
           filteredMembers.map(member => (
-            <Card key={member.id} className="rounded-2xl border-slate-200/80 shadow-sm transition-all duration-200 hover:border-orange-200 hover:shadow-md">
-              <CardContent className="p-3 sm:p-4">
-                <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-                  <div className="min-w-0 flex-1 cursor-pointer" onClick={() => setViewingMember(member)}>
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <h3 className="font-semibold text-slate-900">{member.nombre_completo}</h3>
-                      <Badge variant="outline" className="text-xs">{member.numero_socio || "Sin nº"}</Badge>
+            <Card key={member.id} className="group overflow-hidden rounded-2xl border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:border-orange-200 hover:shadow-md">
+              <CardContent className="p-0">
+                <div className="flex min-w-0 flex-col xl:flex-row xl:items-stretch">
+                  <div className={`w-full xl:w-1.5 shrink-0 ${member.estado_pago === "Pagado" ? "bg-emerald-500" : member.estado_pago === "En revisión" ? "bg-amber-400" : member.estado_pago === "Fallido" ? "bg-red-500" : "bg-orange-400"}`} />
+                  <div className="min-w-0 flex-1 p-3 sm:p-4 lg:p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                    <div className="hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-700 ring-1 ring-orange-100">
+                      <Users className="h-5 w-5" />
+                    </div>
+                    <div className="min-w-0 flex-1 cursor-pointer" onClick={() => setViewingMember(member)}>
+                    <div className="flex items-start justify-between gap-2 flex-wrap mb-2">
+                      <div className="min-w-0">
+                        <h3 className="text-base sm:text-lg font-bold leading-snug tracking-tight text-slate-900 group-hover:text-orange-800">{member.nombre_completo}</h3>
+                        <p className="mt-1 text-[11px] sm:text-xs font-medium text-slate-500">Socio nº {member.numero_socio || "Sin asignar"} <span className="mx-1 text-slate-300">·</span> Temporada {member.temporada || "—"}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {getStatusBadge(member.estado_pago)}
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5 mb-3">
                       {/* ORIGEN: Cómo llegó este socio */}
                       {member.origen_pago === 'stripe_suscripcion' && (
                         <Badge className="bg-purple-100 text-purple-700 text-xs border border-purple-200">
@@ -1531,24 +1544,36 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                       {member.es_socio_padre && (
                         <Badge variant="outline" className="text-xs bg-amber-50">Padre auto</Badge>
                       )}
-                      <Badge variant="outline" className="text-xs">
-                        {member.tipo_inscripcion === "Nueva Inscripción" ? "🆕" : "🔄"} {member.temporada}
+                      <Badge variant="outline" className="rounded-full border-slate-200 bg-slate-50 px-2.5 py-0.5 text-[10px] sm:text-xs text-slate-600">
+                        {member.tipo_inscripcion === "Nueva Inscripción" ? "🆕 Nueva alta" : "🔄 Renovación"}
                       </Badge>
                       {member.fecha_vencimiento && (
-                        <span className="text-xs text-slate-400">
-                          Vence: {new Date(member.fecha_vencimiento).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                        <span className="inline-flex items-center rounded-full bg-slate-50 px-2.5 py-1 text-[10px] sm:text-xs text-slate-500 ring-1 ring-inset ring-slate-200">
+                          Vence {new Date(member.fecha_vencimiento).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                         </span>
                       )}
                     </div>
-                    <div className="mt-2 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-xs sm:text-sm text-slate-600">
-                      <p className="break-all">📧 {member.email || "Sin email"}</p>
-                      <p>📱 {member.telefono || "Sin teléfono"}</p>
-                      <p>🪪 {member.dni || "Sin DNI"}</p>
-                      <p>📍 {member.municipio || "Sin municipio"}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div className="flex min-w-0 items-start gap-2 rounded-xl bg-slate-50/90 px-3 py-2">
+                        <Mail className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                        <span className="min-w-0 break-all text-xs sm:text-sm text-slate-700">{member.email || "Sin email"}</span>
+                      </div>
+                      <div className="flex min-w-0 items-start gap-2 rounded-xl bg-slate-50/90 px-3 py-2">
+                        <MessageCircle className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                        <span className="min-w-0 break-words text-xs sm:text-sm text-slate-700">{member.telefono || "Sin teléfono"}</span>
+                      </div>
+                      <div className="flex min-w-0 items-start gap-2 rounded-xl bg-slate-50/90 px-3 py-2">
+                        <CreditCard className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                        <span className="min-w-0 break-words text-xs sm:text-sm text-slate-700">{member.dni || "Sin DNI"}</span>
+                      </div>
+                      <div className="flex min-w-0 items-start gap-2 rounded-xl bg-slate-50/90 px-3 py-2">
+                        <TrendingUp className="mt-0.5 h-4 w-4 shrink-0 text-slate-400" />
+                        <span className="min-w-0 break-words text-xs sm:text-sm text-slate-700">{member.municipio || "Sin municipio"}</span>
+                      </div>
                     </div>
                   </div>
-                  
-                  <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 xl:border-t-0 xl:border-l xl:pl-4 xl:pt-0">
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 bg-slate-50/70 px-3 py-3 sm:px-4 xl:w-[290px] xl:shrink-0 xl:content-center xl:border-l xl:border-t-0 xl:px-4">
                     {/* Botones de acción */}
                     <div className="flex gap-1">
                       <Button variant="ghost" size="icon" onClick={() => setViewingMember(member)} title="Ver detalle">
@@ -1598,9 +1623,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                     )}
                     
                     {/* Estado y cambio rápido */}
-                    <div className="flex items-center gap-2">
-                      {getStatusBadge(member.estado_pago)}
-                      
+                    <div className="flex flex-wrap items-center gap-2">
                       {member.estado_pago !== "Pagado" && (
                         <Button
                           size="sm"
@@ -1612,6 +1635,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                         </Button>
                       )}
                     </div>
+                  </div>
                   </div>
                 </div>
               </CardContent>
