@@ -872,8 +872,8 @@ export default function Players() {
       </AnimatePresence>
 
       {/* Búsqueda Avanzada */}
-      <Card className="border-none shadow-lg">
-        <CardContent className="p-6 space-y-4">
+      <Card className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+        <CardContent className="space-y-4 p-3 sm:p-5">
           <div className="flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -881,13 +881,13 @@ export default function Players() {
                 placeholder="Buscar por nombre, email o teléfono..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 bg-white"
+                className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 focus-visible:bg-white"
               />
             </div>
             <Button
               variant={showAdvancedFilters ? "default" : "outline"}
               onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-              className={showAdvancedFilters ? "bg-orange-600 hover:bg-orange-700" : ""}
+              className={showAdvancedFilters ? "h-11 rounded-xl bg-orange-600 hover:bg-orange-700" : "h-11 rounded-xl border-slate-200"}
             >
               <Filter className="w-4 h-4 mr-2" />
               Filtros
@@ -1009,7 +1009,7 @@ export default function Players() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
             <AnimatePresence>
               {paginatedPlayers.map((player) => (
                 <PlayerCard 
@@ -1034,7 +1034,7 @@ export default function Players() {
 
           {/* Paginación */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-8">
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-2 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm">
               <Button
                 variant="outline"
                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
