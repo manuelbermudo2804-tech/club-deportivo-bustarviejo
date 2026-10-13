@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, FileText, Calendar, TrendingUp, Archive, AlertTriangle } from "lucide-react";
+import { Search, FileText, Calendar, TrendingUp, Archive, AlertTriangle, History, CreditCard, Users, CheckCircle2 } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -115,17 +115,20 @@ export default function PaymentHistory() {
   }
 
   return (
-    <div className="min-h-screen overflow-y-auto p-6 lg:p-8 space-y-6 pb-28">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">Histórico de Pagos</h1>
-        <p className="text-slate-600 mt-1">Consulta pagos de temporadas anteriores agrupados por jugador</p>
-      </div>
+    <div className="mx-auto min-h-screen w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-28 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><History className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+          <div className="min-w-0"><p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Archivo de pagos</p><h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Histórico de pagos</h1><p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Consulta pagos archivados por jugador y temporada, con filtros para localizar cada movimiento.</p></div>
+        </div>
+      </section>
 
-      <Card className="border-none shadow-lg">
-        <CardHeader className="border-b border-slate-100">
+      <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-100 bg-slate-50/80 p-4 sm:p-5">
           <div className="flex flex-col gap-4">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-xl">Filtros Avanzados</CardTitle>
+            <div className="flex flex-col gap-3 min-[420px]:flex-row min-[420px]:items-center min-[420px]:justify-between">
+              <CardTitle className="text-base font-bold text-slate-900 sm:text-lg">Filtros avanzados</CardTitle>
               {hasActiveFilters && (
                 <Button onClick={clearFilters} variant="outline" size="sm" className="gap-2">
                   <X className="w-4 h-4" />
@@ -146,7 +149,7 @@ export default function PaymentHistory() {
             </div>
             
             {/* Filtros en grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {/* Temporada */}
               <Select value={seasonFilter} onValueChange={setSeasonFilter}>
                 <SelectTrigger>
@@ -224,18 +227,13 @@ export default function PaymentHistory() {
       ) : (
         <div className="space-y-6">
           {playerSummaries.map(summary => (
-            <Card key={`${summary.jugador_id}-${summary.temporada}`} className="border-none shadow-lg">
-              <CardHeader className="bg-slate-50 border-b flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>{summary.jugador_nombre}</CardTitle>
-                  <p className="text-sm text-slate-500">Temporada {summary.temporada}</p>
-                </div>
-                <div className="text-right">
-                    <p className="text-sm text-green-600">Total Pagado</p>
-                    <p className="text-2xl font-bold text-green-700">{summary.total.toFixed(2)}€</p>
-                </div>
+            <Card key={`${summary.jugador_id}-${summary.temporada}`} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <CardHeader className="flex flex-col gap-3 border-b border-slate-100 bg-slate-50/80 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+                <div className="flex min-w-0 items-start gap-3"><div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-700"><Users className="h-5 w-5" /></div><div className="min-w-0"><CardTitle className="break-words text-base font-bold text-slate-900 sm:text-lg">{summary.jugador_nombre}</CardTitle><p className="mt-1 flex items-center gap-1.5 text-sm text-slate-500"><Calendar className="h-3.5 w-3.5" />Temporada {summary.temporada}</p></div></div>
+                <div className="flex items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 sm:min-w-[170px] sm:flex-col sm:items-end"><p className="text-xs font-semibold text-emerald-800">Total pagado</p><p className="text-xl font-extrabold tracking-tight text-emerald-700 sm:text-2xl">{summary.total.toFixed(2)}€</p></div>
               </CardHeader>
-              <CardContent className="p-0">
+              <CardContent className="min-w-0 p-0">
+                <div className="w-full min-w-0 overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -274,6 +272,7 @@ export default function PaymentHistory() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
           ))}
