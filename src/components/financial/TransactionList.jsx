@@ -95,8 +95,8 @@ export default function TransactionList({
       </CardHeader>
       <CardContent className="min-w-0 p-3 sm:p-6">
         {/* Filtros */}
-        <div className="flex flex-wrap gap-3 mb-4">
-          <div className="flex-1 min-w-[200px]">
+        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          <div className="min-w-0 sm:col-span-2 2xl:col-span-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
@@ -109,7 +109,7 @@ export default function TransactionList({
           </div>
           
           <Select value={filterTipo} onValueChange={setFilterTipo}>
-            <SelectTrigger className="w-[130px]">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Tipo" />
             </SelectTrigger>
             <SelectContent>
@@ -120,7 +120,7 @@ export default function TransactionList({
           </Select>
 
           <Select value={filterCategoria} onValueChange={setFilterCategoria}>
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Categoría" />
             </SelectTrigger>
             <SelectContent>
@@ -132,7 +132,7 @@ export default function TransactionList({
           </Select>
 
           <Select value={filterEstado} onValueChange={setFilterEstado}>
-            <SelectTrigger className="w-[130px]">
+            <SelectTrigger className="w-full">
               <SelectValue placeholder="Estado" />
             </SelectTrigger>
             <SelectContent>
@@ -146,7 +146,7 @@ export default function TransactionList({
 
           {tiposDocumento.length > 0 && (
             <Select value={filterTipoDoc} onValueChange={setFilterTipoDoc}>
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Tipo Doc." />
               </SelectTrigger>
               <SelectContent>
@@ -160,7 +160,7 @@ export default function TransactionList({
 
           {subtiposDocumento.length > 0 && (
             <Select value={filterSubtipoDoc} onValueChange={setFilterSubtipoDoc}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-full">
                 <SelectValue placeholder="Subtipo Doc." />
               </SelectTrigger>
               <SelectContent>
@@ -174,7 +174,7 @@ export default function TransactionList({
         </div>
 
         {/* Resumen rápido */}
-        <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
           <div className="bg-green-50 rounded-lg p-3 text-center">
             <p className="text-xs text-green-600 font-medium">Ingresos</p>
             <p className="text-lg font-bold text-green-700">+{totales.ingresos.toLocaleString()}€</p>
@@ -192,7 +192,7 @@ export default function TransactionList({
         </div>
 
         {/* Tabla */}
-        <div className="overflow-x-auto">
+        <div className="max-w-full overflow-x-auto rounded-xl border border-slate-200">
           <Table>
             <TableHeader>
               <TableRow>
