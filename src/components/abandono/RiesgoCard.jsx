@@ -10,27 +10,27 @@ const NIVEL = {
 export default function RiesgoCard({ jugador }) {
   const n = NIVEL[jugador.nivel] || NIVEL.bajo;
   return (
-    <div className={`rounded-xl border bg-white p-4 ${n.ring}`}>
-      <div className="flex items-start gap-3">
+    <div className={`min-w-0 overflow-hidden rounded-2xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md sm:p-5 ${n.ring}`}>
+      <div className="flex min-w-0 items-start gap-3">
         {jugador.foto_url ? (
-          <img src={jugador.foto_url} alt={jugador.nombre} className="w-12 h-12 rounded-full object-cover flex-shrink-0" />
+          <img src={jugador.foto_url} alt={jugador.nombre} className="h-12 w-12 shrink-0 rounded-2xl object-cover sm:h-14 sm:w-14" />
         ) : (
-          <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0">
-            <AlertTriangle className="w-5 h-5 text-slate-400" />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-50 sm:h-14 sm:w-14">
+            <AlertTriangle className="h-5 w-5 text-orange-500" />
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
             <p className="font-bold text-slate-800 truncate m-0">{jugador.nombre}</p>
-            <span className={`text-[10px] font-semibold uppercase tracking-wide rounded px-1.5 py-0.5 flex-shrink-0 ${n.chip}`}>
+            <span className={`shrink-0 rounded-lg px-2 py-1 text-[10px] font-bold uppercase tracking-wide ${n.chip}`}>
               {jugador.riesgo}
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-0.5">{jugador.categoria}</p>
 
           {/* Barra de riesgo */}
-          <div className="h-1.5 bg-slate-100 rounded-full mt-2 overflow-hidden">
-            <div className={`h-full ${n.bar}`} style={{ width: `${jugador.riesgo}%` }} />
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className={`h-full rounded-full transition-all ${n.bar}`} style={{ width: `${jugador.riesgo}%` }} />
           </div>
 
           {/* Motivos */}
@@ -44,14 +44,14 @@ export default function RiesgoCard({ jugador }) {
           </ul>
 
           {/* Contacto */}
-          <div className="flex flex-wrap gap-2 mt-3">
+          <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-3">
             {jugador.telefono && (
-              <a href={`tel:${jugador.telefono}`} className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 rounded-full px-2.5 py-1">
+              <a href={`tel:${jugador.telefono}`} className="inline-flex max-w-full items-center gap-1 rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-800">
                 <Phone className="w-3.5 h-3.5" /> {jugador.telefono}
               </a>
             )}
             {jugador.email_padre && (
-              <a href={`mailto:${jugador.email_padre}`} className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 rounded-full px-2.5 py-1 max-w-full truncate">
+              <a href={`mailto:${jugador.email_padre}`} className="inline-flex max-w-full min-w-0 items-center gap-1 rounded-xl border border-sky-100 bg-sky-50 px-3 py-2 text-xs font-medium text-sky-800">
                 <Mail className="w-3.5 h-3.5 flex-shrink-0" /> <span className="truncate">{jugador.email_padre}</span>
               </a>
             )}
