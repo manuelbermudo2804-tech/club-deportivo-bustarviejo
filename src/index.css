@@ -2,6 +2,44 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Pulido visual global: sutil, coherente y sin cambiar la estructura de las pantallas */
+:root {
+  --club-orange: 24 95 53;
+}
+body {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+button, a, [role="tab"], input, select, textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+button, [role="tab"], a {
+  transition-property: color, background-color, border-color, box-shadow, opacity, transform;
+  transition-duration: 160ms;
+  transition-timing-function: ease-out;
+}
+button:focus-visible, a:focus-visible, [role="tab"]:focus-visible,
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid rgb(249 115 22 / 75%);
+  outline-offset: 2px;
+}
+/* Tarjetas claras: bordes menos duros y sombra discreta; sin alterar los paneles oscuros */
+.bg-white.rounded-xl.border,
+.bg-white.rounded-2xl.border,
+.bg-card.rounded-xl.border {
+  border-color: rgb(148 163 184 / 28%);
+  box-shadow: 0 1px 3px rgb(15 23 42 / 5%), 0 5px 14px rgb(15 23 42 / 3%);
+}
+/* Campos de formulario más uniformes */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  border-radius: 0.6rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  button, a, [role="tab"] { transition: none; }
+}
+
 /* Pulsado fuerte para llamar la atención sobre el botón de inscripción cuando no hay jugadores */
 @keyframes pulseStrong {
   0%, 100% {
