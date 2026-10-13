@@ -110,12 +110,13 @@ export default function UserManagementTable({
   })();
 
   return (
-    <div className="overflow-x-auto">
+    <div className="w-full max-w-full overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm overscroll-x-contain">
+      <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-500 sm:hidden">Desliza horizontalmente para ver todos los permisos y acciones →</div>
       {/* Pair count summary */}
-      <table className="w-full text-sm">
+      <table className="w-full min-w-[1050px] text-sm">
         <thead>
-          <tr className="bg-gradient-to-r from-slate-100 to-slate-50 border-b-2 border-slate-300">
-            <th className="px-4 py-3 text-left font-semibold text-slate-700">Usuario</th>
+          <tr className="sticky top-0 z-10 bg-gradient-to-r from-slate-100 to-slate-50 border-b-2 border-slate-300">
+            <th className="px-4 py-3 text-left font-semibold text-slate-700 whitespace-nowrap">Usuario</th>
             <th className="px-4 py-3 text-center font-semibold text-slate-700">Acceso</th>
             <th className="px-4 py-3 text-center font-semibold text-slate-700 whitespace-nowrap">
               📚 Entrenador
