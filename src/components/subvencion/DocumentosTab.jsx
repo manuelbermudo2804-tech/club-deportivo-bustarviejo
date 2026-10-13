@@ -17,13 +17,13 @@ export default function DocumentosTab({ exp, updateExp, onGoTab }) {
   const carpetas = [...new Set(DOCUMENTOS_BASE.map((d) => d.carpeta))];
 
   return (
-    <div className="space-y-5">
-      <p className="text-sm text-slate-600 bg-emerald-50 border border-emerald-200 rounded-xl p-3">
+    <div className="min-w-0 space-y-5">
+      <p className="rounded-2xl border border-orange-100 bg-orange-50/70 p-4 text-sm leading-relaxed text-slate-700">
         Aquí descargas los documentos que prepara la app, listos para firmar y entregar al Ayuntamiento. Los que emiten otros (Hacienda, Seguridad Social, banco, Federación) los pides tú y los entregas directamente; aquí solo los marcas como hechos.
       </p>
       {carpetas.map((carpeta) => (
-        <div key={carpeta} className="space-y-2">
-          <h3 className="font-semibold text-slate-700 text-sm">📁 {carpeta}</h3>
+        <div key={carpeta} className="min-w-0 space-y-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+          <h3 className="border-b border-slate-100 pb-2 text-sm font-bold text-slate-800">📁 {carpeta}</h3>
           {DOCUMENTOS_BASE.filter((d) => d.carpeta === carpeta).map((def) => (
             <DocumentoRow
               key={def.clave}
