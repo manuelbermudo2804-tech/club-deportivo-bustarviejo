@@ -300,21 +300,21 @@ export default function PlayerProfile() {
         onDone={() => queryClient.invalidateQueries({ queryKey: ["myPlayerProfile"] })}
       />
 
-      {/* Tarjeta de perfil IMPACTANTE */}
-      <Card className="profile-hero border-0 shadow-xl overflow-hidden rounded-[1.6rem] ring-1 ring-orange-700/10">
-        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 px-6 py-8 md:px-8 md:py-10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl -mr-24 -mt-36"></div>
-          <div className="absolute bottom-0 left-1/3 w-56 h-56 bg-amber-500/10 rounded-full blur-3xl -mb-40"></div>
-          <div className="absolute inset-y-0 right-0 w-1/3 opacity-[0.06] profile-hero-pattern pointer-events-none"></div>
+      {/* Cabecera de perfil clara: identidad del club sin fondo oscuro */}
+      <Card className="profile-hero border border-slate-200/80 shadow-lg shadow-slate-900/5 overflow-hidden rounded-[1.6rem] ring-1 ring-orange-600/10">
+        <div className="bg-white px-6 py-8 md:px-8 md:py-10 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-orange-100/70 rounded-full blur-3xl -mr-24 -mt-32 pointer-events-none"></div>
+          <div className="absolute bottom-0 right-1/4 w-40 h-40 bg-amber-50 rounded-full blur-3xl -mb-28 pointer-events-none"></div>
+          <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-500 rounded-r-full"></div>
 
-          <div className="relative flex flex-col md:flex-row items-center md:items-start gap-6">
-            {/* Foto grande */}
-            <div className="relative">
-              <div className="w-28 h-28 md:w-36 md:h-36 rounded-2xl overflow-hidden bg-white/10 shadow-2xl flex items-center justify-center border border-white/50 ring-4 ring-white/10">
+          <div className="relative flex flex-col md:flex-row items-center md:items-center gap-6 md:gap-8">
+            {/* Foto destacada */}
+            <div className="relative shrink-0">
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden bg-orange-50 shadow-xl shadow-orange-900/10 flex items-center justify-center border-4 border-white ring-2 ring-orange-200">
                 {form.foto_url ? (
                   <img src={form.foto_url} alt="Foto" className="w-full h-full object-cover" />
                 ) : (
-                  <UserCircle className="w-20 h-20 text-slate-300" />
+                  <UserCircle className="w-20 h-20 text-orange-300" />
                 )}
               </div>
               {editMode && (
@@ -331,7 +331,7 @@ export default function PlayerProfile() {
                   <Button
                     variant="outline"
                     type="button"
-                    className="absolute bottom-0 right-0 rounded-full w-10 h-10 p-0 shadow-lg bg-white"
+                    className="absolute bottom-1 right-1 rounded-full w-10 h-10 p-0 shadow-lg bg-white border-orange-200 hover:bg-orange-50"
                     title="Cambiar foto"
                   >
                     <Camera className="w-5 h-5 text-orange-600" />
@@ -341,33 +341,34 @@ export default function PlayerProfile() {
             </div>
 
             {/* Datos principales */}
-            <div className="flex-1 text-white text-center md:text-left self-center">
+            <div className="flex-1 min-w-0 text-slate-800 text-center md:text-left self-center">
               {editMode ? (
                 <Input
                   value={form.nombre}
                   onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
                   placeholder="Nombre completo"
-                  className="text-2xl md:text-3xl font-bold mb-2 bg-white/20 border-white/30 text-white placeholder:text-white/60"
+                  className="text-2xl md:text-3xl font-bold mb-2 bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus-visible:ring-orange-500"
                 />
               ) : (
-                <h2 className="text-2xl md:text-4xl font-black tracking-tight mb-3">{form.nombre}</h2>
+                <h2 className="text-2xl md:text-4xl font-black tracking-tight mb-3 text-slate-800">{form.nombre}</h2>
               )}
 
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                <Badge className="bg-white/10 backdrop-blur text-white border-white/20 rounded-full px-3 py-1 text-xs sm:text-sm">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
+                <Badge className="bg-orange-50 text-orange-800 border border-orange-200 rounded-full px-3 py-1 text-xs sm:text-sm">
                   ⚽ {player.deporte}
                 </Badge>
                 {form.posicion !== "Sin asignar" && (
-                  <Badge className="bg-white/10 backdrop-blur text-white border-white/20 rounded-full px-3 py-1 text-xs sm:text-sm">
+                  <Badge className="bg-slate-50 text-slate-700 border border-slate-200 rounded-full px-3 py-1 text-xs sm:text-sm">
                     📍 {form.posicion}
                   </Badge>
                 )}
                 {edad && (
-                  <Badge className="bg-white/10 backdrop-blur text-white border-white/20 rounded-full px-3 py-1 text-xs sm:text-sm">
+                  <Badge className="bg-slate-50 text-slate-700 border border-slate-200 rounded-full px-3 py-1 text-xs sm:text-sm">
                     🎂 {edad} años
                   </Badge>
                 )}
               </div>
+              <p className="text-sm text-slate-500 mt-4">Tu perfil de jugador · C.D. Bustarviejo</p>
             </div>
           </div>
         </div>
