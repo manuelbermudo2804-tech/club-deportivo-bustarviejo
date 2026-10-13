@@ -26,21 +26,29 @@ export default function FeatureControlSection({
   const update = (data) => updateSeasonMutation.mutate({ id: activeSeason.id, data });
 
   return (
-    <Card>
+    <Card className="overflow-hidden border-slate-200 shadow-sm rounded-2xl">
       <CardHeader
-        className="cursor-pointer hover:bg-slate-50 transition-colors"
+        className="cursor-pointer bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800 text-white hover:from-slate-900 transition-colors px-4 sm:px-6 py-5"
         onClick={onToggleExpanded}
       >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <Settings className="w-5 h-5 text-orange-600" />
-            <CardTitle className="text-lg">Control de Características</CardTitle>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-500/15 border border-orange-400/30">
+              <Settings className="w-5 h-5 text-orange-400" />
+            </div>
+            <div className="min-w-0">
+              <CardTitle className="text-base sm:text-lg text-white">Control de Características</CardTitle>
+              <p className="text-xs sm:text-sm text-slate-300 mt-1">Pagos, tienda, patrocinios, socios y servicios del club</p>
+            </div>
           </div>
-          {expanded ? <ChevronUp /> : <ChevronDown />}
+          <div className="flex shrink-0 items-center gap-2 rounded-lg border border-white/15 bg-white/10 px-3 py-2 text-xs font-semibold text-white">
+            {expanded ? "Ocultar" : "Ver opciones"}
+            {expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+          </div>
         </div>
       </CardHeader>
       {expanded && (
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 sm:space-y-5 bg-slate-50/60 p-3 sm:p-6">
           <TemaFestivoPanel />
 
           {/* Renovaciones */}
@@ -297,16 +305,19 @@ export default function FeatureControlSection({
 
 function FeatureRow({ icon, title, subtitle, extra, checked, onChange }) {
   return (
-    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-lg">
-      <div className="flex items-center gap-3">
-        {icon}
-        <div>
-          <p className="font-medium">{title}</p>
-          <p className="text-xs text-slate-600">{subtitle}</p>
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 sm:p-5 bg-white rounded-xl border border-slate-200 shadow-sm transition-all hover:border-orange-200 hover:shadow-md">
+      <div className="flex items-start gap-3 min-w-0">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 border border-slate-200 [&>svg]:w-5 [&>svg]:h-5">{icon}</div>
+        <div className="min-w-0 flex-1">
+          <p className="font-semibold text-slate-900">{title}</p>
+          <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed">{subtitle}</p>
           {extra}
         </div>
       </div>
-      <Switch checked={checked} onCheckedChange={onChange} />
+      <div className="flex items-center justify-between sm:justify-end gap-3 border-t sm:border-0 border-slate-100 pt-3 sm:pt-0 sm:pl-4">
+        <span className={`text-xs font-semibold ${checked ? "text-emerald-700" : "text-slate-500"}`}>{checked ? "Activado" : "Desactivado"}</span>
+        <Switch checked={checked} onCheckedChange={onChange} />
+      </div>
     </div>
   );
 }
