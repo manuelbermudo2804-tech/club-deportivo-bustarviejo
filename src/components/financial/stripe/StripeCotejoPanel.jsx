@@ -30,8 +30,8 @@ export default function StripeCotejoPanel() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
+    <div className="min-w-0 space-y-4 sm:space-y-6">
+      <div className="flex flex-col items-start justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center">
         <p className="text-sm text-slate-600">
           {data.desde ? `Desde el ${data.desde}` : "Todo el historial"}: <b>{data.total_cobros}</b> cobros en Stripe, <b>{data.cuadrados}</b> pagos cuadrados.
         </p>
