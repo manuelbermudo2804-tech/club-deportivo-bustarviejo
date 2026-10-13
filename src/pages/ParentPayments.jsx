@@ -730,14 +730,19 @@ export default function ParentPayments() {
         onComplete={() => setShowSuccess(false)}
         message={successMessage}
       />
-      <div className="bg-page-bridge min-h-screen">
-      <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Mis Pagos</h1>
-          <p className="text-slate-600 mt-1">Gestiona tus cuotas y justificantes</p>
+      <div className="bg-page-bridge min-h-screen w-full min-w-0 overflow-x-hidden">
+      <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-5 lg:px-8 lg:pt-7">
+      <header className="relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7 md:flex-row md:items-center md:justify-between">
+        <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-orange-500/10 blur-3xl" />
+        <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 sm:h-14 sm:w-14"><DollarSign className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" /></div>
+          <div className="min-w-0">
+            <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-300">Familias · Cuotas</p>
+            <h1 className="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">Mis pagos</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Consulta las cuotas de tus jugadores, paga y gestiona los justificantes.</p>
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="relative flex w-full flex-wrap gap-2 sm:w-auto sm:shrink-0">
           <Button
             variant="outline"
             onClick={() => {
