@@ -61,22 +61,22 @@ export default function MercadilloAdminPanel({ listings, user, onEdit, onChanged
 
   return (
     <Card className="overflow-hidden rounded-2xl border-slate-200 bg-white shadow-sm">
-      <CardHeader className="pb-3">
+      <CardHeader className="bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 px-4 py-4 text-white sm:px-5">
         <button onClick={() => setOpen(!open)} className="flex items-center justify-between w-full text-left">
-          <CardTitle className="text-base flex items-center gap-2 text-purple-900">
-            <ShieldCheck className="w-4 h-4" />
+          <CardTitle className="flex min-w-0 items-center gap-2 text-base font-bold text-white">
+            <ShieldCheck className="h-5 w-5 shrink-0 text-orange-400" />
             Gestión del Mercadillo ({listings.length})
-            {pendientes > 0 && <Badge className="bg-orange-600 text-white">{pendientes} por revisar</Badge>}
+            {pendientes > 0 && <Badge className="shrink-0 border-0 bg-orange-500 text-white">{pendientes} por revisar</Badge>}
           </CardTitle>
-          {open ? <ChevronUp className="w-4 h-4 text-purple-700" /> : <ChevronDown className="w-4 h-4 text-purple-700" />}
+          {open ? <ChevronUp className="h-4 w-4 shrink-0 text-orange-300" /> : <ChevronDown className="h-4 w-4 shrink-0 text-orange-300" />}
         </button>
       </CardHeader>
       {open && (
-        <CardContent className="space-y-2">
+        <CardContent className="space-y-3 bg-slate-50/70 p-3 sm:p-4">
           {listings.length === 0 && <p className="text-sm text-slate-500">No hay anuncios.</p>}
           {listings.map(item => (
-            <div key={item.id} className="bg-white rounded-lg border p-3 space-y-2">
-              <div className="flex items-start justify-between gap-2">
+            <div key={item.id} className="min-w-0 space-y-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+              <div className="flex min-w-0 items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-semibold text-sm truncate">{item.titulo}</p>
                   <p className="text-[11px] text-slate-500 truncate">
@@ -92,15 +92,15 @@ export default function MercadilloAdminPanel({ listings, user, onEdit, onChanged
                 </div>
                 <Badge className={`${COLORS[item.estado] || 'bg-slate-100'} border-none flex-shrink-0`}>{item.estado}</Badge>
               </div>
-              <div className="flex flex-wrap gap-2 items-center">
+              <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:items-center">
                 <Select value={item.estado} onValueChange={(v) => cambiarEstado(item, v)} disabled={busy === item.id}>
-                  <SelectTrigger className="h-8 text-xs w-48"><SelectValue /></SelectTrigger>
+                  <SelectTrigger className="h-9 w-full text-xs sm:w-48"><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {ESTADOS.map(e => <SelectItem key={e.v} value={e.v}>{e.l}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => onEdit(item)}>Modificar</Button>
-                <Button size="sm" variant="destructive" className="h-8 text-xs" onClick={() => eliminar(item)}>Eliminar</Button>
+                <Button size="sm" variant="outline" className="h-9 border-slate-300 text-xs hover:border-orange-300 hover:text-orange-700 sm:h-8" onClick={() => onEdit(item)}>Modificar</Button>
+                <Button size="sm" variant="destructive" className="h-9 text-xs sm:h-8" onClick={() => eliminar(item)}>Eliminar</Button>
               </div>
             </div>
           ))}
