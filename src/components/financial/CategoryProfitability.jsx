@@ -47,29 +47,31 @@ export default function CategoryProfitability({ payments, transactions, players,
 
   return (
     <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <DollarSign className="w-5 h-5 text-green-600" />
-          Rentabilidad por Categoría Deportiva
+      <CardHeader className="space-y-1 p-4 sm:p-6">
+        <CardTitle className="flex min-w-0 items-start gap-2 text-base leading-snug sm:text-lg">
+          <DollarSign className="mt-0.5 h-5 w-5 shrink-0 text-green-600" />
+          <span>Rentabilidad por Categoría Deportiva</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="min-w-0 space-y-4 p-3 sm:space-y-6 sm:p-6">
-        <ResponsiveContainer width="100%" height={350}>
-          <BarChart data={categoryData}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="categoria" angle={-45} textAnchor="end" height={100} />
-            <YAxis />
-            <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
-            <Legend />
-            <Bar dataKey="ingresos" fill="#22c55e" name="Ingresos" />
-            <Bar dataKey="gastos" fill="#ef4444" name="Gastos" />
-            <Bar dataKey="beneficio" name="Beneficio Neto">
-              {categoryData.map((entry, index) => (
-                <Cell key={index} fill={entry.beneficio >= 0 ? "#3b82f6" : "#f97316"} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="w-full min-w-0 overflow-hidden rounded-xl border border-slate-100 bg-white p-1 sm:p-3">
+          <ResponsiveContainer width="100%" height={categoryData.length > 6 ? 390 : 320}>
+            <BarChart data={categoryData} margin={{ top: 12, right: 12, left: 0, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="categoria" interval={0} tick={{ fontSize: 11 }} tickMargin={10} angle={categoryData.length > 4 ? -35 : 0} textAnchor={categoryData.length > 4 ? "end" : "middle"} height={categoryData.length > 4 ? 100 : 42} />
+              <YAxis width={48} tick={{ fontSize: 11 }} tickFormatter={(value) => value.toLocaleString("es-ES", { maximumFractionDigits: 0 })} />
+              <Tooltip formatter={(value) => `${Number(value || 0).toLocaleString("es-ES", { style: "currency", currency: "EUR" })}`} />
+              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 8 }} />
+              <Bar dataKey="ingresos" fill="#22c55e" name="Ingresos" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="gastos" fill="#ef4444" name="Gastos" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="beneficio" name="Beneficio Neto" radius={[3, 3, 0, 0]}>
+                {categoryData.map((entry, index) => (
+                  <Cell key={index} fill={entry.beneficio >= 0 ? "#3b82f6" : "#f97316"} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
 
         <div className="space-y-3">
           {categoryData.map(cat => (
@@ -90,7 +92,7 @@ export default function CategoryProfitability({ payments, transactions, players,
                   </span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+              <div className="grid grid-cols-1 gap-3 text-sm min-[420px]:grid-cols-2 xl:grid-cols-4">
                 <div>
                   <p className="text-slate-600">Ingresos</p>
                   <p className="font-bold text-green-700">{cat.ingresos.toFixed(2)}€</p>
