@@ -724,30 +724,30 @@ export default function PaymentReminders() {
       <div className="w-full min-w-0 max-w-full overflow-x-hidden box-border p-3 sm:p-4 lg:p-8 space-y-4 lg:space-y-6 [&_*]:min-w-0">
         <SocialLinks />
 
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+      <div className="flex min-w-0 flex-col justify-between items-start gap-3 sm:flex-row sm:items-center">
         <div>
           <h1 className="text-xl lg:text-3xl font-bold text-slate-900">💳 Recordatorios de Pago</h1>
           <p className="text-xs lg:text-sm text-slate-600 mt-1">Temporada activa: <strong>{effectiveSeason}</strong></p>
         </div>
-        <Button onClick={handleRefresh} variant="outline" size="sm">
+        <Button onClick={handleRefresh} variant="outline" size="sm" className="w-full sm:w-auto">
           <RefreshCw className="w-4 h-4 mr-2" />
           Actualizar
         </Button>
       </div>
 
-      <Card className="border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 shadow-lg">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
+      <Card className="min-w-0 overflow-hidden rounded-2xl border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 shadow-sm">
+        <CardHeader className="p-4 sm:p-6">
+          <CardTitle className="flex min-w-0 items-start gap-2 text-base leading-snug sm:text-lg">
             <CheckCircle2 className="h-5 w-5 text-green-600" />
             🤖 Recordatorios Automáticos Activados
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="min-w-0 space-y-3 p-3 sm:p-6">
           <p className="text-sm text-slate-700">
             El sistema envía recordatorios <strong>automáticamente</strong> por Email + Chat privado "🔔 Mensajes del Club" en estas fechas:
           </p>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <div className="bg-white rounded-lg p-3 border-2 border-blue-200">
               <p className="font-bold text-blue-900 text-sm mb-1">📅 Junio (Límite: 30 Jun)</p>
               <ul className="text-xs text-slate-700 space-y-1">
@@ -784,7 +784,7 @@ export default function PaymentReminders() {
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:gap-4 xl:grid-cols-2">
         <Alert className="bg-blue-50 border-blue-300">
           <Info className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-900">
@@ -846,7 +846,7 @@ export default function PaymentReminders() {
       </div>
 
       {/* Resumen */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3 sm:gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="text-center">
@@ -874,8 +874,8 @@ export default function PaymentReminders() {
       </div>
 
       {/* Búsqueda y filtros */}
-      <Card className="bg-slate-50">
-        <CardContent className="p-4 space-y-3">
+      <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-sm">
+        <CardContent className="min-w-0 space-y-3 p-3 sm:p-4">
           <Input
             placeholder="🔍 Buscar familia o jugador..."
             value={searchQuery}
@@ -883,7 +883,7 @@ export default function PaymentReminders() {
             className="w-full"
           />
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 min-w-0">
+          <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
             <div>
               <label className="text-xs text-slate-600 mb-1 block">Tipo de familia</label>
               <select
@@ -950,7 +950,7 @@ export default function PaymentReminders() {
       </Card>
 
       {/* Acciones masivas */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full min-w-0">
+      <div className="grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
         <Button
           onClick={selectAll}
           variant="outline"
@@ -998,8 +998,8 @@ export default function PaymentReminders() {
           </Card>
         ) : (
           filteredFamilies.map(family => (
-            <Card key={family.email} className="hover:shadow-lg transition-shadow">
-              <CardHeader className="bg-slate-50 border-b">
+            <Card key={family.email} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 shadow-sm transition-shadow hover:shadow-md">
+              <CardHeader className="border-b bg-slate-50 p-3 sm:p-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <input
@@ -1053,14 +1053,14 @@ export default function PaymentReminders() {
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="p-4">
+              <CardContent className="min-w-0 p-3 sm:p-4">
                 <div className="space-y-3">
                   {family.jugadores.map(jugador => (
-                    <div key={jugador.id} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg min-w-0">
+                    <div key={jugador.id} className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-2 sm:p-3">
                       {jugador.foto_url ? (
-                        <img src={jugador.foto_url} className="w-12 h-12 rounded-full object-cover" alt="" />
+                        <img src={jugador.foto_url} className="h-10 w-10 flex-shrink-0 rounded-full object-cover sm:h-12 sm:w-12" alt="" />
                       ) : (
-                        <div className="w-12 h-12 rounded-full bg-orange-500 flex items-center justify-center text-white font-bold">
+                        <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-orange-500 font-bold text-white sm:h-12 sm:w-12">
                           {jugador.nombre.charAt(0)}
                         </div>
                       )}
@@ -1096,7 +1096,7 @@ export default function PaymentReminders() {
                     <p className="text-sm font-semibold text-slate-700">Total familia:</p>
                     <p className="text-2xl font-bold text-red-600">{family.totalFamilyDue.toFixed(0)}€</p>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                     <Button
                       onClick={() => setSelectiveDialogFamily(family)}
                       size="sm"
