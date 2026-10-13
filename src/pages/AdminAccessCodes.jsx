@@ -607,65 +607,115 @@ export default function AdminAccessCodes() {
   const seguridadCount = securityAlerts.length + unauthorizedScreenVisits.length;
 
   return (
-    <div className="container mx-auto px-3 pt-4 pb-3 lg:p-6 max-w-5xl">
-      {/* Header compacto */}
-      <div className="mb-4">
-        <h1 className="text-xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
-          <span>🔑</span>
-          <span>Códigos de Acceso</span>
-        </h1>
-        <p className="text-xs lg:text-sm text-slate-500 mt-0.5">Genera y gestiona los códigos de invitación al club</p>
-      </div>
+    <div className="mx-auto w-full max-w-[1440px] space-y-5 px-3 pb-6 pt-4 sm:px-5 lg:space-y-6 lg:px-7 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950 p-5 text-white shadow-lg sm:p-7 lg:p-8">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-24 h-72 w-72 rounded-full bg-amber-500/20 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -bottom-24 right-1/3 h-48 w-48 rounded-full bg-orange-500/10 blur-3xl" />
+        <div className="relative flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex min-w-0 items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-400/15 ring-1 ring-amber-200/20 sm:h-14 sm:w-14">
+              <KeyRound className="h-6 w-6 text-amber-300 sm:h-7 sm:w-7" />
+            </div>
+            <div className="min-w-0">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300">Administración · Accesos</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/[0.07] px-2.5 py-1 text-[10px] font-semibold text-slate-200">
+                  <ShieldAlert className="h-3.5 w-3.5 text-amber-300" />
+                  Control de invitaciones
+                </span>
+              </div>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl lg:text-4xl">Códigos de Acceso</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
+                Genera invitaciones, sigue las altas pendientes y revisa la seguridad de los accesos al club.
+              </p>
+            </div>
+          </div>
+          <div className="hidden shrink-0 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 lg:block">
+            <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">C.D. Bustarviejo</div>
+            <div className="mt-1 text-sm font-semibold text-white">Gestión de accesos</div>
+            <div className="mt-0.5 text-xs text-slate-400">Invitaciones y seguridad</div>
+          </div>
+        </div>
+      </section>
 
-      {/* Acciones — grid responsive */}
-      <div className="grid grid-cols-3 gap-2 mb-5">
-        <Button
-          onClick={() => setInviteOpen(true)}
-          className="bg-orange-600 hover:bg-orange-700 h-auto py-2 flex flex-col items-center gap-0.5 text-[11px] lg:text-sm lg:flex-row lg:gap-2"
-          size="sm"
-        >
-          <UserPlus className="w-4 h-4" />
-          <span className="leading-tight">Nueva</span>
-        </Button>
-        <Button
-          onClick={() => setBulkOpen(true)}
-          className="bg-purple-600 hover:bg-purple-700 h-auto py-2 flex flex-col items-center gap-0.5 text-[11px] lg:text-sm lg:flex-row lg:gap-2"
-          size="sm"
-        >
-          <Zap className="w-4 h-4" />
-          <span className="leading-tight">Masiva</span>
-        </Button>
-        <Button
-          variant="outline"
-          onClick={handleBulkResend}
-          disabled={bulkResending || counts.pendiente === 0}
-          className="h-auto py-2 flex flex-col items-center gap-0.5 text-[11px] lg:text-sm lg:flex-row lg:gap-2"
-          size="sm"
-        >
-          {bulkResending ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-          <span className="leading-tight">Reenviar ({counts.pendiente})</span>
-        </Button>
-      </div>
+      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {[
+          { label: "Pendientes", value: counts.pendiente, icon: Clock, tone: "amber" },
+          { label: "Utilizados", value: counts.usado, icon: CheckCircle2, tone: "emerald" },
+          { label: "Expirados", value: counts.expirado, icon: AlertCircle, tone: "rose" },
+          { label: "Total códigos", value: counts.total, icon: KeyRound, tone: "slate" },
+        ].map(({ label, value, icon: Icon, tone }) => (
+          <Card key={label} className="overflow-hidden rounded-2xl border-slate-200/80 bg-white shadow-sm transition-shadow hover:shadow-md">
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-xs font-medium text-slate-500 sm:text-sm">{label}</span>
+                <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${
+                  tone === "amber" ? "bg-amber-50 text-amber-600" :
+                  tone === "emerald" ? "bg-emerald-50 text-emerald-600" :
+                  tone === "rose" ? "bg-rose-50 text-rose-600" : "bg-slate-100 text-slate-600"
+                }`}>
+                  <Icon className="h-4 w-4" />
+                </span>
+              </div>
+              <div className="mt-3 text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{value}</div>
+              <div className="mt-1 text-[11px] text-slate-400">Estado de las invitaciones</div>
+            </CardContent>
+          </Card>
+        ))}
+      </section>
 
-      <Tabs defaultValue={initialTab} className="w-full">
-        <TabsList className="grid grid-cols-3 w-full mb-6 h-auto">
-          <TabsTrigger value="bandeja" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-3">
-            <span className="flex items-center gap-1.5">📥 <span className="hidden sm:inline">Bandeja</span><span className="sm:hidden">Bandeja</span></span>
-            {bandejaCount > 0 && (
-              <Badge className="bg-amber-500 text-white text-[10px] h-5 px-1.5">{bandejaCount}</Badge>
-            )}
-          </TabsTrigger>
-          <TabsTrigger value="codigos" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-3">
-            <span className="flex items-center gap-1.5">🔑 <span>Códigos</span></span>
-            <Badge variant="outline" className="text-[10px] h-5 px-1.5">{counts.total}</Badge>
-          </TabsTrigger>
-          <TabsTrigger value="seguridad" className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 py-3">
-            <span className="flex items-center gap-1.5">🛡️ <span>Seguridad</span></span>
-            {seguridadCount > 0 && (
-              <Badge className="bg-red-500 text-white text-[10px] h-5 px-1.5">{seguridadCount}</Badge>
-            )}
-          </TabsTrigger>
-        </TabsList>
+      <section className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm sm:p-4">
+        <div className="mb-3 flex items-center gap-2 px-1">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-600"><Zap className="h-4 w-4" /></div>
+          <div>
+            <h2 className="text-sm font-bold text-slate-900 sm:text-base">Acciones rápidas</h2>
+            <p className="text-xs text-slate-500">Elige cómo quieres gestionar las invitaciones</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3 sm:gap-3">
+          <Button onClick={() => setInviteOpen(true)} className="h-auto min-h-[76px] justify-start gap-3 rounded-xl bg-orange-600 px-4 py-3 text-left shadow-sm hover:bg-orange-700">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15"><UserPlus className="h-5 w-5" /></span>
+            <span className="flex min-w-0 flex-col items-start gap-0.5">
+              <span className="font-semibold">Nueva invitación</span>
+              <span className="text-xs font-normal text-orange-100">Crear y enviar un código</span>
+            </span>
+          </Button>
+          <Button onClick={() => setBulkOpen(true)} className="h-auto min-h-[76px] justify-start gap-3 rounded-xl bg-violet-600 px-4 py-3 text-left shadow-sm hover:bg-violet-700">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/15"><Users className="h-5 w-5" /></span>
+            <span className="flex min-w-0 flex-col items-start gap-0.5">
+              <span className="font-semibold">Invitación masiva</span>
+              <span className="text-xs font-normal text-violet-100">Invitar a varias personas</span>
+            </span>
+          </Button>
+          <Button variant="outline" onClick={handleBulkResend} disabled={bulkResending || counts.pendiente === 0} className="h-auto min-h-[76px] justify-start gap-3 rounded-xl border-slate-200 bg-white px-4 py-3 text-left shadow-sm hover:border-orange-200 hover:bg-orange-50/50 disabled:opacity-50">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+              {bulkResending ? <Loader2 className="h-5 w-5 animate-spin" /> : <RefreshCw className="h-5 w-5" />}
+            </span>
+            <span className="flex min-w-0 flex-col items-start gap-0.5">
+              <span className="font-semibold text-slate-900">Reenviar pendientes</span>
+              <span className="text-xs font-normal text-slate-500">{counts.pendiente} invitaciones pendientes</span>
+            </span>
+          </Button>
+        </div>
+      </section>
+
+      <Tabs defaultValue={initialTab} className="w-full space-y-4">
+        <div className="sticky top-[76px] z-20 -mx-3 bg-slate-50/95 px-3 py-2 backdrop-blur-md sm:top-[88px] sm:mx-0 sm:rounded-2xl sm:border sm:border-slate-200/80 sm:bg-white/90 sm:p-2 sm:shadow-sm">
+          <TabsList className="grid h-auto w-full grid-cols-3 gap-1.5 rounded-xl bg-transparent p-0">
+            <TabsTrigger value="bandeja" className="flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200/80 bg-white px-2 py-2 text-xs font-semibold text-slate-600 shadow-sm transition-all hover:border-amber-200 hover:bg-amber-50/60 data-[state=active]:border-amber-500 data-[state=active]:bg-amber-500 data-[state=active]:text-white data-[state=active]:shadow-md sm:flex-row sm:gap-2 sm:text-sm">
+              <span className="flex items-center gap-1.5"><Mail className="h-4 w-4 shrink-0" /><span>Bandeja</span></span>
+              {bandejaCount > 0 && <Badge className="h-5 border-0 bg-white/20 px-1.5 text-[10px] text-current">{bandejaCount}</Badge>}
+            </TabsTrigger>
+            <TabsTrigger value="codigos" className="flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200/80 bg-white px-2 py-2 text-xs font-semibold text-slate-600 shadow-sm transition-all hover:border-orange-200 hover:bg-orange-50/60 data-[state=active]:border-orange-600 data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow-md sm:flex-row sm:gap-2 sm:text-sm">
+              <span className="flex items-center gap-1.5"><KeyRound className="h-4 w-4 shrink-0" /><span>Códigos</span></span>
+              <Badge variant="outline" className="h-5 border-current/20 px-1.5 text-[10px]">{counts.total}</Badge>
+            </TabsTrigger>
+            <TabsTrigger value="seguridad" className="flex min-h-12 min-w-0 flex-col items-center justify-center gap-1 rounded-xl border border-slate-200/80 bg-white px-2 py-2 text-xs font-semibold text-slate-600 shadow-sm transition-all hover:border-rose-200 hover:bg-rose-50/60 data-[state=active]:border-rose-600 data-[state=active]:bg-rose-600 data-[state=active]:text-white data-[state=active]:shadow-md sm:flex-row sm:gap-2 sm:text-sm">
+              <span className="flex items-center gap-1.5"><ShieldAlert className="h-4 w-4 shrink-0" /><span>Seguridad</span></span>
+              {seguridadCount > 0 && <Badge className="h-5 border-0 bg-white/20 px-1.5 text-[10px] text-current">{seguridadCount}</Badge>}
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
         <TabsContent value="bandeja">
           <BandejaTab
