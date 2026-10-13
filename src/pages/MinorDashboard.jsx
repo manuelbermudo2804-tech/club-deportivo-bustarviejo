@@ -344,6 +344,22 @@ export default function MinorDashboard() {
     enabled: !!linkedPlayer?.id,
   });
 
+  // Convocatorias de toda la temporada (para la tarjeta)
+  const { data: seasonCallupsCount = 0 } = useQuery({
+    queryKey: ["minorSeasonCallups", linkedPlayer?.id, playerCategory],
+    queryFn: async () => {
+      const now = new Date();
+      const y = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+      const all = await base44.entities.Convocatoria.filter(
+        { categoria: playerCategory, publicada: true, fecha_partido: { $gte: `${y}-08-01` } },
+        "-fecha_partido", 200
+      );
+      return all.filter((c) => c.estado_convocatoria !== "cancelada" &&
+        c.jugadores_convocados?.some((j) => j.jugador_id === linkedPlayer.id)).length;
+    },
+    enabled: !!linkedPlayer?.id && !!playerCategory,
+  });
+
   const { data: announcements = [] } = useQuery({
     queryKey: ["minorAnnouncements"],
     queryFn: async () => {
@@ -392,7 +408,8 @@ export default function MinorDashboard() {
 
   const myGolesCount = React.useMemo(() => {
     if (!linkedPlayer?.nombre || !scorers.length) return 0;
-    const norm = (n) => n?.toLowerCase().trim().replace(/,\s*/g, " ").split(" ").reverse().join(" ").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ") || "";
+    // Compara por conjunto de palabras (vale para "APELLIDO1 APELLIDO2, NOMBRE" y "Nombre Apellido1 Apellido2")
+    const norm = (n) => (n || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/,/g, " ").split(/\s+/).filter(Boolean).sort().join(" ");
     const found = scorers.find(s => norm(s.jugador_nombre) === norm(linkedPlayer.nombre));
     return found?.goles || 0;
   }, [linkedPlayer?.nombre, scorers]);
@@ -444,7 +461,7 @@ export default function MinorDashboard() {
           player={linkedPlayer}
           user={user}
           attendances={attendances}
-          callupsCount={callups.length}
+          callupsCount={seasonCallupsCount}
           goles={myGolesCount}
           isComplementaria={isComplementaria}
         />
@@ -498,7 +515,7 @@ export default function MinorDashboard() {
             attendances={attendances}
             playerId={linkedPlayer.id}
             goles={myGolesCount}
-            convocatorias={callups.length}
+            convocatorias={seasonCallupsCount}
             metas={playerGoals.length}
             metasCompletadas={playerGoals.filter(g => g.completada).length}
             isComplementaria={isComplementaria}
