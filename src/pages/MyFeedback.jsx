@@ -50,24 +50,23 @@ export default function MyFeedback() {
   });
 
   return (
-    <div className="p-4 lg:p-6 max-w-3xl mx-auto space-y-6">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold flex items-center gap-2">
-            💬 Mi Feedback
-          </h1>
-          <p className="text-slate-600 text-sm mt-1">
-            Sigue el estado de tus sugerencias, bugs y comentarios enviados
-          </p>
+    <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-5 lg:px-8 lg:pt-7 [&_*]:min-w-0">
+      <header className="relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:flex-row sm:items-center sm:justify-between sm:gap-5 sm:p-7">
+        <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-orange-500/10 blur-3xl" />
+        <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 sm:h-14 sm:w-14">
+            <MessageCircle className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
+          </div>
+          <div className="min-w-0">
+            <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-300">Familias · Participación</p>
+            <h1 className="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">Mi Feedback</h1>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300 sm:text-base">Sigue el estado de tus sugerencias, incidencias y comentarios enviados al club.</p>
+          </div>
         </div>
-        <Button
-          onClick={() => setShowModal(true)}
-          className="bg-gradient-to-r from-orange-600 to-green-600 hover:from-orange-700 hover:to-green-700"
-        >
-          <Send className="w-4 h-4 mr-2" />
-          Nuevo
+        <Button onClick={() => setShowModal(true)} className="relative w-full shrink-0 bg-orange-500 text-slate-950 hover:bg-orange-400 sm:w-auto">
+          <Send className="mr-2 h-4 w-4" /> Nuevo feedback
         </Button>
-      </div>
+      </header>
 
       {myFeedbacks.length === 0 ? (
         <Card className="border-slate-200">
@@ -85,9 +84,9 @@ export default function MyFeedback() {
       ) : (
         <div className="space-y-3">
           {myFeedbacks.map((f) => (
-            <Card key={f.id} className="border-slate-200 hover:shadow-md transition-shadow">
+            <Card key={f.id} className="min-w-0 overflow-hidden rounded-2xl border-slate-200 shadow-sm transition-shadow hover:shadow-md">
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex min-w-0 flex-col items-start justify-between gap-2 sm:flex-row sm:gap-3">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     {tipoIcons[f.tipo]}
                     <CardTitle className="text-base truncate">{f.titulo}</CardTitle>
