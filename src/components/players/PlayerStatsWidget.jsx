@@ -81,35 +81,25 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
     enabled: !!playerId,
   });
 
-  // Resultados de partidos (goles)
-  const { data: matchResults = [] } = useQuery({
-    queryKey: ["playerMatchResults", playerCategory],
-    queryFn: () => base44.entities.MatchResult.filter({ categoria: playerCategory }),
-    staleTime: 300_000,
-    refetchOnWindowFocus: false,
-    enabled: !!playerCategory,
-  });
-
   // === CALCULAR ESTADÍSTICAS ===
 
-  // Goles
-  const totalGoals = matchResults.reduce((sum, match) => {
-    const playerStats = (match.jugadores_destacados || []).find(j => j.jugador_id === playerId);
-    return sum + (playerStats?.goles || 0);
-  }, 0);
-
-  // Partidos jugados vs convocados
+  // Confirmaciones de convocatoria: no equivalen a partidos realmente jugados.
   const convocadoEn = callups.filter(c => c.jugadores_convocados?.some(j => j.jugador_id === playerId));
-  const partidosConvocados = convocadoEn.length;
-  const partidosAsistidos = convocadoEn.filter(c => {
+  const totalConvocatorias = convocadoEn.length;
+  const convocatoriasConfirmadas = convocadoEn.filter(c => {
     const j = c.jugadores_convocados?.find(j => j.jugador_id === playerId);
     return j?.confirmacion === "asistire";
   }).length;
 
-  // Media de evaluación
+  // Media de evaluación: usar solo puntuaciones numéricas existentes para evitar NaN.
   const playerEvals = evaluations.filter(e => e.jugador_id === playerId);
-  const avgEval = playerEvals.length > 0
-    ? (playerEvals.reduce((sum, e) => sum + ((e.tecnica + e.tactica + e.fisica + e.actitud + e.trabajo_equipo) / 5), 0) / playerEvals.length).toFixed(1)
+  const evaluationScores = playerEvals
+    .map(e => [e.tecnica, e.tactica, e.fisica, e.actitud, e.trabajo_equipo]
+      .filter(value => typeof value === "number" && Number.isFinite(value)))
+    .filter(values => values.length > 0)
+    .map(values => values.reduce((sum, value) => sum + value, 0) / values.length);
+  const avgEval = evaluationScores.length > 0
+    ? (evaluationScores.reduce((sum, value) => sum + value, 0) / evaluationScores.length).toFixed(1)
     : null;
 
   // Racha de asistencia
@@ -140,7 +130,8 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
     return norm === normalizedSeason && !p.is_deleted;
   });
   const pendingPayments = seasonPayments.filter(p => p.estado === "Pendiente").length;
-  const paymentStatus = pendingPayments === 0 && seasonPayments.length > 0;
+  const paymentsInReview = seasonPayments.filter(p => p.estado === "En revisión").length;
+  const paymentStatus = pendingPayments === 0 && paymentsInReview === 0 && seasonPayments.length > 0;
 
   // Antigüedad
   const antiguedad = getAntiguedad(createdDate);
@@ -150,12 +141,11 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
   const cumplePronto = diasParaCumple !== null && diasParaCumple <= 30;
 
   const stats = [
-    { icon: "⚽", label: "Goles", value: totalGoals, color: "text-green-700 bg-green-50 border-green-200", show: true },
-    { icon: "🏟️", label: "Partidos", value: `${partidosAsistidos}/${partidosConvocados}`, color: "text-blue-700 bg-blue-50 border-blue-200", show: partidosConvocados > 0 },
+    { icon: "🏟️", label: "Convocatorias", value: `${convocatoriasConfirmadas}/${totalConvocatorias}`, color: "text-blue-700 bg-blue-50 border-blue-200", show: totalConvocatorias > 0 },
     { icon: "⭐", label: "Evaluación", value: avgEval ? `${avgEval}/5` : "—", color: "text-yellow-700 bg-yellow-50 border-yellow-200", show: true },
     { icon: "📋", label: "Entrenamientos", value: `${totalTrainings}/${totalTrainingsSessions}`, color: "text-purple-700 bg-purple-50 border-purple-200", show: totalTrainingsSessions > 0 },
     { icon: "🔥", label: "Racha", value: racha > 0 ? `${racha} seguidos` : "—", color: "text-orange-700 bg-orange-50 border-orange-200", show: true },
-    { icon: "💳", label: "Pagos", value: paymentStatus ? "Al día ✅" : pendingPayments > 0 ? `${pendingPayments} pend.` : "—", color: paymentStatus ? "text-green-700 bg-green-50 border-green-200" : "text-red-700 bg-red-50 border-red-200", show: seasonPayments.length > 0 },
+    { icon: "💳", label: "Pagos", value: paymentStatus ? "Al día ✅" : pendingPayments > 0 ? `${pendingPayments} pend.` : paymentsInReview > 0 ? `${paymentsInReview} en revisión` : "—", color: paymentStatus ? "text-green-700 bg-green-50 border-green-200" : "text-amber-700 bg-amber-50 border-amber-200", show: seasonPayments.length > 0 },
     { icon: "🏅", label: "Antigüedad", value: `${antiguedad} temp.`, color: "text-slate-700 bg-slate-50 border-slate-200", show: true },
   ];
 
@@ -214,12 +204,10 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
       </div>
 
       {/* Logros */}
-      {(totalGoals > 0 || racha >= 5 || totalTrainings >= 20 || avgEval >= 4) && (
+      {(racha >= 5 || totalTrainings >= 20 || Number(avgEval) >= 4) && (
         <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-xl p-3">
           <p className="text-xs font-bold text-yellow-900 mb-2">🏅 Logros</p>
           <div className="flex flex-wrap gap-2">
-            {totalGoals >= 1 && <Badge className="bg-green-100 text-green-800 text-xs">⚽ Goleador ({totalGoals})</Badge>}
-            {totalGoals >= 5 && <Badge className="bg-green-200 text-green-900 text-xs">🔥 Pichichi (+5 goles)</Badge>}
             {racha >= 5 && <Badge className="bg-orange-100 text-orange-800 text-xs">🔥 Racha +5 entrenamientos</Badge>}
             {racha >= 10 && <Badge className="bg-orange-200 text-orange-900 text-xs">💪 Racha +10 entrenamientos</Badge>}
             {totalTrainings >= 20 && <Badge className="bg-purple-100 text-purple-800 text-xs">📋 +20 entrenamientos</Badge>}
