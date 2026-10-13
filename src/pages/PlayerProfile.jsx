@@ -270,22 +270,23 @@ export default function PlayerProfile() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6 text-slate-800">
+    <div className="player-profile-wow max-w-5xl mx-auto p-4 md:p-7 space-y-7 text-slate-800">
 
 
       {/* Header con acciones */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-orange-600 mb-1">Área personal</p>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Mi perfil</h1>
+          <p className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-700 mb-2"><span className="h-1.5 w-1.5 rounded-full bg-orange-500"></span> Área personal del jugador</p>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-950">Mi perfil<span className="text-orange-600">.</span></h1>
+          <p className="text-sm text-slate-500 mt-1">Tus datos, tu temporada y tu evolución en el club.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
-        <Button variant="outline" onClick={() => setShowExtra(true)} className="border-blue-300 text-blue-700">
+        <Button variant="outline" onClick={() => setShowExtra(true)} className="rounded-xl border-slate-200 bg-white shadow-sm hover:border-orange-300 hover:bg-orange-50 text-slate-700">
           <PlusCircle className="w-4 h-4 mr-2" /> Apuntarme a otra actividad
         </Button>
         <Button
           onClick={() => (editMode ? handleSave() : setEditMode(true))}
-          className={`${editMode ? "bg-green-600 hover:bg-green-700" : "bg-orange-600 hover:bg-orange-700"}`}
+          className={`rounded-xl shadow-md shadow-orange-600/15 ${editMode ? "bg-emerald-600 hover:bg-emerald-700" : "bg-orange-600 hover:bg-orange-700"}`}
         >
           <Save className="w-4 h-4 mr-2" />
           {editMode ? "Guardar" : "Editar"}
@@ -300,15 +301,16 @@ export default function PlayerProfile() {
       />
 
       {/* Tarjeta de perfil IMPACTANTE */}
-      <Card className="border-0 shadow-xl overflow-hidden rounded-2xl ring-1 ring-orange-700/10">
-        <div className="bg-gradient-to-r from-orange-700 via-orange-600 to-amber-500 px-6 py-8 md:py-10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-          <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full -ml-20 -mb-20"></div>
+      <Card className="profile-hero border-0 shadow-xl overflow-hidden rounded-[1.6rem] ring-1 ring-orange-700/10">
+        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 px-6 py-8 md:px-8 md:py-10 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-72 h-72 bg-orange-500/10 rounded-full blur-3xl -mr-24 -mt-36"></div>
+          <div className="absolute bottom-0 left-1/3 w-56 h-56 bg-amber-500/10 rounded-full blur-3xl -mb-40"></div>
+          <div className="absolute inset-y-0 right-0 w-1/3 opacity-[0.06] profile-hero-pattern pointer-events-none"></div>
 
           <div className="relative flex flex-col md:flex-row items-center md:items-start gap-6">
             {/* Foto grande */}
             <div className="relative">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden bg-white shadow-xl flex items-center justify-center border-4 border-white">
+              <div className="w-28 h-28 md:w-36 md:h-36 rounded-2xl overflow-hidden bg-white/10 shadow-2xl flex items-center justify-center border border-white/50 ring-4 ring-white/10">
                 {form.foto_url ? (
                   <img src={form.foto_url} alt="Foto" className="w-full h-full object-cover" />
                 ) : (
@@ -339,7 +341,7 @@ export default function PlayerProfile() {
             </div>
 
             {/* Datos principales */}
-            <div className="flex-1 text-white text-center md:text-left">
+            <div className="flex-1 text-white text-center md:text-left self-center">
               {editMode ? (
                 <Input
                   value={form.nombre}
@@ -348,20 +350,20 @@ export default function PlayerProfile() {
                   className="text-2xl md:text-3xl font-bold mb-2 bg-white/20 border-white/30 text-white placeholder:text-white/60"
                 />
               ) : (
-                <h2 className="text-2xl md:text-3xl font-bold mb-2">{form.nombre}</h2>
+                <h2 className="text-2xl md:text-4xl font-black tracking-tight mb-3">{form.nombre}</h2>
               )}
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                <Badge className="bg-white/20 text-white border-white/30 text-sm">
+                <Badge className="bg-white/10 backdrop-blur text-white border-white/20 rounded-full px-3 py-1 text-xs sm:text-sm">
                   ⚽ {player.deporte}
                 </Badge>
                 {form.posicion !== "Sin asignar" && (
-                  <Badge className="bg-white/20 text-white border-white/30 text-sm">
+                  <Badge className="bg-white/10 backdrop-blur text-white border-white/20 rounded-full px-3 py-1 text-xs sm:text-sm">
                     📍 {form.posicion}
                   </Badge>
                 )}
                 {edad && (
-                  <Badge className="bg-white/20 text-white border-white/30 text-sm">
+                  <Badge className="bg-white/10 backdrop-blur text-white border-white/20 rounded-full px-3 py-1 text-xs sm:text-sm">
                     🎂 {edad} años
                   </Badge>
                 )}
@@ -371,13 +373,19 @@ export default function PlayerProfile() {
         </div>
 
         {/* Documentos Grid */}
-        <CardContent className="p-6 bg-slate-50">
-          <h3 className="font-bold text-slate-900 mb-4 text-sm">Documentación</h3>
+        <CardContent className="p-5 md:p-6 bg-gradient-to-b from-white to-slate-50/80">
+          <div className="flex items-center justify-between gap-3 mb-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-orange-600 mb-1">Estado de tu ficha</p>
+              <h3 className="font-bold text-slate-900 text-base">Documentación</h3>
+            </div>
+            <span className="text-xs text-slate-400">{documentos.filter(doc => doc.estado === "✅").length} de {documentos.length} completados</span>
+          </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {documentos.map((doc) => (
               <div
                 key={doc.id}
-                className={`p-3 rounded-lg border-2 text-center transition-all ${
+                className={`p-4 rounded-xl border text-center transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${
                   doc.estado === "✅"
                     ? "bg-green-50 border-green-300"
                     : "bg-red-50 border-red-300"
@@ -504,13 +512,16 @@ export default function PlayerProfile() {
       )}
 
       {/* Tabs de contenido */}
-      <Tabs defaultValue="datos" className="w-full space-y-3">
-        <TabsList className="grid w-full grid-cols-4 h-auto rounded-xl bg-slate-100 p-1.5 gap-1">
+      <Tabs defaultValue="datos" className="profile-content-tabs w-full space-y-4">
+        <div className="px-1">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 mb-2">Tu espacio</p>
+          <TabsList className="grid w-full grid-cols-4 h-auto rounded-2xl bg-white border border-slate-200/80 p-1.5 gap-1 shadow-sm">
           <TabsTrigger value="datos" className="rounded-lg py-2.5 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">📋 Datos</TabsTrigger>
           <TabsTrigger value="evolucion" className="rounded-lg py-2.5 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">📈 Evolución</TabsTrigger>
           <TabsTrigger value="salud" className="rounded-lg py-2.5 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">❤️ Salud</TabsTrigger>
-          <TabsTrigger value="contacto" className="rounded-lg py-2.5 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">📞 Contacto</TabsTrigger>
-        </TabsList>
+          <TabsTrigger value="contacto" className="rounded-xl py-3 text-xs sm:text-sm data-[state=active]:bg-slate-950 data-[state=active]:text-white data-[state=active]:shadow-md">📞 Contacto</TabsTrigger>
+          </TabsList>
+        </div>
 
         {/* Tab: Evolución deportiva */}
         <TabsContent value="evolucion" className="space-y-4">
