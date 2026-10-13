@@ -46,14 +46,14 @@ export default function CategoryProfitability({ payments, transactions, players,
   }, [payments, transactions, players, activeSeason]);
 
   return (
-    <Card className="border-none shadow-lg">
+    <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <DollarSign className="w-5 h-5 text-green-600" />
           Rentabilidad por Categoría Deportiva
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
+      <CardContent className="min-w-0 space-y-4 p-3 sm:space-y-6 sm:p-6">
         <ResponsiveContainer width="100%" height={350}>
           <BarChart data={categoryData}>
             <CartesianGrid strokeDasharray="3 3" />
@@ -73,8 +73,8 @@ export default function CategoryProfitability({ payments, transactions, players,
 
         <div className="space-y-3">
           {categoryData.map(cat => (
-            <div key={cat.categoria} className="border-2 rounded-xl p-4 bg-gradient-to-r from-slate-50 to-white">
-              <div className="flex items-center justify-between mb-2">
+            <div key={cat.categoria} className="rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white p-3 sm:p-4">
+              <div className="mb-2 flex flex-col items-start justify-between gap-2 sm:flex-row sm:items-center">
                 <div className="flex items-center gap-2">
                   <h4 className="font-bold text-slate-900">{cat.categoria}</h4>
                   <Badge variant="outline">{cat.jugadores} jugadores</Badge>
