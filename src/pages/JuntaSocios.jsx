@@ -38,18 +38,18 @@ export default function JuntaSocios() {
   if (isLoading) return <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-orange-600" /></div>;
 
   return (
-    <div className="mx-auto w-full max-w-7xl space-y-5 px-3 py-4 sm:px-4 sm:py-6 lg:px-6">
-      <header className="flex flex-col gap-4 rounded-2xl border border-orange-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4 shadow-lg sm:flex-row sm:items-center sm:justify-between sm:p-5">
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+      <header className="flex flex-col gap-4 rounded-2xl border border-orange-500/30 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 p-4 shadow-lg sm:p-5 lg:flex-row lg:items-center lg:justify-between">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-600 shadow-md">
             <Users className="h-6 w-6 text-white" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-xl font-bold leading-tight text-white sm:text-2xl">Junta de Socios</h1>
-            <p className="mt-1 text-sm text-orange-100/90">Organización, configuración y control de asistentes</p>
+            <h1 className="text-xl font-extrabold leading-tight tracking-tight text-white sm:text-2xl">📣 JUNTA GENERAL DE SOCIOS</h1>
+            <p className="mt-1 text-sm leading-relaxed text-orange-100/90">Convocatoria, respuestas, participación y control de asistentes</p>
           </div>
         </div>
-        <div className="w-full sm:w-auto sm:min-w-64">
+        <div className="w-full min-w-0 lg:w-auto lg:min-w-72">
           <label htmlFor="junta-selector" className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-300">Junta que estás gestionando</label>
           <select id="junta-selector" className="w-full rounded-lg border border-slate-600 bg-white px-3 py-2.5 text-sm font-medium text-slate-900 shadow-sm outline-none focus:ring-2 focus:ring-orange-500" value={juntaId || ""} onChange={(e) => setJuntaId(e.target.value || null)}>
             {juntas.length === 0 && <option value="">Crear la primera junta</option>}
@@ -59,7 +59,7 @@ export default function JuntaSocios() {
         </div>
       </header>
 
-      <div className="flex items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3.5 sm:p-4">
+      <div className="flex items-start gap-3 rounded-xl border border-orange-100 bg-orange-50/70 p-3.5 sm:p-4">
         <ClipboardList className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
         <div>
           <p className="text-sm font-semibold text-slate-800">{junta ? "Estás editando una junta existente" : "Crear una nueva junta"}</p>
@@ -79,14 +79,14 @@ export default function JuntaSocios() {
         }} />
       </section>
 
-      {junta && (loadingRows ? <div className="rounded-xl border bg-white py-12 text-center"><Loader2 className="mx-auto h-7 w-7 animate-spin text-orange-600" /><p className="mt-3 text-sm text-slate-500">Cargando respuestas y asistentes…</p></div> : (
+      {junta && (loadingRows ? <div className="rounded-2xl border border-slate-200 bg-white py-12 text-center shadow-sm"><Loader2 className="mx-auto h-7 w-7 animate-spin text-orange-600" /><p className="mt-3 text-sm text-slate-500">Cargando respuestas y asistentes…</p></div> : (
         <section className="space-y-4">
           <div className="flex items-center gap-2 px-1">
             <Users className="h-5 w-5 text-orange-600" />
             <h2 className="text-base font-bold text-slate-900 sm:text-lg">Asistencia y participación</h2>
           </div>
           <JuntaStats rows={rows} />
-          <div className="flex items-start gap-2 rounded-lg border border-blue-100 bg-blue-50 p-3 text-xs leading-relaxed text-blue-900 sm:text-sm">
+          <div className="flex items-start gap-2 rounded-xl border border-slate-200 bg-white p-3 text-xs leading-relaxed text-slate-600 shadow-sm sm:text-sm">
             <ClipboardList className="mt-0.5 h-4 w-4 shrink-0" />
             <p>Se combinan las respuestas de la app y del formulario público. El sistema identifica a los socios cuando coincide el email o el nombre con los datos de Gestión de Socios.</p>
           </div>
