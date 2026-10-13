@@ -51,37 +51,40 @@ export default function CentroContenido() {
   };
 
   return (
-    <div className="px-4 lg:px-8 py-6 max-w-4xl mx-auto space-y-5">
-      <div>
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-11 h-11 bg-violet-100 rounded-xl flex items-center justify-center">
-            <Inbox className="w-6 h-6 text-violet-600" />
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15">
+              <Inbox className="h-6 w-6 text-orange-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Comunicación y redes sociales</p>
+              <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Centro de Contenido</h1>
+              <p className="mt-1 text-sm text-slate-300">Fotos y vídeos enviados por entrenadores, delegados y familias</p>
+            </div>
           </div>
-          <h1 className="text-2xl font-bold text-slate-900">Centro de Contenido</h1>
+          <Link to="/SocialHub" className="shrink-0">
+            <Button size="sm" className="w-full gap-2 rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700 sm:w-auto">
+              <Share2 className="h-4 w-4" /> Ir a publicar
+            </Button>
+          </Link>
         </div>
-        <p className="text-slate-600 text-sm">
-          Todo lo que entrenadores, delegados y familias envían al club. Tú decides qué vale.
-        </p>
       </div>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-900">
-        <p className="font-semibold mb-1">¿Cómo funciona?</p>
+      <div className="rounded-2xl border border-slate-200 bg-white p-4 text-sm text-slate-700 shadow-sm sm:p-5">
+        <p className="mb-1 font-semibold text-slate-900">¿Cómo funciona?</p>
         <p><strong>Me sirve</strong> = lo guardas para publicarlo. <strong>Ya publicado</strong> = lo marcas cuando ya ha salido. <strong>Descartar</strong> = no se usa. Con <strong>Descargar</strong> te lo llevas al móvil para subirlo a Instagram.</p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
         <EstadoTabs value={estado} onChange={setEstado} counts={counts} />
-        <Link to="/SocialHub">
-          <Button variant="outline" size="sm">
-            <Share2 className="w-4 h-4 mr-1.5" /> Ir a publicar
-          </Button>
-        </Link>
       </div>
 
       {isLoading ? (
         <p className="text-slate-500 text-sm py-10 text-center">Cargando...</p>
       ) : visibles.length === 0 ? (
-        <div className="bg-white border border-slate-200 rounded-2xl p-10 text-center">
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm sm:p-10">
           <p className="text-slate-500">Aquí no hay nada todavía.</p>
           <p className="text-slate-400 text-sm mt-1">
             Pide a los entrenadores que envíen fotos y vídeos desde "Enviar fotos y vídeos".
