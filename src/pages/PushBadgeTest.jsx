@@ -177,8 +177,8 @@ export default function PushBadgeTest() {
   }, []);
 
   const Step = ({ num, title, action, actionLabel, result }) => (
-    <div className="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border">
-      <div className="flex-shrink-0 w-8 h-8 rounded-full bg-orange-600 text-white flex items-center justify-center font-bold text-sm">
+    <div className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-orange-600 text-sm font-bold text-white shadow-sm">
         {num}
       </div>
       <div className="flex-1 min-w-0">
@@ -198,19 +198,19 @@ export default function PushBadgeTest() {
   );
 
   return (
-    <div className="p-4 max-w-lg mx-auto space-y-4">
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <Bell className="w-5 h-5 text-orange-600" />
+    <div className="mx-auto w-full min-w-0 max-w-4xl space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <Card className="min-w-0 overflow-hidden rounded-3xl border-slate-200 shadow-sm">
+        <CardHeader className="relative isolate overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white sm:p-7">
+          <CardTitle className="flex items-center gap-3 text-xl font-bold tracking-tight text-white sm:text-2xl">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20"><Bell className="h-5 w-5 text-orange-300" /></span>
             Test: Push + Badge en PWA
           </CardTitle>
-          <p className="text-xs text-slate-500">
-            Ejecuta cada paso en orden para verificar que todo funciona en Base44
+          <p className="mt-2 text-sm leading-relaxed text-slate-300">
+            Ejecuta cada paso en orden para comprobar el sistema de notificaciones y el contador de la app.
           </p>
-          <p className="text-xs text-blue-500 font-mono">Build: {BUILD_TS}</p>
+          <p className="mt-3 inline-flex rounded-lg border border-white/10 bg-white/5 px-2.5 py-1 text-xs font-mono text-orange-200">Build: {BUILD_TS}</p>
         </CardHeader>
-        <CardContent className="space-y-3">
+        <CardContent className="min-w-0 space-y-3 bg-slate-50/60 p-4 sm:p-6">
           <Step
             num={1}
             title="Obtener VAPID Key"
@@ -243,14 +243,14 @@ export default function PushBadgeTest() {
             result={status.badge}
           />
           
-          <div className="border-t pt-3 mt-3">
+          <div className="mt-4 space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
               <span className="text-sm font-medium">Badge count:</span>
               <input
                 type="number"
                 value={badgeCount}
                 onChange={e => setBadgeCount(Number(e.target.value))}
-                className="w-16 border rounded px-2 py-1 text-sm"
+                className="w-20 rounded-xl border border-slate-300 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-orange-500"
                 min={0}
                 max={99}
               />
@@ -258,7 +258,7 @@ export default function PushBadgeTest() {
             <Button 
               onClick={sendTestPush} 
               disabled={loading || !subscription}
-              className="w-full bg-green-600 hover:bg-green-700 gap-2"
+              className="h-11 w-full rounded-xl bg-green-600 font-semibold hover:bg-green-700 gap-2"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
               Enviar Push + Badge desde Backend
@@ -270,7 +270,7 @@ export default function PushBadgeTest() {
             )}
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 space-y-1">
+          <div className="space-y-1 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs leading-relaxed text-amber-900">
             <p className="font-semibold">⚠️ Para que funcione al 100%:</p>
             <ul className="list-disc pl-4 space-y-0.5">
               <li>Abre esta página desde la <strong>app publicada</strong> (no el preview)</li>
