@@ -741,43 +741,43 @@ export default function Players() {
 
       {/* Tarjetas resumen */}
       {(isAdmin || isTreasurer) && (
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-          <Card className="border-none shadow-md bg-white cursor-pointer hover:ring-2 hover:ring-orange-200 transition-all" onClick={() => { setStatusFilter("active"); setCategoryFilter("all"); setSportFilter("all"); }}>
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-green-600">{activeCount}</p>
-              <p className="text-xs text-slate-600 mt-1">Activos</p>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
+          <Card className="group cursor-pointer rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md" onClick={() => { setStatusFilter("active"); setCategoryFilter("all"); setSportFilter("all"); }}>
+            <CardContent className="p-4 text-left sm:p-5">
+              <p className="text-2xl font-bold tracking-tight text-emerald-600 sm:text-3xl">{activeCount}</p>
+              <p className="mt-1 text-xs font-medium text-slate-500 sm:text-sm">Activos</p>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-md bg-white cursor-pointer hover:ring-2 hover:ring-orange-200 transition-all" onClick={() => { setStatusFilter("inactive"); setCategoryFilter("all"); setSportFilter("all"); }}>
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-red-500">{inactiveCount}</p>
-              <p className="text-xs text-slate-600 mt-1">Inactivos</p>
+          <Card className="group cursor-pointer rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md" onClick={() => { setStatusFilter("inactive"); setCategoryFilter("all"); setSportFilter("all"); }}>
+            <CardContent className="p-4 text-left sm:p-5">
+              <p className="text-2xl font-bold tracking-tight text-rose-600 sm:text-3xl">{inactiveCount}</p>
+              <p className="mt-1 text-xs font-medium text-slate-500 sm:text-sm">Inactivos</p>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-md bg-white cursor-pointer hover:ring-2 hover:ring-orange-200 transition-all" onClick={() => { setSportFilter("Fútbol"); setStatusFilter("all"); setCategoryFilter("all"); }}>
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-blue-600">{futbolCount}</p>
-              <p className="text-xs text-slate-600 mt-1">⚽ Fútbol</p>
+          <Card className="group cursor-pointer rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md" onClick={() => { setSportFilter("Fútbol"); setStatusFilter("all"); setCategoryFilter("all"); }}>
+            <CardContent className="p-4 text-left sm:p-5">
+              <p className="text-2xl font-bold tracking-tight text-blue-600 sm:text-3xl">{futbolCount}</p>
+              <p className="mt-1 text-xs font-medium text-slate-500 sm:text-sm">⚽ Fútbol</p>
             </CardContent>
           </Card>
           {futbolFemeninoCount > 0 && (
-            <Card className="border-none shadow-md bg-white cursor-pointer hover:ring-2 hover:ring-orange-200 transition-all" onClick={() => { setSportFilter("Fútbol Femenino"); setStatusFilter("all"); setCategoryFilter("all"); }}>
-              <CardContent className="p-4 text-center">
-                <p className="text-3xl font-bold text-pink-600">{futbolFemeninoCount}</p>
-                <p className="text-xs text-slate-600 mt-1">⚽ Femenino</p>
+            <Card className="group cursor-pointer rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md" onClick={() => { setSportFilter("Fútbol Femenino"); setStatusFilter("all"); setCategoryFilter("all"); }}>
+              <CardContent className="p-4 text-left sm:p-5">
+                <p className="text-2xl font-bold tracking-tight text-pink-600 sm:text-3xl">{futbolFemeninoCount}</p>
+                <p className="mt-1 text-xs font-medium text-slate-500 sm:text-sm">⚽ Femenino</p>
               </CardContent>
             </Card>
           )}
-          <Card className="border-none shadow-md bg-white cursor-pointer hover:ring-2 hover:ring-orange-200 transition-all" onClick={() => { setSportFilter("Baloncesto"); setStatusFilter("all"); setCategoryFilter("all"); }}>
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-orange-600">{baloncestoCount}</p>
-              <p className="text-xs text-slate-600 mt-1">🏀 Basket</p>
+          <Card className="group cursor-pointer rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md" onClick={() => { setSportFilter("Baloncesto"); setStatusFilter("all"); setCategoryFilter("all"); }}>
+            <CardContent className="p-4 text-left sm:p-5">
+              <p className="text-2xl font-bold tracking-tight text-orange-600 sm:text-3xl">{baloncestoCount}</p>
+              <p className="mt-1 text-xs font-medium text-slate-500 sm:text-sm">🏀 Basket</p>
             </CardContent>
           </Card>
-          <Card className="border-none shadow-md bg-white cursor-pointer hover:ring-2 hover:ring-orange-200 transition-all" onClick={() => { setStatusRenewalFilter("nuevo"); setStatusFilter("all"); setCategoryFilter("all"); setSportFilter("all"); }}>
-            <CardContent className="p-4 text-center">
-              <p className="text-3xl font-bold text-purple-600">{nuevosCount}</p>
-              <p className="text-xs text-slate-600 mt-1">✨ Nuevos</p>
+          <Card className="group cursor-pointer rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-md" onClick={() => { setStatusRenewalFilter("nuevo"); setStatusFilter("all"); setCategoryFilter("all"); setSportFilter("all"); }}>
+            <CardContent className="p-4 text-left sm:p-5">
+              <p className="text-2xl font-bold tracking-tight text-violet-600 sm:text-3xl">{nuevosCount}</p>
+              <p className="mt-1 text-xs font-medium text-slate-500 sm:text-sm">✨ Nuevos</p>
             </CardContent>
           </Card>
         </div>
@@ -873,7 +873,7 @@ export default function Players() {
       {/* Búsqueda Avanzada */}
       <Card className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
         <CardContent className="space-y-4 p-3 sm:p-5">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
               <Input
