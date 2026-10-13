@@ -33,11 +33,11 @@ export default function ExpedienteHeader({ exp, temporada, temporadas, onTempora
         <>
           <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
             <label className="space-y-1"><span className="text-xs font-medium text-slate-300">Entidad</span>
-              <Input defaultValue={exp.entidad} onBlur={(e) => e.target.value !== exp.entidad && updateExp({ entidad: e.target.value })} className="bg-white/10 border-white/20 text-white" /></label>
+              <Input defaultValue={exp.entidad} onBlur={(e) => e.target.value !== exp.entidad && updateExp({ entidad: e.target.value })} className="w-full rounded-xl border-white/20 bg-white/10 text-white placeholder:text-slate-400 focus-visible:ring-orange-400" /></label>
             <label className="space-y-1"><span className="text-xs font-medium text-slate-300">Importe concedido (€)</span>
-              <Input type="number" defaultValue={exp.importe_concedido} onBlur={(e) => Number(e.target.value) !== exp.importe_concedido && updateExp({ importe_concedido: Number(e.target.value) })} className="bg-white/10 border-white/20 text-white" /></label>
+              <Input type="number" defaultValue={exp.importe_concedido} onBlur={(e) => Number(e.target.value) !== exp.importe_concedido && updateExp({ importe_concedido: Number(e.target.value) })} className="w-full rounded-xl border-white/20 bg-white/10 text-white placeholder:text-slate-400 focus-visible:ring-orange-400" /></label>
             <label className="space-y-1"><span className="text-xs font-medium text-slate-300">Fecha límite de justificación</span>
-              <Input type="date" defaultValue={exp.fecha_limite_justificacion} onBlur={(e) => e.target.value !== exp.fecha_limite_justificacion && updateExp({ fecha_limite_justificacion: e.target.value })} className="bg-white/10 border-white/20 text-white" /></label>
+              <Input type="date" defaultValue={exp.fecha_limite_justificacion} onBlur={(e) => e.target.value !== exp.fecha_limite_justificacion && updateExp({ fecha_limite_justificacion: e.target.value })} className="w-full rounded-xl border-white/20 bg-white/10 text-white placeholder:text-slate-400 focus-visible:ring-orange-400" /></label>
           </div>
           <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-white/10 bg-white/5 p-3 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
             <div className="flex items-center gap-2 text-sm font-semibold"><FileCheck2 className="h-4 w-4 shrink-0 text-orange-300" /><span>{hechos} de {DOCUMENTOS_BASE.length} documentos listos</span></div>
