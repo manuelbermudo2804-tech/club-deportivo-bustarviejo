@@ -102,14 +102,14 @@ export default function BankStatementReconciliation({ activeSeason }) {
   };
 
   return (
-    <Card className="border-2 border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50">
+    <Card className="min-w-0 overflow-hidden rounded-2xl border border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 shadow-sm">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Sparkles className="w-6 h-6 text-purple-600" />
           Conciliación Bancaria con IA
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="min-w-0 space-y-4 p-3 sm:p-6">
         <div className="bg-white rounded-xl p-4 border-2 border-purple-200">
           <p className="text-sm text-purple-900 font-medium mb-2">
             🤖 <strong>Análisis Inteligente:</strong>
@@ -149,19 +149,19 @@ export default function BankStatementReconciliation({ activeSeason }) {
           </div>
         ) : (
           <div className="space-y-3">
-            <div className="flex items-center justify-between bg-white rounded-lg p-3">
+            <div className="flex flex-col items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 sm:flex-row sm:items-center">
               <div>
                 <p className="font-bold text-slate-900">{movimientos.length} movimientos</p>
                 <p className="text-sm text-slate-600">
                   {movimientos.filter(m => m.mejor_sugerencia?.confidence === 'alta').length} con alta confianza
                 </p>
               </div>
-              <div className="flex gap-2">
+              <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                 <Button
                   size="sm"
                   onClick={handleReconcileAll}
                   disabled={reconciling}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="w-full bg-green-600 hover:bg-green-700 sm:w-auto"
                 >
                   ✅ Reconciliar Alta Confianza
                 </Button>
@@ -175,7 +175,7 @@ export default function BankStatementReconciliation({ activeSeason }) {
               </div>
             </div>
 
-            <div className="space-y-2 max-h-80 overflow-y-auto">
+            <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
               {movimientos.map((mov, idx) => {
                 const sug = mov.mejor_sugerencia;
                 const esIngreso = mov.importe > 0;
@@ -189,7 +189,7 @@ export default function BankStatementReconciliation({ activeSeason }) {
                         : 'border-slate-300 bg-slate-50'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
+                    <div className="flex flex-col items-start justify-between gap-3 sm:flex-row">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           {esIngreso ? (
