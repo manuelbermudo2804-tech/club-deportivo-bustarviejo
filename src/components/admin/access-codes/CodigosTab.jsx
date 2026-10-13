@@ -13,16 +13,16 @@ export default function CodigosTab({
   phoneByEmail = {},
 }) {
   const statCards = [
-    { key: 'pendiente', label: 'Pendientes', value: counts.pendiente, color: 'yellow', icon: Clock },
-    { key: 'expirado', label: 'Expirados', value: counts.expirado, color: 'red', icon: AlertCircle },
-    { key: 'usado', label: 'Completados', value: counts.usado, color: 'green', icon: CheckCircle2 },
-    { key: 'all', label: 'Total', value: counts.total, color: 'slate', icon: KeyRound },
+    { key: 'pendiente', label: 'Pendientes', value: counts.pendiente, icon: Clock, active: 'border-amber-400 bg-amber-50 ring-2 ring-amber-100', idle: 'border-slate-200 bg-white hover:border-amber-300', iconTone: 'bg-amber-100 text-amber-700', valueTone: 'text-amber-700' },
+    { key: 'expirado', label: 'Expirados', value: counts.expirado, icon: AlertCircle, active: 'border-rose-400 bg-rose-50 ring-2 ring-rose-100', idle: 'border-slate-200 bg-white hover:border-rose-300', iconTone: 'bg-rose-100 text-rose-700', valueTone: 'text-rose-700' },
+    { key: 'usado', label: 'Completados', value: counts.usado, icon: CheckCircle2, active: 'border-emerald-400 bg-emerald-50 ring-2 ring-emerald-100', idle: 'border-slate-200 bg-white hover:border-emerald-300', iconTone: 'bg-emerald-100 text-emerald-700', valueTone: 'text-emerald-700' },
+    { key: 'all', label: 'Total', value: counts.total, icon: KeyRound, active: 'border-slate-400 bg-slate-50 ring-2 ring-slate-100', idle: 'border-slate-200 bg-white hover:border-slate-400', iconTone: 'bg-slate-100 text-slate-700', valueTone: 'text-slate-800' },
   ];
 
   return (
     <div className="space-y-4">
       {/* Stats clicables */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {statCards.map(s => {
           const active = filter === s.key;
           const Icon = s.icon;
@@ -30,32 +30,35 @@ export default function CodigosTab({
             <button
               key={s.key}
               onClick={() => setFilter(s.key)}
-              className={`text-left rounded-2xl p-4 border-2 transition-all ${
-                active
-                  ? `bg-${s.color}-100 border-${s.color}-500 ring-2 ring-${s.color}-200`
-                  : `bg-${s.color}-50 border-${s.color}-200 hover:border-${s.color}-400`
-              }`}
+              aria-pressed={active}
+              className={`rounded-2xl border p-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md sm:p-5 ${active ? s.active : s.idle}`}
             >
-              <div className="flex items-center justify-between mb-1">
-                <Icon className={`w-4 h-4 text-${s.color}-600`} />
-                {active && <span className={`text-[10px] font-bold text-${s.color}-700 uppercase`}>Filtro activo</span>}
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <span className={`flex h-9 w-9 items-center justify-center rounded-xl ${s.iconTone}`}><Icon className="h-4 w-4" /></span>
+                {active && <span className="text-[9px] font-bold uppercase tracking-wider text-slate-500 sm:text-[10px]">Activo</span>}
               </div>
-              <p className={`text-2xl font-bold text-${s.color}-700`}>{s.value}</p>
-              <p className={`text-xs text-${s.color}-600`}>{s.label}</p>
+              <p className={`text-2xl font-bold tracking-tight sm:text-3xl ${s.valueTone}`}>{s.value}</p>
+              <p className="mt-1 text-xs font-medium text-slate-500 sm:text-sm">{s.label}</p>
             </button>
           );
         })}
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <Input
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Buscar por email, nombre o código..."
-          className="pl-10"
-        />
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm sm:p-4">
+        <div className="mb-2 flex items-center gap-2">
+          <Search className="h-4 w-4 text-orange-600" />
+          <p className="text-sm font-semibold text-slate-800">Buscar invitaciones</p>
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Email, nombre, jugador o código..."
+            className="h-11 rounded-xl border-slate-200 bg-slate-50 pl-10 focus-visible:bg-white"
+          />
+        </div>
+        <p className="mt-2 text-xs text-slate-500">Mostrando {filtered.length} invitación{filtered.length !== 1 ? 'es' : ''} con los filtros actuales.</p>
       </div>
 
       {/* List */}
