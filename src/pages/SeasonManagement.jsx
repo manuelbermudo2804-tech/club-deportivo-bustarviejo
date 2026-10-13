@@ -815,11 +815,11 @@ export default function SeasonManagement() {
   }
 
   return (
-    <div className="p-4 lg:p-6 space-y-6 max-w-6xl mx-auto">
-      {/* Header con gradiente */}
-      <div className="bg-gradient-to-r from-slate-800 via-slate-700 to-slate-800 rounded-2xl p-5 lg:p-7 text-white shadow-xl">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 lg:w-14 lg:h-14 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center flex-shrink-0">
+    <div className="mx-auto min-w-0 max-w-6xl space-y-5 bg-slate-50/70 p-3 sm:p-5 lg:p-7">
+      {/* Cabecera principal */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-xl sm:p-7">
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-orange-500 shadow-lg shadow-orange-950/30 lg:h-14 lg:w-14">
             <Settings className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
           </div>
           <div className="flex-1 min-w-0">
@@ -827,6 +827,7 @@ export default function SeasonManagement() {
             <p className="text-slate-300 mt-1 text-sm">Configuración de temporadas, categorías y características del club</p>
           </div>
         </div>
+        <div className="pointer-events-none absolute -right-10 -top-12 h-48 w-48 rounded-full bg-orange-500/10 blur-2xl" />
       </div>
 
       {/* Aviso si no hay temporada activa */}
@@ -860,9 +861,9 @@ export default function SeasonManagement() {
 
       {/* Temporada Activa */}
       {activeSeason && (
-        <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50">
-          <CardHeader>
-            <div className="flex items-center justify-between">
+        <Card className="overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-white to-emerald-50 shadow-sm">
+          <CardHeader className="pb-3">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
                   <Calendar className="w-6 h-6 text-green-600" />
@@ -883,8 +884,8 @@ export default function SeasonManagement() {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Acceso a Gestión de Categorías y Cuotas */}
-            <div className="bg-gradient-to-r from-orange-50 to-yellow-50 rounded-xl p-4 shadow-sm border-2 border-orange-300">
-              <div className="flex items-center justify-between">
+            <div className="rounded-xl border border-orange-200 bg-white p-4 shadow-sm">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <Euro className="w-8 h-8 text-orange-600" />
                   <div>
@@ -892,8 +893,8 @@ export default function SeasonManagement() {
                     <p className="text-sm text-slate-600">Edita los 9 precios de cuotas, o añade categorías extras si necesitas</p>
                   </div>
                 </div>
-                <Link to={createPageUrl("CategoryConfigAdmin")}>
-                  <Button className="bg-orange-600 hover:bg-orange-700">
+                <Link className="block w-full sm:w-auto" to={createPageUrl("CategoryConfigAdmin")}>
+                  <Button className="w-full rounded-xl bg-orange-600 hover:bg-orange-700 sm:w-auto">
                     <Edit className="w-4 h-4 mr-2" />
                     Gestionar Cuotas
                   </Button>
@@ -902,7 +903,7 @@ export default function SeasonManagement() {
             </div>
 
             {/* Estadísticas */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div className="bg-white rounded-lg p-3 shadow-sm border">
                 <p className="text-xs text-slate-600">Jugadores Activos</p>
                 <p className="text-lg font-bold text-blue-700">{currentStats.players}</p>
