@@ -3,9 +3,6 @@
 @tailwind utilities;
 
 /* Pulido visual global: sutil, coherente y sin cambiar la estructura de las pantallas */
-:root {
-  --club-orange: 24 95 53;
-}
 body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
