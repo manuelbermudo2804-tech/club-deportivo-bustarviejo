@@ -815,16 +815,17 @@ export default function SeasonManagement() {
   }
 
   return (
-    <div className="mx-auto min-w-0 max-w-6xl space-y-5 bg-slate-50/70 p-3 sm:p-5 lg:p-7">
-      {/* Cabecera principal */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-xl sm:p-7">
-        <div className="relative z-10 flex items-center gap-4">
-          <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-orange-500 shadow-lg shadow-orange-950/30 lg:h-14 lg:w-14">
-            <Settings className="w-6 h-6 lg:w-7 lg:h-7 text-white" />
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 bg-slate-50/70 p-3 sm:p-5 lg:p-6">
+      {/* Cabecera común de la aplicación */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="relative z-10 flex items-center gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 sm:h-14 sm:w-14">
+            <Settings className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
           </div>
-          <div className="flex-1 min-w-0">
-            <h1 className="text-2xl lg:text-3xl font-extrabold tracking-tight">Gestión de Temporadas</h1>
-            <p className="text-slate-300 mt-1 text-sm">Configuración de temporadas, categorías y características del club</p>
+          <div className="min-w-0 flex-1">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Configuración del club</p>
+            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Temporadas y categorías</h1>
+            <p className="mt-1 text-sm text-slate-300">Gestiona la temporada activa, las cuotas y las características de la aplicación</p>
           </div>
         </div>
         <div className="pointer-events-none absolute -right-10 -top-12 h-48 w-48 rounded-full bg-orange-500/10 blur-2xl" />
@@ -861,8 +862,8 @@ export default function SeasonManagement() {
 
       {/* Temporada Activa */}
       {activeSeason && (
-        <Card className="overflow-hidden rounded-2xl border border-emerald-200 bg-gradient-to-br from-white to-emerald-50 shadow-sm">
-          <CardHeader className="pb-3">
+        <Card className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+          <CardHeader className="border-b border-slate-100 pb-3">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
@@ -884,7 +885,7 @@ export default function SeasonManagement() {
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Acceso a Gestión de Categorías y Cuotas */}
-            <div className="rounded-xl border border-orange-200 bg-white p-4 shadow-sm">
+            <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div className="flex items-center gap-3">
                   <Euro className="w-8 h-8 text-orange-600" />
@@ -894,7 +895,7 @@ export default function SeasonManagement() {
                   </div>
                 </div>
                 <Link className="block w-full sm:w-auto" to={createPageUrl("CategoryConfigAdmin")}>
-                  <Button className="w-full rounded-xl bg-orange-600 hover:bg-orange-700 sm:w-auto">
+                  <Button className="w-full rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700 sm:w-auto">
                     <Edit className="w-4 h-4 mr-2" />
                     Gestionar Cuotas
                   </Button>
