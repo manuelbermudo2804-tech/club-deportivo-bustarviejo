@@ -270,12 +270,15 @@ export default function PlayerProfile() {
   ];
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-4 md:p-6 space-y-6 text-slate-800">
 
 
       {/* Header con acciones */}
-      <div className="flex items-center justify-between gap-2 flex-wrap">
-        <h1 className="text-3xl md:text-4xl font-bold">Mi Ficha</h1>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-orange-600 mb-1">Área personal</p>
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">Mi perfil</h1>
+        </div>
         <div className="flex gap-2 flex-wrap">
         <Button variant="outline" onClick={() => setShowExtra(true)} className="border-blue-300 text-blue-700">
           <PlusCircle className="w-4 h-4 mr-2" /> Apuntarme a otra actividad
@@ -297,8 +300,8 @@ export default function PlayerProfile() {
       />
 
       {/* Tarjeta de perfil IMPACTANTE */}
-      <Card className="border-0 shadow-xl overflow-hidden">
-        <div className="bg-gradient-to-r from-orange-600 to-orange-700 px-6 py-8 md:py-12 relative overflow-hidden">
+      <Card className="border-0 shadow-xl overflow-hidden rounded-2xl ring-1 ring-orange-700/10">
+        <div className="bg-gradient-to-r from-orange-700 via-orange-600 to-amber-500 px-6 py-8 md:py-10 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/5 rounded-full -ml-20 -mb-20"></div>
 
@@ -394,8 +397,8 @@ export default function PlayerProfile() {
 
       {/* Estadísticas del Jugador */}
       {player && (
-        <Card className="border-0 shadow-lg">
-          <CardContent className="p-6">
+        <Card className="border border-slate-200/80 shadow-md rounded-2xl overflow-hidden">
+          <CardContent className="p-5 md:p-6">
             <PlayerStatsWidget
               playerId={player.id}
               playerCategory={player.categoria_principal || player.deporte}
@@ -501,12 +504,12 @@ export default function PlayerProfile() {
       )}
 
       {/* Tabs de contenido */}
-      <Tabs defaultValue="datos" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="datos">📋 Datos</TabsTrigger>
-          <TabsTrigger value="evolucion">📈 Evolución</TabsTrigger>
-          <TabsTrigger value="salud">❤️ Salud</TabsTrigger>
-          <TabsTrigger value="contacto">📞 Contacto</TabsTrigger>
+      <Tabs defaultValue="datos" className="w-full space-y-3">
+        <TabsList className="grid w-full grid-cols-4 h-auto rounded-xl bg-slate-100 p-1.5 gap-1">
+          <TabsTrigger value="datos" className="rounded-lg py-2.5 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">📋 Datos</TabsTrigger>
+          <TabsTrigger value="evolucion" className="rounded-lg py-2.5 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">📈 Evolución</TabsTrigger>
+          <TabsTrigger value="salud" className="rounded-lg py-2.5 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">❤️ Salud</TabsTrigger>
+          <TabsTrigger value="contacto" className="rounded-lg py-2.5 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">📞 Contacto</TabsTrigger>
         </TabsList>
 
         {/* Tab: Evolución deportiva */}
