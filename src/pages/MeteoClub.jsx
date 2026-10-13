@@ -133,21 +133,25 @@ export default function MeteoClub() {
   };
 
   return (
-    <div className="p-4 lg:p-8 max-w-5xl mx-auto space-y-6">
-      <div className="flex items-center gap-3">
-        <CloudSun className="w-8 h-8 text-orange-600" />
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Meteo Club</h1>
-          <p className="text-slate-500 text-sm">Decisiones de entrenamiento según el tiempo en Bustarviejo</p>
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><CloudSun className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+          <div className="min-w-0">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Área deportiva · Organización de entrenamientos</p>
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Meteo Club</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Decisiones de entrenamiento según el tiempo en Bustarviejo.</p>
+          </div>
         </div>
-      </div>
+      </section>
 
       <Tabs defaultValue="hoy">
-        <TabsList>
-          <TabsTrigger value="hoy">Hoy</TabsTrigger>
-          <TabsTrigger value="historial">Historial</TabsTrigger>
-          {isAdmin && <TabsTrigger value="prueba">🧪 Modo prueba</TabsTrigger>}
-          {isAdmin && <TabsTrigger value="criterios">Criterios</TabsTrigger>}
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1 sm:grid-cols-4 lg:inline-flex">
+          <TabsTrigger value="hoy" className="min-w-0 gap-1.5 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:gap-2 sm:text-sm">Hoy</TabsTrigger>
+          <TabsTrigger value="historial" className="min-w-0 gap-1.5 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:gap-2 sm:text-sm">Historial</TabsTrigger>
+          {isAdmin && <TabsTrigger value="prueba" className="min-w-0 gap-1.5 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:gap-2 sm:text-sm">🧪 Modo prueba</TabsTrigger>}
+          {isAdmin && <TabsTrigger value="criterios" className="min-w-0 gap-1.5 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:gap-2 sm:text-sm">Criterios</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="hoy" className="space-y-3 mt-4">
