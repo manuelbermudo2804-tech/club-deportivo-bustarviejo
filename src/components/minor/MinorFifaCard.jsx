@@ -152,10 +152,10 @@ export default function MinorFifaCard({
               {player?.foto_url ? (
                 <img src={player.foto_url} alt={player.nombre || "Foto del jugador"} className="absolute inset-0 h-full w-full object-contain object-bottom" />
               ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-zinc-700 via-zinc-900 to-black">
+                <div className="absolute inset-0 flex items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-amber-100 via-orange-100 to-amber-300">
                   <div className="text-center">
                     <div className="text-6xl">⚽</div>
-                    <div className="mt-2 text-[9px] font-bold uppercase tracking-[0.25em] text-white/35">Jugador CDB</div>
+                    <div className="mt-2 text-[9px] font-bold uppercase tracking-[0.25em] text-amber-900/60">Jugador CDB</div>
                   </div>
                 </div>
               )}
@@ -195,7 +195,7 @@ export default function MinorFifaCard({
             <div className="mt-4 flex items-center justify-between gap-3 border-t border-amber-900/20 pt-3">
               <div>
                 <div className="text-[9px] font-extrabold uppercase tracking-[0.2em] text-stone-700">Colección de logros</div>
-                <div className="mt-1 text-sm font-black text-white">{logrosCount}<span className="ml-1 text-[10px] font-bold text-stone-600">DESBLOQUEADOS</span></div>
+                <div className="mt-1 text-sm font-black text-stone-900">{logrosCount}<span className="ml-1 text-[10px] font-bold text-stone-600">DESBLOQUEADOS</span></div>
               </div>
               <div className="flex items-center gap-1.5">
                 {[Trophy, Goal, Flame, Target].map((Ic, i) => (
