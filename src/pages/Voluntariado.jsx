@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, CheckCircle2, UserPlus } from "lucide-react";
+import { Plus, CheckCircle2, UserPlus, Users } from "lucide-react";
 import { toast } from "sonner";
 
 import VolunteerProfileCard from "@/components/volunteer/VolunteerProfileCard";
