@@ -16,11 +16,8 @@ export default function NoVoyEntrenoButton({ jugador, categoria, fechaISO, user,
   const { data: ultimo } = useQuery({
     queryKey: key,
     queryFn: async () => {
-      const r = await base44.entities.ChatMessage.filter(
-        { grupo_id: grupoId, client_id: { $regex: `^${prefijo}` } },
-        { sort: "-created_date", limit: 1 }
-      );
-      return r.items?.[0] || null;
+      const r = await base44.functions.invoke("noVoyEstado", { jugador_id: jugador.id, fecha: fechaISO, grupo_id: grupoId });
+      return r.data?.ultimo || null;
     },
     staleTime: 60000,
   });
