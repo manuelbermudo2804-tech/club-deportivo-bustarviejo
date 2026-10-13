@@ -217,25 +217,29 @@ export default function PageBuilderInscritos() {
   return (
     <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
       <header className="relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7 xl:flex-row xl:items-center xl:justify-between">
-        <Button variant="ghost" size="icon" onClick={() => navigate("/PageBuilder")}>
-          <ArrowLeft className="w-5 h-5" />
-        </Button>
-        <div className="flex-1">
-          <h1 className="text-xl lg:text-2xl font-black text-slate-900">
-            📊 Inscritos · {page?.nombre || "..."}
-          </h1>
-          <p className="text-sm text-slate-500">{stats.total} inscripciones recibidas</p>
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <Button variant="ghost" size="icon" className="shrink-0 text-white hover:bg-white/10 hover:text-white" onClick={() => navigate("/PageBuilder")}>
+            <ArrowLeft className="w-5 h-5" />
+          </Button>
+          <div className="min-w-0">
+            <h1 className="text-xl lg:text-2xl font-black text-white">
+              📊 Inscritos · {page?.nombre || "..."}
+            </h1>
+            <p className="text-sm text-slate-300">{stats.total} inscripciones recibidas</p>
+          </div>
         </div>
+        <div className="flex flex-wrap gap-2">
         <Button onClick={() => navigate(`/PageBuilderPreInscritos?id=${pageId}`)} size="sm" className="gap-2 bg-amber-500 hover:bg-amber-600 text-white">
           <AlertTriangle className="w-4 h-4" /> Pre-inscritos (sin completar)
         </Button>
         <Button onClick={shareWhatsApp} size="sm" className="gap-2 bg-green-600 hover:bg-green-700">
           <MessageCircle className="w-4 h-4" /> WhatsApp
         </Button>
-        <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2">
+        <Button onClick={exportCSV} variant="outline" size="sm" className="gap-2 text-slate-900">
           <Download className="w-4 h-4" /> Exportar CSV
         </Button>
-      </div>
+        </div>
+      </header>
 
       {/* Stats */}
       <div className="grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-4">
