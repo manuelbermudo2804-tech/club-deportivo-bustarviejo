@@ -964,7 +964,8 @@ Email: info@cdbustarviejo.com
               {players.length > 0 ? `${players.length} jugador${players.length > 1 ? 'es' : ''} registrado${players.length > 1 ? 's' : ''}` : 'Gestiona las fichas de tus jugadores'}
             </p>
           </div>
-          <div className="relative flex w-full flex-wrap gap-2 sm:w-auto sm:shrink-0">
+        </div>
+        <div className="relative flex w-full flex-wrap gap-2 sm:w-auto sm:shrink-0">
             <ShareFormButton />
             {!isPlayerUser && players.length > 0 && (
               <Button
