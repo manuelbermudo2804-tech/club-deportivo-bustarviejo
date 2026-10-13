@@ -54,17 +54,17 @@ export default function MinorGoalsCard({ playerName, playerCategory, compact = f
           
           <div className="relative z-10 flex items-center gap-3 w-full min-w-0">
             <motion.div 
-              className="text-5xl"
+              className={`${compact ? "text-3xl" : "text-5xl"} flex-shrink-0`}
               animate={{ rotate: [0, -10, 10, -10, 0], scale: [1, 1.1, 1] }}
               transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 3 }}
             >
               ⚽
             </motion.div>
             <div className="flex-1">
-              <h3 className="text-white font-black text-lg">
+              <h3 className={`text-white font-black ${compact ? "text-sm leading-5 break-words" : "text-lg"}`}>
                 {myGoals.goles === 1 ? "¡Has marcado 1 gol!" : `¡Has marcado ${myGoals.goles} goles!`}
               </h3>
-              <p className="text-white/80 text-sm mt-0.5">
+              <p className="text-white/90 text-xs mt-1 break-words">
                 Temporada {myGoals.temporada} · {playerCategory}
               </p>
             </div>
