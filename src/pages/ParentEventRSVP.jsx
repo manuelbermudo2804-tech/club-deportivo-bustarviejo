@@ -197,11 +197,11 @@ export default function ParentEventRSVP() {
             const Icon = config.icon;
 
             return (
-              <Card key={event.id} className="hover:shadow-lg transition-shadow">
+              <Card key={event.id} className="min-w-0 overflow-hidden rounded-2xl border-slate-200 shadow-sm transition-shadow hover:shadow-lg">
                 <CardHeader>
-                  <div className="flex items-start justify-between">
+                  <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
+                      <div className="mb-2 flex flex-wrap items-center gap-2">
                         <Badge className={event.importante ? "bg-red-600" : "bg-orange-600"}>
                           {event.tipo}
                         </Badge>
@@ -227,7 +227,7 @@ export default function ParentEventRSVP() {
                     <p className="text-sm text-slate-600">{event.descripcion}</p>
                   )}
                   
-                  <div className="grid md:grid-cols-2 gap-3 text-sm">
+                  <div className="grid min-w-0 gap-3 text-sm sm:grid-cols-2">
                     <div className="flex items-center gap-2 text-slate-700">
                       <Calendar className="w-4 h-4 text-orange-600" />
                       {format(new Date(event.fecha), "d 'de' MMMM yyyy", { locale: es })}
