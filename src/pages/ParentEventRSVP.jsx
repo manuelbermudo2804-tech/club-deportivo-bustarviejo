@@ -161,7 +161,7 @@ export default function ParentEventRSVP() {
   };
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
+    <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-5 lg:px-8 lg:pt-7">
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Eventos del Club</h1>
         <p className="text-slate-600 mt-1">Confirma tu asistencia a los eventos</p>
