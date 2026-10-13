@@ -654,8 +654,8 @@ export default function ClubMembership() {
   return (
     <>
       <InvitationPWAGuide />
-      <div className="p-4 lg:p-6 max-w-4xl mx-auto overflow-x-hidden" style={{ overflowX: 'hidden' }}>
-        <div className="space-y-6 min-h-screen overflow-x-hidden" style={{ overflowX: 'hidden' }}>
+      <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:px-8 lg:pt-7">
+        <div className="min-h-screen min-w-0 space-y-5 overflow-x-hidden sm:space-y-6" style={{ overflowX: 'hidden' }}> 
         {showSuccess && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowSuccess(false)}>
           <div className="bg-white rounded-3xl p-8 shadow-2xl max-w-md mx-4 text-center relative" onClick={(e)=>e.stopPropagation()}>
@@ -683,22 +683,22 @@ export default function ClubMembership() {
           </div>
         </div>
       )}
-      {/* Header sobrio */}
-      <div className="text-center space-y-2">
-        <div className="flex justify-center">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center shadow-lg">
-            <Heart className="w-7 h-7 text-white" />
-          </div>
+      {/* Cabecera unificada del panel familiar */}
+      <header className="relative isolate flex min-w-0 items-start gap-3 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:gap-4 sm:p-7">
+        <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-orange-500/10 blur-3xl" />
+        <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 sm:h-14 sm:w-14">
+          <Heart className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
         </div>
-        <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">
-          {isRenewal ? `Renueva tu Membresía` : `Hazte Socio del CD Bustarviejo`}
-        </h1>
-        <p className="text-slate-600 text-sm lg:text-base">
-          {isRenewal 
-            ? `Hola ${renewalMember?.nombre_completo}, renueva tu membresía para la nueva temporada` 
-            : `Forma parte de nuestra gran familia deportiva`}
-        </p>
-      </div>
+        <div className="relative min-w-0">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-300">Familias · Comunidad</p>
+          <h1 className="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">
+            {isRenewal ? `Renueva tu Membresía` : `Hazte Socio del CD Bustarviejo`}
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-slate-300 sm:text-base">
+            {isRenewal ? `Hola ${renewalMember?.nombre_completo}, renueva tu membresía para la nueva temporada` : `Forma parte de nuestra gran familia deportiva`}
+          </p>
+        </div>
+      </header>
 
       {/* Programa "Trae un socio amigo" — primero cuando está activo */}
       {programaReferidosActivo && !isRenewal && (
