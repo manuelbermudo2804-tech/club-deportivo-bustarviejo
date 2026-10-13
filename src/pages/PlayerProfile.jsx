@@ -516,9 +516,9 @@ export default function PlayerProfile() {
         <div className="px-1">
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 mb-2">Tu espacio</p>
           <TabsList className="grid w-full grid-cols-4 h-auto rounded-2xl bg-white border border-slate-200/80 p-1.5 gap-1 shadow-sm">
-          <TabsTrigger value="datos" className="rounded-lg py-2.5 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">📋 Datos</TabsTrigger>
-          <TabsTrigger value="evolucion" className="rounded-lg py-2.5 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">📈 Evolución</TabsTrigger>
-          <TabsTrigger value="salud" className="rounded-lg py-2.5 text-xs sm:text-sm data-[state=active]:bg-white data-[state=active]:text-slate-900 data-[state=active]:shadow-sm">❤️ Salud</TabsTrigger>
+          <TabsTrigger value="datos" className="rounded-xl py-3 text-xs sm:text-sm data-[state=active]:bg-slate-950 data-[state=active]:text-white data-[state=active]:shadow-md">📋 Datos</TabsTrigger>
+          <TabsTrigger value="evolucion" className="rounded-xl py-3 text-xs sm:text-sm data-[state=active]:bg-slate-950 data-[state=active]:text-white data-[state=active]:shadow-md">📈 Evolución</TabsTrigger>
+          <TabsTrigger value="salud" className="rounded-xl py-3 text-xs sm:text-sm data-[state=active]:bg-slate-950 data-[state=active]:text-white data-[state=active]:shadow-md">❤️ Salud</TabsTrigger>
           <TabsTrigger value="contacto" className="rounded-xl py-3 text-xs sm:text-sm data-[state=active]:bg-slate-950 data-[state=active]:text-white data-[state=active]:shadow-md">📞 Contacto</TabsTrigger>
           </TabsList>
         </div>
