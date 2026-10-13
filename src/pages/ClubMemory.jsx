@@ -185,25 +185,26 @@ export default function ClubMemory() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-4 lg:p-6 space-y-5">
-      {/* Header */}
-      <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 lg:p-8 text-white">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-12 h-12 rounded-2xl bg-orange-500/20 flex items-center justify-center">
-            <FileText className="w-6 h-6 text-orange-400" />
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+      {/* Encabezado común de la aplicación */}
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 sm:h-14 sm:w-14">
+            <FileText className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
           </div>
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-bold">Memoria del Club</h1>
-            <p className="text-slate-300 text-sm">Memoria institucional editable · formato oficial</p>
+          <div className="min-w-0">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Documentación institucional</p>
+            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Memoria del Club</h1>
+            <p className="mt-1 text-sm text-slate-300">Memoria institucional editable · formato oficial</p>
           </div>
         </div>
       </div>
 
       {/* Controles */}
-      <Card className="rounded-2xl border-slate-200 sticky top-2 z-10 shadow-sm">
-        <CardContent className="p-4 flex flex-wrap items-center gap-3">
+      <Card className="sticky top-2 z-10 rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <CardContent className="flex flex-col items-stretch gap-3 p-3 sm:flex-row sm:flex-wrap sm:items-center sm:p-4">
           <Select value={temporada} onValueChange={setTemporada}>
-            <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
+            <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50 sm:w-48"><SelectValue /></SelectTrigger>
             <SelectContent>
               {seasonOptions(activeSeason).map(s => (
                 <SelectItem key={s} value={s}>Temporada {s}{s === activeSeason ? " (activa)" : ""}</SelectItem>
@@ -211,17 +212,17 @@ export default function ClubMemory() {
             </SelectContent>
           </Select>
 
-          <Button variant="outline" onClick={runAI} disabled={aiLoading || loading} className="rounded-lg">
+          <Button variant="outline" onClick={runAI} disabled={aiLoading || loading} className="h-11 rounded-xl border-slate-200">
             {aiLoading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Sparkles className="w-4 h-4 mr-2 text-orange-500" />}
             Redactar con IA
           </Button>
 
-          <Button variant="outline" onClick={save} disabled={saving || loading} className="rounded-lg">
+          <Button variant="outline" onClick={save} disabled={saving || loading} className="h-11 rounded-xl border-slate-200">
             {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
             Guardar
           </Button>
 
-          <Button onClick={handleDownload} disabled={!data || generating || loading} className="bg-orange-600 hover:bg-orange-700 ml-auto">
+          <Button onClick={handleDownload} disabled={!data || generating || loading} className="h-11 w-full rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700 sm:ml-auto sm:w-auto">
             {generating ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
             Descargar PDF
           </Button>
