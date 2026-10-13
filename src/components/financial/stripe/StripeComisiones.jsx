@@ -9,7 +9,7 @@ export default function StripeComisiones({ meses }) {
     <Card>
       <CardHeader><CardTitle className="text-lg">Comisiones de Stripe por mes</CardTitle></CardHeader>
       <CardContent>
-        <table className="w-full text-sm">
+        <div className="max-w-full overflow-x-auto rounded-xl border border-slate-200"><table className="w-full min-w-[620px] text-sm">
           <thead><tr className="text-left text-slate-500 border-b">
             <th className="py-2">Mes</th><th>Cobros</th><th>Cobrado</th><th>Comisión</th><th>Neto</th>
           </tr></thead>
@@ -25,7 +25,7 @@ export default function StripeComisiones({ meses }) {
               <td className="text-red-600">-{eur(tot.comision)}</td><td>{eur(tot.neto)}</td>
             </tr>
           </tbody>
-        </table>
+        </table></div>
       </CardContent>
     </Card>
   );
