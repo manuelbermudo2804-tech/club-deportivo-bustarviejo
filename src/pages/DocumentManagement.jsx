@@ -217,29 +217,28 @@ Email: cdbustarviejo@gmail.com
   ).length;
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <FileText className="w-8 h-8 text-orange-600" />
-            Gestión Documental
-          </h1>
-          <p className="text-slate-600 mt-1">Administra los documentos del club</p>
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14">
+              <FileText className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Gestión documental · Club Deportivo Bustarviejo</p>
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Gestión Documental</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Administra los documentos del club, las publicaciones y las firmas pendientes.</p>
+            </div>
+          </div>
+          <Button onClick={() => { setEditingDocument(null); setShowForm(!showForm); }} className="w-full shrink-0 bg-orange-500 text-white hover:bg-orange-600 sm:w-auto">
+            <Plus className="mr-2 h-5 w-5" /> Nuevo documento
+          </Button>
         </div>
-        <Button
-          onClick={() => {
-            setEditingDocument(null);
-            setShowForm(!showForm);
-          }}
-          className="bg-orange-600 hover:bg-orange-700"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Nuevo Documento
-        </Button>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500">
+      <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="min-w-0 rounded-2xl border border-slate-200 border-l-4 border-l-orange-500 bg-white p-4 shadow-sm sm:p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-600 mb-1">Total Documentos</p>
@@ -249,7 +248,7 @@ Email: cdbustarviejo@gmail.com
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500">
+        <div className="min-w-0 rounded-2xl border border-slate-200 border-l-4 border-l-red-500 bg-white p-4 shadow-sm sm:p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-600 mb-1">Pendientes de Firma</p>
@@ -259,7 +258,7 @@ Email: cdbustarviejo@gmail.com
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
+        <div className="min-w-0 rounded-2xl border border-slate-200 border-l-4 border-l-green-500 bg-white p-4 shadow-sm sm:p-5">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-600 mb-1">Requieren Firma</p>
@@ -287,8 +286,8 @@ Email: cdbustarviejo@gmail.com
         )}
       </AnimatePresence>
 
-      <div className="flex gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[250px]">
+      <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:flex-row sm:flex-wrap sm:items-center sm:p-4">
+        <div className="relative min-w-0 flex-1 sm:min-w-[250px]">
           <Search className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
           <Input
             placeholder="Buscar por título, descripción o tipo..."
@@ -299,7 +298,7 @@ Email: cdbustarviejo@gmail.com
         </div>
 
         <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-[200px] h-11">
+          <SelectTrigger className="h-11 w-full sm:w-[220px]">
             <Filter className="w-4 h-4 mr-2" />
             <SelectValue />
           </SelectTrigger>
@@ -320,12 +319,12 @@ Email: cdbustarviejo@gmail.com
           <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
         </div>
       ) : filteredDocuments.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-xl shadow-lg">
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-10 text-center shadow-sm">
           <FileText className="w-16 h-16 text-slate-300 mx-auto mb-4" />
           <p className="text-slate-500">No hay documentos</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-4">
+        <div className="grid min-w-0 grid-cols-1 gap-3 xl:grid-cols-2">
           <AnimatePresence>
             {filteredDocuments.map((document) => (
               <DocumentCard
