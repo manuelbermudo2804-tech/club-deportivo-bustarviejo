@@ -205,9 +205,9 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
       <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
         📊 Estadísticas de la Temporada
       </h3>
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
         {visibleStats.map((stat, i) => (
-          <div key={i} className={`rounded-xl border-2 p-3 text-center transition-all hover:scale-105 ${stat.color}`}>
+          <div key={i} className={`rounded-xl border p-4 text-center transition-all hover:-translate-y-0.5 hover:shadow-sm ${stat.color}`}>
             <div className="text-2xl mb-1">{stat.icon}</div>
             <div className="text-lg font-bold">{stat.value}</div>
             <div className="text-xs opacity-70">{stat.label}</div>
