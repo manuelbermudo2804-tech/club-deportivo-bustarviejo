@@ -153,56 +153,67 @@ function LinkCard({ page }) {
 export default function ExternalLinks() {
   const navigate = useNavigate();
   return (
-    <div className="p-4 lg:p-6 max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-black text-slate-900">🌐 Páginas Externas</h1>
-        <p className="text-slate-500 mt-1">
-          Todas las páginas públicas de la app que no requieren login. Puedes copiar la URL o abrirlas directamente.
-        </p>
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 sm:h-14 sm:w-14">
+            <ExternalLink className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
+          </div>
+          <div className="min-w-0">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Acceso público y difusión</p>
+            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Páginas externas</h1>
+            <p className="mt-1 text-sm text-slate-300">Enlaces públicos de la aplicación, listos para abrir, copiar y compartir</p>
+          </div>
+        </div>
       </div>
 
       {/* CTA — Constructor de páginas */}
       <button
         onClick={() => navigate("/PageBuilder")}
-        className="w-full mb-6 text-left group relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6 lg:p-8 text-white hover:shadow-2xl transition-shadow"
+        className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-4 text-left text-white shadow-md transition-shadow hover:shadow-lg sm:p-6"
       >
-        <div className="absolute -top-10 -right-10 w-40 h-40 bg-orange-500/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-green-500/20 rounded-full blur-3xl" />
-        <div className="relative flex items-start gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center flex-shrink-0 shadow-xl">
-            <Sparkles className="w-7 h-7" />
+        <div className="pointer-events-none absolute -right-10 -top-10 h-40 w-40 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex items-start gap-3 sm:items-center sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-500/15 ring-1 ring-orange-400/30 sm:h-14 sm:w-14">
+            <Sparkles className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" />
           </div>
-          <div className="flex-1">
-            <div className="inline-block px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 text-xs font-bold tracking-wider mb-2">
-              NUEVO
-            </div>
-            <h2 className="text-2xl lg:text-3xl font-black tracking-tight mb-1">
-              Constructor de Páginas
-            </h2>
-            <p className="text-white/70 text-sm lg:text-base">
-              Crea páginas públicas con formulario en minutos. Plantillas brutales, URL única, panel de inscritos.
-            </p>
+          <div className="min-w-0 flex-1">
+            <div className="mb-2 inline-flex rounded-full bg-orange-500/15 px-2 py-1 text-[10px] font-bold tracking-wider text-orange-300">HERRAMIENTA</div>
+            <h2 className="text-xl font-black tracking-tight sm:text-2xl">Constructor de páginas</h2>
+            <p className="mt-1 text-sm leading-relaxed text-slate-300">Crea páginas públicas con formularios, enlaces únicos y gestión de inscritos.</p>
           </div>
-          <ArrowRight className="w-6 h-6 text-white/40 group-hover:text-white group-hover:translate-x-1 transition-all flex-shrink-0" />
+          <ArrowRight className="mt-1 h-5 w-5 shrink-0 text-orange-300 transition-transform group-hover:translate-x-1 sm:mt-0 sm:h-6 sm:w-6" />
         </div>
       </button>
 
-      <h2 className="text-sm font-bold text-slate-600 uppercase tracking-wider mb-3">📌 Páginas fijas del sistema</h2>
+      <section className="space-y-3">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900">Páginas fijas del sistema</h2>
+            <p className="text-sm text-slate-500">Accesos directos a las páginas que puedes compartir sin iniciar sesión.</p>
+          </div>
+          <span className="text-xs font-medium text-slate-500">{EXTERNAL_PAGES.length} enlaces disponibles</span>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {EXTERNAL_PAGES.map((page) => (
+            <LinkCard key={page.id} page={page} />
+          ))}
+        </div>
+      </section>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        {EXTERNAL_PAGES.map((page) => (
-          <LinkCard key={page.id} page={page} />
-        ))}
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <div className="p-4 sm:p-5">
+          <h2 className="text-base font-bold text-slate-900">Generador de propuestas</h2>
+          <p className="mt-1 text-sm text-slate-500">Prepara textos para compartir las páginas con familias y contactos.</p>
+        </div>
+        <div className="border-t border-slate-100 p-3 sm:p-5">
+          <PropuestaGenerator />
+        </div>
       </div>
 
-      <div className="mt-8">
-        <PropuestaGenerator />
-      </div>
-
-      <div className="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <p className="text-sm text-blue-700">
-          <strong>💡 Tip:</strong> Estas páginas son accesibles sin iniciar sesión. Compártelas con quien necesites — por ejemplo, el enlace de "Solicitar Acceso" es ideal para enviar a nuevas familias.
-        </p>
+      <div className="flex items-start gap-3 rounded-2xl border border-orange-200 bg-orange-50 p-4 text-sm leading-relaxed text-slate-700">
+        <MessageCircle className="mt-0.5 h-5 w-5 shrink-0 text-orange-600" />
+        <p><strong className="text-slate-900">Consejo:</strong> estas páginas son públicas. Antes de compartir un enlace, comprueba que corresponde al formulario o trámite adecuado; el enlace de «Solicitar acceso» es útil para nuevas familias.</p>
       </div>
     </div>
   );
