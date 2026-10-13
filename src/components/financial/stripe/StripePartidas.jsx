@@ -21,7 +21,7 @@ export default function StripePartidas({ partidas, gastos }) {
     <Card>
       <CardHeader><CardTitle className="text-lg">Ingresos por Stripe por partidas (todo el historial)</CardTitle></CardHeader>
       <CardContent className="space-y-4">
-        <table className="w-full text-sm">
+        <div className="max-w-full overflow-x-auto rounded-xl border border-slate-200"><table className="w-full min-w-[620px] text-sm">
           <thead><tr className="text-left text-slate-500 border-b">
             <th className="py-2">Partida</th><th>Cobros</th><th>Ingresado</th><th>Comisión</th><th>Neto</th>
           </tr></thead>
@@ -37,8 +37,8 @@ export default function StripePartidas({ partidas, gastos }) {
               <td className="text-red-600">-{eur(tot.comision)}</td><td>{eur(tot.neto)}</td>
             </tr>
           </tbody>
-        </table>
-        <div className="grid sm:grid-cols-3 gap-3 text-sm">
+        </table></div>
+        <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
           <div className="p-3 rounded-lg bg-red-50"><p className="text-slate-500">Devoluciones</p><p className="font-bold text-red-700">-{eur(gastos?.devoluciones)}</p></div>
           <div className="p-3 rounded-lg bg-red-50"><p className="text-slate-500">Otros cargos de Stripe</p><p className="font-bold text-red-700">-{eur(gastos?.otras_comisiones)}</p></div>
           <div className="p-3 rounded-lg bg-green-50"><p className="text-slate-500">Lo que realmente le queda al club</p><p className="font-bold text-green-700">{eur(final)}</p></div>
