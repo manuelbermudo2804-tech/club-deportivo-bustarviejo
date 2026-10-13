@@ -1000,19 +1000,20 @@ export default function PaymentReminders() {
           </Card>
         ) : (
           filteredFamilies.map(family => (
-            <Card key={family.email} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:border-slate-300 hover:shadow-md">
+            <Card key={family.email} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:border-orange-200 hover:shadow-md">
               <CardHeader className="border-b border-slate-100 bg-slate-50/80 p-3 sm:p-4">
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                <div className="flex min-w-0 flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex min-w-0 flex-1 items-start gap-3">
                     <input
                       type="checkbox"
                       checked={selectedFamilies.includes(family.email)}
                       onChange={() => toggleFamily(family.email)}
-                      className="w-5 h-5 rounded border-slate-300"
+                      aria-label={`Seleccionar familia ${family.nombre_tutor}`}
+                      className="mt-1 h-5 w-5 shrink-0 rounded border-slate-300 accent-orange-600"
                     />
-                    <div className="flex-1">
+                    <div className="min-w-0 flex-1">
                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                       <CardTitle className="text-base">{family.nombre_tutor}</CardTitle>
+                       <CardTitle className="break-words text-base font-bold leading-snug text-slate-900 sm:text-lg">{family.nombre_tutor}</CardTitle>
                        {family.isStaff && (
                          <Badge className="bg-purple-500 text-white text-xs">
                            👤 {family.staffRole}
@@ -1047,18 +1048,17 @@ export default function PaymentReminders() {
                      )}
                     </div>
                     </div>
-                  <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:text-right pl-8 sm:pl-0">
-                    <Badge className="max-w-full whitespace-normal text-center bg-red-500 text-white mb-1">
-                      {family.totalPendingPayments} pendientes
-                    </Badge>
-                    <p className="text-lg font-bold text-red-600">{family.totalFamilyDue.toFixed(0)}€</p>
+                  <div className="flex shrink-0 items-center justify-between gap-3 rounded-xl border border-red-100 bg-red-50 px-3 py-2 sm:min-w-[180px] sm:flex-col sm:items-end sm:justify-center sm:gap-1 sm:px-4">
+                    <div className="flex flex-col sm:items-end"><span className="text-[10px] font-semibold uppercase tracking-wide text-red-700">Deuda total</span><p className="text-2xl font-extrabold tracking-tight text-red-700">{family.totalFamilyDue.toFixed(0)}€</p></div>
+                    <Badge className="whitespace-nowrap bg-red-600 text-white">{family.totalPendingPayments} pendientes</Badge>
                   </div>
                 </div>
               </CardHeader>
-              <CardContent className="min-w-0 p-3 sm:p-4">
-                <div className="space-y-3">
+              <CardContent className="min-w-0 space-y-4 p-3 sm:p-4">
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-2"><h3 className="text-xs font-bold uppercase tracking-wide text-slate-500">Detalle por jugador</h3><Badge variant="outline" className="border-slate-200 text-slate-600">{family.jugadores.length} {family.jugadores.length === 1 ? "jugador" : "jugadores"}</Badge></div>
                   {family.jugadores.map(jugador => (
-                    <div key={jugador.id} className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-200 bg-white p-2 sm:p-3">
+                    <div key={jugador.id} className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-200 bg-slate-50/60 p-3 sm:p-4">
                       {jugador.foto_url ? (
                         <img src={jugador.foto_url} className="h-10 w-10 flex-shrink-0 rounded-full object-cover sm:h-12 sm:w-12" alt="" />
                       ) : (
@@ -1066,9 +1066,8 @@ export default function PaymentReminders() {
                           {jugador.nombre.charAt(0)}
                         </div>
                       )}
-                      <div className="flex-1">
-                        <p className="font-semibold text-slate-900">{jugador.nombre}</p>
-                        <p className="text-xs text-slate-600">{jugador.deporte}</p>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex min-w-0 flex-wrap items-start justify-between gap-2"><div className="min-w-0"><p className="break-words font-semibold text-slate-900">{jugador.nombre}</p><p className="mt-0.5 text-xs text-slate-500">{jugador.deporte}</p></div>{jugador.hasPendingPayments && <Badge className="shrink-0 bg-red-100 text-red-700 hover:bg-red-100">{jugador.totalDue}€</Badge>}</div>
                         {jugador.hasPendingPayments && (
                           <div className="mt-2 space-y-1">
                             {jugador.pendingMonths.map(m => (
@@ -1077,7 +1076,7 @@ export default function PaymentReminders() {
                                 <span className="font-semibold text-red-700">{m.cantidad}€</span>
                               </div>
                             ))}
-                            <div className="pt-1 border-t border-slate-200 flex justify-between text-xs font-bold">
+                            <div className="flex justify-between border-t border-slate-200 pt-2 text-xs font-bold">
                               <span className="text-slate-700">Total jugador:</span>
                               <span className="text-red-700">{jugador.totalDue}€</span>
                             </div>
@@ -1093,17 +1092,17 @@ export default function PaymentReminders() {
                   ))}
                 </div>
 
-                <div className="mt-4 pt-4 border-t flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-700">Total familia:</p>
-                    <p className="text-2xl font-bold text-red-600">{family.totalFamilyDue.toFixed(0)}€</p>
+                <div className="flex flex-col gap-3 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2 sm:bg-transparent sm:px-0 sm:py-0">
+                    <p className="text-sm font-semibold text-slate-600">Total de la familia</p>
+                    <p className="text-xl font-extrabold tracking-tight text-red-700">{family.totalFamilyDue.toFixed(0)}€</p>
                   </div>
                   <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                     <Button
                       onClick={() => setSelectiveDialogFamily(family)}
                       size="sm"
                       variant="outline"
-                      className="border-orange-300 text-orange-700 hover:bg-orange-50"
+                      className="w-full border-orange-300 text-orange-700 hover:bg-orange-50 sm:w-auto"
                     >
                       <Zap className="w-4 h-4 mr-2" />
                       Seleccionar Pagos
