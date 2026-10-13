@@ -610,7 +610,7 @@ export default function TreasurerFinancialPanel() {
   }
 
   return (
-    <div className="min-h-screen overflow-y-auto p-6 space-y-6 pb-28">
+    <div className="min-h-screen w-full min-w-0 max-w-full overflow-x-hidden overflow-y-auto box-border p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6 pb-28 [&_*]:min-w-0">
       {/* Alerta automática de morosidad */}
       <AutomaticMorosidadAlert 
         totalIngresos={totalIngresos}
@@ -618,12 +618,14 @@ export default function TreasurerFinancialPanel() {
         totalEsperado={totalEsperado}
       />
 
-      <div className="bg-gradient-to-r from-white to-slate-50 rounded-2xl p-6 shadow-xl border border-slate-200">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">💰 Panel Financiero</h1>
-            <p className="text-slate-600 mt-1">Control total de ingresos, gastos y presupuestos</p>
-            <div className="flex gap-2 mt-3">
+      <div className="relative isolate overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 p-4 text-white shadow-xl sm:p-6 lg:p-8">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
+        <div className="relative flex flex-col items-start justify-between gap-5 xl:flex-row xl:items-center">
+          <div className="w-full min-w-0">
+            <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300"><span className="h-2 w-2 rounded-full bg-emerald-400" /> Administración · Finanzas</div>
+            <h1 className="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">Panel Financiero</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Control total de ingresos, gastos y presupuestos</p>
+            <div className="mt-3 flex flex-wrap gap-2">
               {activeSeason && (
                 <Badge className="bg-green-100 text-green-700 border border-green-200">
                   📅 {activeSeason.temporada}
@@ -634,9 +636,9 @@ export default function TreasurerFinancialPanel() {
               </Badge>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:w-auto xl:min-w-[420px]">
             <Select value={timeFilter} onValueChange={setTimeFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="h-11 w-full rounded-xl border-white/25 bg-slate-800 text-white">
                 <SelectValue placeholder="Período" />
               </SelectTrigger>
               <SelectContent>
@@ -650,15 +652,15 @@ export default function TreasurerFinancialPanel() {
             <Button 
               onClick={() => setShowSeasonComparison(true)}
               variant="outline"
-              className="shadow-lg"
+              className="h-auto min-h-11 w-full justify-center whitespace-normal rounded-xl border-white/25 bg-white/10 px-3 py-2 text-center text-white shadow-sm hover:bg-white/20 hover:text-white"
             >
-              <TrendingUp className="w-4 h-4 mr-2" />
+              <TrendingUp className="mr-2 h-4 w-4 shrink-0" />
               Comparar Temporadas
             </Button>
             <Button 
               onClick={handleExportPDF}
               disabled={generatingPDF}
-              className="bg-red-600 hover:bg-red-700 shadow-lg"
+              className="h-11 w-full justify-center rounded-xl bg-red-600 font-semibold text-white shadow-sm hover:bg-red-500 hover:text-white"
             >
               <Download className="w-4 h-4 mr-2" />
               {generatingPDF ? 'Generando...' : 'PDF'}
@@ -666,7 +668,7 @@ export default function TreasurerFinancialPanel() {
             <Button 
               onClick={handleExportExcel}
               disabled={generatingExcel}
-              className="bg-green-600 hover:bg-green-700 shadow-lg"
+              className="h-11 w-full justify-center rounded-xl bg-green-600 font-semibold text-white shadow-sm hover:bg-green-500 hover:text-white"
             >
               <FileText className="w-4 h-4 mr-2" />
               {generatingExcel ? 'Generando...' : 'Excel'}
@@ -674,7 +676,7 @@ export default function TreasurerFinancialPanel() {
             {activeTab === "presupuestos" && (
               <Button 
                 onClick={() => setShowAIForecasting(true)}
-                className="bg-purple-600 hover:bg-purple-700 shadow-lg"
+                className="h-11 w-full justify-center rounded-xl bg-purple-600 font-semibold text-white shadow-sm hover:bg-purple-500 hover:text-white"
               >
                 <Sparkles className="w-4 h-4 mr-2" />
                 Análisis IA
@@ -685,26 +687,26 @@ export default function TreasurerFinancialPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-5 bg-white border border-slate-200 rounded-xl">
-          <TabsTrigger value="resumen" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <BarChart3 className="w-4 h-4" />
-            <span className="hidden md:inline">Resumen</span>
+        <TabsList className="grid h-auto w-full grid-cols-5 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+          <TabsTrigger value="resumen" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+            <BarChart3 className="h-4 w-4 shrink-0" />
+            <span>Resumen</span>
           </TabsTrigger>
-          <TabsTrigger value="analisis" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <TrendingUp className="w-4 h-4" />
-            <span className="hidden md:inline">Análisis</span>
+          <TabsTrigger value="analisis" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+            <TrendingUp className="h-4 w-4 shrink-0" />
+            <span>Análisis</span>
           </TabsTrigger>
-          <TabsTrigger value="bancario" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <Building2 className="w-4 h-4" />
-            <span className="hidden md:inline">Bancario</span>
+          <TabsTrigger value="bancario" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+            <Building2 className="h-4 w-4 shrink-0" />
+            <span>Bancario</span>
           </TabsTrigger>
-          <TabsTrigger value="presupuestos" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <Euro className="w-4 h-4" />
-            <span className="hidden md:inline">Presupuestos</span>
+          <TabsTrigger value="presupuestos" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+            <Euro className="h-4 w-4 shrink-0" />
+            <span>Presup.</span>
           </TabsTrigger>
-          <TabsTrigger value="stripe" className="gap-2 data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <Euro className="w-4 h-4" />
-            <span className="hidden md:inline">Stripe</span>
+          <TabsTrigger value="stripe" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+            <Euro className="h-4 w-4 shrink-0" />
+            <span>Stripe</span>
           </TabsTrigger>
         </TabsList>
 
