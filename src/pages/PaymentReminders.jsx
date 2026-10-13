@@ -721,22 +721,29 @@ export default function PaymentReminders() {
         onComplete={() => setShowSuccess(false)}
         message={successMessage}
       />
-      <div className="mx-auto w-full min-w-0 max-w-[1600px] box-border space-y-5 overflow-x-hidden bg-slate-50/70 p-3 sm:space-y-6 sm:p-5 lg:p-8 [&_*]:min-w-0">
+      <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7 [&_*]:min-w-0">
         <SocialLinks />
 
-      <div className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:p-5">
-        <div>
-          <h1 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">Recordatorios de pago</h1>
-          <p className="mt-1 text-sm text-slate-500">Gestiona avisos y pagos pendientes · Temporada <strong className="text-slate-700">{effectiveSeason}</strong></p>
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><Bell className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+            <div className="min-w-0">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Gestión de cobros</p>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Recordatorios de pago</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Gestiona avisos, revisa las deudas pendientes y contacta con las familias.</p>
+            </div>
+          </div>
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 sm:min-w-[190px] sm:flex-col sm:items-start">
+            <div><p className="text-[10px] font-medium uppercase tracking-wide text-slate-400">Temporada activa</p><p className="mt-1 text-sm font-bold text-white">{effectiveSeason}</p></div>
+            <Button onClick={handleRefresh} variant="outline" size="sm" className="border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white"><RefreshCw className="mr-2 h-4 w-4" />Actualizar</Button>
+          </div>
         </div>
-        <Button onClick={handleRefresh} variant="outline" size="sm" className="w-full sm:w-auto">
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Actualizar
-        </Button>
-      </div>
+      </section>
 
-      <Card className="min-w-0 overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm">
-        <CardHeader className="border-b border-emerald-100 bg-emerald-50/70 p-4 sm:p-5">
+      <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-slate-100 bg-slate-50/80 p-4 sm:p-5">
           <CardTitle className="flex min-w-0 items-start gap-2 text-base font-bold leading-snug text-slate-900 sm:text-lg">
             <CheckCircle2 className="h-5 w-5 text-green-600" />
             Recordatorios automáticos
