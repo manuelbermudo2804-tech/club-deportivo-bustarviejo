@@ -248,16 +248,23 @@ Proporciona un análisis estructurado, accionable y práctico. NO SUGIERAS nada 
     .slice(0, 5);
 
   return (
-    <div className="p-4 lg:p-6 max-w-6xl mx-auto space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
-          💬 Gestión de Feedback
-        </h1>
-        <p className="text-slate-600">Revisa sugerencias, bugs y comentarios de usuarios</p>
-      </div>
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14">
+            <MessageCircle className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" />
+          </div>
+          <div className="min-w-0">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Escucha activa · Club Deportivo Bustarviejo</p>
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Gestión de Feedback</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Revisa sugerencias, errores y comentarios de los usuarios para seguir mejorando la app.</p>
+          </div>
+        </div>
+      </section>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+      <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
         <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
           <CardContent className="pt-4 text-center">
             <p className="text-3xl font-bold text-blue-700">{stats.total}</p>
@@ -291,7 +298,7 @@ Proporciona un análisis estructurado, accionable y práctico. NO SUGIERAS nada 
       </div>
 
       {/* Análisis */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid min-w-0 grid-cols-1 gap-4 xl:grid-cols-2">
         <Card className="border-slate-200">
           <CardHeader>
             <CardTitle className="text-base">📊 Breakdown por Tipo</CardTitle>
@@ -357,8 +364,8 @@ Proporciona un análisis estructurado, accionable y práctico. NO SUGIERAS nada 
       {/* Botón de Análisis con IA */}
       <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
         <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="min-w-0 flex-1">
               <h3 className="font-bold text-purple-900 text-lg mb-1">🤖 Análisis Inteligente con IA</h3>
               <p className="text-sm text-purple-700">
                 La IA analizará todo el feedback, agrupará por temas comunes y sugerirá mejoras prioritarias
@@ -367,7 +374,7 @@ Proporciona un análisis estructurado, accionable y práctico. NO SUGIERAS nada 
             <Button
               onClick={analyzeWithAI}
               disabled={loadingAI || feedbacks.length === 0}
-              className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 ml-4"
+              className="w-full shrink-0 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 sm:ml-4 sm:w-auto"
             >
               {loadingAI ? (
                 <>
@@ -441,15 +448,15 @@ Proporciona un análisis estructurado, accionable y práctico. NO SUGIERAS nada 
           </Card>
         ) : (
           filtered.map((feedback) => (
-            <Card key={feedback.id} className="hover:shadow-lg transition-shadow border-slate-200">
-              <CardContent className="pt-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+            <Card key={feedback.id} className="min-w-0 overflow-hidden rounded-2xl border-slate-200 shadow-sm transition-shadow hover:shadow-md">
+              <CardContent className="p-4 sm:p-5">
+                <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-2 flex min-w-0 items-start gap-2">
                       {tipoIcons[feedback.tipo]}
-                      <h3 className="font-bold text-slate-900">{feedback.titulo}</h3>
+                      <h3 className="min-w-0 break-words font-bold text-slate-900">{feedback.titulo}</h3>
                     </div>
-                    <p className="text-sm text-slate-700 mb-3">{feedback.descripcion}</p>
+                    <p className="mb-3 break-words text-sm leading-relaxed text-slate-700">{feedback.descripcion}</p>
                     <div className="flex items-center gap-2 flex-wrap">
                       <Badge className={estadoColors[feedback.estado]}>
                         {estadoLabels[feedback.estado]}
@@ -471,7 +478,7 @@ Proporciona un análisis estructurado, accionable y práctico. NO SUGIERAS nada 
                       setSelectedFeedback(feedback);
                       setNotasAdmin(feedback.notas_admin || "");
                     }}
-                    className="flex-shrink-0"
+                    className="w-full shrink-0 sm:w-auto"
                   >
                     <Edit2 className="w-4 h-4 mr-1" />
                     Ver
@@ -590,7 +597,7 @@ Proporciona un análisis estructurado, accionable y práctico. NO SUGIERAS nada 
 
       {/* Modal de edición */}
       <Dialog open={!!selectedFeedback} onOpenChange={() => setSelectedFeedback(null)}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-h-[90dvh] max-w-md overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Gestionar Feedback</DialogTitle>
           </DialogHeader>
