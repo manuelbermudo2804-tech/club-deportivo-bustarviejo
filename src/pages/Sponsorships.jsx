@@ -171,28 +171,31 @@ export default function Sponsorships() {
   return (
     <div className="w-full min-w-0 max-w-full overflow-x-hidden p-3 sm:p-4 lg:p-6 space-y-5 sm:space-y-6 [&_*]:min-w-0 [&_input]:max-w-full [&_button]:max-w-full">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-slate-900 flex flex-wrap items-center gap-2 break-words">
-            💰 Gestión de Patrocinios
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="min-w-0">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Administración del club</p>
+          <h1 className="flex flex-wrap items-center gap-3 break-words text-2xl font-black tracking-tight text-white sm:text-3xl">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15"><Building2 className="h-6 w-6 text-orange-400" /></span>
+            Gestión de Patrocinios
           </h1>
-          <p className="text-slate-600 mt-1">Administra los patrocinadores del club</p>
+          <p className="mt-2 text-sm text-slate-300">Administra los patrocinadores del club</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-2 w-full md:w-auto md:min-w-[280px]">
+        <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:w-auto xl:grid-cols-2">
           <Link to="/PresupuestoGenerator" className="w-full">
-            <Button variant="outline" className="w-full justify-center border-blue-400 text-blue-700 hover:bg-blue-50">
+            <Button variant="outline" className="w-full justify-center rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15">
               <ClipboardList className="w-4 h-4 mr-2" />
               Generar Presupuesto
             </Button>
           </Link>
           <Link to="/ReciboGenerator" className="w-full">
-            <Button variant="outline" className="w-full justify-center border-orange-300 text-orange-700 hover:bg-orange-50">
+            <Button variant="outline" className="w-full justify-center rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15">
               <FileText className="w-4 h-4 mr-2" />
               Generar Recibo
             </Button>
           </Link>
           <Link to="/FacturaGenerator" className="w-full">
-            <Button variant="outline" className="w-full justify-center border-orange-500 text-orange-800 hover:bg-orange-100">
+            <Button variant="outline" className="w-full justify-center rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15">
               <Receipt className="w-4 h-4 mr-2" />
               Generar Factura
             </Button>
@@ -202,11 +205,12 @@ export default function Sponsorships() {
               setEditingSponsor(null);
               setShowForm(!showForm);
             }}
-            className="w-full justify-center bg-amber-600 hover:bg-amber-700"
+            className="w-full justify-center rounded-xl bg-orange-600 font-semibold hover:bg-orange-700"
           >
             <Plus className="w-4 h-4 mr-2" />
             Nuevo Patrocinador
           </Button>
+        </div>
         </div>
       </div>
 
