@@ -397,17 +397,17 @@ export default function CalendarAndSchedules() {
       {/* Cabecera común de la aplicación */}
       <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
         <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
-        <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><CalendarCheck className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
-          <div className="min-w-0"><p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Organización deportiva</p>
-            {newEventsCount > 0 && !isAdmin && (
-              <Badge className="bg-red-500 text-white text-xs">
-                <Bell className="w-3 h-3 mr-1" />
-                {newEventsCount}
-              </Badge>
-            )}
-          </div>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Consulta y administra los horarios de entrenamiento, los partidos y los días de descanso del club.</p>
+        <div className="relative flex min-w-0 flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><CalendarCheck className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+            <div className="min-w-0">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Organización deportiva</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Horarios y calendario</h1>
+                {newEventsCount > 0 && !isAdmin && <Badge className="bg-red-500 text-white text-xs"><Bell className="mr-1 h-3 w-3" />{newEventsCount}</Badge>}
+              </div>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Consulta y administra los horarios de entrenamiento, los partidos y los días de descanso del club.</p>
+            </div>
           </div>
         </div>
       </section>
