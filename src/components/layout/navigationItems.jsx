@@ -297,7 +297,7 @@ export function buildParentNavigation(ctx) {
     ...(!onlyComplementary ? [{ title: "🏆 Competición", url: createPageUrl("CentroCompeticion"), icon: Trophy }] : []),
     { title: "📢 Tablón del club", url: createPageUrl("Announcements"), icon: Megaphone },
     { title: "📄 Documentos y LOPIVI", url: createPageUrl("ParentDocuments"), icon: FileText },
-    ...(!onlyComplementary ? [{ title: "🛍️ Tienda y Equipación", url: createPageUrl("Tienda"), icon: ShoppingBag }] : []),
+    { title: "🛍️ Tienda y Equipación", url: createPageUrl("Tienda"), icon: ShoppingBag },
     { title: "🍀 Lotería Navidad", url: "/loteria", icon: Clover },
     { title: "🖼️ Ver fotos del club", url: createPageUrl("Gallery"), icon: Image },
     { title: "📸 Enviar fotos y vídeos", url: createPageUrl("SubirContenido"), icon: Camera },
