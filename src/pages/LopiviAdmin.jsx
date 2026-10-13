@@ -102,17 +102,22 @@ export default function LopiviAdmin() {
   const nuevas = incidencias.filter(i => i.estado === "nueva").length;
 
   return (
-    <div className="p-6 lg:p-8 space-y-6 max-w-5xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-2">
-          <Shield className="w-8 h-8 text-emerald-600" />
-          LOPIVI - Protección del Menor
-        </h1>
-        <p className="text-slate-600 mt-1">Configuración del Delegado de Protección y gestión de incidencias</p>
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex items-center gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 sm:h-14 sm:w-14">
+            <Shield className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
+          </div>
+          <div className="min-w-0">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Protección y bienestar</p>
+            <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">LOPIVI · Protección del Menor</h1>
+            <p className="mt-1 text-sm text-slate-300">Configuración del Delegado de Protección y gestión confidencial de incidencias</p>
+          </div>
+        </div>
       </div>
 
       <Tabs defaultValue="config">
-        <TabsList>
+        <TabsList className="grid h-auto w-full grid-cols-2 rounded-xl bg-slate-100 p-1 sm:w-fit">
           <TabsTrigger value="config">Configuración DPI</TabsTrigger>
           <TabsTrigger value="incidencias" className="relative">
             Incidencias
@@ -123,7 +128,7 @@ export default function LopiviAdmin() {
         </TabsList>
 
         <TabsContent value="config" className="space-y-4 mt-4">
-          <Card>
+          <Card className="rounded-2xl border border-slate-200 shadow-sm">
             <CardHeader>
               <CardTitle>Datos del Delegado/a de Protección</CardTitle>
             </CardHeader>
@@ -188,7 +193,7 @@ export default function LopiviAdmin() {
                 />
               </div>
 
-              <Button onClick={handleSave} disabled={saving} className="bg-emerald-600 hover:bg-emerald-700">
+              <Button onClick={handleSave} disabled={saving} className="rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700">
                 {saving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 Guardar configuración
               </Button>
@@ -198,7 +203,7 @@ export default function LopiviAdmin() {
 
         <TabsContent value="incidencias" className="space-y-3 mt-4">
           {incidencias.length === 0 ? (
-            <Card>
+            <Card className="rounded-2xl border border-slate-200 bg-white shadow-sm">
               <CardContent className="py-12 text-center text-slate-500">
                 <Shield className="w-12 h-12 mx-auto mb-3 text-emerald-300" />
                 <p>No hay incidencias registradas. Buena señal.</p>
@@ -208,7 +213,7 @@ export default function LopiviAdmin() {
             incidencias.map((inc) => (
               <Card
                 key={inc.id}
-                className={`cursor-pointer hover:shadow-md transition ${inc.estado === "nueva" ? "border-l-4 border-l-red-500" : ""}`}
+                className={`cursor-pointer rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:shadow-md ${inc.estado === "nueva" ? "border-l-4 border-l-red-500" : ""}`}
                 onClick={() => setSelected(inc)}
               >
                 <CardContent className="p-4 flex items-center justify-between gap-3">
@@ -256,9 +261,9 @@ function IncidenciaDetail({ incidencia, onClose, onUpdate }) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-        <div className="p-6 space-y-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-3 sm:p-4" onClick={onClose}>
+      <div className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="space-y-4 p-4 sm:p-6">
           <div className="flex items-center justify-between">
             <div>
               <p className="font-mono text-sm text-slate-500">{incidencia.codigo_referencia}</p>
@@ -311,7 +316,7 @@ function IncidenciaDetail({ incidencia, onClose, onUpdate }) {
 
           <div className="flex gap-2">
             <Button variant="outline" onClick={onClose} className="flex-1">Cerrar</Button>
-            <Button onClick={save} className="flex-1 bg-emerald-600 hover:bg-emerald-700">Guardar</Button>
+            <Button onClick={save} className="flex-1 rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700">Guardar</Button>
           </div>
         </div>
       </div>
