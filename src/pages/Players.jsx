@@ -854,7 +854,6 @@ export default function Players() {
           )}
         </div>
       </div>
-      </div>
 
       <AnimatePresence>
         {showForm && (
