@@ -2,7 +2,7 @@ import React, { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { motion } from "framer-motion";
 
-export default function MinorStreakWidget({ attendances, playerId }) {
+export default function MinorStreakWidget({ attendances, playerId, compact = false }) {
   const streak = useMemo(() => {
     if (!attendances?.length || !playerId) return 0;
     
@@ -41,12 +41,12 @@ export default function MinorStreakWidget({ attendances, playerId }) {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", delay: 0.15 }}
     >
-      <Card className="border-none shadow-lg bg-gradient-to-r from-amber-500 via-orange-500 to-red-500 overflow-hidden">
-        <CardContent className="p-4 relative">
+      <Card className={`h-full border border-orange-200 shadow-md bg-gradient-to-r from-amber-500 to-orange-500 overflow-hidden ${compact ? "min-h-[122px]" : ""}`}>
+        <CardContent className={`h-full p-4 relative flex items-center ${compact ? "min-h-[122px]" : ""}`}>
           <div className="absolute inset-0 overflow-hidden">
             <div className="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full blur-xl" />
           </div>
-          <div className="relative flex items-center gap-4">
+          <div className="relative flex items-center gap-3 w-full min-w-0">
             <motion.div
               className="text-4xl"
               animate={{ scale: [1, 1.15, 1] }}
