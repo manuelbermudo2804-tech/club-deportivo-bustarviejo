@@ -951,17 +951,20 @@ Email: info@cdbustarviejo.com
         </div>
       )}
 
-      <div className="p-4 lg:p-8 space-y-4 lg:space-y-6">
-      {/* Header con gradiente */}
-      <div className="bg-gradient-to-r from-orange-500 via-orange-600 to-red-600 rounded-2xl p-5 lg:p-8 text-white shadow-xl">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1">
-            <h1 className="text-2xl lg:text-3xl font-extrabold">👨‍👩‍👧 Mis Jugadores</h1>
-            <p className="text-orange-100 mt-1 text-sm">
+      <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-5 lg:px-8 lg:pt-7 [&_*]:min-w-0">
+      {/* Cabecera unificada del panel familiar */}
+      <header className="relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7 md:flex-row md:items-center md:justify-between">
+        <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-orange-500/10 blur-3xl" />
+        <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/15 bg-white/10 text-2xl sm:h-14 sm:w-14">👥</div>
+          <div className="min-w-0">
+            <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-300">Familias · Inscripciones</p>
+            <h1 className="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">Mis jugadores e inscripciones</h1>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300 sm:text-base">
               {players.length > 0 ? `${players.length} jugador${players.length > 1 ? 'es' : ''} registrado${players.length > 1 ? 's' : ''}` : 'Gestiona las fichas de tus jugadores'}
             </p>
           </div>
-          <div className="flex gap-2 flex-shrink-0">
+          <div className="relative flex w-full flex-wrap gap-2 sm:w-auto sm:shrink-0">
             <ShareFormButton />
             {!isPlayerUser && players.length > 0 && (
               <Button
@@ -982,9 +985,9 @@ Email: info@cdbustarviejo.com
             )}
           </div>
         </div>
-      </div>
+      </header>
 
-      <div className="bg-blue-50/80 border border-blue-200 rounded-xl p-3 text-xs lg:text-sm text-blue-800">
+      <div className="rounded-2xl border border-blue-200 bg-blue-50/80 p-3 text-xs leading-relaxed text-blue-800 sm:p-4 sm:text-sm">
         <strong>ℹ️</strong> Puedes editar contacto y detalles. <strong>Deporte y categoría</strong> solo los cambia el admin. Para bajas, contacta con el club.
       </div>
 
@@ -1021,7 +1024,7 @@ Email: info@cdbustarviejo.com
 
       {/* Stats compactos */}
       {players.length > 0 && (
-        <div className="grid grid-cols-3 gap-2 lg:gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
           {[
             { label: "Total", value: players.length, emoji: "👥", gradient: "from-slate-50 to-slate-100", border: "border-slate-200", text: "text-slate-800" },
             { label: "Fútbol", value: futbolPlayers.length + futbolFemeninoPlayers.length, emoji: "⚽", gradient: "from-green-50 to-emerald-50", border: "border-green-200", text: "text-green-700" },
