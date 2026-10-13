@@ -10,10 +10,10 @@ export default function AgendaMonthView({ items, referenceDate, onSelectDay }) {
   const huecosIniciales = dias[0].getDay() === 0 ? 6 : dias[0].getDay() - 1;
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-3">
-      <div className="grid grid-cols-7 gap-1 lg:gap-2">
+    <div className="min-w-0 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-sm sm:p-3">
+      <div className="grid min-w-[560px] grid-cols-7 gap-1 sm:min-w-0 lg:gap-2">
         {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((d) => (
-          <div key={d} className="text-center text-xs font-bold text-slate-600 py-1.5 bg-slate-50 rounded">
+          <div key={d} className="rounded-lg bg-slate-100 py-2 text-center text-[10px] font-bold text-slate-600 sm:text-xs">
             {d}
           </div>
         ))}
@@ -32,8 +32,8 @@ export default function AgendaMonthView({ items, referenceDate, onSelectDay }) {
             <div
               key={iso}
               onClick={() => delDia.length > 0 && onSelectDay?.(day)}
-              className={`min-h-[70px] lg:min-h-[90px] rounded-lg border-2 p-1.5 transition-colors ${
-                hoy ? "bg-orange-50 border-orange-400" : "bg-white border-slate-200"
+              className={`min-h-[70px] rounded-xl border p-1.5 transition-colors sm:min-h-[90px] sm:p-2 ${
+                hoy ? "bg-orange-50 border-orange-300 ring-1 ring-orange-100" : "bg-white border-slate-200"
               } ${delDia.length > 0 ? "cursor-pointer hover:border-orange-300" : ""}`}
             >
               <p className={`text-sm font-bold mb-1 ${hoy ? "text-orange-600" : "text-slate-800"}`}>

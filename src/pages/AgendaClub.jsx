@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { List, CalendarDays, CalendarRange, ChevronLeft, ChevronRight } from "lucide-react";
+import { List, CalendarDays, CalendarRange, ChevronLeft, ChevronRight, CalendarCheck, Sparkles, ShieldCheck } from "lucide-react";
 import {
   addDays, addMonths, subMonths, addWeeks, subWeeks,
   startOfWeek, endOfWeek, startOfMonth, endOfMonth, format,
@@ -19,7 +19,6 @@ import { fechaISO } from "@/lib/sinEntrenamiento";
 import AgendaSubscribeButtons from "../components/agenda/AgendaSubscribeButtons";
 import AgendaTeamFilter from "../components/agenda/AgendaTeamFilter";
 import FechasLibresDialog from "../components/agenda/FechasLibresDialog";
-import { Sparkles } from "lucide-react";
 
 const VISTAS = [
   { id: "lista", label: "Lista", icon: List },
@@ -132,35 +131,36 @@ export default function AgendaClub() {
         : "Próximos 60 días";
 
   return (
-    <div className="w-full min-w-0 max-w-6xl mx-auto box-border overflow-x-hidden p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-5 [&_*]:min-w-0">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900">Agenda del club</h1>
-        <p className="text-slate-600 mt-1 text-sm sm:text-base leading-relaxed">
-          Entrenamientos, partidos y eventos en un único sitio, ordenados por fecha.
-        </p>
-      </div>
+    <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7 [&_*]:min-w-0">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><CalendarCheck className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+          <div className="min-w-0 flex-1"><p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Club deportivo · Calendario y actividades</p><h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Agenda del club</h1><p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Entrenamientos, partidos y eventos en un único sitio, ordenados por fecha.</p></div>
+        </div>
+      </section>
 
       <AgendaSubscribeButtons categoria={filtroCategoria === "all" ? "" : filtroCategoria} />
 
       {(isAdmin || isStaff) && (
         <>
-          <Button onClick={() => setShowLibres(true)} className="bg-green-600 hover:bg-green-700">
-            <Sparkles className="w-4 h-4 mr-1.5" /> Buscar fines de semana libres
+          <Button onClick={() => setShowLibres(true)} className="w-full rounded-xl bg-orange-600 font-semibold hover:bg-orange-700 sm:w-auto">
+            <Sparkles className="mr-1.5 h-4 w-4" /> Buscar fines de semana libres
           </Button>
           <FechasLibresDialog open={showLibres} onOpenChange={setShowLibres} temporada={activeSeason} user={user} />
         </>
       )}
 
       {/* Selector de vista + navegación */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
-        <div className="grid grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1 w-full">
+      <div className="flex min-w-0 flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+        <div className="grid w-full grid-cols-3 gap-1 rounded-xl bg-slate-100 p-1">
           {VISTAS.map((v) => (
             <Button
               key={v.id}
               size="sm"
               variant={vista === v.id ? "default" : "ghost"}
               onClick={() => { setVista(v.id); setReferencia(new Date()); }}
-              className={vista === v.id ? "bg-orange-600 hover:bg-orange-700" : ""}
+              className={vista === v.id ? "rounded-lg bg-orange-600 text-white shadow-sm hover:bg-orange-700" : "rounded-lg text-slate-600 hover:bg-white"}
             >
               <v.icon className="w-4 h-4 mr-1.5" />
               {v.label}
@@ -186,14 +186,14 @@ export default function AgendaClub() {
       </div>
 
       {/* Filtros */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:grid-cols-4 sm:p-4">
         {FILTROS_TIPO.map((f) => (
           <Button
             key={f.id}
             size="sm"
             variant={filtroTipo === f.id ? "default" : "outline"}
             onClick={() => setFiltroTipo(f.id)}
-            className={filtroTipo === f.id ? "bg-slate-800 hover:bg-slate-900 h-8 text-xs" : "h-8 text-xs"}
+            className={filtroTipo === f.id ? "h-9 rounded-xl bg-slate-900 text-xs text-white shadow-sm hover:bg-slate-800" : "h-9 rounded-xl border-slate-200 bg-white text-xs text-slate-600 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700"}
           >
             {f.label}
           </Button>
@@ -207,7 +207,7 @@ export default function AgendaClub() {
       />
 
       {/* Leyenda */}
-      <div className="flex flex-wrap gap-x-3 gap-y-2 rounded-xl bg-slate-50 border border-slate-100 px-3 py-2.5 text-xs text-slate-600">
+      <div className="flex flex-wrap gap-x-3 gap-y-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-xs text-slate-600 shadow-sm">
         {Object.entries(KIND_STYLES).map(([kind, style]) => (
           <span key={kind} className="flex items-center gap-1.5">
             <span className={`w-2.5 h-2.5 rounded-full ${style.dot}`} />
@@ -218,9 +218,7 @@ export default function AgendaClub() {
 
       {/* Contenido */}
       {isLoading ? (
-        <div className="text-center py-12">
-          <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent" />
-        </div>
+        <div className="rounded-2xl border border-slate-200 bg-white py-12 text-center shadow-sm"><div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent" /><p className="mt-3 text-sm text-slate-500">Cargando agenda del club...</p></div>
       ) : vista === "lista" ? (
         <AgendaListView items={visibles} />
       ) : vista === "semana" ? (
@@ -233,7 +231,7 @@ export default function AgendaClub() {
       <Dialog open={!!diaSeleccionado} onOpenChange={(open) => !open && setDiaSeleccionado(null)}>
         <DialogContent className="w-[calc(100%-1.5rem)] max-w-lg max-h-[80vh] overflow-y-auto rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="capitalize">
+            <DialogTitle className="capitalize text-slate-900">
               {diaSeleccionado && format(diaSeleccionado, "EEEE d 'de' MMMM", { locale: es })}
             </DialogTitle>
           </DialogHeader>

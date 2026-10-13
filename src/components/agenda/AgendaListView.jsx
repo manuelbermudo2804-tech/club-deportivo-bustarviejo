@@ -13,7 +13,7 @@ function etiquetaDia(iso) {
 export default function AgendaListView({ items }) {
   if (items.length === 0) {
     return (
-      <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
+      <div className="rounded-2xl border border-slate-200 bg-white py-12 text-center shadow-sm">
         <div className="text-4xl mb-2">📅</div>
         <p className="text-slate-500">No hay nada programado en estas fechas</p>
       </div>
@@ -28,8 +28,8 @@ export default function AgendaListView({ items }) {
   return (
     <div className="space-y-5">
       {Object.keys(porDia).sort().map((iso) => (
-        <div key={iso}>
-          <h3 className="text-sm font-bold text-slate-700 uppercase tracking-wide mb-2 capitalize">
+        <div key={iso} className="min-w-0">
+          <h3 className="mb-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-bold uppercase tracking-wide text-slate-700 capitalize"><span className="h-2 w-2 shrink-0 rounded-full bg-orange-500" />
             {etiquetaDia(iso)}
           </h3>
           <div className="space-y-2">

@@ -19,8 +19,8 @@ export default function AgendaWeekView({ items, referenceDate, onSelectDay }) {
           <div
             key={iso}
             onClick={() => onSelectDay?.(day)}
-            className={`rounded-xl border-2 p-2 min-h-[130px] cursor-pointer transition-colors ${
-              hoy ? "bg-orange-50 border-orange-400" : "bg-white border-slate-200 hover:border-orange-300"
+            className={`min-w-0 rounded-2xl border p-3 min-h-[130px] cursor-pointer transition-colors shadow-sm ${
+              hoy ? "bg-orange-50 border-orange-300 ring-1 ring-orange-100" : "bg-white border-slate-200 hover:border-orange-300"
             }`}
           >
             <p className={`text-xs font-bold uppercase mb-2 ${hoy ? "text-orange-700" : "text-slate-500"}`}>
