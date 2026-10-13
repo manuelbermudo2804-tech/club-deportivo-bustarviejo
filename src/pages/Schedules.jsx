@@ -188,33 +188,38 @@ export default function Schedules() {
   const isParentOrPlayer = userRole === "parent" || userRole === "player";
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">
-            {userRole === "player" ? "Mis Horarios" : "Horarios de Entrenamientos"}
-          </h1>
-          <p className="text-slate-600 mt-1">
-            {canEdit 
-              ? "Gestiona los horarios de entrenamientos por categoría" 
-              : userRole === "player" 
-                ? `Entrenamientos de ${myCategories[0] || "tu equipo"}`
-                : "Consulta los horarios de entrenamientos"}
-          </p>
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><CalendarDays className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+            <div className="min-w-0 flex-1">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Organización deportiva</p>
+              <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">{userRole === "player" ? "Mis Horarios" : "Horarios de Entrenamientos"}</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">
+                {canEdit
+                  ? "Gestiona los horarios de entrenamientos por categoría"
+                  : userRole === "player"
+                    ? `Entrenamientos de ${myCategories[0] || "tu equipo"}`
+                    : "Consulta los horarios de entrenamientos"}
+              </p>
+            </div>
+          </div>
+          {canEdit && (
+            <Button
+              onClick={() => {
+                setEditingSchedule(null);
+                setShowForm(!showForm);
+              }}
+              className="w-full shrink-0 rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700 sm:w-auto"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Nuevo Horario
+            </Button>
+          )}
         </div>
-        {canEdit && (
-          <Button
-            onClick={() => {
-              setEditingSchedule(null);
-              setShowForm(!showForm);
-            }}
-            className="bg-orange-600 hover:bg-orange-700 shadow-lg"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Nuevo Horario
-          </Button>
-        )}
-      </div>
+      </section>
 
       {/* Ubicación del Campo */}
       <Card className="border-none shadow-lg bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-300">
