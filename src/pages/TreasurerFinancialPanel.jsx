@@ -687,7 +687,7 @@ export default function TreasurerFinancialPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid h-auto w-full grid-cols-5 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+        <TabsList className="grid h-auto w-full grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:grid-cols-3 lg:grid-cols-6">
           <TabsTrigger value="resumen" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <BarChart3 className="h-4 w-4 shrink-0" />
             <span>Resumen</span>
@@ -707,6 +707,10 @@ export default function TreasurerFinancialPanel() {
           <TabsTrigger value="stripe" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <Euro className="h-4 w-4 shrink-0" />
             <span>Stripe</span>
+          </TabsTrigger>
+          <TabsTrigger value="transacciones" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+            <FileText className="h-4 w-4 shrink-0" />
+            <span>Transacc.</span>
           </TabsTrigger>
         </TabsList>
 
@@ -736,7 +740,7 @@ export default function TreasurerFinancialPanel() {
           <SolidarityFundWidget activeSeason={activeSeason} payments={payments} />
 
           {/* Resumen Global - Rediseñado */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 sm:gap-4">
             {/* Total Ingresos */}
             <Card className="border-none shadow-xl bg-gradient-to-br from-green-600 to-emerald-700 text-white overflow-hidden relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
@@ -898,7 +902,7 @@ export default function TreasurerFinancialPanel() {
           </div>
 
           {/* Desglose por Conceptos - Mejorado */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
             {/* Cuotas Jugadores */}
             <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
               <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b">
@@ -1520,24 +1524,24 @@ export default function TreasurerFinancialPanel() {
         {/* TAB ANÁLISIS AVANZADOS */}
         <TabsContent value="analisis" className="space-y-6 mt-6">
           <Tabs value={activeAnalysisTab} onValueChange={setActiveAnalysisTab}>
-            <TabsList className="grid grid-cols-2 md:grid-cols-5 w-full gap-1">
-              <TabsTrigger value="rentabilidad" className="text-xs md:text-sm">
+            <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:grid-cols-3 lg:grid-cols-5">
+              <TabsTrigger value="rentabilidad" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
                 <span className="hidden md:inline">💰 Rentabilidad</span>
                 <span className="md:hidden">💰</span>
               </TabsTrigger>
-              <TabsTrigger value="retencion" className="text-xs md:text-sm">
+              <TabsTrigger value="retencion" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
                 <span className="hidden md:inline">🔄 Retención</span>
                 <span className="md:hidden">🔄</span>
               </TabsTrigger>
-              <TabsTrigger value="flujo" className="text-xs md:text-sm">
+              <TabsTrigger value="flujo" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
                 <span className="hidden md:inline">📊 Flujo Caja</span>
                 <span className="md:hidden">📊</span>
               </TabsTrigger>
-              <TabsTrigger value="ratios" className="text-xs md:text-sm">
+              <TabsTrigger value="ratios" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
                 <span className="hidden md:inline">📈 Ratios</span>
                 <span className="md:hidden">📈</span>
               </TabsTrigger>
-              <TabsTrigger value="estacionalidad" className="text-xs md:text-sm">
+              <TabsTrigger value="estacionalidad" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
                 <span className="hidden md:inline">📅 Estacionalidad</span>
                 <span className="md:hidden">📅</span>
               </TabsTrigger>
@@ -1631,7 +1635,7 @@ export default function TreasurerFinancialPanel() {
 
           {!currentBudget ? (
             <Card className="border-none shadow-xl">
-              <CardContent className="p-12 text-center">
+              <CardContent className="p-5 text-center sm:p-8 lg:p-12">
                 <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
                   <Euro className="w-10 h-10 text-orange-600" />
                 </div>
@@ -1642,7 +1646,7 @@ export default function TreasurerFinancialPanel() {
                   Crea un presupuesto para gestionar partidas de ingresos y gastos con ayuda de IA
                 </p>
                 <div className="max-w-md mx-auto mb-8">
-                  <div className="grid grid-cols-3 gap-3 text-sm">
+                  <div className="grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
                     <div className="bg-green-50 rounded-lg p-3">
                       <p className="font-bold text-green-700">📊 Partidas</p>
                       <p className="text-xs text-slate-600 mt-1">Organiza ingresos y gastos</p>
