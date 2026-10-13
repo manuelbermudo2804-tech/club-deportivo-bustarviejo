@@ -692,12 +692,13 @@ export default function ClubMembership() {
           <h1 className="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">
           {isRenewal ? `Renueva tu Membresía` : `Hazte Socio del CD Bustarviejo`}
         </h1>
-        <p className="text-slate-600 text-sm lg:text-base">
-          {isRenewal 
-            ? `Hola ${renewalMember?.nombre_completo}, renueva tu membresía para la nueva temporada` 
-            : `Forma parte de nuestra gran familia deportiva`}
-        </p>
-      </div>
+          <p className="mt-2 text-sm leading-relaxed text-slate-300 sm:text-base">
+            {isRenewal
+              ? `Hola ${renewalMember?.nombre_completo}, renueva tu membresía para la nueva temporada`
+              : `Forma parte de nuestra gran familia deportiva`}
+          </p>
+        </div>
+      </header>
 
       {/* Programa "Trae un socio amigo" — primero cuando está activo */}
       {programaReferidosActivo && !isRenewal && (
