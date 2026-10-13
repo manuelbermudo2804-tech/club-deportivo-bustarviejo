@@ -349,10 +349,17 @@ export default function CategoryConfigAdmin() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900">💰 Gestión de Categorías y Cuotas</h1>
-        <p className="text-slate-600 mt-1">Temporada: <strong>{activeSeason.temporada}</strong></p>
+    <div className="min-w-0 space-y-5 bg-slate-50/70 p-3 sm:p-5 lg:p-7">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-xl sm:p-7">
+        <div className="relative z-10 flex items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-500 shadow-md shadow-orange-950/30"><CreditCard className="h-6 w-6 text-white" /></div>
+          <div className="min-w-0">
+            <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Categorías y cuotas</h1>
+            <p className="mt-1 text-sm text-slate-300 sm:text-base">Configura las categorías oficiales y los importes de inscripción</p>
+            <div className="mt-3 inline-flex items-center rounded-full border border-white/15 bg-white/10 px-3 py-1 text-sm"><span className="mr-2 h-2 w-2 rounded-full bg-emerald-400" />Temporada activa · {activeSeason.temporada}</div>
+          </div>
+        </div>
+        <div className="pointer-events-none absolute -right-10 -top-12 h-48 w-48 rounded-full bg-orange-500/10 blur-2xl" />
       </div>
 
       {missingBaseCount > 0 && (
@@ -376,10 +383,10 @@ export default function CategoryConfigAdmin() {
       <PlazasCategoriaPanel categories={categories.filter(c => c.activa !== false).sort((a, b) => a.nombre.localeCompare(b.nombre))} />
 
       {/* Tabla: 9 CATEGORÍAS BASE */}
-      <Card className="border-2 border-green-300">
-        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+      <Card className="overflow-hidden rounded-2xl border border-emerald-200 shadow-sm">
+        <CardHeader className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex min-w-0 items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-green-600" />
               <CardTitle className="text-green-900">✅ 9 Categorías BASE (INMUTABLES)</CardTitle>
             </div>
@@ -398,9 +405,10 @@ export default function CategoryConfigAdmin() {
             </div>
           </div>
         </CardHeader>
-        <CardContent className="pt-6">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+        <CardContent className="p-2 sm:p-4">
+          <div className="w-full max-w-full overflow-x-auto rounded-xl border border-slate-200 bg-white overscroll-x-contain">
+            <div className="border-b border-slate-100 bg-slate-50 px-3 py-2 text-xs text-slate-500 sm:hidden">Desliza horizontalmente para consultar todos los ajustes →</div>
+            <table className="w-full min-w-[1000px] text-sm">
               <thead className="bg-green-50 border-b-2 border-green-300">
                 <tr>
                   <th className="px-3 py-2 text-left font-bold text-slate-900">Categoría</th>
