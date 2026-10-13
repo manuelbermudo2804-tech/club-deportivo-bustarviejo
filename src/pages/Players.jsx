@@ -769,11 +769,22 @@ export default function Players() {
         </div>
       )}
 
-      <div className="flex flex-col gap-4 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-5">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{isAdmin || isTreasurer ? "Jugadores" : isCoach ? "Mis Hijos" : "Mis Jugadores"}</h1>
-          <p className="mt-1 text-sm text-slate-600">{isAdmin || isTreasurer ? "Gestión de fichas, categorías y plantilla del club" : "Jugadores registrados a tu nombre"}</p>
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
+          <div className="flex items-start gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><Users className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+            <div>
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Plantilla</p>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">{isAdmin || isTreasurer ? "Jugadores" : isCoach ? "Mis Hijos" : "Mis Jugadores"}</h1>
+              <p className="mt-2 max-w-2xl text-sm text-slate-300 sm:text-base">{isAdmin || isTreasurer ? "Gestión de fichas, categorías y plantilla del club" : "Jugadores registrados a tu nombre"}</p>
+            </div>
+          </div>
+          {(isAdmin || isTreasurer) && <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3"><div className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3"><p className="text-[10px] font-medium text-slate-400">Temporada</p><p className="mt-1 text-sm font-bold text-white">{activeSeason?.temporada || "Actual"}</p></div><div className="rounded-xl border border-white/10 bg-white/[0.06] px-4 py-3"><p className="text-[10px] font-medium text-slate-400">Plantilla activa</p><p className="mt-1 text-sm font-bold text-emerald-300">{activeCount} jugadores</p></div></div>}
         </div>
+      </section>
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm sm:p-4">
+        <div className="mb-3 flex items-center gap-2 px-1"><div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-600"><Contact className="h-4 w-4" /></div><div><h2 className="text-sm font-bold text-slate-900 sm:text-base">Herramientas de gestión</h2><p className="text-xs text-slate-500">Altas, exportaciones y mantenimiento de fichas</p></div></div>
         <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
           {isAdmin && filteredPlayers.length > 0 && (
             <Button
