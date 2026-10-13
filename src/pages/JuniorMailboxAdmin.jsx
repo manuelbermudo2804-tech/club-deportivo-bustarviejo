@@ -25,9 +25,9 @@ function AdminMessageCard({ msg, onReply, onMarkRead, onToggleHighlight }) {
   const tipoInfo = TIPOS.find(t => t.value === msg.tipo);
 
   return (
-    <Card className={`border-none shadow-lg ${msg.estado === "nuevo" ? "ring-2 ring-orange-300 bg-orange-50/30" : ""} ${msg.destacado ? "ring-2 ring-yellow-300" : ""}`}>
+    <Card className={`min-w-0 overflow-hidden rounded-2xl border border-slate-200 shadow-sm transition-shadow hover:shadow-md ${msg.estado === "nuevo" ? "ring-2 ring-orange-300 bg-orange-50/30" : ""} ${msg.destacado ? "ring-2 ring-yellow-300" : ""}`}>
       <CardContent className="p-4 space-y-3">
-        <div className="flex items-start justify-between">
+        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge className={`${tipoInfo?.color} border-none text-xs`}>
               {tipoInfo?.emoji} {tipoInfo?.label}
@@ -44,7 +44,7 @@ function AdminMessageCard({ msg, onReply, onMarkRead, onToggleHighlight }) {
         </div>
 
         {/* Player info */}
-        <div className="flex items-center gap-2 text-sm">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 text-sm">
           <Users className="w-3.5 h-3.5 text-slate-400" />
           <span className="font-medium text-slate-700">
             {msg.anonimo ? "Anónimo" : (msg.jugador_nombre || "Jugador")}
@@ -66,7 +66,7 @@ function AdminMessageCard({ msg, onReply, onMarkRead, onToggleHighlight }) {
           </div>
         )}
 
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex flex-wrap items-center gap-2 pt-1">
           {msg.estado === "nuevo" && (
             <Button size="sm" variant="outline" onClick={() => onMarkRead(msg)} className="text-xs">
               <Eye className="w-3 h-3 mr-1" /> Marcar leído
@@ -175,35 +175,42 @@ export default function JuniorMailboxAdmin() {
   }
 
   return (
-    <div className="p-4 lg:p-8 space-y-6 max-w-6xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold text-slate-900 flex items-center gap-3">
-          ✉️ Buzón de Jugadores Juveniles
-        </h1>
-        <p className="text-slate-600 mt-1">Mensajes, opiniones e ideas de los chavales</p>
-      </div>
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14">
+            <MessageCircle className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" />
+          </div>
+          <div className="min-w-0">
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Escucha y participación · Club Deportivo Bustarviejo</p>
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Buzón de Jugadores Juveniles</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Mensajes, opiniones e ideas de los chavales. Un espacio para escucharles y responderles.</p>
+          </div>
+        </div>
+      </section>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="border-none shadow-md">
+      <div className="grid min-w-0 grid-cols-2 gap-3 sm:grid-cols-4">
+        <Card className="rounded-2xl border border-slate-200 shadow-sm">
           <CardContent className="p-4 text-center">
             <div className="text-3xl font-bold text-orange-600">{stats.total}</div>
             <p className="text-xs text-slate-500">Total</p>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-md">
+        <Card className="rounded-2xl border border-slate-200 shadow-sm">
           <CardContent className="p-4 text-center">
             <div className="text-3xl font-bold text-red-500">{stats.nuevos}</div>
             <p className="text-xs text-slate-500">Sin leer</p>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-md">
+        <Card className="rounded-2xl border border-slate-200 shadow-sm">
           <CardContent className="p-4 text-center">
             <div className="text-3xl font-bold text-amber-500">{stats.sinResponder}</div>
             <p className="text-xs text-slate-500">Sin responder</p>
           </CardContent>
         </Card>
-        <Card className="border-none shadow-md">
+        <Card className="rounded-2xl border border-slate-200 shadow-sm">
           <CardContent className="p-4 text-center">
             <div className="text-3xl font-bold text-green-600">{stats.respondidos}</div>
             <p className="text-xs text-slate-500">Respondidos</p>
@@ -213,7 +220,7 @@ export default function JuniorMailboxAdmin() {
 
       {/* Mood overview */}
       {Object.keys(moodStats).length > 0 && (
-        <Card className="border-none shadow-md">
+        <Card className="rounded-2xl border border-slate-200 shadow-sm">
           <CardContent className="p-4">
             <p className="text-sm font-semibold text-slate-700 mb-2">🎭 Estado emocional de los jugadores:</p>
             <div className="flex gap-3 flex-wrap">
@@ -229,9 +236,9 @@ export default function JuniorMailboxAdmin() {
       )}
 
       {/* Filters */}
-      <div className="flex flex-wrap gap-3">
-        <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-          <TabsList>
+      <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
+        <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full min-w-0 sm:w-auto">
+          <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 p-1 sm:w-auto">
             <TabsTrigger value="all">Todos</TabsTrigger>
             <TabsTrigger value="nuevo">
               Nuevos {stats.nuevos > 0 && <Badge className="ml-1 bg-red-500 text-white text-xs">{stats.nuevos}</Badge>}
@@ -243,7 +250,7 @@ export default function JuniorMailboxAdmin() {
         </Tabs>
 
         <Select value={typeFilter} onValueChange={setTypeFilter}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-full sm:w-[160px]">
             <SelectValue placeholder="Tipo" />
           </SelectTrigger>
           <SelectContent>
@@ -256,7 +263,7 @@ export default function JuniorMailboxAdmin() {
 
         {categories.length > 1 && (
           <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-            <SelectTrigger className="w-[200px]">
+            <SelectTrigger className="w-full sm:w-[200px]">
               <SelectValue placeholder="Categoría" />
             </SelectTrigger>
             <SelectContent>
@@ -272,13 +279,13 @@ export default function JuniorMailboxAdmin() {
       {/* Messages */}
       {filteredMessages.length === 0 ? (
         <Card className="border-none shadow-lg">
-          <CardContent className="p-12 text-center">
+          <CardContent className="p-8 text-center sm:p-12">
             <div className="text-6xl mb-4">📮</div>
             <p className="text-slate-500">No hay mensajes con estos filtros</p>
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid min-w-0 gap-3">
           {filteredMessages.map(msg => (
             <AdminMessageCard
               key={msg.id}
@@ -293,7 +300,7 @@ export default function JuniorMailboxAdmin() {
 
       {/* Reply dialog */}
       <Dialog open={!!replyDialog} onOpenChange={() => setReplyDialog(null)}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="max-h-[90dvh] max-w-lg overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Heart className="w-5 h-5 text-pink-500" />
