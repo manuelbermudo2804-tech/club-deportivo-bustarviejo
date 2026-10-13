@@ -13,18 +13,21 @@ import RivalAnalysisModal from "../components/coach/RivalAnalysisModal";
 import NextMatchRffm from "../components/competition/NextMatchRffm";
 import NextMatchFromDB from "../components/competition/NextMatchFromDB";
 import CrossTable from "../components/competition/CrossTable";
-import { Trophy, List, Users, Target, Search, Star, StarOff, Settings, Grid3X3 } from "lucide-react";
+import BustarviejoSchedule from "../components/competition/BustarviejoSchedule";
+import { Trophy, List, Users, Target, Search, Star, StarOff, Settings, Grid3X3, Calendar } from "lucide-react";
 import ErrorBoundary from "../components/common/ErrorBoundary";
 
 const FALLBACK_CATEGORIES = [
   "Fútbol Pre-Benjamín (Mixto)",
   "Fútbol Benjamín (Mixto)",
   "Fútbol Alevín (Mixto)",
+  "Fútbol Alevín Femenino",
   "Fútbol Infantil (Mixto)",
   "Fútbol Cadete",
   "Fútbol Juvenil",
   "Fútbol Aficionado",
   "Fútbol Femenino",
+  "Fútbol Sala",
   "Baloncesto (Mixto)",
 ];
 
@@ -47,8 +50,12 @@ export default function CentroCompeticionTecnico() {
   const { data: dynamicCategories } = useQuery({
     queryKey: ['competition-categories'],
     queryFn: async () => {
-      const all = await base44.entities.CategoryConfig.filter({ compite_en_liga: true, activa: true });
-      return [...new Set(all.map(c => c.nombre).filter(Boolean))];
+      const all = await base44.entities.CategoryConfig.filter({ activa: true });
+      const configured = all
+        .filter(c => c.compite_en_liga === true || /alev[ií]n.*femenin|f[uú]tbol sala/i.test(c.nombre || ""))
+        .map(c => c.nombre)
+        .filter(Boolean);
+      return [...new Set([...FALLBACK_CATEGORIES, ...configured])];
     },
     staleTime: 10 * 60_000,
     refetchOnWindowFocus: false,
@@ -268,7 +275,7 @@ export default function CentroCompeticionTecnico() {
   };
 
   const ViewToggle = () => (
-    <div className="w-full grid grid-cols-4 rounded-xl border overflow-hidden">
+    <div className="w-full grid grid-cols-5 rounded-xl border overflow-hidden">
       <Button
         variant={view === 'clasificacion' ? 'default' : 'ghost'}
         onClick={() => setView('clasificacion')}
@@ -296,6 +303,13 @@ export default function CentroCompeticionTecnico() {
         className={`${view === 'cruces' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
       >
         <Grid3X3 className="w-4 h-4 mr-1.5" /> Cruces
+      </Button>
+      <Button
+        variant={view === 'jornadas' ? 'default' : 'ghost'}
+        onClick={() => setView('jornadas')}
+        className={`${view === 'jornadas' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
+      >
+        <Calendar className="w-4 h-4 mr-1" /> Jornadas
       </Button>
     </div>
   );
@@ -387,6 +401,20 @@ export default function CentroCompeticionTecnico() {
 
         {view === 'cruces' && (
           <CrossTable category={category} config={standingsConfig} />
+        )}
+
+        {view === 'jornadas' && (
+          standingsConfig?.rfef_url ? (
+            <BustarviejoSchedule config={standingsConfig} />
+          ) : (
+            <Card className="border border-slate-200">
+              <CardContent className="p-8 text-center">
+                <Calendar className="w-8 h-8 mx-auto mb-3 text-slate-400" />
+                <p className="font-semibold text-slate-800">No hay calendario de jornadas configurado</p>
+                <p className="text-sm text-slate-500 mt-1">El calendario aparecerá cuando se configure la URL de la RFFM para esta categoría.</p>
+              </CardContent>
+            </Card>
+          )
         )}
       </ErrorBoundary>
     {/* Configuración de categorías */}
