@@ -313,37 +313,40 @@ export default function ReferralManagement() {
   }
 
   return (
-    <div className="p-4 lg:p-6 max-w-7xl mx-auto space-y-6">
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-              <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
-                <Gift className="w-8 h-8 text-purple-600" />
-                Trae un Socio Amigo
-              </h1>
-              <p className="text-slate-600">Controla premios y participaciones del programa de incentivos</p>
-            </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setShowAddReferralDialog(true)} className="bg-purple-600 hover:bg-purple-700 gap-2">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+        <div className="min-w-0">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Administración del club</p>
+          <h1 className="flex items-center gap-3 text-2xl font-black tracking-tight text-white sm:text-3xl">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15"><Gift className="h-6 w-6 text-orange-400" /></span>
+            Trae un Socio Amigo
+          </h1>
+          <p className="mt-2 text-sm text-slate-300">Controla premios y participaciones del programa de incentivos</p>
+        </div>
+        <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:w-auto">
+          <Button onClick={() => setShowAddReferralDialog(true)} className="gap-2 rounded-xl bg-orange-600 font-semibold hover:bg-orange-700">
             <UserPlus className="w-4 h-4" />
             Añadir Socio Amigo
           </Button>
-          <Button onClick={exportData} variant="outline" className="gap-2">
+          <Button onClick={exportData} variant="outline" className="gap-2 rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15">
             <Download className="w-4 h-4" />
             Exportar CSV
           </Button>
         </div>
+        </div>
       </div>
 
       {/* Explicación del programa */}
-      <Card className="bg-gradient-to-r from-purple-50 via-pink-50 to-orange-50 border-2 border-purple-200">
+      <Card className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <CardContent className="pt-6">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
               <HelpCircle className="w-6 h-6 text-purple-600" />
             </div>
             <div className="space-y-3">
-              <h3 className="font-bold text-purple-900 text-lg">¿Cómo funciona "Trae un Socio Amigo"?</h3>
+              <h3 className="text-lg font-bold text-slate-900">¿Cómo funciona "Trae un Socio Amigo"?</h3>
               <div className="grid md:grid-cols-2 gap-4 text-sm">
                 <div className="space-y-2">
                   <p className="flex items-start gap-2 text-slate-700">
@@ -381,24 +384,24 @@ export default function ReferralManagement() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="ranking" className="gap-2">
+        <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+          <TabsTrigger value="ranking" className="gap-2 rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white">
             <Trophy className="w-4 h-4" />
             Ranking
           </TabsTrigger>
-          <TabsTrigger value="registros" className="gap-2">
+          <TabsTrigger value="registros" className="gap-2 rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white">
             <Users className="w-4 h-4" />
             Registros ({referralRewards.length})
           </TabsTrigger>
-          <TabsTrigger value="sorteo" className="gap-2">
+          <TabsTrigger value="sorteo" className="gap-2 rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white">
             <Dices className="w-4 h-4" />
             Sorteo
           </TabsTrigger>
-          <TabsTrigger value="historial" className="gap-2">
+          <TabsTrigger value="historial" className="gap-2 rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white">
             <History className="w-4 h-4" />
             Historial
           </TabsTrigger>
-          <TabsTrigger value="analisis" className="gap-2">
+          <TabsTrigger value="analisis" className="gap-2 rounded-xl data-[state=active]:bg-slate-900 data-[state=active]:text-white">
             <Brain className="w-4 h-4" />
             Análisis IA
           </TabsTrigger>
