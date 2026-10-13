@@ -102,7 +102,7 @@ export default function MinorFifaCard({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ type: "spring", bounce: 0.2, duration: 0.65 }}
       className="relative mx-auto w-full"
-      style={{ maxWidth: 440 }}
+      style={{ width: "100%", maxWidth: 560, aspectRatio: "1 / 1" }}
     >
       <div className="pointer-events-none absolute -inset-3 rounded-[2.5rem] bg-orange-500/10 blur-2xl" />
 
@@ -130,7 +130,7 @@ export default function MinorFifaCard({
             <div className="absolute bottom-0 right-0 h-1 w-1/2 bg-gradient-to-l from-orange-500 to-transparent" />
           </div>
 
-          <div className="relative px-7 pb-7 pt-6">
+          <div className="relative flex h-full flex-col px-5 pb-5 pt-5">
             {/* Identity row */}
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -148,7 +148,7 @@ export default function MinorFifaCard({
             </div>
 
             {/* Portrait as the visual centrepiece */}
-            <div className="relative mt-4 overflow-hidden border-2 border-amber-700/70 bg-gradient-to-br from-amber-100 via-stone-200 to-orange-100 shadow-inner" style={{ height: 360, clipPath: "polygon(7% 0, 100% 0, 100% 91%, 92% 100%, 0 100%, 0 12%)" }}>
+            <div className="relative mt-4 overflow-hidden border-2 border-amber-700/70 bg-gradient-to-br from-amber-100 via-stone-200 to-orange-100 shadow-inner" style={{ minHeight: 0, flex: "1 1 auto" }}>
               {player?.foto_url ? (
                 <img src={player.foto_url} alt={player.nombre || "Foto del jugador"} className="absolute inset-0 h-full w-full object-contain object-bottom" />
               ) : (
