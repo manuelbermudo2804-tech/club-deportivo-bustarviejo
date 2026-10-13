@@ -81,6 +81,15 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
     enabled: !!playerId,
   });
 
+  // Resultados de partidos (goles)
+  const { data: matchResults = [] } = useQuery({
+    queryKey: ["playerMatchResults", playerCategory],
+    queryFn: () => base44.entities.MatchResult.filter({ categoria: playerCategory }),
+    staleTime: 300_000,
+    refetchOnWindowFocus: false,
+    enabled: !!playerCategory,
+  });
+
   // === CALCULAR ESTADÍSTICAS ===
 
   // Goles
