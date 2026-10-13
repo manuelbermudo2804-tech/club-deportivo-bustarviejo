@@ -96,53 +96,50 @@ export default function PageBuilder() {
   };
 
   return (
-    <div className="p-4 lg:p-6 max-w-6xl mx-auto">
-      <div className="flex items-start justify-between gap-3 mb-6 flex-wrap">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-black text-slate-900 tracking-tight">
-            🚀 Constructor de Páginas
-          </h1>
-          <p className="text-slate-500 mt-1">
-            Crea páginas públicas con formulario en minutos. URL única para compartir.
-          </p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button
-            onClick={() => navigate("/PageBuilderGuia")}
-            variant="outline"
-            className="gap-2"
-          >
-            <BookOpen className="w-4 h-4" /> Guía
-          </Button>
-          <Button
-            onClick={() => navigate("/PageBuilderEditor")}
-            className="gap-2 bg-slate-900 hover:bg-slate-800"
-          >
-            <Plus className="w-4 h-4" /> Nueva página
-          </Button>
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
+      <div className="overflow-hidden rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-md sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/10 ring-1 ring-white/15 sm:h-14 sm:w-14">
+              <Globe className="h-6 w-6 text-orange-400 sm:h-7 sm:w-7" />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.18em] text-orange-300 sm:text-xs">Diseño y publicación</p>
+              <h1 className="text-2xl font-black tracking-tight text-white sm:text-3xl">Constructor de páginas</h1>
+              <p className="mt-1 text-sm text-slate-300">Crea páginas públicas, formularios de inscripción y enlaces para compartir</p>
+            </div>
+          </div>
+          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+            <Button onClick={() => navigate("/PageBuilderGuia")} variant="outline" className="h-11 w-full gap-2 rounded-xl border-white/25 bg-white/10 text-white hover:bg-white/20 hover:text-white sm:w-auto">
+              <BookOpen className="h-4 w-4" /> Guía
+            </Button>
+            <Button onClick={() => navigate("/PageBuilderEditor")} className="h-11 w-full gap-2 rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700 sm:w-auto">
+              <Plus className="h-4 w-4" /> Nueva página
+            </Button>
+          </div>
         </div>
       </div>
 
       {pages.length === 0 && !loading && !search && (
-        <div className="mb-5 bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
+        <div className="flex items-start gap-3 rounded-2xl border border-orange-200 bg-orange-50 p-4">
           <div className="text-2xl">💡</div>
           <div className="flex-1">
             <div className="font-bold text-slate-900">¿Es tu primera vez?</div>
             <p className="text-sm text-slate-600">Lee la guía para entender qué hace cada función. 5 minutos y dominas el constructor.</p>
           </div>
-          <Button size="sm" onClick={() => navigate("/PageBuilderGuia")} className="bg-blue-600 hover:bg-blue-700 gap-1">
+          <Button size="sm" onClick={() => navigate("/PageBuilderGuia")} className="shrink-0 gap-1 rounded-lg bg-orange-600 hover:bg-orange-700">
             <BookOpen className="w-3 h-3" /> Ver guía
           </Button>
         </div>
       )}
 
-      <div className="mb-5 relative max-w-md">
-        <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+      <div className="relative rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+        <Search className="absolute left-6 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por nombre o URL…"
-          className="pl-10"
+          className="h-11 w-full rounded-xl border-slate-200 bg-slate-50 pl-10 focus-visible:ring-orange-500"
         />
       </div>
 
@@ -151,7 +148,7 @@ export default function PageBuilder() {
           <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
         </div>
       ) : filtered.length === 0 ? (
-        <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-slate-200">
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-16 text-center shadow-sm sm:py-20">
           <div className="text-7xl mb-4">🎨</div>
           <h3 className="text-xl font-bold text-slate-900 mb-2">
             {search ? "No hay resultados" : "Aún no tienes ninguna página"}
@@ -166,27 +163,27 @@ export default function PageBuilder() {
           )}
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {filtered.map((p) => {
             const url = buildLandingUrl(p.slug);
             return (
-              <div key={p.id} className="bg-white rounded-2xl border border-slate-200 p-5 hover:shadow-lg transition-shadow">
-                <div className="flex items-start justify-between gap-3 mb-3">
+              <div key={p.id} className="flex min-w-0 flex-col rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:border-slate-300 hover:shadow-md sm:p-5">
+                <div className="mb-3 flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-bold text-slate-900 truncate">{p.nombre}</h3>
-                    <code className="text-xs text-slate-500 truncate block">/l/{p.slug}</code>
+                    <h3 className="break-words font-bold text-slate-900">{p.nombre}</h3>
+                    <code className="mt-1 block break-all text-xs text-slate-500">/l/{p.slug}</code>
                   </div>
                   {estadoBadge(p.estado)}
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 mb-4 text-center">
-                  <div className="bg-slate-50 rounded-xl p-2">
+                <div className="mb-4 grid grid-cols-2 gap-2 text-center">
+                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                     <div className="flex items-center justify-center gap-1 text-slate-500 text-xs">
                       <Eye className="w-3 h-3" /> Visitas
                     </div>
                     <div className="font-black text-slate-900">{p.estadisticas?.visitas || 0}</div>
                   </div>
-                  <div className="bg-slate-50 rounded-xl p-2">
+                  <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
                     <div className="flex items-center justify-center gap-1 text-slate-500 text-xs">
                       <Users className="w-3 h-3" /> Inscritos
                     </div>
@@ -194,7 +191,7 @@ export default function PageBuilder() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-1.5">
+                <div className="mt-auto flex flex-wrap gap-1.5 border-t border-slate-100 pt-3">
                   <Button size="sm" variant="outline" onClick={() => navigate(`/PageBuilderEditor?id=${p.id}`)} className="gap-1 flex-1">
                     <Edit className="w-3 h-3" /> Editar
                   </Button>
