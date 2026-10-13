@@ -55,7 +55,7 @@ export default function IngresosGastosTab({ exp }) {
   ]);
 
   const Tabla = ({ titulo, filas, total }) => (
-    <Card className="rounded-xl"><CardContent className="p-4">
+    <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><CardContent className="p-4">
       <p className="font-semibold text-slate-800 mb-2">{titulo}</p>
       {filas.map((f) => <div key={f.concepto} className="flex justify-between text-sm py-1 border-b border-slate-100"><span>{f.concepto}</span><span>{eur(f.importe)}</span></div>)}
       <div className="flex justify-between font-bold text-sm pt-2"><span>Total</span><span>{eur(total)}</span></div>
@@ -64,7 +64,7 @@ export default function IngresosGastosTab({ exp }) {
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <IndicadorCard label="Total ingresos" value={eur(totalIng)} />
         <IndicadorCard label="Total gastos" value={eur(totalGas)} />
         <IndicadorCard label="Otras subvenciones" value={data.otras.length} />
@@ -78,7 +78,7 @@ export default function IngresosGastosTab({ exp }) {
         <Tabla titulo="Ingresos" filas={filasIngresos} total={totalIng} />
         <Tabla titulo="Gastos" filas={filasGastos} total={totalGas} />
       </div>
-      <Card className="rounded-xl"><CardContent className="p-4 space-y-1">
+      <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><CardContent className="space-y-2 p-4">
         <p className="font-semibold text-slate-800">Otras subvenciones y ayudas</p>
         <p className="text-xs text-slate-500">Se registran como ingreso de categoría «Subvenciones» en el Panel Financiero (ej: Comunidad de Madrid, ayudas de arbitraje de la Federación). Indica en notas si corresponden a otra temporada.</p>
         {data.otras.length === 0 ? <p className="text-sm text-slate-500">Ninguna registrada: se generará la declaración de no haberlas recibido.</p>
