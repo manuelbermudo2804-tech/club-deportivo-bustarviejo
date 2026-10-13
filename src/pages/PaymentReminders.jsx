@@ -721,13 +721,13 @@ export default function PaymentReminders() {
         onComplete={() => setShowSuccess(false)}
         message={successMessage}
       />
-      <div className="w-full min-w-0 max-w-full overflow-x-hidden box-border p-3 sm:p-4 lg:p-8 space-y-4 lg:space-y-6 [&_*]:min-w-0">
+      <div className="mx-auto w-full min-w-0 max-w-[1600px] box-border space-y-5 overflow-x-hidden bg-slate-50/70 p-3 sm:space-y-6 sm:p-5 lg:p-8 [&_*]:min-w-0">
         <SocialLinks />
 
-      <div className="flex min-w-0 flex-col justify-between items-start gap-3 sm:flex-row sm:items-center">
+      <div className="flex min-w-0 flex-col justify-between gap-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:p-5">
         <div>
-          <h1 className="text-xl lg:text-3xl font-bold text-slate-900">💳 Recordatorios de Pago</h1>
-          <p className="text-xs lg:text-sm text-slate-600 mt-1">Temporada activa: <strong>{effectiveSeason}</strong></p>
+          <h1 className="text-2xl font-extrabold tracking-tight text-slate-950 sm:text-3xl">Recordatorios de pago</h1>
+          <p className="mt-1 text-sm text-slate-500">Gestiona avisos y pagos pendientes · Temporada <strong className="text-slate-700">{effectiveSeason}</strong></p>
         </div>
         <Button onClick={handleRefresh} variant="outline" size="sm" className="w-full sm:w-auto">
           <RefreshCw className="w-4 h-4 mr-2" />
@@ -735,20 +735,20 @@ export default function PaymentReminders() {
         </Button>
       </div>
 
-      <Card className="min-w-0 overflow-hidden rounded-2xl border border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 shadow-sm">
-        <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="flex min-w-0 items-start gap-2 text-base leading-snug sm:text-lg">
+      <Card className="min-w-0 overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm">
+        <CardHeader className="border-b border-emerald-100 bg-emerald-50/70 p-4 sm:p-5">
+          <CardTitle className="flex min-w-0 items-start gap-2 text-base font-bold leading-snug text-slate-900 sm:text-lg">
             <CheckCircle2 className="h-5 w-5 text-green-600" />
-            🤖 Recordatorios Automáticos Activados
+            Recordatorios automáticos
           </CardTitle>
         </CardHeader>
-        <CardContent className="min-w-0 space-y-3 p-3 sm:p-6">
+        <CardContent className="min-w-0 space-y-4 p-3 sm:p-5">
           <p className="text-sm text-slate-700">
             El sistema envía recordatorios <strong>automáticamente</strong> por Email + Chat privado "🔔 Mensajes del Club" en estas fechas:
           </p>
           
           <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            <div className="bg-white rounded-lg p-3 border-2 border-blue-200">
+            <div className="min-w-0 rounded-xl border border-blue-200 bg-blue-50/50 p-3 sm:p-4">
               <p className="font-bold text-blue-900 text-sm mb-1">📅 Junio (Límite: 30 Jun)</p>
               <ul className="text-xs text-slate-700 space-y-1">
                 <li>• 15 Jun - 15 días antes</li>
@@ -757,7 +757,7 @@ export default function PaymentReminders() {
               </ul>
             </div>
             
-            <div className="bg-white rounded-lg p-3 border-2 border-orange-200">
+            <div className="min-w-0 rounded-xl border border-orange-200 bg-orange-50/50 p-3 sm:p-4">
               <p className="font-bold text-orange-900 text-sm mb-1">📅 Septiembre (Límite: 15 Sep)</p>
               <ul className="text-xs text-slate-700 space-y-1">
                 <li>• 1 Sep - 14 días antes</li>
@@ -766,7 +766,7 @@ export default function PaymentReminders() {
               </ul>
             </div>
             
-            <div className="bg-white rounded-lg p-3 border-2 border-red-200">
+            <div className="min-w-0 rounded-xl border border-red-200 bg-red-50/50 p-3 sm:p-4">
               <p className="font-bold text-red-900 text-sm mb-1">📅 Diciembre (Límite: 15 Dic)</p>
               <ul className="text-xs text-slate-700 space-y-1">
                 <li>• 1 Dic - 14 días antes</li>
@@ -776,7 +776,7 @@ export default function PaymentReminders() {
             </div>
           </div>
           
-          <div className="bg-green-100 border-2 border-green-300 rounded-lg p-3">
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3 sm:p-4">
             <p className="text-xs text-green-800">
               ✅ <strong>Solo se envían a familias con pagos pendientes</strong> de ese mes específico
             </p>
@@ -785,7 +785,7 @@ export default function PaymentReminders() {
       </Card>
 
       <div className="grid min-w-0 grid-cols-1 gap-3 sm:gap-4 xl:grid-cols-2">
-        <Alert className="bg-blue-50 border-blue-300">
+        <Alert className="min-w-0 rounded-2xl border-blue-200 bg-white p-4 shadow-sm sm:p-5">
           <Info className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-900">
             <p className="font-bold mb-2">💡 ¿Cómo funciona?</p>
@@ -998,8 +998,8 @@ export default function PaymentReminders() {
           </Card>
         ) : (
           filteredFamilies.map(family => (
-            <Card key={family.email} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 shadow-sm transition-shadow hover:shadow-md">
-              <CardHeader className="border-b bg-slate-50 p-3 sm:p-4">
+            <Card key={family.email} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-shadow hover:border-slate-300 hover:shadow-md">
+              <CardHeader className="border-b border-slate-100 bg-slate-50/80 p-3 sm:p-4">
                 <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                   <div className="flex items-start gap-3 flex-1 min-w-0">
                     <input
@@ -1056,7 +1056,7 @@ export default function PaymentReminders() {
               <CardContent className="min-w-0 p-3 sm:p-4">
                 <div className="space-y-3">
                   {family.jugadores.map(jugador => (
-                    <div key={jugador.id} className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-200 bg-slate-50 p-2 sm:p-3">
+                    <div key={jugador.id} className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-200 bg-white p-2 sm:p-3">
                       {jugador.foto_url ? (
                         <img src={jugador.foto_url} className="h-10 w-10 flex-shrink-0 rounded-full object-cover sm:h-12 sm:w-12" alt="" />
                       ) : (
