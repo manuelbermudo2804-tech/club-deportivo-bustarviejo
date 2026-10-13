@@ -1,263 +1,52 @@
-import React, { useState, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import React from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { RefreshCw, Search, Trash2, ChevronDown, ChevronUp, Smartphone, Wifi, Clock, User, FileText, AlertCircle, CheckCircle2, MousePointer, ArrowRightLeft, Camera, Bug, TrendingUp, UserPlus, Download } from "lucide-react";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { Microscope, Camera, Bug, TrendingUp, UserPlus, Download, Globe } from "lucide-react";
 import ErrorsTab from "../components/diagnostic/ErrorsTab";
 import WizardTab from "../components/diagnostic/WizardTab";
 import AltasEnCursoTab from "../components/diagnostic/AltasEnCursoTab";
 import PWAAdoptionTab from "../components/diagnostic/PWAAdoptionTab";
 import RegistroPublicoTab from "../components/diagnostic/RegistroPublicoTab";
+import UploadsTab from "../components/diagnostic/UploadsTab";
 
-const EVENT_ICONS = {
-  button_click: { icon: MousePointer, color: "text-blue-600", bg: "bg-blue-50", label: "Botón pulsado" },
-  input_change: { icon: ArrowRightLeft, color: "text-purple-600", bg: "bg-purple-50", label: "Input cambió" },
-  upload_start: { icon: Clock, color: "text-amber-600", bg: "bg-amber-50", label: "Subida iniciada" },
-  upload_success: { icon: CheckCircle2, color: "text-green-600", bg: "bg-green-50", label: "Éxito" },
-  upload_error: { icon: AlertCircle, color: "text-red-600", bg: "bg-red-50", label: "Error" },
-  validation_reject: { icon: AlertCircle, color: "text-orange-600", bg: "bg-orange-50", label: "Rechazado" },
-  diagnostic_report: { icon: FileText, color: "text-cyan-600", bg: "bg-cyan-50", label: "Reporte manual" },
-};
-
-function EventRow({ event }) {
-  const [expanded, setExpanded] = useState(false);
-  const config = EVENT_ICONS[event.event_type] || EVENT_ICONS.upload_error;
-  const Icon = config.icon;
-  const isError = event.event_type === 'upload_error' || event.event_type === 'validation_reject';
-  const isSuccess = event.event_type === 'upload_success';
-
-  return (
-    <div className={`border rounded-xl p-3 ${isError ? 'border-red-200 bg-red-50/30' : isSuccess ? 'border-green-200 bg-green-50/30' : 'border-slate-200'}`}>
-      <div className="flex items-start gap-3 cursor-pointer" onClick={() => setExpanded(!expanded)}>
-        <div className={`p-2 rounded-lg ${config.bg} flex-shrink-0`}>
-          <Icon className={`w-4 h-4 ${config.color}`} />
-        </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className="text-xs">{config.label}</Badge>
-            {event.context && <span className="text-xs text-slate-500 truncate">{event.context}</span>}
-          </div>
-          <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 flex-wrap">
-            <span className="flex items-center gap-1"><User className="w-3 h-3" />{event.user_email}</span>
-            <span className="flex items-center gap-1"><Smartphone className="w-3 h-3" />{event.device || '?'}</span>
-            <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{event.created_date ? format(new Date(event.created_date), "dd/MM HH:mm:ss", { locale: es }) : '?'}</span>
-          </div>
-          {event.file_name && (
-            <div className="text-xs text-slate-600 mt-1">
-              📄 {event.file_name} {event.file_size ? `(${Math.round(event.file_size / 1024)}KB)` : ''} {event.file_type ? `· ${event.file_type}` : ''}
-            </div>
-          )}
-          {event.error_message && (
-            <div className="text-xs text-red-600 mt-1 font-medium">⚠️ {event.error_message}</div>
-          )}
-          {isSuccess && event.result_url && (
-            <div className="mt-2">
-              <a href={event.result_url} target="_blank" rel="noopener noreferrer">
-                <img src={event.result_url} alt="Subida" className="w-16 h-16 object-cover rounded-lg border border-green-300 hover:scale-150 transition-transform cursor-pointer" onError={e => { e.target.style.display = 'none'; }} />
-              </a>
-            </div>
-          )}
-        </div>
-        <div className="flex-shrink-0">
-          {expanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-        </div>
-      </div>
-      {expanded && (
-        <div className="mt-3 pt-3 border-t border-slate-200 text-xs space-y-1 text-slate-600">
-          {event.diagnostic_code && <div><strong>Código:</strong> {event.diagnostic_code}</div>}
-          {event.connection && <div><strong>Conexión:</strong> {event.connection}</div>}
-          {event.memory_mb && <div><strong>Memoria:</strong> {event.memory_mb}MB</div>}
-          {event.is_pwa !== null && <div><strong>PWA:</strong> {event.is_pwa ? 'Sí' : 'No'}</div>}
-          {event.session_id && <div><strong>Sesión:</strong> {event.session_id}</div>}
-          {event.result_url && <div><strong>URL:</strong> {event.result_url}</div>}
-          {event.user_agent && <div className="break-all"><strong>UA:</strong> {event.user_agent}</div>}
-          {event.extra_data && (
-            <details className="mt-1">
-              <summary className="cursor-pointer text-blue-600">Datos extra</summary>
-              <pre className="mt-1 bg-slate-100 p-2 rounded text-[10px] overflow-auto max-h-40">
-                {JSON.stringify(event.extra_data, null, 2)}
-              </pre>
-            </details>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
+const TABS = [
+  { value: "publico", label: "Registro Público", icon: Globe, el: <RegistroPublicoTab /> },
+  { value: "altas", label: "Altas", icon: UserPlus, el: <AltasEnCursoTab /> },
+  { value: "wizard", label: "Wizard", icon: TrendingUp, el: <WizardTab /> },
+  { value: "pwa", label: "PWA", icon: Download, el: <PWAAdoptionTab /> },
+  { value: "uploads", label: "Subidas", icon: Camera, el: <UploadsTab /> },
+  { value: "errors", label: "Errores", icon: Bug, el: <ErrorsTab /> },
+];
 
 export default function UploadDiagnostics() {
-  const [search, setSearch] = useState("");
-  const [filterType, setFilterType] = useState("all");
-  const [limit, setLimit] = useState(50);
-
-  const { data: events = [], isLoading, refetch } = useQuery({
-    queryKey: ['upload-diagnostics'],
-    queryFn: async () => {
-      // Solo cargar eventos de SUBIDAS (excluye errores y wizard, que tienen sus propios tabs)
-      const types = ['button_click', 'input_change', 'upload_start', 'upload_success', 'upload_error', 'validation_reject', 'diagnostic_report'];
-      const results = await Promise.all(
-        types.map(t => base44.entities.UploadDiagnostic.filter({ event_type: t }, '-created_date', 50))
-      );
-      return results.flat().sort((a, b) => new Date(b.created_date) - new Date(a.created_date)).slice(0, 200);
-    },
-    refetchInterval: 15000,
-  });
-
-  const filtered = useMemo(() => {
-    let result = events;
-    if (filterType !== 'all') result = result.filter(e => e.event_type === filterType);
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      result = result.filter(e =>
-        (e.user_email || '').toLowerCase().includes(q) ||
-        (e.file_name || '').toLowerCase().includes(q) ||
-        (e.error_message || '').toLowerCase().includes(q) ||
-        (e.diagnostic_code || '').toLowerCase().includes(q) ||
-        (e.device || '').toLowerCase().includes(q) ||
-        (e.context || '').toLowerCase().includes(q)
-      );
-    }
-    return result.slice(0, limit);
-  }, [events, filterType, search, limit]);
-
-  // Stats
-  const stats = useMemo(() => {
-    const total = events.length;
-    const errors = events.filter(e => e.event_type === 'upload_error').length;
-    const successes = events.filter(e => e.event_type === 'upload_success').length;
-    const uniqueUsers = new Set(events.map(e => e.user_email)).size;
-    const reports = events.filter(e => e.event_type === 'diagnostic_report').length;
-    return { total, errors, successes, uniqueUsers, reports };
-  }, [events]);
-
-  const handleClearAll = async () => {
-    if (!confirm(`¿Borrar los ${events.length} registros? Esta acción no se puede deshacer.`)) return;
-    for (const e of events) {
-      try { await base44.entities.UploadDiagnostic.delete(e.id); } catch {}
-    }
-    refetch();
-  };
-
   return (
-    <div className="p-4 lg:p-6 max-w-5xl mx-auto space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">🔬 Centro de Diagnóstico</h1>
+    <div className="diag-center p-3 sm:p-4 lg:p-6 max-w-6xl mx-auto space-y-5">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-orange-900 p-5 sm:p-7 text-white shadow-xl">
+        <div className="absolute -right-10 -top-10 w-48 h-48 rounded-full bg-orange-500/20 blur-2xl" />
+        <div className="relative flex items-center gap-4">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-white/10 backdrop-blur flex items-center justify-center ring-1 ring-white/20 flex-shrink-0">
+            <Microscope className="w-6 h-6 sm:w-7 sm:h-7 text-orange-300" />
+          </div>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-3xl font-bold tracking-tight">Centro de Diagnóstico</h1>
+            <p className="text-slate-300 text-xs sm:text-sm mt-0.5">Registros, altas, instalaciones, subidas y errores de la app en tiempo real</p>
+          </div>
+        </div>
       </div>
 
       <Tabs defaultValue="publico" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
-          <TabsTrigger value="publico"><UserPlus className="w-4 h-4 mr-1.5" /> Registro Público</TabsTrigger>
-          <TabsTrigger value="altas"><UserPlus className="w-4 h-4 mr-1.5" /> Altas</TabsTrigger>
-          <TabsTrigger value="wizard"><TrendingUp className="w-4 h-4 mr-1.5" /> Wizard</TabsTrigger>
-          <TabsTrigger value="pwa"><Download className="w-4 h-4 mr-1.5" /> PWA</TabsTrigger>
-          <TabsTrigger value="uploads"><Camera className="w-4 h-4 mr-1.5" /> Subidas</TabsTrigger>
-          <TabsTrigger value="errors"><Bug className="w-4 h-4 mr-1.5" /> Errores</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="publico" className="mt-4">
-          <RegistroPublicoTab />
-        </TabsContent>
-
-        <TabsContent value="altas" className="mt-4">
-          <AltasEnCursoTab />
-        </TabsContent>
-
-        <TabsContent value="pwa" className="mt-4">
-          <PWAAdoptionTab />
-        </TabsContent>
-
-        <TabsContent value="errors" className="mt-4">
-          <ErrorsTab />
-        </TabsContent>
-
-        <TabsContent value="wizard" className="mt-4">
-          <WizardTab />
-        </TabsContent>
-
-        <TabsContent value="uploads" className="mt-4 space-y-4">
-
-      <div className="flex items-center justify-end gap-2">
-        <Button variant="outline" size="sm" onClick={() => refetch()}>
-          <RefreshCw className="w-4 h-4 mr-1" /> Actualizar
-        </Button>
-        {events.length > 0 && (
-          <Button variant="outline" size="sm" className="text-red-600" onClick={handleClearAll}>
-            <Trash2 className="w-4 h-4 mr-1" /> Limpiar
-          </Button>
-        )}
-      </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-        <Card><CardContent className="p-3 text-center">
-          <div className="text-2xl font-bold">{stats.total}</div>
-          <div className="text-xs text-slate-500">Total eventos</div>
-        </CardContent></Card>
-        <Card className="border-green-200"><CardContent className="p-3 text-center">
-          <div className="text-2xl font-bold text-green-600">{stats.successes}</div>
-          <div className="text-xs text-green-600">Éxitos</div>
-        </CardContent></Card>
-        <Card className="border-red-200"><CardContent className="p-3 text-center">
-          <div className="text-2xl font-bold text-red-600">{stats.errors}</div>
-          <div className="text-xs text-red-600">Errores</div>
-        </CardContent></Card>
-        <Card><CardContent className="p-3 text-center">
-          <div className="text-2xl font-bold">{stats.uniqueUsers}</div>
-          <div className="text-xs text-slate-500">Usuarios</div>
-        </CardContent></Card>
-        <Card className="border-cyan-200"><CardContent className="p-3 text-center">
-          <div className="text-2xl font-bold text-cyan-600">{stats.reports}</div>
-          <div className="text-xs text-cyan-600">Reportes</div>
-        </CardContent></Card>
-      </div>
-
-      {/* Filters */}
-      <div className="flex gap-3 flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-          <Input placeholder="Buscar email, archivo, error, código..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+        <div className="sticky top-[100px] lg:top-0 z-20 -mx-3 sm:mx-0 px-3 sm:px-0 py-1 bg-slate-50/90 backdrop-blur">
+          <TabsList className="flex w-full justify-start overflow-x-auto no-scrollbar h-auto p-1.5 gap-1 bg-white border border-slate-200 rounded-2xl shadow-sm">
+            {TABS.map(({ value, label, icon: Icon }) => (
+              <TabsTrigger key={value} value={value}
+                className="flex-shrink-0 lg:flex-1 rounded-xl px-3.5 py-2 text-sm text-slate-600 data-[state=active]:bg-orange-600 data-[state=active]:text-white data-[state=active]:shadow">
+                <Icon className="w-4 h-4 mr-1.5" /> {label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
         </div>
-        <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos los eventos</SelectItem>
-            <SelectItem value="button_click">Botón pulsado</SelectItem>
-            <SelectItem value="input_change">Input cambió</SelectItem>
-            <SelectItem value="upload_start">Subida iniciada</SelectItem>
-            <SelectItem value="upload_success">Éxito</SelectItem>
-            <SelectItem value="upload_error">Error</SelectItem>
-            <SelectItem value="validation_reject">Rechazado</SelectItem>
-            <SelectItem value="diagnostic_report">Reporte manual</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {/* Events */}
-      {isLoading ? (
-        <div className="text-center py-12 text-slate-400">Cargando eventos...</div>
-      ) : filtered.length === 0 ? (
-        <Card><CardContent className="py-12 text-center text-slate-400">
-          <p className="text-lg">No hay eventos de subida registrados</p>
-          <p className="text-sm mt-1">Los eventos aparecerán aquí cuando los usuarios suban fotos o documentos</p>
-        </CardContent></Card>
-      ) : (
-        <div className="space-y-2">
-          {filtered.map(event => <EventRow key={event.id} event={event} />)}
-          {filtered.length >= limit && (
-            <Button variant="outline" className="w-full" onClick={() => setLimit(l => l + 50)}>
-              Cargar más...
-            </Button>
-          )}
-        </div>
-      )}
-        </TabsContent>
+        {TABS.map(({ value, el }) => (
+          <TabsContent key={value} value={value} className="mt-4">{el}</TabsContent>
+        ))}
       </Tabs>
     </div>
   );

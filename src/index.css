@@ -50,6 +50,38 @@
   .player-profile-wow > [data-radix-tabs-content] { animation: none; }
 }
 
+/* Centro de Diagnóstico: estilo coherente para todas sus pestañas */
+.no-scrollbar { scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.diag-center [data-radix-tabs-content] .rounded-lg.border,
+.diag-center [data-radix-tabs-content] .rounded-xl.border:not(.bg-white) {
+  border-radius: 1rem;
+}
+.diag-center [data-radix-tabs-content] .rounded-lg.border.bg-card,
+.diag-center [data-radix-tabs-content] .rounded-xl.border.bg-card {
+  border-color: rgb(226 232 240);
+  box-shadow: 0 1px 3px rgb(15 23 42 / 5%), 0 6px 16px rgb(15 23 42 / 3%);
+}
+.diag-center [data-radix-tabs-content] .text-2xl.font-bold,
+.diag-center [data-radix-tabs-content] .text-xl.font-bold {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+.diag-center [data-radix-tabs-content] details > summary {
+  font-weight: 600;
+  color: rgb(234 88 12);
+}
+.diag-center [data-radix-tabs-content] pre {
+  border-radius: 0.6rem;
+}
+.diag-center [data-radix-tabs-content] .divide-y > * + * {
+  border-color: rgb(241 245 249);
+}
+.diag-center [data-radix-tabs-content] > .space-y-4 > p:first-child,
+.diag-center [data-radix-tabs-content] > .space-y-4 > div:first-child > p {
+  color: rgb(71 85 105);
+}
+
 /* Pulido visual global: sutil, coherente y sin cambiar la estructura de las pantallas */
 body {
   -webkit-font-smoothing: antialiased;
