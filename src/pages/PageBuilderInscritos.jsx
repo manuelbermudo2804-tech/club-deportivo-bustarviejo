@@ -215,8 +215,8 @@ export default function PageBuilderInscritos() {
   }
 
   return (
-    <div className="p-4 lg:p-6 max-w-6xl mx-auto">
-      <div className="flex items-center gap-3 mb-6">
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <header className="relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7 xl:flex-row xl:items-center xl:justify-between">
         <Button variant="ghost" size="icon" onClick={() => navigate("/PageBuilder")}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
@@ -238,7 +238,7 @@ export default function PageBuilderInscritos() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+      <div className="grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-4">
         <div className="bg-white rounded-2xl p-4 border border-slate-200">
           <div className="flex items-center gap-2 text-slate-500 text-sm mb-1"><Users className="w-4 h-4" /> Total</div>
           <div className="text-2xl font-black text-slate-900">{stats.total}</div>
@@ -273,13 +273,13 @@ export default function PageBuilderInscritos() {
       </div>
 
       {/* Filtros */}
-      <div className="flex gap-2 mb-4 flex-wrap">
-        <div className="relative flex-1 min-w-[200px]">
+      <div className="flex min-w-0 flex-col gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:flex-row sm:flex-wrap sm:p-4">
+        <div className="relative min-w-0 flex-1 sm:min-w-[200px]">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Buscar…" className="pl-10" />
         </div>
         <Select value={filterEstado} onValueChange={setFilterEstado}>
-          <SelectTrigger className="w-[180px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="h-10 w-full rounded-xl sm:w-[200px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="todos">Todos los estados</SelectItem>
             <SelectItem value="nuevo">🆕 Nuevos</SelectItem>
@@ -294,14 +294,14 @@ export default function PageBuilderInscritos() {
 
       {/* Lista */}
       {filtered.length === 0 ? (
-        <div className="bg-white rounded-2xl p-10 text-center border-2 border-dashed border-slate-200">
+        <div className="rounded-2xl border-2 border-dashed border-slate-200 bg-white px-4 py-12 text-center shadow-sm sm:px-10">
           <div className="text-5xl mb-3">📭</div>
           <p className="text-slate-500">{submissions.length === 0 ? "Aún no hay inscritos" : "No hay resultados con esos filtros"}</p>
         </div>
       ) : (
         <div className="space-y-4">
           {grupos.map(([cat, items]) => (
-            <div key={cat || "all"} className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div key={cat || "all"} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
               {campoCategoria && (
                 <div className="flex items-center justify-between gap-2 px-4 py-2.5 bg-slate-800 text-white">
                   <span className="font-bold text-sm">{cat}</span>
