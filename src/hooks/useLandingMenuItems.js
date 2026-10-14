@@ -14,7 +14,12 @@ export default function useLandingMenuItems(user, isAdmin) {
     let cancelled = false;
     (async () => {
       try {
-        const all = await base44.entities.LandingPage.list();
+        // Reintenta si el servidor está saturado (si falla, el evento desaparecía del menú)
+        let all = null;
+        for (let i = 0; i < 4 && !all; i++) {
+          try { all = await base44.entities.LandingPage.filter({ "panel_gestion.mostrar_en_menu": true }); }
+          catch (e) { if (i === 3) throw e; await new Promise((r) => setTimeout(r, 3000 * (i + 1))); }
+        }
         if (cancelled) return;
         const visible = (all || []).filter((p) => {
           const pg = p.panel_gestion;
