@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useSoundNotifications } from './useSoundNotifications';
+import useLiveRefetch from '@/hooks/useLiveRefetch';
 
 export default function AnnouncementSoundNotifier({ user }) {
   const { data: announcements } = useQuery({
@@ -10,6 +11,7 @@ export default function AnnouncementSoundNotifier({ user }) {
     refetchInterval: 60000,
     enabled: !!user
   });
+  useLiveRefetch('Announcement', ['announcements-sound'], !!user);
 
   const { checkForNewItems } = useSoundNotifications({
     dataKey: 'announcements',

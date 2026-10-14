@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+import useLiveRefetch from "@/hooks/useLiveRefetch";
 
 export default function DirectMessageNotificationListener({ user }) {
   const { data: messages } = useQuery({
@@ -10,6 +11,7 @@ export default function DirectMessageNotificationListener({ user }) {
     initialData: [],
     refetchInterval: 60000,
   });
+  useLiveRefetch('DirectMessage', ['directMessages'], !!user);
 
   useEffect(() => {
     if (!user) return;

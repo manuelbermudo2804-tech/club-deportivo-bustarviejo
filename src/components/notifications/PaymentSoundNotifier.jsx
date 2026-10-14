@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { useSoundNotifications } from './useSoundNotifications';
+import useLiveRefetch from '@/hooks/useLiveRefetch';
 
 export default function PaymentSoundNotifier({ user }) {
   const { data: payments } = useQuery({
@@ -10,6 +11,7 @@ export default function PaymentSoundNotifier({ user }) {
     refetchInterval: 60000,
     enabled: !!user && user.role !== 'admin'
   });
+  useLiveRefetch('Payment', ['payments-sound'], !!user && user.role !== 'admin');
 
   const { checkForNewItems } = useSoundNotifications({
     dataKey: 'payments',
