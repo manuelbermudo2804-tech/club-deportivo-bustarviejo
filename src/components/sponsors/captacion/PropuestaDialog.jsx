@@ -18,14 +18,36 @@ export default function PropuestaDialog({ sponsor, onClose, onSent }) {
 
   const generar = async () => {
     setLoading(true);
-    setP(await generarPropuesta(sponsor, { tono, enfoque }).finally(() => setLoading(false)));
+    try {
+      const propuesta = await generarPropuesta(sponsor, { tono, enfoque });
+      if (!propuesta?.email && !propuesta?.whatsapp) throw new Error("La respuesta no contiene una propuesta válida.");
+      setP(propuesta);
+    } catch (error) {
+      console.error("Error generando propuesta de patrocinio:", error);
+      toast.error("No se ha podido generar la propuesta. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
   };
-  const copiar = (t) => { navigator.clipboard.writeText(t); toast.success("Copiado"); };
+  const copiar = async (t) => {
+    try {
+      await navigator.clipboard.writeText(t);
+      toast.success("Copiado");
+    } catch (error) {
+      console.error("Error copiando propuesta:", error);
+      toast.error("No se ha podido copiar. Selecciona el texto y cópialo manualmente.");
+    }
+  };
   const enviada = async (canal) => {
-    const me = await base44.auth.me();
-    await marcarEnviada(sponsor, canal, me.email);
-    toast.success("Guardado en el historial · seguimiento en 7 días");
-    onSent();
+    try {
+      const me = await base44.auth.me();
+      await marcarEnviada(sponsor, canal, me.email);
+      toast.success("Envío registrado en el historial · seguimiento en 7 días");
+      onSent();
+    } catch (error) {
+      console.error("Error registrando envío de propuesta:", error);
+      toast.error("No se ha podido registrar el envío. Comprueba la conexión e inténtalo de nuevo.");
+    }
   };
   const tel = (sponsor.contacto_telefono || "").replace(/\D/g, "");
 
@@ -48,16 +70,16 @@ export default function PropuestaDialog({ sponsor, onClose, onSent }) {
               <Textarea rows={12} value={p.email} onChange={e => setP({ ...p, email: e.target.value })} />
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" onClick={() => copiar(`${p.asunto}\n\n${p.email}`)}><Copy className="w-4 h-4 mr-1" />Copiar email</Button>
-                <a href={`mailto:${sponsor.contacto_email || ""}?subject=${encodeURIComponent(p.asunto)}&body=${encodeURIComponent(p.email)}`} onClick={() => enviada("email")}>
+                <a href={`mailto:${sponsor.contacto_email || ""}?subject=${encodeURIComponent(p.asunto)}&body=${encodeURIComponent(p.email)}`}>
                   <Button size="sm"><Mail className="w-4 h-4 mr-1" />Abrir en mi correo</Button>
                 </a>
               </div>
               <Textarea rows={5} value={p.whatsapp} onChange={e => setP({ ...p, whatsapp: e.target.value })} />
               <div className="flex flex-wrap gap-2">
-                <a href={`https://wa.me/${tel.length === 9 ? "34" + tel : tel}?text=${encodeURIComponent(p.whatsapp)}`} target="_blank" rel="noreferrer" onClick={() => enviada("WhatsApp")}>
+                <a href={`https://wa.me/${tel.length === 9 ? "34" + tel : tel}?text=${encodeURIComponent(p.whatsapp)}`} target="_blank" rel="noreferrer">
                   <Button size="sm" className="bg-green-600 hover:bg-green-700"><MessageCircle className="w-4 h-4 mr-1" />Enviar por WhatsApp</Button>
                 </a>
-                <Button size="sm" variant="outline" onClick={() => enviada("otro medio")}><CheckCircle2 className="w-4 h-4 mr-1" />Marcar como enviada</Button>
+                <Button size="sm" variant="outline" onClick={() => enviada("confirmación manual")}><CheckCircle2 className="w-4 h-4 mr-1" />Confirmar que ya la he enviado</Button>
               </div>
             </>
           )}
