@@ -162,16 +162,16 @@ export default function TeamRosters() {
   }
 
   return (
-    <div className="p-4 lg:p-8 space-y-5">
+    <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-5 lg:px-8 lg:pt-7 [&_*]:min-w-0">
       {/* Header con gradiente */}
-      <div className="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-800 rounded-2xl p-5 lg:p-8 text-white shadow-xl">
-        <div className="flex items-center justify-between">
+      <div className="relative isolate min-w-0 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div className="relative flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-extrabold flex items-center gap-2">
-              <Shield className="w-7 h-7" />
+            <h1 className="flex items-center gap-2 break-words text-2xl font-bold tracking-tight sm:text-3xl">
+              <Shield className="h-7 w-7 shrink-0 text-orange-400" />
               Plantillas
             </h1>
-            <p className="text-blue-100 mt-1 text-sm lg:text-base">
+            <p className="mt-2 text-sm text-slate-300 sm:text-base">
               {coachCategories.length} equipo{coachCategories.length > 1 ? 's' : ''} · {totalActiveInTeams} jugadores activos
             </p>
           </div>
