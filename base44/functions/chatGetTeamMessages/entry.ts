@@ -36,7 +36,8 @@ Deno.serve(async (req) => {
 
     // ===== Verificar que el usuario tiene acceso a esta categoría =====
     let hasAccess = false;
-    if (isAdmin) {
+    // Admin y coordinador ven todos los chats de equipo
+    if (isAdmin || isCoordinator) {
       hasAccess = true;
     }
     if (!hasAccess && (isCoach || isCoordinator)) {

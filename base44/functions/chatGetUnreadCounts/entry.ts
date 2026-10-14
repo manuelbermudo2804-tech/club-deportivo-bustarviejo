@@ -43,7 +43,13 @@ Deno.serve(async (req) => {
         activo: true
       }).catch(() => []);
       const ownCats = ownPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean);
-      const cats = [...new Set([...coachCats, ...coordCats, ...ownCats])];
+      // El coordinador ve TODOS los chats de equipo del club
+      let allClubCats = [];
+      if (isCoordinator) {
+        const clubPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 1000).catch(() => []);
+        allClubCats = clubPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean);
+      }
+      const cats = [...new Set([...coachCats, ...coordCats, ...ownCats, ...allClubCats])];
       if (cats.length > 0) {
         promises.push((async () => {
           try {

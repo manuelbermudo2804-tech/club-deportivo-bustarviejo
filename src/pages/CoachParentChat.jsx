@@ -11,12 +11,14 @@ import CoachChatWindow from "../components/coach/CoachChatWindow";
 import CoachAwayMode from "../components/coach/CoachAwayMode";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 import { toGroupId } from "@/lib/chatGroupId";
+import useTeamChatCategories from "@/hooks/useTeamChatCategories";
 
 
 export default function CoachParentChat({ embedded = false }) {
   const navigate = useNavigate();
    const [user, setUser] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState(null);
+  const teamCats = useTeamChatCategories(user);
   const [lockedCategory, setLockedCategory] = useState(null); // Si viene de URL, ocultar pestañas
   const [showSettings, setShowSettings] = useState(false);
   const [unreadByCategory, setUnreadByCategory] = useState({});
@@ -72,25 +74,25 @@ export default function CoachParentChat({ embedded = false }) {
   // Asegurar que siempre haya una categoría válida seleccionada para ENTRENADOR
   useEffect(() => {
     if (!user) return;
-    const coachCats = user.categorias_entrena || [];
+    const coachCats = teamCats;
     // No auto-cambiar si venimos bloqueados por URL (?category=...)
     if (!lockedCategory && coachCats.length > 0 && (!selectedCategory || !coachCats.includes(selectedCategory))) {
       setSelectedCategory(coachCats[0]);
     }
-  }, [user, selectedCategory, lockedCategory]);
+  }, [user, selectedCategory, lockedCategory, teamCats.join('|')]);
 
   // Usar contadores del backend en vez de calcular localmente
   useEffect(() => {
     if (!chatCounts || !user) return;
     const teamChats = chatCounts.team_chats || {};
-    const allCats = [...new Set(user.categorias_entrena || [])];
+    const allCats = teamCats;
     const unreadCounts = {};
     for (const cat of allCats) {
       const gid = toGroupId(cat);
       unreadCounts[cat] = teamChats[gid] || 0;
     }
     setUnreadByCategory(unreadCounts);
-  }, [chatCounts, user]);
+  }, [chatCounts, user, teamCats.join('|')]);
 
   // Si hay ?category= o ?categoria= en la URL, abrir directamente esa categoría y ocultar pestañas
   useEffect(() => {
@@ -135,7 +137,7 @@ export default function CoachParentChat({ embedded = false }) {
 
   const categories = user?.role === "admin" 
     ? ["Todas las categorías", ...[...new Set(allPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))]]
-    : [...new Set([...(user?.categorias_entrena || [])])] ;
+    : teamCats;
 
   if (categories.length === 0) {
     return (
@@ -217,7 +219,7 @@ export default function CoachParentChat({ embedded = false }) {
          {!lockedCategory && (
            isCoordinator ? (
              <div className="px-2 pb-2 space-y-2">
-               {[...new Set(user?.categorias_entrena || [])].map(cat => {
+               {teamCats.map(cat => {
                  const categoryPlayers = allPlayers.filter(p => (
                    p.deporte === cat || p.categoria_principal === cat || (p.categorias || []).includes(cat)
                  ));
@@ -340,7 +342,7 @@ export default function CoachParentChat({ embedded = false }) {
           {!lockedCategory && (
             isCoordinator ? (
               <div className="px-2 pb-2 space-y-2">
-                {[...new Set(user?.categorias_entrena || [])].map(cat => {
+                {teamCats.map(cat => {
                   const categoryPlayers = allPlayers.filter(p => (p.deporte === cat || p.categoria_principal === cat || (p.categorias || []).includes(cat)));
                   const parentCount = new Set(categoryPlayers.flatMap(p => [p.email_padre, p.email_tutor_2].filter(Boolean))).size;
                   const unreadCount = unreadByCategory[cat] || 0;

@@ -7,6 +7,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 import MyKidsChatsSection from "@/components/chat/MyKidsChatsSection";
+import useTeamChatCategories from "@/hooks/useTeamChatCategories";
 
 // Normalización consistente con backend
 import { toGroupId } from "@/lib/chatGroupId";
@@ -41,6 +42,7 @@ function ConversationRow({ title, subtitle, lastMessage, lastMessageDate, unread
 export default function CoordinatorChatsHub() {
   const [user, setUser] = useState(null);
   const { counts: chatCounts } = useChatUnreadCounts(user);
+  const teamCats = useTeamChatCategories(user);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -78,7 +80,7 @@ export default function CoordinatorChatsHub() {
         />
 
         {/* Chats de ENTRENADOR por categoría (individuales) */}
-        {user?.es_entrenador && (user?.categorias_entrena || []).map((cat) => (
+        {teamCats.map((cat) => (
           <ConversationRow
             key={cat}
             title={`⚽ ${cat.replace('Fútbol ', '').replace(' (Mixto)', '')}`}
@@ -93,7 +95,7 @@ export default function CoordinatorChatsHub() {
 
         <MyKidsChatsSection
           user={user}
-          excludeCategories={user?.es_entrenador ? (user?.categorias_entrena || []) : []}
+          excludeCategories={teamCats}
           hideCoordinator
         />
 
