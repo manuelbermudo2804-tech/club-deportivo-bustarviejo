@@ -291,7 +291,7 @@ export default function TeamRosters() {
 
       {/* Players Grid */}
       {isLoading ? (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 lg:gap-5">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 lg:gap-5">
           {[1,2,3,4,5,6].map(i => (
             <div key={i} className="bg-white rounded-xl shadow-sm animate-pulse">
               <div className="h-36 bg-slate-200 rounded-t-xl" />
@@ -316,7 +316,7 @@ export default function TeamRosters() {
             {filteredPlayers.length} jugador{filteredPlayers.length !== 1 ? 'es' : ''} 
             {selectedCategory !== "all" ? ` en ${selectedCategory}` : ''}
           </p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 lg:gap-5">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 lg:gap-5">
             {filteredPlayers.map((player) => (
               <RosterPlayerCard 
                 key={player.id} 
