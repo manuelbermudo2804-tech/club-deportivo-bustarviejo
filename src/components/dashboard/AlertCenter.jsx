@@ -785,7 +785,7 @@ const alerts = [];
         <HoyEntrenamientoLine items={weekAgenda?.items} />
         {rolTitle && (
           <div className={`mb-3 pb-3 border-b ${darkMode ? "border-slate-700" : "border-orange-200"}`}>
-            <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">
+            <p className={`text-xs font-bold uppercase tracking-wider ${darkMode ? "text-orange-400" : "text-orange-600"}`}
               Mis tareas como {rolTitle}
             </p>
           </div>
