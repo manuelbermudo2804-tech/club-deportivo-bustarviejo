@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import TrainingScheduleForm from "../components/training/TrainingScheduleForm";
 import ContactCard from "../components/ContactCard";
 import DiasSinEntrenamientoPanel from "../components/training/DiasSinEntrenamientoPanel";
+import FinEntrenamientosPanel from "@/components/training/FinEntrenamientosPanel";
 
 const DIAS_ORDEN = {
   "Lunes": 1,
@@ -317,6 +318,8 @@ export default function Schedules() {
           </Card>
         </div>
       )}
+
+      <FinEntrenamientosPanel schedules={schedules} canEdit={canEdit} />
 
       {/* Días sin entrenamiento (fiestas, puentes...) */}
       <DiasSinEntrenamientoPanel
