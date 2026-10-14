@@ -677,9 +677,7 @@ export default function Payments() {
         .map(p => p.mes);
       
       // Faltan 3 meses menos los que ya están pagados/en revisión
-      // Evitar contar dos veces un mismo mes y que los duplicados generen pendientes negativos.
-      const mesesUnicosPagados = new Set(mesesPagados).size;
-      const cuotasFaltantes = Math.max(0, 3 - mesesUnicosPagados);
+      const cuotasFaltantes = 3 - mesesPagados.length;
       totalPendientes += cuotasFaltantes;
     });
     
@@ -983,6 +981,30 @@ export default function Payments() {
           </>
         )}
       </div>
+
+      {/* Alerta de pagos vencidos */}
+      {false && (
+        <Card className="border-2 border-red-400 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-4">
+              <AlertTriangle className="w-6 h-6 text-red-600 flex-shrink-0 mt-1" />
+              <div className="flex-1">
+                <h3 className="font-bold text-red-900 mb-2">⚠️ Pagos Vencidos Detectados</h3>
+                <p className="text-sm text-red-800 mb-3">
+                  Hay {overdueCount} cuota(s) vencida(s) que requieren atención
+                </p>
+                <Button
+                  size="sm"
+                  onClick={() => setShowOverdueOnly(!showOverdueOnly)}
+                  className={showOverdueOnly ? "bg-red-700" : "bg-red-600 hover:bg-red-700"}
+                >
+                  {showOverdueOnly ? "Ver Todos" : "Ver Solo Vencidos"}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {isAdmin && (
         <DeudaAnteriorRevisionPanel
