@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
@@ -26,6 +26,8 @@ import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 import { CreditCard, Users, Bell } from "lucide-react";
 
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
+import { buildWeekAgenda } from "../components/dashboard/miSemanaHelper";
+import useSinEntrenamiento from "@/hooks/useSinEntrenamiento";
 
 export default function TreasurerDashboard() {
   const queryClient = useQueryClient();
@@ -65,6 +67,47 @@ export default function TreasurerDashboard() {
 
   const myPlayers = allPlayers.filter(p => 
     (p.email_padre === user?.email || p.email_tutor_2 === user?.email) && p.activo === true
+  );
+
+  // Agenda familiar: la barra de hijos necesita los horarios y convocatorias de sus categorías.
+  const playerCategories = useMemo(
+    () => [...new Set(myPlayers.flatMap(p => [p.categoria_principal, p.deporte, ...(p.categorias || [])]).filter(Boolean))],
+    [myPlayers]
+  );
+
+  const { data: trainingSchedules = [] } = useQuery({
+    queryKey: ['treasurerTrainingSchedules', playerCategories.join(',')],
+    queryFn: async () => {
+      if (!playerCategories.length) return [];
+      const results = await Promise.all(playerCategories.map(cat => base44.entities.TrainingSchedule.filter({ categoria: cat, activo: true }).catch(() => [])));
+      const map = new Map();
+      results.flat().forEach(schedule => map.set(schedule.id, schedule));
+      return Array.from(map.values());
+    },
+    enabled: !!user?.email && myPlayers.length > 0,
+    staleTime: 600000,
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: familyAgendaCallups = [] } = useQuery({
+    queryKey: ['treasurerFamilyAgendaCallups', playerCategories.join(',')],
+    queryFn: async () => {
+      if (!playerCategories.length) return [];
+      const todayISO = new Date().toLocaleDateString('en-CA');
+      const results = await Promise.all(playerCategories.map(cat => base44.entities.Convocatoria.filter({ categoria: cat, publicada: true }, '-fecha_partido', 20).catch(() => [])));
+      const map = new Map();
+      results.flat().forEach(callup => map.set(callup.id, callup));
+      return Array.from(map.values()).filter(c => c.fecha_partido >= todayISO && !c.cerrada);
+    },
+    enabled: !!user?.email && myPlayers.length > 0,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
+  });
+
+  const diasSinEntreno = useSinEntrenamiento();
+  const familyWeekAgenda = useMemo(
+    () => buildWeekAgenda(myPlayers, trainingSchedules, familyAgendaCallups, diasSinEntreno),
+    [myPlayers, trainingSchedules, familyAgendaCallups, diasSinEntreno]
   );
 
   useEffect(() => {
@@ -374,6 +417,7 @@ export default function TreasurerDashboard() {
                     isTreasurer={false}
                     userEmail={user?.email}
                     userSports={myPlayersSports}
+                    weekAgenda={familyWeekAgenda}
                   />
                 </div>
               </div>
