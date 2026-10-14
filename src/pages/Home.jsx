@@ -601,7 +601,7 @@ export default function Home() {
   if (!user) {
   
     return (
-      <div className="min-h-screen bg-slate-50 pt-4 lg:pt-0">
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
         <div className="px-4 lg:px-8 py-6">
           <div className="flex items-center justify-center min-h-[200px]">
             <div className="text-center">
@@ -625,10 +625,10 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-4 lg:pt-0">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black pt-4 lg:pt-0">
 
       
-      <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-5 lg:px-8 lg:py-7 [&_*]:min-w-0">
+      <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6">
         {/* Móvil: botones rápidos compactos */}
         <div className="lg:hidden flex items-center gap-1.5 w-full">
           <SocialLinks />
@@ -708,17 +708,17 @@ export default function Home() {
         {/* Enlace al Monitor de Créditos */}
         {isAdmin && (
           <Link to={createPageUrl("CreditUsage")}>
-            <div className="rounded-2xl border border-slate-200 bg-white p-3 flex items-center justify-between shadow-sm transition-colors hover:border-yellow-400">
+            <div className="bg-slate-800 border-2 border-slate-700 rounded-2xl p-3 flex items-center justify-between hover:border-yellow-500/50 transition-colors">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl bg-yellow-500/20 flex items-center justify-center">
                   <Zap className="w-5 h-5 text-yellow-400" />
                 </div>
                 <div>
-                  <p className="text-slate-900 font-bold text-sm">Monitor de Créditos</p>
-                  <p className="text-slate-500 text-xs">Ver consumo real detallado</p>
+                  <p className="text-white font-bold text-sm">Monitor de Créditos</p>
+                  <p className="text-slate-400 text-xs">Ver consumo real detallado</p>
                 </div>
               </div>
-              <span className="text-slate-400 text-lg">→</span>
+              <span className="text-slate-500 text-lg">→</span>
             </div>
           </Link>
         )}
@@ -795,10 +795,10 @@ export default function Home() {
 
         {/* Botón de prueba de notificación - Solo Admin, solo móvil */}
         {isAdmin && (
-          <div className="lg:hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="lg:hidden bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-slate-700">
             <div className="text-center space-y-3">
-              <p className="text-slate-900 font-bold text-sm">🔔 Probar Notificaciones</p>
-              <p className="text-slate-500 text-xs">Minimiza la app y pulsa el botón para recibir una notificación de prueba</p>
+              <p className="text-white font-bold text-sm">🔔 Probar Notificaciones</p>
+              <p className="text-slate-400 text-xs">Minimiza la app y pulsa el botón para recibir una notificación de prueba</p>
               <Button
                 onClick={() => {
                   if (typeof window !== 'undefined' && 'Notification' in window) {
@@ -825,12 +825,12 @@ export default function Home() {
         )}
 
         {/* Resumen de jugadores - solo móvil (en desktop ya está en KPIs) */}
-        <div className="lg:hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
+        <div className="lg:hidden bg-slate-800 rounded-3xl p-4 shadow-2xl border-2 border-slate-700">
           <div className="text-center">
             <div className="text-3xl font-bold text-orange-500 mb-2">
               {stats.activePlayers}
             </div>
-            <div className="text-slate-500 text-sm">Jugadores Activos</div>
+            <div className="text-slate-400 text-sm">Jugadores Activos</div>
           </div>
         </div>
       </div>
