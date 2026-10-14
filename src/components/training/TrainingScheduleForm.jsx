@@ -177,6 +177,17 @@ export default function TrainingScheduleForm({ schedule, onSubmit, onCancel, isS
                 />
               </div>
 
+              {/* Fecha de fin (cese oficial de entrenamientos) */}
+              <div className="space-y-2">
+                <Label htmlFor="fecha_fin">Último día de entrenamiento</Label>
+                <Input
+                  type="date"
+                  value={currentSchedule.fecha_fin || ""}
+                  min={currentSchedule.fecha_inicio || undefined}
+                  onChange={(e) => setCurrentSchedule({...currentSchedule, fecha_fin: e.target.value})}
+                />
+              </div>
+
               {/* Ubicación (solo editable en baloncesto) */}
               <UbicacionSelector
                 value={currentSchedule.ubicacion}

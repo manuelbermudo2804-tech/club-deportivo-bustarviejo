@@ -92,6 +92,7 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
         for (const s of activos) {
           if (s.dia_semana !== nombreDia) continue;
           if (s.fecha_inicio && iso < s.fecha_inicio.slice(0, 10)) continue;
+          if (s.fecha_fin && iso > s.fecha_fin.slice(0, 10)) continue;
           const cancelado = esDiaSinEntreno(cancelaciones, iso, s.categoria);
           entrenamientos.push({
             id: `entreno-${s.id}-${iso}`,

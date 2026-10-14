@@ -42,6 +42,11 @@
       "format": "date",
       "description": "Fecha en la que comienzan los entrenamientos de esta categor\u00eda"
     },
+    "fecha_fin": {
+      "type": "string",
+      "format": "date",
+      "description": "\u00daltimo d\u00eda oficial de entrenamientos de esta categor\u00eda (despu\u00e9s no se muestran en la agenda)"
+    },
     "ubicacion": {
       "type": "string",
       "description": "Lugar del entrenamiento"
