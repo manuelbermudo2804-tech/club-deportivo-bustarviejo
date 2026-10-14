@@ -5,13 +5,10 @@ import { Users, CheckCircle2, Vote, XCircle, BadgeCheck, UserRoundX, MessageSqua
 export default function JuntaStats({ rows }) {
   const voy = rows.filter((r) => r.respuesta === "voy");
   const stats = [
-    { label: "Personas que vienen", value: voy.reduce((s, r) => s + (r.personas || 1), 0), cls: "text-green-700", icon: Users, tone: "green" },
-    { label: "Respuestas «Voy»", value: voy.length, cls: "text-green-700", icon: CheckCircle2, tone: "green" },
-    { label: "Delegan voto", value: rows.filter((r) => r.respuesta === "delego").length, cls: "text-blue-700", icon: Vote, tone: "blue" },
-    { label: "No pueden asistir", value: rows.filter((r) => r.respuesta === "no_voy").length, cls: "text-red-700", icon: XCircle, tone: "red" },
-    { label: "Socios al corriente", value: voy.filter((r) => r.socio === "si").length, cls: "text-orange-700", icon: BadgeCheck, tone: "orange" },
-    { label: "No socios", value: voy.filter((r) => r.socio === "no").length, cls: "text-slate-700", icon: UserRoundX, tone: "slate" },
-    { label: "Preguntas recibidas", value: rows.filter((r) => r.pregunta).length, cls: "text-purple-700", icon: MessageSquare, tone: "purple" },
+    { label: (() => { const p = voy.reduce((s, r) => s + (r.personas || 1), 0); return p > voy.length ? `Voy · ${p} personas en total` : "Voy"; })(), value: voy.length, cls: "text-green-700", icon: CheckCircle2, tone: "green" },
+    { label: "No voy", value: rows.filter((r) => r.respuesta === "no_voy").length, cls: "text-red-700", icon: XCircle, tone: "red" },
+    { label: "Delego mi voto", value: rows.filter((r) => r.respuesta === "delego").length, cls: "text-blue-700", icon: Vote, tone: "blue" },
+    { label: "Preguntas", value: rows.filter((r) => r.pregunta).length, cls: "text-purple-700", icon: MessageSquare, tone: "purple" },
   ];
   const ludo = rows.filter((r) => r.ludoteca === "si");
   if (ludo.length) stats.push({ label: `Solicitan ludoteca · ${ludo.reduce((s, r) => s + (r.ninos_ludoteca || 1), 0)} niños`, value: ludo.length, cls: "text-sky-700", icon: Baby, tone: "sky" });
