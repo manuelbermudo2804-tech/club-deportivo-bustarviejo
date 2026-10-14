@@ -293,9 +293,14 @@ export function useFetchUser(location) {
         }
       }
 
+      // El panel de tesorería es el destino inicial, no una ruta obligatoria.
+      // No redirigir desde cualquier otra página: una cuenta puede ser tesorera
+      // y también madre/padre, y necesita poder abrir sus páginas familiares.
+      // Home gestiona el destino inicial; esta capa no debe crear bucles de navegación.
       if (currentUser.es_tesorero === true && !currentUser.es_coordinador && currentUser.role !== "admin") {
         const currentPath = window.location.pathname.toLowerCase();
-        if (currentPath !== '/treasurerdashboard' && !currentPath.includes('treasurer')) {
+        const isHomePath = currentPath === '/' || currentPath === '/home' || currentPath === '/index';
+        if (isHomePath) {
           window.location.href = createPageUrl('TreasurerDashboard');
           return;
         }
