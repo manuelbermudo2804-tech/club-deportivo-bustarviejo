@@ -6,6 +6,12 @@ const SOCIAL_FOOTER = `<div style="background:#1e293b;padding:24px;text-align:ce
 <div style="color:#94a3b8;font-size:12px;line-height:1.6;"><strong style="color:#f8fafc;">CD Bustarviejo</strong><br><a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none;">info@cdbustarviejo.com</a></div>
 </div>`;
 
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]!)
+    .replace(/[\u0000-\u001F\u007F]/g, " ");
+}
+
 async function sendResendEmail(apiKey, to, subject, html) {
   const response = await fetch('https://api.resend.com/emails', {
     method: 'POST',
@@ -38,6 +44,14 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Todos los campos son obligatorios' }, { status: 400 });
     }
 
+    // Escapar datos de usuario antes de interpolarlos en plantillas HTML o asuntos.
+    const posicionHtml = escapeHtml(posicion);
+    const comercioHtml = escapeHtml(nombre_comercio);
+    const contactoHtml = escapeHtml(nombre_contacto);
+    const emailHtml = escapeHtml(email);
+    const telefonoHtml = escapeHtml(telefono);
+    const posicionAsunto = String(posicion).replace(/[\r\n\u0000-\u001F\u007F]/g, " ").slice(0, 120);
+
     // Crear registro con service role (es página pública, no hay usuario autenticado)
     await base44.asServiceRole.entities.SponsorInterest.create({
       posicion,
@@ -61,7 +75,7 @@ Deno.serve(async (req) => {
         await sendResendEmail(
           RESEND_API_KEY,
           'info@cdbustarviejo.com',
-          `🏟️ Nuevo interesado en patrocinio: ${posicion}`,
+          `🏟️ Nuevo interesado en patrocinio: ${posicionAsunto}`,
           `<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;">
             <div style="background:linear-gradient(135deg,#ea580c,#c2410c);padding:28px 24px;text-align:center;">
               <h1 style="color:#fff;margin:0;font-size:22px;">🏟️ Nuevo interesado en patrocinio</h1>
@@ -69,18 +83,18 @@ Deno.serve(async (req) => {
             <div style="padding:24px;">
               <div style="background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:16px;margin-bottom:16px;">
                 <p style="margin:0 0 4px;font-size:13px;color:#9a3412;font-weight:700;">POSICIÓN SOLICITADA</p>
-                <p style="margin:0;font-size:20px;font-weight:800;color:#c2410c;">${posicion}</p>
+                <p style="margin:0;font-size:20px;font-weight:800;color:#c2410c;">${posicionHtml}</p>
               </div>
               <table style="width:100%;border-collapse:collapse;">
-                <tr><td style="padding:8px 0;color:#64748b;font-size:13px;width:120px;">Comercio</td><td style="padding:8px 0;font-weight:600;color:#1e293b;">${nombre_comercio}</td></tr>
-                <tr><td style="padding:8px 0;color:#64748b;font-size:13px;">Contacto</td><td style="padding:8px 0;font-weight:600;color:#1e293b;">${nombre_contacto}</td></tr>
-                <tr><td style="padding:8px 0;color:#64748b;font-size:13px;">Email</td><td style="padding:8px 0;"><a href="mailto:${email}" style="color:#ea580c;font-weight:600;">${email}</a></td></tr>
-                <tr><td style="padding:8px 0;color:#64748b;font-size:13px;">Teléfono</td><td style="padding:8px 0;"><a href="tel:${telefono}" style="color:#ea580c;font-weight:600;">${telefono}</a></td></tr>
+                <tr><td style="padding:8px 0;color:#64748b;font-size:13px;width:120px;">Comercio</td><td style="padding:8px 0;font-weight:600;color:#1e293b;">${comercioHtml}</td></tr>
+                <tr><td style="padding:8px 0;color:#64748b;font-size:13px;">Contacto</td><td style="padding:8px 0;font-weight:600;color:#1e293b;">${contactoHtml}</td></tr>
+                <tr><td style="padding:8px 0;color:#64748b;font-size:13px;">Email</td><td style="padding:8px 0;"><a href="mailto:${emailHtml}" style="color:#ea580c;font-weight:600;">${emailHtml}</a></td></tr>
+                <tr><td style="padding:8px 0;color:#64748b;font-size:13px;">Teléfono</td><td style="padding:8px 0;"><a href="tel:${telefonoHtml}" style="color:#ea580c;font-weight:600;">${telefonoHtml}</a></td></tr>
                 <tr><td style="padding:8px 0;color:#64748b;font-size:13px;">Carnet Socio</td><td style="padding:8px 0;font-weight:600;color:${interesa_carnet_socio ? '#16a34a' : '#94a3b8'};">${interesa_carnet_socio ? '✅ Interesado' : '—'}</td></tr>
               </table>
               <div style="margin-top:16px;padding:12px;background:#f1f5f9;border-radius:8px;text-align:center;">
-                <p style="margin:0;font-size:14px;color:#475569;">📊 Total interesados en <strong>"${posicion}"</strong>: <strong style="color:#ea580c;font-size:18px;">${count}</strong></p>
-                ${count > 1 ? '<p style="margin:6px 0 0;color:#dc2626;font-weight:700;font-size:13px;">⚠️ Hay más de un interesado — se activará proceso de subasta</p>' : ''}
+                <p style="margin:0;font-size:14px;color:#475569;">📊 Total interesados en <strong>"${posicionHtml}"</strong>: <strong style="color:#ea580c;font-size:18px;">${count}</strong></p>
+                ${count > 1 ? '<p style="margin:6px 0 0;color:#b45309;font-weight:700;font-size:13px;">Hay varios interesados en esta posición. Revisa las solicitudes y decide manualmente la adjudicación.</p>' : ''}
               </div>
             </div>
           </div>`
@@ -103,15 +117,15 @@ Deno.serve(async (req) => {
             </div>
             <div style="padding:28px 24px;">
               <p style="font-size:15px;color:#334155;line-height:1.7;margin:0 0 16px;">
-                Hola <strong>${nombre_contacto}</strong>,
+                Hola <strong>${contactoHtml}</strong>,
               </p>
               <p style="font-size:15px;color:#334155;line-height:1.7;margin:0 0 20px;">
                 Hemos recibido tu interés en patrocinar al <strong>CD Bustarviejo</strong>. Aquí tienes un resumen:
               </p>
               <div style="background:linear-gradient(135deg,#fff7ed,#fef3c7);border:2px solid #fed7aa;border-radius:12px;padding:20px;margin-bottom:20px;">
                 <table style="width:100%;border-collapse:collapse;">
-                  <tr><td style="padding:6px 0;color:#92400e;font-size:13px;font-weight:600;width:120px;">📍 Posición</td><td style="padding:6px 0;font-weight:700;color:#c2410c;font-size:15px;">${posicion}</td></tr>
-                  <tr><td style="padding:6px 0;color:#92400e;font-size:13px;font-weight:600;">🏪 Comercio</td><td style="padding:6px 0;color:#1e293b;font-weight:600;">${nombre_comercio}</td></tr>
+                  <tr><td style="padding:6px 0;color:#92400e;font-size:13px;font-weight:600;width:120px;">📍 Posición</td><td style="padding:6px 0;font-weight:700;color:#c2410c;font-size:15px;">${posicionHtml}</td></tr>
+                  <tr><td style="padding:6px 0;color:#92400e;font-size:13px;font-weight:600;">🏪 Comercio</td><td style="padding:6px 0;color:#1e293b;font-weight:600;">${comercioHtml}</td></tr>
                 </table>
               </div>
               <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;padding:16px;margin-bottom:20px;">
