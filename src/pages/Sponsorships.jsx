@@ -47,7 +47,7 @@ export default function Sponsorships() {
           const proposal = await base44.entities.PropuestaPatrocinio.get(proposalId);
           await base44.entities.PropuestaPatrocinio.update(proposalId, {
             sponsor_id: sponsor.id,
-            notas_internas: [proposal?.notas_internas, `Convertida en patrocinador el ${new Date().toLocaleDateString("es-ES")} (ID: ${sponsor.id}).`].filter(Boolean).join("\\n"),
+            notas_internas: [proposal?.notas_internas, `Convertida en patrocinador el ${new Date().toLocaleDateString("es-ES")} (ID: ${sponsor.id}).`].filter(Boolean).join("\n"),
           });
         } catch (error) {
           console.error("Patrocinador creado, pero no se pudo vincular la propuesta:", error);
@@ -129,9 +129,18 @@ export default function Sponsorships() {
     };
     setRenewingId(sponsor.id);
     try {
+      const historial = Array.isArray(sponsor.historial_crm) ? sponsor.historial_crm : [];
+      const fechaInicioRenovacion = sponsor.fecha_fin || new Date().toISOString().split('T')[0];
+      const fechaFinRenovacion = addYear(sponsor.fecha_fin);
       await base44.entities.Sponsor.update(sponsor.id, {
-        fecha_inicio: sponsor.fecha_fin || new Date().toISOString().split('T')[0],
-        fecha_fin: addYear(sponsor.fecha_fin),
+        fecha_inicio: fechaInicioRenovacion,
+        fecha_fin: fechaFinRenovacion,
+        historial_crm: [...historial, {
+          fecha: new Date().toISOString(),
+          tipo: "nota",
+          descripcion: `Patrocinio renovado por un año: del ${fechaInicioRenovacion} al ${fechaFinRenovacion}.`,
+          autor: "administración",
+        }],
       });
       queryClient.invalidateQueries({ queryKey: ['sponsors'] });
       toast.success(`✅ Patrocinio de ${sponsor.nombre} renovado 1 año`);
