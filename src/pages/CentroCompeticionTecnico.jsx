@@ -275,11 +275,11 @@ export default function CentroCompeticionTecnico() {
   };
 
   const ViewToggle = () => (
-    <div className="grid w-full min-w-0 grid-cols-2 gap-2 rounded-2xl bg-white/10 p-2 sm:grid-cols-3 lg:grid-cols-5">
+    <div className="flex w-full min-w-0 snap-x gap-2 overflow-x-auto rounded-2xl border border-white/10 bg-slate-950/30 p-2 scrollbar-hide">
       <Button
         variant={view === 'clasificacion' ? 'default' : 'ghost'}
         onClick={() => setView('clasificacion')}
-        className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'clasificacion' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
+        className={`h-12 min-w-[132px] shrink-0 snap-start flex-row gap-2 rounded-xl px-3 text-xs font-semibold shadow-sm sm:min-w-[145px] sm:text-sm ${view === 'clasificacion' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/5 text-slate-100 hover:bg-white/10 hover:text-white'}`}
       >
         <Trophy className="h-4 w-4 shrink-0" /> Clasificación
       </Button>
