@@ -281,35 +281,35 @@ export default function CentroCompeticionTecnico() {
         onClick={() => setView('clasificacion')}
         className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'clasificacion' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
       >
-        <Trophy className="w-4 h-4 mr-1.5" /> Clasif.
+        <Trophy className="h-4 w-4 shrink-0" /> Clasificación
       </Button>
       <Button
         variant={view === 'resultados' ? 'default' : 'ghost'}
         onClick={() => setView('resultados')}
         className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'resultados' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
       >
-        <List className="w-4 h-4 mr-1.5" /> Result.
+        <List className="h-4 w-4 shrink-0" /> Resultados
       </Button>
       <Button
         variant={view === 'goleadores' ? 'default' : 'ghost'}
         onClick={() => setView('goleadores')}
         className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'goleadores' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
       >
-        <Users className="w-4 h-4 mr-1.5" /> Goleadores
+        <Users className="h-4 w-4 shrink-0" /> Goleadores
       </Button>
       <Button
         variant={view === 'cruces' ? 'default' : 'ghost'}
         onClick={() => setView('cruces')}
         className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'cruces' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
       >
-        <Grid3X3 className="w-4 h-4 mr-1.5" /> Cruces
+        <Grid3X3 className="h-4 w-4 shrink-0" /> Cruces
       </Button>
       <Button
         variant={view === 'jornadas' ? 'default' : 'ghost'}
         onClick={() => setView('jornadas')}
         className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'jornadas' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
       >
-        <Calendar className="w-4 h-4 mr-1" /> Jornadas
+        <Calendar className="h-4 w-4 shrink-0" /> Jornadas
       </Button>
     </div>
   );
@@ -342,7 +342,7 @@ export default function CentroCompeticionTecnico() {
       </header>
 
       {/* Categorías del técnico */}
-      <div className="flex min-w-0 gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-3 pb-3 shadow-sm">
+      <div className="w-full min-w-0 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-3 shadow-sm"><div className="flex w-max min-w-full gap-2">
         {(visibleCats && visibleCats.length ? visibleCats : myCats).map((cat) => (
           <button
             key={cat}
@@ -353,6 +353,7 @@ export default function CentroCompeticionTecnico() {
             {getShortCategoryName(cat)}
           </button>
         ))}
+        </div>
       </div>
 
 
