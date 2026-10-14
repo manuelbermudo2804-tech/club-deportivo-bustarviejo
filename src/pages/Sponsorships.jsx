@@ -77,10 +77,10 @@ export default function Sponsorships() {
       queryClient.invalidateQueries({ queryKey: ['sponsors'] });
       setShowForm(false);
       setEditingSponsor(null);
-      if (Object.prototype.hasOwnProperty.call(variables.data || {}, "activo")) {
+      if (variables.action === "toggleActive") {
         toast.success(variables.data.activo
-          ? `✅ ${variables.data.nombre || "Patrocinador"} activado - aparecerá en el banner`
-          : `⏸️ ${variables.data.nombre || "Patrocinador"} desactivado - dejará de aparecer en el banner`);
+          ? `✅ ${variables.sponsorName} activado - aparecerá en el banner`
+          : `⏸️ ${variables.sponsorName} desactivado - dejará de aparecer en el banner`);
       } else {
         toast.success("✅ Patrocinador actualizado");
       }
@@ -120,7 +120,9 @@ export default function Sponsorships() {
     const newStatus = !sponsor.activo;
     updateMutation.mutate({
       id: sponsor.id,
-      data: { activo: newStatus, nombre: sponsor.nombre }
+      data: { activo: newStatus },
+      action: "toggleActive",
+      sponsorName: sponsor.nombre,
     });
   };
 
