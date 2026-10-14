@@ -53,6 +53,24 @@ export default function CoordinatorDashboard() {
   // ÚNICA fuente de verdad para TODAS las notificaciones
   const { notifications } = useUnifiedNotifications(user);
 
+  // Detectar hijos por email además del indicador manual, que puede estar desactualizado.
+  const { data: linkedChildren = [] } = useQuery({
+    queryKey: ['coordinatorFamilyPlayers', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const [byPadre, byTutor2] = await Promise.all([
+        base44.entities.Player.filter({ email_padre: user.email, activo: true }).catch(() => []),
+        base44.entities.Player.filter({ email_tutor_2: user.email, activo: true }).catch(() => []),
+      ]);
+      const map = new Map();
+      [...byPadre, ...byTutor2].forEach(p => map.set(p.id, p));
+      return Array.from(map.values()).filter(p => p.id !== user?.player_id);
+    },
+    enabled: !!user?.email,
+    staleTime: 5 * 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const showFamilyTasks = hasPlayers || linkedChildren.length > 0;
 
   // Contadores de chat eliminados - se recrearán desde cero
 
@@ -230,12 +248,12 @@ export default function CoordinatorDashboard() {
               />
             </div>
           </div>
-          {/* Barra PADRE (solo si tiene hijos) */}
-          {hasPlayers && (
+          {/* Barra PADRE (si el indicador o los vínculos por email confirman hijos) */}
+          {showFamilyTasks && (
             <div className="rounded-xl border-2 border-orange-500/30 overflow-hidden">
               <div className="bg-gradient-to-r from-orange-600 to-orange-700 px-4 py-2">
                 <p className="text-white font-bold text-sm flex items-center gap-2">
-                  {hasPlayers ? '👨‍👩‍👧 Tus hijos en el club' : user?.es_jugador ? '⚽ Tu ficha de jugador' : '👨‍👩‍👧 Tu vida en el club'}
+                  👨‍👩‍👧 Tus hijos en el club
                 </p>
               </div>
               <div className="bg-orange-950/40 p-3">
