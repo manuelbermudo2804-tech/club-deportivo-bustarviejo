@@ -136,17 +136,13 @@ export default function ExerciseLibrary() {
   const isCoachOrAdmin = user?.role === "admin" || user?.es_entrenador || user?.es_coordinador;
 
   return (
-    <div className="p-4 lg:p-8 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900 flex items-center gap-2">
-            <BookOpen className="w-8 h-8 text-orange-600" />
-            Biblioteca de Ejercicios
-          </h1>
-          <p className="text-slate-600 mt-1">
-            {stats.total} ejercicios disponibles • {stats.futbol} fútbol • {stats.baloncesto} baloncesto
-          </p>
+    <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-5 lg:px-8 lg:pt-7 [&_*]:min-w-0">
+      <header className="relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7 md:flex-row md:items-center md:justify-between">
+        <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-orange-500/10 blur-3xl" />
+        <div className="relative min-w-0">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-300">Entrenadores · Recursos</p>
+          <h1 className="flex items-center gap-2 break-words text-2xl font-bold tracking-tight text-white sm:text-3xl"><BookOpen className="h-7 w-7 shrink-0 text-orange-400" />Biblioteca de ejercicios</h1>
+          <p className="mt-2 text-sm text-slate-300 sm:text-base">{stats.total} ejercicios disponibles · {stats.futbol} fútbol · {stats.baloncesto} baloncesto</p>
         </div>
         <div className="flex gap-2 w-full md:w-auto flex-wrap">
           <Button
@@ -175,7 +171,7 @@ export default function ExerciseLibrary() {
             </>
           )}
         </div>
-      </div>
+      </header>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
