@@ -29,6 +29,7 @@ export default function SponsorInterestPanel({ onConvertToSponsor }) {
       queryClient.invalidateQueries({ queryKey: ["sponsor-interests"] });
       toast.success("Estado actualizado");
     },
+    onError: () => toast.error("No se pudo actualizar el estado"),
   });
 
   const deleteMutation = useMutation({
@@ -37,6 +38,7 @@ export default function SponsorInterestPanel({ onConvertToSponsor }) {
       queryClient.invalidateQueries({ queryKey: ["sponsor-interests"] });
       toast.success("Solicitud eliminada");
     },
+    onError: () => toast.error("No se pudo eliminar la solicitud"),
   });
 
   // Agrupar por posición
@@ -65,7 +67,7 @@ export default function SponsorInterestPanel({ onConvertToSponsor }) {
               <h4 className="font-bold text-slate-900">{posicion}</h4>
               {items.length > 1 && (
                 <Badge className="bg-amber-100 text-amber-800 text-xs">
-                  ⚠️ {items.length} interesados — subasta
+                  ⚠️ {items.length} interesados — revisar adjudicación
                 </Badge>
               )}
             </div>
