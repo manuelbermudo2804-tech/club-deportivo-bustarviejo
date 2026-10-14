@@ -81,16 +81,16 @@ function PlayerAttendanceRow({ player, data, history, onChange, onReport }) {
   }, [player, onReport]);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-3 space-y-2 border border-slate-100">
+    <div className="min-w-0 space-y-3 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition-shadow hover:shadow-md sm:p-4">
       {/* Header compacto */}
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-3">
         <PlayerPhoto 
           nombre={player.nombre} 
           foto_url={player.foto_url} 
           lesionado={player.lesionado} 
           sancionado={player.sancionado} 
         />
-        <div className="flex-1 min-w-0">
+        <div className="min-w-0 flex-1">
           <span className="font-semibold text-sm block truncate">{player.nombre}</span>
           <div className="flex items-center gap-1 flex-wrap">
             {player.lesionado && <span className="text-[9px] bg-red-100 text-red-700 px-1 rounded">Lesión</span>}
@@ -101,14 +101,14 @@ function PlayerAttendanceRow({ player, data, history, onChange, onReport }) {
       </div>
 
       {/* Asistencia - botones grandes para táctil */}
-      <div className="grid grid-cols-4 gap-1.5">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {ESTADOS.map(({ value, icon: Icon, color, bg, label }) => {
           const isSelected = data?.asistencia === value;
           return (
             <button
               key={value}
               onClick={() => handleEstado(value)}
-              className={`p-2.5 rounded-lg flex flex-col items-center gap-0.5 transition-colors ${
+              className={`flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl p-2.5 transition-all ${
                 isSelected ? `${bg} ${color} ring-2 ring-offset-1` : 'bg-slate-50 text-slate-400 active:bg-slate-100'
               }`}
             >
@@ -121,7 +121,7 @@ function PlayerAttendanceRow({ player, data, history, onChange, onReport }) {
 
       {/* Evaluación - solo si presente */}
       {isPresent && (
-        <div className="flex items-center gap-3 pt-1">
+        <div className="flex flex-wrap items-center gap-3 rounded-xl bg-slate-50 p-2.5">
           <span className="text-xs text-slate-500 whitespace-nowrap">Actitud:</span>
           <ActitudButtons value={data?.actitud} onChange={handleActitud} />
         </div>
@@ -134,14 +134,14 @@ function PlayerAttendanceRow({ player, data, history, onChange, onReport }) {
           value={data?.observaciones || ""}
           onChange={handleObs}
           placeholder="Notas..."
-          className="w-full h-8 px-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500"
+          className="h-10 w-full rounded-xl border border-slate-200 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
         />
       )}
 
       {/* Reporte - botón simple */}
       <button
         onClick={handleReport}
-        className="w-full flex items-center justify-center gap-1.5 text-xs text-slate-500 py-1.5 rounded-lg border border-slate-200 active:bg-slate-50"
+        className="flex min-h-10 w-full items-center justify-center gap-2 rounded-xl border border-slate-200 py-2 text-xs font-semibold text-slate-600 transition-colors hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700"
       >
         <Mail className="w-3.5 h-3.5" />
         Enviar reporte privado
