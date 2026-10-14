@@ -9,6 +9,7 @@ import { ArrowLeft, Download, Loader2, Search, Mail, Phone, Users, Trash2, Messa
 import { toast } from "sonner";
 import SubmissionDataView from "@/components/page-builder/SubmissionDataView";
 import { buildInscritosText } from "@/components/page-builder/inscritosShareText";
+import JuntaResumenInscritos from "@/components/junta/JuntaResumenInscritos";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger
@@ -50,6 +51,7 @@ export default function PageBuilderInscritos() {
 
   const [page, setPage] = useState(null);
   const [submissions, setSubmissions] = useState([]);
+  const [esJunta, setEsJunta] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterEstado, setFilterEstado] = useState("todos");
@@ -72,6 +74,7 @@ export default function PageBuilderInscritos() {
         }
         setPage(data.page);
         setSubmissions(data.submissions || []);
+        setEsJunta(!!data.es_junta);
       } catch (err) {
         console.error(err);
         // 403 → acceso denegado; otros errores → mensaje genérico
@@ -240,6 +243,7 @@ export default function PageBuilderInscritos() {
         </Button>
         </div>
       </header>
+      {esJunta && <JuntaResumenInscritos submissions={submissions} campos={campos} />}
 
       {/* Stats */}
       <div className="grid min-w-0 grid-cols-2 gap-3 lg:grid-cols-4">

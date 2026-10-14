@@ -45,6 +45,7 @@ Deno.serve(async (req) => {
             all.push({
               id: a.id, origen: 'App', landing_page_id, landing_slug: page.slug,
               nombre: a.nombre || a.email, email: a.email, estado: 'nuevo', created_date: a.created_date,
+              respuesta: a.respuesta, personas: a.personas, pregunta: a.pregunta, ludoteca: a.ludoteca, ninos_ludoteca: a.ninos_ludoteca, updated_date: a.updated_date,
               datos: {
                 'Origen': 'App', 'Respuesta': etiqueta[a.respuesta] || a.respuesta, 'Personas': a.personas,
                 'Pregunta': a.pregunta || '', 'Ludoteca': a.ludoteca || '', 'Niños ludoteca': a.ninos_ludoteca ?? '',
@@ -56,7 +57,8 @@ Deno.serve(async (req) => {
       }
     }
 
-    return Response.json({ submissions: all, page });
+    const es_junta = !!page.slug && (await base44.asServiceRole.entities.JuntaSocios.filter({ landing_slug: page.slug })).length > 0;
+    return Response.json({ submissions: all, page, es_junta });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
