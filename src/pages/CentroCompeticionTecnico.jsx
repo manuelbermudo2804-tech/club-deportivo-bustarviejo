@@ -275,39 +275,39 @@ export default function CentroCompeticionTecnico() {
   };
 
   const ViewToggle = () => (
-    <div className="grid w-full min-w-0 grid-cols-5 overflow-x-auto rounded-xl border border-white/20 bg-white/10">
+    <div className="grid w-full min-w-0 grid-cols-2 gap-2 rounded-2xl bg-white/10 p-2 sm:grid-cols-3 lg:grid-cols-5">
       <Button
         variant={view === 'clasificacion' ? 'default' : 'ghost'}
         onClick={() => setView('clasificacion')}
-        className={`${view === 'clasificacion' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
+        className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'clasificacion' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
       >
         <Trophy className="w-4 h-4 mr-1.5" /> Clasif.
       </Button>
       <Button
         variant={view === 'resultados' ? 'default' : 'ghost'}
         onClick={() => setView('resultados')}
-        className={`${view === 'resultados' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
+        className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'resultados' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
       >
         <List className="w-4 h-4 mr-1.5" /> Result.
       </Button>
       <Button
         variant={view === 'goleadores' ? 'default' : 'ghost'}
         onClick={() => setView('goleadores')}
-        className={`${view === 'goleadores' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
+        className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'goleadores' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
       >
         <Users className="w-4 h-4 mr-1.5" /> Goleadores
       </Button>
       <Button
         variant={view === 'cruces' ? 'default' : 'ghost'}
         onClick={() => setView('cruces')}
-        className={`${view === 'cruces' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
+        className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'cruces' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
       >
         <Grid3X3 className="w-4 h-4 mr-1.5" /> Cruces
       </Button>
       <Button
         variant={view === 'jornadas' ? 'default' : 'ghost'}
         onClick={() => setView('jornadas')}
-        className={`${view === 'jornadas' ? 'bg-orange-600 hover:bg-orange-700 text-white' : ''} h-10 text-xs sm:text-sm w-full rounded-none justify-center`}
+        className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'jornadas' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
       >
         <Calendar className="w-4 h-4 mr-1" /> Jornadas
       </Button>
@@ -348,7 +348,7 @@ export default function CentroCompeticionTecnico() {
             key={cat}
             onClick={() => setCategory(cat)}
             title={cat}
-            className={`px-3 py-2 rounded-full whitespace-nowrap border text-sm ${category === cat ? 'bg-orange-600 text-white border-orange-600' : 'bg-white hover:bg-slate-50'}`}
+            className={`inline-flex min-h-11 shrink-0 items-center justify-center whitespace-nowrap rounded-xl border px-4 py-2 text-sm font-semibold transition-colors ${category === cat ? 'border-orange-600 bg-orange-600 text-white shadow-sm' : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-orange-200 hover:bg-orange-50'}`}
           >
             {getShortCategoryName(cat)}
           </button>
