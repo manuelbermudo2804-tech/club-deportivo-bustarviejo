@@ -677,7 +677,9 @@ export default function Payments() {
         .map(p => p.mes);
       
       // Faltan 3 meses menos los que ya están pagados/en revisión
-      const cuotasFaltantes = 3 - mesesPagados.length;
+      // Evitar contar dos veces un mismo mes y que los duplicados generen pendientes negativos.
+      const mesesUnicosPagados = new Set(mesesPagados).size;
+      const cuotasFaltantes = Math.max(0, 3 - mesesUnicosPagados);
       totalPendientes += cuotasFaltantes;
     });
     
