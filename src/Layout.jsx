@@ -167,12 +167,12 @@ export default function Layout({ children, currentPageName }) {
     let cancelled = false;
     const load = async () => {
       try {
-        const items = await base44.entities.Feedback.filter({ estado: 'nuevo' });
-        if (!cancelled) setPendingFeedback(items.length);
+        const n = await base44.entities.Feedback.count({ estado: 'nuevo' });
+        if (!cancelled) setPendingFeedback(n);
       } catch {}
     };
     load();
-    const interval = setInterval(load, 60000);
+    const interval = setInterval(() => { if (document.visibilityState === 'visible') load(); }, 5 * 60000);
     return () => { cancelled = true; clearInterval(interval); };
   }, [isAdmin]);
 
@@ -287,8 +287,11 @@ export default function Layout({ children, currentPageName }) {
 
   // Solo refrescar datos del usuario al volver a la app (no en cada navegación)
   useEffect(() => {
+    let lastFetch = Date.now();
     const onVisibility = () => {
-      if (document.visibilityState === 'visible') {
+      // Solo recargar al volver si han pasado más de 5 minutos
+      if (document.visibilityState === 'visible' && Date.now() - lastFetch > 5 * 60000) {
+        lastFetch = Date.now();
         executeFetch();
       }
     };

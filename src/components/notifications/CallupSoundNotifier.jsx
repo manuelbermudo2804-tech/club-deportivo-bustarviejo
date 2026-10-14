@@ -8,7 +8,7 @@ export default function CallupSoundNotifier({ user }) {
   const { data: callups } = useQuery({
     queryKey: ['callups-sound'],
     queryFn: () => base44.entities.Convocatoria.list('-created_date', 50),
-    refetchInterval: 60000,
+    staleTime: 5 * 60000,
     enabled: !!user && user.role !== 'admin'
   });
   useLiveRefetch('Convocatoria', ['callups-sound'], !!user && user.role !== 'admin');

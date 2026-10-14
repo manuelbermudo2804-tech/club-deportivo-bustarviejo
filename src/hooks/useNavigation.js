@@ -62,12 +62,12 @@ export default function useNavigation({
     let cancelled = false;
     const load = async () => {
       try {
-        const items = await base44.entities.LopiviIncidencia.filter({ estado: "nueva" });
-        if (!cancelled) setPendingLopiviCount(items.length);
+        const n = await base44.entities.LopiviIncidencia.count({ estado: "nueva" });
+        if (!cancelled) setPendingLopiviCount(n);
       } catch {}
     };
     load();
-    const interval = setInterval(load, 60000);
+    const interval = setInterval(() => { if (document.visibilityState === 'visible') load(); }, 5 * 60000);
     return () => { cancelled = true; clearInterval(interval); };
   }, [isAdmin]);
 

@@ -8,7 +8,7 @@ export default function AnnouncementSoundNotifier({ user }) {
   const { data: announcements } = useQuery({
     queryKey: ['announcements-sound'],
     queryFn: () => base44.entities.Announcement.list('-created_date', 50),
-    refetchInterval: 60000,
+    staleTime: 5 * 60000,
     enabled: !!user
   });
   useLiveRefetch('Announcement', ['announcements-sound'], !!user);

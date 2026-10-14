@@ -8,7 +8,7 @@ export default function PaymentSoundNotifier({ user }) {
   const { data: payments } = useQuery({
     queryKey: ['payments-sound'],
     queryFn: () => base44.entities.Payment.list('-updated_date', 100),
-    refetchInterval: 60000,
+    staleTime: 5 * 60000,
     enabled: !!user && user.role !== 'admin'
   });
   useLiveRefetch('Payment', ['payments-sound'], !!user && user.role !== 'admin');
