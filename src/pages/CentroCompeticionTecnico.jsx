@@ -286,28 +286,28 @@ export default function CentroCompeticionTecnico() {
       <Button
         variant={view === 'resultados' ? 'default' : 'ghost'}
         onClick={() => setView('resultados')}
-        className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'resultados' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
+        className={`h-12 min-w-[132px] shrink-0 snap-start flex-row gap-2 rounded-xl px-3 text-xs font-semibold shadow-sm sm:min-w-[145px] sm:text-sm ${view === 'resultados' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/5 text-slate-100 hover:bg-white/10 hover:text-white'}`}
       >
         <List className="h-4 w-4 shrink-0" /> Resultados
       </Button>
       <Button
         variant={view === 'goleadores' ? 'default' : 'ghost'}
         onClick={() => setView('goleadores')}
-        className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'goleadores' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
+        className={`h-12 min-w-[132px] shrink-0 snap-start flex-row gap-2 rounded-xl px-3 text-xs font-semibold shadow-sm sm:min-w-[145px] sm:text-sm ${view === 'goleadores' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/5 text-slate-100 hover:bg-white/10 hover:text-white'}`}
       >
         <Users className="h-4 w-4 shrink-0" /> Goleadores
       </Button>
       <Button
         variant={view === 'cruces' ? 'default' : 'ghost'}
         onClick={() => setView('cruces')}
-        className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'cruces' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
+        className={`h-12 min-w-[132px] shrink-0 snap-start flex-row gap-2 rounded-xl px-3 text-xs font-semibold shadow-sm sm:min-w-[145px] sm:text-sm ${view === 'cruces' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/5 text-slate-100 hover:bg-white/10 hover:text-white'}`}
       >
         <Grid3X3 className="h-4 w-4 shrink-0" /> Cruces
       </Button>
       <Button
         variant={view === 'jornadas' ? 'default' : 'ghost'}
         onClick={() => setView('jornadas')}
-        className={`h-12 min-w-0 w-full flex-col gap-1 rounded-xl px-1 py-2 text-[11px] font-semibold leading-tight shadow-sm sm:h-14 sm:text-xs ${view === 'jornadas' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/95 text-slate-800 hover:bg-orange-50 hover:text-slate-950'}`}
+        className={`h-12 min-w-[132px] shrink-0 snap-start flex-row gap-2 rounded-xl px-3 text-xs font-semibold shadow-sm sm:min-w-[145px] sm:text-sm ${view === 'jornadas' ? 'bg-orange-600 text-white hover:bg-orange-700' : 'border border-white/20 bg-white/5 text-slate-100 hover:bg-white/10 hover:text-white'}`}
       >
         <Calendar className="h-4 w-4 shrink-0" /> Jornadas
       </Button>
