@@ -29,7 +29,34 @@ Deno.serve(async (req) => {
       500
     );
 
-    return Response.json({ submissions: submissions || [], page });
+    // Si la página pertenece a una Junta de Socios, sumar también las respuestas hechas desde la app
+    const all = [...(submissions || [])];
+    if (page.slug) {
+      const juntas = await base44.asServiceRole.entities.JuntaSocios.filter({ landing_slug: page.slug });
+      if (juntas.length) {
+        const webEmails = new Set(all.map((s) => (s.email || '').toLowerCase().trim()));
+        const etiqueta = { voy: 'Asistiré', no_voy: 'No asistiré', delego: 'Delego el voto' };
+        for (const j of juntas) {
+          const app = await base44.asServiceRole.entities.JuntaAsistencia.filter({ junta_id: j.id }, '-updated_date', 1000);
+          for (const a of app) {
+            const em = (a.email || '').toLowerCase().trim();
+            if (webEmails.has(em)) continue;
+            webEmails.add(em);
+            all.push({
+              id: a.id, origen: 'App', landing_page_id, landing_slug: page.slug,
+              nombre: a.nombre || a.email, email: a.email, estado: 'nuevo', created_date: a.created_date,
+              datos: {
+                'Origen': 'App', 'Respuesta': etiqueta[a.respuesta] || a.respuesta, 'Personas': a.personas,
+                'Pregunta': a.pregunta || '', 'Ludoteca': a.ludoteca || '', 'Niños ludoteca': a.ninos_ludoteca ?? '',
+              },
+            });
+          }
+        }
+        all.sort((x, y) => String(y.created_date).localeCompare(String(x.created_date)));
+      }
+    }
+
+    return Response.json({ submissions: all, page });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }
