@@ -144,29 +144,17 @@ export default function ExerciseLibrary() {
           <h1 className="flex items-center gap-2 break-words text-2xl font-bold tracking-tight text-white sm:text-3xl"><BookOpen className="h-7 w-7 shrink-0 text-orange-400" />Biblioteca de ejercicios</h1>
           <p className="mt-2 text-sm text-slate-300 sm:text-base">{stats.total} ejercicios disponibles · {stats.futbol} fútbol · {stats.baloncesto} baloncesto</p>
         </div>
-        <div className="flex gap-2 w-full md:w-auto flex-wrap">
-          <Button
-            onClick={() => setShowAIPlanner(true)}
-            className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 flex-1 md:flex-none"
-          >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Planificar con IA
+        <div className="relative z-10 grid w-full min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 md:w-auto md:min-w-[440px] md:grid-cols-1 lg:grid-cols-3">
+          <Button onClick={() => setShowAIPlanner(true)} className="h-11 w-full justify-center gap-2 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 px-4 text-sm font-semibold text-white shadow-md hover:from-purple-700 hover:to-indigo-700">
+            <Sparkles className="h-4 w-4 shrink-0" /> Planificar con IA
           </Button>
           {isCoachOrAdmin && (
             <>
-              <Button
-                onClick={() => setShowAIGenerator(true)}
-                className="bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 flex-1 md:flex-none"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                🤖 Crear con IA
+              <Button onClick={() => setShowAIGenerator(true)} className="h-11 w-full justify-center gap-2 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 px-4 text-sm font-semibold text-white shadow-md hover:from-cyan-700 hover:to-blue-700">
+                <Sparkles className="h-4 w-4 shrink-0" /> Crear con IA
               </Button>
-              <Button
-                onClick={() => { setEditingExercise(null); setShowForm(true); }}
-                className="bg-orange-600 hover:bg-orange-700 flex-1 md:flex-none"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Nuevo
+              <Button onClick={() => { setEditingExercise(null); setShowForm(true); }} className="h-11 w-full justify-center gap-2 rounded-xl bg-orange-600 px-4 text-sm font-semibold text-white shadow-md hover:bg-orange-700">
+                <Plus className="h-4 w-4 shrink-0" /> Nuevo ejercicio
               </Button>
             </>
           )}
@@ -333,20 +321,20 @@ export default function ExerciseLibrary() {
 
       {/* Tabs */}
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="w-full justify-start overflow-x-auto">
-          <TabsTrigger value="all">
-            Todos ({filteredExercises.length})
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-slate-100/90 p-2 shadow-sm sm:grid-cols-3 lg:grid-cols-5">
+          <TabsTrigger value="all" className="min-h-10 rounded-xl px-3 py-2 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-orange-700 data-[state=active]:shadow-sm">
+            Todos <span className="ml-1 text-xs opacity-75">({filteredExercises.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="favorites">
-            ❤️ Favoritos ({favoriteExercises.length})
+          <TabsTrigger value="favorites" className="min-h-10 rounded-xl px-3 py-2 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-orange-700 data-[state=active]:shadow-sm">
+            ❤️ Favoritos <span className="ml-1 text-xs opacity-75">({favoriteExercises.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="capacidad">
+          <TabsTrigger value="capacidad" className="min-h-10 rounded-xl px-3 py-2 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-orange-700 data-[state=active]:shadow-sm">
             Capacidad
           </TabsTrigger>
-          <TabsTrigger value="potencia">
+          <TabsTrigger value="potencia" className="min-h-10 rounded-xl px-3 py-2 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-orange-700 data-[state=active]:shadow-sm">
             Potencia
           </TabsTrigger>
-          <TabsTrigger value="tecnica">
+          <TabsTrigger value="tecnica" className="min-h-10 rounded-xl px-3 py-2 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:text-orange-700 data-[state=active]:shadow-sm">
             Técnica
           </TabsTrigger>
         </TabsList>
