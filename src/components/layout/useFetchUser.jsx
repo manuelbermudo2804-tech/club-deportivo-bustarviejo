@@ -284,7 +284,7 @@ export function useFetchUser(location) {
         setHasPlayers(currentUser.tiene_hijos_jugando === true);
         setIsLoading(false);
 
-        if (currentUser.tipo_panel === 'familia' && (currentUser.app_instalada === true || currentUser.es_segundo_progenitor === true)) {
+        if (currentUser.tipo_panel === 'familia' && !currentUser.es_tesorero && !currentUser.es_coordinador && !currentUser.es_entrenador && currentUser.role !== 'admin' && (currentUser.app_instalada === true || currentUser.es_segundo_progenitor === true)) {
           const currentPath = window.location.pathname.toLowerCase();
           if (currentPath !== '/parentdashboard' && !currentPath.includes('parental')) {
             window.location.href = createPageUrl('ParentDashboard');
