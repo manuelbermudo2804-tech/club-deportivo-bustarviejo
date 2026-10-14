@@ -41,8 +41,15 @@ Club Deportivo Bustarviejo`;
       body,
     });
 
+    const historial = Array.isArray(sponsor.historial_crm) ? sponsor.historial_crm : [];
     await base44.asServiceRole.entities.Sponsor.update(sponsorId, {
       fecha_ultimo_contacto: new Date().toISOString().split('T')[0],
+      historial_crm: [...historial, {
+        fecha: new Date().toISOString(),
+        tipo: 'email',
+        descripcion: 'Email de aviso de renovación enviado al contacto.',
+        autor: user.email || 'administración',
+      }],
     });
 
     return Response.json({ success: true });
