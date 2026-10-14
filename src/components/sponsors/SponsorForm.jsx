@@ -26,27 +26,29 @@ const CATEGORIAS = [
   "Baloncesto (Mixto)"
 ];
 
+const createEmptyFormData = () => ({
+  nombre: "",
+  logo_url: "",
+  website_url: "",
+  contacto_nombre: "",
+  contacto_email: "",
+  contacto_telefono: "",
+  direccion: "",
+  nivel_patrocinio: "Colaborador",
+  fecha_inicio: new Date().toISOString().split('T')[0],
+  fecha_fin: "",
+  precio_anual: "",
+  activo: true,
+  paquete: "Bronce",
+  documentos: [],
+  equipos_patrocinados: [],
+  jugadores_patrocinados: [],
+  beneficios_acordados: "",
+  notas: ""
+});
+
 export default function SponsorForm({ sponsor, players, onSubmit, onCancel, isSubmitting }) {
-  const [formData, setFormData] = useState({
-    nombre: "",
-    logo_url: "",
-    website_url: "",
-    contacto_nombre: "",
-    contacto_email: "",
-    contacto_telefono: "",
-    direccion: "",
-    nivel_patrocinio: "Colaborador",
-    fecha_inicio: new Date().toISOString().split('T')[0],
-    fecha_fin: "",
-    precio_anual: "",
-    activo: true,
-    paquete: "Bronce",
-    documentos: [],
-    equipos_patrocinados: [],
-    jugadores_patrocinados: [],
-    beneficios_acordados: "",
-    notas: ""
-  });
+  const [formData, setFormData] = useState(createEmptyFormData);
 
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState(false);
@@ -55,13 +57,17 @@ export default function SponsorForm({ sponsor, players, onSubmit, onCancel, isSu
   useEffect(() => {
     if (sponsor) {
       setFormData({
+        ...createEmptyFormData(),
         ...sponsor,
-        precio_anual: sponsor.precio_anual || "",
+        precio_anual: sponsor.precio_anual ?? "",
         activo: sponsor.activo ?? true,
         documentos: sponsor.documentos || [],
         equipos_patrocinados: sponsor.equipos_patrocinados || [],
         jugadores_patrocinados: sponsor.jugadores_patrocinados || []
       });
+    } else {
+      // Al pasar de edición/conversión a "Nuevo patrocinador", limpiar todos los datos previos.
+      setFormData(createEmptyFormData());
     }
   }, [sponsor]);
 
