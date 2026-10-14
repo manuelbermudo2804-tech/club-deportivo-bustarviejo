@@ -192,7 +192,7 @@ function PropuestaCard({ propuesta, onUpdate, onDelete, onConvertToSponsor }) {
           )}
 
           {/* Convertir propuesta aceptada en patrocinador */}
-          {propuesta.estado === "aceptada" && onConvertToSponsor && (
+          {propuesta.estado === "aceptada" && !propuesta.sponsor_id && onConvertToSponsor && (
             <Button
               className="w-full bg-green-600 hover:bg-green-700"
               onClick={() => onConvertToSponsor({
@@ -203,10 +203,15 @@ function PropuestaCard({ propuesta, onUpdate, onDelete, onConvertToSponsor }) {
                 precio_anual: Number(propuesta.total_estimado || 0),
                 nivel_patrocinio: "Principal",
                 beneficios_acordados: paquetes.map((p) => p.nombre).join(", "),
-              })}
+              }, propuesta.id)}
             >
               <UserPlus className="w-4 h-4 mr-2" /> Crear patrocinador con estos datos
             </Button>
+          )}
+          {propuesta.estado === "aceptada" && propuesta.sponsor_id && (
+            <div className="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-800">
+              <span className="font-semibold">Convertida en patrocinador.</span> Ya está vinculada a un registro y no se puede volver a convertir desde aquí.
+            </div>
           )}
         </div>
       )}
