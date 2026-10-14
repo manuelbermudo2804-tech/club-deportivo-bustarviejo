@@ -22,12 +22,15 @@ export default function useCoordinatorAlerts(enabled) {
   const { data: teamsWithoutAttendance = [] } = useQuery({
     queryKey: ["coordTeamsNoAttendance", fechaISO(hoy)],
     queryFn: async () => {
-      const [sched, att] = await Promise.all([
+      const [sched, att, compiten] = await Promise.all([
         base44.entities.TrainingSchedule.filter({ activo: true }, { distinct: "categoria" }),
         base44.entities.Attendance.filter({ fecha: { $gte: fechaISO(hace7) } }, { distinct: "categoria" }),
+        base44.entities.CategoryConfig.filter({ compite_en_liga: true }, { distinct: "nombre" }),
       ]);
       const hechos = new Set(att.items || []);
-      return (sched.items || []).filter((c) => c && !hechos.has(c));
+      const competitivos = new Set(compiten.items || []);
+      // Solo avisamos de equipos que compiten en liga
+      return (sched.items || []).filter((c) => c && competitivos.has(c) && !hechos.has(c));
     },
     enabled, staleTime: 10 * 60_000,
   });
