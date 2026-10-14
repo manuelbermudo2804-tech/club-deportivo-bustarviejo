@@ -2,16 +2,33 @@ import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Euro, Users, AlertTriangle, Building2, TrendingUp, Crown, Calendar, BarChart3, RefreshCw, Mail } from "lucide-react";
+import { Euro, Users, AlertTriangle, Building2, TrendingUp, Crown, Calendar, BarChart3, RefreshCw, Mail, CheckCircle2, Clock } from "lucide-react";
 import { format, differenceInDays } from "date-fns";
 import { es } from "date-fns/locale";
+import { useActiveSeason } from "@/components/season/SeasonProvider";
+import { sameSeason } from "@/lib/sameSeason";
 
 export default function SponsorDashboard({ sponsors, onRenew, onNotifyRenewal, renewingId, notifyingId }) {
+  const { activeSeason } = useActiveSeason();
   const activeSponsors = sponsors.filter(s => s.activo === true);
   const inactiveSponsors = sponsors.filter(s => s.activo === false);
 
-  const totalActiveIncome = activeSponsors.reduce((sum, s) => sum + (s.precio_anual || 0), 0);
+  // El estado activo controla la visibilidad del banner, no acredita que se haya cobrado.
+  const totalActiveIncome = activeSponsors.reduce((sum, s) => sum + Number(s.precio_anual || 0), 0);
   const avgIncome = activeSponsors.length > 0 ? Math.round(totalActiveIncome / activeSponsors.length) : 0;
+  const pagosTemporada = activeSponsors.map(s => ({
+    sponsor: s,
+    pago: (s.pagos_temporadas || []).find(p => sameSeason(p.temporada, activeSeason)),
+  }));
+  const totalPaidThisSeason = pagosTemporada.reduce((sum, item) => {
+    if (!item.pago) return sum;
+    const importe = item.pago.importe == null ? Number(item.sponsor.precio_anual || 0) : Number(item.pago.importe || 0);
+    return sum + importe;
+  }, 0);
+  const estimatedDueThisSeason = pagosTemporada.reduce((sum, item) => {
+    const importePagado = !item.pago ? 0 : (item.pago.importe == null ? Number(item.sponsor.precio_anual || 0) : Number(item.pago.importe || 0));
+    return sum + Math.max(0, Number(item.sponsor.precio_anual || 0) - importePagado);
+  }, 0);
   const totalClicks = sponsors.reduce((sum, s) => sum + (s.clicks_totales || 0), 0);
 
   // Reparto por nivel (solo activos)
@@ -40,8 +57,16 @@ export default function SponsorDashboard({ sponsors, onRenew, onNotifyRenewal, r
 
   const kpis = [
     {
-      label: "Ingresos Anuales", value: `${totalActiveIncome.toLocaleString('es-ES')}€`,
+      label: "Importe anual en banner", value: `${totalActiveIncome.toLocaleString('es-ES')}€`,
       icon: Euro, bg: "from-green-50 to-green-100", iconBg: "bg-green-600", text: "text-green-800", sub: "text-green-700"
+    },
+    {
+      label: `Cobrado ${activeSeason || "temporada"}`, value: `${totalPaidThisSeason.toLocaleString('es-ES')}€`,
+      icon: CheckCircle2, bg: "from-emerald-50 to-emerald-100", iconBg: "bg-emerald-600", text: "text-emerald-800", sub: "text-emerald-700"
+    },
+    {
+      label: "Pendiente estimado", value: `${estimatedDueThisSeason.toLocaleString('es-ES')}€`,
+      icon: Clock, bg: estimatedDueThisSeason > 0 ? "from-orange-50 to-orange-100" : "from-slate-50 to-slate-100", iconBg: estimatedDueThisSeason > 0 ? "bg-orange-600" : "bg-slate-600", text: estimatedDueThisSeason > 0 ? "text-orange-800" : "text-slate-800", sub: estimatedDueThisSeason > 0 ? "text-orange-700" : "text-slate-700"
     },
     {
       label: "Activos en Banner", value: activeSponsors.length,
@@ -72,7 +97,7 @@ export default function SponsorDashboard({ sponsors, onRenew, onNotifyRenewal, r
   return (
     <div className="space-y-6">
       {/* KPIs */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
         {kpis.map((k) => (
           <Card key={k.label} className={`border-none shadow-lg bg-gradient-to-br ${k.bg}`}>
             <CardContent className="p-4">
