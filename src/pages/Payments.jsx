@@ -983,7 +983,7 @@ export default function Payments() {
       </div>
 
       {/* Alerta de pagos vencidos */}
-      {isAdmin && overdueCount > 0 && (
+      {false && (
         <Card className="border-2 border-red-400 bg-red-50">
           <CardContent className="pt-6">
             <div className="flex items-start gap-4">
