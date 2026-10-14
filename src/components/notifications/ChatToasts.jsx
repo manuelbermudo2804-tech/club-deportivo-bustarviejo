@@ -153,6 +153,9 @@ export default function ChatToasts() {
       base44.entities.StaffMessage.subscribe((evt) => {
         const m = evt.data;
         if (evt.type !== 'create' || !m || isMine(m.autor_email)) return;
+        // Solo staff (admin/entrenador/coordinador/tesorero). Las familias NUNCA.
+        const esStaff = user.role === 'admin' || user.es_entrenador || user.es_coordinador || user.es_tesorero;
+        if (!esStaff) return;
         
         // CRÍTICO: Validar que el usuario es staff y debe recibir este mensaje
         const isRecipient = m.destinatarios_emails?.includes(user.email) || 
