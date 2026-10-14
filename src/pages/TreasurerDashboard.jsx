@@ -57,8 +57,14 @@ export default function TreasurerDashboard() {
   const { data: allPlayers = [], isLoading: playersLoading, isError: playersError, refetch: refetchPlayers } = useQuery({
     queryKey: ['players', user?.email],
     queryFn: async () => {
-      const players = await base44.entities.Player.list();
-      return Array.isArray(players) ? players : [];
+      // Solo los hijos de este usuario (antes se leía una lista recortada del club y faltaban)
+      const [byPadre, byTutor2] = await Promise.all([
+        base44.entities.Player.filter({ email_padre: user.email }).catch(() => []),
+        base44.entities.Player.filter({ email_tutor_2: user.email }).catch(() => []),
+      ]);
+      const map = new Map();
+      [...byPadre, ...byTutor2].forEach(p => map.set(p.id, p));
+      return Array.from(map.values());
     },
     staleTime: 300000,
     retry: 1,
@@ -117,22 +123,23 @@ export default function TreasurerDashboard() {
     }
   }, [user?.email, myPlayers.length]);
 
+  const myPlayerIdsKey = myPlayers.map(p => p.id).join(',');
   const { data: allPayments = [] } = useQuery({
-    queryKey: ['paymentsAll', user?.email],
-    queryFn: () => base44.entities.Payment.list('-created_date', 200),
+    queryKey: ['familyPayments', myPlayerIdsKey],
+    queryFn: () => base44.entities.Payment.filter({ jugador_id: { $in: myPlayers.map(p => p.id) } }),
+    staleTime: 60000,
+    enabled: !!user && myPlayers.length > 0,
+  });
+
+  // Pagos del club pendientes de revisar: se cuentan en el servidor
+  const { data: paymentsInReviewTreasurer = 0 } = useQuery({
+    queryKey: ['treasurerReviewCount'],
+    queryFn: () => base44.entities.Payment.count({ estado: "En revisión", is_deleted: { $ne: true }, reconciliado_banco: { $ne: true } }),
     staleTime: 60000,
     enabled: !!user,
   });
 
-  const { data: allCallups = [] } = useQuery({
-    queryKey: ['callups', user?.email],
-    queryFn: () => base44.entities.Convocatoria.list('-created_date', 50),
-    staleTime: 300000,
-    enabled: !!user && myPlayers.length > 0,
-  });
-
-  const today = new Date().toISOString().split('T')[0];
-  const callups = allCallups.filter(c => c.publicada && c.fecha_partido >= today && !c.cerrada);
+  const callups = familyAgendaCallups;
 
   // Chat conversation queries REMOVED from TreasurerDashboard — 
   // ChatUnreadProvider in Layout already handles all chat counts via chatGetUnreadCounts backend.
@@ -258,11 +265,6 @@ export default function TreasurerDashboard() {
   const { pendingPayments: pagosPendientesNoVencidos, overduePayments: overduePaymentsCount, paymentsInReview: pagosEnRevisionNoVencidos } = calculatePaymentStats(allPayments, myPlayerIds);
 
   // Stats de TESORERO (todos los pagos del club)
-  const paymentsInReviewTreasurer = allPayments.filter(p => 
-    p.estado === "En revisión" && 
-    p.is_deleted !== true &&
-    p.reconciliado_banco !== true
-  ).length;
 
   const pendingClothingOrders = clothingOrders.filter(o => 
     o.estado === "Pendiente" || o.estado === "En revisión"
