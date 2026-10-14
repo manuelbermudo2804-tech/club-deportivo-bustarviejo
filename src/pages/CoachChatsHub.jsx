@@ -177,7 +177,7 @@ export default function CoachChatsHub() {
             color="#8b5cf6"
             iconBg="bg-purple-600"
           />
-        </div>
+        </section>
       </div>
     </div>
   );
