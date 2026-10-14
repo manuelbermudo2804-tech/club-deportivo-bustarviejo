@@ -30,6 +30,8 @@ import { useUnifiedNotifications } from "../components/notifications/useUnifiedN
 export default function TreasurerDashboard() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+  const [userLoading, setUserLoading] = useState(true);
+  const [userError, setUserError] = useState(false);
   const [myPlayersSports, setMyPlayersSports] = useState([]);
   const [loteriaVisible, setLoteriaVisible] = useState(false);
   const { notifications } = useUnifiedNotifications(user);
@@ -42,19 +44,22 @@ export default function TreasurerDashboard() {
         setUser(currentUser);
       } catch (error) {
         console.error("❌ [TreasurerDashboard] Error fetching user:", error);
-        base44.auth.logout('https://app.cdbustarviejo.com');
+        setUserError(true);
+      } finally {
+        setUserLoading(false);
       }
     };
     fetchUser();
   }, []);
 
-  const { data: allPlayers = [], isLoading: playersLoading } = useQuery({
+  const { data: allPlayers = [], isLoading: playersLoading, isError: playersError, refetch: refetchPlayers } = useQuery({
     queryKey: ['players', user?.email],
     queryFn: async () => {
       const players = await base44.entities.Player.list();
-      return players;
+      return Array.isArray(players) ? players : [];
     },
     staleTime: 300000,
+    retry: 1,
     enabled: !!user,
   });
 
@@ -254,19 +259,35 @@ export default function TreasurerDashboard() {
   // Sin badges en botones principales - solo en los del banner de chats
   const menuItems = displayButtons;
 
-  if (!user || playersLoading) {
+  if (userLoading || (user && playersLoading)) {
     return (
       <div className="min-h-screen overflow-y-auto bg-gradient-to-br from-slate-900 via-slate-800 to-black">
-        <div className="px-4 lg:px-8 py-6">
-          <div className="flex items-center justify-center min-h-[200px]">
+        <div className="px-4 py-6 lg:px-8">
+          <div className="flex min-h-[200px] items-center justify-center">
             <div className="text-center">
-              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent mb-3"></div>
-              <p className="text-white text-sm">Cargando dashboard...</p>
+              <div className="mb-3 inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div>
+              <p className="text-sm text-white">{userLoading ? "Verificando sesión…" : "Cargando jugadores…"}</p>
             </div>
           </div>
         </div>
       </div>
     );
+  }
+
+  if (userError || !user) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-black px-4">
+        <div className="w-full max-w-md rounded-2xl border border-white/10 bg-white/5 p-6 text-center text-white">
+          <h2 className="text-lg font-bold">No se pudo verificar la sesión</h2>
+          <p className="mt-2 text-sm text-slate-300">Prueba a volver a entrar en la aplicación. No hemos cerrado tu sesión automáticamente.</p>
+          <Button className="mt-4 bg-orange-600 hover:bg-orange-700" onClick={() => window.location.reload()}>Reintentar</Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (playersError) {
+    console.error("[TreasurerDashboard] No se pudieron cargar los jugadores.");
   }
 
   return (
