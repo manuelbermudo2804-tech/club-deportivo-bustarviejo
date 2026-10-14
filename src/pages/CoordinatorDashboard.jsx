@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import ContactCard from "../components/ContactCard";
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 import AlertCenter from "../components/dashboard/AlertCenter";
+import usePendingAttendance from "@/hooks/usePendingAttendance";
 import SectionedButtonGrid from "../components/dashboard/SectionedButtonGrid";
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
@@ -28,6 +29,7 @@ import { Users, Calendar, Bell } from "lucide-react";
 export default function CoordinatorDashboard() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+  const pendingAttendance = usePendingAttendance(user?.es_entrenador ? [...new Set(user?.categorias_entrena || [])] : []);
   const [myCategories, setMyCategories] = useState([]);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [loteriaVisible, setLoteriaVisible] = useState(false);
@@ -243,6 +245,7 @@ export default function CoordinatorDashboard() {
               <AlertCenter 
                 pendingCallupResponses={notifications?.pendingCallupResponses || 0}
                 pendingMatchObservations={notifications?.pendingMatchObservations || 0}
+                pendingAttendance={pendingAttendance}
                 isCoach={user?.es_entrenador === true}
                 isCoordinator={true}
               />
