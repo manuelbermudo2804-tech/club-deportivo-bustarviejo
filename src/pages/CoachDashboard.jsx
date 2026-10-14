@@ -32,6 +32,7 @@ import SectionedButtonGrid from "../components/dashboard/SectionedButtonGrid";
 import SocialLinks from "../components/SocialLinks";
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 import useFamilyAlertExtras from "@/hooks/useFamilyAlertExtras";
+import usePendingAttendance from "@/hooks/usePendingAttendance";
 const EMPTY = [];
 
 import CoachClassificationsMatchesBanner from "../components/dashboard/CoachClassificationsMatchesBanner";
@@ -144,18 +145,7 @@ export default function CoachDashboard() {
     enabled: !!user?.email,
   });
 
-  // Solo observaciones de mis categorías
-  const { data: allMatchObservations = [] } = useQuery({
-    queryKey: ['coachMatchObs', myCategories.join(',')],
-    queryFn: async () => {
-      if (!myCategories.length) return [];
-      return base44.entities.MatchObservation.filter({ categoria: { $in: myCategories } }, '-fecha_partido', 60);
-    },
-    staleTime: 5 * 60_000,
-    gcTime: 15 * 60_000,
-    refetchOnWindowFocus: false,
-    enabled: myCategories.length > 0,
-  });
+  const pendingAttendance = usePendingAttendance(myCategories);
 
   // Solo pagos de mis hijos (no todo el club)
   const parentPlayerIds = useMemo(() => myParentPlayersDirect.map(p => p.id), [myParentPlayersDirect]);
@@ -267,32 +257,7 @@ export default function CoachDashboard() {
     return count;
   }, [myCallups]);
 
-  // Observaciones post-partido pendientes
-  const pendingMatchObservations = useMemo(() => {
-    const now = new Date();
-    // Partidos ya jugados (o de hoy) sin registro post-partido
-    return allCallups.filter(c => c.publicada && c.fecha_partido <= todayStr).filter(callup => {
-      const matchDate = new Date(callup.fecha_partido);
-      if (matchDate > now) return false;
-      
-      // Calcular fin estimado (2h + 15min)
-      if (callup.hora_partido) {
-        const [hours, minutes] = callup.hora_partido.split(':').map(Number);
-        const matchStart = new Date(matchDate);
-        matchStart.setHours(hours, minutes, 0, 0);
-        const matchEnd = new Date(matchStart.getTime() + 135 * 60000);
-        if (now < matchEnd) return false;
-      }
-      
-      // Verificar si ya existe observación
-      const hasObservation = allMatchObservations.some(obs =>
-        obs.categoria === callup.categoria &&
-        obs.rival === callup.rival &&
-        obs.fecha_partido === callup.fecha_partido
-      );
-      return !hasObservation;
-    }).length;
-  }, [allCallups, allMatchObservations, todayStr]);
+
 
   // Asistencia promedio — ya vienen filtrados por entrenador_email
   const attendanceAverage = useMemo(() => {
@@ -442,7 +407,7 @@ export default function CoachDashboard() {
               <div className="bg-blue-950/40 p-3">
                 <AlertCenter 
                   pendingCallupResponses={pendingCallupResponses}
-                  pendingMatchObservations={pendingMatchObservations}
+                  pendingAttendance={pendingAttendance}
                   isCoach={true}
                 />
               </div>
@@ -482,7 +447,7 @@ export default function CoachDashboard() {
         ) : (
           <AlertCenter 
             pendingCallupResponses={pendingCallupResponses}
-            pendingMatchObservations={pendingMatchObservations}
+            pendingAttendance={pendingAttendance}
             isCoach={true}
           />
         )}
@@ -527,7 +492,7 @@ export default function CoachDashboard() {
           roleSection="coach"
           roleSectionLabel="🏋️ Entrenador"
           clubSectionLabel="👨‍👩‍👧 Club y Familia"
-          badgeMap={pendingMatchObservations > 0 ? { clasificaciones: { value: pendingMatchObservations, label: 'pendientes' } } : {}}
+          badgeMap={{}}
         />
 
         {/* Stats KPIs - solo móvil (compacto) */}

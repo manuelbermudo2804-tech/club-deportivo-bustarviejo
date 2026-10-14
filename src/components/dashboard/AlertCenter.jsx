@@ -348,22 +348,11 @@ const alerts = [];
       alerts.push({
         id: "attendance",
         icon: CheckCircle2,
-        title: "Asistencias por registrar",
-        description: `${pendingAttendance} entrenamiento${pendingAttendance > 1 ? 's' : ''} sin registrar`,
+        title: "✅ Pasar lista pendiente",
+        description: `${pendingAttendance} entrenamiento${pendingAttendance > 1 ? 's' : ''} sin lista ni evaluación (últimos 7 días)`,
         url: createPageUrl("TeamAttendanceEvaluation"),
         color: "bg-blue-500",
         priority: 2
-      });
-    }
-    if (pendingEvaluations > 0) {
-      alerts.push({
-        id: "evaluations",
-        icon: Star,
-        title: "Evaluaciones pendientes",
-        description: `${pendingEvaluations} jugador${pendingEvaluations > 1 ? 'es' : ''} por evaluar`,
-        url: createPageUrl("TeamAttendanceEvaluation"),
-        color: "bg-indigo-500",
-        priority: 3
       });
     }
   }
