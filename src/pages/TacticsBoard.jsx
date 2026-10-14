@@ -400,17 +400,17 @@ export default function TacticsBoard() {
           <p className="mt-2 text-sm text-slate-300 sm:text-base">Diseña tus tácticas y ejercicios.</p>
         </div>
         
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={() => setShowAsignarJugadoresDialog(true)}>
-            <Users className="w-4 h-4 mr-2" />
-            Asignar Jugadores
+        <div className="relative z-10 flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap lg:w-auto lg:shrink-0 lg:justify-end">
+          <Button variant="outline" onClick={() => setShowAsignarJugadoresDialog(true)} className="h-10 w-full justify-center whitespace-nowrap border-white/70 bg-white px-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-orange-50 hover:text-slate-950 sm:w-auto">
+            <Users className="mr-2 h-4 w-4 shrink-0" />
+            Asignar jugadores
           </Button>
-          <Button variant="outline" onClick={() => setShowCargarDialog(true)}>
-            <FolderOpen className="w-4 h-4 mr-2" />
+          <Button variant="outline" onClick={() => setShowCargarDialog(true)} className="h-10 w-full justify-center whitespace-nowrap border-white/70 bg-white px-3 text-sm font-semibold text-slate-900 shadow-sm hover:bg-orange-50 hover:text-slate-950 sm:w-auto">
+            <FolderOpen className="mr-2 h-4 w-4 shrink-0" />
             Cargar
           </Button>
-          <Button onClick={() => setShowGuardarDialog(true)} className="bg-green-600 hover:bg-green-700">
-            <Save className="w-4 h-4 mr-2" />
+          <Button onClick={() => setShowGuardarDialog(true)} className="h-10 w-full justify-center whitespace-nowrap bg-green-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-green-700 sm:w-auto">
+            <Save className="mr-2 h-4 w-4 shrink-0" />
             Guardar
           </Button>
         </div>
