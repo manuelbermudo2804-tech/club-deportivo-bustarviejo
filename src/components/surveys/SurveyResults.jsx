@@ -9,6 +9,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+import MultipleChoiceResults from "@/components/surveys/MultipleChoiceResults";
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'];
 
@@ -28,8 +29,7 @@ export default function SurveyResults({ survey, onBack }) {
 
   useEffect(() => {
     const fetchResponses = async () => {
-      const allResponses = await base44.entities.SurveyResponse.list();
-      const surveyResponses = allResponses.filter(r => r.survey_id === survey.id);
+      const surveyResponses = await base44.entities.SurveyResponse.filter({ survey_id: survey.id }, "-created_date", 5000);
       setResponses(surveyResponses);
       
       // Marcar encuesta como revisada por admin
@@ -492,6 +492,10 @@ export default function SurveyResults({ survey, onBack }) {
                     </div>
                   </div>
                 </>
+              )}
+
+              {q.tipo_respuesta === "multiple" && (
+                <MultipleChoiceResults question={q} index={index} responses={responses} />
               )}
 
               {q.tipo_respuesta === "texto" && (
