@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { CloudSun, ClipboardCheck, Dumbbell, PenTool, FileText } from "lucide-react";
+import { CloudSun, ClipboardCheck, Dumbbell, PenTool, FileText, ArrowUpRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 const ITEMS = [
@@ -13,27 +13,49 @@ const ITEMS = [
 
 export default function EntrenamientoHub() {
   return (
-    <div className="p-4 lg:p-8 max-w-4xl mx-auto">
-      <h1 className="text-2xl font-bold text-slate-900 mb-1">Entrenamiento</h1>
-      <p className="text-sm text-slate-600 mb-6">Todo lo que necesitas para el día a día del equipo.</p>
+    <main className="mx-auto box-border w-full min-w-0 max-w-[1200px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-5 lg:px-8 lg:pt-7">
+      <header className="relative isolate overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div className="pointer-events-none absolute -right-10 -top-14 h-48 w-48 rounded-full bg-orange-500/10 blur-3xl" />
+        <div className="relative z-10 flex items-center gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-orange-500 text-white shadow-lg shadow-orange-950/30 sm:h-16 sm:w-16">
+            <Dumbbell className="h-7 w-7 sm:h-8 sm:w-8" />
+          </div>
+          <div className="min-w-0">
+            <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-300">Área técnica · C.D. Bustarviejo</p>
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Entrenamiento</h1>
+            <p className="mt-2 text-sm text-slate-300 sm:text-base">Todo lo que necesitas para preparar y gestionar el día a día de tu equipo.</p>
+          </div>
+        </div>
+      </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {ITEMS.map((item) => (
-          <Link key={item.to} to={item.to}>
-            <Card className="hover:shadow-lg transition-shadow h-full">
-              <CardContent className="p-4 flex items-start gap-3">
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 ${item.color}`}>
-                  <item.icon className="w-6 h-6" />
-                </div>
-                <div className="min-w-0">
-                  <p className="font-bold text-slate-900">{item.titulo}</p>
-                  <p className="text-xs text-slate-600">{item.desc}</p>
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
-    </div>
+      <section className="space-y-3">
+        <div className="flex items-end justify-between gap-3 px-1">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 sm:text-xl">Herramientas del entrenador</h2>
+            <p className="mt-1 text-sm text-slate-500">Acceso rápido a tus herramientas habituales.</p>
+          </div>
+          <span className="shrink-0 rounded-full bg-orange-50 px-3 py-1 text-xs font-semibold text-orange-700">{ITEMS.length} herramientas</span>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 sm:gap-4">
+          {ITEMS.map((item) => (
+            <Link key={item.to} to={item.to} className="group block min-w-0 rounded-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2">
+              <Card className="h-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 group-hover:-translate-y-0.5 group-hover:border-orange-200 group-hover:shadow-lg">
+                <CardContent className="flex min-w-0 items-start gap-3 p-4 sm:p-5">
+                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl ring-1 ring-black/5 ${item.color}`}>
+                    <item.icon className="h-6 w-6" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="font-bold leading-snug text-slate-900">{item.titulo}</p>
+                    <p className="mt-1.5 text-sm leading-relaxed text-slate-600">{item.desc}</p>
+                  </div>
+                  <ArrowUpRight className="mt-1 h-4 w-4 shrink-0 text-slate-400 transition-colors group-hover:text-orange-600" />
+                </CardContent>
+              </Card>
+            </Link>
+          ))}
+        </div>
+      </section>
+    </main>
   );
 }
