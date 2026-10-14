@@ -389,7 +389,14 @@ export default function ClubMembership() {
           
           if (referrer) {
             // Guardar referidor en la ficha del socio
-            try { await base44.entities.ClubMember.update(membership.id, { referido_por: referrer.full_name, referido_por_email: referrer.email }); } catch {}
+            try {
+              await base44.entities.ClubMember.update(membership.id, {
+                referido_por: referrer.full_name,
+                referido_por_email: referrer.email,
+              });
+            } catch (error) {
+              console.warn("[ClubMembership] No se pudo guardar el referidor en la ficha del socio:", error);
+            }
             // Verificar que el referrer no haya alcanzado el máximo de 15 referidos
             const currentCount = referrer.referrals_count || 0;
             if (currentCount >= 15) {
@@ -621,7 +628,9 @@ export default function ClubMembership() {
           }
         })();
       }
-    } catch {}
+    } catch (error) {
+      console.error("[ClubMembership] Error procesando el retorno del pago de socio:", error);
+    }
   }, [queryClient]);
 
   // Cálculos derivados DESPUÉS de todos los hooks
