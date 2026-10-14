@@ -338,7 +338,7 @@ export default function TreasurerDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-black">
 
-      <div className="px-4 lg:px-8 py-6 space-y-4 lg:space-y-6 pb-28">
+      <div className="mx-auto w-full max-w-[1600px] px-3 sm:px-4 lg:px-8 2xl:px-10 py-4 lg:py-6 space-y-5 lg:space-y-6 pb-28">
         <div className="lg:hidden flex items-center gap-1.5 w-full">
           <SocialLinks />
           <Link to={createPageUrl("Chatbot")} className="flex-shrink-0">
