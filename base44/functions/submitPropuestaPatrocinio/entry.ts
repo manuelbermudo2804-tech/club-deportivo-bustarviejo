@@ -52,7 +52,7 @@ Deno.serve(async (req) => {
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 24px;">
         <div style="background: linear-gradient(135deg, #0a4a55, #0E7A8C); color: white; padding: 24px; border-radius: 16px 16px 0 0;">
           <h1 style="margin: 0 0 8px; font-size: 22px;">🎯 Nueva Propuesta de Patrocinio</h1>
-          <p style="margin: 0; opacity: 0.9;">Empresa: <strong>${escapeHtml(empresa)}</strong></p>
+          <p style="margin: 0; opacity: 0.9;">Empresa: <strong>${escapeHtml(empresaLimpia)}</strong></p>
         </div>
         <div style="background: white; padding: 24px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
           <h2 style="font-size: 16px; color: #1e293b; margin-top: 0;">Contacto</h2>
