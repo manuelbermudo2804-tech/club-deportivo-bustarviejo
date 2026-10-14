@@ -82,7 +82,8 @@ export default function AlertCenter({
   isTreasurer = false,
   userEmail = null,
   userSports = [],
-  weekAgenda = null
+  weekAgenda = null,
+  darkMode = false
 }) {
   // Queries pesadas ELIMINADAS — los contadores llegan por props desde useUnifiedNotifications
   // Solo mantenemos state local para dismissed alerts y queries ligeras con staleTime alto
@@ -755,10 +756,10 @@ const alerts = [];
   if (visibleAlerts.length === 0) {
     // Sin tareas: mostrar el entrenamiento de hoy (si lo hay) + "Todo al día"
     return (
-      <Card className="border-orange-200 shadow-lg overflow-hidden">
+      <Card className={darkMode ? "border-slate-700 bg-slate-800/90 text-white shadow-lg overflow-hidden" : "border-orange-200 shadow-lg overflow-hidden"}>
         <CardContent className="p-3">
           <HoyEntrenamientoLine items={weekAgenda?.items} />
-          <p className="text-sm text-slate-600 text-center">✅ Todo al día</p>
+          <p className={`text-sm text-center ${darkMode ? "text-slate-300" : "text-slate-600"}`}>✅ Todo al día</p>
         </CardContent>
       </Card>
     );
@@ -779,11 +780,11 @@ const alerts = [];
   }
 
   return (
-    <Card className="border-orange-200 shadow-lg overflow-hidden">
+    <Card className={darkMode ? "border-slate-700 bg-slate-800/90 text-white shadow-lg overflow-hidden" : "border-orange-200 shadow-lg overflow-hidden"}>
       <CardContent className="p-3">
         <HoyEntrenamientoLine items={weekAgenda?.items} />
         {rolTitle && (
-          <div className="mb-3 pb-3 border-b border-orange-200">
+          <div className={`mb-3 pb-3 border-b ${darkMode ? "border-slate-700" : "border-orange-200"}`}
             <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">
               Mis tareas como {rolTitle}
             </p>
@@ -796,16 +797,16 @@ const alerts = [];
                            to={alert.url}
                            onClick={(e) => { if (alert.abrirJunta) { e.preventDefault(); window.dispatchEvent(new Event("abrir-junta")); return; } handleAlertClick(alert); }}
                            onAuxClick={() => handleAlertClick(alert)}
-                           className="flex items-center gap-3 p-2 hover:bg-slate-50 transition-colors group rounded-lg"
+                           className={`flex items-center gap-3 p-2 transition-colors group rounded-lg ${darkMode ? "hover:bg-slate-700/60" : "hover:bg-slate-50"}`}
                          >
               <div className={`w-9 h-9 rounded-full ${alert.color} flex items-center justify-center flex-shrink-0`}>
                 <alert.icon className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-slate-900 text-sm">{alert.title}</p>
-                <p className="text-xs text-slate-500">{alert.description}</p>
+                <p className={`font-semibold text-sm ${darkMode ? "text-white" : "text-slate-900"}`}>{alert.title}</p>
+                <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{alert.description}</p>
               </div>
-              <ChevronRight className="w-5 h-5 text-slate-400 group-hover:text-orange-500 transition-colors flex-shrink-0" />
+              <ChevronRight className={`w-5 h-5 transition-colors flex-shrink-0 ${darkMode ? "text-slate-500 group-hover:text-orange-400" : "text-slate-400 group-hover:text-orange-500"}`} />
             </Link>
           ))}
         </div>
