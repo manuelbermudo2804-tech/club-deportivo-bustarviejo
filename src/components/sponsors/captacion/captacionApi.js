@@ -1,6 +1,7 @@
 import { base44 } from "@/api/base44Client";
 
-export const PAQUETES = "Oro 2000€/año (logo en banner principal de la app, menciones en anuncios, galería y newsletters), Plata 1000€/año (banner + anuncios importantes), Bronce 500€/año (banner rotativo), o colaboración personalizada (equipación de un equipo, torneo, eventos)";
+// Los importes no se fijan aquí: deben confirmarse con la Junta antes de enviar una oferta.
+export const PAQUETES = "Oro (máxima visibilidad y presencia destacada en la app y comunicaciones), Plata (banner y presencia en comunicaciones importantes), Bronce (presencia en banner rotativo), o colaboración personalizada (equipación de un equipo, torneo o evento). No inventes ni asignes importes: indica 'precio a confirmar con la Junta' cuando sea necesario y deja claro que cualquier importe requiere validación.";
 
 export async function buscarEmpresas({ zona, sector, cantidad, excluir = [] }) {
   const res = await base44.integrations.Core.InvokeLLM({
@@ -35,7 +36,7 @@ Explica en una frase por qué encajaría como patrocinador y qué tipo de patroc
 export async function generarPropuesta(sponsor, { tono, enfoque }) {
   return base44.integrations.Core.InvokeLLM({
     prompt: `Redacta una propuesta de patrocinio en español del Club Deportivo Bustarviejo para la empresa "${sponsor.nombre}"${sponsor.sector ? ` (sector: ${sponsor.sector})` : ""}${sponsor.direccion ? `, ubicada en ${sponsor.direccion}` : ""}.
-Datos del club: club de fútbol de Bustarviejo (Sierra Norte de Madrid), equipos desde prebenjamín hasta aficionado y femenino, unas 200 familias que usan a diario la app del club, presencia en redes sociales y torneo propio Sierra Norte Madrid Cup. Web: www.cdbustarviejo.com.
+Datos del club: club deportivo de Bustarviejo (Sierra Norte de Madrid), equipos desde prebenjamín hasta aficionado y femenino, aproximadamente 130 jugadores y familias vinculadas al club, app privada para familias, presencia en redes sociales y actividades y torneos del club. Web: www.cdbustarviejo.com. No afirmes que todas las familias usan la app a diario ni presentes cifras de alcance no verificadas.
 Paquetes: ${PAQUETES}.
 ${sponsor.interes ? `Idea de colaboración: ${sponsor.interes}.` : ""}
 ${enfoque ? `Enfoque pedido: ${enfoque}.` : ""}
