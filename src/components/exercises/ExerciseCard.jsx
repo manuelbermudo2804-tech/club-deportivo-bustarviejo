@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Clock, Users, Zap, Heart, Pencil, Trash2, ChevronDown, ChevronUp, Target, MapPin } from "lucide-react";
+import { Clock, Users, Zap, Heart, Pencil, Trash2, ChevronDown, ChevronUp, Target, MapPin, Shuffle } from "lucide-react";
 
 const intensityColors = {
   "Baja": "bg-green-100 text-green-800",
@@ -17,7 +17,7 @@ const sportEmojis = {
   "Baloncesto": "🏀",
 };
 
-export default function ExerciseCard({ exercise, onEdit, onDelete, onToggleFavorite, canEdit }) {
+export default function ExerciseCard({ exercise, onEdit, onDelete, onToggleFavorite, onCreateVariant, canEdit }) {
   const [showDetails, setShowDetails] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -121,6 +121,14 @@ export default function ExerciseCard({ exercise, onEdit, onDelete, onToggleFavor
             </Button>
             {canEdit && (
               <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onCreateVariant?.(exercise)}
+                  className="h-10 flex-1 rounded-xl border-orange-200 font-semibold text-orange-700 hover:bg-orange-50 hover:text-orange-800"
+                >
+                  <Shuffle className="mr-1.5 h-4 w-4" /> Variante
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon"
