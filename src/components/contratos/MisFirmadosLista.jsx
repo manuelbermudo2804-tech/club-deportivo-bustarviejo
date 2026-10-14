@@ -23,14 +23,18 @@ export default function MisFirmadosLista({ ocultarVacio = false }) {
     <div className="space-y-3">
       {docs.map((c) => (
         <article key={c.id} className="flex min-w-0 flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:border-orange-200 hover:shadow-md sm:flex-row sm:items-center sm:justify-between sm:p-5">
-          <div className="flex-1 min-w-0">
-            <p className="font-semibold truncate">{c.titulo}</p>
-            <p className="text-xs text-slate-500">{c.jugador_nombre ? `${c.jugador_nombre} · ` : ""}Firmado {new Date(c.firma_fecha).toLocaleString("es-ES")}</p>
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-700"><Download className="h-5 w-5" /></div>
+            <div className="min-w-0 flex-1">
+              <p className="break-words font-semibold leading-snug text-slate-900">{c.titulo}</p>
+              {c.jugador_nombre && <p className="mt-1 text-sm text-slate-600">{c.jugador_nombre}</p>}
+              <p className="mt-1 text-xs text-slate-500">Firmado el {new Date(c.firma_fecha).toLocaleString("es-ES")}</p>
+            </div>
           </div>
-          <Button variant="outline" onClick={() => descargar(c)} disabled={busy === c.id}>
-            {busy === c.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4 mr-1" />} PDF
+          <Button variant="outline" onClick={() => descargar(c)} disabled={busy === c.id} className="h-10 w-full shrink-0 rounded-xl border-orange-200 font-semibold text-orange-700 hover:bg-orange-50 hover:text-orange-800 sm:w-auto">
+            {busy === c.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Download className="mr-2 h-4 w-4" />} Descargar PDF
           </Button>
-        </div>
+        </article>
       ))}
     </div>
   );
