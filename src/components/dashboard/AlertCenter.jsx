@@ -784,7 +784,7 @@ const alerts = [];
       <CardContent className="p-3">
         <HoyEntrenamientoLine items={weekAgenda?.items} />
         {rolTitle && (
-          <div className={`mb-3 pb-3 border-b ${darkMode ? "border-slate-700" : "border-orange-200"}`}
+          <div className={`mb-3 pb-3 border-b ${darkMode ? "border-slate-700" : "border-orange-200"}`}>
             <p className="text-xs font-bold text-orange-600 uppercase tracking-wider">
               Mis tareas como {rolTitle}
             </p>
