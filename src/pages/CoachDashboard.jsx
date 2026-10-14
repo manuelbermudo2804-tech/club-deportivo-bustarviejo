@@ -31,6 +31,8 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import SectionedButtonGrid from "../components/dashboard/SectionedButtonGrid";
 import SocialLinks from "../components/SocialLinks";
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
+import useFamilyAlertExtras from "@/hooks/useFamilyAlertExtras";
+const EMPTY = [];
 
 import CoachClassificationsMatchesBanner from "../components/dashboard/CoachClassificationsMatchesBanner";
 import BirthdayBanner from "../components/birthday/BirthdayBanner";
@@ -354,6 +356,12 @@ export default function CoachDashboard() {
     };
   }, [showParentSection, allCallups, childCallups, allPayments, myParentPlayers, allAdminConvs]);
 
+  const familyCallups = useMemo(
+    () => [...new Map([...allCallups, ...childCallups].map(c => [c.id, c])).values()],
+    [allCallups, childCallups]
+  );
+  const familyExtras = useFamilyAlertExtras(user, showParentSection ? myParentPlayers : EMPTY, familyCallups);
+
   const stats = useMemo(() => ({
     myPlayers: myPlayers.length,
     pendingResponses: pendingCallupResponses,
@@ -453,7 +461,16 @@ export default function CoachDashboard() {
                   paymentsInReview={parentStats.paymentsInReview}
                   overduePayments={parentStats.overduePayments}
                   pendingSignatures={notifications?.pendingSignatures || parentStats.pendingSignatures}
-                  hasActiveAdminChat={parentStats.hasActiveAdminChat}
+                  hasActiveAdminChat={notifications?.hasActiveAdminConversation || parentStats.hasActiveAdminChat}
+                  pendingDocuments={familyExtras.pendingDocuments}
+                  pendingSurveys={familyExtras.pendingSurveys}
+                  pendingCitasRM={familyExtras.pendingCitasRM}
+                  rmNuevos={familyExtras.rmNuevos}
+                  rmVencen={familyExtras.rmVencen}
+                  weekAgenda={familyExtras.weekAgenda}
+                  unreadCoordinatorMessages={notifications?.unreadCoordinatorMessages || 0}
+                  unreadPrivateMessages={notifications?.unreadPrivateMessages || 0}
+                  unreadAdminMessages={notifications?.unreadAdminMessages || 0}
                   isParent={true}
                   isCoach={false}
                   userEmail={user?.email}
