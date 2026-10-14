@@ -262,6 +262,8 @@ export default function CoordinatorDashboard() {
                 coordTeamsNoAttendance={coordAlerts.teamsWithoutAttendance}
                 isCoach={user?.es_entrenador === true}
                 isCoordinator={true}
+                isParent={false}
+                hideAnnouncements={showFamilyTasks}
               />
             </div>
           </div>

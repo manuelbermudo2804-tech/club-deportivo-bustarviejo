@@ -409,6 +409,8 @@ export default function CoachDashboard() {
                   pendingCallupResponses={pendingCallupResponses}
                   pendingAttendance={pendingAttendance}
                   isCoach={true}
+                  isParent={false}
+                  hideAnnouncements={true}
                 />
               </div>
             </div>

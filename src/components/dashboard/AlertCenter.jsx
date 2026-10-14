@@ -77,6 +77,7 @@ export default function AlertCenter({
   isParent = true,
   isCoordinator = false,
   coordUnpublishedCallups = 0,
+  hideAnnouncements = false,
   coordTeamsNoAttendance = [],
   isTreasurer = false,
   userEmail = null,
@@ -166,7 +167,7 @@ const alerts = [];
   });
 
   // Anuncios no leídos (para todos excepto admin) - MÁXIMO 1 alerta consolidada
-  if (!isAdmin && unreadAnnouncements.length > 0) {
+  if (!isAdmin && !hideAnnouncements && unreadAnnouncements.length > 0) {
     const urgentCount = unreadAnnouncements.filter(a => a.prioridad === "Urgente").length;
     const importantCount = unreadAnnouncements.filter(a => a.prioridad === "Importante").length;
     const normalCount = unreadAnnouncements.filter(a => a.prioridad === "Normal").length;
