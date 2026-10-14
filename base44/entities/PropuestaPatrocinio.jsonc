@@ -56,6 +56,10 @@
     },
     "notas_internas": {
       "type": "string"
+    },
+    "sponsor_id": {
+      "type": "string",
+      "description": "ID del patrocinador creado a partir de esta propuesta; evita conversiones duplicadas"
     }
   },
   "required": [
