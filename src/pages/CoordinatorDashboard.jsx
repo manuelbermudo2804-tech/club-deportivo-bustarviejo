@@ -13,6 +13,8 @@ import ContactCard from "../components/ContactCard";
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import usePendingAttendance from "@/hooks/usePendingAttendance";
+import useFamilyAlertExtras from "@/hooks/useFamilyAlertExtras";
+import useCoordinatorAlerts from "@/hooks/useCoordinatorAlerts";
 import SectionedButtonGrid from "../components/dashboard/SectionedButtonGrid";
 import SocialLinks from "../components/SocialLinks";
 import CoordinatorClassificationsMatchesBanner from "../components/dashboard/CoordinatorClassificationsMatchesBanner";
@@ -30,6 +32,7 @@ export default function CoordinatorDashboard() {
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
   const pendingAttendance = usePendingAttendance(user?.es_entrenador ? [...new Set(user?.categorias_entrena || [])] : []);
+  const coordAlerts = useCoordinatorAlerts(!!user);
   const [myCategories, setMyCategories] = useState([]);
   const [hasPlayers, setHasPlayers] = useState(false);
   const [loteriaVisible, setLoteriaVisible] = useState(false);
@@ -60,19 +63,28 @@ export default function CoordinatorDashboard() {
     queryKey: ['coordinatorFamilyPlayers', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const [byPadre, byTutor2] = await Promise.all([
+      const [byPadre, byTutor2, byJugador] = await Promise.all([
         base44.entities.Player.filter({ email_padre: user.email, activo: true }).catch(() => []),
         base44.entities.Player.filter({ email_tutor_2: user.email, activo: true }).catch(() => []),
+        base44.entities.Player.filter({ email_jugador: user.email, activo: true }).catch(() => []),
       ]);
       const map = new Map();
-      [...byPadre, ...byTutor2].forEach(p => map.set(p.id, p));
-      return Array.from(map.values()).filter(p => p.id !== user?.player_id);
+      [...byPadre, ...byTutor2, ...byJugador].forEach(p => map.set(p.id, p));
+      return Array.from(map.values());
     },
     enabled: !!user?.email,
     staleTime: 5 * 60_000,
     refetchOnWindowFocus: false,
   });
   const showFamilyTasks = hasPlayers || linkedChildren.length > 0;
+  const familyCats = [...new Set(linkedChildren.flatMap(p => [p.categoria_principal || p.deporte, ...(p.categorias || [])]).filter(Boolean))];
+  const { data: familyCallups = [] } = useQuery({
+    queryKey: ['coordinatorFamilyCallups', familyCats.join('|')],
+    queryFn: () => base44.entities.Convocatoria.filter({ categoria: { $in: familyCats }, publicada: true, cerrada: false }, '-fecha_partido', 30),
+    enabled: familyCats.length > 0,
+    staleTime: 2 * 60_000,
+  });
+  const familyExtras = useFamilyAlertExtras(user, linkedChildren, familyCallups);
 
   // Contadores de chat eliminados - se recrearán desde cero
 
@@ -246,6 +258,8 @@ export default function CoordinatorDashboard() {
                 pendingCallupResponses={notifications?.pendingCallupResponses || 0}
                 pendingMatchObservations={notifications?.pendingMatchObservations || 0}
                 pendingAttendance={pendingAttendance}
+                coordUnpublishedCallups={coordAlerts.unpublishedCallups}
+                coordTeamsNoAttendance={coordAlerts.teamsWithoutAttendance}
                 isCoach={user?.es_entrenador === true}
                 isCoordinator={true}
               />
@@ -256,7 +270,7 @@ export default function CoordinatorDashboard() {
             <div className="rounded-xl border-2 border-orange-500/30 overflow-hidden">
               <div className="bg-gradient-to-r from-orange-600 to-orange-700 px-4 py-2">
                 <p className="text-white font-bold text-sm flex items-center gap-2">
-                  👨‍👩‍👧 Tus hijos en el club
+                  👨‍👩‍👧 {linkedChildren.some(p => p.email_jugador === user?.email) ? 'Tu familia y tú como jugador' : 'Tus hijos en el club'}
                 </p>
               </div>
               <div className="bg-orange-950/40 p-3">
@@ -266,6 +280,13 @@ export default function CoordinatorDashboard() {
                   paymentsInReview={notifications?.paymentsInReview || 0}
                   overduePayments={notifications?.overduePayments || 0}
                   pendingSignatures={notifications?.pendingSignatures || 0}
+                  pendingDocuments={familyExtras.pendingDocuments}
+                  pendingSurveys={familyExtras.pendingSurveys}
+                  pendingCitasRM={familyExtras.pendingCitasRM}
+                  rmNuevos={familyExtras.rmNuevos}
+                  rmVencen={familyExtras.rmVencen}
+                  weekAgenda={familyExtras.weekAgenda}
+                  userSports={[...new Set(linkedChildren.map(p => p.deporte))]}
                   isParent={true}
                   isCoach={false}
                   userEmail={user?.email}

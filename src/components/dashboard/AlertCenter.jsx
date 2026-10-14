@@ -76,6 +76,8 @@ export default function AlertCenter({
   isCoach = false,
   isParent = true,
   isCoordinator = false,
+  coordUnpublishedCallups = 0,
+  coordTeamsNoAttendance = [],
   isTreasurer = false,
   userEmail = null,
   userSports = [],
@@ -315,6 +317,28 @@ const alerts = [];
 
   // Alertas para coordinadores
   if (isCoordinator && !isAdmin) {
+    if (coordUnpublishedCallups > 0) {
+      alerts.push({
+        id: "coord-unpublished-callups",
+        icon: ClipboardCheck,
+        title: "📣 Convocatorias sin publicar",
+        description: `${coordUnpublishedCallups} partido${coordUnpublishedCallups > 1 ? 's' : ''} en los próximos 2 días sin convocatoria publicada`,
+        url: createPageUrl("CoachCallups"),
+        color: "bg-red-500",
+        priority: 1
+      });
+    }
+    if (coordTeamsNoAttendance.length > 0) {
+      alerts.push({
+        id: "coord-teams-no-attendance",
+        icon: CheckCircle2,
+        title: "📋 Equipos sin pasar lista",
+        description: `${coordTeamsNoAttendance.length} equipo${coordTeamsNoAttendance.length > 1 ? 's' : ''} sin lista en 7 días: ${coordTeamsNoAttendance.join(', ')}`,
+        url: createPageUrl("TeamAttendanceEvaluation"),
+        color: "bg-amber-500",
+        priority: 3
+      });
+    }
     if (newWebContacts > 0) {
       alerts.push({
         id: "web-contacts-coordinator",
