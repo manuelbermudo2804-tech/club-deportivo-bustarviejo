@@ -1,5 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
+function escapeHtml(value: unknown): string {
+  const entities: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+  return String(value ?? '').replace(/[&<>"']/g, (char) => entities[char]);
+}
+
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
@@ -36,7 +41,7 @@ Deno.serve(async (req) => {
     // Email al presidente
     const listaPaquetes = paquetes_seleccionados.map((p) => {
       const precio = p.precio === null || p.precio === undefined ? "A convenir" : `${Number(p.precio).toLocaleString('es-ES')} €`;
-      return `<li><strong>${p.nombre}</strong> — ${precio}</li>`;
+      return `<li><strong>${escapeHtml(p.nombre)}</strong> — ${escapeHtml(precio)}</li>`;
     }).join("");
 
     const hayAConvenir = paquetes_seleccionados.some((p) => p.precio === null || p.precio === undefined);
@@ -45,13 +50,13 @@ Deno.serve(async (req) => {
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; background: #f8fafc; padding: 24px;">
         <div style="background: linear-gradient(135deg, #0a4a55, #0E7A8C); color: white; padding: 24px; border-radius: 16px 16px 0 0;">
           <h1 style="margin: 0 0 8px; font-size: 22px;">🎯 Nueva Propuesta de Patrocinio</h1>
-          <p style="margin: 0; opacity: 0.9;">Empresa: <strong>${empresa}</strong></p>
+          <p style="margin: 0; opacity: 0.9;">Empresa: <strong>${escapeHtml(empresa)}</strong></p>
         </div>
         <div style="background: white; padding: 24px; border-radius: 0 0 16px 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
           <h2 style="font-size: 16px; color: #1e293b; margin-top: 0;">Contacto</h2>
-          <p style="margin: 4px 0;"><strong>Nombre:</strong> ${contacto_nombre}</p>
-          <p style="margin: 4px 0;"><strong>Email:</strong> <a href="mailto:${contacto_email}">${contacto_email}</a></p>
-          ${contacto_telefono ? `<p style="margin: 4px 0;"><strong>Teléfono:</strong> ${contacto_telefono}</p>` : ''}
+          <p style="margin: 4px 0;"><strong>Nombre:</strong> ${escapeHtml(contacto_nombre)}</p>
+          <p style="margin: 4px 0;"><strong>Email:</strong> <a href="mailto:${escapeHtml(contacto_email)}">${escapeHtml(contacto_email)}</a></p>
+          ${contacto_telefono ? `<p style="margin: 4px 0;"><strong>Teléfono:</strong> ${escapeHtml(contacto_telefono)}</p>` : ''}
 
           <h2 style="font-size: 16px; color: #1e293b; margin-top: 24px;">Paquetes seleccionados</h2>
           <ul style="padding-left: 20px;">${listaPaquetes}</ul>
@@ -67,7 +72,7 @@ Deno.serve(async (req) => {
           ` : ''}
 
           <p style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b;">
-            Propuesta recibida desde la página <strong>/${origen}</strong> · ID interno: ${propuesta.id}
+            Propuesta recibida desde la página <strong>/${escapeHtml(origen)}</strong> · ID interno: ${escapeHtml(propuesta.id)}
           </p>
         </div>
       </div>
