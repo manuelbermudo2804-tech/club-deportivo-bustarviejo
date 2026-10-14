@@ -440,7 +440,7 @@ export default function TeamAttendanceEvaluation() {
   const existing = attendances.find(a => a.categoria === selectedCategory && a.fecha === selectedDate);
 
   return (
-    <div className="p-3 lg:p-6 space-y-3">
+    <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-5 lg:px-8 lg:pt-7 [&_*]:min-w-0">
       <IndividualReportDialog
         player={selectedPlayer}
         isOpen={showIndividualDialog}
@@ -456,20 +456,15 @@ export default function TeamAttendanceEvaluation() {
         selectedCategory={selectedCategory}
       />
 
-      {/* Header compacto */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-xl lg:text-2xl font-bold text-slate-900">📋 Asistencia</h1>
-          <p className="text-slate-500 text-xs">Registro de sesión</p>
+      <header className="relative isolate flex min-w-0 flex-col gap-3 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:flex-row sm:items-center sm:justify-between sm:p-7">
+        <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-orange-500/10 blur-3xl" />
+        <div className="relative min-w-0">
+          <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-300">Entrenadores · Equipo</p>
+          <h1 className="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">Asistencia y evaluación</h1>
+          <p className="mt-2 text-sm leading-relaxed text-slate-300 sm:text-base">Registro de sesión y seguimiento de tus jugadores.</p>
         </div>
-        <div className="flex items-center gap-2">
-          {existing && (
-            <span className="text-[10px] text-green-600 bg-green-50 px-2 py-1 rounded">
-              ✅ {format(new Date(existing.updated_date), "dd/MM HH:mm")}
-            </span>
-          )}
-        </div>
-      </div>
+        {existing && <span className="relative shrink-0 rounded-full border border-emerald-300/30 bg-emerald-400/10 px-3 py-1.5 text-xs font-medium text-emerald-200">Guardado · {format(new Date(existing.updated_date), "dd/MM HH:mm")}</span>}
+      </header>
 
       {/* Resumen en vivo */}
       {selectedCategory && categoryPlayers.length > 0 && (
