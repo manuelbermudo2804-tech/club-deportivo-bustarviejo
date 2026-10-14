@@ -111,10 +111,19 @@ export default function CoachChatsHub() {
         </header>
 
         {/* Chats de Equipos - Separados por categoría si tiene múltiples */}
-        {myCategories.length > 1 ? (
-          <div className="space-y-4">
-            <h2 className="text-lg font-bold text-slate-800 px-2">⚽ Chats por Equipo</h2>
-            {myCategories.map((categoria) => {
+        {myCategories.length > 0 && (
+          <section className="space-y-3 sm:space-y-4">
+            <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 ring-1 ring-orange-100">
+                <Users className="h-5 w-5 text-orange-600" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="font-bold text-slate-900">Chats de equipo</h2>
+                <p className="text-xs text-slate-500 sm:text-sm">Comunicación con las familias de tus categorías</p>
+              </div>
+              <Badge variant="outline" className="shrink-0">{myCategories.length}</Badge>
+            </div>
+            {myCategories.length > 1 ? myCategories.map((categoria) => {
               const lastMsg = latestMessages[categoria];
               const unread = unreadByCategory[toGroupId(categoria)] || 0;
               
@@ -132,26 +141,33 @@ export default function CoachChatsHub() {
                   iconBg="bg-blue-600"
                 />
               );
-            })}
-          </div>
-        ) : (
-          // Si solo tiene una categoría, mostrar un solo chat
-          <ConversationRow
-            title="⚽ Chat con Familias"
-            subtitle="Comunicación grupal con los padres de tu equipo"
-            unreadCount={Object.values(chatCounts.team_chats || {}).reduce((s, v) => s + v, 0)}
-            url={createPageUrl("CoachParentChat")}
-            icon={Users}
-            color="#3b82f6"
-            iconBg="bg-blue-600"
-          />
+            }) : (
+              <ConversationRow
+                title={myCategories[0]}
+                subtitle="Chat grupal con las familias de este equipo"
+                unreadCount={Object.values(chatCounts.team_chats || {}).reduce((s, v) => s + v, 0)}
+                url={`${createPageUrl("CoachParentChat")}?categoria=${encodeURIComponent(myCategories[0])}`}
+                icon={Users}
+                color="#3b82f6"
+                iconBg="bg-blue-600"
+              />
+            )}
+          </section>
         )}
 
         <MyKidsChatsSection user={user} excludeCategories={myCategories} />
 
         {/* Chat Staff */}
-        <div className="space-y-4 mt-6">
-          <h2 className="text-lg font-bold text-slate-800 px-2">💼 Chats Internos</h2>
+        <section className="space-y-3 sm:space-y-4">
+          <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 ring-1 ring-orange-100">
+              <Briefcase className="h-5 w-5 text-orange-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-bold text-slate-900">Chats internos</h2>
+              <p className="text-xs text-slate-500 sm:text-sm">Conversaciones del personal del club</p>
+            </div>
+          </div>
           <ConversationRow
             title="💼 Chat Staff"
             subtitle="Conversaciones internas del personal del club"
