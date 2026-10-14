@@ -54,7 +54,7 @@ export default function ExerciseCard({ exercise, onEdit, onDelete, onToggleFavor
           </Badge>
 
           {/* Quick Stats */}
-          <div className="flex flex-wrap gap-3 text-xs text-slate-600">
+          <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-3 text-xs text-slate-600 sm:flex sm:flex-wrap sm:gap-3 sm:bg-transparent sm:p-0">
             <div className="flex items-center gap-1">
               <Clock className="w-3.5 h-3.5" />
               <span>{exercise.duracion_minutos} min</span>
@@ -110,14 +110,14 @@ export default function ExerciseCard({ exercise, onEdit, onDelete, onToggleFavor
           )}
 
           {/* Actions */}
-          <div className="flex gap-2 pt-2 border-t">
+          <div className="mt-auto flex flex-wrap gap-2 border-t border-slate-100 pt-3">
             <Button
               variant="outline"
               size="sm"
               onClick={() => setShowDetails(true)}
-              className="flex-1"
+              className="h-10 flex-1 rounded-xl border-orange-200 font-semibold text-orange-700 hover:bg-orange-50 hover:text-orange-800"
             >
-              Ver Detalles
+              Ver detalles
             </Button>
             {canEdit && (
               <>
@@ -125,7 +125,7 @@ export default function ExerciseCard({ exercise, onEdit, onDelete, onToggleFavor
                   variant="ghost"
                   size="icon"
                   onClick={onEdit}
-                  className="text-slate-500 hover:text-blue-600"
+                  className="h-10 w-10 rounded-xl text-slate-500 hover:bg-blue-50 hover:text-blue-600"
                 >
                   <Pencil className="w-4 h-4" />
                 </Button>
@@ -133,7 +133,7 @@ export default function ExerciseCard({ exercise, onEdit, onDelete, onToggleFavor
                   variant="ghost"
                   size="icon"
                   onClick={onDelete}
-                  className="text-slate-500 hover:text-red-600"
+                  className="h-10 w-10 rounded-xl text-slate-500 hover:bg-red-50 hover:text-red-600"
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
