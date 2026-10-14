@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Progress } from "@/components/ui/progress";
 
-export default function RenewalStatusWidget({ players, payments, seasonConfig }) {
+export default function RenewalStatusWidget({ players, payments, seasonConfig, darkMode = false }) {
   // NO MOSTRAR NADA si permitir_renovaciones está desactivado
   if (!seasonConfig?.permitir_renovaciones) {
     return null;
@@ -43,13 +43,13 @@ export default function RenewalStatusWidget({ players, payments, seasonConfig })
   // Si todo está completo, mostrar versión compacta
   if (pendientesRenovar.length === 0 && cuotasPendientes.length === 0) {
     return (
-      <Card className="border-2 border-green-300 bg-gradient-to-r from-green-50 to-emerald-50">
+      <Card className={darkMode ? "border border-emerald-500/40 bg-slate-800/90 text-white rounded-2xl shadow-lg" : "border-2 border-green-300 bg-gradient-to-r from-green-50 to-emerald-50"}>
         <CardContent className="pt-6">
           <div className="flex items-center gap-3">
             <CheckCircle2 className="w-8 h-8 text-green-600" />
             <div>
-              <p className="font-bold text-green-900">✅ Renovaciones Completas</p>
-              <p className="text-sm text-green-700">
+              <p className={`font-bold ${darkMode ? "text-white" : "text-green-900"}`}>✅ Renovaciones Completas</p>
+              <p className={`text-sm ${darkMode ? "text-slate-300" : "text-green-700"}`}>
                 Jugadores renovados y justificantes subidos. En espera de aprobación del club.
               </p>
             </div>
@@ -60,13 +60,13 @@ export default function RenewalStatusWidget({ players, payments, seasonConfig })
   }
 
   return (
-    <Card className="border-2 border-orange-400 bg-gradient-to-r from-orange-50 to-yellow-50 shadow-lg">
+    <Card className={darkMode ? "border border-slate-700 bg-slate-800/90 text-white shadow-lg rounded-2xl" : "border-2 border-orange-400 bg-gradient-to-r from-orange-50 to-yellow-50 shadow-lg"}>
       <CardContent className="pt-6 space-y-4">
         
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-6 h-6 text-orange-600" />
-            <h3 className="font-bold text-orange-900 text-lg">Estado de Renovaciones</h3>
+            <h3 className={`font-bold text-lg ${darkMode ? "text-white" : "text-orange-900"}`}>Estado de Renovaciones</h3>
           </div>
           <Badge className="bg-orange-600 text-white">
             Temporada {seasonConfig?.temporada}
@@ -76,7 +76,7 @@ export default function RenewalStatusWidget({ players, payments, seasonConfig })
         {/* Progreso */}
         <div>
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-slate-700">Progreso de renovación</span>
+            <span className={`text-sm ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Progreso de renovación</span>
             <span className="text-2xl font-bold text-green-600">{progresoRenovacion}%</span>
           </div>
           <Progress value={progresoRenovacion} className="h-3" />
@@ -88,17 +88,17 @@ export default function RenewalStatusWidget({ players, payments, seasonConfig })
 
         {/* Alerta de pendientes de renovar */}
         {pendientesRenovar.length > 0 && (
-          <div className="bg-red-50 border-2 border-red-400 rounded-xl p-4 space-y-3">
+          <div className={`rounded-xl p-4 space-y-3 ${darkMode ? "bg-red-950/40 border border-red-500/50" : "bg-red-50 border-2 border-red-400"}`}>
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-red-600 animate-pulse" />
-              <p className="font-bold text-red-900">
+              <p className={`font-bold ${darkMode ? "text-red-200" : "text-red-900"}`}>
                 ⚠️ {pendientesRenovar.length} jugador(es) pendiente(s) de renovar
               </p>
             </div>
             <div className="space-y-1">
               {pendientesRenovar.map(p => (
-                <div key={p.id} className="bg-white rounded px-3 py-2 text-sm border border-red-200">
-                  <p className="font-semibold text-slate-900">{p.nombre}</p>
+                <div key={p.id} className={`rounded-lg px-3 py-2 text-sm border ${darkMode ? "bg-slate-900/70 border-red-900/70" : "bg-white border-red-200"}`}>
+                  <p className={`font-semibold ${darkMode ? "text-white" : "text-slate-900"}`}>{p.nombre}</p>
                   <p className="text-xs text-slate-600">{p.deporte}</p>
                 </div>
               ))}
@@ -114,20 +114,20 @@ export default function RenewalStatusWidget({ players, payments, seasonConfig })
 
         {/* Cuotas pendientes de pago */}
         {renovados.length > 0 && cuotasPendientes.length > 0 && (
-          <div className="bg-orange-50 border-2 border-orange-400 rounded-xl p-4 space-y-3">
+          <div className={`rounded-xl p-4 space-y-3 ${darkMode ? "bg-orange-950/30 border border-orange-500/40" : "bg-orange-50 border-2 border-orange-400"}`}>
             <div className="flex items-center gap-2">
               <CreditCard className="w-5 h-5 text-orange-600" />
-              <p className="font-bold text-orange-900">
+              <p className={`font-bold ${darkMode ? "text-orange-200" : "text-orange-900"}`}>
                 💳 {cuotasPendientes.length} cuota(s) pendiente(s) de pago
               </p>
             </div>
-            <p className="text-sm text-orange-800">
+            <p className={`text-sm ${darkMode ? "text-orange-100/90" : "text-orange-800"}`}>
               Has renovado a tus jugadores, pero tienes cuotas pendientes de registrar
             </p>
             <div className="space-y-1">
               {cuotasPendientes.slice(0, 3).map(p => (
-                <div key={p.id} className="bg-white rounded px-3 py-2 text-sm border border-orange-200 flex justify-between">
-                  <span className="text-slate-900">{p.jugador_nombre} - {p.mes}</span>
+                <div key={p.id} className={`rounded-lg px-3 py-2 text-sm border flex justify-between gap-3 ${darkMode ? "bg-slate-900/70 border-orange-900/70" : "bg-white border-orange-200"}`}>
+                  <span className={darkMode ? "text-slate-200" : "text-slate-900"}>{p.jugador_nombre} - {p.mes}</span>
                   <span className="font-bold text-orange-700">{p.cantidad}€</span>
                 </div>
               ))}
@@ -149,7 +149,7 @@ export default function RenewalStatusWidget({ players, payments, seasonConfig })
 
         {/* Fecha límite si existe */}
         {seasonConfig?.fecha_limite_renovaciones && pendientesRenovar.length > 0 && (
-          <div className="bg-slate-100 rounded-lg p-3 text-center">
+          <div className={`rounded-lg p-3 text-center ${darkMode ? "bg-slate-900/70 border border-slate-700" : "bg-slate-100"}`}>
             <p className="text-xs text-slate-600">
               ⏰ Fecha límite: <strong className="text-orange-700">
                 {new Date(seasonConfig.fecha_limite_renovaciones).toLocaleDateString('es-ES', { 
