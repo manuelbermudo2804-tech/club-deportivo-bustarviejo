@@ -259,7 +259,7 @@ export default function CoordinatorDashboard() {
                 pendingMatchObservations={notifications?.pendingMatchObservations || 0}
                 pendingAttendance={pendingAttendance}
                 coordUnpublishedCallups={coordAlerts.unpublishedCallups}
-                coordTeamsNoAttendance={coordAlerts.teamsWithoutAttendance}
+                coordTeamsNoAttendance={coordAlerts.teamsWithoutAttendance.filter(c => !(user?.es_entrenador && (user?.categorias_entrena || []).includes(c)))}
                 isCoach={user?.es_entrenador === true}
                 isCoordinator={true}
                 isParent={false}
