@@ -23,32 +23,31 @@ export default function ExerciseCard({ exercise, onEdit, onDelete, onToggleFavor
 
   return (
     <>
-      <Card className={`border-none shadow-lg hover:shadow-xl transition-all duration-300 ${exercise.favorito ? 'ring-2 ring-pink-400' : ''}`}>
-        <CardHeader className="pb-2">
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-xl">{sportEmojis[exercise.deporte] || "🏃"}</span>
-                <Badge className={intensityColors[exercise.intensidad] || "bg-slate-100 text-slate-800"}>
+      <Card className={`group h-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-orange-200 hover:shadow-xl ${exercise.favorito ? 'ring-2 ring-pink-300' : ''}`}>
+        <div className="h-1.5 bg-gradient-to-r from-orange-500 via-amber-400 to-orange-200" />
+        <CardHeader className="pb-3 pt-4">
+          <div className="flex min-w-0 items-start gap-3">
+            <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-2xl ring-1 ring-orange-100">
+              {sportEmojis[exercise.deporte] || "🏃"}
+            </div>
+            <div className="min-w-0 flex-1 space-y-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Badge className={`rounded-full px-2.5 py-1 text-xs font-semibold ${intensityColors[exercise.intensidad] || "bg-slate-100 text-slate-800"}`}>
                   {exercise.intensidad || "Media"}
                 </Badge>
+                {exercise.favorito && <Badge className="rounded-full bg-pink-50 text-pink-700 hover:bg-pink-50">Favorito</Badge>}
               </div>
-              <CardTitle className="text-base lg:text-lg line-clamp-2">
+              <CardTitle className="break-words text-base font-bold leading-snug text-slate-900 sm:text-lg line-clamp-2">
                 {exercise.nombre}
               </CardTitle>
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onToggleFavorite}
-              className="flex-shrink-0"
-            >
-              <Heart className={`w-5 h-5 ${exercise.favorito ? 'fill-pink-500 text-pink-500' : 'text-slate-400'}`} />
+            <Button variant="ghost" size="icon" onClick={onToggleFavorite} aria-label={exercise.favorito ? "Quitar de favoritos" : "Añadir a favoritos"} className="h-10 w-10 shrink-0 rounded-xl hover:bg-pink-50">
+              <Heart className={`h-5 w-5 ${exercise.favorito ? 'fill-pink-500 text-pink-500' : 'text-slate-400'}`} />
             </Button>
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-3">
+        <CardContent className="flex h-full flex-col space-y-4">
           {/* Category Badge */}
           <Badge variant="outline" className="text-xs">
             {exercise.categoria_ejercicio}
