@@ -184,7 +184,7 @@ export default function TeamRosters() {
         </div>
 
         {/* Mini KPIs inside header */}
-        <div className="grid grid-cols-4 gap-2 mt-5">
+        <div className="grid grid-cols-2 gap-2 mt-5 sm:grid-cols-4">
           {[
             { label: "Porteros", count: positionStats.Portero, color: "bg-blue-500/30", icon: "🧤" },
             { label: "Defensas", count: positionStats.Defensa, color: "bg-green-500/30", icon: "🛡️" },
