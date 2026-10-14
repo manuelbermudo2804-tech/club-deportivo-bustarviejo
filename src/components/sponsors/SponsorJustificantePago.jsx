@@ -9,18 +9,38 @@ export default function SponsorJustificantePago({ pago, onSave }) {
   const [busy, setBusy] = useState(false);
 
   const subir = async (e) => {
-    const file = e.target.files?.[0];
+    const input = e.target;
+    const file = input.files?.[0];
     if (!file) return;
+    const maxBytes = 10 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      toast.error("El justificante no puede superar los 10 MB");
+      input.value = "";
+      return;
+    }
     setBusy(true);
-    const { file_uri } = await base44.integrations.Core.UploadPrivateFile({ file });
-    await onSave({ justificante_uri: file_uri, justificante_nombre: file.name });
-    setBusy(false);
-    toast.success("Documento adjuntado");
+    try {
+      const { file_uri } = await base44.integrations.Core.UploadPrivateFile({ file });
+      await onSave({ justificante_uri: file_uri, justificante_nombre: file.name });
+      toast.success("Documento adjuntado");
+    } catch (error) {
+      console.error("Error adjuntando justificante:", error);
+      toast.error("No se pudo adjuntar el documento. Vuelve a intentarlo.");
+    } finally {
+      setBusy(false);
+      input.value = "";
+    }
   };
 
   const ver = async () => {
-    const { signed_url } = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: pago.justificante_uri });
-    window.open(signed_url, "_blank");
+    try {
+      const { signed_url } = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: pago.justificante_uri });
+      if (!signed_url) throw new Error("No se recibió un enlace de descarga");
+      window.open(signed_url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      console.error("Error abriendo justificante:", error);
+      toast.error("No se pudo abrir el documento. Comprueba tus permisos e inténtalo de nuevo.");
+    }
   };
 
   return (
