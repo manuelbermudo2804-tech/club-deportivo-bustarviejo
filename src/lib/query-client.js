@@ -12,7 +12,10 @@ export const queryClientInstance = new QueryClient({
 			},
 			retryDelay: (attempt) => Math.min(2000 * 2 ** attempt, 15000),
 			staleTime: 60000,
-			refetchOnMount: false,
+			// Las listas vacías provisionales (initialData) cuentan como caducadas:
+			// así siempre se piden los datos reales, pero lo ya cargado se reaprovecha 1 min
+			initialDataUpdatedAt: 0,
+			refetchOnMount: true,
 		},
 	},
 });
