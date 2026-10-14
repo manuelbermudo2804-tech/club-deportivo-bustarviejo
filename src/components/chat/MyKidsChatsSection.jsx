@@ -10,16 +10,16 @@ import { Users, GraduationCap, ChevronRight } from "lucide-react";
 function Row({ title, subtitle, url, Icon, iconBg }) {
   return (
     <Link to={url} className="block">
-      <Card className="p-4 hover:shadow-md transition-all border-l-4 border-l-green-500">
-        <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-full ${iconBg} flex items-center justify-center flex-shrink-0`}>
-            <Icon className="w-6 h-6 text-white" />
+      <Card className="group min-w-0 rounded-2xl border border-slate-200/80 border-l-4 border-l-green-500 bg-white p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-4">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${iconBg} sm:h-12 sm:w-12`}>
+            <Icon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
           </div>
-          <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-slate-900 truncate">{title}</h3>
-            <p className="text-sm text-slate-600 truncate">{subtitle}</p>
+          <div className="min-w-0 flex-1">
+            <h3 className="truncate font-bold text-slate-900">{title}</h3>
+            <p className="truncate text-xs text-slate-600 sm:text-sm">{subtitle}</p>
           </div>
-          <ChevronRight className="w-5 h-5 text-slate-400 flex-shrink-0" />
+          <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5" />
         </div>
       </Card>
     </Link>
@@ -50,10 +50,18 @@ export default function MyKidsChatsSection({ user, excludeCategories = [], hideC
   const soloJugador = players.every(soyYo);
 
   return (
-    <div className="space-y-4 mt-6">
-      <h2 className="text-lg font-bold text-slate-800 px-2">
-        {soloJugador ? "⚽ Como jugador" : "👨‍👩‍👧 Como familia / jugador"}
-      </h2>
+    <section className="space-y-3 sm:space-y-4">
+      <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 ring-1 ring-orange-100">
+          <Users className="h-5 w-5 text-orange-600" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <h2 className="font-bold text-slate-900">
+            {soloJugador ? "Como jugador" : "Como familia / jugador"}
+          </h2>
+          <p className="text-xs text-slate-500 sm:text-sm">Tus conversaciones personales dentro del club</p>
+        </div>
+      </div>
       {cats.map(cat => (
         <Row
           key={cat}
@@ -73,6 +81,6 @@ export default function MyKidsChatsSection({ user, excludeCategories = [], hideC
           iconBg="bg-cyan-600"
         />
       )}
-    </div>
+    </section>
   );
 }
