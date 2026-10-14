@@ -315,27 +315,34 @@ export default function CentroCompeticionTecnico() {
   );
 
   return (
-    <div className="max-w-6xl mx-auto p-4 md:p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4 w-full">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h1 className="text-2xl md:text-3xl font-bold">Centro de Competición (Técnicos)</h1>
-          {fav ? (
-            <Button variant="ghost" size="icon" onClick={toggleFav} title="Quitar favorito"><Star className="w-5 h-5 text-yellow-500"/></Button>
-          ) : (
-            <Button variant="ghost" size="icon" onClick={toggleFav} title="Marcar favorito"><StarOff className="w-5 h-5 text-slate-500"/></Button>
-          )}
-          <Badge variant="outline">{isCoordinator ? 'Coordinación' : 'Entrenador'}</Badge>
+    <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-5 lg:px-8 lg:pt-7 [&_*]:min-w-0">
+      <header className="relative isolate flex min-w-0 flex-col gap-4 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7 lg:flex-row lg:items-center lg:justify-between">
+        <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-orange-500/10 blur-3xl" />
+        <div className="relative z-10 flex min-w-0 items-start gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-300">Entrenadores · Competición</p>
+            <h1 className="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">Centro de Competición</h1>
+            <p className="mt-2 text-sm text-slate-300">Clasificaciones, resultados, goleadores y análisis de rivales.</p>
+          </div>
+          <div className="relative z-10 flex shrink-0 items-center gap-1">
+            {fav ? (
+              <Button variant="ghost" size="icon" onClick={toggleFav} title="Quitar favorito" className="text-amber-300 hover:bg-white/10 hover:text-amber-200"><Star className="h-5 w-5"/></Button>
+            ) : (
+              <Button variant="ghost" size="icon" onClick={toggleFav} title="Marcar favorito" className="text-slate-300 hover:bg-white/10 hover:text-white"><StarOff className="h-5 w-5"/></Button>
+            )}
+            <Badge variant="outline" className="border-white/30 bg-white/10 text-white">{isCoordinator ? 'Coordinación' : 'Entrenador'}</Badge>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+        <div className="relative z-10 flex w-full min-w-0 flex-col gap-2 lg:w-[min(100%,620px)]">
           <ViewToggle />
-          <Button variant="outline" onClick={() => setShowConfig(true)} title="Configurar categorías visibles" className="h-9 px-3 gap-1">
-            <Settings className="w-4 h-4" />
+          <Button variant="outline" onClick={() => setShowConfig(true)} title="Configurar categorías visibles" className="h-10 w-full gap-2 border-white/70 bg-white text-slate-900 hover:bg-orange-50 hover:text-slate-950 sm:w-auto sm:self-end">
+            <Settings className="h-4 w-4" /> Configurar categorías
           </Button>
         </div>
-      </div>
+      </header>
 
       {/* Categorías del técnico */}
-      <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+      <div className="flex min-w-0 gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-3 pb-3 shadow-sm">
         {(visibleCats && visibleCats.length ? visibleCats : myCats).map((cat) => (
           <button
             key={cat}
