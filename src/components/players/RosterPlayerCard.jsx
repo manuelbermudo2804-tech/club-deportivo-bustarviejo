@@ -82,10 +82,10 @@ export default function RosterPlayerCard({ player, onUpdateAvailability, onUpdat
           <img
             src={player.foto_url}
             alt={player.nombre}
-            className={`h-44 w-full object-cover transition-transform duration-500 group-hover:scale-105 sm:h-48 ${isUnavailable ? "opacity-50 grayscale" : ""}`}
+            className={`h-36 w-full object-cover transition-transform duration-500 group-hover:scale-105 sm:h-44 ${isUnavailable ? "opacity-50 grayscale" : ""}`}
           />
         ) : (
-          <div className={`flex h-44 w-full items-center justify-center bg-gradient-to-br from-blue-400 to-indigo-600 sm:h-48 ${isUnavailable ? "opacity-50" : ""}`}>
+          <div className={`flex h-36 w-full items-center justify-center bg-gradient-to-br from-blue-400 to-indigo-600 sm:h-44 ${isUnavailable ? "opacity-50" : ""}`}>
             <User className="w-14 h-14 text-white/30" />
           </div>
         )}
@@ -94,8 +94,8 @@ export default function RosterPlayerCard({ player, onUpdateAvailability, onUpdat
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/60 to-transparent" />
         
         {/* Nombre sobre la imagen */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4">
-          <h3 className="truncate text-base font-bold text-white drop-shadow-lg sm:text-lg">{player.nombre}</h3>
+        <div className="absolute bottom-0 left-0 right-0 p-2.5 sm:p-3">
+          <h3 className="truncate text-sm font-bold text-white drop-shadow-lg sm:text-base">{player.nombre}</h3>
           <button
             onClick={(e) => { e.stopPropagation(); setShowPosition(true); }}
             className={`inline-flex items-center gap-1 text-[10px] font-semibold text-white/90 bg-gradient-to-r ${
@@ -135,7 +135,7 @@ export default function RosterPlayerCard({ player, onUpdateAvailability, onUpdat
         )}
       </div>
 
-      <CardContent className="space-y-3 p-4 sm:p-5">
+      <CardContent className="space-y-2.5 p-3 sm:space-y-3 sm:p-4">
         {/* Motivo de indisponibilidad */}
         {isUnavailable && player.motivo_indisponibilidad && (
           <div className="text-[10px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200">
@@ -154,7 +154,7 @@ export default function RosterPlayerCard({ player, onUpdateAvailability, onUpdat
           {player.telefono && (
             <a 
               href={`tel:${player.telefono}`}
-              className="flex items-center gap-2 text-xs text-slate-600 transition-colors hover:text-blue-600"
+              className="flex items-center gap-1.5 text-[11px] text-slate-600 transition-colors hover:text-blue-600 sm:text-xs"
               onClick={(e) => e.stopPropagation()}
             >
               <Phone className="w-3 h-3 flex-shrink-0" />
@@ -164,7 +164,7 @@ export default function RosterPlayerCard({ player, onUpdateAvailability, onUpdat
           {player.email_padre && (
             <a 
               href={`mailto:${player.email_padre}`}
-              className="flex items-center gap-2 truncate text-xs text-slate-600 transition-colors hover:text-blue-600"
+              className="flex items-center gap-1.5 truncate text-[11px] text-slate-600 transition-colors hover:text-blue-600 sm:text-xs"
               onClick={(e) => e.stopPropagation()}
             >
               <Mail className="w-3 h-3 flex-shrink-0" />
@@ -182,7 +182,7 @@ export default function RosterPlayerCard({ player, onUpdateAvailability, onUpdat
               e.stopPropagation();
               setShowAvailability(true);
             }}
-            className={`h-10 w-full rounded-xl text-xs font-semibold ${
+            className={`h-9 w-full rounded-xl text-[11px] font-semibold sm:h-10 sm:text-xs ${
               isUnavailable 
                 ? "border-amber-300 text-amber-700 bg-amber-50 hover:bg-amber-100" 
                 : "border-slate-200 text-slate-500 hover:bg-green-50 hover:text-green-700 hover:border-green-400"
