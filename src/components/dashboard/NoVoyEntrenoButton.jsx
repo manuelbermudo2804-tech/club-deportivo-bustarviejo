@@ -21,8 +21,7 @@ export default function NoVoyEntrenoButton({ jugador, categoria, fechaISO, user,
     },
     staleTime: 60000,
   });
-  const avisadoNo = ultimo?.client_id?.startsWith(`${prefijo}no_`);
-  const avisadoSi = ultimo?.client_id?.startsWith(`${prefijo}si_`);
+  const avisado = ultimo?.client_id?.startsWith(`${prefijo}no_`);
 
   const enviar = async (noVa) => {
     if (noVa && !window.confirm(`¿Seguro que ${jugador.nombre} no irá hoy a entrenar? Se avisa al entrenador y al chat del equipo.`)) return;
@@ -46,20 +45,24 @@ export default function NoVoyEntrenoButton({ jugador, categoria, fechaISO, user,
   };
 
   const nombre = jugador.nombre.split(" ")[0];
-  const quien = ultimo?.remitente_email === user.email ? "" : ultimo?.remitente_nombre ? ` · ${ultimo.remitente_nombre.split(" ")[0]}` : "";
+  if (avisado) {
+    const quien = ultimo.remitente_email === user.email ? "" : ` (${(ultimo.remitente_nombre || "").split(" ")[0]})`;
+    return (
+      <div className="flex items-center gap-2 text-xs flex-wrap">
+        <span className="px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 font-semibold">
+          🚫 {solo ? "Avisado: no vas" : `Avisado: ${nombre} no va`}{quien}
+        </span>
+        <button disabled={sending} onClick={() => enviar(false)}
+          className="px-3 py-1 rounded-full border border-green-300 bg-green-50 text-green-700 font-semibold hover:bg-green-100 disabled:opacity-50 whitespace-nowrap">
+          {sending ? "Enviando..." : solo ? "✅ Al final sí voy" : "✅ Al final sí va"}
+        </button>
+      </div>
+    );
+  }
   return (
-    <div className="flex items-center gap-2 text-xs flex-wrap">
-      <button disabled={sending || avisadoSi} onClick={() => enviar(false)}
-        aria-pressed={!!avisadoSi}
-        className={`px-3 py-1 rounded-full border font-semibold disabled:opacity-50 whitespace-nowrap ${avisadoSi ? "border-green-400 bg-green-100 text-green-800" : "border-green-300 bg-white text-green-700 hover:bg-green-50"}`}>
-        {sending ? "Enviando..." : solo ? "✅ Voy" : `✅ ${nombre} va`}
-      </button>
-      <button disabled={sending || avisadoNo} onClick={() => enviar(true)}
-        aria-pressed={!!avisadoNo}
-        className={`px-3 py-1 rounded-full border font-semibold disabled:opacity-50 whitespace-nowrap ${avisadoNo ? "border-red-400 bg-red-100 text-red-800" : "border-slate-300 bg-white text-slate-600 hover:border-orange-400 hover:text-orange-600"}`}>
-        {sending ? "Avisando..." : solo ? "🚫 No voy" : `🚫 ${nombre} no va`}
-      </button>
-      {(avisadoNo || avisadoSi) && <span className="text-[11px] text-slate-500">Avisado al equipo{quien}</span>}
-    </div>
+    <button disabled={sending} onClick={() => enviar(true)}
+      className="text-xs font-medium px-3 py-1 rounded-full border border-slate-300 text-slate-600 bg-white hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 whitespace-nowrap">
+      {sending ? "Avisando..." : solo ? "No voy" : `${nombre} no va`}
+    </button>
   );
 }
