@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import ContactCard from "../components/ContactCard";
 import { useUnifiedNotifications } from "../components/notifications/useUnifiedNotifications";
 import AlertCenter from "../components/dashboard/AlertCenter";
+import BirthdayBanner from "../components/birthday/BirthdayBanner";
 import usePendingAttendance from "@/hooks/usePendingAttendance";
 import useFamilyAlertExtras from "@/hooks/useFamilyAlertExtras";
 import useCoordinatorAlerts from "@/hooks/useCoordinatorAlerts";
@@ -96,6 +97,12 @@ export default function CoordinatorDashboard() {
     staleTime: 300000,
     refetchOnWindowFocus: false,
   });
+
+  const myTeamPlayers = useMemo(() => {
+    const cats = user?.categorias_entrena || [];
+    if (!cats.length) return [];
+    return allPlayers.filter(p => p.activo !== false && (cats.includes(p.deporte) || (p.categorias || []).some(c => cats.includes(c))));
+  }, [allPlayers, user]);
 
   const { data: allEvents = [] } = useQuery({
     queryKey: ['events'],
@@ -239,6 +246,11 @@ export default function CoordinatorDashboard() {
             { icon: Bell, label: "Eventos 7 días", value: stats.upcomingEvents, color: "from-orange-600 to-orange-700" },
           ]}
         />
+
+        {/* Cumpleaños de jugadores de los equipos que entrena */}
+        {myTeamPlayers.length > 0 && (
+          <BirthdayBanner players={myTeamPlayers} myPlayerIds={[]} mode="coach" />
+        )}
 
         {/* Banner Clasificaciones + Partidos - Estilo ParentDashboard */}
 
