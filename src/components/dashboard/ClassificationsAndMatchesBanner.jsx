@@ -11,7 +11,7 @@ import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers = [] }) {
+export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers = [], darkMode = false }) {
   const [showAllMatches, setShowAllMatches] = useState(false);
 
   // Obtener categorías de mis jugadores
@@ -158,16 +158,16 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
 
   return (
     <>
-      <Card className="border border-slate-200 shadow-md overflow-hidden rounded-xl">
+      <Card className={darkMode ? "border border-slate-700 bg-slate-800/90 shadow-lg overflow-hidden rounded-2xl text-white" : "border border-slate-200 shadow-md overflow-hidden rounded-xl"}>
         <CardContent className="p-0">
-          <div className="grid grid-cols-2 divide-x divide-slate-200">
+          <div className={`grid grid-cols-2 divide-x ${darkMode ? "divide-slate-700" : "divide-slate-200"}`}>
             {/* IZQUIERDA: CLASIFICACIONES */}
-            <Link to={createPageUrl("CentroCompeticion")} className="hover:bg-orange-50/50 transition-colors">
-              <div className="p-3 bg-gradient-to-br from-orange-50 to-white">
+            <Link to={createPageUrl("CentroCompeticion")} className={`transition-colors ${darkMode ? "hover:bg-slate-700/60" : "hover:bg-orange-50/50"}`}>
+              <div className={`p-3 ${darkMode ? "bg-slate-800/70" : "bg-gradient-to-br from-orange-50 to-white"}`}>
                 <div className="flex items-center justify-between mb-1.5">
                   <div className="flex items-center gap-1.5">
                     <Trophy className="w-4 h-4 text-orange-600" />
-                    <p className="font-bold text-slate-900 text-xs">Clasificación</p>
+                    <p className={`font-bold text-xs ${darkMode ? "text-white" : "text-slate-900"}`}>Clasificación</p>
                   </div>
                   {latestStandings.length > 1 && (
                     <Badge className="bg-orange-500 text-white text-[9px] px-1.5 py-0">+{latestStandings.length - 1}</Badge>
@@ -198,24 +198,24 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
             </Link>
 
             {/* DERECHA: MIS CONVOCATORIAS */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50">
+            <div className={darkMode ? "bg-slate-800/70" : "bg-gradient-to-br from-green-50 to-emerald-50"}>
               {nextMatch ? (
                 <button
                   onClick={() => setShowAllMatches(true)}
-                  className="w-full h-full text-left p-3 hover:bg-green-100/50 transition-colors"
+                  className={`w-full h-full text-left p-3 transition-colors ${darkMode ? "hover:bg-slate-700/60" : "hover:bg-green-100/50"}`}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5">
                       <Bell className="w-4 h-4 text-green-700" />
-                      <p className="font-bold text-slate-900 text-xs">Mis Convocatorias</p>
+                      <p className={`font-bold text-xs ${darkMode ? "text-white" : "text-slate-900"}`}>Mis Convocatorias</p>
                     </div>
                     {additionalMatches > 0 && (
                       <Badge className="bg-green-600 text-white text-[9px] px-1.5 py-0">+{additionalMatches}</Badge>
                     )}
                   </div>
                   <p className="text-[10px] text-slate-500 mb-0.5">{nextMatch.categoria.split(' ')[1] || nextMatch.categoria}</p>
-                  <p className="font-bold text-slate-900 text-xs mb-1 line-clamp-1">{nextMatch.rival || nextMatch.titulo}</p>
-                  <div className="flex items-center gap-1.5 text-[10px] text-slate-600 mb-1.5">
+                  <p className={`font-bold text-xs mb-1 line-clamp-1 ${darkMode ? "text-white" : "text-slate-900"}`}>{nextMatch.rival || nextMatch.titulo}</p>
+                  <div className={`flex items-center gap-1.5 text-[10px] mb-1.5 ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
                     <span className="flex items-center gap-0.5">
                       <Calendar className="w-3 h-3" />
                       {format(new Date(nextMatch.fecha_partido), "EEE d MMM", { locale: es })}
@@ -261,7 +261,7 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
 
       {/* Dialog con todos los partidos */}
       <Dialog open={showAllMatches} onOpenChange={setShowAllMatches}>
-        <DialogContent className="max-w-md">
+        <DialogContent className={`max-w-md ${darkMode ? "bg-slate-900 border-slate-700 text-white" : ""}`}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Bell className="w-5 h-5 text-green-600" />
@@ -270,7 +270,7 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
           </DialogHeader>
           <div className="space-y-3 max-h-[60vh] overflow-y-auto">
             {sortedCallups.map((callup) => (
-              <Card key={callup.id} className="border-2 border-slate-200">
+              <Card key={callup.id} className={darkMode ? "border border-slate-700 bg-slate-800 text-white" : "border-2 border-slate-200"}>
                 <CardContent className="p-3">
                   <p className="font-bold text-sm text-slate-900 mb-1">{callup.categoria}</p>
                   <p className="text-sm text-slate-700 mb-2">{callup.titulo}</p>
