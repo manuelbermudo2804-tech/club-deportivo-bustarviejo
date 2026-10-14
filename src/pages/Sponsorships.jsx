@@ -73,11 +73,17 @@ export default function Sponsorships() {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.Sponsor.update(id, data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['sponsors'] });
       setShowForm(false);
       setEditingSponsor(null);
-      toast.success("✅ Patrocinador actualizado");
+      if (Object.prototype.hasOwnProperty.call(variables.data || {}, "activo")) {
+        toast.success(variables.data.activo
+          ? `✅ ${variables.data.nombre || "Patrocinador"} activado - aparecerá en el banner`
+          : `⏸️ ${variables.data.nombre || "Patrocinador"} desactivado - dejará de aparecer en el banner`);
+      } else {
+        toast.success("✅ Patrocinador actualizado");
+      }
     },
     onError: () => toast.error("Error al actualizar"),
   });
@@ -112,11 +118,10 @@ export default function Sponsorships() {
 
   const handleToggleActive = (sponsor) => {
     const newStatus = !sponsor.activo;
-    updateMutation.mutate({ 
-      id: sponsor.id, 
-      data: { activo: newStatus } 
+    updateMutation.mutate({
+      id: sponsor.id,
+      data: { activo: newStatus, nombre: sponsor.nombre }
     });
-    toast.success(newStatus ? `✅ ${sponsor.nombre} activado - aparecerá en el banner` : `⏸️ ${sponsor.nombre} desactivado - no aparecerá en el banner`);
   };
 
   // Renovar patrocinio 1 año: desplaza fecha_fin (y opcionalmente fecha_inicio) un año
