@@ -1,5 +1,6 @@
 import React from "react";
 import MisFirmadosLista from "@/components/contratos/MisFirmadosLista";
+import { FileText } from "lucide-react";
 
 // Cada persona ve y descarga los documentos que ha firmado con el club
 export default function MisDocumentos() {
