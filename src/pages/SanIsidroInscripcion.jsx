@@ -96,7 +96,9 @@ export default function SanIsidroInscripcion() {
         const map = {};
         all.forEach(r => { map[r.modalidad] = (map[r.modalidad] || 0) + 1; });
         setCounts(map);
-      } catch {}
+      } catch (error) {
+        console.error("[SanIsidroInscripcion] No se pudieron actualizar los recuentos de plazas:", error);
+      }
     };
     refresh();
     const unsub = base44.entities.SanIsidroRegistration.subscribe(() => refresh());
@@ -187,7 +189,11 @@ export default function SanIsidroInscripcion() {
           toast.error(`Ya existe un equipo llamado "${form.nombre_equipo}". Elige otro nombre.`);
           return;
         }
-      } catch {}
+      } catch (error) {
+        console.error("[SanIsidroInscripcion] No se pudieron comprobar los posibles duplicados:", error);
+        toast.error("No se ha podido comprobar si hay jugadores o equipos duplicados. Inténtalo de nuevo.");
+        return;
+      }
     }
 
     setSaving(true);
