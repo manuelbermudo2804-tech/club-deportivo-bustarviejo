@@ -19,6 +19,7 @@ import CaptacionPanel from "@/components/sponsors/captacion/CaptacionPanel";
 export default function Sponsorships() {
   const [showForm, setShowForm] = useState(false);
   const [editingSponsor, setEditingSponsor] = useState(null);
+  const [conversionProposalId, setConversionProposalId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterLevel, setFilterLevel] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -38,11 +39,34 @@ export default function Sponsorships() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (data) => base44.entities.Sponsor.create(data),
-    onSuccess: () => {
+    mutationFn: async ({ data, proposalId }) => {
+      const sponsor = await base44.entities.Sponsor.create(data);
+      let proposalLinkError = false;
+      if (proposalId) {
+        try {
+          const proposal = await base44.entities.PropuestaPatrocinio.get(proposalId);
+          await base44.entities.PropuestaPatrocinio.update(proposalId, {
+            sponsor_id: sponsor.id,
+            notas_internas: [proposal?.notas_internas, `Convertida en patrocinador el ${new Date().toLocaleDateString("es-ES")} (ID: ${sponsor.id}).`].filter(Boolean).join("\\n"),
+          });
+        } catch (error) {
+          console.error("Patrocinador creado, pero no se pudo vincular la propuesta:", error);
+          proposalLinkError = true;
+        }
+      }
+      return { sponsor, proposalLinkError, proposalId };
+    },
+    onSuccess: ({ proposalLinkError, proposalId }) => {
       queryClient.invalidateQueries({ queryKey: ['sponsors'] });
+      if (proposalId) queryClient.invalidateQueries({ queryKey: ['propuestas-patrocinio'] });
       setShowForm(false);
-      toast.success("✅ Patrocinador creado correctamente");
+      setEditingSponsor(null);
+      setConversionProposalId(null);
+      if (proposalLinkError) {
+        toast.warning("Patrocinador creado, pero no se pudo vincular a la propuesta. Revisa esa propuesta para evitar duplicados.");
+      } else {
+        toast.success(proposalId ? "✅ Patrocinador creado y propuesta vinculada" : "✅ Patrocinador creado correctamente");
+      }
     },
     onError: () => toast.error("Error al crear el patrocinador"),
   });
@@ -71,7 +95,7 @@ export default function Sponsorships() {
     if (editingSponsor?.id) {
       updateMutation.mutate({ id: editingSponsor.id, data });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate({ data, proposalId: conversionProposalId });
     }
   };
 
@@ -138,8 +162,9 @@ export default function Sponsorships() {
   };
 
   // Convertir una solicitud/propuesta aceptada en patrocinador (acción 3)
-  const handleConvertToSponsor = (prefill) => {
+  const handleConvertToSponsor = (prefill, proposalId = null) => {
     setEditingSponsor(prefill);
+    setConversionProposalId(proposalId);
     setShowForm(true);
     setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   };
@@ -203,6 +228,7 @@ export default function Sponsorships() {
           <Button
             onClick={() => {
               setEditingSponsor(null);
+              setConversionProposalId(null);
               setShowForm(!showForm);
             }}
             className="w-full justify-center rounded-xl bg-orange-600 font-semibold hover:bg-orange-700"
@@ -224,6 +250,7 @@ export default function Sponsorships() {
             onCancel={() => {
               setShowForm(false);
               setEditingSponsor(null);
+              setConversionProposalId(null);
             }}
             isSubmitting={createMutation.isPending || updateMutation.isPending}
           />
