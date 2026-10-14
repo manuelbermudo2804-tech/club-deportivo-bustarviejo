@@ -16,7 +16,7 @@ import { AlertTriangle, Clock, CreditCard } from "lucide-react";
 const esBaloncesto = (p) =>
   [p.deporte, p.categoria_principal, ...(p.categorias || [])].some((c) => (c || "").includes("Baloncesto"));
 
-export default function ConvocatoriaBlockBanner({ players = [] }) {
+export default function ConvocatoriaBlockBanner({ players = [], darkMode = false }) {
   const bloqueados = players.filter((p) => p.bloqueo_convocatoria_activo === true);
   const avisados = players.filter(
     (p) => p.aviso_impago_activo === true && p.bloqueo_convocatoria_activo !== true
@@ -28,7 +28,7 @@ export default function ConvocatoriaBlockBanner({ players = [] }) {
   const isBlocked = bloqueados.length > 0;
 
   return (
-    <Card className={`border-2 shadow-lg ${isBlocked ? "border-red-400 bg-red-50" : "border-amber-400 bg-amber-50"}`}>
+    <Card className={`rounded-2xl shadow-lg ${darkMode ? (isBlocked ? "border border-red-500/50 bg-red-950/30 text-white" : "border border-amber-500/50 bg-amber-950/25 text-white") : `border-2 ${isBlocked ? "border-red-400 bg-red-50" : "border-amber-400 bg-amber-50"}`}`}>
       <CardContent className="pt-5">
         <div className="flex items-start gap-3">
           {isBlocked ? (
@@ -39,8 +39,8 @@ export default function ConvocatoriaBlockBanner({ players = [] }) {
           <div className="flex-1 space-y-3">
             {isBlocked && (
               <div>
-                <h3 className="font-bold text-red-900">Cuota pendiente: fuera de convocatorias</h3>
-                <p className="text-sm text-red-800 mt-1">
+                <h3 className={`font-bold ${darkMode ? "text-red-200" : "text-red-900"}`}>Cuota pendiente: fuera de convocatorias</h3>
+                <p className={`text-sm mt-1 ${darkMode ? "text-red-100/90" : "text-red-800"}`}>
                   Estimada familia: la cuota de <strong>{nombres(bloqueados)}</strong> continúa pendiente de pago.
                   Según lo establecido por el club, {bloqueados.length > 1 ? "no podrán ser convocados" : "no podrá ser convocado/a"} para
                   los partidos hasta que la situación quede regularizada. Una vez abonada, {bloqueados.length > 1 ? "se incorporarán" : "se incorporará"} de
@@ -51,14 +51,14 @@ export default function ConvocatoriaBlockBanner({ players = [] }) {
 
             {avisados.length > 0 && (
               <div>
-                <h3 className="font-bold text-amber-900">Aviso de cuota pendiente</h3>
-                <p className="text-sm text-amber-800 mt-1">
+                <h3 className={`font-bold ${darkMode ? "text-amber-200" : "text-amber-900"}`}>Aviso de cuota pendiente</h3>
+                <p className={`text-sm mt-1 ${darkMode ? "text-amber-100/90" : "text-amber-800"}`}>
                   Estimada familia: les informamos de que la cuota de <strong>{nombres(avisados)}</strong> figura
                   como pendiente de pago. Les rogamos que regularicen la situación a la mayor brevedad. Si ya han
                   realizado el pago, pueden ignorar este aviso; se retirará en cuanto quede comprobado.
                 </p>
                 {avisados.some((p) => !esBaloncesto(p)) && (
-                  <p className="text-sm text-amber-900 mt-2 font-semibold">
+                  <p className={`text-sm mt-2 font-semibold ${darkMode ? "text-amber-100" : "text-amber-900"}`}>
                     Les advertimos de que, si la cuota no se regulariza, el siguiente aviso será que{" "}
                     {avisados.filter((p) => !esBaloncesto(p)).length > 1 ? "los jugadores no podrán ser convocados" : "el jugador no podrá ser convocado"}{" "}
                     para los partidos hasta que la situación quede resuelta.
@@ -67,14 +67,14 @@ export default function ConvocatoriaBlockBanner({ players = [] }) {
               </div>
             )}
 
-            <p className="text-xs text-slate-600">
+            <p className={`text-xs ${darkMode ? "text-slate-300" : "text-slate-600"}`}>
               Si tienen dificultades para realizar el pago, pueden ponerse en contacto con el club en{" "}
               <a href="mailto:info@cdbustarviejo.com" className="underline font-medium">
                 info@cdbustarviejo.com
               </a>{" "}
               para estudiar una solución.
             </p>
-            <p className="text-xs font-semibold text-slate-700">Junta Directiva · CD Bustarviejo</p>
+            <p className={`text-xs font-semibold ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Junta Directiva · CD Bustarviejo</p>
 
             <Link to={createPageUrl("ParentPayments")}>
               <Button className={isBlocked ? "bg-red-600 hover:bg-red-700" : "bg-amber-600 hover:bg-amber-700"}>
