@@ -18,7 +18,7 @@ export default function SponsorDashboard({ sponsors, onRenew, onNotifyRenewal, r
   const avgIncome = activeSponsors.length > 0 ? Math.round(totalActiveIncome / activeSponsors.length) : 0;
   const pagosTemporada = activeSponsors.map(s => ({
     sponsor: s,
-    pago: (s.pagos_temporadas || []).find(p => sameSeason(p.temporada, activeSeason)),
+    pago: activeSeason ? (s.pagos_temporadas || []).find(p => sameSeason(p.temporada, activeSeason)) : undefined,
   }));
   const totalPaidThisSeason = pagosTemporada.reduce((sum, item) => {
     if (!item.pago) return sum;
