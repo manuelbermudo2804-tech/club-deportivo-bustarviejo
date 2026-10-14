@@ -61,25 +61,25 @@ export default function CoordinatorChatsHub() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-3 py-5 sm:px-5 sm:py-7">
-      <div className="mx-auto w-full min-w-0 max-w-4xl space-y-5 sm:space-y-6">
-        <header className="relative isolate overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
-          <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-orange-500/10 blur-3xl" />
-          <div className="relative flex min-w-0 items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-orange-400/30 bg-orange-500/10">
-              <MessageCircle className="h-7 w-7 text-orange-300" />
-            </div>
-            <div className="min-w-0">
-              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Comunicación · C.D. Bustarviejo</p>
-              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Mis chats</h1>
-              <p className="mt-1 text-sm text-slate-300 sm:text-base">Accede a tus conversaciones de coordinación, equipos y personal del club.</p>
-            </div>
+    <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-24 pt-4 sm:space-y-6 sm:px-5 lg:px-8 lg:pt-7 [&_*]:min-w-0">
+      <div className="mx-auto w-full min-w-0 space-y-5 sm:space-y-6">
+        <header className="relative isolate min-w-0 overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+          <div className="pointer-events-none absolute -right-10 -top-16 h-48 w-48 rounded-full bg-orange-500/10 blur-3xl" />
+          <div className="relative min-w-0">
+            <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-300">Coordinación · Comunicación</p>
+            <h1 className="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl">Mis chats</h1>
+            <p className="mt-2 text-sm leading-relaxed text-slate-300 sm:text-base">Todas tus conversaciones en un solo lugar.</p>
           </div>
         </header>
-        <div className="space-y-3">
-          <div className="flex items-center gap-2 px-1">
-            <span className="h-5 w-1 rounded-full bg-orange-500" />
-            <h2 className="text-sm font-bold uppercase tracking-wider text-white">Tus conversaciones</h2>
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex min-w-0 items-center gap-3 rounded-2xl border border-slate-200/80 bg-white px-4 py-3 shadow-sm">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-orange-50 ring-1 ring-orange-100">
+              <MessageCircle className="h-5 w-5 text-orange-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <h2 className="font-bold text-slate-900">Tus conversaciones</h2>
+              <p className="text-xs text-slate-500 sm:text-sm">Familias, equipos y personal del club</p>
+            </div>
           </div>
 
         {/* Chat Familias - Coordinador */}
