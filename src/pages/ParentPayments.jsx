@@ -718,7 +718,7 @@ export default function ParentPayments() {
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
     // Junio (6) inicia inscripciones para la siguiente temporada
-    return month >= 6 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+    return month >= 6 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
   };
   
   // currentSeason provided by SeasonProvider

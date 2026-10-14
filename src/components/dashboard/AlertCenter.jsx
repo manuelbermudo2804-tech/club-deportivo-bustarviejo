@@ -442,18 +442,7 @@ const alerts = [];
   // Alertas para admin
   if (isAdmin) {
     // CONVERSACIONES CRÍTICAS SIN RESOLVER (prioridad máxima)
-    if (adminEscalationsCount > 0) {
-      alerts.push({
-        id: "admin-critical-chats",
-        icon: ShieldAlert,
-        title: "🚨 Conversaciones Críticas",
-        description: `${unresolvedAdminChats} conversación${unresolvedAdminChats > 1 ? 'es' : ''} escalada${unresolvedAdminChats > 1 ? 's' : ''} sin resolver`,
-        url: createPageUrl("AdminCoordinatorChats"),
-        color: "bg-red-600",
-        priority: 0
-      });
-    }
-    
+
     if (pendingPayments > 0) {
       alerts.push({
         id: "payments-admin",
@@ -478,17 +467,6 @@ const alerts = [];
       });
     }
 
-    if (pendingClothingOrders > 0) {
-      alerts.push({
-        id: "clothing",
-        icon: ShoppingBag,
-        title: "🛍️ Pedidos de Ropa",
-        description: `${pendingClothingOrders} pedido${pendingClothingOrders > 1 ? 's' : ''} pendiente${pendingClothingOrders > 1 ? 's' : ''}`,
-        url: createPageUrl("ClothingOrders"),
-        color: "bg-teal-600",
-        priority: 5
-      });
-    }
 
     if (pendingMemberRequests > 0) {
       alerts.push({
@@ -622,17 +600,6 @@ const alerts = [];
         url: createPageUrl("Payments"),
         color: "bg-orange-600",
         priority: 1
-      });
-    }
-    if (pendingClothingOrders > 0) {
-      alerts.push({
-        id: "clothing-treasurer",
-        icon: ShoppingBag,
-        title: "🛍️ Pedidos de Ropa",
-        description: `${pendingClothingOrders} pedido${pendingClothingOrders > 1 ? 's' : ''} pendiente${pendingClothingOrders > 1 ? 's' : ''}`,
-        url: createPageUrl("ClothingOrders"),
-        color: "bg-teal-600",
-        priority: 2
       });
     }
     if (pendingLotteryOrders > 0) {

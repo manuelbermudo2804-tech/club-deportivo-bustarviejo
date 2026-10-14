@@ -954,11 +954,7 @@ export default function TreasurerFinancialPanel() {
                       <p className="text-xs text-slate-500">Pedidos de ropa del club</p>
                     </div>
                   </div>
-                  <Link to={createPageUrl("ClothingOrders")}>
-                    <Button size="sm" className="bg-orange-600 hover:bg-orange-700">
-                      Ver detalle →
-                    </Button>
-                  </Link>
+
                 </div>
               </CardHeader>
               <CardContent className="p-6">

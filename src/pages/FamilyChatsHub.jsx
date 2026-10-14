@@ -255,20 +255,7 @@ export default function FamilyChatsHub() {
           )}
 
           {/* Administración */}
-          {adminConv.map(conv => (
-            <ConversationRow
-              key={conv.id}
-              title="🛡️ Administración"
-              subtitle="Chat directo con administración del club"
-              lastMessage={conv.ultimo_mensaje}
-              lastMessageDate={conv.ultimo_mensaje_fecha}
-              unreadCount={conv.no_leidos_padre || 0}
-              url={createPageUrl("AdminChat") + `?convId=${conv.id}`}
-              icon={Shield}
-              color="#ef4444"
-              iconBg="bg-red-600"
-            />
-          ))}
+
 
           {/* Mensaje eliminado - el coordinador siempre está visible */}
         </div>

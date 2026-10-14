@@ -35,7 +35,7 @@ const getCurrentSeason = () => {
   const now = new Date();
   const year = now.getFullYear();
   const month = now.getMonth() + 1;
-  return month >= 9 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+  return month >= 9 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
 };
 
 // Normalizar temporada para comparación (soporta "2025/2026" y "2025-2026")

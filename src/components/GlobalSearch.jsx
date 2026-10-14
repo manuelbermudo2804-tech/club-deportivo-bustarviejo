@@ -125,7 +125,7 @@ export default function GlobalSearch({ isAdmin = false, isCoach = false, isTreas
       case 'payment': return createPageUrl("Payments") + `?jugador_id=${item.jugador_id}`;
       case 'callup': return (isAdmin || isCoach) ? createPageUrl("CoachCallups") : createPageUrl("ParentCallups");
       case 'announcement': return createPageUrl("Announcements");
-      case 'event': return createPageUrl("Calendar");
+      case 'event': return createPageUrl("AgendaClub");
       default: return "#";
     }
   };

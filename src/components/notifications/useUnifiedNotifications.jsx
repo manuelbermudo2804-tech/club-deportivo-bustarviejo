@@ -427,14 +427,18 @@ export function useUnifiedNotifications(user, options = {}) {
     const cleanup = async () => {
       try {
         const now = Date.now();
-        const stale = (rawData.appNotifications || []).filter(n => {
-          if (!n || n.vista) return false;
+        // Los avisos nuevos desplazan a los viejos: se quedan solo los 20 más recientes
+        // y nada con más de 14 días (eventos: 48 h).
+        const sorted = [...(rawData.appNotifications || [])].filter(n => n && !n.vista)
+          .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0));
+        const stale = sorted.filter((n, i) => {
           const created = n.created_date ? new Date(n.created_date).getTime() : 0;
           const ageHours = created ? (now - created) / 36e5 : 0;
+          if (i >= 20) return true;
           if ((n.tipo && /event/i.test(n.tipo) && ageHours > 48)) return true;
-          if (ageHours > 24 * 30) return true;
+          if (ageHours > 24 * 14) return true;
           return false;
-        }).slice(0, 5); // Max 5 por ciclo
+        }).slice(0, 30);
         for (const notif of stale) {
           await run(() => base44.entities.AppNotification.update(notif.id, {
             vista: true,

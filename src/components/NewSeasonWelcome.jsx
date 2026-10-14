@@ -77,7 +77,7 @@ export default function NewSeasonWelcome({ seasonName }) {
             </Link>
             
             <div className="grid grid-cols-2 gap-3">
-              <Link to={createPageUrl("Calendar")} className="w-full">
+              <Link to={createPageUrl("AgendaClub")} className="w-full">
                 <Button
                   variant="outline"
                   className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20"
