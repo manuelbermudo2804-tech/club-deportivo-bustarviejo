@@ -21,16 +21,18 @@ Deno.serve(async (req) => {
       total_estimado = 0,
     } = body;
 
-    if (!contacto_nombre || !contacto_email) {
-      return Response.json({ error: "Faltan datos obligatorios" }, { status: 400 });
+    const emailLimpio = String(contacto_email || "").trim();
+    const empresaLimpia = String(empresa || "Sin especificar").replace(/[\\r\\n\\u0000-\\u001f\\u007f]/g, " ").trim().slice(0, 180) || "Sin especificar";
+    if (!String(contacto_nombre || "").trim() || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(emailLimpio)) {
+      return Response.json({ error: "Introduce un nombre y un email de contacto válidos" }, { status: 400 });
     }
 
     // Guardar propuesta
     const propuesta = await base44.asServiceRole.entities.PropuestaPatrocinio.create({
-      empresa,
+      empresa: empresaLimpia,
       origen,
-      contacto_nombre,
-      contacto_email,
+      contacto_nombre: String(contacto_nombre).trim(),
+      contacto_email: emailLimpio,
       contacto_telefono,
       mensaje,
       paquetes_seleccionados,
@@ -82,7 +84,7 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.integrations.Core.SendEmail({
         from_name: "Propuestas Patrocinio CDB",
         to: "presidente@cdbustarviejo.com",
-        subject: `🎯 Nueva propuesta de ${empresa} · ${Number(total_estimado).toLocaleString('es-ES')} €`,
+        subject: `🎯 Nueva propuesta de ${empresaLimpia.replace(/[\\r\\n\\u0000-\\u001f\\u007f]/g, " ")} · ${Number(total_estimado).toLocaleString('es-ES')} €`,
         body: html,
       });
     } catch (emailErr) {
