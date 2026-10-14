@@ -548,9 +548,9 @@ export default function NotificationCenter() {
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost" size="icon" className="relative min-w-[44px] min-h-[44px]">
-          <Bell className={`w-6 h-6 ${criticalNotifications > 0 ? 'animate-pulse text-red-600' : ''}`} />
+          <Bell className={`w-6 h-6 ${criticalNotifications > 0 ? 'animate-pulse' : ''}`} />
           {totalNotifications > 0 && (
-            <Badge className={`absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 ${criticalNotifications > 0 ? 'bg-red-500 animate-pulse' : 'bg-orange-500'} text-white text-xs`}>
+            <Badge className={`absolute -top-1 -right-1 h-5 min-w-5 px-1 flex items-center justify-center bg-white ring-2 ${criticalNotifications > 0 ? 'text-red-600 ring-red-600 animate-pulse' : 'text-orange-700 ring-orange-600'} text-xs font-bold shadow-md hover:bg-white`}>
               {totalNotifications > 9 ? "9+" : totalNotifications}
             </Badge>
           )}
