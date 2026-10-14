@@ -15,7 +15,7 @@ const rawClient = createClient({
 // Caché corta de lecturas: varias pantallas piden lo mismo a la vez al cargar
 // (usuario, jugadores, temporada...). Se agrupan en una sola petición y se
 // reutiliza el resultado unos segundos. Cualquier escritura limpia la caché.
-const TTL_MS = 8000;
+const TTL_MS = 20000;
 const cache = new Map();
 const READS = new Set(['list', 'filter', 'get']);
 const WRITES = new Set(['create', 'bulkCreate', 'update', 'bulkUpdate', 'updateMany', 'delete', 'deleteMany', 'upsert']);

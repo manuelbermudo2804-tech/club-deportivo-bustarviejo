@@ -39,7 +39,7 @@ export default function ParentDirectMessages() {
     queryKey: ['directMessages'],
     queryFn: () => base44.entities.DirectMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 3000,
+    refetchInterval: 15000,
   });
 
   const { data: users } = useQuery({

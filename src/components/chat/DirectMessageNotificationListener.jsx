@@ -8,7 +8,7 @@ export default function DirectMessageNotificationListener({ user }) {
     queryKey: ['directMessages'],
     queryFn: () => base44.entities.DirectMessage.list('-created_date'),
     initialData: [],
-    refetchInterval: 5000,
+    refetchInterval: 60000,
   });
 
   useEffect(() => {

@@ -10,7 +10,7 @@ export default function EmailNotificationTrigger({ user }) {
     queryKey: ['callups'],
     queryFn: () => base44.entities.Convocatoria.list('-created_date'),
     initialData: [],
-    refetchInterval: 30000,
+    refetchInterval: 120000,
     enabled: !!user && (user.role === "admin" || user.es_entrenador || user.es_coordinador),
   });
 
@@ -18,7 +18,7 @@ export default function EmailNotificationTrigger({ user }) {
     queryKey: ['payments'],
     queryFn: () => base44.entities.Payment.list('-updated_date'),
     initialData: [],
-    refetchInterval: 30000,
+    refetchInterval: 120000,
     enabled: !!user && (user.role === "admin" || user.es_tesorero),
   });
 

@@ -12,7 +12,7 @@ export default function ClothingApprovalNotifier({ isAdmin }) {
   const { data: orders = [] } = useQuery({
     queryKey: ["clothingNotifier"],
     queryFn: () => base44.entities.ClothingOrder.list("-updated_date"),
-    refetchInterval: 15000,
+    refetchInterval: 120000,
     enabled: isAdmin,
   });
 
