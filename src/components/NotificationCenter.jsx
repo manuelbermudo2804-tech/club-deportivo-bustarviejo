@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { isPaymentOverdue } from "@/components/payments/paymentHelpers";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Bell, Check, AlertCircle, Calendar, CreditCard, MessageCircle, Megaphone, DollarSign, Clock, Trash2, AlertTriangle } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -397,6 +398,8 @@ export default function NotificationCenter() {
 
   const pendingPayments = nonDeletedPayments.filter(p => {
     if (p.estado !== 'Pendiente') return false;
+    // Solo avisar de recibos ya vencidos (no de los que vencen más adelante)
+    if (!isPaymentOverdue(p)) return false;
     const key = `${p.jugador_id}__${p.temporada}`;
     if (hasUniqueByPlayerSeason.has(key)) {
       // Solo mantener el registro de Pago Único
