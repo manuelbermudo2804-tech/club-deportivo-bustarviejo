@@ -23,7 +23,10 @@ class RequestThrottler {
     this.active++;
     const { fn, resolve, reject } = this._queue.shift();
     try {
-      const result = await fn();
+      // Si otra petición recibió un rate limit, esperar a que pase la pausa global
+      const wait = RequestThrottler.cooldownUntil - Date.now();
+      if (wait > 0) await new Promise(r => setTimeout(r, wait));
+      const result = await retryWithBackoff(fn, 5);
       resolve(result);
     } catch (e) {
       reject(e);
@@ -36,7 +39,9 @@ class RequestThrottler {
   }
 }
 
-export const globalThrottler = new RequestThrottler(3, 100);
+RequestThrottler.cooldownUntil = 0;
+
+export const globalThrottler = new RequestThrottler(2, 150);
 
 /**
  * Debounce para funciones que se llaman múltiples veces rápido
@@ -65,6 +70,8 @@ export async function retryWithBackoff(fn, maxRetries = 3) {
       const isRateLimit = status === 429 || /rate limit|too many requests/i.test(String(error?.message || ''));
       const baseDelay = isRateLimit ? 1000 : 200; // ms
       const delay = retryAfter || Math.min(15000, Math.pow(2, i) * baseDelay) * (1 + Math.random() * 0.25);
+      if (isRateLimit) RequestThrottler.cooldownUntil = Math.max(RequestThrottler.cooldownUntil, Date.now() + delay);
+      if (!isRateLimit && status && status < 500) break; // errores normales no se reintentan
       if (i < maxRetries - 1) {
         await new Promise(resolve => setTimeout(resolve, delay));
       }
