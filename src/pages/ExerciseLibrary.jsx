@@ -497,7 +497,7 @@ export default function ExerciseLibrary() {
   );
 }
 
-function ExerciseGrid({ exercises, isLoading, onEdit, onDelete, onToggleFavorite, isCoachOrAdmin }) {
+function ExerciseGrid({ exercises, isLoading, onEdit, onDelete, onToggleFavorite, onCreateVariant, isCoachOrAdmin }) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -537,6 +537,7 @@ function ExerciseGrid({ exercises, isLoading, onEdit, onDelete, onToggleFavorite
           onEdit={() => onEdit(exercise)}
           onDelete={() => onDelete(exercise.id)}
           onToggleFavorite={() => onToggleFavorite(exercise.id, !exercise.favorito)}
+          onCreateVariant={onCreateVariant}
           canEdit={isCoachOrAdmin}
         />
       ))}
