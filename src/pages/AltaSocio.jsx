@@ -27,7 +27,9 @@ export default function AltaSocio() {
         if (data?.found) {
           setReferidor({ nombre: data.referidor_nombre, email: data.referidor_email });
         }
-      } catch {}
+      } catch (error) {
+        console.warn("[AltaSocio] No se pudo resolver el código de referido:", error);
+      }
     })();
   }, []);
 
