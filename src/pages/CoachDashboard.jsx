@@ -415,6 +415,14 @@ export default function CoachDashboard() {
           />
         )}
 
+        {/* Cumpleaños de jugadores de mi equipo */}
+        {myPlayers.length > 0 && (
+          <BirthdayBanner players={myPlayers} myPlayerIds={[]} mode="coach" />
+        )}
+
+        {/* Partidos y clasificaciones de mis equipos */}
+        <CoachClassificationsMatchesBanner myCategories={myCategories} />
+
         {/* AlertCenter - Una sola barra unificada */}
         {showParentSection ? (
           <div className="space-y-3">
@@ -462,13 +470,8 @@ export default function CoachDashboard() {
           />
         )}
 
-        {/* Partidos y clasificaciones de mis equipos */}
-        <CoachClassificationsMatchesBanner myCategories={myCategories} />
-
-        {/* Cumpleaños de jugadores de mi equipo */}
-        {myPlayers.length > 0 && (
-          <BirthdayBanner players={myPlayers} myPlayerIds={[]} mode="coach" />
-        )}
+        {/* Banner Porra (como en el panel de familias) */}
+        <PorraPromoBanner />
 
         {/* Botón personalizar */}
         <div className="flex justify-end">
@@ -524,9 +527,6 @@ export default function CoachDashboard() {
             </div>
           ))}
         </div>
-
-        {/* Banner Porra (promoción, al final para no tapar lo importante) */}
-        <PorraPromoBanner />
 
         <ContactCard />
 
