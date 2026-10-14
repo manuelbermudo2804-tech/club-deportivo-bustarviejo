@@ -14,13 +14,31 @@ Deno.serve(async (req) => {
     const now = new Date().toISOString();
 
     // Carga el mensaje con permisos del usuario: si no puede leerlo, no puede tocarlo.
+    // El RLS de ChatMessage está desincronizado con grupo_id, así que validamos
+    // el acceso igual que chatGetTeamMessages (jugadores reales / categorías que entrena).
+    const norm = (s) => (s || '').toString()
+      .replace(/\(.*?\)/g, '').replace(/_/g, ' ')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .trim().replace(/\s+/g, '_').toLowerCase();
+    let myGids = null;
+    const getMyGids = async () => {
+      if (myGids) return myGids;
+      const cats = [...(user.categorias_entrena || []), ...(user.categorias_coordina || [])];
+      const players = await base44.asServiceRole.entities.Player.filter({
+        $or: [{ email_padre: user.email }, { email_tutor_2: user.email }, { email_jugador: user.email }],
+        activo: true,
+      });
+      players.forEach((p) => cats.push(p.categoria_principal || p.deporte));
+      myGids = new Set(cats.filter(Boolean).map(norm));
+      return myGids;
+    };
     const loadAllowed = async (id) => {
-      try {
-        const rows = await base44.entities.ChatMessage.filter({ id });
-        return rows[0] || null;
-      } catch {
-        return null;
-      }
+      const msg = (await base44.asServiceRole.entities.ChatMessage.filter({ id }))[0];
+      if (!msg) return null;
+      if (user.role === 'admin' || user.es_coordinador === true) return msg;
+      if (msg.remitente_email === user.email) return msg;
+      const gids = await getMyGids();
+      return gids.has(norm(msg.grupo_id || msg.deporte)) ? msg : null;
     };
 
     if (action === 'mark_read') {
