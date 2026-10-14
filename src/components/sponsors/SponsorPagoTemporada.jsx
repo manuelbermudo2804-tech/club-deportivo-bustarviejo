@@ -17,22 +17,36 @@ export default function SponsorPagoTemporada({ sponsor }) {
   const pago = pagos.find(p => sameSeason(p.temporada, activeSeason));
 
   const toggle = async (checked) => {
+    if (saving) return;
     setSaving(true);
-    const me = await base44.auth.me();
-    const resto = pagos.filter(p => !sameSeason(p.temporada, activeSeason));
-    const nuevos = checked
-      ? [...resto, { temporada: activeSeason, fecha_pago: new Date().toISOString().slice(0, 10), importe: sponsor.precio_anual || 0, marcado_por: me.email }]
-      : resto;
-    await base44.entities.Sponsor.update(sponsor.id, { pagos_temporadas: nuevos });
-    await queryClient.invalidateQueries({ queryKey: ['sponsors'] });
-    setSaving(false);
-    toast.success(checked ? "Marcado como pagado" : "Marcado como pendiente");
+    try {
+      const me = await base44.auth.me();
+      const resto = pagos.filter(p => !sameSeason(p.temporada, activeSeason));
+      const nuevos = checked
+        ? [...resto, { temporada: activeSeason, fecha_pago: new Date().toISOString().slice(0, 10), importe: sponsor.precio_anual || 0, marcado_por: me?.email || "" }]
+        : resto;
+      await base44.entities.Sponsor.update(sponsor.id, { pagos_temporadas: nuevos });
+      await queryClient.invalidateQueries({ queryKey: ['sponsors'] });
+      toast.success(checked ? "Marcado como pagado" : "Marcado como pendiente");
+    } catch (error) {
+      console.error("Error actualizando el pago del patrocinador:", error);
+      toast.error("No se pudo actualizar el pago. Comprueba la conexión y vuelve a intentarlo.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const guardarJustificante = async (datos) => {
-    const nuevos = pagos.map(p => (sameSeason(p.temporada, activeSeason) ? { ...p, ...datos } : p));
-    await base44.entities.Sponsor.update(sponsor.id, { pagos_temporadas: nuevos });
-    await queryClient.invalidateQueries({ queryKey: ['sponsors'] });
+    try {
+      const nuevos = pagos.map(p => (sameSeason(p.temporada, activeSeason) ? { ...p, ...datos } : p));
+      await base44.entities.Sponsor.update(sponsor.id, { pagos_temporadas: nuevos });
+      await queryClient.invalidateQueries({ queryKey: ['sponsors'] });
+      toast.success("Justificante actualizado");
+    } catch (error) {
+      console.error("Error guardando el justificante del patrocinador:", error);
+      toast.error("No se pudo guardar el justificante. Vuelve a intentarlo.");
+      throw error;
+    }
   };
 
   return (
