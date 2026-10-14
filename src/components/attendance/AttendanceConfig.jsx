@@ -14,16 +14,16 @@ function AttendanceConfig({
   existing, isSendingReports
 }) {
   return (
-    <Card className="border shadow-sm">
-      <CardHeader className="pb-2 pt-3 px-3">
-        <CardTitle className="text-sm">Configuración</CardTitle>
+    <Card className="min-w-0 overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm">
+      <CardHeader className="border-b border-slate-100 bg-slate-50/80 px-4 py-3 sm:px-5">
+        <CardTitle className="text-base font-bold text-slate-900">Configuración de la sesión</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-2 px-3 pb-3">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+      <CardContent className="space-y-4 p-4 sm:p-5">
+        <div className="grid min-w-0 grid-cols-1 gap-3 md:grid-cols-3">
           <div>
-            <label className="text-xs text-slate-600 mb-1 block">Equipo</label>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700">Equipo</label>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="h-9">
+              <SelectTrigger className="h-11 rounded-xl border-slate-200 bg-white">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -34,19 +34,19 @@ function AttendanceConfig({
             </Select>
           </div>
           <div>
-            <label className="text-xs text-slate-600 mb-1 block">Fecha</label>
+            <label className="mb-1.5 block text-sm font-semibold text-slate-700">Fecha</label>
             <input
               type="date"
               value={selectedDate}
               onChange={(e) => setSelectedDate(e.target.value)}
-              className="flex h-9 w-full rounded-md border border-input bg-background px-3 py-1 text-sm"
+              className="flex h-11 w-full min-w-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
             />
           </div>
           <div className="flex items-end gap-2">
             <Button
               onClick={onSave}
               disabled={!hasUnsavedChanges}
-              className={`flex-1 h-9 text-sm ${hasUnsavedChanges ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600'}`}
+              className={`h-11 flex-1 rounded-xl text-sm font-semibold shadow-sm ${hasUnsavedChanges ? 'bg-orange-600 hover:bg-orange-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}
             >
               <Save className="w-4 h-4 mr-1" />
               Guardar
@@ -55,26 +55,26 @@ function AttendanceConfig({
         </div>
 
         <div>
-          <label className="text-xs text-slate-600 mb-1 block">Notas Generales</label>
+          <label className="mb-1.5 block text-sm font-semibold text-slate-700">Notas generales</label>
           <Textarea
             value={generalNotes}
             onChange={(e) => setGeneralNotes(e.target.value)}
             placeholder="Observaciones del entrenamiento..."
-            className="h-14 text-sm"
+            className="min-h-20 rounded-xl border-slate-200 text-sm"
           />
         </div>
 
-        <div className="flex flex-col gap-1.5 pt-1 border-t">
+        <div className="flex flex-col gap-2 border-t border-slate-100 pt-4">
           <Button
             onClick={onShowBulkDialog}
             disabled={isSendingReports}
             variant="outline"
-            className="flex-1 h-9 text-sm"
+            className="h-11 w-full rounded-xl border-orange-200 text-sm font-semibold text-orange-700 hover:bg-orange-50"
           >
             <Send className="w-4 h-4 mr-1" />
             📨 Reportes a Familias (Privado)
           </Button>
-          <p className="text-[10px] text-green-700 text-center">
+          <p className="text-xs text-emerald-700 text-center">
             🔒 Cada familia recibe SOLO el reporte de su hijo
           </p>
         </div>
