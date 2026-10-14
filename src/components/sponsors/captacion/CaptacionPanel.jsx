@@ -10,7 +10,12 @@ import PropuestaDialog from "./PropuestaDialog";
 import ProspectosPendientes from "./ProspectosPendientes";
 
 const SECTORES = ["Restauración", "Construcción y reformas", "Inmobiliarias", "Talleres y automoción", "Salud y fisioterapia", "Supermercados y tiendas"];
-const norm = (s) => (s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const norm = (s) => (s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]/g, "");
+const esMismoNegocio = (a, b) => {
+  const x = norm(a);
+  const y = norm(b);
+  return !!x && !!y && (x === y || (Math.min(x.length, y.length) >= 8 && (x.includes(y) || y.includes(x))));
+};
 
 export default function CaptacionPanel({ sponsors }) {
   const qc = useQueryClient();
@@ -21,32 +26,57 @@ export default function CaptacionPanel({ sponsors }) {
   const [guardando, setGuardando] = useState(null);
   const [propuesta, setPropuesta] = useState(null);
 
-  const existente = (e) => sponsors.find(s => norm(s.nombre) === norm(e.nombre));
+  const existente = (e) => sponsors.find(s => esMismoNegocio(s.nombre, e.nombre));
 
   const buscar = async (mas = false) => {
+    if (buscando || !zona.trim()) return;
     setBuscando(true);
     const previos = mas ? resultados : [];
     const excluir = [...sponsors.map(s => s.nombre), ...previos.map(e => e.nombre)];
-    const r = await buscarEmpresas({ zona, sector, cantidad: 20, excluir }).finally(() => setBuscando(false));
-    const vistos = new Set(excluir.map(norm));
-    const nuevos = r.filter(e => {
-      const n = norm(e.nombre);
-      if (!n || vistos.has(n) || [...vistos].some(v => v.length > 4 && (v.includes(n) || n.includes(v)))) return false;
-      vistos.add(n);
-      return true;
-    });
-    setResultados([...previos, ...nuevos]);
-    if (!nuevos.length) toast.info("No se encontraron empresas nuevas");
+    try {
+      const r = await buscarEmpresas({ zona: zona.trim(), sector: sector.trim(), cantidad: 20, excluir });
+      const vistos = [...excluir];
+      const nuevos = [];
+      for (const empresa of r) {
+        if (!empresa?.nombre?.trim() || vistos.some(nombre => esMismoNegocio(nombre, empresa.nombre))) continue;
+        vistos.push(empresa.nombre);
+        nuevos.push(empresa);
+      }
+      setResultados([...previos, ...nuevos]);
+      if (!nuevos.length) toast.info("No se encontraron empresas nuevas sin duplicados");
+    } catch (error) {
+      console.error("Error buscando posibles patrocinadores:", error);
+      toast.error("No se ha podido completar la búsqueda. Comprueba la conexión e inténtalo de nuevo.");
+    } finally {
+      setBuscando(false);
+    }
   };
 
   const guardar = async (e) => {
     const ya = existente(e);
-    if (ya) return ya;
+    if (ya) {
+      toast.info(`${ya.nombre} ya existe en el CRM; no se ha creado un duplicado`);
+      return ya;
+    }
     setGuardando(e.nombre);
-    const s = await guardarProspecto(e).finally(() => setGuardando(null));
-    await qc.invalidateQueries({ queryKey: ["sponsors"] });
-    toast.success(`${e.nombre} guardada como posible patrocinador`);
-    return s;
+    try {
+      // Revalidar contra el estado más reciente disponible antes de crear el registro.
+      const duplicado = sponsors.find(s => esMismoNegocio(s.nombre, e.nombre));
+      if (duplicado) {
+        toast.info(`${duplicado.nombre} ya existe en el CRM; no se ha creado un duplicado`);
+        return duplicado;
+      }
+      const s = await guardarProspecto(e);
+      await qc.invalidateQueries({ queryKey: ["sponsors"] });
+      toast.success(`${e.nombre} guardada como posible patrocinador`);
+      return s;
+    } catch (error) {
+      console.error("Error guardando posible patrocinador:", error);
+      toast.error(`No se ha podido guardar ${e.nombre}. No se ha registrado como patrocinador.`);
+      return null;
+    } finally {
+      setGuardando(null);
+    }
   };
 
   return (
@@ -70,7 +100,7 @@ export default function CaptacionPanel({ sponsors }) {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
           {resultados.map((e, i) => (
             <EmpresaResultCard key={i} empresa={e} yaGuardada={!!existente(e)} guardando={guardando === e.nombre}
-              onGuardar={() => guardar(e)} onPropuesta={async () => setPropuesta(await guardar(e))} />
+              onGuardar={() => guardar(e)} onPropuesta={async () => { const guardado = await guardar(e); if (guardado) setPropuesta(guardado); }} />
           ))}
         </div>
       )}
