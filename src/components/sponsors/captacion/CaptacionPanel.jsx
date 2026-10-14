@@ -53,15 +53,17 @@ export default function CaptacionPanel({ sponsors }) {
   };
 
   const guardar = async (e) => {
-    const ya = existente(e);
+    const sponsorsActuales = qc.getQueryData(["sponsors"]) || sponsors;
+    const ya = sponsorsActuales.find(s => esMismoNegocio(s.nombre, e.nombre));
     if (ya) {
       toast.info(`${ya.nombre} ya existe en el CRM; no se ha creado un duplicado`);
       return ya;
     }
     setGuardando(e.nombre);
     try {
-      // Revalidar contra el estado más reciente disponible antes de crear el registro.
-      const duplicado = sponsors.find(s => esMismoNegocio(s.nombre, e.nombre));
+      // Comprobar de nuevo el caché del CRM antes de crear el registro.
+      const sponsorsActualizados = qc.getQueryData(["sponsors"]) || sponsors;
+      const duplicado = sponsorsActualizados.find(s => esMismoNegocio(s.nombre, e.nombre));
       if (duplicado) {
         toast.info(`${duplicado.nombre} ya existe en el CRM; no se ha creado un duplicado`);
         return duplicado;
@@ -98,8 +100,8 @@ export default function CaptacionPanel({ sponsors }) {
       <ProspectosPendientes sponsors={sponsors} onPropuesta={setPropuesta} />
       {resultados.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3">
-          {resultados.map((e, i) => (
-            <EmpresaResultCard key={i} empresa={e} yaGuardada={!!existente(e)} guardando={guardando === e.nombre}
+          {resultados.map((e) => (
+            <EmpresaResultCard key={norm(e.nombre)} empresa={e} yaGuardada={!!existente(e)} guardando={guardando === e.nombre}
               onGuardar={() => guardar(e)} onPropuesta={async () => { const guardado = await guardar(e); if (guardado) setPropuesta(guardado); }} />
           ))}
         </div>
