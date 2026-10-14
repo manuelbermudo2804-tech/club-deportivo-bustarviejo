@@ -275,7 +275,7 @@ export default function CentroCompeticionTecnico() {
   };
 
   const ViewToggle = () => (
-    <div className="w-full grid grid-cols-5 rounded-xl border overflow-hidden">
+    <div className="grid w-full min-w-0 grid-cols-5 overflow-x-auto rounded-xl border border-white/20 bg-white/10">
       <Button
         variant={view === 'clasificacion' ? 'default' : 'ghost'}
         onClick={() => setView('clasificacion')}
@@ -357,12 +357,12 @@ export default function CentroCompeticionTecnico() {
 
 
       {/* Buscador (para filtrar tabla en StandingsDisplay) */}
-      <div className="mt-3 mb-4 flex items-center gap-2">
-        <div className="relative flex-1 max-w-md">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={view === 'goleadores' ? 'Buscar jugador o equipo...' : 'Buscar equipo...'} className="pl-9"/>
+      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full min-w-0 sm:max-w-md">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Input value={search} onChange={(e) => setSearch(e.target.value)} placeholder={view === 'goleadores' ? 'Buscar jugador o equipo...' : 'Buscar equipo...'} className="h-11 rounded-xl border-slate-200 bg-white pl-9 shadow-sm"/>
         </div>
-        <Badge variant="outline" className="hidden md:inline-flex">{category}</Badge>
+        <Badge variant="outline" className="hidden border-orange-200 bg-orange-50 px-3 py-1 text-slate-700 md:inline-flex">{category}</Badge>
       </div>
 
       {/* Herramienta de análisis de rival */}
