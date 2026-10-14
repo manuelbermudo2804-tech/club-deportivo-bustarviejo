@@ -16,6 +16,7 @@ import ExerciseCard from "../components/exercises/ExerciseCard";
 import ExerciseForm from "../components/exercises/ExerciseForm";
 import AITrainingPlanner from "../components/exercises/AITrainingPlanner";
 import AIExerciseGenerator from "../components/exercises/AIExerciseGenerator";
+import ExerciseVariantGenerator from "../components/exercises/ExerciseVariantGenerator";
 
 export default function ExerciseLibrary() {
   const [user, setUser] = useState(null);
@@ -30,6 +31,7 @@ export default function ExerciseLibrary() {
   const [editingExercise, setEditingExercise] = useState(null);
   const [showAIPlanner, setShowAIPlanner] = useState(false);
   const [showAIGenerator, setShowAIGenerator] = useState(false);
+  const [variantExercise, setVariantExercise] = useState(null);
   const [showFilters, setShowFilters] = useState(false);
 
   const queryClient = useQueryClient();
@@ -54,6 +56,19 @@ export default function ExerciseLibrary() {
       queryClient.invalidateQueries({ queryKey: ['exercises'] });
       setShowForm(false);
       toast.success("Ejercicio creado correctamente");
+    },
+  });
+
+  const createVariantMutation = useMutation({
+    mutationFn: (data) => base44.entities.Exercise.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['exercises'] });
+      setVariantExercise(null);
+      toast.success("Variante guardada en la biblioteca");
+    },
+    onError: (error) => {
+      console.error("Error guardando variante:", error);
+      toast.error("No se ha podido guardar la variante");
     },
   });
 
@@ -347,6 +362,7 @@ export default function ExerciseLibrary() {
             onDelete={(id) => deleteMutation.mutate(id)}
             onToggleFavorite={(id, fav) => toggleFavoriteMutation.mutate({ id, favorito: fav })}
             isCoachOrAdmin={isCoachOrAdmin}
+            onCreateVariant={(exercise) => setVariantExercise(exercise)}
           />
         </TabsContent>
 
@@ -358,6 +374,7 @@ export default function ExerciseLibrary() {
             onDelete={(id) => deleteMutation.mutate(id)}
             onToggleFavorite={(id, fav) => toggleFavoriteMutation.mutate({ id, favorito: fav })}
             isCoachOrAdmin={isCoachOrAdmin}
+            onCreateVariant={(exercise) => setVariantExercise(exercise)}
           />
         </TabsContent>
 
@@ -369,6 +386,7 @@ export default function ExerciseLibrary() {
             onDelete={(id) => deleteMutation.mutate(id)}
             onToggleFavorite={(id, fav) => toggleFavoriteMutation.mutate({ id, favorito: fav })}
             isCoachOrAdmin={isCoachOrAdmin}
+            onCreateVariant={(exercise) => setVariantExercise(exercise)}
           />
         </TabsContent>
 
@@ -380,6 +398,7 @@ export default function ExerciseLibrary() {
             onDelete={(id) => deleteMutation.mutate(id)}
             onToggleFavorite={(id, fav) => toggleFavoriteMutation.mutate({ id, favorito: fav })}
             isCoachOrAdmin={isCoachOrAdmin}
+            onCreateVariant={(exercise) => setVariantExercise(exercise)}
           />
         </TabsContent>
 
@@ -391,6 +410,7 @@ export default function ExerciseLibrary() {
             onDelete={(id) => deleteMutation.mutate(id)}
             onToggleFavorite={(id, fav) => toggleFavoriteMutation.mutate({ id, favorito: fav })}
             isCoachOrAdmin={isCoachOrAdmin}
+            onCreateVariant={(exercise) => setVariantExercise(exercise)}
           />
         </TabsContent>
       </Tabs>
@@ -415,6 +435,27 @@ export default function ExerciseLibrary() {
             onCancel={() => { setShowForm(false); setEditingExercise(null); }}
             isSubmitting={createMutation.isPending || updateMutation.isPending}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* AI exercise variant dialog: saves into the existing exercise library */}
+      <Dialog open={Boolean(variantExercise)} onOpenChange={(open) => { if (!open && !createVariantMutation.isPending) setVariantExercise(null); }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-orange-600" />
+              Crear una variante del ejercicio
+            </DialogTitle>
+          </DialogHeader>
+          {variantExercise && (
+            <ExerciseVariantGenerator
+              exercise={variantExercise}
+              existingExercises={exercises}
+              isSaving={createVariantMutation.isPending}
+              onSave={(data) => createVariantMutation.mutate(data)}
+              onCancel={() => setVariantExercise(null)}
+            />
+          )}
         </DialogContent>
       </Dialog>
 
