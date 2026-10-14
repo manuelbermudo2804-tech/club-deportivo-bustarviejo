@@ -548,7 +548,7 @@ export default function ParentDashboard() {
             Si aún no se ha cargado la config de categorías, mostrarlo por defecto. */}
         {!playersLoading && myPlayers.length > 0 && !onlyComplementary && (() => {
           if (categoryConfigs.length === 0) {
-            return <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} />;
+            return <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} darkMode={true} />;
           }
           const competeCats = new Set(
             categoryConfigs.filter(c => c.compite_en_liga === true).map(c => c.nombre)
@@ -558,7 +558,7 @@ export default function ParentDashboard() {
             competeCats.has(p.deporte) ||
             (p.categorias || []).some(cat => competeCats.has(cat))
           );
-          return someCompetes ? <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} /> : null;
+          return someCompetes ? <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} darkMode={true} /> : null;
         })()}
 
 
