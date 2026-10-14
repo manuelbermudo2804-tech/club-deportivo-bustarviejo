@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
 
           ${mensaje ? `
             <h2 style="font-size: 16px; color: #1e293b; margin-top: 24px;">Mensaje del contacto</h2>
-            <div style="background: #f1f5f9; padding: 12px 16px; border-radius: 8px; font-style: italic; color: #475569;">${mensaje.replace(/\n/g, '<br>')}</div>
+            <div style="background: #f1f5f9; padding: 12px 16px; border-radius: 8px; font-style: italic; color: #475569;">${escapeHtml(mensaje).replace(/\n/g, '<br>')}</div>
           ` : ''}
 
           <p style="margin-top: 24px; padding-top: 16px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b;">
