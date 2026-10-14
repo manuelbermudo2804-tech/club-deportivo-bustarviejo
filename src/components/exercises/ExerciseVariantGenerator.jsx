@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertCircle, CheckCircle2, Loader2, RefreshCw, Save, Shuffle, Sparkles } from "lucide-react";
+import { AlertCircle, Loader2, RefreshCw, Save, Shuffle, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 const VARIANT_STYLES = [
@@ -90,13 +90,15 @@ REQUISITOS:
         throw new Error("La IA no ha devuelto una variante completa.");
       }
 
-      const duplicate = existingExercises.some((item) =>
-        item.id !== exercise.id &&
-        item.nombre?.trim().toLocaleLowerCase("es") === response.nombre.trim().toLocaleLowerCase("es")
-      );
-      if (duplicate) {
-        response.nombre = `${response.nombre.trim()} — variante`;
+      const existingNames = new Set(existingExercises.map((item) => item.nombre?.trim().toLocaleLowerCase("es")).filter(Boolean));
+      const baseName = response.nombre.trim();
+      let uniqueName = baseName;
+      let suffix = 1;
+      while (existingNames.has(uniqueName.toLocaleLowerCase("es"))) {
+        uniqueName = suffix === 1 ? `${baseName} — variante` : `${baseName} — variante ${suffix}`;
+        suffix += 1;
       }
+      response.nombre = uniqueName;
 
       setVariant({
         ...response,
