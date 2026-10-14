@@ -531,6 +531,7 @@ export default function ParentDashboard() {
             players={myPlayers} 
             payments={payments}
             seasonConfig={activeSeason}
+            darkMode={true}
           />
         )}
 
@@ -565,7 +566,7 @@ export default function ParentDashboard() {
 
         {/* Aviso de cuota vencida y riesgo de no ser convocado */}
         {!playersLoading && myPlayers.length > 0 && (
-          <ConvocatoriaBlockBanner players={myPlayers} />
+          <ConvocatoriaBlockBanner players={myPlayers} darkMode={true} />
         )}
 
         {/* Banner de documentos incompletos — se oculta solo cuando todo esté subido */}
