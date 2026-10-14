@@ -20,9 +20,9 @@ export default function MisFirmadosLista({ ocultarVacio = false }) {
   if (isLoading) return <Loader2 className="w-6 h-6 animate-spin mx-auto" />;
   if (docs.length === 0) return ocultarVacio ? null : <p className="text-sm text-slate-500 text-center py-6">Todavía no has firmado ningún documento.</p>;
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       {docs.map((c) => (
-        <div key={c.id} className="bg-white rounded-xl border p-3 flex items-center gap-3">
+        <article key={c.id} className="flex min-w-0 flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:border-orange-200 hover:shadow-md sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div className="flex-1 min-w-0">
             <p className="font-semibold truncate">{c.titulo}</p>
             <p className="text-xs text-slate-500">{c.jugador_nombre ? `${c.jugador_nombre} · ` : ""}Firmado {new Date(c.firma_fecha).toLocaleString("es-ES")}</p>
