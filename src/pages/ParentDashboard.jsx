@@ -505,20 +505,20 @@ export default function ParentDashboard() {
 
         {/* Aviso renovaciones (aunque estén inactivos) */}
         {!playersLoading && activeSeason?.permitir_renovaciones && pendingInactivePlayers.length > 0 && (
-          <Card className="border border-emerald-500/40 bg-slate-800/90 text-white shadow-lg rounded-2xl">
+          <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 shadow-lg">
             <CardContent className="pt-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-emerald-500/15 rounded-xl flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-emerald-400" />
+                  <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="font-bold text-white">Es hora de renovar tu plaza</p>
-                    <p className="text-xs text-slate-300">Tienes {pendingInactivePlayers.length} jugador(es) pendientes de renovar</p>
+                    <p className="font-bold text-green-900">Es hora de renovar tu plaza</p>
+                    <p className="text-xs text-green-800">Tienes {pendingInactivePlayers.length} jugador(es) pendientes de renovar</p>
                   </div>
                 </div>
                 <Link to={createPageUrl('ParentPlayers')}>
-                  <Button className="bg-orange-500 hover:bg-orange-600 text-white rounded-xl">Renovar ahora</Button>
+                  <Button className="bg-green-600 hover:bg-green-700 text-white">Renovar ahora</Button>
                 </Link>
               </div>
             </CardContent>
@@ -531,7 +531,7 @@ export default function ParentDashboard() {
             players={myPlayers} 
             payments={payments}
             seasonConfig={activeSeason}
-            darkMode={true}
+
           />
         )}
 
@@ -548,7 +548,7 @@ export default function ParentDashboard() {
             Si aún no se ha cargado la config de categorías, mostrarlo por defecto. */}
         {!playersLoading && myPlayers.length > 0 && !onlyComplementary && (() => {
           if (categoryConfigs.length === 0) {
-            return <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} darkMode={true} />;
+            return <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} />;
           }
           const competeCats = new Set(
             categoryConfigs.filter(c => c.compite_en_liga === true).map(c => c.nombre)
@@ -558,7 +558,7 @@ export default function ParentDashboard() {
             competeCats.has(p.deporte) ||
             (p.categorias || []).some(cat => competeCats.has(cat))
           );
-          return someCompetes ? <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} darkMode={true} /> : null;
+          return someCompetes ? <ClassificationsAndMatchesBanner userEmail={user?.email} myPlayers={myPlayers} /> : null;
         })()}
 
 
@@ -566,7 +566,7 @@ export default function ParentDashboard() {
 
         {/* Aviso de cuota vencida y riesgo de no ser convocado */}
         {!playersLoading && myPlayers.length > 0 && (
-          <ConvocatoriaBlockBanner players={myPlayers} darkMode={true} />
+          <ConvocatoriaBlockBanner players={myPlayers} />
         )}
 
         {/* Banner de documentos incompletos — se oculta solo cuando todo esté subido */}
@@ -613,7 +613,7 @@ export default function ParentDashboard() {
             userEmail={user?.email}
             userSports={myPlayersSports}
             weekAgenda={weekAgenda}
-            darkMode={true}
+
           />
 
         {/* Banner promocional Porra Mundial 2026 */}
