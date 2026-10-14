@@ -15,24 +15,24 @@ import { toGroupId } from "@/lib/chatGroupId";
 function ConversationRow({ title, subtitle, lastMessage, lastMessageDate, unreadCount, url, icon: Icon, color, iconBg }) {
   return (
     <Link to={url} className="block">
-      <Card className="p-4 hover:shadow-md transition-all border-l-4" style={{ borderLeftColor: color }}>
-        <div className="flex items-center gap-4">
-          <div className={`w-12 h-12 rounded-full ${iconBg} flex items-center justify-center flex-shrink-0`}>
-            <Icon className="w-6 h-6 text-white" />
+      <Card className="group min-w-0 rounded-2xl border border-slate-200/80 bg-white p-3 shadow-sm transition-all hover:-translate-y-0.5 hover:shadow-md sm:p-4" style={{ borderLeftWidth: 4, borderLeftColor: color }}>
+        <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${iconBg} shadow-sm sm:h-12 sm:w-12`}>
+            <Icon className="h-5 w-5 text-white sm:h-6 sm:w-6" />
           </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center justify-between gap-2 mb-1">
-              <h3 className="font-bold text-slate-900 truncate">{title}</h3>
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex min-w-0 items-center gap-2">
+              <h3 className="min-w-0 flex-1 break-words font-bold text-slate-900">{title}</h3>
               {unreadCount > 0 && (
-                <Badge className="bg-red-500 text-white">{unreadCount}</Badge>
+                <Badge className="shrink-0 rounded-full bg-red-500 px-2 text-white">{unreadCount}</Badge>
               )}
             </div>
-            <p className="text-sm text-slate-600 truncate">{subtitle}</p>
+            <p className="text-sm text-slate-600">{subtitle}</p>
             {lastMessage && (
-              <p className="text-xs text-slate-500 truncate mt-1">{lastMessage}</p>
+              <p className="mt-1 truncate text-xs text-slate-500">{lastMessage}</p>
             )}
           </div>
-          <ChevronRight className="w-5 h-5 text-slate-400 flex-shrink-0" />
+          <ChevronRight className="h-5 w-5 shrink-0 text-slate-400 transition-transform group-hover:translate-x-0.5" />
         </div>
       </Card>
     </Link>
@@ -61,12 +61,26 @@ export default function CoordinatorChatsHub() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-      <div className="max-w-4xl mx-auto space-y-4">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">💬 Mis Chats</h1>
-          <p className="text-slate-600">Todas tus conversaciones en un solo lugar</p>
-        </div>
+    <div className="min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 px-3 py-5 sm:px-5 sm:py-7">
+      <div className="mx-auto w-full min-w-0 max-w-4xl space-y-5 sm:space-y-6">
+        <header className="relative isolate overflow-hidden rounded-3xl border border-orange-500/20 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+          <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-orange-500/10 blur-3xl" />
+          <div className="relative flex min-w-0 items-center gap-4">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-orange-400/30 bg-orange-500/10">
+              <MessageCircle className="h-7 w-7 text-orange-300" />
+            </div>
+            <div className="min-w-0">
+              <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Comunicación · C.D. Bustarviejo</p>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Mis chats</h1>
+              <p className="mt-1 text-sm text-slate-300 sm:text-base">Accede a tus conversaciones de coordinación, equipos y personal del club.</p>
+            </div>
+          </div>
+        </header>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 px-1">
+            <span className="h-5 w-1 rounded-full bg-orange-500" />
+            <h2 className="text-sm font-bold uppercase tracking-wider text-white">Tus conversaciones</h2>
+          </div>
 
         {/* Chat Familias - Coordinador */}
         <ConversationRow
@@ -109,6 +123,7 @@ export default function CoordinatorChatsHub() {
           color="#8b5cf6"
           iconBg="bg-purple-600"
         />
+        </div>
       </div>
     </div>
   );
