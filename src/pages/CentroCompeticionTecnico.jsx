@@ -427,7 +427,7 @@ export default function CentroCompeticionTecnico() {
       </ErrorBoundary>
     {/* Configuración de categorías */}
     <Dialog open={showConfig} onOpenChange={setShowConfig}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="w-[calc(100vw-1.5rem)] max-w-lg max-h-[85dvh] overflow-y-auto rounded-2xl p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle>Configurar categorías visibles</DialogTitle>
         </DialogHeader>
@@ -441,17 +441,17 @@ export default function CentroCompeticionTecnico() {
               </label>
             ))}
           </div>
-          <div className="flex justify-between">
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={resetCats}>Restablecer</Button>
-              <Button variant="outline" onClick={selectAllCats}>Marcar todas</Button>
+          <div className="sticky bottom-0 -mx-1 flex flex-col gap-2 border-t border-slate-200 bg-white/95 px-1 pb-1 pt-3 backdrop-blur sm:static sm:mx-0 sm:flex-row sm:items-center sm:justify-between sm:border-0 sm:bg-transparent sm:p-0">
+            <div className="grid grid-cols-2 gap-2">
+              <Button className="w-full whitespace-nowrap text-xs sm:text-sm" variant="outline" onClick={resetCats}>Restablecer</Button>
+              <Button className="w-full whitespace-nowrap text-xs sm:text-sm" variant="outline" onClick={selectAllCats}>Marcar todas</Button>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" onClick={() => setShowConfig(false)}>Cancelar</Button>
-              <Button className="bg-orange-600 hover:bg-orange-700" onClick={saveCats}>Guardar</Button>
+            <div className="grid grid-cols-2 gap-2">
+              <Button className="w-full whitespace-nowrap" variant="outline" onClick={() => setShowConfig(false)}>Cancelar</Button>
+              <Button className="w-full whitespace-nowrap bg-orange-600 hover:bg-orange-700" onClick={saveCats}>Guardar</Button>
             </div>
           </div>
-          <div className="text-xs text-slate-500">Usa la rueda para elegir las categorías que no quieres ver.</div>
+          <div className="pb-1 text-xs text-slate-500">Marca las categorías que quieras mostrar. Puedes restablecer la selección o marcar todas.</div>
         </div>
       </DialogContent>
     </Dialog>
