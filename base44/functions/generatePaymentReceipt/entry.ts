@@ -183,6 +183,12 @@ Deno.serve(async (req) => {
     }
     console.log('✅ [generatePaymentReceipt] Pago encontrado:', payment.jugador_nombre);
 
+    // Si ya tiene recibo, devolverlo al instante: no se regenera, no se reenvía email
+    // y no se toca el pago (evita que aparezca como "recién marcado por el club").
+    if (payment.recibo_url) {
+      return Response.json({ success: true, recibo_url: payment.recibo_url, reused: true });
+    }
+
     // Obtener el jugador
     const player = await base44.asServiceRole.entities.Player.get(payment.jugador_id);
     if (!player) {
@@ -214,8 +220,8 @@ Deno.serve(async (req) => {
     if (!numeroRecibo) {
       // Usar SIEMPRE la temporada activa de configuración (ej: 2026/2027), no la del campo del pago
       const temporadaActiva = activeConfig?.temporada || payment.temporada || 'S/T';
-      const todosPagos = await base44.asServiceRole.entities.Payment.list('', 5000);
-      const yaAsignados = todosPagos.filter(p => p.numero_recibo && p.numero_recibo.startsWith(`${temporadaActiva}-`)).length;
+      const prefijo = String(temporadaActiva).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const yaAsignados = await base44.asServiceRole.entities.Payment.count({ numero_recibo: { $regex: `^${prefijo}-` } });
       const correlativo = String(yaAsignados + 1).padStart(4, '0');
       numeroRecibo = `${temporadaActiva}-${correlativo}`;
       // Persistir el número en el pago para que sea estable
