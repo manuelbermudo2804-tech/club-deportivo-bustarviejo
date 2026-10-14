@@ -16,7 +16,9 @@ export default function SponsorDashboard({ sponsors, onRenew, onNotifyRenewal, r
   // El estado activo controla la visibilidad del banner, no acredita que se haya cobrado.
   const totalActiveIncome = activeSponsors.reduce((sum, s) => sum + Number(s.precio_anual || 0), 0);
   const avgIncome = activeSponsors.length > 0 ? Math.round(totalActiveIncome / activeSponsors.length) : 0;
-  const pagosTemporada = activeSponsors.map(s => ({
+  // El dinero cobrado durante la temporada se mantiene visible aunque el patrocinador
+  // esté inactivo; la previsión pendiente solo considera los acuerdos activos.
+  const pagosTemporada = sponsors.map(s => ({
     sponsor: s,
     pago: activeSeason ? (s.pagos_temporadas || []).find(p => sameSeason(p.temporada, activeSeason)) : undefined,
   }));
@@ -25,10 +27,12 @@ export default function SponsorDashboard({ sponsors, onRenew, onNotifyRenewal, r
     const importe = item.pago.importe == null ? Number(item.sponsor.precio_anual || 0) : Number(item.pago.importe || 0);
     return sum + importe;
   }, 0);
-  const estimatedDueThisSeason = pagosTemporada.reduce((sum, item) => {
-    const importePagado = !item.pago ? 0 : (item.pago.importe == null ? Number(item.sponsor.precio_anual || 0) : Number(item.pago.importe || 0));
-    return sum + Math.max(0, Number(item.sponsor.precio_anual || 0) - importePagado);
-  }, 0);
+  const estimatedDueThisSeason = pagosTemporada
+    .filter(item => item.sponsor.activo === true)
+    .reduce((sum, item) => {
+      const importePagado = !item.pago ? 0 : (item.pago.importe == null ? Number(item.sponsor.precio_anual || 0) : Number(item.pago.importe || 0));
+      return sum + Math.max(0, Number(item.sponsor.precio_anual || 0) - importePagado);
+    }, 0);
   const totalClicks = sponsors.reduce((sum, s) => sum + (s.clicks_totales || 0), 0);
 
   // Reparto por nivel (solo activos)
