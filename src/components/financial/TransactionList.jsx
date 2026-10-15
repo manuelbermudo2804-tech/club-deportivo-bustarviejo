@@ -87,7 +87,7 @@ export default function TransactionList({
             Movimientos Financieros
             <Badge variant="outline">{filteredTransactions.length}</Badge>
           </CardTitle>
-          <Button variant="outline" onClick={onExport} className="gap-2">
+          <Button variant="outline" onClick={() => onExport?.(filteredTransactions)} disabled={filteredTransactions.length === 0} className="gap-2">
             <Download className="h-4 w-4" />
             Exportar
           </Button>
@@ -218,7 +218,7 @@ export default function TransactionList({
                 filteredTransactions.map((t) => (
                   <TableRow key={t.id}>
                     <TableCell className="text-sm">
-                      {t.fecha ? format(new Date(t.fecha), "dd/MM/yy", { locale: es }) : "-"}
+                      {t.fecha && !Number.isNaN(new Date(t.fecha).getTime()) ? format(new Date(t.fecha), "dd/MM/yy", { locale: es }) : "-"}
                     </TableCell>
                     <TableCell>
                       {t.tipo === "Ingreso" ? (
@@ -246,7 +246,7 @@ export default function TransactionList({
                     </TableCell>
                     <TableCell className="text-sm">{t.proveedor_cliente || "-"}</TableCell>
                     <TableCell className={`text-right font-bold ${t.tipo === "Ingreso" ? "text-green-600" : "text-red-600"}`}>
-                      {t.tipo === "Ingreso" ? "+" : "-"}{t.cantidad?.toLocaleString()}€
+                      {t.tipo === "Ingreso" ? "+" : "-"}{(Number(t.cantidad) || 0).toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€
                     </TableCell>
                     <TableCell>
                       <Badge className={getEstadoBadge(t.estado, t.tipo)}>
@@ -279,7 +279,10 @@ export default function TransactionList({
                         size="icon"
                         variant="ghost"
                         className="text-red-500 hover:text-red-700"
-                        onClick={() => onDelete(t.id)}
+                        onClick={() => onDelete?.(t.id)}
+                        disabled={!onDelete}
+                        aria-label={`Eliminar movimiento: ${t.concepto || "sin concepto"}`}
+                        title="Eliminar movimiento"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
