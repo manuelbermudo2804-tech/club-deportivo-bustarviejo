@@ -52,6 +52,10 @@ export default function BoardTaskCard({ task, onEdit, onDelete, onComplete, canM
           {task.prioridad && (
             <Badge className={PRIORITY_COLORS[task.prioridad] || ''}>{task.prioridad}</Badge>
           )}
+          {task.tipo_registro && task.tipo_registro !== "tarea" && (
+            <Badge variant="outline" className="border-orange-200 text-orange-800">{task.tipo_registro}</Badge>
+          )}
+          {task.reunion_id && <Badge variant="outline" className="border-sky-200 text-sky-800">Vinculada a acta</Badge>}
           {task.area && (
             <Badge variant="outline">{task.area}</Badge>
           )}
