@@ -11,7 +11,6 @@ import BoardMeetingForm from "../components/board/BoardMeetingForm";
 import BoardKanbanColumn from "../components/board/BoardKanbanColumn";
 import CompleteTaskDialog from "../components/board/CompleteTaskDialog";
 
-const ROLE_OPTIONS = ["Todos", "Presidente", "Vicepresidente", "Secretaría", "Tesorero", "Vocal1", "Vocal2", "Vocal3"];
 const AREAS = [
   "Todas",
   "Presidencia",
@@ -26,7 +25,7 @@ const AREAS = [
 export default function BoardTasks() {
   const [showForm, setShowForm] = React.useState(false);
   const [editing, setEditing] = React.useState(null);
-  const [roleFilter, setRoleFilter] = React.useState("Todos");
+  const [assigneeFilter, setAssigneeFilter] = React.useState("Todos");
   const [areaFilter, setAreaFilter] = React.useState("Todas");
   const [search, setSearch] = React.useState("");
   const [taskView, setTaskView] = React.useState("tablero");
@@ -106,11 +105,11 @@ export default function BoardTasks() {
   };
 
   const filtered = tasks.filter(t => {
-    const matchesRole = roleFilter === "Todos" || t.rol_asignado === roleFilter;
+    const matchesAssignee = assigneeFilter === "Todos" || t.asignado_a_email === assigneeFilter;
     const matchesArea = areaFilter === "Todas" || t.area === areaFilter;
     const matchesSearch = !search || (t.titulo?.toLowerCase().includes(search.toLowerCase()) || t.descripcion?.toLowerCase().includes(search.toLowerCase()));
-    const matchesMine = !myTasksOnly || t.asignado_a_email === user?.email || (t.rol_asignado && t.rol_asignado === user?.cargo_junta);
-    return matchesRole && matchesArea && matchesSearch && matchesMine;
+    const matchesMine = !myTasksOnly || t.asignado_a_email === user?.email;
+    return matchesAssignee && matchesArea && matchesSearch && matchesMine;
   });
 
   const columns = {
@@ -140,8 +139,8 @@ export default function BoardTasks() {
   };
 
   const exportReport = () => {
-    const headers = ["Tipo", "Título", "Descripción", "Estado", "Prioridad", "Área", "Rol responsable", "Email responsable", "Fecha límite", "Último avance"];
-    const rows = filtered.map((task) => [task.tipo_registro || "tarea", task.titulo, task.descripcion, task.estado, task.prioridad, task.area, task.rol_asignado, task.asignado_a_email, task.fecha_limite, task.comentarios?.[task.comentarios.length - 1]?.mensaje || ""]);
+    const headers = ["Tipo", "Título", "Descripción", "Estado", "Prioridad", "Área", "Persona responsable", "Email responsable", "Fecha límite", "Último avance"];
+    const rows = filtered.map((task) => [task.tipo_registro || "tarea", task.titulo, task.descripcion, task.estado, task.prioridad, task.area, task.asignado_a_nombre || boardMembers.find((member) => member.email === task.asignado_a_email)?.full_name || task.rol_asignado, task.asignado_a_email, task.fecha_limite, task.comentarios?.[task.comentarios.length - 1]?.mensaje || ""]);
     const clean = (value) => String(value ?? "").replace(/;/g, ",").replace(/\r?\n/g, " ");
     const csv = "\uFEFF" + [headers, ...rows].map((row) => row.map(clean).join(";")).join("\r\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
@@ -229,10 +228,11 @@ export default function BoardTasks() {
       <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
         <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800"><Filter className="h-4 w-4 text-orange-600" /> Filtrar tareas</div>
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(150px,0.7fr)_minmax(190px,1fr)_minmax(220px,1.4fr)]">
-          <Select value={roleFilter} onValueChange={setRoleFilter}>
-            <SelectTrigger className="min-h-10 w-full"><SelectValue placeholder="Filtrar por rol" /></SelectTrigger>
+          <Select value={assigneeFilter} onValueChange={setAssigneeFilter}>
+            <SelectTrigger className="min-h-10 w-full"><SelectValue placeholder="Filtrar por persona" /></SelectTrigger>
             <SelectContent>
-              {ROLE_OPTIONS.map(r => (<SelectItem key={r} value={r}>{r === "Todos" ? "Todos los roles" : r}</SelectItem>))}
+              <SelectItem value="Todos">Todas las personas</SelectItem>
+              {boardMembers.map((person) => <SelectItem key={person.id} value={person.email}>{person.full_name || person.nombre || person.email}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={areaFilter} onValueChange={setAreaFilter}>
@@ -292,7 +292,7 @@ export default function BoardTasks() {
                 <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">{task.fecha_limite || "Sin fecha límite"}</span><span className="text-xs text-slate-500">{task.estado === "en_progreso" ? "En progreso" : task.estado === "hecho" ? "Hecho" : task.estado === "bloqueado" ? "Bloqueado" : "Pendiente"}</span>{task.tipo_registro && task.tipo_registro !== "tarea" && <span className="text-xs text-orange-700">{task.tipo_registro}</span>}</div>
                 <h3 className="mt-2 font-semibold text-slate-900">{task.titulo}</h3>
                 {task.descripcion && <p className="mt-1 text-sm text-slate-600">{task.descripcion}</p>}
-                <p className="mt-2 text-xs text-slate-500">Responsable: {task.asignado_a_email || task.rol_asignado || "Sin asignar"}</p>
+                <p className="mt-2 text-xs text-slate-500">Responsable: {task.asignado_a_nombre || boardMembers.find((person) => person.email === task.asignado_a_email)?.full_name || task.rol_asignado || "Sin asignar"}</p>
               </div>
               {canManageTasks && <Button type="button" variant="outline" onClick={() => { setEditing(task); setShowForm(true); }}><ClipboardList className="mr-2 h-4 w-4" /> Editar</Button>}
             </article>
