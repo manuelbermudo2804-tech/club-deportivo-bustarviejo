@@ -86,7 +86,7 @@ export default function InteligenciaDeportiva() {
   const [category, setCategory] = useState("all");
   const [priority, setPriority] = useState("actionable");
   const [user, setUser] = useState(null);
-  React.useEffect(() => { base44.auth.me().then(setUser).catch(() => setUser(null)); }, []);
+  React.useEffect(() => { base44.auth.me().then(setUser).catch(() => setUser({})); }, []);
 
   const authorized = !!user && (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_coordinador_deportivo);
   const playersQuery = useQuery({ queryKey: ["sports-intelligence-players"], queryFn: () => base44.entities.Player.filter({ activo: true }), enabled: authorized, staleTime: 60000 });
