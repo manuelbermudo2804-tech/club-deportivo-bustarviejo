@@ -269,18 +269,24 @@ export default function BoardTasks() {
         onCancel={()=>setCompleteTask(null)}
         onConfirm={(mensaje)=>{
           if (!completeTask || !user) return;
+          const timestamp = new Date().toISOString();
+          const mensajeCierre = mensaje && mensaje.trim() ? mensaje.trim() : "Tarea marcada como hecha";
           const nuevosComentarios = [ ...(completeTask.comentarios || []), {
             autor_email: user.email,
             autor_nombre: user.full_name || "",
-            mensaje: mensaje && mensaje.trim() ? mensaje.trim() : "Tarea marcada como hecha",
-            fecha: new Date().toISOString()
+            mensaje: mensajeCierre,
+            fecha: timestamp
+          } ];
+          const nuevoHistorial = [ ...(completeTask.historial || []), {
+            tipo: "cierre", autor_email: user.email, autor_nombre: user.full_name || "", detalle: mensajeCierre, fecha: timestamp
           } ];
           updateMutation.mutate({ id: completeTask.id, data: {
             estado: 'hecho',
-            fecha_cierre: new Date().toISOString(),
+            fecha_cierre: timestamp,
             cerrado_por_email: user.email,
             cerrado_por_nombre: user.full_name || "",
-            comentarios: nuevosComentarios
+            comentarios: nuevosComentarios,
+            historial: nuevoHistorial
           }});
         }}
       />
