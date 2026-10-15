@@ -37,6 +37,7 @@ export default function BoardTasks() {
   });
 
   const canAccess = user?.role === "admin" || user?.es_junta === true;
+  const canManageTasks = user?.role === "admin";
 
   const { data: boardMembers = [] } = useQuery({
     queryKey: ["boardTaskMembers"],
@@ -140,9 +141,13 @@ export default function BoardTasks() {
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Organiza acuerdos, asigna responsables y controla los plazos en un espacio privado para la Junta.</p>
             </div>
           </div>
-          <Button onClick={() => { setEditing(null); setShowForm(!showForm); }} className="min-h-11 w-full bg-orange-500 text-white hover:bg-orange-600 sm:w-auto">
-            <Plus className="mr-2 h-4 w-4" /> Nueva tarea
-          </Button>
+          {canManageTasks ? (
+            <Button onClick={() => { setEditing(null); setShowForm(!showForm); }} className="min-h-11 w-full bg-orange-500 text-white hover:bg-orange-600 sm:w-auto">
+              <Plus className="mr-2 h-4 w-4" /> Nueva tarea
+            </Button>
+          ) : (
+            <div className="rounded-xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-slate-200">Consulta y seguimiento de tareas</div>
+          )}
         </div>
       </section>
 
@@ -169,7 +174,7 @@ export default function BoardTasks() {
         </div>
       </div>
 
-      {showForm && (
+      {showForm && canManageTasks && (
         <BoardTaskForm
           task={editing}
           users={boardMembers}
@@ -205,10 +210,10 @@ export default function BoardTasks() {
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-            <BoardKanbanColumn columnId="pendiente" title="Pendiente" tasks={columns.pendiente} onEdit={(t)=>{setEditing(t); setShowForm(true);}} onDelete={(t)=> deleteMutation.mutate(t.id)} onComplete={(t)=> setCompleteTask(t)} />
-            <BoardKanbanColumn columnId="en_progreso" title="En progreso" tasks={columns.en_progreso} onEdit={(t)=>{setEditing(t); setShowForm(true);}} onDelete={(t)=> deleteMutation.mutate(t.id)} onComplete={(t)=> setCompleteTask(t)} />
-            <BoardKanbanColumn columnId="bloqueado" title="Bloqueado" tasks={columns.bloqueado} onEdit={(t)=>{setEditing(t); setShowForm(true);}} onDelete={(t)=> deleteMutation.mutate(t.id)} onComplete={(t)=> setCompleteTask(t)} />
-            <BoardKanbanColumn columnId="hecho" title="Hecho" tasks={columns.hecho} onEdit={(t)=>{setEditing(t); setShowForm(true);}} onDelete={(t)=> deleteMutation.mutate(t.id)} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="pendiente" title="Pendiente" tasks={columns.pendiente} canManage={canManageTasks} onEdit={(t)=>{if (canManageTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="en_progreso" title="En progreso" tasks={columns.en_progreso} canManage={canManageTasks} onEdit={(t)=>{if (canManageTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="bloqueado" title="Bloqueado" tasks={columns.bloqueado} canManage={canManageTasks} onEdit={(t)=>{if (canManageTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="hecho" title="Hecho" tasks={columns.hecho} canManage={canManageTasks} onEdit={(t)=>{if (canManageTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
           </div>
         </DragDropContext>
       )}
