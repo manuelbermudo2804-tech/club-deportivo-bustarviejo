@@ -104,7 +104,7 @@ export default function BoardTaskForm({ task, users = [], onSubmit, onCancel, is
     setData((current) => ({
       ...current,
       titulo: current.titulo.trim() ? current.titulo : text.split(/[.!?\\n]/)[0].trim().slice(0, 120),
-      descripcion: current.descripcion.trim() ? current.descripcion.trim() + "\\n\\n" + text : text
+      descripcion: current.descripcion.trim() ? current.descripcion.trim() + "\n\n" + text : text
     }));
     setVoiceMessage("Texto incorporado. Comprueba el título, el responsable y la fecha antes de guardar.");
   };
@@ -142,7 +142,7 @@ export default function BoardTaskForm({ task, users = [], onSubmit, onCancel, is
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-sky-700"><Mic className="h-5 w-5" /></div>
           <div className="flex-1">
             <h3 className="text-sm font-semibold text-slate-900">Dictar tarea por voz</h3>
-            <p className="mt-1 text-xs leading-relaxed text-slate-600">Cuenta qué hay que hacer. El dictado solo convierte voz en texto; no usa IA ni asigna automáticamente fechas o responsables. Revisa los datos antes de guardar.</p>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600">Cuenta qué hay que hacer. El dictado no redacta ni asigna datos por su cuenta; el reconocimiento de voz depende del navegador y puede utilizar sus propios servicios. Revisa los datos antes de guardar.</p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
