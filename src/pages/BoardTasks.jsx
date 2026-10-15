@@ -263,7 +263,7 @@ export default function BoardTasks() {
       </section>
 
       {isError ? (
-        <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">No se han podido cargar las tareas. Comprueba que el usuario tiene permiso de Junta o administrador y vuelve a intentarlo.</div>
+        <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800"><p className="font-semibold">No se han podido cargar las tareas.</p><p className="mt-1">{tasksError?.message || "Puede haber un problema de permisos o conexión."}</p><Button type="button" variant="outline" className="mt-3 bg-white" onClick={() => refetchTasks()}><RefreshCw className="mr-2 h-4 w-4" /> Reintentar carga</Button></div>
       ) : isLoading ? (
         <div className="text-center py-12"><div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div></div>
       ) : taskView === "actas" ? (
@@ -274,7 +274,7 @@ export default function BoardTasks() {
             if (editingMeeting) updateMeetingMutation.mutate({ id: editingMeeting.id, data });
             else createMeetingMutation.mutate(data);
           }} />}
-          {meetingsLoading ? <div className="rounded-xl border p-8 text-center text-sm text-slate-500">Cargando actas…</div> : meetings.slice().sort((a, b) => (b.fecha_reunion || "").localeCompare(a.fecha_reunion || "")).map((meeting) => (
+          {meetingsError ? <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800"><p className="font-semibold">No se han podido cargar las actas.</p><p className="mt-1">{meetingsLoadError?.message || "Puede haber un problema de permisos o conexión."}</p><Button type="button" variant="outline" className="mt-3 bg-white" onClick={() => refetchMeetings()}><RefreshCw className="mr-2 h-4 w-4" /> Reintentar carga</Button></div> : meetingsLoading ? <div className="rounded-xl border p-8 text-center text-sm text-slate-500">Cargando actas…</div> : meetings.slice().sort((a, b) => (b.fecha_reunion || "").localeCompare(a.fecha_reunion || "")).map((meeting) => (
             <article key={meeting.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex-1"><p className="text-xs font-semibold uppercase tracking-wide text-orange-700">{meeting.fecha_reunion}</p><h3 className="mt-1 text-lg font-bold text-slate-900">{meeting.titulo}</h3>{meeting.asistentes && <p className="mt-1 text-xs text-slate-500">Asistentes: {meeting.asistentes}</p>}</div>
@@ -286,7 +286,7 @@ export default function BoardTasks() {
               <div className="mt-3 text-xs text-slate-400">Registrada por {meeting.creado_por_nombre || meeting.creado_por_email || "Administración"}</div>
             </article>
           ))}
-          {!meetingsLoading && meetings.length === 0 && !showMeetingForm && <div className="rounded-xl border border-dashed p-8 text-center"><FileText className="mx-auto mb-2 h-8 w-8 text-slate-400" /><p className="font-semibold text-slate-800">Todavía no hay actas registradas</p><p className="mt-1 text-sm text-slate-500">Registra las reuniones y guarda sus acuerdos para que toda la Junta pueda consultarlos.</p></div>}
+          {!meetingsLoading && !meetingsError && meetings.length === 0 && !showMeetingForm && <div className="rounded-xl border border-dashed p-8 text-center"><FileText className="mx-auto mb-2 h-8 w-8 text-slate-400" /><p className="font-semibold text-slate-800">Todavía no hay actas registradas</p><p className="mt-1 text-sm text-slate-500">Registra las reuniones y guarda sus acuerdos para que toda la Junta pueda consultarlos.</p></div>}
         </section>
       ) : taskView === "calendario" ? (
         <section className="space-y-3">
