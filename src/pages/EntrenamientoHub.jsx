@@ -1,12 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { CloudSun, ClipboardCheck, Dumbbell, PenTool, FileText, ArrowUpRight } from "lucide-react";
+import { CloudSun, ClipboardCheck, Dumbbell, PenTool, FileText, ArrowUpRight, History } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 const ITEMS = [
   { to: "/MeteoClub", icon: CloudSun, titulo: "Avisar a las familias", desc: "Tiempo, cambio de campo, recoger antes...", color: "text-sky-600 bg-sky-50" },
   { to: "/TeamAttendanceEvaluation", icon: ClipboardCheck, titulo: "Asistencia y evaluación", desc: "Pasar lista y evaluar jugadores", color: "text-green-600 bg-green-50" },
-  { to: "/ExerciseLibrary", icon: Dumbbell, titulo: "Biblioteca de ejercicios", desc: "Ejercicios y planes de entrenamiento", color: "text-orange-600 bg-orange-50" },
+  { to: "/ExerciseLibrary", icon: Dumbbell, titulo: "Biblioteca de ejercicios e IA", desc: "Busca ejercicios, crea variantes y genera sesiones personalizadas con IA.", color: "text-orange-600 bg-orange-50" },
+  { to: "/TrainingPlanHistory", icon: History, titulo: "Planificador e historial", desc: "Consulta tus sesiones guardadas, programa fechas y registra cómo han ido.", color: "text-indigo-600 bg-indigo-50" },
   { to: "/TacticsBoard", icon: PenTool, titulo: "Pizarra táctica", desc: "Dibuja jugadas y sistemas", color: "text-purple-600 bg-purple-50" },
   { to: "/CoachEvaluationReports", icon: FileText, titulo: "Reportes de entrenadores", desc: "Informes de evaluación del equipo", color: "text-blue-600 bg-blue-50" },
 ];

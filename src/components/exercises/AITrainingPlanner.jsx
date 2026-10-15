@@ -18,6 +18,8 @@ export default function AITrainingPlanner({ exercises, onClose }) {
   const [additionalNotes, setAdditionalNotes] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedPlan, setGeneratedPlan] = useState(null);
+  const [isSavingPlan, setIsSavingPlan] = useState(false);
+  const [savedPlanId, setSavedPlanId] = useState(null);
 
   const handleGenerate = async () => {
     if (!focus) {
@@ -171,6 +173,35 @@ MUY IMPORTANTE: esta sesión debe ser CLARAMENTE DISTINTA de otras sesiones típ
       toast.error("Error al generar el plan");
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleSavePlan = async () => {
+    if (!generatedPlan || isSavingPlan || savedPlanId) return;
+    setIsSavingPlan(true);
+    try {
+      const currentUser = await base44.auth.me().catch(() => null);
+      const saved = await base44.entities.TrainingPlan.create({
+        titulo_sesion: generatedPlan.titulo_sesion || `Entrenamiento ${sport}`,
+        deporte: sport,
+        duracion_total: Number(generatedPlan.duracion_total || duration),
+        enfoque: focus,
+        grupo_edad: ageGroup || "Mixto",
+        numero_jugadores: Number(numPlayers),
+        objetivos: Array.isArray(generatedPlan.objetivos) ? generatedPlan.objetivos : [],
+        materiales_necesarios: Array.isArray(generatedPlan.materiales_necesarios) ? generatedPlan.materiales_necesarios : [],
+        plan_json: JSON.stringify(generatedPlan),
+        notas: additionalNotes,
+        estado: "Planificado",
+        created_by: currentUser?.email || currentUser?.full_name || ""
+      });
+      setSavedPlanId(saved?.id || "saved");
+      toast.success("Plan guardado en el historial de entrenamientos");
+    } catch (error) {
+      console.error("Error guardando el plan de entrenamiento:", error);
+      toast.error("No se ha podido guardar el plan. Comprueba los permisos de TrainingPlan en Base44.");
+    } finally {
+      setIsSavingPlan(false);
     }
   };
 
@@ -354,7 +385,11 @@ MUY IMPORTANTE: esta sesión debe ser CLARAMENTE DISTINTA de otras sesiones típ
               <Button variant="outline" size="sm" onClick={handlePrint}>
                 <Printer className="w-4 h-4 mr-1" /> Imprimir
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setGeneratedPlan(null)}>
+              <Button size="sm" onClick={handleSavePlan} disabled={isSavingPlan || Boolean(savedPlanId)} className="bg-green-600 hover:bg-green-700 text-white">
+                {isSavingPlan ? <Loader2 className="w-4 h-4 mr-1 animate-spin" /> : <CheckCircle2 className="w-4 h-4 mr-1" />}
+                {savedPlanId ? "Guardado" : isSavingPlan ? "Guardando…" : "Guardar plan"}
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => { setGeneratedPlan(null); setSavedPlanId(null); }}>
                 Nueva Planificación
               </Button>
             </div>

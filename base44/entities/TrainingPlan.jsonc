@@ -1,0 +1,72 @@
+{
+  "name": "TrainingPlan",
+  "type": "object",
+  "properties": {
+    "titulo_sesion": {
+      "type": "string"
+    },
+    "deporte": {
+      "type": "string",
+      "enum": [
+        "Fútbol",
+        "Baloncesto"
+      ]
+    },
+    "duracion_total": {
+      "type": "number"
+    },
+    "enfoque": {
+      "type": "string"
+    },
+    "grupo_edad": {
+      "type": "string"
+    },
+    "numero_jugadores": {
+      "type": "number"
+    },
+    "objetivos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "materiales_necesarios": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "plan_json": {
+      "type": "string",
+      "description": "Plan completo generado por IA en JSON serializado"
+    },
+    "notas": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "Planificado",
+        "Realizado",
+        "Cancelado"
+      ],
+      "default": "Planificado"
+    },
+    "fecha_entrenamiento": {
+      "type": "string",
+      "format": "date"
+    },
+    "observaciones_post": {
+      "type": "string"
+    },
+    "created_by": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "titulo_sesion",
+    "deporte",
+    "duracion_total",
+    "plan_json"
+  ]
+}

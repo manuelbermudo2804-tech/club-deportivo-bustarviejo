@@ -51,6 +51,7 @@ export const PAGES = {
     "EmailTemplates": lazy(() => import('./pages/EmailTemplates')),
     "EventManagement": lazy(() => import('./pages/EventManagement')),
     "ExerciseLibrary": lazy(() => import('./pages/ExerciseLibrary')),
+    "TrainingPlanHistory": lazy(() => import('./pages/TrainingPlanHistory')),
     "FamilyChats": lazy(() => import('./pages/FamilyChats')),
     "FamilyChatsHub": lazy(() => import('./pages/FamilyChatsHub')),
     "FamilyGuide": lazy(() => import('./pages/FamilyGuide')),
