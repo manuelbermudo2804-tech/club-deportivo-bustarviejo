@@ -161,7 +161,7 @@ export default function TreasurerFinancialPanel() {
 
   const currentBudget = useMemo(() => {
     if (!activeSeason || budgets.length === 0) return null;
-    const normalizeSeason = (value) => String(value || "").replace(/[^\\d]/g, "");
+    const normalizeSeason = (value) => String(value || "").replace(/[^\d]/g, "");
     return budgets.find(b => normalizeSeason(b.temporada) === normalizeSeason(activeSeason.temporada)) || null;
   }, [activeSeason, budgets]);
 
