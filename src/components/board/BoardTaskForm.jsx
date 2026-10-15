@@ -24,6 +24,7 @@ const TYPES = [
 
 const initialData = (task) => ({
   tipo_registro: task?.tipo_registro || "tarea",
+  reunion_id: task?.reunion_id || "",
   titulo: task?.titulo || "",
   descripcion: task?.descripcion || "",
   area: task?.area || "",
@@ -59,7 +60,7 @@ function buildDraft(data) {
   return { kind, text: [intro, ...sentences].join("\n\n") };
 }
 
-export default function BoardTaskForm({ task, users = [], onSubmit, onCancel, isSubmitting }) {
+export default function BoardTaskForm({ task, users = [], meetings = [], onSubmit, onCancel, isSubmitting }) {
   const [data, setData] = React.useState(() => initialData(task));
   const [attemptedSubmit, setAttemptedSubmit] = React.useState(false);
   const [dictation, setDictation] = React.useState("");
@@ -155,6 +156,15 @@ export default function BoardTaskForm({ task, users = [], onSubmit, onCancel, is
         {dictation && <Textarea aria-label="Texto reconocido por voz" value={dictation} onChange={(event) => setDictation(event.target.value)} rows={3} placeholder="El texto reconocido aparecerá aquí; puedes corregirlo antes de incorporarlo." />}
         {voiceMessage && <p role="status" className="text-xs text-slate-600">{voiceMessage}</p>}
       </section>
+
+      <div className="grid gap-2">
+        <label className="text-sm font-semibold text-slate-800">Vincular a un acta (opcional)</label>
+        <Select value={data.reunion_id || "sin_acta"} onValueChange={(value) => update("reunion_id", value === "sin_acta" ? "" : value)}>
+          <SelectTrigger><SelectValue placeholder="Sin acta vinculada" /></SelectTrigger>
+          <SelectContent><SelectItem value="sin_acta">Sin acta vinculada</SelectItem>{meetings.map((meeting) => <SelectItem key={meeting.id} value={meeting.id}>{meeting.fecha_reunion} · {meeting.titulo}</SelectItem>)}</SelectContent>
+        </Select>
+        <p className="text-xs text-slate-500">Relaciona el compromiso con la reunión en la que se acordó.</p>
+      </div>
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-800" htmlFor="board-task-title">Título <span className="text-red-600">*</span></label>
