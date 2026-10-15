@@ -39,8 +39,31 @@ Deno.serve(async (req) => {
     const sum = (arr, sel) => (arr || []).reduce((acc, x) => acc + (Number(sel(x)) || 0), 0);
     const inRange = (d) => {
       if (!d) return true;
-      try { const dt = new Date(d); return dt >= seasonStart && dt <= seasonEnd; } catch { return true; }
+      try { const dt = new Date(d); return !Number.isNaN(dt.getTime()) && dt >= seasonStart && dt <= seasonEnd; } catch { return false; }
     };
+    const normalizeSeason = (value) => String(value || '').replace(/[^\\d]/g, '');
+    const normalizeText = (value) => String(value || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').trim().toLowerCase();
+    let seasonTransactions = [];
+    try {
+      const allTransactions = await base44.entities.FinancialTransaction.list('-fecha');
+      const seasonKey = normalizeSeason(seasonStr);
+      seasonTransactions = (allTransactions || []).filter(t => {
+        const txSeason = normalizeSeason(t.temporada);
+        return txSeason ? txSeason === seasonKey : inRange(t.fecha);
+      });
+    } catch (error) {
+      console.warn('No se pudieron cargar los movimientos financieros para el presupuesto:', error?.message || error);
+    }
+    const isSettledTransaction = (t) =>
+      t.estado === 'Pagado' ||
+      t.estado === 'Cobrado' ||
+      (t.automatico === true && t.estado !== 'Anulado') ||
+      (!t.estado && Boolean(t.fecha_pago));
+    const settledTransactions = seasonTransactions.filter(t => isSettledTransaction(t) && t.estado !== 'Anulado');
+    const sumTransactions = (categoria, tipo) => sum(
+      settledTransactions.filter(t => t.categoria === categoria && (!tipo || t.tipo === tipo)),
+      t => t.cantidad
+    );
 
     // 1) Inscripciones Jugadores
       // PRESUPUESTADO = suma de TODAS las cuotas creadas (cualquier estado) deduplicadas por jugador/mes/modo
@@ -89,26 +112,26 @@ Deno.serve(async (req) => {
       socios = (miembrosTemporada.length || 0) * precioSocio;
     } catch {}
 
-    // 3) Patrocinios -> Preferir FinancialTransaction.categoria==='Patrocinios'; fallback a Sponsor.precio_anual activos en rango
+    // 3) Patrocinios: usar movimientos cobrados si existen; mantener compatibilidad con temporadas antiguas sin asientos.
     let patrocinios = 0;
     try {
-      try {
-        const tx = await base44.entities.FinancialTransaction.filter({ categoria: 'Patrocinios', temporada: seasonStr });
-        patrocinios = sum(tx, t => t.importe || t.amount || 0);
-      } catch {
+      const sponsorshipTransactions = seasonTransactions.filter(t => t.categoria === 'Patrocinios' && t.tipo === 'Ingreso' && t.estado !== 'Anulado');
+      if (sponsorshipTransactions.length) {
+        patrocinios = sum(sponsorshipTransactions.filter(isSettledTransaction), t => t.cantidad);
+      } else {
         const sponsors = await base44.entities.Sponsor.filter({ activo: true });
         const inSeason = (s) => inRange(s.fecha_inicio) || inRange(s.fecha_fin);
         patrocinios = sum((sponsors || []).filter(inSeason), s => s.precio_anual || 0);
       }
     } catch {}
 
-    // 4) Lotería Navidad -> Preferir FinancialTransaction.categoria==='Lotería'; fallback a LotteryOrder pagados
+    // 4) Lotería Navidad: usar movimientos cobrados si existen; fallback a pedidos pagados.
     let loteria = 0;
     try {
-      try {
-        const tx = await base44.entities.FinancialTransaction.filter({ categoria: 'Lotería', temporada: seasonStr });
-        loteria = sum(tx, t => t.importe || t.amount || 0);
-      } catch {
+      const lotteryTransactions = seasonTransactions.filter(t => t.categoria === 'Lotería' && t.tipo === 'Ingreso' && t.estado !== 'Anulado');
+      if (lotteryTransactions.length) {
+        loteria = sum(lotteryTransactions.filter(isSettledTransaction), t => t.cantidad);
+      } else {
         const orders = await base44.entities.LotteryOrder.filter({ temporada: seasonStr, pagado: true });
         if (orders?.length) {
           const precioDecimo = Number(active?.precio_decimo_loteria) || 22;
@@ -158,6 +181,27 @@ Deno.serve(async (req) => {
     partidas = ensurePartida(partidas, 'Patrocinios', 'Ingresos', patrocinios);
     partidas = ensurePartida(partidas, 'Lotería Navidad', 'Ingresos', loteria);
     partidas = ensurePartida(partidas, 'Venta Equipación', 'Ingresos', equipacion);
+
+    // Actualizar el ejecutado de las demás partidas con movimientos cobrados/pagados.
+    // Las cinco partidas anteriores tienen una fuente específica para evitar duplicar cuotas/pedidos.
+    const partidasConFuentePropia = new Set([
+      'inscripciones jugadores', 'cuotas socios', 'patrocinios', 'lotería navidad', 'venta equipación'
+    ]);
+    partidas = (partidas || []).map(partida => {
+      if (partidasConFuentePropia.has(normalizeText(partida.nombre))) return partida;
+      const esIngreso = partida.categoria === 'Ingresos';
+      const movimientosPartida = settledTransactions.filter(t => {
+        if (t.tipo !== (esIngreso ? 'Ingreso' : 'Gasto')) return false;
+        if (t.partida_id) return t.partida_id === partida.id;
+        if (t.partida_nombre) return normalizeText(t.partida_nombre) === normalizeText(partida.nombre);
+        return normalizeText(t.categoria) === normalizeText(partida.nombre);
+      });
+      if (!movimientosPartida.length) return partida;
+      return {
+        ...partida,
+        ejecutado: sum(movimientosPartida, t => t.cantidad)
+      };
+    });
 
     await base44.asServiceRole.entities.Budget.update(budgetId, {
       partidas,
