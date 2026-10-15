@@ -5,7 +5,7 @@ import {
   FileSignature, Gift, Smartphone, Download, BarChart3, ShieldAlert,
   ClipboardCheck, Star, Trophy, KeyRound, RotateCw, CheckCircle2,
   User as UserIcon, Share2, ExternalLink, Shirt, Camera, HeartPulse, Landmark, MapPin, Brain,
-  CloudSun, Inbox, CalendarDays
+  CloudSun, Inbox, CalendarDays, ClipboardList
 } from "lucide-react";
 
 /**
@@ -46,6 +46,7 @@ export function buildAdminNavigation(ctx) {
     { title: "🖊️ Firmas y Reconocimientos", url: createPageUrl("FederationSignaturesAdmin"), icon: FileSignature, badge: pendingSignaturesAdmin > 0 ? pendingSignaturesAdmin : null, urgentBadge: pendingSignaturesAdmin > 0 },
     { title: "🏃 Entrenadores", url: createPageUrl("CoachProfiles"), icon: Users },
     { title: "👤 Usuarios", url: createPageUrl("UserManagement"), icon: Users },
+    { title: "🗂️ Tareas de la Junta", url: createPageUrl("BoardTasks"), icon: ClipboardList },
     { title: "🔑 Códigos de Acceso", url: createPageUrl("AdminAccessCodes"), icon: KeyRound, badge: pendingInvitations > 0 ? pendingInvitations : null },
 
     { title: "─ FINANZAS ─", section: true },
