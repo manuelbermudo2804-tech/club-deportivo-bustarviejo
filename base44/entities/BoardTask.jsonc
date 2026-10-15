@@ -82,6 +82,10 @@
       "format": "email",
       "description": "Asignaci\u00f3n directa a una persona (opcional)"
     },
+    "asignado_a_nombre": {
+      "type": "string",
+      "description": "Nombre visible de la persona responsable de la tarea"
+    },
     "creado_por_email": {
       "type": "string",
       "description": "Email del administrador que registr\u00f3 la tarea"
