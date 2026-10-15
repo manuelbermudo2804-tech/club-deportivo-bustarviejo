@@ -149,7 +149,7 @@ export default function TreasurerFinancialPanel() {
     queryKey: ['budgets'],
     queryFn: () => base44.entities.Budget.list('-created_date'),
     staleTime: 300000, // 5 minutos
-    enabled: activeTab === "presupuestos",
+    enabled: activeTab === "presupuestos" || activeTab === "transacciones" || activeTab === "analisis",
   });
 
   const { data: transactions = [] } = useQuery({
@@ -219,6 +219,17 @@ export default function TreasurerFinancialPanel() {
     return true; // si no hay fechas configuradas, no filtramos
   };
 
+  const recalculateCurrentBudget = async () => {
+    if (!currentBudget?.id) return;
+    try {
+      await base44.functions.invoke("updateBudgetExecuted", { budgetId: currentBudget.id });
+    } catch (error) {
+      // El movimiento ya se ha guardado; la actualización del ejecutado puede hacerse desde Presupuestos.
+      console.warn("No se pudo recalcular automáticamente el presupuesto:", error?.message || error);
+    }
+    await queryClient.invalidateQueries({ queryKey: ["budgets"] });
+  };
+
   const createBudgetMutation = useMutation({
     mutationFn: (data) => base44.entities.Budget.create(data),
     onSuccess: () => {
@@ -248,7 +259,7 @@ export default function TreasurerFinancialPanel() {
     mutationFn: (data) => base44.entities.FinancialTransaction.create(data),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      await queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      await recalculateCurrentBudget();
       setShowAddTransaction(false);
       toast.success("Movimiento financiero registrado");
     },
@@ -262,7 +273,7 @@ export default function TreasurerFinancialPanel() {
     mutationFn: (id) => base44.entities.FinancialTransaction.delete(id),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      await queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      await recalculateCurrentBudget();
       toast.success("Movimiento eliminado");
     },
     onError: () => toast.error("No se pudo eliminar el movimiento"),
