@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, FileText, Clover, Archive, BarChart3, FileSignature, Heart, Award, RotateCcw, MessageCircle, ShieldAlert, UserCircle, Gift, Mail, Trophy, Share2 } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, FileText, Clover, Archive, BarChart3, FileSignature, Heart, Award, RotateCcw, MessageCircle, ShieldAlert, UserCircle, Gift, Mail, Trophy, Share2, BrainCircuit } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 // DEFINICIÓN COMPLETA - organizado por secciones lógicas
@@ -22,6 +22,7 @@ export const ALL_ADMIN_BUTTONS = [
   // --- DEPORTIVO ---
   { id: "convocatorias", title: "🎓 Convocatorias", icon: Bell, url: createPageUrl("CoachCallups"), gradient: "from-yellow-600 to-yellow-700", priority: 12 },
   { id: "reportes", title: "📊 Reportes", icon: Star, url: createPageUrl("CoachEvaluationReports"), gradient: "from-purple-600 to-purple-700", priority: 13 },
+  { id: "inteligencia_deportiva", title: "🧠 Inteligencia deportiva", icon: BrainCircuit, url: createPageUrl("InteligenciaDeportiva"), gradient: "from-indigo-600 to-violet-700", priority: 13.5 },
   { id: "competicion", title: "🏆 Competición", icon: Trophy, url: createPageUrl("CentroCompeticion"), gradient: "from-orange-600 to-orange-700", priority: 14 },
 
   // --- CALENDARIO Y EVENTOS ---
@@ -71,6 +72,7 @@ export const DEFAULT_ADMIN_BUTTONS = [
   "firmas",
   "renovaciones",
   "convocatorias",
+  "inteligencia_deportiva",
   "calendario",
   "financiero",
   "anuncios"
