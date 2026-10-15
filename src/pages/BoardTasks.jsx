@@ -5,7 +5,7 @@ import { DragDropContext } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Filter, Clock3, AlertTriangle, CheckCircle2, ListTodo, ClipboardList } from "lucide-react";
+import { Plus, Filter, Clock3, AlertTriangle, CheckCircle2, ListTodo, ClipboardList, CalendarDays, Download, LayoutGrid, UserRound } from "lucide-react";
 import BoardTaskForm from "../components/board/BoardTaskForm";
 import BoardKanbanColumn from "../components/board/BoardKanbanColumn";
 import CompleteTaskDialog from "../components/board/CompleteTaskDialog";
@@ -28,6 +28,8 @@ export default function BoardTasks() {
   const [roleFilter, setRoleFilter] = React.useState("Todos");
   const [areaFilter, setAreaFilter] = React.useState("Todas");
   const [search, setSearch] = React.useState("");
+  const [taskView, setTaskView] = React.useState("tablero");
+  const [myTasksOnly, setMyTasksOnly] = React.useState(false);
   const [completeTask, setCompleteTask] = React.useState(null);
   const queryClient = useQueryClient();
 
@@ -78,14 +80,17 @@ export default function BoardTasks() {
     if (destination.droppableId === source.droppableId) return;
     const task = tasks.find(t => t.id === draggableId);
     if (!task) return;
-    updateMutation.mutate({ id: task.id, data: { estado: destination.droppableId } });
+    const timestamp = new Date().toISOString();
+    const activity = { tipo: "estado", autor_email: user?.email || "", autor_nombre: user?.full_name || "", detalle: `Estado cambiado de ${task.estado} a ${destination.droppableId}`, fecha: timestamp };
+    updateMutation.mutate({ id: task.id, data: { estado: destination.droppableId, historial: [...(task.historial || []), activity] } });
   };
 
   const filtered = tasks.filter(t => {
     const matchesRole = roleFilter === "Todos" || t.rol_asignado === roleFilter;
     const matchesArea = areaFilter === "Todas" || t.area === areaFilter;
     const matchesSearch = !search || (t.titulo?.toLowerCase().includes(search.toLowerCase()) || t.descripcion?.toLowerCase().includes(search.toLowerCase()));
-    return matchesRole && matchesArea && matchesSearch;
+    const matchesMine = !myTasksOnly || t.asignado_a_email === user?.email || (t.rol_asignado && t.rol_asignado === user?.cargo_junta);
+    return matchesRole && matchesArea && matchesSearch && matchesMine;
   });
 
   const columns = {
