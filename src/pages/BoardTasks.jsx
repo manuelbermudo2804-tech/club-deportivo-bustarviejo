@@ -104,7 +104,7 @@ export default function BoardTasks() {
   });
 
   const handleSubmit = (payload) => {
-    if (!canAccess) return;
+    if (!canManageTasks) return;
     if (editing) {
       updateMutation.mutate({ id: editing.id, data: payload });
     } else {
