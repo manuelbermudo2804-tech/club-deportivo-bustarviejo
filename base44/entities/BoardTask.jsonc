@@ -166,8 +166,16 @@
   "rls": {
     "create": {
       "$or": [
-        { "user_condition": { "role": "admin" } },
-        { "user_condition": { "es_junta": true } }
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_junta": true
+          }
+        }
       ]
     },
     "read": {
@@ -179,7 +187,7 @@
         },
         {
           "user_condition": {
-            "es_junta": true
+            "data.es_junta": true
           }
         }
       ]
@@ -193,7 +201,7 @@
         },
         {
           "user_condition": {
-            "es_junta": true
+            "data.es_junta": true
           }
         }
       ]
