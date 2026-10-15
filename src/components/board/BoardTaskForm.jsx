@@ -33,6 +33,7 @@ const initialData = (task, defaultMeetingId = "") => ({
   fecha_limite: task?.fecha_limite || "",
   rol_asignado: task?.rol_asignado || "",
   asignado_a_email: task?.asignado_a_email || "",
+  asignado_a_nombre: task?.asignado_a_nombre || "",
   ...task
 });
 
@@ -43,8 +44,8 @@ function buildDraft(data) {
   const sentences = [];
   if (title) sentences.push(title.endsWith(".") ? title : title + ".");
   if (details) sentences.push(details.endsWith(".") ? details : details + ".");
-  const responsibility = data.rol_asignado || "";
-  if (responsibility) sentences.push("Área responsable: " + (data.area || "por determinar") + ". Responsable: " + responsibility + ".");
+  const responsibility = data.asignado_a_nombre || "";
+  if (responsibility) sentences.push("Área responsable: " + (data.area || "por determinar") + ". Persona responsable: " + responsibility + ".");
   else if (data.area) sentences.push("Área responsable: " + data.area + ".");
   if (data.fecha_limite) {
     const date = new Date(data.fecha_limite + "T12:00:00");
@@ -269,24 +270,23 @@ export default function BoardTaskForm({ task, users = [], meetings = [], default
         </div>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="grid content-start gap-2">
-          <label className="text-sm font-medium text-slate-800">Rol responsable</label>
-          <Select value={data.rol_asignado || "sin_rol"} onValueChange={(value) => update("rol_asignado", value === "sin_rol" ? "" : value)}>
-            <SelectTrigger><SelectValue placeholder="Selecciona rol" /></SelectTrigger>
-            <SelectContent><SelectItem value="sin_rol">Sin rol asignado</SelectItem>{ROLES.map((role) => <SelectItem key={role} value={role}>{role}</SelectItem>)}</SelectContent>
-          </Select>
-        </div>
-        <div className="grid content-start gap-2">
-          <label className="text-sm font-medium text-slate-800">Persona responsable</label>
-          <Select value={data.asignado_a_email || "sin_asignar"} onValueChange={(value) => update("asignado_a_email", value === "sin_asignar" ? "" : value)}>
-            <SelectTrigger><SelectValue placeholder="Sin responsable asignado" /></SelectTrigger>
-            <SelectContent><SelectItem value="sin_asignar">Sin responsable asignado</SelectItem>{users.map((person) => (
-              <SelectItem key={person.id} value={person.email}>{person.full_name || person.nombre || person.email} · {person.cargo_junta || "Junta"}</SelectItem>
-            ))}</SelectContent>
-          </Select>
-          <p className="text-xs text-slate-500">Solo aparecen miembros activos autorizados para el espacio de Junta.</p>
-        </div>
+      <div className="grid gap-2">
+        <label className="text-sm font-medium text-slate-800">Persona responsable</label>
+        <Select value={data.asignado_a_email || "sin_asignar"} onValueChange={(value) => {
+          const person = users.find((member) => member.email === value);
+          setData((current) => ({
+            ...current,
+            asignado_a_email: value === "sin_asignar" ? "" : value,
+            asignado_a_nombre: value === "sin_asignar" ? "" : (person?.full_name || person?.nombre || person?.email || ""),
+            rol_asignado: ""
+          }));
+        }}>
+          <SelectTrigger><SelectValue placeholder="Selecciona una persona" /></SelectTrigger>
+          <SelectContent><SelectItem value="sin_asignar">Sin responsable asignado</SelectItem>{users.map((person) => (
+            <SelectItem key={person.id} value={person.email}>{person.full_name || person.nombre || person.email}</SelectItem>
+          ))}</SelectContent>
+        </Select>
+        <p className="text-xs text-slate-500">Selecciona directamente a la persona de la Junta que se encargará de esta tarea.</p>
       </div>
 
       <section className="rounded-2xl border border-orange-200 bg-orange-50/70 p-4 sm:p-5" aria-live="polite">
