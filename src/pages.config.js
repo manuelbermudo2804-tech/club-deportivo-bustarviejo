@@ -35,6 +35,7 @@ export const PAGES = {
     "CoachChatsHub": lazy(() => import('./pages/CoachChatsHub')),
     "CoachDashboard": lazy(() => import('./pages/CoachDashboard')),
     "CoachEvaluationReports": lazy(() => import('./pages/CoachEvaluationReports')),
+    "InteligenciaDeportiva": lazy(() => import('./pages/InteligenciaDeportiva')),
     "CoachParentChat": lazy(() => import('./pages/CoachParentChat')),
     "CoachProfile": lazy(() => import('./pages/CoachProfile')),
     "CoachProfiles": lazy(() => import('./pages/CoachProfiles')),
