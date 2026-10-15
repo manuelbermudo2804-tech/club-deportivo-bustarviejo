@@ -41,8 +41,8 @@ Deno.serve(async (req) => {
       if (!d) return true;
       try { const dt = new Date(d); return !Number.isNaN(dt.getTime()) && dt >= seasonStart && dt <= seasonEnd; } catch { return false; }
     };
-    const normalizeSeason = (value) => String(value || '').replace(/[^\\d]/g, '');
-    const normalizeText = (value) => String(value || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').trim().toLowerCase();
+    const normalizeSeason = (value) => String(value || '').replace(/[^\d]/g, '');
+    const normalizeText = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
     let seasonTransactions = [];
     try {
       const allTransactions = await base44.entities.FinancialTransaction.list('-fecha');
@@ -60,10 +60,6 @@ Deno.serve(async (req) => {
       (t.automatico === true && t.estado !== 'Anulado') ||
       (!t.estado && Boolean(t.fecha_pago));
     const settledTransactions = seasonTransactions.filter(t => isSettledTransaction(t) && t.estado !== 'Anulado');
-    const sumTransactions = (categoria, tipo) => sum(
-      settledTransactions.filter(t => t.categoria === categoria && (!tipo || t.tipo === tipo)),
-      t => t.cantidad
-    );
 
     // 1) Inscripciones Jugadores
       // PRESUPUESTADO = suma de TODAS las cuotas creadas (cualquier estado) deduplicadas por jugador/mes/modo
