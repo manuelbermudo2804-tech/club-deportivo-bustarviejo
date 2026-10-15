@@ -71,6 +71,7 @@ const AltaSocio = lazy(() => import('@/pages/AltaSocio'));
 const GrowthMap = lazy(() => import('@/pages/GrowthMap'));
 const ClubIA = lazy(() => import('@/pages/ClubIA'));
 const RiesgoAbandono = lazy(() => import('@/pages/RiesgoAbandono'));
+const InteligenciaDeportiva = lazy(() => import('@/pages/InteligenciaDeportiva'));
 const TorneosAdmin = lazy(() => import('@/pages/TorneosAdmin'));
 const TorneoManager = lazy(() => import('@/pages/TorneoManager'));
 const MeteoClub = lazy(() => import('@/pages/MeteoClub'));
@@ -287,6 +288,7 @@ const AuthenticatedApp = () => {
       <Route path="/GrowthMap" element={<LayoutWrapper currentPageName="GrowthMap"><GrowthMap /></LayoutWrapper>} />
       <Route path="/ClubIA" element={<LayoutWrapper currentPageName="ClubIA"><ClubIA /></LayoutWrapper>} />
       <Route path="/RiesgoAbandono" element={<LayoutWrapper currentPageName="RiesgoAbandono"><RiesgoAbandono /></LayoutWrapper>} />
+      <Route path="/InteligenciaDeportiva" element={<LayoutWrapper currentPageName="InteligenciaDeportiva"><InteligenciaDeportiva /></LayoutWrapper>} />
       <Route path="/TorneosAdmin" element={<LayoutWrapper currentPageName="TorneosAdmin"><TorneosAdmin /></LayoutWrapper>} />
       <Route path="/TorneoManager" element={<LayoutWrapper currentPageName="TorneoManager"><TorneoManager /></LayoutWrapper>} />
       <Route path="/MeteoClub" element={<LayoutWrapper currentPageName="MeteoClub"><MeteoClub /></LayoutWrapper>} />
