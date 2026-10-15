@@ -310,6 +310,16 @@
       "default": false,
       "description": "Excepci\u00f3n del club: si TRUE, la familia puede renovar aunque tenga cuotas pendientes de temporadas anteriores."
     },
+    "bloqueo_primer_pago": {
+      "type": "boolean",
+      "default": false,
+      "description": "Autom\u00e1tico: plaza pendiente de la primera cuota (categor\u00eda que la exige). Se quita sola al pagarse."
+    },
+    "exento_primer_pago": {
+      "type": "boolean",
+      "default": false,
+      "description": "Excepci\u00f3n del club: no se le exige el primer pago para confirmar plaza (beca, plan especial...)."
+    },
     "ajuste_cuota": {
       "type": "object",
       "properties": {

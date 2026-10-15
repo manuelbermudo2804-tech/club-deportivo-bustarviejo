@@ -29,6 +29,16 @@
       "default": true,
       "description": "Interruptor manual del club: si es FALSE, no se aceptan nuevas inscripciones en esta categor\u00eda aunque queden plazas."
     },
+    "exigir_primer_pago": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si TRUE, al inscribirse o renovar la plaza queda pendiente (fuera de convocatorias) hasta que se paga la primera cuota (o el pago \u00fanico completo)."
+    },
+    "primer_pago_solo_tarjeta": {
+      "type": "boolean",
+      "default": false,
+      "description": "Si TRUE (y se exige primer pago), esa primera cuota solo se puede pagar con tarjeta."
+    },
     "es_actividad_complementaria": {
       "type": "boolean",
       "default": false,

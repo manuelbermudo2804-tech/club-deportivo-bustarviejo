@@ -1172,6 +1172,7 @@ export default function ParentPayments() {
         onClose={() => setPayModalOpen(false)}
         player={payModalContext.player}
         payment={payModalContext.payment}
+        soloTarjeta={!!payModalContext.player?.bloqueo_primer_pago && payModalContext.payment?.mes === 'Junio' && !!categoryConfigs.find((c) => c.nombre === payModalContext.player?.deporte)?.primer_pago_solo_tarjeta}
         onPaySubscription={async () => {
           const { player, payment } = payModalContext;
           if (!player || !payment) return;

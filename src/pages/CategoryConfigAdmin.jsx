@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock, Loader2, Smartphone, Dumbbell, Activity, CreditCard } from "lucide-react";
 import { toast } from "sonner";
 import PlazasCategoriaPanel from "@/components/categories/PlazasCategoriaPanel";
+import PrimerPagoCell from "@/components/categories/PrimerPagoCell";
 
 // 9 categorías BASE que NUNCA pueden ser eliminadas
 const BASE_CATEGORIES = [
@@ -415,6 +416,7 @@ export default function CategoryConfigAdmin() {
                   <th className="px-2 py-2 text-center font-bold text-slate-900">Tipo</th>
                   <th className="px-2 py-2 text-center font-bold text-slate-900">Extra</th>
                   <th className="px-2 py-2 text-center font-bold text-slate-900">Liga</th>
+                  <th className="px-2 py-2 text-center font-bold text-slate-900" title="Exigir pagar la primera cuota para confirmar la plaza">Pago inscr.</th>
                   <th className="px-2 py-2 text-center font-bold text-slate-900">Prep.Fís.</th>
                   <th className="px-2 py-2 text-center font-bold text-slate-900">📲</th>
                   <th className="px-2 py-2 text-right font-bold text-slate-900">Inscr.</th>
@@ -458,6 +460,9 @@ export default function CategoryConfigAdmin() {
                           {cat.compite_en_liga ? '⚽ Sí' : 'No'}
                         </button>
                       )}
+                    </td>
+                    <td className="px-2 py-3 text-center">
+                      <PrimerPagoCell cat={cat} onUpdate={(data) => updateCategoryMutation.mutate({ id: cat.id, data })} />
                     </td>
                     <td className="px-2 py-3 text-center">
                       <button
@@ -532,7 +537,8 @@ export default function CategoryConfigAdmin() {
                     <th className="px-2 py-2 text-center font-bold text-slate-900">Tipo</th>
                     <th className="px-2 py-2 text-center font-bold text-slate-900">Extra</th>
                     <th className="px-2 py-2 text-center font-bold text-slate-900">Liga</th>
-                    <th className="px-2 py-2 text-center font-bold text-slate-900">Prep.Fís.</th>
+                    <th className="px-2 py-2 text-center font-bold text-slate-900" title="Exigir pagar la primera cuota para confirmar la plaza">Pago inscr.</th>
+                  <th className="px-2 py-2 text-center font-bold text-slate-900">Prep.Fís.</th>
                     <th className="px-2 py-2 text-center font-bold text-slate-900">📲</th>
                     <th className="px-2 py-2 text-right font-bold text-slate-900">Inscr.</th>
                     <th className="px-2 py-2 text-right font-bold text-slate-900">2ª</th>
@@ -576,6 +582,9 @@ export default function CategoryConfigAdmin() {
                             {cat.compite_en_liga ? '⚽ Sí' : 'No'}
                           </button>
                         )}
+                      </td>
+                      <td className="px-2 py-3 text-center">
+                        <PrimerPagoCell cat={cat} onUpdate={(data) => updateCategoryMutation.mutate({ id: cat.id, data })} />
                       </td>
                       <td className="px-2 py-3 text-center">
                         <button

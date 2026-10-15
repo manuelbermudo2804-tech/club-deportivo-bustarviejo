@@ -1,0 +1,35 @@
+{
+  "description": "Al crearse la primera cuota de una categor\u00eda que exige pago, deja la plaza pendiente (fuera de convocatorias); al pagarse, la libera.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update"
+      ],
+      "entity_name": "Payment"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "primer_pago_confirmar_plaza",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "primerPagoControl",
+            "args": {}
+          },
+          "then": "end"
+        }
+      }
+    ]
+  },
+  "name": "Primer pago para confirmar plaza"
+}

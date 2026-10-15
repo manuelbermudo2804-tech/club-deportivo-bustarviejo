@@ -487,6 +487,19 @@ export default function InscriptionPaymentFlow({
         </div>
         )}
 
+        {categoryConfigs.some((c) => c.nombre === playerData.deporte && c.exigir_primer_pago) ? (
+        <Alert className="bg-red-50 border-2 border-red-400">
+          <Info className="h-4 w-4 text-red-600" />
+          <AlertDescription className="text-red-900">
+            <p className="font-bold text-sm mb-1">🔒 La plaza se confirma al pagar</p>
+            <p className="text-xs leading-relaxed">
+              En esta categoría, la plaza queda <strong>pendiente</strong> (sin poder ser convocado) hasta que se pague
+              {tipoPago === "Único" ? " el pago único" : " la primera cuota"}
+              {categoryConfigs.some((c) => c.nombre === playerData.deporte && c.primer_pago_solo_tarjeta) ? " con tarjeta" : ""} desde <strong>"Mis Pagos"</strong>.
+            </p>
+          </AlertDescription>
+        </Alert>
+        ) : (
         <Alert className="bg-amber-50 border-2 border-amber-400">
           <Info className="h-4 w-4 text-amber-600" />
           <AlertDescription className="text-amber-900">
@@ -497,6 +510,7 @@ export default function InscriptionPaymentFlow({
             </p>
           </AlertDescription>
         </Alert>
+        )}
 
         <Button
           onClick={handleContinue}

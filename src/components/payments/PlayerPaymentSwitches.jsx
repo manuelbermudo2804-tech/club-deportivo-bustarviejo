@@ -13,6 +13,7 @@ export default function PlayerPaymentSwitches({ player, onUpdated }) {
   const [aviso, setAviso] = useState(player.aviso_impago_activo === true);
   const [bloqueo, setBloqueo] = useState(player.bloqueo_convocatoria_activo === true);
   const [exento, setExento] = useState(player.exento_bloqueo_impago === true);
+  const [exentoPrimer, setExentoPrimer] = useState(player.exento_primer_pago === true);
   const [saving, setSaving] = useState(false);
 
   const save = async (data, apply) => {
@@ -72,6 +73,22 @@ export default function PlayerPaymentSwitches({ player, onUpdated }) {
           disabled={saving}
           checked={exento}
           onCheckedChange={(v) => save({ exento_bloqueo_impago: v }, () => setExento(v))}
+        />
+      </div>
+
+      <div className="flex items-center justify-between gap-3">
+        <span className="flex items-center gap-2 text-xs font-medium text-green-800">
+          <Unlock className="w-4 h-4 text-green-600" />
+          No exigir el primer pago para confirmar plaza (beca, plan especial…)
+        </span>
+        <Switch
+          disabled={saving}
+          checked={exentoPrimer}
+          onCheckedChange={(v) => {
+            const data = { exento_primer_pago: v };
+            if (v && player.bloqueo_primer_pago) Object.assign(data, { bloqueo_primer_pago: false, bloqueo_convocatoria_activo: false });
+            save(data, () => { setExentoPrimer(v); if (data.bloqueo_convocatoria_activo === false) setBloqueo(false); });
+          }}
         />
       </div>
     </div>

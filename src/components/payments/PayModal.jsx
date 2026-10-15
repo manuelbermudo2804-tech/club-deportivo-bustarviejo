@@ -9,12 +9,13 @@ import { useActiveSeason } from "@/components/season/SeasonProvider";
 const DEFAULT_CLUB_IBAN = "ES0500496802102110011001";
 const DEFAULT_CLUB_BANK = "Banco Santander";
 
-export default function PayModal({ open, onClose, player, payment, onPayCard, onPaySubscription, onChooseTransfer, onUploadTransfer }) {
+export default function PayModal({ open, onClose, player, payment, soloTarjeta = false, onPayCard, onPaySubscription, onChooseTransfer, onUploadTransfer }) {
   const [openingStripe, setOpeningStripe] = useState(false);
   const [file, setFile] = useState(null);
   const { seasonConfig } = useActiveSeason();
   if (!payment || !player) return null;
   const isPlanMensual = payment.tipo_pago === "Plan Mensual";
+  const sinTransferencia = isPlanMensual || soloTarjeta;
   const clubIban = (seasonConfig?.club_iban?.trim() || DEFAULT_CLUB_IBAN).replace(/\s+/g, '');
   const clubBank = seasonConfig?.club_bank?.trim() || DEFAULT_CLUB_BANK;
   return (
@@ -44,9 +45,12 @@ export default function PayModal({ open, onClose, player, payment, onPayCard, on
             </div>
           )}
           <Tabs defaultValue="card" className="w-full">
-            <TabsList className={`grid w-full sticky top-0 bg-white ${isPlanMensual ? 'grid-cols-1' : 'grid-cols-2'}`}>
+            {soloTarjeta && !isPlanMensual && (
+              <p className="mb-2 text-xs text-blue-800 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">💳 Para confirmar la plaza, esta primera cuota se paga con tarjeta.</p>
+            )}
+            <TabsList className={`grid w-full sticky top-0 bg-white ${sinTransferencia ? 'grid-cols-1' : 'grid-cols-2'}`}>
               <TabsTrigger value="card" className="flex items-center gap-2"><CreditCard className="w-4 h-4"/>{isPlanMensual ? 'Activar con Tarjeta' : 'Tarjeta'}</TabsTrigger>
-              {!isPlanMensual && <TabsTrigger value="transfer" className="flex items-center gap-2"><Banknote className="w-4 h-4"/>Transferencia</TabsTrigger>}
+              {!sinTransferencia && <TabsTrigger value="transfer" className="flex items-center gap-2"><Banknote className="w-4 h-4"/>Transferencia</TabsTrigger>}
             </TabsList>
 
             <TabsContent value="card" className="mt-4">
