@@ -142,8 +142,8 @@ export default function BoardTasks() {
   const exportReport = () => {
     const headers = ["Tipo", "Título", "Descripción", "Estado", "Prioridad", "Área", "Rol responsable", "Email responsable", "Fecha límite", "Último avance"];
     const rows = filtered.map((task) => [task.tipo_registro || "tarea", task.titulo, task.descripcion, task.estado, task.prioridad, task.area, task.rol_asignado, task.asignado_a_email, task.fecha_limite, task.comentarios?.[task.comentarios.length - 1]?.mensaje || ""]);
-    const clean = (value) => String(value ?? "").replace(/;/g, ",").replace(/\\r?\\n/g, " ");
-    const csv = "\\uFEFF" + [headers, ...rows].map((row) => row.map(clean).join(";")).join("\\r\\n");
+    const clean = (value) => String(value ?? "").replace(/;/g, ",").replace(/\r?\n/g, " ");
+    const csv = "\uFEFF" + [headers, ...rows].map((row) => row.map(clean).join(";")).join("\r\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
     const link = document.createElement("a");
     link.href = url;
