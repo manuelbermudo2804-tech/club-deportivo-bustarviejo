@@ -22,9 +22,9 @@ const TYPES = [
   { value: "seguimiento", label: "Seguimiento", help: "Una cuestión pendiente de revisar o comprobar." }
 ];
 
-const initialData = (task) => ({
+const initialData = (task, defaultMeetingId = "") => ({
   tipo_registro: task?.tipo_registro || "tarea",
-  reunion_id: task?.reunion_id || "",
+  reunion_id: task?.reunion_id || defaultMeetingId || "",
   titulo: task?.titulo || "",
   descripcion: task?.descripcion || "",
   area: task?.area || "",
@@ -60,8 +60,8 @@ function buildDraft(data) {
   return { kind, text: [intro, ...sentences].join("\n\n") };
 }
 
-export default function BoardTaskForm({ task, users = [], meetings = [], onSubmit, onCancel, isSubmitting }) {
-  const [data, setData] = React.useState(() => initialData(task));
+export default function BoardTaskForm({ task, users = [], meetings = [], defaultMeetingId = "", onSubmit, onCancel, isSubmitting }) {
+  const [data, setData] = React.useState(() => initialData(task, defaultMeetingId));
   const [attemptedSubmit, setAttemptedSubmit] = React.useState(false);
   const [dictation, setDictation] = React.useState("");
   const [isListening, setIsListening] = React.useState(false);
