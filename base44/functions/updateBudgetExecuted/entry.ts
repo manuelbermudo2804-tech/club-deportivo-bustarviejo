@@ -116,8 +116,9 @@ Deno.serve(async (req) => {
     let patrocinios = 0;
     try {
       const sponsorshipTransactions = seasonTransactions.filter(t => t.categoria === 'Patrocinios' && t.tipo === 'Ingreso' && t.estado !== 'Anulado');
-      if (sponsorshipTransactions.length) {
-        patrocinios = sum(sponsorshipTransactions.filter(isSettledTransaction), t => t.cantidad);
+      const settledSponsorshipTransactions = sponsorshipTransactions.filter(isSettledTransaction);
+      if (settledSponsorshipTransactions.length) {
+        patrocinios = sum(settledSponsorshipTransactions, t => t.cantidad);
       } else {
         const sponsors = await base44.entities.Sponsor.filter({ activo: true });
         const inSeason = (s) => inRange(s.fecha_inicio) || inRange(s.fecha_fin);
@@ -129,8 +130,9 @@ Deno.serve(async (req) => {
     let loteria = 0;
     try {
       const lotteryTransactions = seasonTransactions.filter(t => t.categoria === 'Lotería' && t.tipo === 'Ingreso' && t.estado !== 'Anulado');
-      if (lotteryTransactions.length) {
-        loteria = sum(lotteryTransactions.filter(isSettledTransaction), t => t.cantidad);
+      const settledLotteryTransactions = lotteryTransactions.filter(isSettledTransaction);
+      if (settledLotteryTransactions.length) {
+        loteria = sum(settledLotteryTransactions, t => t.cantidad);
       } else {
         const orders = await base44.entities.LotteryOrder.filter({ temporada: seasonStr, pagado: true });
         if (orders?.length) {
