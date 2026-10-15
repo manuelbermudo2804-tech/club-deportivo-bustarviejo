@@ -5,7 +5,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FileText, WandSparkles, CheckCircle2, Mic, MicOff } from "lucide-react";
 
-const ROLES = ["Presidente", "Vicepresidente", "Secretaría", "Tesorero", "Vocal1", "Vocal2", "Vocal3"];
 const AREAS = [
   "Presidencia",
   "Vicepresidencia",
