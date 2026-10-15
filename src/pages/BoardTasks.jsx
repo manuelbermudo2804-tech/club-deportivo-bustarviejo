@@ -223,10 +223,34 @@ export default function BoardTasks() {
         </div>
       </section>
 
+      <section className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant={taskView === "tablero" ? "default" : "outline"} onClick={() => setTaskView("tablero")} className={taskView === "tablero" ? "bg-slate-900" : ""}><LayoutGrid className="mr-2 h-4 w-4" /> Tablero</Button>
+          <Button type="button" variant={taskView === "calendario" ? "default" : "outline"} onClick={() => setTaskView("calendario")} className={taskView === "calendario" ? "bg-slate-900" : ""}><CalendarDays className="mr-2 h-4 w-4" /> Por fecha</Button>
+          <Button type="button" variant={myTasksOnly ? "default" : "outline"} onClick={() => setMyTasksOnly((value) => !value)} className={myTasksOnly ? "bg-orange-600 hover:bg-orange-700" : ""}><UserRound className="mr-2 h-4 w-4" /> {myTasksOnly ? "Mis tareas" : "Ver mis tareas"}</Button>
+        </div>
+        <Button type="button" variant="outline" onClick={exportReport} className="min-h-10"><Download className="mr-2 h-4 w-4" /> Exportar informe CSV</Button>
+      </section>
+
       {isError ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">No se han podido cargar las tareas. Comprueba que el usuario tiene permiso de Junta o administrador y vuelve a intentarlo.</div>
       ) : isLoading ? (
         <div className="text-center py-12"><div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div></div>
+      ) : taskView === "calendario" ? (
+        <section className="space-y-3">
+          {filtered.slice().sort((a, b) => (a.fecha_limite || "9999-12-31").localeCompare(b.fecha_limite || "9999-12-31")).map((task) => (
+            <article key={task.id} className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-700">{task.fecha_limite || "Sin fecha límite"}</span><span className="text-xs text-slate-500">{task.estado === "en_progreso" ? "En progreso" : task.estado === "hecho" ? "Hecho" : task.estado === "bloqueado" ? "Bloqueado" : "Pendiente"}</span>{task.tipo_registro && task.tipo_registro !== "tarea" && <span className="text-xs text-orange-700">{task.tipo_registro}</span>}</div>
+                <h3 className="mt-2 font-semibold text-slate-900">{task.titulo}</h3>
+                {task.descripcion && <p className="mt-1 text-sm text-slate-600">{task.descripcion}</p>}
+                <p className="mt-2 text-xs text-slate-500">Responsable: {task.asignado_a_email || task.rol_asignado || "Sin asignar"}</p>
+              </div>
+              {canManageTasks && <Button type="button" variant="outline" onClick={() => { setEditing(task); setShowForm(true); }}><ClipboardList className="mr-2 h-4 w-4" /> Editar</Button>}
+            </article>
+          ))}
+          {filtered.length === 0 && <div className="rounded-xl border border-dashed p-8 text-center text-sm text-slate-500">No hay tareas que coincidan con los filtros.</div>}
+        </section>
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
