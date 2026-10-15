@@ -55,6 +55,10 @@
       "default": "pendiente",
       "description": "Estado Kanban"
     },
+    "reunion_id": {
+      "type": "string",
+      "description": "Acta de Junta de origen, si corresponde"
+    },
     "fecha_limite": {
       "type": "string",
       "format": "date",
