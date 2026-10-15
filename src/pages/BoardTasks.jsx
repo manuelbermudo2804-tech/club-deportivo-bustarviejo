@@ -110,11 +110,26 @@ export default function BoardTasks() {
 
   const handleSubmit = (payload) => {
     if (!canManageTasks) return;
+    const timestamp = new Date().toISOString();
+    const activity = { tipo: editing ? "edicion" : "creacion", autor_email: user?.email || "", autor_nombre: user?.full_name || "", detalle: editing ? "Registro actualizado por administración" : "Registro creado", fecha: timestamp };
     if (editing) {
-      updateMutation.mutate({ id: editing.id, data: payload });
+      updateMutation.mutate({ id: editing.id, data: { ...payload, historial: [...(editing.historial || []), activity] } });
     } else {
-      createMutation.mutate({ ...payload });
+      createMutation.mutate({ ...payload, creado_por_email: user?.email || "", creado_por_nombre: user?.full_name || "", historial: [activity] });
     }
+  };
+
+  const exportReport = () => {
+    const headers = ["Tipo", "Título", "Descripción", "Estado", "Prioridad", "Área", "Rol responsable", "Email responsable", "Fecha límite", "Último avance"];
+    const rows = filtered.map((task) => [task.tipo_registro || "tarea", task.titulo, task.descripcion, task.estado, task.prioridad, task.area, task.rol_asignado, task.asignado_a_email, task.fecha_limite, task.comentarios?.[task.comentarios.length - 1]?.mensaje || ""]);
+    const clean = (value) => String(value ?? "").replace(/;/g, ",").replace(/\\r?\\n/g, " ");
+    const csv = "\\uFEFF" + [headers, ...rows].map((row) => row.map(clean).join(";")).join("\\r\\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8;" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `seguimiento-junta-${today}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   if (user && !canAccess) {
