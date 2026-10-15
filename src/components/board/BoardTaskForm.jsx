@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FileText, WandSparkles, CheckCircle2 } from "lucide-react";
+import { FileText, WandSparkles, CheckCircle2, Mic, MicOff } from "lucide-react";
 
 const ROLES = ["Presidente", "Vicepresidente", "Secretaría", "Tesorero", "Vocal1", "Vocal2", "Vocal3"];
 const AREAS = [
@@ -62,10 +62,54 @@ function buildDraft(data) {
 export default function BoardTaskForm({ task, users = [], onSubmit, onCancel, isSubmitting }) {
   const [data, setData] = React.useState(() => initialData(task));
   const [attemptedSubmit, setAttemptedSubmit] = React.useState(false);
+  const [dictation, setDictation] = React.useState("");
+  const [isListening, setIsListening] = React.useState(false);
+  const [voiceMessage, setVoiceMessage] = React.useState("");
+  const recognitionRef = React.useRef(null);
   const draft = React.useMemo(() => buildDraft(data), [data]);
   const titleMissing = attemptedSubmit && !data.titulo.trim();
 
   const update = (field, value) => setData((current) => ({ ...current, [field]: value }));
+
+  const startDictation = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setVoiceMessage("Este navegador no admite dictado por voz. Puedes usar el dictado del teclado o escribir el texto.");
+      return;
+    }
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = "es-ES";
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      recognition.onstart = () => { setIsListening(true); setVoiceMessage("Te escucho… habla con naturalidad."); };
+      recognition.onresult = (event) => {
+        const transcript = Array.from(event.results || []).map((result) => result[0]?.transcript || "").join(" ").trim();
+        if (transcript) setDictation((current) => current ? current + " " + transcript : transcript);
+        setVoiceMessage(transcript ? "Dictado recibido. Revísalo antes de incorporarlo." : "No se ha reconocido texto. Prueba otra vez.");
+      };
+      recognition.onerror = (event) => setVoiceMessage(event.error === "not-allowed" ? "No hay permiso para usar el micrófono. Revisa los permisos del navegador." : "No se ha podido completar el dictado. Puedes intentarlo de nuevo.");
+      recognition.onend = () => setIsListening(false);
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch {
+      setIsListening(false);
+      setVoiceMessage("No se ha podido iniciar el micrófono. Comprueba los permisos del navegador.");
+    }
+  };
+
+  const applyDictation = () => {
+    const text = dictation.trim();
+    if (!text) return;
+    setData((current) => ({
+      ...current,
+      titulo: current.titulo.trim() ? current.titulo : text.split(/[.!?\\n]/)[0].trim().slice(0, 120),
+      descripcion: current.descripcion.trim() ? current.descripcion.trim() + "\\n\\n" + text : text
+    }));
+    setVoiceMessage("Texto incorporado. Comprueba el título, el responsable y la fecha antes de guardar.");
+  };
+
+  React.useEffect(() => () => { recognitionRef.current?.abort?.(); }, []);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -92,6 +136,25 @@ export default function BoardTaskForm({ task, users = [], onSubmit, onCancel, is
         </Select>
         <p className="text-xs text-slate-500">{TYPES.find((type) => type.value === data.tipo_registro)?.help}</p>
       </div>
+
+      <section className="grid gap-3 rounded-xl border border-sky-200 bg-sky-50/70 p-4">
+        <div className="flex items-start gap-3">
+          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-sky-700"><Mic className="h-5 w-5" /></div>
+          <div className="flex-1">
+            <h3 className="text-sm font-semibold text-slate-900">Dictar tarea por voz</h3>
+            <p className="mt-1 text-xs leading-relaxed text-slate-600">Cuenta qué hay que hacer. El dictado solo convierte voz en texto; no usa IA ni asigna automáticamente fechas o responsables. Revisa los datos antes de guardar.</p>
+          </div>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" variant={isListening ? "destructive" : "outline"} onClick={startDictation} disabled={isListening} className="min-h-10 bg-white">
+            {isListening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}{isListening ? "Escuchando…" : "Empezar dictado"}
+          </Button>
+          <Button type="button" onClick={applyDictation} disabled={!dictation.trim()} className="min-h-10 bg-sky-700 text-white hover:bg-sky-800">Incorporar al formulario</Button>
+          {dictation && <Button type="button" variant="ghost" onClick={() => { setDictation(""); setVoiceMessage(""); }}>Borrar dictado</Button>}
+        </div>
+        {dictation && <Textarea aria-label="Texto reconocido por voz" value={dictation} onChange={(event) => setDictation(event.target.value)} rows={3} placeholder="El texto reconocido aparecerá aquí; puedes corregirlo antes de incorporarlo." />}
+        {voiceMessage && <p role="status" className="text-xs text-slate-600">{voiceMessage}</p>}
+      </section>
 
       <div className="grid gap-2">
         <label className="text-sm font-semibold text-slate-800" htmlFor="board-task-title">Título <span className="text-red-600">*</span></label>
