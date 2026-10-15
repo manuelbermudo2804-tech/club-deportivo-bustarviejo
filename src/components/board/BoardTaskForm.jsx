@@ -104,7 +104,7 @@ export default function BoardTaskForm({ task, users = [], meetings = [], default
     if (!text) return;
     setData((current) => ({
       ...current,
-      titulo: current.titulo.trim() ? current.titulo : text.split(/[.!?\\n]/)[0].trim().slice(0, 120),
+      titulo: current.titulo.trim() ? current.titulo : text.split(/[.!?\n]/)[0].trim().slice(0, 120),
       descripcion: current.descripcion.trim() ? current.descripcion.trim() + "\n\n" + text : text
     }));
     setVoiceMessage("Texto incorporado. Comprueba el título, el responsable y la fecha antes de guardar.");
