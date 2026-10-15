@@ -43,6 +43,7 @@ export default function BoardTasks() {
 
   const canAccess = user?.role === "admin" || user?.es_junta === true;
   const canManageTasks = user?.role === "admin";
+  const canCollaborateTasks = canAccess;
 
   const { data: boardMembers = [] } = useQuery({
     queryKey: ["boardTaskMembers"],
@@ -128,9 +129,9 @@ export default function BoardTasks() {
   });
 
   const handleSubmit = (payload) => {
-    if (!canManageTasks) return;
+    if (!canCollaborateTasks) return;
     const timestamp = new Date().toISOString();
-    const activity = { tipo: editing ? "edicion" : "creacion", autor_email: user?.email || "", autor_nombre: user?.full_name || "", detalle: editing ? "Registro actualizado por administración" : "Registro creado", fecha: timestamp };
+    const activity = { tipo: editing ? "edicion" : "creacion", autor_email: user?.email || "", autor_nombre: user?.full_name || "", detalle: editing ? "Registro actualizado" : "Registro creado", fecha: timestamp };
     if (editing) {
       updateMutation.mutate({ id: editing.id, data: { ...payload, historial: [...(editing.historial || []), activity] } });
     } else {
@@ -177,10 +178,10 @@ export default function BoardTasks() {
             <div className="min-w-0">
               <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Organización interna</p>
               <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Tareas de la Junta</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Organiza acuerdos, asigna responsables y controla los plazos en un espacio privado para la Junta.</p>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Cualquier miembro de la Junta puede crear, ampliar, editar, actualizar y cerrar tareas. Todo queda compartido con el resto de la Junta.</p>
             </div>
           </div>
-          {canManageTasks ? (
+          {canCollaborateTasks ? (
             <Button onClick={() => { setEditing(null); setShowForm(!showForm); }} className="min-h-11 w-full bg-orange-500 text-white hover:bg-orange-600 sm:w-auto">
               <Plus className="mr-2 h-4 w-4" /> Nueva tarea
             </Button>
@@ -213,7 +214,7 @@ export default function BoardTasks() {
         </div>
       </div>
 
-      {showForm && canManageTasks && taskView !== "actas" && (
+      {showForm && canCollaborateTasks && taskView !== "actas" && (
         <BoardTaskForm
           task={editing}
           users={boardMembers}
@@ -294,7 +295,7 @@ export default function BoardTasks() {
                 {task.descripcion && <p className="mt-1 text-sm text-slate-600">{task.descripcion}</p>}
                 <p className="mt-2 text-xs text-slate-500">Responsable: {task.asignado_a_nombre || boardMembers.find((person) => person.email === task.asignado_a_email)?.full_name || task.rol_asignado || "Sin asignar"}</p>
               </div>
-              {canManageTasks && <Button type="button" variant="outline" onClick={() => { setEditing(task); setShowForm(true); }}><ClipboardList className="mr-2 h-4 w-4" /> Editar</Button>}
+              {canCollaborateTasks && <Button type="button" variant="outline" onClick={() => { setEditing(task); setShowForm(true); }}><ClipboardList className="mr-2 h-4 w-4" /> Editar</Button>}
             </article>
           ))}
           {filtered.length === 0 && <div className="rounded-xl border border-dashed p-8 text-center text-sm text-slate-500">No hay tareas que coincidan con los filtros.</div>}
@@ -302,10 +303,10 @@ export default function BoardTasks() {
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-            <BoardKanbanColumn columnId="pendiente" title="Pendiente" tasks={columns.pendiente} canManage={canManageTasks} onEdit={(t)=>{if (canManageTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
-            <BoardKanbanColumn columnId="en_progreso" title="En progreso" tasks={columns.en_progreso} canManage={canManageTasks} onEdit={(t)=>{if (canManageTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
-            <BoardKanbanColumn columnId="bloqueado" title="Bloqueado" tasks={columns.bloqueado} canManage={canManageTasks} onEdit={(t)=>{if (canManageTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
-            <BoardKanbanColumn columnId="hecho" title="Hecho" tasks={columns.hecho} canManage={canManageTasks} onEdit={(t)=>{if (canManageTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="pendiente" title="Pendiente" tasks={columns.pendiente} canManage={canCollaborateTasks} onEdit={(t)=>{if (canCollaborateTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="en_progreso" title="En progreso" tasks={columns.en_progreso} canManage={canCollaborateTasks} onEdit={(t)=>{if (canCollaborateTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="bloqueado" title="Bloqueado" tasks={columns.bloqueado} canManage={canCollaborateTasks} onEdit={(t)=>{if (canCollaborateTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="hecho" title="Hecho" tasks={columns.hecho} canManage={canCollaborateTasks} onEdit={(t)=>{if (canCollaborateTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
           </div>
         </DragDropContext>
       )}
