@@ -36,10 +36,24 @@ export default function BoardTasks() {
     queryFn: () => base44.auth.me(),
   });
 
-  const { data: tasks = [], isLoading } = useQuery({
+  const canAccess = user?.role === "admin" || user?.es_junta === true;
+
+  const { data: boardMembers = [] } = useQuery({
+    queryKey: ["boardTaskMembers"],
+    queryFn: async () => {
+      const members = await base44.entities.User.filter({ es_junta: true }, "full_name", 300);
+      return (members || []).filter((member) => member.email && member.acceso_activo !== false);
+    },
+    enabled: canAccess,
+    staleTime: 60_000,
+  });
+
+  const { data: tasks = [], isLoading, isError } = useQuery({
     queryKey: ["boardTasks"],
     queryFn: () => base44.entities.BoardTask.list("-updated_date", 500),
     initialData: [],
+    enabled: canAccess,
+    retry: false,
   });
 
   const createMutation = useMutation({
@@ -81,6 +95,7 @@ export default function BoardTasks() {
   };
 
   const handleSubmit = (payload) => {
+    if (!canAccess) return;
     if (editing) {
       updateMutation.mutate({ id: editing.id, data: payload });
     } else {
@@ -88,12 +103,28 @@ export default function BoardTasks() {
     }
   };
 
+  if (user && !canAccess) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center p-6">
+        <div className="max-w-md rounded-2xl border bg-white p-8 text-center shadow-sm">
+          <div className="text-4xl mb-3">🔒</div>
+          <h1 className="text-xl font-bold text-slate-900">Área privada de la Junta</h1>
+          <p className="mt-2 text-sm text-slate-600">Tu usuario no tiene permiso para consultar las tareas. Si necesitas acceso, pídeselo a un administrador del club.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <div className="p-8 text-center text-slate-600">Comprobando permisos de acceso…</div>;
+  }
+
   return (
     <div className="p-4 lg:p-6 space-y-4">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Tareas Junta</h1>
-          <p className="text-slate-600 text-sm">Asigna y gestiona tareas por rol (Presidente, Vice, Secretaría, Tesorería, Vocales)</p>
+          <p className="text-slate-600 text-sm">Acuerdos, responsables y plazos en un único sitio privado para la Junta.</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={() => { setEditing(null); setShowForm(!showForm); }} className="bg-orange-600 hover:bg-orange-700">
@@ -105,6 +136,7 @@ export default function BoardTasks() {
       {showForm && (
         <BoardTaskForm
           task={editing}
+          users={boardMembers}
           onSubmit={handleSubmit}
           onCancel={()=>{ setShowForm(false); setEditing(null); }}
           isSubmitting={createMutation.isPending || updateMutation.isPending}
@@ -132,7 +164,9 @@ export default function BoardTasks() {
         </div>
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">No se han podido cargar las tareas. Comprueba que el usuario tiene permiso de Junta o administrador y vuelve a intentarlo.</div>
+      ) : isLoading ? (
         <div className="text-center py-12"><div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div></div>
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>

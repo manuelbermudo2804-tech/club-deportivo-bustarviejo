@@ -15,7 +15,7 @@ const AREAS = [
   "Eventos y patrocinio"
 ];
 
-export default function BoardTaskForm({ task, onSubmit, onCancel, isSubmitting }) {
+export default function BoardTaskForm({ task, users = [], onSubmit, onCancel, isSubmitting }) {
   const [data, setData] = React.useState(task || {
     titulo: "",
     descripcion: "",
@@ -84,8 +84,19 @@ export default function BoardTaskForm({ task, onSubmit, onCancel, isSubmitting }
         </div>
       </div>
       <div className="grid gap-2">
-        <label className="text-sm font-medium">Asignado a (email opcional)</label>
-        <Input type="email" value={data.asignado_a_email || ""} onChange={(e)=>setData({...data, asignado_a_email: e.target.value})} placeholder="persona@correo.com" />
+        <label className="text-sm font-medium">Responsable de la tarea</label>
+        <Select value={data.asignado_a_email || "sin_asignar"} onValueChange={(v)=>setData({...data, asignado_a_email: v === "sin_asignar" ? "" : v})}>
+          <SelectTrigger><SelectValue placeholder="Sin responsable asignado" /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="sin_asignar">Sin responsable asignado</SelectItem>
+            {users.map((person) => (
+              <SelectItem key={person.id} value={person.email}>
+                {person.full_name || person.nombre || person.email} · {person.cargo_junta || "Junta"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-slate-500">Solo aparecen usuarios activos autorizados para el espacio de Junta.</p>
       </div>
       <div className="flex justify-end gap-2 pt-2">
         <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
