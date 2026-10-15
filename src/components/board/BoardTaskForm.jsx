@@ -79,23 +79,66 @@ export default function BoardTaskForm({ task, users = [], meetings = [], default
       return;
     }
     try {
+      // Reconocimiento continuo: permanece abierto hasta que el usuario pulse "Detener".
       const recognition = new SpeechRecognition();
       recognition.lang = "es-ES";
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.onstart = () => { setIsListening(true); setVoiceMessage("Te escucho… habla con naturalidad."); };
-      recognition.onresult = (event) => {
-        const transcript = Array.from(event.results || []).map((result) => result[0]?.transcript || "").join(" ").trim();
-        if (transcript) setDictation((current) => current ? current + " " + transcript : transcript);
-        setVoiceMessage(transcript ? "Dictado recibido. Revísalo antes de incorporarlo." : "No se ha reconocido texto. Prueba otra vez.");
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      recognition.onstart = () => {
+        setIsListening(true);
+        setVoiceMessage("Grabando… puedes hablar con calma. Pulsa «Detener grabación» cuando termines.");
       };
-      recognition.onerror = (event) => setVoiceMessage(event.error === "not-allowed" ? "No hay permiso para usar el micrófono. Revisa los permisos del navegador." : "No se ha podido completar el dictado. Puedes intentarlo de nuevo.");
-      recognition.onend = () => setIsListening(false);
+      recognition.onresult = (event) => {
+        let finalText = "";
+        let interimText = "";
+        for (let index = event.resultIndex; index < event.results.length; index += 1) {
+          const result = event.results[index];
+          const transcript = result?.[0]?.transcript || "";
+          if (result.isFinal) finalText += transcript;
+          else interimText += transcript;
+        }
+        if (finalText.trim()) {
+          setDictation((current) => current ? current + " " + finalText.trim() : finalText.trim());
+        }
+        setVoiceMessage(interimText.trim() ? "Grabando… " + interimText.trim() : "Grabación en curso. Pulsa «Detener grabación» cuando acabes.");
+      };
+      recognition.onerror = (event) => {
+        if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+          setVoiceMessage("No hay permiso para usar el micrófono o el servicio de voz. Revisa los permisos del navegador.");
+        } else if (event.error === "no-speech") {
+          setVoiceMessage("Todavía no se ha detectado voz. Puedes seguir grabando o volver a intentarlo.");
+        } else if (event.error !== "aborted") {
+          setVoiceMessage("El reconocimiento de voz se ha interrumpido. Si falta texto, vuelve a intentarlo.");
+        }
+        if (event.error !== "no-speech") setIsListening(false);
+      };
+      recognition.onend = () => {
+        setIsListening(false);
+        setVoiceMessage((current) => current.startsWith("Grabación en curso") || current.startsWith("Grabando")
+          ? "Grabación detenida. Revisa el texto reconocido antes de incorporarlo."
+          : current);
+      };
       recognitionRef.current = recognition;
       recognition.start();
     } catch {
       setIsListening(false);
       setVoiceMessage("No se ha podido iniciar el micrófono. Comprueba los permisos del navegador.");
+    }
+  };
+
+  const stopDictation = () => {
+    const recognition = recognitionRef.current;
+    if (!recognition) {
+      setIsListening(false);
+      return;
+    }
+    setVoiceMessage("Terminando de reconocer las últimas palabras…");
+    try {
+      recognition.stop();
+    } catch {
+      setIsListening(false);
+      setVoiceMessage("Grabación detenida. Revisa el texto reconocido antes de incorporarlo.");
     }
   };
 
