@@ -1,5 +1,5 @@
 import React from "react";
-import { Home, Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, FileText, Clover, Archive, BarChart3, FileSignature, Heart, Award, RotateCcw, MessageCircle, ShieldAlert, UserCircle, Gift, Mail, Trophy, Share2, BrainCircuit } from "lucide-react";
+import { Home, Users, CreditCard, ShoppingBag, Calendar, Megaphone, Image, Bell, Settings, ClipboardCheck, CheckCircle2, Star, TrendingUp, FileText, Clover, Archive, BarChart3, FileSignature, Heart, Award, RotateCcw, MessageCircle, ShieldAlert, UserCircle, Gift, Mail, Trophy, Share2, BrainCircuit, ClipboardList } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 // DEFINICIÓN COMPLETA - organizado por secciones lógicas
@@ -10,6 +10,7 @@ export const ALL_ADMIN_BUTTONS = [
   { id: "firmas", title: "🖊️ Firmas y Reconocimientos", icon: FileSignature, url: createPageUrl("FederationSignaturesAdmin"), gradient: "from-yellow-600 to-orange-600", priority: 3 },
   { id: "entrenadores", title: "🏃 Entrenadores", icon: Award, url: createPageUrl("CoachProfiles"), gradient: "from-indigo-600 to-indigo-700", priority: 4 },
   { id: "usuarios", title: "👤 Usuarios", icon: Users, url: createPageUrl("UserManagement"), gradient: "from-blue-600 to-blue-700", priority: 5 },
+  { id: "tareas_junta", title: "🗂️ Tareas de la Junta", icon: ClipboardList, url: createPageUrl("BoardTasks"), gradient: "from-orange-600 to-amber-600", priority: 5.5 },
   { id: "invitaciones", title: "📧 Solicitudes Invitación", icon: Mail, url: createPageUrl("InvitationRequests"), gradient: "from-purple-600 to-purple-700", priority: 6 },
   { id: "codigos_acceso", title: "🔑 Códigos de Acceso", icon: Mail, url: createPageUrl("AdminAccessCodes"), gradient: "from-amber-600 to-amber-700", priority: 6.5 },
 
@@ -68,6 +69,7 @@ export const ALL_ADMIN_BUTTONS = [
 
 export const DEFAULT_ADMIN_BUTTONS = [
   "jugadores",
+  "tareas_junta",
   "pagos",
   "firmas",
   "renovaciones",

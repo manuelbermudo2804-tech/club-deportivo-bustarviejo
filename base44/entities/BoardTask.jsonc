@@ -4,24 +4,24 @@
   "properties": {
     "titulo": {
       "type": "string",
-      "description": "T\u00edtulo de la tarea"
+      "description": "Título de la tarea"
     },
     "descripcion": {
       "type": "string",
-      "description": "Descripci\u00f3n detallada"
+      "description": "Descripción detallada"
     },
     "area": {
       "type": "string",
       "enum": [
         "Presidencia",
         "Vicepresidencia",
-        "Secretar\u00eda",
-        "Tesorer\u00eda",
+        "Secretaría",
+        "Tesorería",
         "Material e instalaciones",
         "Cantera y equipos base",
         "Eventos y patrocinio"
       ],
-      "description": "\u00c1rea responsable"
+      "description": "Área responsable"
     },
     "prioridad": {
       "type": "string",
@@ -47,14 +47,14 @@
     "fecha_limite": {
       "type": "string",
       "format": "date",
-      "description": "Fecha l\u00edmite (opcional)"
+      "description": "Fecha límite (opcional)"
     },
     "rol_asignado": {
       "type": "string",
       "enum": [
         "Presidente",
         "Vicepresidente",
-        "Secretar\u00eda",
+        "Secretaría",
         "Tesorero",
         "Vocal1",
         "Vocal2",
@@ -65,7 +65,7 @@
     "asignado_a_email": {
       "type": "string",
       "format": "email",
-      "description": "Asignaci\u00f3n directa a una persona (opcional)"
+      "description": "Asignación directa a una persona (opcional)"
     },
     "comentarios": {
       "type": "array",
@@ -96,19 +96,77 @@
     "fecha_cierre": {
       "type": "string",
       "format": "date-time",
-      "description": "Fecha en la que se marc\u00f3 como hecho"
+      "description": "Fecha en la que se marcó como hecho"
     },
     "cerrado_por_email": {
       "type": "string",
-      "description": "Email de quien cerr\u00f3 la tarea"
+      "description": "Email de quien cerró la tarea"
     },
     "cerrado_por_nombre": {
       "type": "string",
-      "description": "Nombre de quien cerr\u00f3 la tarea"
+      "description": "Nombre de quien cerró la tarea"
     }
   },
   "required": [
     "titulo",
     "estado"
-  ]
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "es_junta": true
+          }
+        }
+      ]
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "es_junta": true
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "es_junta": true
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "es_junta": true
+          }
+        }
+      ]
+    }
+  }
 }

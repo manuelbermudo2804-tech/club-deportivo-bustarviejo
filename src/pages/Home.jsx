@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, CreditCard, Bell, FileSignature, BellRing, Sparkles, Clover, Zap } from "lucide-react";
+import { ClipboardList, ArrowRight, Users, CreditCard, Bell, FileSignature, BellRing, Sparkles, Clover, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -740,6 +740,22 @@ export default function Home() {
                   <p className="text-yellow-200 text-xs lg:text-sm">Pide tus décimos del club • Número: 28720</p>
                 </div>
                 <span className="text-3xl">🎅</span>
+              </div>
+            </div>
+          </Link>
+        )}
+
+        {/* Acceso privado a las tareas de la Junta para miembros autorizados */}
+        {user?.es_junta && !isAdmin && (
+          <Link to={createPageUrl("BoardTasks")}>
+            <div className="mb-4 rounded-2xl border border-orange-400/30 bg-gradient-to-r from-orange-600 to-amber-600 p-4 text-white shadow-lg transition hover:brightness-110">
+              <div className="flex items-center gap-3">
+                <div className="rounded-xl bg-white/15 p-3"><ClipboardList className="h-6 w-6" /></div>
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold">🗂️ Tareas de la Junta</p>
+                  <p className="text-sm text-orange-50">Seguimiento de acuerdos, responsables y plazos</p>
+                </div>
+                <ArrowRight className="h-5 w-5" />
               </div>
             </div>
           </Link>
