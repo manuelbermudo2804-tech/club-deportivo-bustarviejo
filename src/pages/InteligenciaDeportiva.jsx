@@ -88,10 +88,11 @@ export default function InteligenciaDeportiva() {
   const [user, setUser] = useState(null);
   React.useEffect(() => { base44.auth.me().then(setUser).catch(() => setUser(null)); }, []);
 
-  const playersQuery = useQuery({ queryKey: ["sports-intelligence-players"], queryFn: () => base44.entities.Player.filter({ activo: true }), enabled: !!user, staleTime: 60000 });
-  const attendanceQuery = useQuery({ queryKey: ["sports-intelligence-attendance"], queryFn: () => base44.entities.Attendance.list("-fecha", 1000), enabled: !!user, staleTime: 60000 });
-  const evaluationQuery = useQuery({ queryKey: ["sports-intelligence-evaluations"], queryFn: () => base44.entities.PlayerEvaluation.list("-fecha_evaluacion", 1000), enabled: !!user, staleTime: 60000 });
-  const loading = !user || playersQuery.isLoading || attendanceQuery.isLoading || evaluationQuery.isLoading;
+  const authorized = !!user && (user.role === "admin" || user.es_entrenador || user.es_coordinador || user.es_coordinador_deportivo);
+  const playersQuery = useQuery({ queryKey: ["sports-intelligence-players"], queryFn: () => base44.entities.Player.filter({ activo: true }), enabled: authorized, staleTime: 60000 });
+  const attendanceQuery = useQuery({ queryKey: ["sports-intelligence-attendance"], queryFn: () => base44.entities.Attendance.list("-fecha", 1000), enabled: authorized, staleTime: 60000 });
+  const evaluationQuery = useQuery({ queryKey: ["sports-intelligence-evaluations"], queryFn: () => base44.entities.PlayerEvaluation.list("-fecha_evaluacion", 1000), enabled: authorized, staleTime: 60000 });
+  const loading = !user || (authorized && (playersQuery.isLoading || attendanceQuery.isLoading || evaluationQuery.isLoading));
   const error = playersQuery.error || attendanceQuery.error || evaluationQuery.error;
   const refresh = async () => {
     try {
@@ -119,9 +120,9 @@ export default function InteligenciaDeportiva() {
   const positiveCount = analyses.filter((item) => item.insights.some((insight) => insight.priority === "positive")).length;
   const withData = analyses.filter((item) => item.attendanceCount > 0 || item.evalCount > 0).length;
 
+  if (user && !authorized) return <div className="p-8"><Card><CardContent className="p-8 text-center">Esta herramienta está disponible para entrenadores, coordinación y administración.</CardContent></Card></div>;
   if (loading) return <div className="mx-auto max-w-6xl p-6 text-center text-slate-500">Analizando asistencia y evaluaciones…</div>;
   if (error) return <div className="mx-auto max-w-6xl p-6"><Card><CardContent className="p-6"><p className="font-semibold text-red-700">No se han podido cargar todos los datos deportivos.</p><Button onClick={refresh} className="mt-3"><RefreshCw className="mr-2 h-4 w-4" />Reintentar</Button></CardContent></Card></div>;
-  if (!(user?.role === "admin" || user?.es_entrenador || user?.es_coordinador || user?.es_coordinador_deportivo)) return <div className="p-8"><Card><CardContent className="p-8 text-center">Esta herramienta está disponible para entrenadores, coordinación y administración.</CardContent></Card></div>;
 
   return (
     <div className="mx-auto max-w-7xl space-y-6 p-4 pb-10 sm:p-6 lg:p-8">
