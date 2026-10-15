@@ -235,10 +235,11 @@ export default function TransactionForm({
   };
 
   const handlePartidaChange = (partidaId) => {
-    const partida = partidas.find(p => p.id === partidaId);
+    const selectedId = partidaId === "none" ? "" : partidaId;
+    const partida = partidas.find(p => p.id === selectedId);
     setFormData({
       ...formData,
-      partida_id: partidaId,
+      partida_id: selectedId,
       partida_nombre: partida?.nombre || ""
     });
   };
@@ -246,20 +247,33 @@ export default function TransactionForm({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.concepto || !formData.cantidad || !formData.categoria) {
+    const cantidad = Number(formData.cantidad);
+    if (!formData.concepto.trim() || !formData.categoria || !formData.fecha) {
       toast.error("Completa los campos obligatorios");
+      return;
+    }
+    if (!Number.isFinite(cantidad) || cantidad <= 0) {
+      toast.error("El importe debe ser mayor que cero");
+      return;
+    }
+    if (typeof onSubmit !== "function") {
+      toast.error("No se puede guardar el movimiento: falta la acción de guardado");
       return;
     }
 
     onSubmit({
       ...formData,
+      concepto: formData.concepto.trim(),
+      cantidad,
       tipo,
-      cantidad: parseFloat(formData.cantidad),
-      temporada,
+      temporada: temporada || "",
+      proveedor_cliente: formData.proveedor_cliente.trim(),
+      numero_factura: formData.numero_factura.trim(),
+      notas: formData.notas.trim(),
       documento_url: documentoUrl,
-      documento_nombre: documento?.nombre,
-      tipo_documento: extractedData?.tipo_documento || null,
-      subtipo_documento: extractedData?.subtipo_documento || null,
+      documento_nombre: documento?.nombre || "",
+      tipo_documento: extractedData?.tipo_documento || "",
+      subtipo_documento: extractedData?.subtipo_documento || "",
       palabras_clave: extractedData?.palabras_clave || []
     });
   };
@@ -361,7 +375,7 @@ export default function TransactionForm({
                   <SelectValue placeholder="Asociar a partida..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value={null}>Sin partida asociada</SelectItem>
+                  <SelectItem value="none">Sin partida asociada</SelectItem>
                   {partidasFiltradas.map(p => (
                     <SelectItem key={p.id} value={p.id}>{p.nombre}</SelectItem>
                   ))}
