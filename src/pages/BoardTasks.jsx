@@ -5,7 +5,7 @@ import { DragDropContext } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Filter, Clock3, AlertTriangle, CheckCircle2, ListTodo, ClipboardList, CalendarDays, Download, LayoutGrid, UserRound } from "lucide-react";
+import { Plus, Filter, Clock3, AlertTriangle, CheckCircle2, ListTodo, ClipboardList, CalendarDays, Download, LayoutGrid, UserRound, FileText, RefreshCw } from "lucide-react";
 import BoardTaskForm from "../components/board/BoardTaskForm";
 import BoardMeetingForm from "../components/board/BoardMeetingForm";
 import BoardKanbanColumn from "../components/board/BoardKanbanColumn";
@@ -55,19 +55,22 @@ export default function BoardTasks() {
     staleTime: 60_000,
   });
 
-  const { data: tasks = [], isLoading, isError } = useQuery({
+  const { data: tasks = [], isLoading, isError, error: tasksError, refetch: refetchTasks } = useQuery({
     queryKey: ["boardTasks"],
     queryFn: () => base44.entities.BoardTask.list("-updated_date", 500),
-    initialData: [],
     enabled: canAccess,
-    retry: false,
+    retry: 1,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
-  const { data: meetings = [], isLoading: meetingsLoading } = useQuery({
+  const { data: meetings = [], isLoading: meetingsLoading, isError: meetingsError, error: meetingsLoadError, refetch: refetchMeetings } = useQuery({
     queryKey: ["boardMeetings"],
     queryFn: () => base44.entities.BoardMeeting.list("-fecha_reunion", 300),
     enabled: canAccess,
-    retry: false,
+    retry: 1,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
   });
 
   const createMeetingMutation = useMutation({
