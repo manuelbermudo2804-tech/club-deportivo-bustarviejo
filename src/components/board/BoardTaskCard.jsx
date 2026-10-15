@@ -35,6 +35,13 @@ export default function BoardTaskCard({ task, onEdit, onDelete, onComplete, canM
         {task.descripcion && (
           <p className="text-xs text-slate-600 mb-2 line-clamp-3">{task.descripcion}</p>
         )}
+        {Array.isArray(task.historial) && task.historial.length > 0 && (
+          <div className="mb-2 rounded-lg border border-orange-100 bg-orange-50/60 p-2">
+            <div className="mb-1 text-[11px] font-medium text-orange-800">Último movimiento</div>
+            <p className="text-[12px] text-slate-700">{task.historial[task.historial.length - 1].detalle}</p>
+            <p className="mt-1 text-[10px] text-slate-500">{task.historial[task.historial.length - 1].autor_nombre || task.historial[task.historial.length - 1].autor_email} · {task.historial[task.historial.length - 1].fecha ? new Date(task.historial[task.historial.length - 1].fecha).toLocaleString("es-ES") : ""}</p>
+          </div>
+        )}
         {Array.isArray(task.comentarios) && task.comentarios.length > 0 && (
           <div className="bg-slate-50 border rounded-lg p-2 mb-2">
             <div className="flex items-center gap-1 text-slate-500 text-[11px] mb-1"><MessageCircle className="w-3 h-3" /> Último comentario</div>
