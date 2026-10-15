@@ -1,0 +1,72 @@
+{
+  "name": "BoardMeeting",
+  "type": "object",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo o motivo de la reuni\u00f3n"
+    },
+    "fecha_reunion": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de la reuni\u00f3n"
+    },
+    "asistentes": {
+      "type": "string",
+      "description": "Asistentes a la reuni\u00f3n"
+    },
+    "orden_del_dia": {
+      "type": "string",
+      "description": "Puntos tratados"
+    },
+    "resumen": {
+      "type": "string",
+      "description": "Resumen de la reuni\u00f3n"
+    },
+    "acuerdos": {
+      "type": "string",
+      "description": "Acuerdos y decisiones adoptadas"
+    },
+    "creado_por_email": {
+      "type": "string"
+    },
+    "creado_por_nombre": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "titulo",
+    "fecha_reunion"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "es_junta": true
+          }
+        }
+      ]
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
