@@ -80,8 +80,12 @@ export default function TransactionForm({
 
   const cambiarTipo = (nuevoTipo) => {
     setTipo(nuevoTipo);
+    const categoriasPermitidas = nuevoTipo === "Ingreso" ? CATEGORIAS_INGRESO : CATEGORIAS_GASTO;
     setFormData(prev => ({
       ...prev,
+      categoria: categoriasPermitidas.includes(prev.categoria) ? prev.categoria : "",
+      partida_id: "",
+      partida_nombre: "",
       estado: prev.estado === "Anulado" || prev.estado === "Pendiente"
         ? prev.estado
         : nuevoTipo === "Ingreso" ? "Cobrado" : "Pagado"
