@@ -118,7 +118,19 @@ export default function useNavigation({
 
   // Globito de oportunidades de voluntariado nuevas
   const voluntariadoUrl = createPageUrl("Voluntariado");
-  return useMemo(() => (volunteerNewCount > 0
-    ? nav.map((i) => (i.url === voluntariadoUrl ? { ...i, badge: volunteerNewCount } : i))
-    : nav), [nav, volunteerNewCount]);
+  const boardTasksUrl = createPageUrl("BoardTasks");
+  return useMemo(() => {
+    let items = nav;
+    // Los miembros de Junta deben ver el acceso desde cualquier panel, no solo el de administración.
+    if (user?.es_junta === true && !isAdmin && !items.some((item) => item.url === boardTasksUrl)) {
+      const taskItem = { title: "🗂️ Tareas de la Junta", url: boardTasksUrl, icon: ClipboardList };
+      const homeIndex = items.findIndex((item) => item.url === createPageUrl("Home") || item.url === createPageUrl("CoachDashboard") || item.url === createPageUrl("CoordinatorDashboard") || item.url === createPageUrl("TreasurerDashboard"));
+      items = [...items];
+      items.splice(homeIndex >= 0 ? homeIndex + 1 : 0, 0, taskItem);
+    }
+    if (volunteerNewCount > 0) {
+      items = items.map((item) => item.url === voluntariadoUrl ? { ...item, badge: volunteerNewCount } : item);
+    }
+    return items;
+  }, [nav, volunteerNewCount, user?.es_junta, isAdmin, boardTasksUrl]);
 }
