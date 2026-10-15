@@ -303,10 +303,10 @@ export default function BoardTasks() {
       ) : (
         <DragDropContext onDragEnd={onDragEnd}>
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
-            <BoardKanbanColumn columnId="pendiente" title="Pendiente" tasks={columns.pendiente} canManage={canCollaborateTasks} onEdit={(t)=>{if (canCollaborateTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
-            <BoardKanbanColumn columnId="en_progreso" title="En progreso" tasks={columns.en_progreso} canManage={canCollaborateTasks} onEdit={(t)=>{if (canCollaborateTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
-            <BoardKanbanColumn columnId="bloqueado" title="Bloqueado" tasks={columns.bloqueado} canManage={canCollaborateTasks} onEdit={(t)=>{if (canCollaborateTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
-            <BoardKanbanColumn columnId="hecho" title="Hecho" tasks={columns.hecho} canManage={canCollaborateTasks} onEdit={(t)=>{if (canCollaborateTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="pendiente" title="Pendiente" tasks={columns.pendiente} canManage={canCollaborateTasks} canDelete={canManageTasks} onEdit={(t)=>{if (canCollaborateTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="en_progreso" title="En progreso" tasks={columns.en_progreso} canManage={canCollaborateTasks} canDelete={canManageTasks} onEdit={(t)=>{if (canCollaborateTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="bloqueado" title="Bloqueado" tasks={columns.bloqueado} canManage={canCollaborateTasks} canDelete={canManageTasks} onEdit={(t)=>{if (canCollaborateTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
+            <BoardKanbanColumn columnId="hecho" title="Hecho" tasks={columns.hecho} canManage={canCollaborateTasks} canDelete={canManageTasks} onEdit={(t)=>{if (canCollaborateTasks) {setEditing(t); setShowForm(true);}}} onDelete={(t)=>{if (canManageTasks) deleteMutation.mutate(t.id);}} onComplete={(t)=> setCompleteTask(t)} />
           </div>
         </DragDropContext>
       )}

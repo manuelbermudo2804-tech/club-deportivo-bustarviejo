@@ -2,7 +2,7 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, User, Pencil, Trash2, CheckCircle2, MessageCircle } from "lucide-react";
+import { Calendar, User, Pencil, Trash2, CheckCircle2, MessageCircle, ChevronDown, ChevronUp } from "lucide-react";
 
 const PRIORITY_COLORS = {
   baja: "bg-blue-100 text-blue-800",
@@ -10,7 +10,8 @@ const PRIORITY_COLORS = {
   alta: "bg-red-100 text-red-800"
 };
 
-export default function BoardTaskCard({ task, onEdit, onDelete, onComplete, canManage = false }) {
+export default function BoardTaskCard({ task, onEdit, onDelete, onComplete, canManage = false, canDelete = false }) {
+  const [expanded, setExpanded] = React.useState(false);
   return (
     <Card className="bg-white/90">
       <CardHeader className="py-3 pb-1">
@@ -25,7 +26,7 @@ export default function BoardTaskCard({ task, onEdit, onDelete, onComplete, canM
             {canManage && <Button size="icon" variant="ghost" aria-label="Editar tarea" onClick={()=>onEdit(task)} className="h-7 w-7">
               <Pencil className="w-4 h-4" />
             </Button>}
-            {canManage && <Button size="icon" variant="ghost" aria-label="Eliminar tarea" onClick={()=>onDelete(task)} className="h-7 w-7 text-red-600 hover:text-red-700">
+            {canDelete && <Button size="icon" variant="ghost" aria-label="Eliminar tarea" onClick={()=>onDelete(task)} className="h-7 w-7 text-red-600 hover:text-red-700">
               <Trash2 className="w-4 h-4" />
             </Button>}
           </div>
@@ -33,7 +34,7 @@ export default function BoardTaskCard({ task, onEdit, onDelete, onComplete, canM
       </CardHeader>
       <CardContent className="pt-2 pb-3">
         {task.descripcion && (
-          <p className="text-xs text-slate-600 mb-2 line-clamp-3">{task.descripcion}</p>
+          <p className={`text-xs text-slate-600 mb-2 whitespace-pre-wrap ${expanded ? "" : "line-clamp-3"}`}>{task.descripcion}</p>
         )}
         {Array.isArray(task.historial) && task.historial.length > 0 && (
           <div className="mb-2 rounded-lg border border-orange-100 bg-orange-50/60 p-2">
@@ -46,6 +47,33 @@ export default function BoardTaskCard({ task, onEdit, onDelete, onComplete, canM
           <div className="bg-slate-50 border rounded-lg p-2 mb-2">
             <div className="flex items-center gap-1 text-slate-500 text-[11px] mb-1"><MessageCircle className="w-3 h-3" /> Último comentario</div>
             <p className="text-[12px] text-slate-700 line-clamp-2">{task.comentarios[task.comentarios.length-1].mensaje}</p>
+          </div>
+        )}
+        {(task.descripcion || (task.historial || []).length > 1 || (task.comentarios || []).length > 1) && (
+          <Button type="button" variant="ghost" size="sm" onClick={() => setExpanded((value) => !value)} className="mb-2 h-7 px-2 text-xs text-slate-600">
+            {expanded ? <><ChevronUp className="mr-1 h-3 w-3" /> Ver menos</> : <><ChevronDown className="mr-1 h-3 w-3" /> Ampliar tarea y actividad</>}
+          </Button>
+        )}
+        {expanded && Array.isArray(task.historial) && task.historial.length > 1 && (
+          <div className="mb-2 space-y-2 rounded-lg border border-slate-200 bg-white p-2">
+            <p className="text-[11px] font-semibold text-slate-600">Actividad completa</p>
+            {task.historial.slice().reverse().map((item, index) => (
+              <div key={`${item.fecha || "movimiento"}-${index}`} className="border-l-2 border-orange-200 pl-2">
+                <p className="text-xs text-slate-700">{item.detalle}</p>
+                <p className="text-[10px] text-slate-500">{item.autor_nombre || item.autor_email || "Miembro de la Junta"} · {item.fecha ? new Date(item.fecha).toLocaleString("es-ES") : ""}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        {expanded && Array.isArray(task.comentarios) && task.comentarios.length > 1 && (
+          <div className="mb-2 space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
+            <p className="text-[11px] font-semibold text-slate-600">Comentarios</p>
+            {task.comentarios.slice().reverse().map((item, index) => (
+              <div key={`${item.fecha || "comentario"}-${index}`}>
+                <p className="whitespace-pre-wrap text-xs text-slate-700">{item.mensaje}</p>
+                <p className="text-[10px] text-slate-500">{item.autor_nombre || item.autor_email || "Miembro de la Junta"} · {item.fecha ? new Date(item.fecha).toLocaleString("es-ES") : ""}</p>
+              </div>
+            ))}
           </div>
         )}
         <div className="flex flex-wrap gap-2 items-center">
