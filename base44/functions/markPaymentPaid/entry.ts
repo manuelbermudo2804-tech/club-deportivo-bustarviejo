@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
     // 5) Crear asiento si no existe
     const existentes = await base44.asServiceRole.entities.FinancialTransaction.filter({
       referencia_origen: payment.id,
-      categoria: 'Cuotas'
+      categoria: 'Inscripciones'
     });
 
     if (!existentes || existentes.length === 0) {
@@ -78,9 +78,11 @@ Deno.serve(async (req) => {
         concepto: `Cuota ${mes}`.trim(),
         cantidad: payment.cantidad ?? (typeof cantidad === 'number' ? cantidad : 0),
         fecha: today,
-        categoria: 'Cuotas',
-        subtipo_documento: 'Cuota',
+        categoria: 'Inscripciones',
+        subtipo_documento: 'Cuota deportiva',
         metodo_pago,
+        estado: 'Cobrado',
+        fecha_pago: today,
         temporada: temporadaNorm,
         proveedor_cliente: player.nombre,
         automatico: true,
