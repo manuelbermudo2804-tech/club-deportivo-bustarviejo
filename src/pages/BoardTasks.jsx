@@ -5,7 +5,7 @@ import { DragDropContext } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Filter } from "lucide-react";
+import { Plus, Filter, Clock3, AlertTriangle, CheckCircle2, ListTodo } from "lucide-react";
 import BoardTaskForm from "../components/board/BoardTaskForm";
 import BoardKanbanColumn from "../components/board/BoardKanbanColumn";
 import CompleteTaskDialog from "../components/board/CompleteTaskDialog";
@@ -93,6 +93,14 @@ export default function BoardTasks() {
     bloqueado: filtered.filter(t => t.estado === "bloqueado"),
     hecho: filtered.filter(t => t.estado === "hecho"),
   };
+  const today = new Date().toISOString().slice(0, 10);
+  const activeTasks = tasks.filter((task) => task.estado !== "hecho");
+  const overdueTasks = activeTasks.filter((task) => task.fecha_limite && task.fecha_limite < today);
+  const dueSoonTasks = activeTasks.filter((task) => {
+    if (!task.fecha_limite || task.fecha_limite < today) return false;
+    const days = (new Date(`${task.fecha_limite}T00:00:00`) - new Date(`${today}T00:00:00`)) / 86400000;
+    return days <= 7;
+  });
 
   const handleSubmit = (payload) => {
     if (!canAccess) return;
@@ -130,6 +138,29 @@ export default function BoardTasks() {
           <Button onClick={() => { setEditing(null); setShowForm(!showForm); }} className="bg-orange-600 hover:bg-orange-700">
             <Plus className="w-4 h-4 mr-2" /> Nueva tarea
           </Button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div className="flex items-center justify-between text-slate-500"><span className="text-sm">Tareas activas</span><ListTodo className="h-5 w-5" /></div>
+          <p className="mt-2 text-3xl font-bold text-slate-900">{activeTasks.length}</p>
+          <p className="text-xs text-slate-500">Pendientes, en curso o bloqueadas</p>
+        </div>
+        <div className="rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-red-700"><span className="text-sm">Fuera de plazo</span><AlertTriangle className="h-5 w-5" /></div>
+          <p className="mt-2 text-3xl font-bold text-red-800">{overdueTasks.length}</p>
+          <p className="text-xs text-red-700">Requieren revisión prioritaria</p>
+        </div>
+        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-amber-700"><span className="text-sm">Vencen en 7 días</span><Clock3 className="h-5 w-5" /></div>
+          <p className="mt-2 text-3xl font-bold text-amber-800">{dueSoonTasks.length}</p>
+          <p className="text-xs text-amber-700">Plazos próximos</p>
+        </div>
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+          <div className="flex items-center justify-between text-emerald-700"><span className="text-sm">Completadas</span><CheckCircle2 className="h-5 w-5" /></div>
+          <p className="mt-2 text-3xl font-bold text-emerald-800">{tasks.filter((task) => task.estado === "hecho").length}</p>
+          <p className="text-xs text-emerald-700">Acuerdos ya cerrados</p>
         </div>
       </div>
 

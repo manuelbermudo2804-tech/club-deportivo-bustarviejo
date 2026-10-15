@@ -261,6 +261,8 @@ export default function UserManagementTable({
                   {/* Junta */}
                   <td className="px-4 py-3 text-center">
                     <Switch
+                      title="Activa o retira el acceso al módulo privado Tareas de la Junta"
+                      aria-label={`Acceso a Tareas de la Junta para ${user.full_name || user.email}`}
                       checked={user.es_junta === true}
                       onCheckedChange={() => onToggleJunta(user)}
                       disabled={isRestricted || isDeleted}
