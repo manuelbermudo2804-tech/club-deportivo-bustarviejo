@@ -156,12 +156,12 @@ export default function TreasurerFinancialPanel() {
     queryKey: ['transactions'],
     queryFn: () => base44.entities.FinancialTransaction.list('-fecha'),
     staleTime: 120000, // 2 minutos
-    enabled: activeTab === "transacciones" || activeTab === "presupuestos",
+    enabled: activeTab === "transacciones" || activeTab === "presupuestos" || activeTab === "analisis",
   });
 
   const currentBudget = useMemo(() => {
     if (!activeSeason || budgets.length === 0) return null;
-    return budgets.find(b => b.temporada === activeSeason.temporada) || null;
+    return budgets.find(b => seasonMatches(b.temporada, activeSeason.temporada)) || null;
   }, [activeSeason, budgets]);
 
   // Función para obtener importe por mes según temporada activa
@@ -240,7 +240,70 @@ export default function TreasurerFinancialPanel() {
       queryClient.invalidateQueries({ queryKey: ['budgets'] });
       toast.success("Presupuesto eliminado");
     },
+    onError: () => toast.error("No se pudo eliminar el presupuesto"),
   });
+
+  const createTransactionMutation = useMutation({
+    mutationFn: (data) => base44.entities.FinancialTransaction.create(data),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      await queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      setShowAddTransaction(false);
+      toast.success("Movimiento financiero registrado");
+    },
+    onError: (error) => {
+      console.error("Error creando movimiento financiero:", error);
+      toast.error("No se pudo guardar el movimiento. Revisa los datos e inténtalo de nuevo.");
+    },
+  });
+
+  const deleteTransactionMutation = useMutation({
+    mutationFn: (id) => base44.entities.FinancialTransaction.delete(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      await queryClient.invalidateQueries({ queryKey: ['budgets'] });
+      toast.success("Movimiento eliminado");
+    },
+    onError: () => toast.error("No se pudo eliminar el movimiento"),
+  });
+
+  const handleDeleteTransaction = (id) => {
+    if (!id) return;
+    if (typeof window !== "undefined" && !window.confirm("¿Quieres eliminar este movimiento financiero? Esta acción no se puede deshacer.")) return;
+    deleteTransactionMutation.mutate(id);
+  };
+
+  const handleExportTransactions = (rows = transactions) => {
+    if (!rows?.length) {
+      toast.info("No hay movimientos para exportar");
+      return;
+    }
+    const columns = [
+      ["fecha", "Fecha"], ["tipo", "Tipo"], ["concepto", "Concepto"],
+      ["categoria", "Categoría"], ["subcategoria", "Subcategoría"],
+      ["proveedor_cliente", "Proveedor/Cliente"], ["numero_factura", "Nº factura"],
+      ["cantidad", "Importe (€)"], ["estado", "Estado"], ["metodo_pago", "Método de pago"],
+      ["temporada", "Temporada"], ["notas", "Notas"]
+    ];
+    const escapeCsv = (value) => {
+      const text = value == null ? "" : String(value);
+      return '"' + text.replace(/"/g, '""') + '"';
+    };
+    const csv = "\\uFEFF" + [
+      columns.map(([, label]) => escapeCsv(label)).join(";"),
+      ...rows.map(row => columns.map(([key]) => escapeCsv(row[key])).join(";"))
+    ].join("\\r\\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `movimientos-financieros-${activeSeason?.temporada || "club"}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast.success(`Exportados ${rows.length} movimientos`);
+  };
 
   const handleCreateBudget = () => {
     if (!activeSeason) {
@@ -248,6 +311,10 @@ export default function TreasurerFinancialPanel() {
       return;
     }
     // Partidas base por defecto (ingresos y gastos)
+    if (budgets.some(b => seasonMatches(b.temporada, activeSeason.temporada))) {
+      toast.info("Ya existe un presupuesto para esta temporada");
+      return;
+    }
     const defaultPartidas = [
       // INGRESOS
       { id: `p_${Date.now()}_1`, nombre: 'Inscripciones Jugadores', categoria: 'Ingresos', presupuestado: 0, ejecutado: 0 },
@@ -1667,38 +1734,44 @@ export default function TreasurerFinancialPanel() {
               <Card className="border-none shadow-xl bg-gradient-to-r from-slate-900 to-slate-800 text-white">
                 <CardContent className="p-6">
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 sm:gap-4">
-                    <div className="text-center">
-                      <p className="text-sm text-slate-300 mb-1">Presupuesto Total</p>
-                      <p className="text-3xl font-bold">
-                        {currentBudget.partidas?.reduce((sum, p) => sum + (p.monto_presupuestado || 0), 0).toFixed(2)}€
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-green-300 mb-1">Ejecutado</p>
-                      <p className="text-3xl font-bold text-green-400">
-                        {currentBudget.partidas?.reduce((sum, p) => sum + (p.monto_ejecutado || 0), 0).toFixed(2)}€
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-orange-300 mb-1">Desviación</p>
-                      <p className="text-3xl font-bold text-orange-400">
-                        {(() => {
-                          const presupuestado = currentBudget.partidas?.reduce((sum, p) => sum + (p.monto_presupuestado || 0), 0) || 0;
-                          const ejecutado = currentBudget.partidas?.reduce((sum, p) => sum + (p.monto_ejecutado || 0), 0) || 0;
-                          return (ejecutado - presupuestado).toFixed(2);
-                        })()}€
-                      </p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-sm text-blue-300 mb-1">% Ejecución</p>
-                      <p className="text-3xl font-bold text-blue-400">
-                        {(() => {
-                          const presupuestado = currentBudget.partidas?.reduce((sum, p) => sum + (p.monto_presupuestado || 0), 0) || 0;
-                          const ejecutado = currentBudget.partidas?.reduce((sum, p) => sum + (p.monto_ejecutado || 0), 0) || 0;
-                          return presupuestado > 0 ? ((ejecutado / presupuestado) * 100).toFixed(1) : 0;
-                        })()}%
-                      </p>
-                    </div>
+                    {(() => {
+                      const partidas = currentBudget.partidas || [];
+                      const ingresos = partidas.filter(p => p.categoria === "Ingresos");
+                      const gastos = partidas.filter(p => p.categoria !== "Ingresos");
+                      const presupuestadoIngresos = ingresos.reduce((sum, p) => sum + (Number(p.presupuestado) || 0), 0);
+                      const ejecutadoIngresos = ingresos.reduce((sum, p) => sum + (Number(p.ejecutado) || 0), 0);
+                      const presupuestadoGastos = gastos.reduce((sum, p) => sum + (Number(p.presupuestado) || 0), 0);
+                      const ejecutadoGastos = gastos.reduce((sum, p) => sum + (Number(p.ejecutado) || 0), 0);
+                      const netoPresupuestado = presupuestadoIngresos - presupuestadoGastos;
+                      const netoEjecutado = ejecutadoIngresos - ejecutadoGastos;
+                      const money = (value) => value.toLocaleString("es-ES", { style: "currency", currency: "EUR" });
+                      return (
+                        <>
+                          <div className="text-center">
+                            <p className="text-sm text-slate-300 mb-1">Ingresos presupuestados</p>
+                            <p className="text-2xl font-bold">{money(presupuestadoIngresos)}</p>
+                            <p className="mt-1 text-xs text-slate-400">Ejecutado: {money(ejecutadoIngresos)}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm text-slate-300 mb-1">Gastos presupuestados</p>
+                            <p className="text-2xl font-bold">{money(presupuestadoGastos)}</p>
+                            <p className="mt-1 text-xs text-slate-400">Ejecutado: {money(ejecutadoGastos)}</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm text-orange-300 mb-1">Desviación de gastos</p>
+                            <p className={`text-2xl font-bold ${ejecutadoGastos > presupuestadoGastos ? "text-red-300" : "text-orange-300"}`}>
+                              {money(ejecutadoGastos - presupuestadoGastos)}
+                            </p>
+                            <p className="mt-1 text-xs text-slate-400">Positivo = sobrepresupuesto</p>
+                          </div>
+                          <div className="text-center">
+                            <p className="text-sm text-blue-300 mb-1">Resultado neto</p>
+                            <p className={`text-2xl font-bold ${netoEjecutado >= 0 ? "text-green-300" : "text-red-300"}`}>{money(netoEjecutado)}</p>
+                            <p className="mt-1 text-xs text-slate-400">Presupuestado: {money(netoPresupuestado)}</p>
+                          </div>
+                        </>
+                      );
+                    })()}
                   </div>
                 </CardContent>
               </Card>
@@ -1731,9 +1804,10 @@ export default function TreasurerFinancialPanel() {
               </div>
             </CardHeader>
             <CardContent>
-              <TransactionList 
-                transactions={transactions}
-                budget={currentBudget}
+              <TransactionList
+                transactions={transactions.filter(t => !activeSeason || seasonMatches(t.temporada, activeSeason.temporada))}
+                onDelete={handleDeleteTransaction}
+                onExport={handleExportTransactions}
               />
             </CardContent>
           </Card>
@@ -1742,16 +1816,16 @@ export default function TreasurerFinancialPanel() {
 
       {/* Dialog: Nueva Transacción */}
       <Dialog open={showAddTransaction} onOpenChange={setShowAddTransaction}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Nueva Transacción</DialogTitle>
           </DialogHeader>
           <TransactionForm
-            budget={currentBudget}
-            onSuccess={() => {
-              setShowAddTransaction(false);
-              queryClient.invalidateQueries({ queryKey: ['transactions'] });
-            }}
+            partidas={currentBudget?.partidas || []}
+            temporada={activeSeason?.temporada || ""}
+            onSubmit={(data) => createTransactionMutation.mutate(data)}
+            onCancel={() => setShowAddTransaction(false)}
+            isSubmitting={createTransactionMutation.isPending}
           />
         </DialogContent>
       </Dialog>
