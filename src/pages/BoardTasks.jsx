@@ -5,7 +5,7 @@ import { DragDropContext } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Filter, Clock3, AlertTriangle, CheckCircle2, ListTodo, ClipboardList, Users, CalendarClock } from "lucide-react";
+import { Plus, Filter, Clock3, AlertTriangle, CheckCircle2, ListTodo, ClipboardList } from "lucide-react";
 import BoardTaskForm from "../components/board/BoardTaskForm";
 import BoardKanbanColumn from "../components/board/BoardKanbanColumn";
 import CompleteTaskDialog from "../components/board/CompleteTaskDialog";
@@ -179,26 +179,24 @@ export default function BoardTasks() {
         />
       )}
 
-      <div className="bg-white rounded-xl shadow p-3">
-        <div className="flex flex-col lg:flex-row gap-2 lg:items-center lg:justify-between">
-          <div className="flex items-center gap-2 flex-1">
-            <Filter className="w-4 h-4 text-slate-500" />
-            <Select value={roleFilter} onValueChange={setRoleFilter}>
-              <SelectTrigger className="w-44"><SelectValue placeholder="Rol" /></SelectTrigger>
-              <SelectContent>
-                {ROLE_OPTIONS.map(r => (<SelectItem key={r} value={r}>{r}</SelectItem>))}
-              </SelectContent>
-            </Select>
-            <Select value={areaFilter} onValueChange={setAreaFilter}>
-              <SelectTrigger className="w-56"><SelectValue placeholder="Área" /></SelectTrigger>
-              <SelectContent>
-                {AREAS.map(a => (<SelectItem key={a} value={a}>{a}</SelectItem>))}
-              </SelectContent>
-            </Select>
-            <Input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Buscar…" className="max-w-xs" />
-          </div>
+      <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
+        <div className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-800"><Filter className="h-4 w-4 text-orange-600" /> Filtrar tareas</div>
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(150px,0.7fr)_minmax(190px,1fr)_minmax(220px,1.4fr)]">
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="min-h-10 w-full"><SelectValue placeholder="Filtrar por rol" /></SelectTrigger>
+            <SelectContent>
+              {ROLE_OPTIONS.map(r => (<SelectItem key={r} value={r}>{r === "Todos" ? "Todos los roles" : r}</SelectItem>))}
+            </SelectContent>
+          </Select>
+          <Select value={areaFilter} onValueChange={setAreaFilter}>
+            <SelectTrigger className="min-h-10 w-full"><SelectValue placeholder="Filtrar por área" /></SelectTrigger>
+            <SelectContent>
+              {AREAS.map(a => (<SelectItem key={a} value={a}>{a === "Todas" ? "Todas las áreas" : a}</SelectItem>))}
+            </SelectContent>
+          </Select>
+          <Input value={search} onChange={(e)=>setSearch(e.target.value)} placeholder="Buscar por título o descripción…" className="min-h-10 w-full" />
         </div>
-      </div>
+      </section>
 
       {isError ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">No se han podido cargar las tareas. Comprueba que el usuario tiene permiso de Junta o administrador y vuelve a intentarlo.</div>
