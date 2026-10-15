@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Filter, Clock3, AlertTriangle, CheckCircle2, ListTodo, ClipboardList, CalendarDays, Download, LayoutGrid, UserRound } from "lucide-react";
 import BoardTaskForm from "../components/board/BoardTaskForm";
+import BoardMeetingForm from "../components/board/BoardMeetingForm";
 import BoardKanbanColumn from "../components/board/BoardKanbanColumn";
 import CompleteTaskDialog from "../components/board/CompleteTaskDialog";
 
@@ -30,6 +31,8 @@ export default function BoardTasks() {
   const [search, setSearch] = React.useState("");
   const [taskView, setTaskView] = React.useState("tablero");
   const [myTasksOnly, setMyTasksOnly] = React.useState(false);
+  const [showMeetingForm, setShowMeetingForm] = React.useState(false);
+  const [editingMeeting, setEditingMeeting] = React.useState(null);
   const [completeTask, setCompleteTask] = React.useState(null);
   const queryClient = useQueryClient();
 
@@ -57,6 +60,22 @@ export default function BoardTasks() {
     initialData: [],
     enabled: canAccess,
     retry: false,
+  });
+
+  const { data: meetings = [], isLoading: meetingsLoading } = useQuery({
+    queryKey: ["boardMeetings"],
+    queryFn: () => base44.entities.BoardMeeting.list("-fecha_reunion", 300),
+    enabled: canAccess,
+    retry: false,
+  });
+
+  const createMeetingMutation = useMutation({
+    mutationFn: (payload) => base44.entities.BoardMeeting.create(payload),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["boardMeetings"] }); setShowMeetingForm(false); setEditingMeeting(null); }
+  });
+  const updateMeetingMutation = useMutation({
+    mutationFn: ({ id, data }) => base44.entities.BoardMeeting.update(id, data),
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["boardMeetings"] }); setShowMeetingForm(false); setEditingMeeting(null); }
   });
 
   const createMutation = useMutation({
