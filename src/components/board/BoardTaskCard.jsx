@@ -10,7 +10,7 @@ const PRIORITY_COLORS = {
   alta: "bg-red-100 text-red-800"
 };
 
-export default function BoardTaskCard({ task, onEdit, onDelete, onComplete }) {
+export default function BoardTaskCard({ task, onEdit, onDelete, onComplete, canManage = false }) {
   return (
     <Card className="bg-white/90">
       <CardHeader className="py-3 pb-1">
@@ -22,12 +22,12 @@ export default function BoardTaskCard({ task, onEdit, onDelete, onComplete }) {
                 <CheckCircle2 className="w-4 h-4" />
               </Button>
             )}
-            <Button size="icon" variant="ghost" onClick={()=>onEdit(task)} className="h-7 w-7">
+            {canManage && <Button size="icon" variant="ghost" aria-label="Editar tarea" onClick={()=>onEdit(task)} className="h-7 w-7">
               <Pencil className="w-4 h-4" />
-            </Button>
-            <Button size="icon" variant="ghost" onClick={()=>onDelete(task)} className="h-7 w-7">
+            </Button>}
+            {canManage && <Button size="icon" variant="ghost" aria-label="Eliminar tarea" onClick={()=>onDelete(task)} className="h-7 w-7 text-red-600 hover:text-red-700">
               <Trash2 className="w-4 h-4" />
-            </Button>
+            </Button>}
           </div>
         </div>
       </CardHeader>
