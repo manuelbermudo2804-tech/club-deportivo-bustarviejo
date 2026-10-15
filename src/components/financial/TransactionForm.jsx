@@ -43,6 +43,9 @@ const CATEGORIAS_GASTO = [
   "Otros Gastos"
 ];
 
+const TIPOS_DOCUMENTO = ["Factura", "Recibo", "Justificante de pago", "Presupuesto", "Albarán", "Contrato", "Nómina", "Extracto bancario", "Otro"];
+const SUBTIPOS_DOCUMENTO = ["Cuota deportiva", "Equipación/Ropa", "Lotería", "Material deportivo", "Arbitraje", "Desplazamiento", "Instalaciones", "Subvención", "Patrocinio", "Seguro", "Federación", "Otro"];
+
 export default function TransactionForm({ 
   partidas = [], 
   temporada, 
@@ -71,9 +74,19 @@ export default function TransactionForm({
   const [extractedData, setExtractedData] = useState(null);
 
   const categorias = tipo === "Ingreso" ? CATEGORIAS_INGRESO : CATEGORIAS_GASTO;
-  const partidasFiltradas = partidas.filter(p => 
+  const partidasFiltradas = partidas.filter(p =>
     tipo === "Ingreso" ? p.categoria === "Ingresos" : p.categoria !== "Ingresos"
   );
+
+  const cambiarTipo = (nuevoTipo) => {
+    setTipo(nuevoTipo);
+    setFormData(prev => ({
+      ...prev,
+      estado: prev.estado === "Anulado" || prev.estado === "Pendiente"
+        ? prev.estado
+        : nuevoTipo === "Ingreso" ? "Cobrado" : "Pagado"
+    }));
+  };
 
   const handleFileUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -272,8 +285,8 @@ export default function TransactionForm({
       notas: formData.notas.trim(),
       documento_url: documentoUrl,
       documento_nombre: documento?.nombre || "",
-      tipo_documento: extractedData?.tipo_documento || "",
-      subtipo_documento: extractedData?.subtipo_documento || "",
+      ...(TIPOS_DOCUMENTO.includes(extractedData?.tipo_documento) ? { tipo_documento: extractedData.tipo_documento } : {}),
+      ...(SUBTIPOS_DOCUMENTO.includes(extractedData?.subtipo_documento) ? { subtipo_documento: extractedData.subtipo_documento } : {}),
       palabras_clave: extractedData?.palabras_clave || []
     });
   };
@@ -294,7 +307,7 @@ export default function TransactionForm({
               type="button"
               variant={tipo === "Ingreso" ? "default" : "outline"}
               className={tipo === "Ingreso" ? "bg-green-600 hover:bg-green-700 flex-1" : "flex-1"}
-              onClick={() => setTipo("Ingreso")}
+              onClick={() => cambiarTipo("Ingreso")}
             >
               <TrendingUp className="h-4 w-4 mr-2" />
               Ingreso
@@ -303,7 +316,7 @@ export default function TransactionForm({
               type="button"
               variant={tipo === "Gasto" ? "default" : "outline"}
               className={tipo === "Gasto" ? "bg-red-600 hover:bg-red-700 flex-1" : "flex-1"}
-              onClick={() => setTipo("Gasto")}
+              onClick={() => cambiarTipo("Gasto")}
             >
               <TrendingDown className="h-4 w-4 mr-2" />
               Gasto
