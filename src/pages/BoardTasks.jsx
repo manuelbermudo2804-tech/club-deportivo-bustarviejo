@@ -81,7 +81,7 @@ export default function BoardTasks() {
 
   const createMutation = useMutation({
     mutationFn: (payload) => base44.entities.BoardTask.create(payload),
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["boardTasks"] }); setShowForm(false); setEditing(null); }
+    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["boardTasks"] }); setShowForm(false); setEditing(null); setSelectedMeetingId(""); }
   });
 
   const updateMutation = useMutation({
