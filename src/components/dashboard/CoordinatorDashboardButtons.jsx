@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, CheckCircle2, Users, Star, Calendar, Megaphone, Image, FileText, BarChart3, FileSignature, UserCircle, Settings, Clover, Heart, ShoppingBag, CreditCard, ClipboardCheck, Award, Trophy, MessageCircle, Gift } from "lucide-react";
+import { Bell, CheckCircle2, Users, Star, Calendar, Megaphone, Image, FileText, BarChart3, FileSignature, UserCircle, Settings, Clover, Heart, ShoppingBag, CreditCard, ClipboardCheck, Award, Trophy, MessageCircle, Gift, BrainCircuit } from "lucide-react";
 import { createPageUrl } from "@/utils";
 
 // DEFINICIÓN COMPLETA - refleja TODO el menú lateral de coordinadores
@@ -16,6 +16,7 @@ export const ALL_COORDINATOR_BUTTONS = [
   { id: "chat_familias_entrenador", title: "⚽ Familias - Entrenador", icon: MessageCircle, url: createPageUrl("CoachParentChat"), gradient: "from-blue-600 to-blue-700", priority: 9, conditional: true, conditionKey: "isCoachToo", section: "coordinator" },
   { id: "chat_staff", title: "💼 Chat Staff", icon: MessageCircle, url: createPageUrl("StaffChat"), gradient: "from-purple-600 to-purple-700", priority: 10, section: "coordinator" },
   { id: "reportes", title: "📊 Reportes", icon: Star, url: createPageUrl("CoachEvaluationReports"), gradient: "from-purple-600 to-purple-700", priority: 14, section: "coordinator" },
+  { id: "inteligencia_deportiva", title: "🧠 Inteligencia deportiva", icon: BrainCircuit, url: createPageUrl("InteligenciaDeportiva"), gradient: "from-indigo-600 to-violet-700", priority: 13, section: "coordinator" },
   { id: "perfil", title: "👤 Mi Perfil", icon: UserCircle, url: createPageUrl("CoachProfile"), gradient: "from-indigo-600 to-indigo-700", priority: 15, section: "coordinator" },
   { id: "firmas", title: "🖊️ Firmas y Reconocimientos", icon: FileSignature, url: createPageUrl("FederationSignaturesAdmin"), gradient: "from-yellow-600 to-orange-600", priority: 16, conditional: true, conditionKey: "canManageSignatures", section: "coordinator" },
   // --- Sección Jugador +18 (si también es jugador) ---
@@ -52,7 +53,8 @@ export const DEFAULT_COORDINATOR_BUTTONS = [
   "ejercicios",
   "tactica",
   "calendario",
-  "reportes"
+  "reportes",
+  "inteligencia_deportiva"
 ];
 
 export const MIN_BUTTONS = 4;
