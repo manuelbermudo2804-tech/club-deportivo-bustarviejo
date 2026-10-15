@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 function parseSeasonRange(seasonStr, fallbackStart, fallbackEnd) {
   try {
-    if (!seasonStr || !seasonStr.includes('/')) return { start: fallbackStart, end: fallbackEnd };
+    if (!seasonStr || !/[\/-]/.test(seasonStr)) return { start: fallbackStart, end: fallbackEnd };
     const [y1, y2] = seasonStr.split(/[\/-]/).map(s => parseInt(s, 10));
     // Temporada estándar: 1 Sep (y1) a 30 Jun (y2)
     const start = new Date(y1, 8, 1);
@@ -30,8 +30,11 @@ Deno.serve(async (req) => {
     const activeConfigs = await base44.entities.SeasonConfig.filter({ activa: true });
     const active = activeConfigs[0] || null;
     const seasonStr = budget.temporada || active?.temporada || '';
+    const normalizeSeason = (value) => String(value || '').replace(/[^\d]/g, '');
+    const targetSeasonKey = normalizeSeason(seasonStr);
+    const activeSeasonMatchesBudget = Boolean(active?.temporada && normalizeSeason(active.temporada) === targetSeasonKey);
     const { start: fallbackStart, end: fallbackEnd } = { start: new Date(new Date().getFullYear(), 0, 1), end: new Date() };
-    const { start: seasonStart, end: seasonEnd } = active?.fecha_inicio && active?.fecha_fin
+    const { start: seasonStart, end: seasonEnd } = activeSeasonMatchesBudget && active?.fecha_inicio && active?.fecha_fin
       ? { start: new Date(active.fecha_inicio), end: new Date(active.fecha_fin) }
       : parseSeasonRange(seasonStr, fallbackStart, fallbackEnd);
 
@@ -41,15 +44,13 @@ Deno.serve(async (req) => {
       if (!d) return true;
       try { const dt = new Date(d); return !Number.isNaN(dt.getTime()) && dt >= seasonStart && dt <= seasonEnd; } catch { return false; }
     };
-    const normalizeSeason = (value) => String(value || '').replace(/[^\d]/g, '');
     const normalizeText = (value) => String(value || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase();
     let seasonTransactions = [];
     try {
       const allTransactions = await base44.entities.FinancialTransaction.list('-fecha');
-      const seasonKey = normalizeSeason(seasonStr);
       seasonTransactions = (allTransactions || []).filter(t => {
         const txSeason = normalizeSeason(t.temporada);
-        return txSeason ? txSeason === seasonKey : inRange(t.fecha);
+        return txSeason ? txSeason === targetSeasonKey : inRange(t.fecha);
       });
     } catch (error) {
       console.warn('No se pudieron cargar los movimientos financieros para el presupuesto:', error?.message || error);
@@ -67,7 +68,10 @@ Deno.serve(async (req) => {
       let inscripciones = 0;
       let inscripcionesPresupuestado = 0;
       try {
-        const allPayments = await base44.entities.Payment.filter({ temporada: seasonStr, is_deleted: false });
+        const paymentsRaw = await base44.entities.Payment.list();
+        const allPayments = (paymentsRaw || []).filter(p =>
+          normalizeSeason(p.temporada) === targetSeasonKey && p.is_deleted !== true
+        );
 
         // Dedupe por clave estable: plan:jugador:mes | unico:jugador | mes:jugador:mes
         const rank = (s) => (s === 'Pagado' ? 3 : s === 'En revisión' ? 2 : s === 'Pendiente' ? 1 : 0);
@@ -88,7 +92,7 @@ Deno.serve(async (req) => {
         // Incluir cuotas de Plan Especial activas sin pagos creados aún
         try {
           const allPlans = await base44.entities.CustomPaymentPlan.list();
-          const activePlans = (allPlans || []).filter(pl => pl.estado === 'Activo' && (!pl.temporada || pl.temporada === seasonStr));
+          const activePlans = (allPlans || []).filter(pl => pl.estado === 'Activo' && (!pl.temporada || normalizeSeason(pl.temporada) === targetSeasonKey));
           const covered = new Set(deduped.filter(p => (p.tipo_pago || '').toLowerCase().includes('plan')).map(p => `${p.jugador_id}:${p.mes || p.id}`));
           activePlans.forEach(pl => {
             (pl.cuotas || []).forEach((c, idx) => {
