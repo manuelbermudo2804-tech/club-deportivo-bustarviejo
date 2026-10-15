@@ -213,10 +213,11 @@ export default function BoardTasks() {
         </div>
       </div>
 
-      {showForm && canManageTasks && (
+      {showForm && canManageTasks && taskView !== "actas" && (
         <BoardTaskForm
           task={editing}
           users={boardMembers}
+          meetings={meetings}
           onSubmit={handleSubmit}
           onCancel={()=>{ setShowForm(false); setEditing(null); }}
           isSubmitting={createMutation.isPending || updateMutation.isPending}
@@ -246,15 +247,41 @@ export default function BoardTasks() {
         <div className="flex flex-wrap gap-2">
           <Button type="button" variant={taskView === "tablero" ? "default" : "outline"} onClick={() => setTaskView("tablero")} className={taskView === "tablero" ? "bg-slate-900" : ""}><LayoutGrid className="mr-2 h-4 w-4" /> Tablero</Button>
           <Button type="button" variant={taskView === "calendario" ? "default" : "outline"} onClick={() => setTaskView("calendario")} className={taskView === "calendario" ? "bg-slate-900" : ""}><CalendarDays className="mr-2 h-4 w-4" /> Por fecha</Button>
+          <Button type="button" variant={taskView === "actas" ? "default" : "outline"} onClick={() => setTaskView("actas")} className={taskView === "actas" ? "bg-slate-900" : ""}><ClipboardList className="mr-2 h-4 w-4" /> Actas y acuerdos</Button>
           <Button type="button" variant={myTasksOnly ? "default" : "outline"} onClick={() => setMyTasksOnly((value) => !value)} className={myTasksOnly ? "bg-orange-600 hover:bg-orange-700" : ""}><UserRound className="mr-2 h-4 w-4" /> {myTasksOnly ? "Mis tareas" : "Ver mis tareas"}</Button>
         </div>
-        <Button type="button" variant="outline" onClick={exportReport} className="min-h-10"><Download className="mr-2 h-4 w-4" /> Exportar informe CSV</Button>
+        <div className="flex flex-wrap gap-2">
+          {taskView === "actas" && canManageTasks && <Button type="button" onClick={() => { setEditingMeeting(null); setShowMeetingForm((value) => !value); }} className="min-h-10 bg-orange-600 text-white hover:bg-orange-700"><Plus className="mr-2 h-4 w-4" /> Nueva acta</Button>}
+          <Button type="button" variant="outline" onClick={exportReport} className="min-h-10"><Download className="mr-2 h-4 w-4" /> Exportar informe CSV</Button>
+        </div>
       </section>
 
       {isError ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-800">No se han podido cargar las tareas. Comprueba que el usuario tiene permiso de Junta o administrador y vuelve a intentarlo.</div>
       ) : isLoading ? (
         <div className="text-center py-12"><div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-orange-600 border-r-transparent"></div></div>
+      ) : taskView === "actas" ? (
+        <section className="space-y-4">
+          {showMeetingForm && canManageTasks && <BoardMeetingForm meeting={editingMeeting} onCancel={() => { setShowMeetingForm(false); setEditingMeeting(null); }} isSubmitting={createMeetingMutation.isPending || updateMeetingMutation.isPending} onSubmit={(payload) => {
+            if (!canManageTasks) return;
+            const data = { ...payload, creado_por_email: user.email || "", creado_por_nombre: user.full_name || "" };
+            if (editingMeeting) updateMeetingMutation.mutate({ id: editingMeeting.id, data });
+            else createMeetingMutation.mutate(data);
+          }} />}
+          {meetingsLoading ? <div className="rounded-xl border p-8 text-center text-sm text-slate-500">Cargando actas…</div> : meetings.slice().sort((a, b) => (b.fecha_reunion || "").localeCompare(a.fecha_reunion || "")).map((meeting) => (
+            <article key={meeting.id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex-1"><p className="text-xs font-semibold uppercase tracking-wide text-orange-700">{meeting.fecha_reunion}</p><h3 className="mt-1 text-lg font-bold text-slate-900">{meeting.titulo}</h3>{meeting.asistentes && <p className="mt-1 text-xs text-slate-500">Asistentes: {meeting.asistentes}</p>}</div>
+                {canManageTasks && <Button type="button" variant="outline" onClick={() => { setEditingMeeting(meeting); setShowMeetingForm(true); }}><ClipboardList className="mr-2 h-4 w-4" /> Editar acta</Button>}
+              </div>
+              {meeting.orden_del_dia && <div className="mt-4"><h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">Puntos tratados</h4><p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{meeting.orden_del_dia}</p></div>}
+              {meeting.resumen && <div className="mt-4"><h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">Resumen</h4><p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{meeting.resumen}</p></div>}
+              {meeting.acuerdos && <div className="mt-4 rounded-xl border border-orange-100 bg-orange-50/60 p-3"><h4 className="text-xs font-bold uppercase tracking-wide text-orange-800">Acuerdos y decisiones</h4><p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{meeting.acuerdos}</p><Button type="button" size="sm" variant="outline" className="mt-3 bg-white" onClick={() => { setEditing(null); setShowForm(true); setTaskView("tablero"); }}>Crear tarea derivada de este acuerdo</Button></div>}
+              <div className="mt-3 text-xs text-slate-400">Registrada por {meeting.creado_por_nombre || meeting.creado_por_email || "Administración"}</div>
+            </article>
+          ))}
+          {!meetingsLoading && meetings.length === 0 && !showMeetingForm && <div className="rounded-xl border border-dashed p-8 text-center"><FileText className="mx-auto mb-2 h-8 w-8 text-slate-400" /><p className="font-semibold text-slate-800">Todavía no hay actas registradas</p><p className="mt-1 text-sm text-slate-500">Registra las reuniones y guarda sus acuerdos para que toda la Junta pueda consultarlos.</p></div>}
+        </section>
       ) : taskView === "calendario" ? (
         <section className="space-y-3">
           {filtered.slice().sort((a, b) => (a.fecha_limite || "9999-12-31").localeCompare(b.fecha_limite || "9999-12-31")).map((task) => (
