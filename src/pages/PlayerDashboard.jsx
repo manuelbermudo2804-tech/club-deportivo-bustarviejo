@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { buildWeekAgenda } from "@/components/dashboard/miSemanaHelper";
+import useSinEntrenamiento from "@/hooks/useSinEntrenamiento";
 import { createPortal } from "react-dom";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -219,6 +221,13 @@ export default function PlayerDashboard() {
     refetchOnWindowFocus: false,
     initialData: [],
   });
+
+  // Entrenamiento de hoy (con botón "No voy") en la barra de tareas
+  const diasSinEntreno = useSinEntrenamiento();
+  const weekAgenda = useMemo(
+    () => buildWeekAgenda(player ? [player] : [], schedules || [], callups || [], diasSinEntreno),
+    [player, schedules, callups, diasSinEntreno]
+  );
 
   // Configuración de temporada
   const { data: seasonConfig } = useQuery({
@@ -599,6 +608,7 @@ export default function PlayerDashboard() {
           isParent={true}
           userEmail={user?.email}
           userSports={player?.deporte ? [player.deporte] : []}
+          weekAgenda={weekAgenda}
         />
 
         {/* Banner Hazte Socio */}
