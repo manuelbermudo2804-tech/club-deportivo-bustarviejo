@@ -12,6 +12,7 @@ import {
 import useLandingMenuItems from "./useLandingMenuItems";
 import useDorsalPending from "./useDorsalPending";
 import { createPageUrl } from "@/utils";
+import { ClipboardList } from "lucide-react";
 
 /**
  * Centralizes all navigation-building logic that was spread across Layout.
