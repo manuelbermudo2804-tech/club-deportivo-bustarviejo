@@ -5,7 +5,7 @@ import { DragDropContext } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Filter, Clock3, AlertTriangle, CheckCircle2, ListTodo } from "lucide-react";
+import { Plus, Filter, Clock3, AlertTriangle, CheckCircle2, ListTodo, ClipboardList, Users, CalendarClock } from "lucide-react";
 import BoardTaskForm from "../components/board/BoardTaskForm";
 import BoardKanbanColumn from "../components/board/BoardKanbanColumn";
 import CompleteTaskDialog from "../components/board/CompleteTaskDialog";
@@ -128,39 +128,44 @@ export default function BoardTasks() {
   }
 
   return (
-    <div className="p-4 lg:p-6 space-y-4">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
-        <div>
-          <h1 className="text-2xl lg:text-3xl font-bold text-slate-900">Tareas Junta</h1>
-          <p className="text-slate-600 text-sm">Acuerdos, responsables y plazos en un único sitio privado para la Junta.</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={() => { setEditing(null); setShowForm(!showForm); }} className="bg-orange-600 hover:bg-orange-700">
-            <Plus className="w-4 h-4 mr-2" /> Nueva tarea
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><ClipboardList className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+            <div className="min-w-0">
+              <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Administración · Organización interna</p>
+              <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Tareas de la Junta</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Organiza acuerdos, asigna responsables y controla los plazos en un espacio privado para la Junta.</p>
+            </div>
+          </div>
+          <Button onClick={() => { setEditing(null); setShowForm(!showForm); }} className="min-h-11 w-full bg-orange-500 text-white hover:bg-orange-600 sm:w-auto">
+            <Plus className="mr-2 h-4 w-4" /> Nueva tarea
           </Button>
         </div>
-      </div>
+      </section>
 
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center justify-between text-slate-500"><span className="text-sm">Tareas activas</span><ListTodo className="h-5 w-5" /></div>
-          <p className="mt-2 text-3xl font-bold text-slate-900">{activeTasks.length}</p>
-          <p className="text-xs text-slate-500">Pendientes, en curso o bloqueadas</p>
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+        <div className="rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:p-5">
+          <div className="flex items-center justify-between gap-2 text-slate-600"><span className="text-xs sm:text-sm">Tareas activas</span><ListTodo className="h-5 w-5 shrink-0 text-slate-500" /></div>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-slate-900">{activeTasks.length}</p>
+          <p className="mt-1 text-xs text-slate-500">Pendientes, en curso o bloqueadas</p>
         </div>
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 shadow-sm">
-          <div className="flex items-center justify-between text-red-700"><span className="text-sm">Fuera de plazo</span><AlertTriangle className="h-5 w-5" /></div>
-          <p className="mt-2 text-3xl font-bold text-red-800">{overdueTasks.length}</p>
-          <p className="text-xs text-red-700">Requieren revisión prioritaria</p>
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 shadow-sm sm:p-5">
+          <div className="flex items-center justify-between gap-2 text-red-700"><span className="text-xs sm:text-sm">Fuera de plazo</span><AlertTriangle className="h-5 w-5 shrink-0" /></div>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-red-800">{overdueTasks.length}</p>
+          <p className="mt-1 text-xs text-red-700">Requieren revisión prioritaria</p>
         </div>
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
-          <div className="flex items-center justify-between text-amber-700"><span className="text-sm">Vencen en 7 días</span><Clock3 className="h-5 w-5" /></div>
-          <p className="mt-2 text-3xl font-bold text-amber-800">{dueSoonTasks.length}</p>
-          <p className="text-xs text-amber-700">Plazos próximos</p>
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm sm:p-5">
+          <div className="flex items-center justify-between gap-2 text-amber-700"><span className="text-xs sm:text-sm">Vencen en 7 días</span><Clock3 className="h-5 w-5 shrink-0" /></div>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-amber-800">{dueSoonTasks.length}</p>
+          <p className="mt-1 text-xs text-amber-700">Plazos próximos</p>
         </div>
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
-          <div className="flex items-center justify-between text-emerald-700"><span className="text-sm">Completadas</span><CheckCircle2 className="h-5 w-5" /></div>
-          <p className="mt-2 text-3xl font-bold text-emerald-800">{tasks.filter((task) => task.estado === "hecho").length}</p>
-          <p className="text-xs text-emerald-700">Acuerdos ya cerrados</p>
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm sm:p-5">
+          <div className="flex items-center justify-between gap-2 text-emerald-700"><span className="text-xs sm:text-sm">Completadas</span><CheckCircle2 className="h-5 w-5 shrink-0" /></div>
+          <p className="mt-2 text-3xl font-bold tracking-tight text-emerald-800">{tasks.filter((task) => task.estado === "hecho").length}</p>
+          <p className="mt-1 text-xs text-emerald-700">Acuerdos ya cerrados</p>
         </div>
       </div>
 
