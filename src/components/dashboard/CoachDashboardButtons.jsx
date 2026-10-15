@@ -1,5 +1,5 @@
 import React from "react";
-import { Bell, CheckCircle2, Users, Star, Calendar, Megaphone, Image, FileText, BarChart3, FileSignature, UserCircle, Award, Settings, Clover, Heart, ShoppingBag, CreditCard, ClipboardCheck, Trophy, MessageCircle, Gift, Clock } from "lucide-react";
+import { Bell, CheckCircle2, Users, Star, Calendar, Megaphone, Image, FileText, BarChart3, FileSignature, UserCircle, Award, Settings, Clover, Heart, ShoppingBag, CreditCard, ClipboardCheck, Trophy, MessageCircle, Gift, Clock, BrainCircuit } from "lucide-react";
 // CreditCard already imported for player payments
 import { createPageUrl } from "@/utils";
 
@@ -17,6 +17,7 @@ export const ALL_COACH_BUTTONS = [
   { id: "chat_familias", title: "💬 Chat con Familias", icon: MessageCircle, url: createPageUrl("CoachParentChat"), gradient: "from-blue-600 to-blue-700", priority: 8, section: "coach" },
   { id: "chat_staff", title: "💼 Chat Staff", icon: MessageCircle, url: createPageUrl("StaffChat"), gradient: "from-purple-600 to-purple-700", priority: 9, section: "coach" },
   { id: "reportes", title: "📊 Reportes", icon: Star, url: createPageUrl("CoachEvaluationReports"), gradient: "from-purple-600 to-purple-700", priority: 13, section: "coach" },
+  { id: "inteligencia_deportiva", title: "🧠 Inteligencia deportiva", icon: BrainCircuit, url: createPageUrl("InteligenciaDeportiva"), gradient: "from-indigo-600 to-violet-700", priority: 12, section: "coach" },
   { id: "perfil", title: "👤 Mi Perfil", icon: UserCircle, url: createPageUrl("CoachProfile"), gradient: "from-indigo-600 to-indigo-700", priority: 14, section: "coach" },
   { id: "firmas", title: "🖊️ Firmas y Reconocimientos", icon: FileSignature, url: createPageUrl("FederationSignaturesAdmin"), gradient: "from-yellow-600 to-orange-600", priority: 15, conditional: true, conditionKey: "canManageSignatures", section: "coach" },
   // --- Sección Jugador +18 (si también es jugador) ---
@@ -53,7 +54,8 @@ export const DEFAULT_COACH_BUTTONS = [
   "ejercicios",
   "tactica",
   "calendario",
-  "reportes"
+  "reportes",
+  "inteligencia_deportiva"
 ];
 
 export const MIN_BUTTONS = 4;
