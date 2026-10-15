@@ -78,6 +78,39 @@
       "format": "email",
       "description": "Asignaci\u00f3n directa a una persona (opcional)"
     },
+    "creado_por_email": {
+      "type": "string",
+      "description": "Email del administrador que registr\u00f3 la tarea"
+    },
+    "creado_por_nombre": {
+      "type": "string",
+      "description": "Nombre del administrador que registr\u00f3 la tarea"
+    },
+    "historial": {
+      "type": "array",
+      "description": "Historial cronol\u00f3gico de creaci\u00f3n, cambios de estado y ediciones",
+      "items": {
+        "type": "object",
+        "properties": {
+          "tipo": {
+            "type": "string"
+          },
+          "autor_email": {
+            "type": "string"
+          },
+          "autor_nombre": {
+            "type": "string"
+          },
+          "detalle": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
     "comentarios": {
       "type": "array",
       "items": {
