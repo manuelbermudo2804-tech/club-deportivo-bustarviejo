@@ -59,11 +59,11 @@ export default function BoardTaskCard({ task, onEdit, onDelete, onComplete, canM
           {task.area && (
             <Badge variant="outline">{task.area}</Badge>
           )}
-          {task.rol_asignado && (
-            <Badge variant="secondary">{task.rol_asignado}</Badge>
+          {(task.asignado_a_nombre || task.asignado_a_email) && (
+            <span className="flex items-center gap-1 text-xs font-medium text-slate-700"><User className="w-3 h-3" />{task.asignado_a_nombre || task.asignado_a_email}</span>
           )}
-          {task.asignado_a_email && (
-            <span className="flex items-center gap-1 text-xs text-slate-500"><User className="w-3 h-3" />{task.asignado_a_email}</span>
+          {!task.asignado_a_email && task.rol_asignado && (
+            <Badge variant="secondary">{task.rol_asignado}</Badge>
           )}
           {task.fecha_limite && (
             <span className="flex items-center gap-1 text-xs text-slate-500"><Calendar className="w-3 h-3" />{task.fecha_limite}</span>
