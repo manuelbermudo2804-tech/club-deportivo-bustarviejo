@@ -33,6 +33,7 @@ export default function BoardTasks() {
   const [myTasksOnly, setMyTasksOnly] = React.useState(false);
   const [showMeetingForm, setShowMeetingForm] = React.useState(false);
   const [editingMeeting, setEditingMeeting] = React.useState(null);
+  const [selectedMeetingId, setSelectedMeetingId] = React.useState("");
   const [completeTask, setCompleteTask] = React.useState(null);
   const queryClient = useQueryClient();
 
@@ -218,8 +219,9 @@ export default function BoardTasks() {
           task={editing}
           users={boardMembers}
           meetings={meetings}
+          defaultMeetingId={selectedMeetingId}
           onSubmit={handleSubmit}
-          onCancel={()=>{ setShowForm(false); setEditing(null); }}
+          onCancel={()=>{ setShowForm(false); setEditing(null); setSelectedMeetingId(""); }}
           isSubmitting={createMutation.isPending || updateMutation.isPending}
         />
       )}
@@ -276,7 +278,7 @@ export default function BoardTasks() {
               </div>
               {meeting.orden_del_dia && <div className="mt-4"><h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">Puntos tratados</h4><p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{meeting.orden_del_dia}</p></div>}
               {meeting.resumen && <div className="mt-4"><h4 className="text-xs font-bold uppercase tracking-wide text-slate-500">Resumen</h4><p className="mt-1 whitespace-pre-wrap text-sm text-slate-700">{meeting.resumen}</p></div>}
-              {meeting.acuerdos && <div className="mt-4 rounded-xl border border-orange-100 bg-orange-50/60 p-3"><h4 className="text-xs font-bold uppercase tracking-wide text-orange-800">Acuerdos y decisiones</h4><p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{meeting.acuerdos}</p><Button type="button" size="sm" variant="outline" className="mt-3 bg-white" onClick={() => { setEditing(null); setShowForm(true); setTaskView("tablero"); }}>Crear tarea derivada de este acuerdo</Button></div>}
+              {meeting.acuerdos && <div className="mt-4 rounded-xl border border-orange-100 bg-orange-50/60 p-3"><h4 className="text-xs font-bold uppercase tracking-wide text-orange-800">Acuerdos y decisiones</h4><p className="mt-1 whitespace-pre-wrap text-sm text-slate-800">{meeting.acuerdos}</p>{canManageTasks && <Button type="button" size="sm" variant="outline" className="mt-3 bg-white" onClick={() => { setEditing(null); setSelectedMeetingId(meeting.id); setShowForm(true); setTaskView("tablero"); }}>Crear tarea vinculada a esta acta</Button>}</div>}
               <div className="mt-3 text-xs text-slate-400">Registrada por {meeting.creado_por_nombre || meeting.creado_por_email || "Administración"}</div>
             </article>
           ))}
