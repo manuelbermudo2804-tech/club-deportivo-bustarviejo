@@ -161,7 +161,8 @@ export default function TreasurerFinancialPanel() {
 
   const currentBudget = useMemo(() => {
     if (!activeSeason || budgets.length === 0) return null;
-    return budgets.find(b => seasonMatches(b.temporada, activeSeason.temporada)) || null;
+    const normalizeSeason = (value) => String(value || "").replace(/[^\\d]/g, "");
+    return budgets.find(b => normalizeSeason(b.temporada) === normalizeSeason(activeSeason.temporada)) || null;
   }, [activeSeason, budgets]);
 
   // Función para obtener importe por mes según temporada activa
@@ -289,10 +290,10 @@ export default function TreasurerFinancialPanel() {
       const text = value == null ? "" : String(value);
       return '"' + text.replace(/"/g, '""') + '"';
     };
-    const csv = "\\uFEFF" + [
+    const csv = "\uFEFF" + [
       columns.map(([, label]) => escapeCsv(label)).join(";"),
       ...rows.map(row => columns.map(([key]) => escapeCsv(row[key])).join(";"))
-    ].join("\\r\\n");
+    ].join("\r\n");
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
