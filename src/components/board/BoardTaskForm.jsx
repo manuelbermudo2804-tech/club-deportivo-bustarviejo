@@ -190,13 +190,20 @@ export default function BoardTaskForm({ task, users = [], meetings = [], default
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" variant={isListening ? "destructive" : "outline"} onClick={startDictation} disabled={isListening} className="min-h-10 bg-white">
-            {isListening ? <MicOff className="mr-2 h-4 w-4" /> : <Mic className="mr-2 h-4 w-4" />}{isListening ? "Escuchando…" : "Empezar dictado"}
-          </Button>
-          <Button type="button" onClick={applyDictation} disabled={!dictation.trim()} className="min-h-10 bg-sky-700 text-white hover:bg-sky-800">Incorporar al formulario</Button>
+          {!isListening ? (
+            <Button type="button" variant="outline" onClick={startDictation} className="min-h-11 border-sky-300 bg-white text-sky-800 hover:bg-sky-100">
+              <Mic className="mr-2 h-4 w-4" /> Empezar grabación
+            </Button>
+          ) : (
+            <Button type="button" variant="destructive" onClick={stopDictation} className="min-h-11 animate-pulse">
+              <MicOff className="mr-2 h-4 w-4" /> Detener grabación
+            </Button>
+          )}
+          <Button type="button" onClick={applyDictation} disabled={!dictation.trim() || isListening} className="min-h-11 bg-sky-700 text-white hover:bg-sky-800">Incorporar al formulario</Button>
           {dictation && <Button type="button" variant="ghost" onClick={() => { setDictation(""); setVoiceMessage(""); }}>Borrar dictado</Button>}
         </div>
-        {dictation && <Textarea aria-label="Texto reconocido por voz" value={dictation} onChange={(event) => setDictation(event.target.value)} rows={3} placeholder="El texto reconocido aparecerá aquí; puedes corregirlo antes de incorporarlo." />}
+        {isListening && <div className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-medium text-red-800"><span className="h-2 w-2 animate-pulse rounded-full bg-red-600" /> Grabación activa: habla con normalidad y pulsa «Detener grabación» al terminar.</div>}
+        {dictation && <Textarea aria-label="Texto reconocido por voz" value={dictation} onChange={(event) => setDictation(event.target.value)} rows={5} placeholder="El texto reconocido aparecerá aquí; puedes corregirlo antes de incorporarlo." />}
         {voiceMessage && <p role="status" className="text-xs text-slate-600">{voiceMessage}</p>}
       </section>
 
