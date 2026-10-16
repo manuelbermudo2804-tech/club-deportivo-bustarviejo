@@ -18,7 +18,7 @@ export default function AgendaTeamFilter({ categorias, valor, onChange, limiteBo
           size="sm"
           variant={valor === "all" ? "default" : "outline"}
           onClick={() => onChange("all")}
-          className={valor === "all" ? "bg-blue-600 hover:bg-blue-700 h-8 text-xs" : "h-8 text-xs"}
+          className={valor === "all" ? "bg-orange-600 hover:bg-orange-700 h-8 rounded-xl text-xs shadow-sm" : "h-8 rounded-xl border-slate-200 text-xs hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700"}
         >
           Todos los equipos
         </Button>
@@ -28,7 +28,7 @@ export default function AgendaTeamFilter({ categorias, valor, onChange, limiteBo
             size="sm"
             variant={valor === c ? "default" : "outline"}
             onClick={() => onChange(c)}
-            className={valor === c ? "bg-blue-600 hover:bg-blue-700 h-8 text-xs" : "h-8 text-xs"}
+            className={valor === c ? "bg-orange-600 hover:bg-orange-700 h-8 rounded-xl text-xs shadow-sm" : "h-8 rounded-xl border-slate-200 text-xs hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700"}
           >
             {c}
           </Button>
@@ -39,7 +39,7 @@ export default function AgendaTeamFilter({ categorias, valor, onChange, limiteBo
 
   return (
     <Select value={valor} onValueChange={onChange}>
-      <SelectTrigger className="h-8 text-xs w-full sm:w-64 bg-white">
+      <SelectTrigger className="h-10 w-full rounded-xl border-slate-200 bg-white text-sm shadow-sm focus:ring-2 focus:ring-orange-200 sm:w-72">
         <SelectValue placeholder="Todos los equipos" />
       </SelectTrigger>
       <SelectContent>
