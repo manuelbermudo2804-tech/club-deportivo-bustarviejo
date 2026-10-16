@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char] ?? char);
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -22,12 +24,19 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const { nombre, email, telefono, categoria_interes, mensaje, origen } = body;
 
-    if (!nombre || !email) {
+    if (typeof nombre !== 'string' || !nombre.trim() || typeof email !== 'string' || !email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       return Response.json(
         { error: 'nombre y email son obligatorios' },
         { status: 400, headers: corsHeaders }
       );
     }
+
+    // Escape untrusted fields before interpolating them into notification HTML.
+    const htmlNombre = escapeHtml(nombre);
+    const htmlEmail = escapeHtml(email);
+    const htmlTelefono = escapeHtml(telefono);
+    const htmlCategoriaInteres = escapeHtml(categoria_interes);
+    const htmlMensaje = escapeHtml(mensaje);
 
     // Use service role to create the contact (webhook is unauthenticated)
     const base44 = createClientFromRequest(req);
@@ -69,11 +78,11 @@ Deno.serve(async (req) => {
                     <h1 style="color:white;margin:0;font-size:20px;">📩 Nuevo Contacto Web</h1>
                   </div>
                   <div style="background:#fff;border:1px solid #e2e8f0;border-top:none;padding:20px;border-radius:0 0 12px 12px;">
-                    <p style="margin:0 0 8px;"><strong>👤 Nombre:</strong> ${nombre}</p>
-                    <p style="margin:0 0 8px;"><strong>📧 Email:</strong> ${email}</p>
-                    ${telefono ? `<p style="margin:0 0 8px;"><strong>📱 Teléfono:</strong> ${telefono}</p>` : ''}
-                    ${categoria_interes ? `<p style="margin:0 0 8px;"><strong>⚽ Categoría:</strong> ${categoria_interes}</p>` : ''}
-                    ${mensaje ? `<p style="margin:12px 0 0;padding:12px;background:#f8fafc;border-radius:8px;"><em>"${mensaje}"</em></p>` : ''}
+                    <p style="margin:0 0 8px;"><strong>👤 Nombre:</strong> ${htmlNombre}</p>
+                    <p style="margin:0 0 8px;"><strong>📧 Email:</strong> ${htmlEmail}</p>
+                    ${telefono ? `<p style="margin:0 0 8px;"><strong>📱 Teléfono:</strong> ${htmlTelefono}</p>` : ''}
+                    ${categoria_interes ? `<p style="margin:0 0 8px;"><strong>⚽ Categoría:</strong> ${htmlCategoriaInteres}</p>` : ''}
+                    ${mensaje ? `<p style="margin:12px 0 0;padding:12px;background:#f8fafc;border-radius:8px;"><em>"${htmlMensaje}"</em></p>` : ''}
                     <p style="margin:16px 0 0;color:#64748b;font-size:12px;">Gestiona este contacto desde la app → Contactos Web</p>
                   </div>
                 </div>
