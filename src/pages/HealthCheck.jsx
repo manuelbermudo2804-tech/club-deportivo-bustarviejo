@@ -131,6 +131,7 @@ export default function HealthCheck() {
 
       {data && (
         <>
+          <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-500">La comprobación revisa hasta 1.000 jugadores activos. Los detalles de cada aviso muestran un máximo de 50 elementos; el total indicado puede ser mayor.</p>
           {/* Resumen general */}
           <Card className="overflow-hidden rounded-2xl border-0 shadow-lg">
             <div className={`bg-gradient-to-r ${ec.bg} p-6 text-white flex items-center gap-4`}>
