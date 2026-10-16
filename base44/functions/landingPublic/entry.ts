@@ -20,6 +20,11 @@ Deno.serve(async (req) => {
       if (!slug) return Response.json({ page: null });
       const results = await base44.asServiceRole.entities.LandingPage.filter({ slug });
       const page = results?.[0] || null;
+      // Las páginas públicas solo se sirven si están publicadas. No confiar en
+      // el aviso del navegador: la comprobación debe hacerse en el servidor.
+      if (!page || page.estado !== 'publicada') {
+        return Response.json({ page: null, plazas_ocupadas: 0, plazas_por_categoria: null });
+      }
       let plazas_ocupadas = 0;
       let subs = [];
       if (page?.id) {
@@ -120,8 +125,8 @@ Deno.serve(async (req) => {
       if (!pageId) return Response.json({ error: 'landing_page_id requerido' }, { status: 400 });
       const page = await base44.asServiceRole.entities.LandingPage.get(pageId);
       if (!page) return Response.json({ error: 'Página no encontrada' }, { status: 404 });
-      if (page.estado === 'cerrada' || page.estado === 'archivada') {
-        return Response.json({ error: 'Inscripciones cerradas' }, { status: 403 });
+      if (page.estado !== 'publicada') {
+        return Response.json({ error: 'Esta página no está disponible para inscripciones' }, { status: 403 });
       }
 
       // Anti-spam: honeypot.
