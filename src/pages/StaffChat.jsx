@@ -103,21 +103,10 @@ export default function StaffChat() {
 
       if (!staff) return;
 
-      // Buscar o crear conversación general de staff
-      const conversations = await base44.entities.StaffConversation.filter({ categoria: "General" });
-      
-      if (conversations.length > 0) {
-        setConversation(conversations[0]);
-      } else {
-        // Crear conversación general de staff
-        const newConv = await base44.entities.StaffConversation.create({
-          nombre: "Chat Interno Staff",
-          categoria: "General",
-          participantes: [],
-          activa: true
-        });
-        setConversation(newConv);
-      }
+      // La conversación se obtiene mediante una función segura que valida chat_staff
+      // y permite acceder al historial existente sin modificarlo.
+      const { data } = await base44.functions.invoke("staffChatGateway", { action: "get_conversation" });
+      if (data?.conversation) setConversation(data.conversation);
     };
     fetchUser();
   }, []);
@@ -126,7 +115,8 @@ export default function StaffChat() {
     queryKey: ['staffMessages', conversation?.id],
     queryFn: async () => {
       if (!conversation?.id) return [];
-      const msgs = await base44.entities.StaffMessage.filter({ conversacion_id: conversation.id }, 'created_date');
+      const { data } = await base44.functions.invoke("staffChatGateway", { action: "list_messages" });
+      const msgs = data?.messages || [];
       // Conservar mensajes recién enviados que el servidor aún no devuelve
       // (consistencia eventual): evita que un mensaje recién creado desaparezca tras un refetch.
       const cached = queryClient.getQueryData(['staffMessages', conversation.id]) || [];
@@ -142,7 +132,9 @@ export default function StaffChat() {
       }
       return msgs;
     },
-    refetchInterval: false,
+    // El gateway consulta con permisos de servidor; refresco periódico como respaldo
+    // si la suscripción directa no entrega eventos a usuarios con permisos especiales.
+    refetchInterval: 15000,
     refetchOnMount: 'always',
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
@@ -427,10 +419,14 @@ export default function StaffChat() {
   // Se ejecutan en segundo plano y NUNCA hacen fallar el envío del mensaje.
   const runStaffPostSendTasks = async (messageData) => {
     try {
-      await base44.entities.StaffConversation.update(conversation.id, {
-        ultimo_mensaje: messageData.mensaje,
-        ultimo_mensaje_fecha: new Date().toISOString(),
-        ultimo_mensaje_autor: user.full_name
+      await base44.functions.invoke("staffChatGateway", {
+        action: "update_conversation",
+        id: conversation.id,
+        patch: {
+          ultimo_mensaje: messageData.mensaje,
+          ultimo_mensaje_fecha: new Date().toISOString(),
+          ultimo_mensaje_autor: user.full_name
+        }
       });
     } catch (e) { console.error("conversación:", e); }
 
@@ -509,21 +505,13 @@ export default function StaffChat() {
        const displayName = user.role === "admin" ? "Administrador" : user.full_name;
 
        // SOLO crear el mensaje. Si esto falla, se revierte el optimista.
-       const newMessage = await base44.entities.StaffMessage.create({
+       const { data } = await base44.functions.invoke("staffChatGateway", {
+         action: "create_message",
          conversacion_id: conversation.id,
-         autor_email: user.email,
-         autor_nombre: displayName,
-         autor_rol: autorRol,
-         mensaje: messageData.mensaje,
-         audio_url: messageData.audio_url,
-         audio_duracion: messageData.audio_duracion,
-         adjuntos: messageData.adjuntos,
-         encuesta: messageData.encuesta,
-         ubicacion: messageData.ubicacion,
-         respuesta_a: messageData.respuesta_a,
-         mensaje_citado: messageData.mensaje_citado,
-         leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }]
+         message: messageData
        });
+       if (!data?.message) throw new Error(data?.error || "No se pudo enviar el mensaje");
+       const newMessage = data.message;
 
       // Tareas secundarias (actualizar conversación + notificaciones) en SEGUNDO PLANO.
       // No se await-ean: si fallan por rate-limit NO deben revertir el mensaje ya guardado.
@@ -546,11 +534,12 @@ export default function StaffChat() {
 
   const editMessageMutation = useMutation({
     mutationFn: async ({ id, mensaje }) => {
-      await base44.entities.StaffMessage.update(id, {
-        mensaje,
-        editado: true,
-        fecha_edicion: new Date().toISOString()
+      const { data } = await base44.functions.invoke("staffChatGateway", {
+        action: "update_message",
+        id,
+        patch: { mensaje, editado: true, fecha_edicion: new Date().toISOString() }
       });
+      if (data?.error) throw new Error(data.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
@@ -560,10 +549,12 @@ export default function StaffChat() {
 
   const deleteMessageMutation = useMutation({
     mutationFn: async (messageId) => {
-      await base44.entities.StaffMessage.update(messageId, {
-        eliminado: true,
-        mensaje: "Este mensaje fue eliminado"
+      const { data } = await base44.functions.invoke("staffChatGateway", {
+        action: "update_message",
+        id: messageId,
+        patch: { eliminado: true, mensaje: "Este mensaje fue eliminado" }
       });
+      if (data?.error) throw new Error(data.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
@@ -589,9 +580,10 @@ export default function StaffChat() {
       }];
     }
 
-    await base44.entities.StaffMessage.update(messageId, {
-      reacciones: newReactions
+    const { data } = await base44.functions.invoke("staffChatGateway", {
+      action: "update_message", id: messageId, patch: { reacciones: newReactions }
     });
+    if (data?.error) throw new Error(data.error);
 
     queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
     setShowReactions(null);
@@ -609,12 +601,12 @@ export default function StaffChat() {
         fecha: new Date().toISOString()
       });
 
-      await base44.entities.StaffMessage.update(messageId, {
-        encuesta: {
-          ...msg.encuesta,
-          votos
-        }
+      const { data } = await base44.functions.invoke("staffChatGateway", {
+        action: "update_message",
+        id: messageId,
+        patch: { encuesta: { ...msg.encuesta, votos } }
       });
+      if (data?.error) throw new Error(data.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
@@ -624,11 +616,12 @@ export default function StaffChat() {
 
   const unpinMessageMutation = useMutation({
     mutationFn: async (messageId) => {
-      await base44.entities.StaffMessage.update(messageId, {
-        anclado: false,
-        anclado_por: null,
-        anclado_fecha: null
+      const { data } = await base44.functions.invoke("staffChatGateway", {
+        action: "update_message",
+        id: messageId,
+        patch: { anclado: false, anclado_por: null, anclado_fecha: null }
       });
+      if (data?.error) throw new Error(data.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
@@ -638,11 +631,12 @@ export default function StaffChat() {
 
   const pinMessageMutation = useMutation({
     mutationFn: async (messageId) => {
-      await base44.entities.StaffMessage.update(messageId, {
-        anclado: true,
-        anclado_por: user.email,
-        anclado_fecha: new Date().toISOString()
+      const { data } = await base44.functions.invoke("staffChatGateway", {
+        action: "update_message",
+        id: messageId,
+        patch: { anclado: true, anclado_por: user.email, anclado_fecha: new Date().toISOString() }
       });
+      if (data?.error) throw new Error(data.error);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staffMessages'] });
