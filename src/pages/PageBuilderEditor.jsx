@@ -35,6 +35,8 @@ export default function PageBuilderEditor() {
   const editId = params.get("id");
 
   const [page, setPage] = useState(null);
+  const [loadError, setLoadError] = useState(false);
+  const [loadAttempt, setLoadAttempt] = useState(0);
   const [showPicker, setShowPicker] = useState(!editId);
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState("hero");
@@ -48,21 +50,29 @@ export default function PageBuilderEditor() {
   // Cargar página existente
   useEffect(() => {
     if (!editId) return;
+    let cancelled = false;
+    setLoadError(false);
     (async () => {
       try {
         const p = await base44.entities.LandingPage.get(editId);
+        if (cancelled) return;
         if (p) {
           setPage(p);
           setInitialPage(JSON.stringify(p));
+          setLoadError(false);
         } else {
           toast.error("Página no encontrada");
           navigate("/PageBuilder");
         }
-      } catch {
-        toast.error("Error cargando la página");
+      } catch (err) {
+        if (cancelled) return;
+        console.error("Error cargando la página del constructor:", err);
+        setLoadError(true);
+        toast.error("No se ha podido cargar la página. Puedes volver a intentarlo.");
       }
     })();
-  }, [editId, navigate]);
+    return () => { cancelled = true; };
+  }, [editId, navigate, loadAttempt]);
 
   // Detectar cambios sin guardar
   useEffect(() => {
@@ -148,9 +158,29 @@ export default function PageBuilderEditor() {
   }
 
   if (!page) {
+    if (loadError) {
+      return (
+        <div className="min-h-screen bg-slate-100 flex items-center justify-center p-6">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-700">
+              <HelpCircle className="h-6 w-6" />
+            </div>
+            <h1 className="text-lg font-bold text-slate-900">No se ha podido cargar la página</h1>
+            <p className="mt-2 text-sm text-slate-600">Puede ser un problema temporal de conexión o permisos. No se han modificado los datos de la página.</p>
+            <div className="mt-5 flex flex-col-reverse justify-center gap-2 sm:flex-row">
+              <Button variant="outline" onClick={() => navigate("/PageBuilder")}>Volver al listado</Button>
+              <Button onClick={() => { setLoadError(false); setLoadAttempt((n) => n + 1); }}>
+                <Loader2 className="mr-2 h-4 w-4" /> Reintentar carga
+              </Button>
+            </div>
+          </div>
+        </div>
+      );
+    }
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 text-slate-600" role="status" aria-live="polite">
         <Loader2 className="w-8 h-8 animate-spin text-slate-400" />
+        <p className="text-sm">Cargando editor…</p>
       </div>
     );
   }
