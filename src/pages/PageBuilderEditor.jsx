@@ -39,6 +39,7 @@ export default function PageBuilderEditor() {
   const [loadAttempt, setLoadAttempt] = useState(0);
   const [showPicker, setShowPicker] = useState(!editId);
   const [saving, setSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState(null);
   const [tab, setTab] = useState("hero");
   const [copied, setCopied] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -105,6 +106,15 @@ export default function PageBuilderEditor() {
   };
 
   const handleSave = async (nuevoEstado) => {
+    if (nuevoEstado === "publicada" && page.estado !== "publicada") {
+      const avisos = [];
+      if (!page.config?.hero?.titulo?.trim()) avisos.push("falta el título principal");
+      if (!page.config?.hero?.subtitulo?.trim()) avisos.push("falta el subtítulo");
+      if (!(page.config?.bloques || []).length) avisos.push("no hay bloques de contenido");
+      if (page.config?.formulario && !(page.config?.formulario?.campos || []).length) avisos.push("el formulario no tiene campos");
+      if (avisos.length && !window.confirm(`Antes de publicar, revisa lo siguiente:\n\n• ${avisos.join("\n• ")}\n\nPuedes publicar igualmente si es intencionado. ¿Quieres continuar?`)) return;
+      if (!avisos.length && !window.confirm("Vas a publicar esta página. Será accesible mediante su URL pública. ¿Continuar?")) return;
+    }
     if (!page.nombre || !page.slug) {
       toast.error("Debes rellenar nombre y slug");
       setTab("ajustes");
@@ -134,11 +144,13 @@ export default function PageBuilderEditor() {
         toast.success("Cambios guardados");
         setPage(payload);
         setInitialPage(JSON.stringify(payload));
+        setLastSavedAt(new Date());
       } else {
         const created = await base44.entities.LandingPage.create(payload);
         toast.success("Página creada");
         setPage(created);
         setInitialPage(JSON.stringify(created));
+        setLastSavedAt(new Date());
         navigate(`/PageBuilderEditor?id=${created.id}`, { replace: true });
       }
     } catch (err) {
@@ -203,7 +215,7 @@ export default function PageBuilderEditor() {
           <div className="min-w-0">
             <div className="font-bold text-slate-900 truncate flex items-center gap-2">
               {page.nombre || "Sin nombre"}
-              {dirty && <span className="text-xs font-normal text-amber-600">● sin guardar</span>}
+              {saving ? <span className="text-xs font-normal text-blue-600">● guardando…</span> : dirty ? <span className="text-xs font-normal text-amber-600">● cambios pendientes</span> : lastSavedAt ? <span className="text-xs font-normal text-emerald-600">● guardado</span> : null}
             </div>
             <div className="text-xs text-slate-500 truncate">
               {page.slug ? `/l/${page.slug}` : "sin slug definido"}
@@ -234,7 +246,7 @@ export default function PageBuilderEditor() {
           )}
           <Button size="sm" onClick={() => handleSave()} disabled={saving} className="gap-2">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Guardar
+            {saving ? "Guardando…" : dirty ? "Guardar cambios" : "Guardar"}
           </Button>
           <Button
             size="sm"
