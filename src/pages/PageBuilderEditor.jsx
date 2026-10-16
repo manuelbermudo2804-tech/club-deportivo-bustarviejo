@@ -268,7 +268,7 @@ export default function PageBuilderEditor() {
               <button
                 key={t.id}
                 onClick={() => setTab(t.id)}
-                className={`flex-1 px-2 py-3 text-xs font-semibold transition-colors whitespace-nowrap ${
+                className={`flex-none min-w-[76px] px-3 py-3 text-xs font-semibold transition-colors whitespace-nowrap ${
                   tab === t.id
                     ? "text-slate-900 border-b-2 border-slate-900 bg-slate-50"
                     : "text-slate-500 hover:text-slate-700"
@@ -491,7 +491,7 @@ export default function PageBuilderEditor() {
           </div>
           <div className={`min-h-full flex justify-center ${viewport === "mobile" ? "p-4 bg-slate-300" : ""}`}>
             <div
-              className={`bg-white ${viewport === "mobile" ? "w-[390px] rounded-2xl shadow-2xl overflow-hidden border-8 border-slate-900" : "w-full"}`}
+              className={`bg-white ${viewport === "mobile" ? "w-[390px] max-w-full rounded-2xl shadow-2xl overflow-hidden border-8 border-slate-900" : "w-full"}`}
               style={viewport === "mobile" ? { maxHeight: "calc(100vh - 120px)", overflowY: "auto" } : {}}
             >
               <PublicHero
