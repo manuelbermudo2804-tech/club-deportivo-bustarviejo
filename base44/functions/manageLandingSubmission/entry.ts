@@ -22,19 +22,33 @@ Deno.serve(async (req) => {
         return Response.json({ error: 'Sin permiso para esta página' }, { status: 403 });
       }
 
-      const nueva = await base44.asServiceRole.entities.LandingSubmission.create({
+      if (!page) return Response.json({ error: 'Página de la pre-inscripción no encontrada' }, { status: 404 });
+
+      // Si el envío automático ya recuperó esta sesión, reutilizar esa inscripción
+      // en vez de crear otra al pulsar "Pasar a inscritos oficiales".
+      let existente = null;
+      if (pre.session_id) {
+        const encontradas = await base44.asServiceRole.entities.LandingSubmission.filter({
+          landing_page_id: pre.landing_page_id,
+          device_fingerprint: pre.session_id,
+        });
+        existente = encontradas?.[0] || null;
+      }
+
+      const submission = existente || await base44.asServiceRole.entities.LandingSubmission.create({
         landing_page_id: pre.landing_page_id,
-        landing_slug: pre.landing_slug || page?.slug || '',
+        landing_slug: pre.landing_slug || page.slug || '',
         nombre: pre.nombre_equipo || pre.nombre || 'Sin nombre',
         email: pre.email || undefined,
         telefono: pre.telefono || undefined,
         datos: pre.datos || {},
         estado: 'nuevo',
+        device_fingerprint: pre.session_id || undefined,
         notas_admin: 'Recuperado manualmente desde pre-inscritos (equipo a medias)',
       });
 
       await base44.asServiceRole.entities.PreInscripcion.update(preinscripcion_id, { estado: 'recuperado', completada: true });
-      return Response.json({ ok: true, submission_id: nueva.id });
+      return Response.json({ ok: true, submission_id: submission.id, already_exists: !!existente });
     }
 
     if (!action || !submission_id) {
@@ -56,6 +70,12 @@ Deno.serve(async (req) => {
     }
 
     if (action === 'update_estado') {
+      // Lista blanca según el esquema de LandingSubmission. Los estados de pago
+      // se gestionan por su acción específica y no se aceptan aquí.
+      const estadosPermitidos = ['nuevo', 'contactado', 'confirmado', 'cancelado', 'pendiente_pago', 'lista_espera'];
+      if (!estadosPermitidos.includes(estado)) {
+        return Response.json({ error: 'Estado no válido' }, { status: 400 });
+      }
       await base44.asServiceRole.entities.LandingSubmission.update(submission_id, { estado });
       return Response.json({ ok: true });
     }
