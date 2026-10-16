@@ -1,5 +1,6 @@
 import React from "react";
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from "date-fns";
+import { es } from "date-fns/locale";
 import { fechaISO } from "@/lib/sinEntrenamiento";
 import { KIND_STYLES } from "./AgendaItemCard";
 
@@ -42,7 +43,7 @@ export default function AgendaMonthView({ items, referenceDate, onSelectDay }) {
                   onSelectDay?.(day);
                 }
               }}
-              aria-label={delDia.length > 0 ? `${format(day, "d MMMM", { locale: undefined })}: ${delDia.length} actividades` : undefined}
+              aria-label={delDia.length > 0 ? `${format(day, "d MMMM", { locale: es })}: ${delDia.length} actividades` : undefined}
               className={`min-h-[70px] rounded-xl border p-1.5 transition-all sm:min-h-[90px] sm:p-2 ${
                 hoy ? "bg-orange-50 border-orange-300 ring-1 ring-orange-100" : "bg-white border-slate-200"
               } ${delDia.length > 0 ? "cursor-pointer hover:border-orange-300 hover:bg-orange-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400" : ""}`}
