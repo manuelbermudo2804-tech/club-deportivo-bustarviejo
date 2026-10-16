@@ -232,16 +232,18 @@ export default function PageBuilderEditor() {
             size="icon"
             onClick={() => window.open("/PageBuilderGuia", "_blank")}
             title="Abrir guía de ayuda"
+            aria-label="Abrir guía de ayuda"
+            className="text-slate-200 hover:text-white hover:bg-white/10"
           >
-            <HelpCircle className="w-4 h-4 text-slate-500" />
+            <HelpCircle className="w-4 h-4 text-slate-200" />
           </Button>
           {page.id && page.slug && (
-            <Button variant="outline" size="sm" onClick={() => setShareOpen(true)} className="gap-2">
+            <Button type="button" variant="outline" size="sm" onClick={() => setShareOpen(true)} className="gap-2 border-slate-600 bg-slate-800 text-white hover:bg-slate-700 hover:text-white">
               <Share2 className="w-4 h-4" /> <span className="hidden sm:inline">Compartir</span>
             </Button>
           )}
           {page.id && page.slug && page.estado === "publicada" && (
-            <Button variant="outline" size="sm" onClick={() => window.open(publicUrl, "_blank")} className="gap-2 hidden sm:flex">
+            <Button type="button" variant="outline" size="sm" onClick={() => window.open(publicUrl, "_blank")} className="gap-2 hidden sm:flex border-slate-600 bg-slate-800 text-white hover:bg-slate-700 hover:text-white">
               <Eye className="w-4 h-4" /> Ver
             </Button>
           )}
@@ -250,8 +252,9 @@ export default function PageBuilderEditor() {
             {saving ? "Guardando…" : dirty ? "Guardar cambios" : "Guardar"}
           </Button>
           <Button
+            type="button"
             size="sm"
-            onClick={() => handleSave(page.estado === "publicada" ? "borrador" : "publicada")}
+            onClick={() => handleSave(page.estado === "publicada" ? "borrador" : "publicada")
             disabled={saving}
             className={page.estado === "publicada"
               ? "bg-slate-700 hover:bg-slate-600 text-white gap-2 shadow-sm focus-visible:ring-2 focus-visible:ring-slate-400"
