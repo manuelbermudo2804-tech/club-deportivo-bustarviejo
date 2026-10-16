@@ -250,18 +250,18 @@ export default function SurveyResults({ survey, onBack }) {
     .sort((a, b) => b.promedio - a.promedio);
 
   return (
-    <div className="p-6 lg:p-8 space-y-6">
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:flex-row sm:items-center sm:justify-between sm:p-4">
         <Button variant="outline" onClick={onBack}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Volver
         </Button>
-        <div className="flex gap-2">
-          <Button onClick={exportToPDF} className="bg-orange-600 hover:bg-orange-700">
+        <div className="grid w-full grid-cols-1 gap-2 sm:w-auto sm:grid-cols-2">
+          <Button onClick={exportToPDF} className="h-11 w-full rounded-xl bg-orange-600 font-semibold hover:bg-orange-700 sm:w-auto">
             <FileText className="w-4 h-4 mr-2" />
             Exportar PDF
           </Button>
-          <Button onClick={exportToCSV} className="bg-green-600 hover:bg-green-700">
+          <Button onClick={exportToCSV} className="h-11 w-full rounded-xl bg-slate-900 font-semibold hover:bg-slate-800 sm:w-auto">
             <Download className="w-4 h-4 mr-2" />
             Exportar CSV
           </Button>
@@ -270,15 +270,15 @@ export default function SurveyResults({ survey, onBack }) {
 
       {/* Filtro por usuario */}
       {!survey.anonima && uniqueUsers.length > 0 && (
-        <Card className="border-blue-200 bg-blue-50">
+        <Card className="rounded-2xl border-orange-200 bg-orange-50/70 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
               <div className="flex items-center gap-2">
-                <Filter className="w-5 h-5 text-blue-600" />
-                <span className="font-medium text-blue-900">Ver respuesta individual:</span>
+                <Filter className="w-5 h-5 text-orange-600" />
+                <span className="font-semibold text-orange-950">Ver respuesta individual:</span>
               </div>
               <Select value={selectedUser} onValueChange={setSelectedUser}>
-                <SelectTrigger className="w-full md:w-[300px] bg-white">
+                <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-white sm:w-[300px]">
                   <SelectValue placeholder="Seleccionar usuario..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -300,8 +300,8 @@ export default function SurveyResults({ survey, onBack }) {
 
       {/* Vista de respuesta individual */}
       {selectedUser !== "all" && selectedUserResponse && (
-        <Card className="border-2 border-blue-300">
-          <CardHeader className="bg-blue-50">
+        <Card className="overflow-hidden rounded-2xl border border-orange-200 shadow-sm">
+          <CardHeader className="border-b border-orange-100 bg-orange-50/70">
             <div className="flex items-center justify-between">
               <CardTitle className="flex items-center gap-2">
                 <User className="w-5 h-5 text-blue-600" />
