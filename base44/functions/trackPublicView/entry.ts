@@ -17,6 +17,22 @@ Deno.serve(async (req) => {
     const referrer = (body.referrer || '').toString().slice(0, 300);
     const userAgent = (body.user_agent || req.headers.get('user-agent') || '').toString().slice(0, 300);
 
+    // Deduplicación real en servidor: mismo fingerprint y página durante 30 minutos.
+    // Sin fingerprint no podemos identificar de forma fiable una visita repetida.
+    if (fingerprint) {
+      const recientes = await base44.asServiceRole.entities.AnalyticsEvent.filter(
+        { evento_tipo: 'public_view', pagina },
+        '-timestamp',
+        100
+      );
+      const limite = Date.now() - 30 * 60 * 1000;
+      const duplicada = recientes.some((evento) => {
+        const fecha = new Date(evento.timestamp || evento.created_date).getTime();
+        return Number.isFinite(fecha) && fecha >= limite && evento.detalles?.device_fingerprint === fingerprint;
+      });
+      if (duplicada) return Response.json({ success: true, deduplicated: true });
+    }
+
     await base44.asServiceRole.entities.AnalyticsEvent.create({
       evento_tipo: 'public_view',
       pagina,
