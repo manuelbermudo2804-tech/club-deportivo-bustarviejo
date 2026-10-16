@@ -1,5 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
+const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char] ?? char);
+
 Deno.serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -19,12 +21,24 @@ Deno.serve(async (req) => {
 
     const { nombre, edad, telefono, email, deporte, futbol_femenino, categoria, experiencia, disponibilidad, mensaje } = body;
 
-    if (!nombre) {
+    if (typeof nombre !== 'string' || !nombre.trim()) {
       return Response.json({ error: 'El nombre es obligatorio' }, {
         status: 400,
         headers: { 'Access-Control-Allow-Origin': '*' },
       });
     }
+
+    // Escapar los valores solo al insertarlos en HTML; los datos almacenados conservan su contenido.
+    const htmlNombre = escapeHtml(nombre);
+    const htmlEdad = escapeHtml(edad);
+    const htmlTelefono = escapeHtml(telefono);
+    const htmlEmail = escapeHtml(email);
+    const htmlDeporte = escapeHtml(deporte);
+    const htmlFutbolFemenino = escapeHtml(futbol_femenino);
+    const htmlCategoria = escapeHtml(categoria);
+    const htmlExperiencia = escapeHtml(experiencia);
+    const htmlDisponibilidad = escapeHtml(disponibilidad);
+    const htmlMensaje = escapeHtml(mensaje);
 
     // Crear registro en la entidad ContactForm usando service role (webhook público)
     const record = await base44.asServiceRole.entities.ContactForm.create({
@@ -52,16 +66,16 @@ Deno.serve(async (req) => {
             </div>
             <div style="background: #f8fafc; padding: 20px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
               <table style="width: 100%; border-collapse: collapse;">
-                <tr><td style="padding: 8px; font-weight: bold; color: #475569;">Nombre:</td><td style="padding: 8px;">${nombre}</td></tr>
-                ${edad ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Edad:</td><td style="padding: 8px;">${edad}</td></tr>` : ''}
-                ${telefono ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Teléfono:</td><td style="padding: 8px;">${telefono}</td></tr>` : ''}
-                ${email ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Email:</td><td style="padding: 8px;">${email}</td></tr>` : ''}
-                ${deporte ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Deporte:</td><td style="padding: 8px;">${deporte}</td></tr>` : ''}
-                ${futbol_femenino ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Fútbol femenino:</td><td style="padding: 8px;">${futbol_femenino}</td></tr>` : ''}
-                ${categoria ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Categoría:</td><td style="padding: 8px;">${categoria}</td></tr>` : ''}
-                ${experiencia ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Experiencia:</td><td style="padding: 8px;">${experiencia}</td></tr>` : ''}
-                ${disponibilidad ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Disponibilidad:</td><td style="padding: 8px;">${disponibilidad}</td></tr>` : ''}
-                ${mensaje ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Mensaje:</td><td style="padding: 8px;">${mensaje}</td></tr>` : ''}
+                <tr><td style="padding: 8px; font-weight: bold; color: #475569;">Nombre:</td><td style="padding: 8px;">${htmlNombre}</td></tr>
+                ${edad ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Edad:</td><td style="padding: 8px;">${htmlEdad}</td></tr>` : ''}
+                ${telefono ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Teléfono:</td><td style="padding: 8px;">${htmlTelefono}</td></tr>` : ''}
+                ${email ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Email:</td><td style="padding: 8px;">${htmlEmail}</td></tr>` : ''}
+                ${deporte ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Deporte:</td><td style="padding: 8px;">${htmlDeporte}</td></tr>` : ''}
+                ${futbol_femenino ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Fútbol femenino:</td><td style="padding: 8px;">${htmlFutbolFemenino}</td></tr>` : ''}
+                ${categoria ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Categoría:</td><td style="padding: 8px;">${htmlCategoria}</td></tr>` : ''}
+                ${experiencia ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Experiencia:</td><td style="padding: 8px;">${htmlExperiencia}</td></tr>` : ''}
+                ${disponibilidad ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Disponibilidad:</td><td style="padding: 8px;">${htmlDisponibilidad}</td></tr>` : ''}
+                ${mensaje ? `<tr><td style="padding: 8px; font-weight: bold; color: #475569;">Mensaje:</td><td style="padding: 8px;">${htmlMensaje}</td></tr>` : ''}
               </table>
               <p style="margin-top: 16px; color: #64748b; font-size: 13px;">Puedes gestionar este contacto desde la app en Contactos Web.</p>
             </div>
@@ -103,13 +117,13 @@ Deno.serve(async (req) => {
                 <h2 style="color: white; margin: 0;">¡Gracias por contactar con nosotros!</h2>
               </div>
               <div style="background: #f8fafc; padding: 24px; border: 1px solid #e2e8f0; border-radius: 0 0 12px 12px;">
-                <p style="color: #1e293b; font-size: 16px;">Hola <strong>${nombre}</strong>,</p>
+                <p style="color: #1e293b; font-size: 16px;">Hola <strong>${htmlNombre}</strong>,</p>
                 <p style="color: #475569;">Hemos recibido tu solicitud de información correctamente. Un miembro de nuestro club se pondrá en contacto contigo lo antes posible.</p>
                 <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 8px; padding: 16px; margin: 16px 0;">
                   <p style="margin: 0 0 8px; color: #64748b; font-size: 13px; font-weight: bold;">Resumen de tu solicitud:</p>
-                  ${deporte ? `<p style="margin: 4px 0; color: #334155;">⚽ Deporte: <strong>${deporte}</strong></p>` : ''}
-                  ${categoria ? `<p style="margin: 4px 0; color: #334155;">📋 Categoría: <strong>${categoria}</strong></p>` : ''}
-                  ${disponibilidad ? `<p style="margin: 4px 0; color: #334155;">🕐 Disponibilidad: <strong>${disponibilidad}</strong></p>` : ''}
+                  ${deporte ? `<p style="margin: 4px 0; color: #334155;">⚽ Deporte: <strong>${htmlDeporte}</strong></p>` : ''}
+                  ${categoria ? `<p style="margin: 4px 0; color: #334155;">📋 Categoría: <strong>${htmlCategoria}</strong></p>` : ''}
+                  ${disponibilidad ? `<p style="margin: 4px 0; color: #334155;">🕐 Disponibilidad: <strong>${htmlDisponibilidad}</strong></p>` : ''}
                 </div>
                 <p style="color: #475569;">Mientras tanto, puedes seguirnos en nuestras redes sociales:</p>
                 <p style="text-align: center; font-size: 20px;">
