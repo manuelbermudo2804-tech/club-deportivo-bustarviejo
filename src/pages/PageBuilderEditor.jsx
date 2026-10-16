@@ -253,8 +253,8 @@ export default function PageBuilderEditor() {
             onClick={() => handleSave(page.estado === "publicada" ? "borrador" : "publicada")}
             disabled={saving}
             className={page.estado === "publicada"
-              ? "bg-slate-600 hover:bg-slate-700 gap-2"
-              : "bg-green-600 hover:bg-green-700 gap-2"}
+              ? "bg-slate-700 hover:bg-slate-600 text-white gap-2 shadow-sm focus-visible:ring-2 focus-visible:ring-slate-400"
+              : "bg-orange-600 hover:bg-orange-700 text-white gap-2 shadow-sm focus-visible:ring-2 focus-visible:ring-orange-400"}
           >
             <Globe className="w-4 h-4" />
             {page.estado === "publicada" ? "Despublicar" : "Publicar"}
@@ -282,8 +282,8 @@ export default function PageBuilderEditor() {
                 onClick={() => setTab(t.id)}
                 className={`flex-none min-w-[76px] px-3 py-3 text-xs font-semibold transition-colors whitespace-nowrap ${
                   tab === t.id
-                    ? "text-slate-900 border-b-2 border-slate-900 bg-slate-50"
-                    : "text-slate-500 hover:text-slate-700"
+                    ? "text-orange-700 border-b-2 border-orange-600 bg-orange-50"
+                    : "text-slate-500 hover:text-slate-900 hover:bg-slate-50"
                 }`}
                 title={t.title}
               >
