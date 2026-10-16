@@ -81,7 +81,7 @@ export default function LiveActivityWidget() {
           <h3 className="font-bold text-slate-900">En vivo</h3>
           {lastUpdate && (
             <span className="text-xs text-slate-500">
-              · actualizado {lastUpdate.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+              · última lectura correcta {lastUpdate.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
             </span>
           )}
         </div>
