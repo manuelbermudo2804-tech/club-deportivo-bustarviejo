@@ -158,13 +158,13 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
     >
-      <Card className="border-none shadow-xl">
-        <CardHeader className="border-b">
-          <CardTitle>{survey ? "Editar Encuesta" : "Nueva Encuesta"}</CardTitle>
+      <Card className="overflow-hidden rounded-2xl border border-slate-200 shadow-lg">
+        <CardHeader className="border-b border-slate-200 bg-gradient-to-r from-slate-950 via-slate-900 to-orange-950 px-5 py-5 text-white sm:px-6">
+          <CardTitle className="text-lg font-bold tracking-tight text-white sm:text-xl">{survey ? "Editar encuesta" : "Nueva encuesta"}</CardTitle>
         </CardHeader>
-        <CardContent className="pt-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <CardContent className="px-4 py-5 sm:px-6 sm:py-6">
+          <form onSubmit={handleSubmit} className="space-y-6 sm:space-y-7">
+            <div className="grid min-w-0 grid-cols-1 gap-4 sm:gap-5 md:grid-cols-2">
               <div className="space-y-2 md:col-span-2">
                 <Label>Título *</Label>
                 <Input
@@ -264,17 +264,17 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
             </div>
 
             {/* Info sobre notificación automática */}
-            <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
-              <p className="text-sm text-green-900 font-medium">
+            <div className="rounded-xl border border-orange-200 bg-orange-50 p-4 sm:p-5">
+              <p className="text-sm font-semibold text-orange-950">
                 🔔 La encuesta aparecerá automáticamente en el <strong>Centro de Alertas</strong> de todos los destinatarios
               </p>
-              <p className="text-xs text-green-700 mt-1">
+              <p className="mt-1 text-xs leading-relaxed text-orange-800">
                 Los padres la verán como tarea pendiente hasta que respondan
               </p>
             </div>
 
             {/* Preguntas */}
-            <div className="space-y-4 border-t pt-4">
+            <div className="space-y-4 border-t border-slate-200 pt-5">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-lg">Preguntas</h3>
                 {SURVEY_TEMPLATES[currentSurvey.tipo] && currentSurvey.preguntas.length === 0 && (
@@ -292,10 +292,10 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
               </div>
               
               {currentSurvey.preguntas.map((q, index) => (
-                <div key={index} className="flex items-start gap-2 p-3 bg-slate-50 rounded-lg">
+                <div key={index} className="flex min-w-0 items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm sm:p-4">
                   <div className="flex-1">
-                    <p className="font-medium">{index + 1}. {q.pregunta}</p>
-                    <p className="text-sm text-slate-600">Tipo: {q.tipo_respuesta}</p>
+                    <p className="break-words font-semibold text-slate-900">{index + 1}. {q.pregunta}</p>
+                    <p className="mt-1 text-xs font-medium text-slate-500">Tipo de respuesta: {q.tipo_respuesta}{q.obligatoria ? " · Obligatoria" : ""}</p>
                   </div>
                   <Button
                     type="button"
@@ -308,7 +308,7 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
                 </div>
               ))}
 
-              <div className="space-y-3 p-4 border-2 border-dashed rounded-lg">
+              <div className="space-y-3 rounded-xl border-2 border-dashed border-orange-200 bg-orange-50/40 p-3 sm:p-4">
                 <Input
                   value={newQuestion.pregunta}
                   onChange={(e) => setNewQuestion({...newQuestion, pregunta: e.target.value})}
@@ -340,19 +340,19 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
             </div>
 
             {currentSurvey.preguntas.length === 0 && (
-              <div className="bg-red-50 border-2 border-red-200 rounded-lg p-3">
+              <div className="rounded-xl border border-red-200 bg-red-50 p-3">
                 <p className="text-sm text-red-700 font-medium">⚠️ Añade al menos una pregunta antes de crear la encuesta</p>
               </div>
             )}
 
-            <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button type="button" variant="outline" onClick={onCancel}>
+            <div className="flex flex-col-reverse gap-2 border-t border-slate-200 pt-4 sm:flex-row sm:justify-end sm:gap-3">
+              <Button type="button" variant="outline" onClick={onCancel} className="w-full rounded-xl sm:w-auto">
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 disabled={isSubmitting || currentSurvey.preguntas.length === 0 || !currentSurvey.titulo || !currentSurvey.fecha_fin}
-                className="bg-orange-600 hover:bg-orange-700"
+                className="w-full rounded-xl bg-orange-600 font-semibold shadow-sm hover:bg-orange-700 sm:w-auto"
               >
                 {isSubmitting ? (
                   <>
