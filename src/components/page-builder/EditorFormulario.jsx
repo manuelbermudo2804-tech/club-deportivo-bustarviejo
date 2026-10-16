@@ -179,22 +179,31 @@ export default function EditorFormulario({ formulario, onChange }) {
       </div>
 
       <div className="pt-3 border-t border-slate-200">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
           <Label className="text-base font-bold">Campos del formulario ({campos.length})</Label>
-          <Button size="sm" onClick={addCampo} className="gap-1">
+          <Button type="button" size="sm" onClick={addCampo} className="gap-1 w-full sm:w-auto">
             <Plus className="w-4 h-4" /> Añadir
           </Button>
         </div>
 
+        {campos.length === 0 && (
+          <div className="rounded-xl border border-dashed border-slate-300 bg-white p-5 text-center">
+            <p className="font-medium text-slate-700">Todavía no hay campos</p>
+            <p className="mt-1 text-sm text-slate-500">Añade los datos que necesitarás recoger en la inscripción.</p>
+            <Button type="button" variant="outline" size="sm" onClick={addCampo} className="mt-3 gap-1">
+              <Plus className="w-4 h-4" /> Añadir primer campo
+            </Button>
+          </div>
+        )}
         <div className="space-y-3">
           {campos.map((c, idx) => (
             <div key={c.id} className="p-3 bg-slate-50 rounded-xl border border-slate-200">
               <div className="flex items-center gap-2 mb-2">
                 <div className="flex flex-col">
-                  <button onClick={() => moveCampo(idx, -1)} className="text-slate-400 hover:text-slate-700 text-xs" disabled={idx === 0}>▲</button>
-                  <button onClick={() => moveCampo(idx, 1)} className="text-slate-400 hover:text-slate-700 text-xs" disabled={idx === campos.length - 1}>▼</button>
+                  <button type="button" aria-label={`Mover ${c.etiqueta || "campo"} hacia arriba`} title="Mover arriba" onClick={() => moveCampo(idx, -1)} className="rounded px-1 text-slate-500 hover:bg-slate-200 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:opacity-30" disabled={idx === 0}>▲</button>
+                  <button type="button" aria-label={`Mover ${c.etiqueta || "campo"} hacia abajo`} title="Mover abajo" onClick={() => moveCampo(idx, 1)} className="rounded px-1 text-slate-500 hover:bg-slate-200 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 disabled:opacity-30" disabled={idx === campos.length - 1}>▼</button>
                 </div>
-                <div className="flex-1 grid grid-cols-2 gap-2">
+                <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <Input
                     value={c.etiqueta}
                     onChange={(e) => updateCampo(idx, "etiqueta", e.target.value)}
@@ -208,12 +217,12 @@ export default function EditorFormulario({ formulario, onChange }) {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button variant="ghost" size="icon" onClick={() => deleteCampo(idx)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                <Button type="button" variant="ghost" size="icon" aria-label={`Eliminar ${c.etiqueta || "campo"}`} title="Eliminar campo" onClick={() => deleteCampo(idx)} className="shrink-0 text-red-500 hover:text-red-700 hover:bg-red-50">
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <Select value={c.ancho || "full"} onValueChange={(v) => updateCampo(idx, "ancho", v)}>
                   <SelectTrigger className="text-xs h-8"><SelectValue /></SelectTrigger>
                   <SelectContent>
