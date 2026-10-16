@@ -6,6 +6,7 @@
       "type": "string",
       "enum": [
         "page_view",
+        "public_view",
         "error",
         "performance",
         "user_action",
