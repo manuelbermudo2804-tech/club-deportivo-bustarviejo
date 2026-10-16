@@ -101,6 +101,7 @@ export default function CoachDashboard() {
       // Incluir hijos vinculados y la propia ficha del jugador adulto.
       [...byPadre, ...byTutor2, ...byJugador].forEach(p => map.set(p.id, p));
       // No excluir user.player_id: si es jugador +18, necesita su agenda personal.
+      return Array.from(map.values());
     },
     // Consultar por email aunque el indicador manual esté desactualizado.
     enabled: !!user?.email,
