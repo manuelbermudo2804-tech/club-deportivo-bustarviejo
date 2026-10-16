@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Eye, Globe, Loader2, Copy, Check, Share2, Smartphone, Monitor, HelpCircle } from "lucide-react";
+import { ArrowLeft, Save, Eye, Globe, Loader2, Copy, Check, Share2, Smartphone, Monitor, HelpCircle, Undo2, Redo2 } from "lucide-react";
 import TemplatePicker from "@/components/page-builder/TemplatePicker";
 import EditorHero from "@/components/page-builder/EditorHero";
 import EditorFormulario from "@/components/page-builder/EditorFormulario";
@@ -47,6 +47,12 @@ export default function PageBuilderEditor() {
 
   const [dirty, setDirty] = useState(false);
   const [initialPage, setInitialPage] = useState(null);
+  const [history, setHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const historyReady = useRef(false);
+  const applyingHistory = useRef(false);
+  const draftRestoreChecked = useRef(false);
+  const draftKey = `page_builder_editor_draft_${editId || "new"}`;
 
   // Cargar página existente
   useEffect(() => {
@@ -60,6 +66,9 @@ export default function PageBuilderEditor() {
         if (p) {
           setPage(p);
           setInitialPage(JSON.stringify(p));
+          setHistory([JSON.stringify(p)]);
+          setHistoryIndex(0);
+          historyReady.current = true;
           setLoadError(false);
         } else {
           toast.error("Página no encontrada");
@@ -75,11 +84,75 @@ export default function PageBuilderEditor() {
     return () => { cancelled = true; };
   }, [editId, navigate, loadAttempt]);
 
-  // Detectar cambios sin guardar
+  // Detectar cambios sin guardar y mantener un historial local limitado para deshacer/rehacer.
   useEffect(() => {
     if (!page || !initialPage) return;
-    setDirty(JSON.stringify(page) !== initialPage);
+    const snapshot = JSON.stringify(page);
+    setDirty(snapshot !== initialPage);
+    if (!historyReady.current) {
+      setHistory([snapshot]);
+      setHistoryIndex(0);
+      historyReady.current = true;
+      return;
+    }
+    if (applyingHistory.current) {
+      applyingHistory.current = false;
+      return;
+    }
+    setHistory((current) => {
+      const base = current.slice(0, Math.max(0, historyIndex + 1));
+      if (base[base.length - 1] === snapshot) return current;
+      const next = [...base, snapshot].slice(-50);
+      setHistoryIndex(next.length - 1);
+      return next;
+    });
   }, [page, initialPage]);
+
+  const moveHistory = (direction) => {
+    const nextIndex = historyIndex + direction;
+    if (nextIndex < 0 || nextIndex >= history.length) return;
+    try {
+      const snapshot = history[nextIndex];
+      applyingHistory.current = true;
+      setPage(JSON.parse(snapshot));
+      setHistoryIndex(nextIndex);
+    } catch (err) {
+      applyingHistory.current = false;
+      console.error("No se pudo restaurar el cambio del editor:", err);
+      toast.error("No se pudo recuperar ese cambio.");
+    }
+  };
+
+  // Recuperación local opcional de borradores del editor; nunca restaura ni ejecuta pagos.
+  useEffect(() => {
+    if (!page || draftRestoreChecked.current) return;
+    draftRestoreChecked.current = true;
+    try {
+      const raw = window.localStorage.getItem(draftKey);
+      if (!raw) return;
+      const draft = JSON.parse(raw);
+      if (!draft?.page || typeof draft.savedAt !== "number") return;
+      if (JSON.stringify(draft.page) === JSON.stringify(page)) return;
+      const when = new Date(draft.savedAt).toLocaleString();
+      if (window.confirm(`Hay una copia local del editor guardada el ${when}. ¿Quieres recuperar esos cambios?\n\nSi eliges No, se conservará la página cargada.`)) {
+        setPage(draft.page);
+        toast.success("Borrador local recuperado");
+      } else {
+        window.localStorage.removeItem(draftKey);
+      }
+    } catch (err) {
+      console.warn("No se pudo leer el borrador local del editor:", err);
+    }
+  }, [page, draftKey]);
+
+  useEffect(() => {
+    if (!page || !dirty) return;
+    try {
+      window.localStorage.setItem(draftKey, JSON.stringify({ page, savedAt: Date.now() }));
+    } catch (err) {
+      console.warn("No se pudo guardar el borrador local del editor:", err);
+    }
+  }, [page, dirty, draftKey]);
 
   // Advertir antes de salir si hay cambios sin guardar
   useEffect(() => {
@@ -144,12 +217,14 @@ export default function PageBuilderEditor() {
         toast.success("Cambios guardados");
         setPage(payload);
         setInitialPage(JSON.stringify(payload));
+        try { window.localStorage.removeItem(draftKey); } catch {}
         setLastSavedAt(new Date());
       } else {
         const created = await base44.entities.LandingPage.create(payload);
         toast.success("Página creada");
         setPage(created);
         setInitialPage(JSON.stringify(created));
+        try { window.localStorage.removeItem(draftKey); } catch {}
         setLastSavedAt(new Date());
         navigate(`/PageBuilderEditor?id=${created.id}`, { replace: true });
       }
