@@ -92,15 +92,15 @@ export default function CoachDashboard() {
     queryKey: ['myParentPlayersForCoach', user?.email],
     queryFn: async () => {
       if (!user?.email) return [];
-      const [byPadre, byTutor2] = await Promise.all([
+      const [byPadre, byTutor2, byJugador] = await Promise.all([
         base44.entities.Player.filter({ email_padre: user.email, activo: true }).catch(() => []),
         base44.entities.Player.filter({ email_tutor_2: user.email, activo: true }).catch(() => []),
+        base44.entities.Player.filter({ email_jugador: user.email, activo: true }).catch(() => []),
       ]);
       const map = new Map();
-      [...byPadre, ...byTutor2].forEach(p => map.set(p.id, p));
-      // Excluir su propia ficha de jugador +18 (no es "hijo")
-      const playerId = user?.player_id;
-      return Array.from(map.values()).filter(p => p.id !== playerId);
+      // Incluir hijos vinculados y la propia ficha del jugador adulto.
+      [...byPadre, ...byTutor2, ...byJugador].forEach(p => map.set(p.id, p));
+      // No excluir user.player_id: si es jugador +18, necesita su agenda personal.
     },
     // Consultar por email aunque el indicador manual esté desactualizado.
     enabled: !!user?.email,
@@ -418,7 +418,7 @@ export default function CoachDashboard() {
             <div className="rounded-xl border-2 border-orange-500/30 overflow-hidden">
               <div className="bg-gradient-to-r from-orange-600 to-orange-700 px-4 py-2">
                 <p className="text-white font-bold text-sm flex items-center gap-2">
-                  {hasPlayers ? '👨‍👩‍👧 Tus hijos en el club' : user?.es_jugador ? '⚽ Tu ficha de jugador' : '👨‍👩‍👧 Tu vida en el club'}
+                  {myParentPlayers.some(p => p.id === user?.player_id || p.email_jugador === user?.email) && (hasPlayers || myParentPlayers.some(p => p.id !== user?.player_id)) ? '⚽ Tu jugador y tu familia en el club' : myParentPlayers.some(p => p.id === user?.player_id || p.email_jugador === user?.email) || user?.es_jugador ? '⚽ Tu ficha de jugador' : '👨‍👩‍👧 Tus hijos en el club'}
                 </p>
               </div>
               <div className="bg-orange-950/40 p-3">
