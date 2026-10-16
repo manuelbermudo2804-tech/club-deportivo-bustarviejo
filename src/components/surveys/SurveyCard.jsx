@@ -20,29 +20,29 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
   const daysLeft = survey.fecha_fin ? Math.max(0, Math.round((new Date(`${survey.fecha_fin}T12:00:00`) - new Date(`${todayKey}T12:00:00`)) / (1000 * 60 * 60 * 24))) : 0;
 
   // Filtrar por survey_id directamente en BD (mucho más eficiente)
-  const { data: responses } = useQuery({
-    queryKey: ['surveyResponses', survey.id, userEmail],
-    queryFn: () => {
-      const marker = survey.anonima ? `anon_${btoa(userEmail).slice(0, 12)}` : userEmail;
-      return base44.entities.SurveyResponse.filter({ survey_id: survey.id, respondente_email: marker });
+  const { data: responseStatus } = useQuery({
+    queryKey: ['surveyResponded', survey.id, userEmail],
+    queryFn: async () => {
+      const result = await base44.functions.invoke("surveyResponseSecure", {
+        action: "has_responded",
+        survey_id: survey.id
+      });
+      return result?.data || result || { hasResponded: false };
     },
-    initialData: [],
+    initialData: { hasResponded: false },
     enabled: !isAdmin && !!userEmail,
     staleTime: 60000,
   });
 
   useEffect(() => {
     if (!isAdmin && userEmail) {
-      const userResponse = (responses || []).find(r => r.survey_id === survey.id);
-      let anonResponded = false;
+      let localResponded = false;
       try {
-        if (survey.anonima) {
-          anonResponded = localStorage.getItem(`survey_${survey.id}_responded_${userEmail}`) === 'true';
-        }
+        localResponded = localStorage.getItem(`survey_${survey.id}_responded`) === 'true';
       } catch {}
-      setHasResponded(!!userResponse || anonResponded);
+      setHasResponded(!!responseStatus?.hasResponded || localResponded);
     }
-  }, [responses, userEmail, survey.id, survey.anonima, isAdmin]);
+  }, [responseStatus, userEmail, survey.id, isAdmin]);
 
   useEffect(() => {
     const handler = (e) => {
