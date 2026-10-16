@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 import PaymentOptionsSelector from "./PaymentOptionsSelector";
 import usePublicFormTracker from "./usePublicFormTracker";
+import { guardarConsentimiento } from "@/lib/guardarConsentimiento";
 
 // Validadores
 const validDNI = (s) => {
@@ -360,6 +361,29 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
         }
       }
       if (lastErr) throw lastErr;
+
+      // La Junta recoge dos autorizaciones comerciales opcionales. Guardarlas
+      // en la tabla central solo cuando la persona las haya marcado expresamente.
+      if (landingSlug === "juntageneral") {
+        const aceptaPromociones = values.campo_1790836981734 === true;
+        const aceptaPatrocinadores = values.campo_1790837198668 === true;
+        if (aceptaPromociones || aceptaPatrocinadores) {
+          try {
+            await guardarConsentimiento({
+              origen: "juntageneral",
+              nombre,
+              email,
+              telefono,
+              acepta_promociones: aceptaPromociones,
+              acepta_patrocinadores: aceptaPatrocinadores,
+            });
+          } catch (consentError) {
+            // No bloquear la inscripción si falla el registro secundario;
+            // el error queda visible en consola para poder revisarlo.
+            console.error("No se pudo guardar el consentimiento comercial de Junta:", consentError);
+          }
+        }
+      }
 
       trackEvent("submit_success", { submission_id: res?.data?.submission_id, form_data: values });
       savePreRegistro(true);
