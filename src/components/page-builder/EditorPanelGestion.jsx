@@ -32,7 +32,7 @@ export default function EditorPanelGestion({ panel = {}, onChange }) {
         Permite que esta página aparezca en el menú lateral de personas concretas para que vean y gestionen las inscripciones desde la app.
       </p>
 
-      <div className="flex items-center justify-between bg-slate-50 rounded-xl p-3 border border-slate-200">
+      <div className="flex items-start sm:items-center justify-between gap-3 bg-slate-50 rounded-xl p-3 border border-slate-200">
         <div>
           <Label className="font-semibold">Mostrar en el menú</Label>
           <p className="text-xs text-slate-500">Aparece como "Eventos Especiales" en el menú lateral.</p>
@@ -76,7 +76,7 @@ export default function EditorPanelGestion({ panel = {}, onChange }) {
 
           <div>
             <Label>Añadir email autorizado</Label>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Input
                 value={newEmail}
                 onChange={(e) => setNewEmail(e.target.value)}
@@ -84,7 +84,7 @@ export default function EditorPanelGestion({ panel = {}, onChange }) {
                 placeholder="persona@email.com"
                 type="email"
               />
-              <Button type="button" onClick={addEmail} size="sm" className="gap-1 flex-shrink-0">
+              <Button type="button" onClick={addEmail} size="sm" aria-label="Añadir email autorizado" className="gap-1 w-full sm:w-auto flex-shrink-0 bg-orange-600 hover:bg-orange-700 text-white focus-visible:ring-2 focus-visible:ring-orange-400">
                 <Plus className="w-4 h-4" />
               </Button>
             </div>
@@ -97,9 +97,11 @@ export default function EditorPanelGestion({ panel = {}, onChange }) {
                 <div key={e} className="flex items-center justify-between bg-slate-50 rounded-lg px-3 py-2 border border-slate-200">
                   <span className="text-sm text-slate-700 truncate">{e}</span>
                   <button
+                    type="button"
                     onClick={() => removeEmail(e)}
-                    className="text-slate-400 hover:text-red-600 ml-2"
+                    className="text-slate-500 hover:text-red-600 ml-2 rounded p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                     title="Quitar"
+                    aria-label={`Quitar acceso a ${e}`
                   >
                     <X className="w-4 h-4" />
                   </button>
