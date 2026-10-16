@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
-import { Plus, GripVertical, Trash2, ChevronRight, Copy } from "lucide-react";
+import { Plus, GripVertical, Trash2, ChevronRight, Copy, ArrowUp, ArrowDown, Layers } from "lucide-react";
 import { BLOCK_CATALOG, getBlockMeta } from "./blockTypes";
 import EditorBloqueProps from "./EditorBloqueProps";
 
@@ -41,17 +41,28 @@ export default function EditorBloques({ bloques = [], onChange }) {
   };
 
   const duplicateBlock = (idx) => {
-    const copy = { ...bloques[idx], id: `b_${Date.now()}` };
+    const copy = JSON.parse(JSON.stringify(bloques[idx]));
+    copy.id = `b_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     const next = [...bloques];
     next.splice(idx + 1, 0, copy);
     onChange(next);
+    setOpenIdx(idx + 1);
+  };
+
+  const moveBlock = (idx, direction) => {
+    const target = idx + direction;
+    if (target < 0 || target >= bloques.length) return;
+    const next = [...bloques];
+    [next[idx], next[target]] = [next[target], next[idx]];
+    onChange(next);
+    setOpenIdx(target);
   };
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-bold text-slate-900 text-base">🧱 Bloques ({bloques.length})</h3>
-        <Button size="sm" onClick={() => setShowCatalog(true)} className="gap-1">
+        <Button size="sm" onClick={() => setShowCatalog(true)} className="gap-1 shrink-0">
           <Plus className="w-4 h-4" /> Añadir
         </Button>
       </div>
@@ -103,16 +114,36 @@ export default function EditorBloques({ bloques = [], onChange }) {
                                 className={`w-4 h-4 text-slate-400 flex-shrink-0 transition-transform ${isOpen ? "rotate-90" : ""}`}
                               />
                             </button>
+                            <div className="flex items-center gap-0.5 shrink-0">
+                              <button
+                                onClick={() => moveBlock(idx, -1)}
+                                disabled={idx === 0}
+                                className="text-slate-400 hover:text-slate-800 disabled:opacity-30 p-1.5 rounded-md hover:bg-slate-100"
+                                title="Mover bloque arriba"
+                                aria-label={`Mover ${meta?.nombre || b.tipo} arriba`}
+                              >
+                                <ArrowUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                onClick={() => moveBlock(idx, 1)}
+                                disabled={idx === bloques.length - 1}
+                                className="text-slate-400 hover:text-slate-800 disabled:opacity-30 p-1.5 rounded-md hover:bg-slate-100"
+                                title="Mover bloque abajo"
+                                aria-label={`Mover ${meta?.nombre || b.tipo} abajo`}
+                              >
+                                <ArrowDown className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
                             <button
                               onClick={() => duplicateBlock(idx)}
-                              className="text-slate-400 hover:text-slate-700 p-1.5"
+                              className="text-slate-400 hover:text-slate-700 p-1.5 rounded-md hover:bg-slate-100"
                               title="Duplicar"
                             >
                               <Copy className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => deleteBlock(idx)}
-                              className="text-slate-400 hover:text-red-600 p-1.5"
+                              className="text-slate-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50"
                               title="Eliminar"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -149,16 +180,19 @@ export default function EditorBloques({ bloques = [], onChange }) {
             className="max-w-2xl mx-auto my-8 bg-white rounded-3xl shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="p-6 border-b border-slate-200 flex items-center justify-between">
-              <h3 className="text-xl font-black text-slate-900">Añadir bloque</h3>
+            <div className="p-5 sm:p-6 border-b border-slate-200 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="h-10 w-10 rounded-xl bg-orange-50 text-orange-700 flex items-center justify-center shrink-0"><Layers className="h-5 w-5" /></div>
+                <div className="min-w-0"><h3 className="text-lg sm:text-xl font-black text-slate-900">Añadir bloque</h3><p className="text-xs text-slate-500 mt-0.5">Elige un tipo; después podrás editar su contenido.</p></div>
+              </div>
               <button onClick={() => setShowCatalog(false)} className="text-slate-400 hover:text-slate-700 text-2xl leading-none">✕</button>
             </div>
-            <div className="p-6 grid grid-cols-2 gap-3 max-h-[60vh] overflow-y-auto">
+            <div className="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[65vh] overflow-y-auto">
               {BLOCK_CATALOG.map((b) => (
                 <button
                   key={b.tipo}
                   onClick={() => addBlock(b)}
-                  className="text-left p-4 rounded-2xl border-2 border-slate-200 hover:border-slate-900 hover:shadow-lg transition-all group"
+                  className="text-left p-4 rounded-2xl border-2 border-slate-200 hover:border-orange-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 hover:shadow-lg transition-all group min-w-0"
                 >
                   <div className="text-3xl mb-2 group-hover:scale-110 transition-transform">{b.emoji}</div>
                   <div className="font-bold text-slate-900 text-sm mb-1">{b.nombre}</div>
