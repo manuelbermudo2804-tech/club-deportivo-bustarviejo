@@ -663,12 +663,12 @@ export default function CoachCallups() {
         const draftCount = upcomingCallups.filter(c => !c.publicada).length;
         return (
           <Tabs value={statusFilter} onValueChange={setStatusFilter} className="mt-4">
-            <TabsList className="w-full sm:w-auto h-auto grid grid-cols-3 gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2 shadow-sm sm:inline-grid">
+            <TabsList className="!h-auto w-full min-w-0 grid grid-cols-1 gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2 shadow-sm sm:w-auto sm:grid-cols-3 sm:inline-grid">
               <TabsTrigger
                 value="all"
-                className="min-h-11 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900 data-[state=active]:border-orange-500 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+                className="h-auto min-h-11 w-full min-w-0 whitespace-normal rounded-xl border border-transparent px-3 py-2.5 text-xs font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900 data-[state=active]:border-orange-500 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md sm:text-sm"
               >
-                <span className="flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <span className="flex min-w-0 flex-wrap items-center justify-center gap-1.5 text-center leading-tight">
                   <span aria-hidden="true">▦</span>
                   <span>Todas</span>
                   <span className="rounded-full bg-black/5 px-2 py-0.5 text-xs font-bold data-[state=active]:bg-white/20">{upcomingCallups.length}</span>
@@ -676,9 +676,9 @@ export default function CoachCallups() {
               </TabsTrigger>
               <TabsTrigger
                 value="published"
-                className="min-h-11 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900 data-[state=active]:border-emerald-600 data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+                className="h-auto min-h-11 w-full min-w-0 whitespace-normal rounded-xl border border-transparent px-3 py-2.5 text-xs font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900 data-[state=active]:border-emerald-600 data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md sm:text-sm"
               >
-                <span className="flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <span className="flex min-w-0 flex-wrap items-center justify-center gap-1.5 text-center leading-tight">
                   <span aria-hidden="true">✓</span>
                   <span>Publicadas</span>
                   <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">{publishedCount}</span>
@@ -686,9 +686,9 @@ export default function CoachCallups() {
               </TabsTrigger>
               <TabsTrigger
                 value="draft"
-                className="min-h-11 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900 data-[state=active]:border-blue-600 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+                className="h-auto min-h-11 w-full min-w-0 whitespace-normal rounded-xl border border-transparent px-3 py-2.5 text-xs font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900 data-[state=active]:border-blue-600 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md sm:text-sm"
               >
-                <span className="flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <span className="flex min-w-0 flex-wrap items-center justify-center gap-1.5 text-center leading-tight">
                   <span aria-hidden="true">▤</span>
                   <span>Borradores</span>
                   <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-700">{draftCount}</span>
