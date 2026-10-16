@@ -209,6 +209,7 @@ export default function PageBuilderEditor() {
               if (dirty && !window.confirm("Tienes cambios sin guardar. ¿Salir igualmente?")) return;
               navigate("/PageBuilder");
             }}
+            className="text-slate-200 hover:text-white hover:bg-white/10"
           >
             <ArrowLeft className="w-4 h-4" />
           </Button>
