@@ -103,7 +103,7 @@ export default function JuntaKPIDashboard({ incidencias = [] }) {
         <Card className="border bg-white/90">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-slate-500">Cobrado</p>
+              <p className="text-xs text-slate-500">Pagos marcados como pagados</p>
               {percentCobrado >= 85 ? <TrendingUp className="w-4 h-4 text-green-600" /> : <TrendingDown className="w-4 h-4 text-orange-500" />}
             </div>
             <div className="flex items-baseline gap-2">
@@ -149,8 +149,8 @@ export default function JuntaKPIDashboard({ incidencias = [] }) {
 
       </div>
 
-      <div className="text-xs text-slate-500 flex items-center gap-2">
-        <Clock className="w-3 h-3" /> Datos agregados (últ. 500 pagos, 200 asistencias, SLA: Alta 48h / Media 5d / Baja 10d)
+      <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500 flex items-start gap-2">
+        <Clock className="mt-0.5 h-3 w-3 shrink-0" /> <span>Datos parciales: últimos 500 pagos y 200 registros de asistencia. El porcentaje de pagos refleja registros marcados como «Pagado», no el importe total recaudado. SLA de incidencias: alta 48 h, media 5 días y baja 10 días.</span>
       </div>
     </div>
   );
