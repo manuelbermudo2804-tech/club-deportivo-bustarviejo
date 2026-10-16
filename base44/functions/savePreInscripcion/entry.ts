@@ -102,7 +102,10 @@ Deno.serve(async (req) => {
     }
 
     // Buscar si ya existe un borrador de esta sesión
-    const existentes = await base44.asServiceRole.entities.PreInscripcion.filter({ session_id: payload.session_id });
+    const existentes = await base44.asServiceRole.entities.PreInscripcion.filter({
+      session_id: payload.session_id,
+      landing_page_id: page.id,
+    });
     if (existentes && existentes.length > 0) {
       await base44.asServiceRole.entities.PreInscripcion.update(existentes[0].id, payload);
       return Response.json({ ok: true, id: existentes[0].id, updated: true, submission_id: submissionRescatada?.id || null });
