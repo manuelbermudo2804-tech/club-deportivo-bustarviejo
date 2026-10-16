@@ -92,7 +92,7 @@ export default function LiveActivityWidget() {
 
       {error && <p className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">No se ha podido actualizar la actividad. Las cifras visibles pueden estar desactualizadas.</p>}
       <p className="mb-3 text-xs leading-relaxed text-slate-500">Indicadores calculados sobre una muestra de hasta 2.000 eventos de página. «Activos ahora» solo cuenta usuarios identificados por email durante los últimos 5 minutos.</p>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
         <div className="bg-white rounded-xl p-3 border border-slate-200">
           <div className="flex items-center gap-1.5 text-slate-500 text-xs mb-1">
             <Users className="w-3.5 h-3.5" /> Activos ahora
