@@ -34,45 +34,27 @@ export default function SurveyResponseForm({ survey, onClose }) {
     setSubmitting(true);
 
     try {
-      const user = await base44.auth.me();
+      const formattedResponses = survey.preguntas.map((q, index) => ({
+        pregunta: q.pregunta,
+        respuesta: String(responses[index] || "").trim()
+      }));
 
-      // Se usa un marcador estable para detectar respuestas repetidas.
-      // En encuestas anónimas este marcador sigue siendo seudónimo, no anonimato criptográfico.
-      const uniqueMarker = survey.anonima
-        ? `anon_${btoa(user.email).slice(0, 12)}`
-        : user.email;
-
-      const existing = await base44.entities.SurveyResponse.filter({
+      // El servidor vuelve a validar fechas, obligatoriedad y duplicados.
+      // En encuestas anónimas no se envía ningún identificador del participante.
+      const result = await base44.functions.invoke("surveyResponseSecure", {
+        action: "submit",
         survey_id: survey.id,
-        respondente_email: uniqueMarker
+        respuestas: formattedResponses
       });
-
-      if (existing && existing.length > 0) {
+      const payload = result?.data || result || {};
+      if (payload.alreadyResponded) {
         toast.error("Ya has respondido a esta encuesta");
-        setSubmitting(false);
         setSubmitted(true);
         return;
       }
-
-      const formattedResponses = survey.preguntas.map((q, index) => ({
-        pregunta: q.pregunta,
-        respuesta: responses[index] || ""
-      }));
-
-      await base44.entities.SurveyResponse.create({
-        survey_id: survey.id,
-        survey_titulo: survey.titulo,
-        respondente_email: uniqueMarker,
-        respondente_nombre: survey.anonima ? "" : user.full_name,
-        respuestas: formattedResponses,
-        fecha_respuesta: new Date().toISOString()
-      });
-
-      await base44.entities.Survey.update(survey.id, {
-        respuestas_count: (survey.respuestas_count || 0) + 1,
-        respuestas_nuevas: (survey.respuestas_nuevas || 0) + 1,
-        ultima_respuesta_fecha: new Date().toISOString()
-      });
+      if (!payload.ok) {
+        throw new Error(payload.error || "No se ha podido guardar la respuesta");
+      }
 
       try {
         localStorage.setItem(`survey_${survey.id}_responded_${user.email}`, 'true');
