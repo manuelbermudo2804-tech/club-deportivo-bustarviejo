@@ -49,6 +49,7 @@ export default function SurveyResponseForm({ survey, onClose }) {
       const payload = result?.data || result || {};
       if (payload.alreadyResponded) {
         toast.error("Ya has respondido a esta encuesta");
+        setSubmitting(false);
         setSubmitted(true);
         return;
       }
