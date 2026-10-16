@@ -46,7 +46,9 @@ Deno.serve(async (req) => {
           }
           const tienePago = !!page?.config?.pago?.activo;
           plazas_ocupadas = (subs || []).filter((s) => {
-            if (s.estado === 'cancelado') return false;
+            // La lista de espera no reserva plaza; debe coincidir con la validación
+            // aplicada al enviar una inscripción gratuita.
+            if (s.estado === 'cancelado' || s.estado === 'lista_espera') return false;
             if (tienePago) {
               // Solo cuentan las pagadas + pendientes recientes (30 min)
               if (s.pago_estado === 'pagado') return true;
@@ -112,7 +114,10 @@ Deno.serve(async (req) => {
       if (!pageId) return Response.json({ ok: false });
       try {
         const page = await base44.asServiceRole.entities.LandingPage.get(pageId);
-        const visitas = (page?.estadisticas?.visitas || 0) + 1;
+        if (!page || page.estado !== 'publicada') {
+          return Response.json({ ok: false });
+        }
+        const visitas = (page.estadisticas?.visitas || 0) + 1;
         await base44.asServiceRole.entities.LandingPage.update(pageId, {
           estadisticas: { ...(page?.estadisticas || {}), visitas },
         });
