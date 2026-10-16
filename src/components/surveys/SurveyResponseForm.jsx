@@ -57,7 +57,7 @@ export default function SurveyResponseForm({ survey, onClose }) {
       }
 
       try {
-        localStorage.setItem(`survey_${survey.id}_responded_${user.email}`, 'true');
+        localStorage.setItem(`survey_${survey.id}_responded`, 'true');
         window.dispatchEvent(new CustomEvent('survey-responded', { detail: { surveyId: survey.id } }));
       } catch {}
 
