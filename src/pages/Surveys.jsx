@@ -156,7 +156,7 @@ export default function Surveys() {
       <div className="space-y-4 lg:space-y-6">
         {activeSurveys.length > 0 && (
           <div>
-            <h2 className="text-lg lg:text-xl font-bold text-slate-900 mb-3 lg:mb-4">Encuestas Activas</h2>
+            <div className="mb-3 flex items-center gap-2 lg:mb-4"><span className="h-5 w-1.5 rounded-full bg-orange-500" /><h2 className="text-lg font-bold tracking-tight text-slate-900 lg:text-xl">Encuestas activas</h2><span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-700">{activeSurveys.length}</span></div>
             <div className="grid min-w-0 grid-cols-1 gap-3 xl:grid-cols-2">
               {activeSurveys.map(survey => (
                 <SurveyCard
@@ -174,7 +174,7 @@ export default function Surveys() {
 
         {closedSurveys.length > 0 && isAdmin && (
           <div>
-            <h2 className="text-lg lg:text-xl font-bold text-slate-500 mb-3 lg:mb-4">Encuestas Cerradas</h2>
+            <div className="mb-3 flex items-center gap-2 lg:mb-4"><span className="h-5 w-1.5 rounded-full bg-slate-400" /><h2 className="text-lg font-bold tracking-tight text-slate-600 lg:text-xl">Encuestas cerradas</h2><span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600">{closedSurveys.length}</span></div>
             <div className="grid min-w-0 grid-cols-1 gap-3 opacity-70 xl:grid-cols-2">
               {closedSurveys.map(survey => (
                 <SurveyCard
@@ -191,9 +191,9 @@ export default function Surveys() {
         )}
 
         {activeSurveys.length === 0 && !isAdmin && (
-          <div className="rounded-2xl border border-dashed border-slate-300 bg-white px-4 py-10 text-center shadow-sm">
-            <MessageCircle className="w-12 h-12 lg:w-16 lg:h-16 text-slate-300 mx-auto mb-3" />
-            <p className="text-slate-500 text-sm lg:text-base">No hay encuestas activas en este momento</p>
+          <div className="rounded-3xl border border-dashed border-slate-300 bg-gradient-to-b from-white to-slate-50 px-5 py-12 text-center shadow-sm">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-orange-50 ring-1 ring-orange-100"><MessageCircle className="h-8 w-8 text-orange-400" /></div>
+            <p className="text-base font-semibold text-slate-800">No hay encuestas activas</p><p className="mt-1 text-sm text-slate-500">Cuando el club publique una encuesta, aparecerá aquí.</p>
           </div>
         )}
       </div>
