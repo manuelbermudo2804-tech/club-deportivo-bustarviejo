@@ -26,12 +26,13 @@ export default function EditorBranding({ branding = {}, onChange }) {
 
       <div>
         <Label className="mb-2 block">Paleta rápida</Label>
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
           {PRESETS.map((p) => (
             <button
+              type="button"
               key={p.nombre}
               onClick={() => applyPreset(p)}
-              className="group p-2 rounded-xl border-2 border-slate-200 hover:border-slate-900 transition-all"
+              className="group min-w-0 p-2 rounded-xl border-2 border-slate-200 hover:border-orange-500 hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 transition-all"
             >
               <div className="flex gap-1 mb-1.5">
                 <div className="flex-1 h-6 rounded" style={{ background: p.primario }} />
@@ -45,7 +46,7 @@ export default function EditorBranding({ branding = {}, onChange }) {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <Label>Color principal</Label>
           <div className="flex items-center gap-2">
