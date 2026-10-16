@@ -56,10 +56,7 @@ export default function SurveyResponseForm({ survey, onClose }) {
         throw new Error(payload.error || "No se ha podido guardar la respuesta");
       }
 
-      try {
-        localStorage.setItem(`survey_${survey.id}_responded`, 'true');
-        window.dispatchEvent(new CustomEvent('survey-responded', { detail: { surveyId: survey.id } }));
-      } catch {}
+      window.dispatchEvent(new CustomEvent('survey-responded', { detail: { surveyId: survey.id } }));
 
       queryClient.invalidateQueries({ queryKey: ['surveys'] });
       queryClient.invalidateQueries({ queryKey: ['surveyResponses', survey.id] });
