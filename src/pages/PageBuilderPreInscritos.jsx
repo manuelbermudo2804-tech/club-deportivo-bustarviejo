@@ -46,8 +46,12 @@ export default function PageBuilderPreInscritos() {
           setAccessDenied(true); setLoading(false); return;
         }
         setPage(p);
-        const data = await base44.entities.PreInscripcion.filter({ landing_page_id: pageId }, "-created_date", 500);
-        setItems(data || []);
+        const result = await base44.functions.invoke("manageLandingSubmission", {
+          action: "get_preinscripciones",
+          landing_page_id: pageId,
+        });
+        const data = result?.data?.items || result?.items || [];
+        setItems(data);
       } catch (err) {
         console.error(err);
         toast.error("Error cargando pre-registros");
@@ -59,7 +63,11 @@ export default function PageBuilderPreInscritos() {
 
   const updateEstado = async (id, estado) => {
     try {
-      await base44.entities.PreInscripcion.update(id, { estado });
+      await base44.functions.invoke("manageLandingSubmission", {
+        action: "update_preinscripcion_estado",
+        preinscripcion_id: id,
+        estado,
+      });
       setItems((prev) => prev.map((s) => s.id === id ? { ...s, estado } : s));
       if (selected?.id === id) setSelected({ ...selected, estado });
       toast.success("Estado actualizado");
@@ -83,7 +91,10 @@ export default function PageBuilderPreInscritos() {
 
   const handleDelete = async (id) => {
     try {
-      await base44.entities.PreInscripcion.delete(id);
+      await base44.functions.invoke("manageLandingSubmission", {
+        action: "delete_preinscripcion",
+        preinscripcion_id: id,
+      });
       setItems((prev) => prev.filter((s) => s.id !== id));
       if (selected?.id === id) setSelected(null);
       toast.success("Pre-registro eliminado");
