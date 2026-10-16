@@ -93,22 +93,26 @@ export default function HealthCheck() {
   const EstadoIcon = ec.icon;
 
   return (
-    <div className="max-w-3xl mx-auto p-4 lg:p-8 space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-orange-500 to-orange-700 flex items-center justify-center">
-            <HeartPulse className="w-6 h-6 text-white" />
+    <div className="mx-auto w-full max-w-6xl space-y-5 p-3 sm:p-5 lg:space-y-6">
+      <section className="relative isolate overflow-hidden rounded-[26px] bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15">
+            <HeartPulse className="h-6 w-6 text-orange-300" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-slate-900">Panel de Salud</h1>
-            <p className="text-sm text-slate-500">Revisa la configuración de tu club de un vistazo</p>
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Control · Configuración</p>
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Salud del sistema</h1>
+            <p className="mt-1 text-sm text-slate-300">Revisa la configuración del club de un vistazo.</p>
           </div>
         </div>
-        <Button onClick={() => refetch()} disabled={isFetching} variant="outline" className="gap-2">
+        <Button onClick={() => refetch()} disabled={isFetching} variant="outline" className="gap-2 border-white/20 bg-white/10 text-white hover:bg-white/20 hover:text-white">
           {isFetching ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
           Volver a comprobar
         </Button>
-      </div>
+        </div>
+      </section>
 
       {isLoading && (
         <div className="flex items-center justify-center py-20">
@@ -128,7 +132,7 @@ export default function HealthCheck() {
       {data && (
         <>
           {/* Resumen general */}
-          <Card className={`border-none shadow-lg overflow-hidden`}>
+          <Card className="overflow-hidden rounded-2xl border-0 shadow-lg">
             <div className={`bg-gradient-to-r ${ec.bg} p-6 text-white flex items-center gap-4`}>
               <EstadoIcon className="w-10 h-10 flex-shrink-0" />
               <div className="flex-1">
