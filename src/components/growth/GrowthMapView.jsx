@@ -9,7 +9,7 @@ const POTENCIAL_COLOR = {
 };
 
 export default function GrowthMapView({ localidades }) {
-  const conCoords = localidades.filter((l) => l.lat && l.lng);
+  const conCoords = localidades.filter((l) => Number.isFinite(Number(l.lat)) && Number.isFinite(Number(l.lng)) && l.lat !== null && l.lng !== null && l.lat !== "" && l.lng !== "");
   const center = conCoords.length
     ? [conCoords[0].lat, conCoords[0].lng]
     : [40.85, -3.7];
