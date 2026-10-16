@@ -31,20 +31,19 @@ export default function ClubIA() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-4 space-y-5">
+    <div className="mx-auto w-full max-w-6xl space-y-5 p-3 sm:p-5 lg:space-y-6">
       {/* Hero */}
-      <div className="rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-900 p-6 text-white relative overflow-hidden">
-        <div className="absolute -right-8 -top-8 opacity-10">
+      <div className="relative isolate overflow-hidden rounded-[26px] bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-8 -top-8 opacity-10">
           <Brain className="w-40 h-40" />
         </div>
         <div className="relative">
           <div className="flex items-center gap-2 mb-2">
             <Brain className="w-7 h-7 text-indigo-300" />
-            <h1 className="text-white m-0">Club IA</h1>
+            <div><p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-indigo-300">Inteligencia · Observaciones</p><h1 className="text-2xl font-bold tracking-tight text-white m-0 sm:text-3xl">Club IA</h1></div>
           </div>
           <p className="text-slate-300 text-sm max-w-lg leading-relaxed">
-            No hace nada. Solo observa. Durante años. Y empieza a contarte lo que nadie había visto:
-            qué patrones se repiten en las bajas, la captación y el dinero del club.
+            Analiza patrones de retención, captación y finanzas para convertir los datos del club en observaciones prácticas y accionables.
           </p>
           <Button
             onClick={observar}
