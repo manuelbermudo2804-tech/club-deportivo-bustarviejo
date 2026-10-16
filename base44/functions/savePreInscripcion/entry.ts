@@ -29,9 +29,26 @@ Deno.serve(async (req) => {
 
     const base44 = createClientFromRequest(req);
 
+    // Validar siempre la página en el servidor. Esta función es pública y no
+    // debe aceptar borradores, slugs falsos ni IDs que no correspondan al slug.
+    const slug = String(landing_slug).trim().slice(0, 200);
+    let page = null;
+    if (landing_page_id) {
+      page = await base44.asServiceRole.entities.LandingPage.get(String(landing_page_id));
+      if (!page || page.slug !== slug) {
+        return Response.json({ error: 'Página no válida' }, { status: 400 });
+      }
+    } else {
+      const pages = await base44.asServiceRole.entities.LandingPage.filter({ slug });
+      page = pages?.[0] || null;
+    }
+    if (!page || page.estado !== 'publicada') {
+      return Response.json({ error: 'Esta página no está disponible para inscripciones' }, { status: 403 });
+    }
+
     const payload = {
-      landing_slug: String(landing_slug).slice(0, 200),
-      landing_page_id: landing_page_id || null,
+      landing_slug: slug,
+      landing_page_id: page.id,
       session_id: String(session_id).slice(0, 100),
       nombre_equipo: nombre_equipo ? String(nombre_equipo).slice(0, 200) : undefined,
       nombre: nombre ? String(nombre).slice(0, 200) : undefined,
