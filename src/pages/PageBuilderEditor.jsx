@@ -302,6 +302,12 @@ export default function PageBuilderEditor() {
         </div>
 
         <div className="flex flex-wrap items-center justify-end gap-2 flex-shrink-0">
+          <Button type="button" variant="outline" size="icon" onClick={() => moveHistory(-1)} disabled={historyIndex <= 0} title="Deshacer cambio" aria-label="Deshacer cambio" className="border-slate-600 bg-slate-800 text-white hover:bg-slate-700 disabled:opacity-35">
+            <Undo2 className="w-4 h-4" />
+          </Button>
+          <Button type="button" variant="outline" size="icon" onClick={() => moveHistory(1)} disabled={historyIndex < 0 || historyIndex >= history.length - 1} title="Rehacer cambio" aria-label="Rehacer cambio" className="border-slate-600 bg-slate-800 text-white hover:bg-slate-700 disabled:opacity-35">
+            <Redo2 className="w-4 h-4" />
+          </Button>
           <Button
             variant="ghost"
             size="icon"
