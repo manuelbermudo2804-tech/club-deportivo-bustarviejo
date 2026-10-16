@@ -76,7 +76,7 @@ export default function LiveActivityWidget() {
         <div className="flex items-center gap-2">
           <div className="relative">
             <Activity className="w-5 h-5 text-emerald-600" />
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+            <span className={`absolute -top-1 -right-1 h-2 w-2 rounded-full ${error ? "bg-red-500" : loading ? "bg-amber-500" : "bg-emerald-500"}`} />
           </div>
           <h3 className="font-bold text-slate-900">En vivo</h3>
           {lastUpdate && (
