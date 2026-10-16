@@ -82,18 +82,18 @@ export default function MarketListingCard({ item, user, isAdmin, onEdit, onReser
         )}
 
         {!sold && (
-          <div className="flex gap-1.5 pt-1">
+          <div className="grid grid-cols-2 gap-2 pt-1 sm:flex sm:flex-wrap sm:gap-1.5">
             {isMine || isAdmin ? (
               <>
-                <Button variant="outline" size="sm" className="flex-1 text-xs h-8" onClick={() => onEdit(item)}>Editar</Button>
-                <Button size="sm" className={`flex-1 text-xs h-8 ${item.tipo === 'donacion' ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-900 hover:bg-slate-800'}`} onClick={() => onSold(item)}>
+                <Button variant="outline" size="sm" className="w-full min-w-0 text-xs h-9 sm:w-auto sm:flex-1 sm:h-8" onClick={() => onEdit(item)}>Editar</Button>
+                <Button size="sm" className={`w-full min-w-0 text-xs h-9 sm:w-auto sm:flex-1 sm:h-8 ${item.tipo === 'donacion' ? 'bg-green-600 hover:bg-green-700' : 'bg-slate-900 hover:bg-slate-800'}`} onClick={() => onSold(item)}>
                   {item.tipo === 'donacion' ? 'Entregado' : 'Vendido'}
                 </Button>
                 {isReserved && (
-                  <Button variant="outline" size="sm" className="text-xs h-8 border-blue-400 text-blue-600" onClick={() => onRelease(item)}>Liberar</Button>
+                  <Button variant="outline" size="sm" className="w-full min-w-0 text-xs h-9 border-blue-400 text-blue-600 sm:w-auto sm:h-8" onClick={() => onRelease(item)}>Liberar</Button>
                 )}
                 {isAdmin && onCancel && (
-                  <Button variant="outline" size="sm" className="text-xs h-8 border-red-300 text-red-600" onClick={() => onCancel(item)}>Retirar</Button>
+                  <Button variant="outline" size="sm" className="w-full min-w-0 text-xs h-9 border-red-300 text-red-600 sm:w-auto sm:h-8" onClick={() => onCancel(item)}>Retirar</Button>
                 )}
               </>
             ) : esMiReserva ? (
