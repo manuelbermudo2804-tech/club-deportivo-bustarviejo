@@ -12,8 +12,12 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
   const [showResponse, setShowResponse] = useState(false);
   const [hasResponded, setHasResponded] = useState(false);
 
-  const daysLeft = Math.ceil((new Date(survey.fecha_fin) - new Date()) / (1000 * 60 * 60 * 24));
-  const isActive = survey.activa && daysLeft > 0;
+  const today = new Date();
+  const todayKey = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  const hasStarted = !!survey.fecha_inicio && todayKey >= survey.fecha_inicio;
+  const isScheduled = survey.activa && !!survey.fecha_inicio && todayKey < survey.fecha_inicio;
+  const isActive = survey.activa && hasStarted && !!survey.fecha_fin && todayKey <= survey.fecha_fin;
+  const daysLeft = survey.fecha_fin ? Math.max(0, Math.round((new Date(`${survey.fecha_fin}T12:00:00`) - new Date(`${todayKey}T12:00:00`)) / (1000 * 60 * 60 * 24))) : 0;
 
   // Filtrar por survey_id directamente en BD (mucho más eficiente)
   const { data: responses } = useQuery({
@@ -71,8 +75,8 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
             </CardTitle>
             <p className="text-sm text-slate-600 mt-1">{survey.descripcion}</p>
           </div>
-          <Badge className={isActive ? 'bg-green-500' : 'bg-slate-500'}>
-            {isActive ? 'Activa' : 'Cerrada'}
+          <Badge className={isActive ? 'bg-green-600' : isScheduled ? 'border border-blue-200 bg-blue-50 text-blue-800' : 'bg-slate-500'}>
+            {isActive ? 'Activa' : isScheduled ? 'Programada' : 'Cerrada'}
           </Badge>
         </div>
       </CardHeader>
@@ -107,8 +111,8 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
         <div className="flex items-center gap-2 text-sm">
           <Calendar className="w-4 h-4 text-slate-500" />
           <span>
-            Hasta {new Date(survey.fecha_fin).toLocaleDateString('es-ES')}
-            {isActive && ` (${daysLeft} días)`}
+            {isScheduled ? `Empieza el ${new Date(`${survey.fecha_inicio}T12:00:00`).toLocaleDateString('es-ES')}` : `Hasta ${survey.fecha_fin ? new Date(`${survey.fecha_fin}T12:00:00`).toLocaleDateString('es-ES') : '—'}`}
+            {isActive && ` · ${daysLeft} días restantes`}
           </span>
         </div>
 
