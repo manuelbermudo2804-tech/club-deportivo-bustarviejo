@@ -6,7 +6,43 @@ Deno.serve(async (req) => {
     const user = await base44.auth.me();
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { action, submission_id, estado, preinscripcion_id } = await req.json();
+    const { action, submission_id, estado, preinscripcion_id, landing_page_id } = await req.json();
+
+    // Acceso a pre-inscripciones también para los emails autorizados en la página,
+    // sin depender de permisos de escritura/lectura directa sobre la entidad.
+    if (action === 'get_preinscripciones') {
+      if (!landing_page_id) return Response.json({ error: 'Falta landing_page_id' }, { status: 400 });
+      const page = await base44.asServiceRole.entities.LandingPage.get(landing_page_id);
+      if (!page) return Response.json({ error: 'Página no encontrada' }, { status: 404 });
+      const authorized = (page.panel_gestion?.emails_autorizados || []).map((e) => (e || '').toLowerCase().trim());
+      const myEmail = (user.email || '').toLowerCase().trim();
+      if (user.role !== 'admin' && !authorized.includes(myEmail)) {
+        return Response.json({ error: 'Sin permiso para esta página' }, { status: 403 });
+      }
+      const items = await base44.asServiceRole.entities.PreInscripcion.filter({ landing_page_id }, '-created_date', 500);
+      return Response.json({ ok: true, items: items || [] });
+    }
+
+    if (action === 'update_preinscripcion_estado' || action === 'delete_preinscripcion') {
+      if (!preinscripcion_id) return Response.json({ error: 'Falta preinscripcion_id' }, { status: 400 });
+      const pre = await base44.asServiceRole.entities.PreInscripcion.get(preinscripcion_id);
+      if (!pre) return Response.json({ error: 'Pre-inscripción no encontrada' }, { status: 404 });
+      const page = await base44.asServiceRole.entities.LandingPage.get(pre.landing_page_id);
+      if (!page) return Response.json({ error: 'Página no encontrada' }, { status: 404 });
+      const authorized = (page.panel_gestion?.emails_autorizados || []).map((e) => (e || '').toLowerCase().trim());
+      const myEmail = (user.email || '').toLowerCase().trim();
+      if (user.role !== 'admin' && !authorized.includes(myEmail)) {
+        return Response.json({ error: 'Sin permiso para esta página' }, { status: 403 });
+      }
+      if (action === 'update_preinscripcion_estado') {
+        const estadosPre = ['pendiente', 'contactado', 'recuperado', 'descartado'];
+        if (!estadosPre.includes(estado)) return Response.json({ error: 'Estado no válido' }, { status: 400 });
+        await base44.asServiceRole.entities.PreInscripcion.update(preinscripcion_id, { estado });
+      } else {
+        await base44.asServiceRole.entities.PreInscripcion.delete(preinscripcion_id);
+      }
+      return Response.json({ ok: true });
+    }
 
     // ── Promover una pre-inscripción (equipo a medias) a la lista oficial de inscritos ──
     if (action === 'promote_preinscripcion') {
