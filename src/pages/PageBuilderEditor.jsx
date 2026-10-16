@@ -200,7 +200,7 @@ export default function PageBuilderEditor() {
   return (
     <div className="min-h-screen bg-slate-100">
       {/* Topbar */}
-      <div className="sticky top-0 z-30 bg-white border-b border-slate-200 px-4 py-3 flex items-center justify-between gap-3">
+      <div className="sticky top-0 z-30 bg-slate-950 text-white border-b border-slate-800 px-3 sm:px-4 py-3 flex flex-wrap items-center justify-between gap-3 shadow-sm">
         <div className="flex items-center gap-3 min-w-0">
           <Button
             variant="ghost"
@@ -213,11 +213,11 @@ export default function PageBuilderEditor() {
             <ArrowLeft className="w-4 h-4" />
           </Button>
           <div className="min-w-0">
-            <div className="font-bold text-slate-900 truncate flex items-center gap-2">
+            <div className="font-bold text-white truncate flex items-center gap-2">
               {page.nombre || "Sin nombre"}
               {saving ? <span className="text-xs font-normal text-blue-600">● guardando…</span> : dirty ? <span className="text-xs font-normal text-amber-600">● cambios pendientes</span> : lastSavedAt ? <span className="text-xs font-normal text-emerald-600">● guardado</span> : null}
             </div>
-            <div className="text-xs text-slate-500 truncate">
+            <div className="text-xs text-slate-300 truncate">
               {page.slug ? `/l/${page.slug}` : "sin slug definido"}
               {page.estado === "publicada" && <span className="ml-2 text-green-600 font-semibold">● Publicada</span>}
               {page.estado === "borrador" && <span className="ml-2 text-amber-600 font-semibold">● Borrador</span>}
@@ -225,7 +225,7 @@ export default function PageBuilderEditor() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex flex-wrap items-center justify-end gap-2 flex-shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -244,7 +244,7 @@ export default function PageBuilderEditor() {
               <Eye className="w-4 h-4" /> Ver
             </Button>
           )}
-          <Button size="sm" onClick={() => handleSave()} disabled={saving} className="gap-2">
+          <Button type="button" size="sm" onClick={() => handleSave()} disabled={saving} className="gap-2 bg-orange-600 hover:bg-orange-700 text-white shadow-sm focus-visible:ring-2 focus-visible:ring-orange-400">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {saving ? "Guardando…" : dirty ? "Guardar cambios" : "Guardar"}
           </Button>
@@ -266,7 +266,7 @@ export default function PageBuilderEditor() {
       <div className="grid lg:grid-cols-[400px_1fr] gap-0 lg:h-[calc(100vh-64px)]">
         {/* Panel izquierdo */}
         <div className="bg-white border-r border-slate-200 overflow-y-auto">
-          <div className="flex border-b border-slate-200 sticky top-0 bg-white z-10 overflow-x-auto">
+          <div className="flex border-b border-slate-200 sticky top-0 bg-white z-10 overflow-x-auto scrollbar-thin">
             {[
               { id: "hero", label: "🎬", title: "Hero" },
               { id: "bloques", label: "🧱", title: "Bloques" },
@@ -292,7 +292,7 @@ export default function PageBuilderEditor() {
             ))}
           </div>
 
-          <div className="p-5">
+          <div className="p-4 sm:p-5">
             {tab === "hero" && (
               <EditorHero
                 hero={page.config?.hero || {}}
