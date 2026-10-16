@@ -1,0 +1,48 @@
+{
+  "name": "SurveyParticipation",
+  "type": "object",
+  "properties": {
+    "survey_id": {
+      "type": "string",
+      "description": "Identificador de la encuesta"
+    },
+    "participant_hash": {
+      "type": "string",
+      "description": "Huella seud\u00f3nima para evitar respuestas repetidas; nunca se guarda en la respuesta"
+    }
+  },
+  "required": [
+    "survey_id",
+    "participant_hash"
+  ],
+  "indexes": [
+    {
+      "fields": [
+        "survey_id",
+        "participant_hash"
+      ]
+    }
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
