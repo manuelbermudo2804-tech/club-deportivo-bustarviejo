@@ -73,7 +73,7 @@ export default function PublicPageStats() {
   const totalViews = data?.reduce((s, x) => s + x.total, 0) || 0;
 
   return (
-    <Card className="bg-white border-2 border-slate-200">
+    <Card className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <CardHeader className="flex flex-row items-center justify-between pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <TrendingUp className="w-5 h-5 text-blue-600" />
