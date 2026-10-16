@@ -37,7 +37,7 @@ export default function LocalityRankingCard({ loc }) {
             Potencial {loc.potencial}
           </Badge>
         )}
-        {loc.categorias.slice(0, 3).map((c) => (
+        {(Array.isArray(loc.categorias) ? loc.categorias : []).slice(0, 3).map((c) => (
           <span key={c.nombre} className="text-[10px] text-slate-500 bg-slate-100 rounded px-1.5 py-0.5">
             {c.nombre.replace("Fútbol ", "").replace(" (Mixto)", "")} ({c.n})
           </span>
