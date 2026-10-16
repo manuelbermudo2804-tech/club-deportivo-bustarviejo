@@ -117,7 +117,7 @@ export default function Surveys() {
         return myPlayersSports.includes(s.destinatarios);
       });
 
-  const activeSurveys = filteredSurveys.filter(s => s.activa && s.fecha_inicio && s.fecha_fin && todayKey >= s.fecha_inicio && todayKey <= s.fecha_fin);
+  const activeSurveys = filteredSurveys.filter(s => s.activa && s.fecha_inicio && s.fecha_fin && todayKey <= s.fecha_fin);
   const closedSurveys = filteredSurveys.filter(s => !s.activa || !s.fecha_fin || todayKey > s.fecha_fin);
 
   if (viewingResults) {
