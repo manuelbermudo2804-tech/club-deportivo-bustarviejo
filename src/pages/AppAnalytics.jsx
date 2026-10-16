@@ -77,16 +77,16 @@ export default function AppAnalytics() {
   }
 
   return (
-    <div className="p-4 lg:p-6 space-y-6 max-w-7xl mx-auto">
+    <div className="mx-auto w-full max-w-6xl space-y-5 p-3 sm:p-5 lg:space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-2xl p-6 lg:p-8 text-white">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+      <div className="relative isolate overflow-hidden rounded-[26px] bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div className="relative flex flex-col items-start justify-between gap-4 lg:flex-row lg:items-center">
           <div>
             <h1 className="text-2xl lg:text-3xl font-extrabold flex items-center gap-3">
-              <Activity className="w-8 h-8 text-emerald-400" />
+              <Activity className="h-8 w-8 text-orange-300" />
               Centro de Diagnóstico
             </h1>
-            <p className="text-slate-400 mt-1 text-sm lg:text-base">
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 lg:text-base">
               Motor inteligente que analiza toda la app y detecta problemas reales
             </p>
           </div>
@@ -104,7 +104,7 @@ export default function AppAnalytics() {
             <Button
               onClick={runDiagnostic}
               disabled={isRunning}
-              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6"
+              className="bg-orange-600 px-6 font-bold text-white hover:bg-orange-700"
             >
               {isRunning ? (
                 <>
@@ -171,7 +171,7 @@ export default function AppAnalytics() {
           <p className="text-slate-500 mb-6 max-w-md mx-auto text-sm">
             Pulsa "Ejecutar Diagnóstico" para analizar accesos, subidas, pagos, fichas de jugadores, socios, convocatorias y la integridad general de los datos.
           </p>
-          <Button onClick={runDiagnostic} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-3">
+          <Button onClick={runDiagnostic} className="bg-orange-600 px-8 py-3 font-bold text-white hover:bg-orange-700">
             <Activity className="w-5 h-5 mr-2" />
             Ejecutar Diagnóstico
           </Button>
