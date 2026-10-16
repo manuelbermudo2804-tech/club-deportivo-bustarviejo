@@ -9,7 +9,7 @@ export default function AgendaWeekView({ items, referenceDate, onSelectDay }) {
   const dias = Array.from({ length: 7 }, (_, i) => addDays(lunes, i));
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-7 gap-2">
+    <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-7 lg:gap-3">
       {dias.map((day) => {
         const iso = fechaISO(day);
         const delDia = items.filter((i) => i.date === iso);
@@ -19,11 +19,20 @@ export default function AgendaWeekView({ items, referenceDate, onSelectDay }) {
           <div
             key={iso}
             onClick={() => onSelectDay?.(day)}
-            className={`min-w-0 rounded-2xl border p-3 min-h-[130px] cursor-pointer transition-colors shadow-sm ${
-              hoy ? "bg-orange-50 border-orange-300 ring-1 ring-orange-100" : "bg-white border-slate-200 hover:border-orange-300"
+            role="button"
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onSelectDay?.(day);
+              }
+            }}
+            aria-label={`${format(day, "EEEE d MMMM", { locale: es })}: ${delDia.length} actividades`}
+            className={`min-w-0 min-h-[130px] cursor-pointer rounded-2xl border p-3 shadow-sm transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 ${
+              hoy ? "bg-orange-50 border-orange-300 ring-1 ring-orange-100" : "bg-white border-slate-200 hover:border-orange-300 hover:bg-orange-50/40"
             }`}
           >
-            <p className={`text-xs font-bold uppercase mb-2 ${hoy ? "text-orange-700" : "text-slate-500"}`}>
+            <p className={`mb-2 border-b border-slate-100 pb-2 text-xs font-bold uppercase tracking-wide ${hoy ? "text-orange-700" : "text-slate-500"}`}> 
               {format(day, "EEE d", { locale: es })}
             </p>
             <div className="space-y-1.5">
