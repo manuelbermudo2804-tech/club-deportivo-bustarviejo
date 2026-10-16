@@ -36,11 +36,7 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
 
   useEffect(() => {
     if (!isAdmin && userEmail) {
-      let localResponded = false;
-      try {
-        localResponded = localStorage.getItem(`survey_${survey.id}_responded`) === 'true';
-      } catch {}
-      setHasResponded(!!responseStatus?.hasResponded || localResponded);
+      setHasResponded(!!responseStatus?.hasResponded);
     }
   }, [responseStatus, userEmail, survey.id, isAdmin]);
 
