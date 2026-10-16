@@ -18,13 +18,26 @@ export default function SurveyResponseForm({ survey, onClose }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    if (!survey.activa || !survey.fecha_inicio || !survey.fecha_fin || todayKey < survey.fecha_inicio || todayKey > survey.fecha_fin) {
+      toast.error("Esta encuesta está fuera de su periodo de respuesta");
+      return;
+    }
+    const missingRequired = survey.preguntas.some((question, index) =>
+      question.obligatoria && !String(responses[index] || "").trim()
+    );
+    if (missingRequired) {
+      toast.error("Contesta todas las preguntas obligatorias antes de enviar");
+      return;
+    }
     setSubmitting(true);
 
     try {
       const user = await base44.auth.me();
 
-      // Anti-doble-respuesta: incluso en anónimas, comprobar BD por hash de email
-      // Guardamos un identificador único oculto que NO expone identidad
+      // Se usa un marcador estable para detectar respuestas repetidas.
+      // En encuestas anónimas este marcador sigue siendo seudónimo, no anonimato criptográfico.
       const uniqueMarker = survey.anonima
         ? `anon_${btoa(user.email).slice(0, 12)}`
         : user.email;
