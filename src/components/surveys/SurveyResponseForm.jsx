@@ -60,6 +60,8 @@ export default function SurveyResponseForm({ survey, onClose }) {
 
       queryClient.invalidateQueries({ queryKey: ['surveys'] });
       queryClient.invalidateQueries({ queryKey: ['surveyResponses', survey.id] });
+      queryClient.invalidateQueries({ queryKey: ['surveyResponded', survey.id] });
+      queryClient.invalidateQueries({ queryKey: ['mySurveyResponses'] });
       setSubmitted(true);
     } catch (error) {
       console.error("Error submitting survey:", error);
