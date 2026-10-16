@@ -14,7 +14,9 @@ Deno.serve(async (req) => {
     }
 
     const page = await base44.asServiceRole.entities.LandingPage.get(landing_page_id);
-    if (!page) return Response.json({ error: 'Página no encontrada' }, { status: 404 });
+    if (!page || page.estado !== 'publicada') {
+      return Response.json({ error: 'Esta página no está disponible para inscripciones' }, { status: 403 });
+    }
 
     // Evitar duplicados
     const existentes = await base44.asServiceRole.entities.LandingSubmission.filter({
