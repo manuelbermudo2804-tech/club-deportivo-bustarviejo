@@ -13,6 +13,17 @@ Deno.serve(async (req) => {
     const isCoordinator = user.es_coordinador === true;
     const isTreasurer = user.es_tesorero === true;
     const isStaff = isAdmin || isCoach || isCoordinator || isTreasurer;
+    let isPracticeStaff = false;
+    if (!isStaff) {
+      const linkedPracticePlayers = await base44.asServiceRole.entities.Player.filter({
+        acceso_menor_email: email, activo: true
+      }).catch(() => []);
+      isPracticeStaff = linkedPracticePlayers.some(p =>
+        p.acceso_menor_revocado !== true &&
+        p.entrenador_practicas?.activo === true &&
+        p.entrenador_practicas?.chat_staff === true
+      );
+    }
 
     const result = {
       team_chats: {},
@@ -156,7 +167,7 @@ Deno.serve(async (req) => {
     }
 
     // ===== 3. STAFF CHAT (only for coaches, coordinators and admins — NOT treasurers) =====
-    if (isAdmin || isCoach || isCoordinator) {
+    if (isAdmin || isCoach || isCoordinator || isPracticeStaff) {
       promises.push((async () => {
         try {
           const staffConvs = await base44.asServiceRole.entities.StaffConversation.filter({ categoria: 'General' });
