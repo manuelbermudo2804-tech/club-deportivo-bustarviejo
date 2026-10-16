@@ -254,7 +254,7 @@ export default function PageBuilderEditor() {
           <Button
             type="button"
             size="sm"
-            onClick={() => handleSave(page.estado === "publicada" ? "borrador" : "publicada")
+            onClick={() => handleSave(page.estado === "publicada" ? "borrador" : "publicada")}
             disabled={saving}
             className={page.estado === "publicada"
               ? "bg-slate-700 hover:bg-slate-600 text-white gap-2 shadow-sm focus-visible:ring-2 focus-visible:ring-slate-400"
