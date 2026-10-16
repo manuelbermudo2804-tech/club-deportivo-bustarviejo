@@ -63,8 +63,22 @@ Deno.serve(async (req) => {
       }
 
       case 'staff': {
-        // chatId = StaffConversation id
-        const conv = await base44.asServiceRole.entities.StaffConversation.filter({ id: chatId });
+        // El chat staff solo es accesible al personal autorizado o a prácticas con chat_staff activo.
+        let allowed = user.role === 'admin' || user.es_entrenador === true ||
+          user.es_coordinador === true || user.es_tesorero === true;
+        if (!allowed) {
+          const linked = await base44.asServiceRole.entities.Player.filter({
+            acceso_menor_email: email, activo: true
+          }).catch(() => []);
+          allowed = linked.some(p =>
+            p.acceso_menor_revocado !== true &&
+            p.entrenador_practicas?.activo === true &&
+            p.entrenador_practicas?.chat_staff === true
+          );
+        }
+        if (!allowed) return Response.json({ error: 'Sin permiso para el chat del cuerpo técnico' }, { status: 403 });
+        // chatId = StaffConversation id; no permitir modificar conversaciones ajenas.
+        const conv = await base44.asServiceRole.entities.StaffConversation.filter({ id: chatId, categoria: 'General' });
         if (conv.length > 0) {
           const lastReadBy = (conv[0].last_read_by || []).filter(e => e.email !== email);
           lastReadBy.push({ email, fecha: now });
