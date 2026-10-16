@@ -10,6 +10,13 @@ import SurveyCard from "../components/surveys/SurveyCard";
 import SurveyResults from "../components/surveys/SurveyResults";
 import { toast } from "sonner";
 
+const localDateKey = (date = new Date()) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 export default function Surveys() {
   const [showForm, setShowForm] = useState(false);
   const [editingSurvey, setEditingSurvey] = useState(null);
@@ -96,11 +103,12 @@ export default function Surveys() {
   };
 
   // Filtrar encuestas según el rol
+  const todayKey = localDateKey();
   const filteredSurveys = isAdmin 
     ? surveys 
     : surveys.filter(s => {
-        // Encuesta debe estar activa y no vencida
-        if (!s.activa || new Date(s.fecha_fin) < new Date()) return false;
+        // Solo mostrar encuestas activas dentro de su periodo de respuesta
+        if (!s.activa || !s.fecha_inicio || !s.fecha_fin || todayKey < s.fecha_inicio || todayKey > s.fecha_fin) return false;
         
         // Si es para "Todos", mostrar
         if (s.destinatarios === "Todos") return true;
@@ -109,8 +117,8 @@ export default function Surveys() {
         return myPlayersSports.includes(s.destinatarios);
       });
 
-  const activeSurveys = filteredSurveys.filter(s => s.activa && new Date(s.fecha_fin) >= new Date());
-  const closedSurveys = filteredSurveys.filter(s => !s.activa || new Date(s.fecha_fin) < new Date());
+  const activeSurveys = filteredSurveys.filter(s => s.activa && s.fecha_inicio && s.fecha_fin && todayKey >= s.fecha_inicio && todayKey <= s.fecha_fin);
+  const closedSurveys = filteredSurveys.filter(s => !s.activa || !s.fecha_fin || todayKey > s.fecha_fin);
 
   if (viewingResults) {
     return <SurveyResults survey={viewingResults} onBack={() => setViewingResults(null)} />;
