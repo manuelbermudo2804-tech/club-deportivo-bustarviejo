@@ -100,6 +100,7 @@ export default function PublicPageStats() {
         </div>
       </CardHeader>
       <CardContent>
+        <p className="mb-3 text-xs leading-relaxed text-slate-500">Cobertura limitada a los últimos 5.000 eventos consultados. Los visitantes únicos solo cuentan cuando existe huella de dispositivo; no equivalen necesariamente a personas distintas.</p>
         {isLoading ? (
           <p className="text-sm text-slate-500 text-center py-6">Cargando...</p>
         ) : !data || data.length === 0 ? (
