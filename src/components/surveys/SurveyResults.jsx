@@ -70,16 +70,24 @@ export default function SurveyResults({ survey, onBack }) {
   }, [responses, selectedUser]);
 
   const exportToCSV = () => {
-    let csv = "Fecha,Respondente,";
-    csv += survey.preguntas.map(q => `"${q.pregunta}"`).join(",") + "\n";
+    // Escapar comillas y neutralizar fórmulas al abrir el CSV en hojas de cálculo.
+    const csvCell = (value) => {
+      let safe = String(value ?? "").replace(/"/g, '""');
+      if (/^[\\s]*[=+@\\-\\t\\r]/.test(safe)) safe = "'" + safe;
+      return '"' + safe + '"';
+    };
+    let csv = "Fecha," + csvCell(survey.anonima ? "Participante" : "Respondente") + ",";
+    csv += survey.preguntas.map(q => csvCell(q.pregunta)).join(",") + "\n";
 
     responses.forEach(r => {
-      csv += `${new Date(r.fecha_respuesta).toLocaleDateString()},`;
-      csv += `${r.respondente_nombre || "Anónimo"},`;
-      csv += r.respuestas.map(resp => `"${resp.respuesta}"`).join(",") + "\n";
+      const date = r.fecha_respuesta ? new Date(r.fecha_respuesta).toLocaleDateString('es-ES') : "";
+      // No exportar identidad ni marcadores seudónimos en encuestas anónimas.
+      const respondent = survey.anonima ? "Anónimo" : (r.respondente_nombre || r.respondente_email || "Sin identificar");
+      const answers = (r.respuestas || []).map(resp => csvCell(resp.respuesta));
+      csv += csvCell(date) + "," + csvCell(respondent) + "," + answers.join(",") + "\n";
     });
 
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob(["\\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
