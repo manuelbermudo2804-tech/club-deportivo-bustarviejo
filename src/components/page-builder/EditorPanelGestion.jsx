@@ -101,7 +101,7 @@ export default function EditorPanelGestion({ panel = {}, onChange }) {
                     onClick={() => removeEmail(e)}
                     className="text-slate-500 hover:text-red-600 ml-2 rounded p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                     title="Quitar"
-                    aria-label={`Quitar acceso a ${e}`
+                    aria-label={`Quitar acceso a ${e}`}
                   >
                     <X className="w-4 h-4" />
                   </button>
