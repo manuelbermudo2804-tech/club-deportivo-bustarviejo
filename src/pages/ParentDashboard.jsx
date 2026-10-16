@@ -296,8 +296,15 @@ export default function ParentDashboard() {
   });
 
   const { data: surveyResponses = [] } = useQuery({
-    queryKey: ['mySurveyResponses', user?.email],
-    queryFn: () => base44.entities.SurveyResponse.filter({ respondente_email: user?.email }),
+    queryKey: ['mySurveyResponses', user?.email, allSurveys.map(s => s.id).join(',')],
+    queryFn: async () => Promise.all(allSurveys.map(async (survey) => {
+      const result = await base44.functions.invoke("surveyResponseSecure", {
+        action: "has_responded",
+        survey_id: survey.id
+      });
+      const status = result?.data || result || {};
+      return status.hasResponded ? { survey_id: survey.id } : null;
+    })).then(items => items.filter(Boolean)),
     staleTime: 600000,
     refetchOnWindowFocus: false,
     enabled: !!user && allSurveys.length > 0,
