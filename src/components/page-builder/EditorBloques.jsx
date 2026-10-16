@@ -60,9 +60,9 @@ export default function EditorBloques({ bloques = [], onChange }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
         <h3 className="font-bold text-slate-900 text-base">🧱 Bloques ({bloques.length})</h3>
-        <Button size="sm" onClick={() => setShowCatalog(true)} className="gap-1 shrink-0">
+        <Button type="button" size="sm" onClick={() => setShowCatalog(true)} className="gap-1 shrink-0 w-full sm:w-auto bg-orange-600 hover:bg-orange-700 text-white shadow-sm focus-visible:ring-2 focus-visible:ring-orange-400">
           <Plus className="w-4 h-4" /> Añadir
         </Button>
       </div>
@@ -71,7 +71,7 @@ export default function EditorBloques({ bloques = [], onChange }) {
         <div className="p-6 text-center bg-slate-50 rounded-2xl border-2 border-dashed border-slate-200">
           <div className="text-4xl mb-2">🧱</div>
           <p className="text-sm text-slate-500 mb-3">Tu página no tiene bloques de contenido.</p>
-          <Button size="sm" variant="outline" onClick={() => setShowCatalog(true)} className="gap-1">
+          <Button type="button" size="sm" variant="outline" onClick={() => setShowCatalog(true)} className="gap-1 border-orange-200 text-orange-700 hover:bg-orange-50">
             <Plus className="w-4 h-4" /> Añadir primer bloque
           </Button>
         </div>
@@ -98,8 +98,9 @@ export default function EditorBloques({ bloques = [], onChange }) {
                               <GripVertical className="w-4 h-4" />
                             </div>
                             <button
+                              type="button"
                               onClick={() => setOpenIdx(isOpen ? null : idx)}
-                              className="flex items-center gap-2 flex-1 text-left min-w-0"
+                              className="flex items-center gap-2 flex-1 text-left min-w-0 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
                             >
                               <span className="text-xl flex-shrink-0">{meta?.emoji || "📦"}</span>
                               <div className="min-w-0 flex-1">
@@ -116,18 +117,20 @@ export default function EditorBloques({ bloques = [], onChange }) {
                             </button>
                             <div className="flex items-center gap-0.5 shrink-0">
                               <button
+                                type="button"
                                 onClick={() => moveBlock(idx, -1)}
                                 disabled={idx === 0}
-                                className="text-slate-400 hover:text-slate-800 disabled:opacity-30 p-1.5 rounded-md hover:bg-slate-100"
+                                className="text-slate-500 hover:text-orange-700 disabled:opacity-30 p-1.5 rounded-md hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
                                 title="Mover bloque arriba"
                                 aria-label={`Mover ${meta?.nombre || b.tipo} arriba`}
                               >
                                 <ArrowUp className="w-3.5 h-3.5" />
                               </button>
                               <button
+                                type="button"
                                 onClick={() => moveBlock(idx, 1)}
                                 disabled={idx === bloques.length - 1}
-                                className="text-slate-400 hover:text-slate-800 disabled:opacity-30 p-1.5 rounded-md hover:bg-slate-100"
+                                className="text-slate-500 hover:text-orange-700 disabled:opacity-30 p-1.5 rounded-md hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
                                 title="Mover bloque abajo"
                                 aria-label={`Mover ${meta?.nombre || b.tipo} abajo`}
                               >
@@ -135,15 +138,17 @@ export default function EditorBloques({ bloques = [], onChange }) {
                               </button>
                             </div>
                             <button
+                              type="button"
                               onClick={() => duplicateBlock(idx)}
-                              className="text-slate-400 hover:text-slate-700 p-1.5 rounded-md hover:bg-slate-100"
+                              className="text-slate-500 hover:text-orange-700 p-1.5 rounded-md hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
                               title="Duplicar"
                             >
                               <Copy className="w-3.5 h-3.5" />
                             </button>
                             <button
+                              type="button"
                               onClick={() => deleteBlock(idx)}
-                              className="text-slate-400 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50"
+                              className="text-slate-500 hover:text-red-600 p-1.5 rounded-md hover:bg-red-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400"
                               title="Eliminar"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
