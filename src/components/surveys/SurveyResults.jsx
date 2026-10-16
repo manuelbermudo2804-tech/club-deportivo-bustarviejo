@@ -73,7 +73,7 @@ export default function SurveyResults({ survey, onBack }) {
     // Escapar comillas y neutralizar fórmulas al abrir el CSV en hojas de cálculo.
     const csvCell = (value) => {
       let safe = String(value ?? "").replace(/"/g, '""');
-      if (/^[\\s]*[=+@\\-\\t\\r]/.test(safe)) safe = "'" + safe;
+      if (/^\s*[=+@\-\t\r]/.test(safe)) safe = "'" + safe;
       return '"' + safe + '"';
     };
     let csv = "Fecha," + csvCell(survey.anonima ? "Participante" : "Respondente") + ",";
@@ -87,7 +87,7 @@ export default function SurveyResults({ survey, onBack }) {
       csv += csvCell(date) + "," + csvCell(respondent) + "," + answers.join(",") + "\n";
     });
 
-    const blob = new Blob(["\\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob(["\uFEFF" + csv], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
