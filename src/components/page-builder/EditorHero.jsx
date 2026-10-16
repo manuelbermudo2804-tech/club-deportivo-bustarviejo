@@ -36,7 +36,7 @@ export default function EditorHero({ hero, onChange }) {
             />
             <p className="text-xs text-slate-500 mt-1">Recomendado: 1600x900px (horizontal). En móvil se recorta automáticamente, ajusta el encuadre abajo.</p>
           </div>
-          <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-200 rounded-xl">
+          <div className="flex items-start sm:items-center justify-between gap-3 p-3 bg-amber-50 border border-amber-200 rounded-xl">
             <div className="flex-1 mr-3">
               <Label className="cursor-pointer">📱 Mostrar imagen ENTERA en móvil</Label>
               <p className="text-xs text-slate-600 mt-0.5">Activa esto si no quieres que se recorte. La imagen aparecerá completa arriba y el texto debajo. (Solo afecta a móvil)</p>
@@ -85,7 +85,7 @@ export default function EditorHero({ hero, onChange }) {
       )}
 
       {(hero?.tipo === "gradient" || hero?.tipo === "color") && (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <Label>Color principal</Label>
             <Input
@@ -158,7 +158,7 @@ export default function EditorHero({ hero, onChange }) {
         </p>
       </div>
 
-      <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
+      <div className="flex items-start sm:items-center justify-between gap-3 p-3 bg-slate-50 rounded-xl border border-slate-200">
         <div>
           <Label className="cursor-pointer">⏰ Cuenta atrás</Label>
           <p className="text-xs text-slate-500">Mostrar reloj con tiempo restante</p>
@@ -170,7 +170,7 @@ export default function EditorHero({ hero, onChange }) {
       </div>
 
       {hero?.mostrar_cuenta_atras && (
-        <div className="space-y-3 p-3 bg-slate-50 rounded-xl">
+        <div className="space-y-3 p-3 sm:p-4 bg-slate-50 rounded-xl border border-slate-200">
           <div>
             <Label>Tipo de evento</Label>
             <Select
@@ -198,7 +198,7 @@ export default function EditorHero({ hero, onChange }) {
           )}
 
           {hero?.tipo_fecha === "rango" && (
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <Label>Fecha de inicio</Label>
                 <Input
@@ -223,7 +223,7 @@ export default function EditorHero({ hero, onChange }) {
                   onChange={(e) => update("fecha_fin", e.target.value)}
                 />
               </div>
-              <p className="col-span-2 text-xs text-slate-500">
+              <p className="sm:col-span-2 text-xs text-slate-500">
                 Se mostrará la fecha completa (ej: "3, 4 y 5 de Julio de 2026"). La cuenta atrás contará hasta el día de inicio.
               </p>
             </div>
