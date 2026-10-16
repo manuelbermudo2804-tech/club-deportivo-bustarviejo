@@ -99,16 +99,18 @@ Sé concreto y práctico. No inventes datos de jugadores.`;
   const externos = data.localidades.filter((l) => l.esExterno);
 
   return (
-    <div className="max-w-5xl mx-auto p-4 space-y-5">
-      <div>
-        <h1 className="flex items-center gap-2 text-slate-900">
-          <MapPin className="w-7 h-7 text-orange-500" />
-          Mapa de Crecimiento
-        </h1>
-        <p className="text-slate-500 text-sm mt-1">
-          De dónde vienen los jugadores y qué localidades tienen más potencial para captación.
-        </p>
-      </div>
+    <div className="mx-auto w-full max-w-6xl space-y-5 p-3 sm:p-5 lg:space-y-6">
+      <section className="relative isolate overflow-hidden rounded-[26px] bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-16 h-56 w-56 rounded-full bg-orange-500/20 blur-3xl" />
+        <div className="relative flex items-start gap-4">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white/10 ring-1 ring-white/15"><MapPin className="h-6 w-6 text-orange-300" /></div>
+          <div className="min-w-0">
+            <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Inteligencia · Captación</p>
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Mapa de Crecimiento</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300">De dónde vienen los jugadores y qué localidades conviene estudiar para futuras campañas de captación.</p>
+          </div>
+        </div>
+      </section>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={Users} value={data.total} label="Jugadores activos" color="bg-blue-500" />
@@ -136,7 +138,7 @@ Sé concreto y práctico. No inventes datos de jugadores.`;
         </div>
       </div>
 
-      <Card className="border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50">
+      <Card className="overflow-hidden rounded-2xl border-orange-200 bg-gradient-to-br from-orange-50 to-amber-50 shadow-sm">
         <CardContent className="p-5">
           <div className="flex items-start justify-between gap-3 flex-wrap">
             <div className="flex items-start gap-3">
