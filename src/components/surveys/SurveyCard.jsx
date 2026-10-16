@@ -57,11 +57,11 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
   const hasNewResponses = isAdmin && (survey.respuestas_nuevas || 0) > 0;
 
   return (
-    <Card className={`border-2 ${hasResponded ? 'border-green-300 bg-green-50' : isActive ? 'border-green-200' : 'border-slate-200'} ${hasNewResponses ? 'ring-2 ring-red-400' : ''}`}>
-      <CardHeader>
-        <div className="flex items-start justify-between">
+    <Card className={`group min-w-0 overflow-hidden rounded-2xl border shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${hasResponded ? 'border-green-200 bg-gradient-to-br from-green-50 to-white' : isActive ? 'border-slate-200 bg-white hover:border-orange-200' : 'border-slate-200 bg-slate-50/70'} ${hasNewResponses ? 'ring-2 ring-red-300' : ''}`}>
+      <CardHeader className="space-y-2 border-b border-slate-100 bg-white/70 pb-4">
+        <div className="flex min-w-0 items-start justify-between gap-3">
           <div className="flex-1">
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="flex min-w-0 items-center gap-2 break-words text-base font-bold leading-snug tracking-tight text-slate-900 sm:text-lg">
               {survey.titulo}
               {hasNewResponses && (
                 <Badge className="bg-red-500 text-white animate-pulse">
@@ -77,7 +77,7 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="flex flex-wrap gap-2 text-sm text-slate-600">
+        <div className="flex flex-wrap gap-x-3 gap-y-2 rounded-xl bg-slate-50 px-3 py-2.5 text-xs font-medium text-slate-600 sm:text-sm">
           <div className="flex items-center gap-1">
             <Users className="w-4 h-4" />
             {survey.destinatarios}
@@ -86,9 +86,9 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
             <MessageSquare className="w-4 h-4" />
             {survey.preguntas.length} preguntas
           </div>
-          <div className="flex items-center gap-1">
-            <BarChart3 className="w-4 h-4 text-blue-600" />
-            <span className="font-semibold text-blue-600">{survey.respuestas_count || 0} respuestas</span>
+          <div className="flex items-center gap-1.5">
+            <BarChart3 className="h-4 w-4 text-orange-600" />
+            <span className="font-semibold text-orange-700">{survey.respuestas_count || 0} respuestas</span>
           </div>
         </div>
 
@@ -112,17 +112,17 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
           </span>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row">
           {!isAdmin && isActive && !hasResponded && (
             <Button
               onClick={() => setShowResponse(true)}
-              className="flex-1 bg-orange-600 hover:bg-orange-700"
+              className="h-11 w-full rounded-xl bg-orange-600 font-semibold shadow-sm hover:bg-orange-700 sm:flex-1"
             >
               Responder
             </Button>
           )}
           {!isAdmin && hasResponded && (
-            <div className="flex-1 bg-green-100 border-2 border-green-500 rounded-lg p-4 text-center">
+            <div className="w-full flex-1 rounded-xl border border-green-200 bg-green-50 p-4 text-center sm:w-auto">
               <CheckCircle2 className="w-6 h-6 text-green-600 mx-auto mb-2" />
               <p className="text-sm font-semibold text-green-800">¡Gracias por responder!</p>
               <p className="text-xs text-green-600 mt-1">Tu opinión es muy valiosa para nosotros</p>
@@ -130,12 +130,12 @@ export default function SurveyCard({ survey, onEdit, onViewResults, isAdmin, use
           )}
           {isAdmin && (
             <>
-              <Button variant="outline" onClick={() => onEdit(survey)} className="flex-1">
+              <Button variant="outline" onClick={() => onEdit(survey)} className="h-11 w-full rounded-xl border-slate-200 font-semibold hover:border-orange-300 hover:bg-orange-50 sm:flex-1">
                 Editar
               </Button>
               <Button 
                 onClick={() => onViewResults(survey)} 
-                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg"
+                className="h-11 w-full rounded-xl bg-slate-900 font-semibold text-white shadow-sm hover:bg-orange-700 sm:flex-1"
               >
                 <BarChart3 className="w-5 h-5 mr-2" />
                 📊 Ver Gráficos
