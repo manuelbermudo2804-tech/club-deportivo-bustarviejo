@@ -10,16 +10,18 @@ export default function AgendaMonthView({ items, referenceDate, onSelectDay }) {
   const huecosIniciales = dias[0].getDay() === 0 ? 6 : dias[0].getDay() - 1;
 
   return (
-    <div className="min-w-0 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-2 shadow-sm sm:p-3">
-      <div className="grid min-w-[560px] grid-cols-7 gap-1 sm:min-w-0 lg:gap-2">
+    <div className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-sm sm:p-3">
+      <p className="mb-2 px-1 text-[10px] font-medium text-slate-400 sm:hidden">Desliza horizontalmente para ver todos los días →</p>
+      <div className="min-w-0 overflow-x-auto pb-1">
+      <div className="grid min-w-[500px] grid-cols-7 gap-1 sm:min-w-0 lg:gap-2">
         {["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"].map((d) => (
-          <div key={d} className="rounded-lg bg-slate-100 py-2 text-center text-[10px] font-bold text-slate-600 sm:text-xs">
+          <div key={d} className="rounded-lg bg-slate-100 py-2 text-center text-[10px] font-bold uppercase tracking-wide text-slate-600 sm:text-xs">
             {d}
           </div>
         ))}
 
         {Array.from({ length: huecosIniciales }).map((_, i) => (
-          <div key={`hueco-${i}`} className="min-h-[70px]" />
+          <div key={`hueco-${i}`} aria-hidden="true" className="min-h-[70px] rounded-xl bg-slate-50/60 sm:min-h-[90px]" />
         ))}
 
         {dias.map((day) => {
@@ -32,9 +34,18 @@ export default function AgendaMonthView({ items, referenceDate, onSelectDay }) {
             <div
               key={iso}
               onClick={() => delDia.length > 0 && onSelectDay?.(day)}
-              className={`min-h-[70px] rounded-xl border p-1.5 transition-colors sm:min-h-[90px] sm:p-2 ${
+              role={delDia.length > 0 ? "button" : undefined}
+              tabIndex={delDia.length > 0 ? 0 : undefined}
+              onKeyDown={(event) => {
+                if (delDia.length > 0 && (event.key === "Enter" || event.key === " ")) {
+                  event.preventDefault();
+                  onSelectDay?.(day);
+                }
+              }}
+              aria-label={delDia.length > 0 ? `${format(day, "d MMMM", { locale: undefined })}: ${delDia.length} actividades` : undefined}
+              className={`min-h-[70px] rounded-xl border p-1.5 transition-all sm:min-h-[90px] sm:p-2 ${
                 hoy ? "bg-orange-50 border-orange-300 ring-1 ring-orange-100" : "bg-white border-slate-200"
-              } ${delDia.length > 0 ? "cursor-pointer hover:border-orange-300" : ""}`}
+              } ${delDia.length > 0 ? "cursor-pointer hover:border-orange-300 hover:bg-orange-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400" : ""}`}
             >
               <p className={`text-sm font-bold mb-1 ${hoy ? "text-orange-600" : "text-slate-800"}`}>
                 {format(day, "d")}
@@ -56,6 +67,7 @@ export default function AgendaMonthView({ items, referenceDate, onSelectDay }) {
             </div>
           );
         })}
+      </div>
       </div>
     </div>
   );
