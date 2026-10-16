@@ -126,6 +126,7 @@ export default function InternalPageStats() {
 
   return (
     <div className="space-y-4">
+      <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs leading-relaxed text-slate-500">Cobertura limitada a los últimos 10.000 eventos consultados. Los usuarios únicos se calculan por email disponible; los eventos sin email no cuentan como usuario identificado.</p>
       {/* Panel principal */}
       <div className="bg-white rounded-2xl border-2 border-slate-200 p-5 lg:p-6">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 mb-4">
