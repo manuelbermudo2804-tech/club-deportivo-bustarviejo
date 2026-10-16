@@ -18,8 +18,15 @@ export default function useFamilyAlertExtras(user, myPlayers, callups) {
     staleTime: 600000, refetchOnWindowFocus: false, enabled,
   });
   const { data: responses = [] } = useQuery({
-    queryKey: ['mySurveyResponses', user?.email],
-    queryFn: () => base44.entities.SurveyResponse.filter({ respondente_email: user?.email }),
+    queryKey: ['mySurveyResponses', user?.email, surveys.map(s => s.id).join(',')],
+    queryFn: async () => Promise.all(surveys.map(async (survey) => {
+      const result = await base44.functions.invoke("surveyResponseSecure", {
+        action: "has_responded",
+        survey_id: survey.id
+      });
+      const status = result?.data || result || {};
+      return status.hasResponded ? { survey_id: survey.id } : null;
+    })).then(items => items.filter(Boolean)),
     staleTime: 600000, refetchOnWindowFocus: false, enabled: enabled && surveys.length > 0,
   });
   const { data: documents = [] } = useQuery({
