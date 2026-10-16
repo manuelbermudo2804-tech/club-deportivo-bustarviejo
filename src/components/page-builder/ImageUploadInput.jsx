@@ -36,23 +36,26 @@ export default function ImageUploadInput({ value, onChange, placeholder = "https
   return (
     <div className="space-y-2">
       {value && (
-        <div className="relative group rounded-xl overflow-hidden border border-slate-200">
-          <img src={value} alt="" className="w-full h-32 object-cover" />
+        <div className="relative group rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+          <img src={value} alt="Vista previa de la imagen seleccionada" className="w-full max-h-56 object-contain" />
           <button
+            type="button"
             onClick={() => onChange("")}
-            className="absolute top-2 right-2 bg-black/70 hover:bg-black text-white rounded-full p-1.5"
-            title="Quitar"
+            className="absolute top-2 right-2 bg-black/75 hover:bg-black text-white rounded-full p-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500"
+            title="Quitar imagen"
+            aria-label="Quitar imagen"
           >
-            <X className="w-3 h-3" />
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
-      <div className="flex gap-2">
+      <div className="flex flex-col sm:flex-row gap-2">
         <Input
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="text-sm flex-1"
+          className="text-sm min-w-0 flex-1"
+          aria-label="URL de la imagen"
         />
         <Button
           type="button"
@@ -60,16 +63,21 @@ export default function ImageUploadInput({ value, onChange, placeholder = "https
           size="sm"
           onClick={() => inputRef.current?.click()}
           disabled={uploading}
-          className="gap-1 flex-shrink-0"
+          className="w-full sm:w-auto gap-1 flex-shrink-0"
         >
           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-          <span className="hidden sm:inline">Subir</span>
+          <span>{uploading ? "Subiendo imagen…" : "Subir imagen"}</span>
         </Button>
         <input
           ref={inputRef}
           type="file"
           accept="image/*"
-          onChange={(e) => handleFile(e.target.files?.[0])}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            handleFile(file);
+            e.target.value = "";
+          }}
+          aria-label="Seleccionar archivo de imagen"
           className="hidden"
         />
       </div>
