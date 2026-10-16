@@ -13,6 +13,10 @@ import MultipleChoiceResults from "@/components/surveys/MultipleChoiceResults";
 
 const COLORS = ['#ef4444', '#f97316', '#eab308', '#84cc16', '#22c55e'];
 
+const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+})[char]);
+
 export default function SurveyResults({ survey, onBack }) {
   const [responses, setResponses] = useState([]);
   const [selectedUser, setSelectedUser] = useState("all");
@@ -29,21 +33,27 @@ export default function SurveyResults({ survey, onBack }) {
 
   useEffect(() => {
     const fetchResponses = async () => {
-      const surveyResponses = await base44.entities.SurveyResponse.filter({ survey_id: survey.id }, "-created_date", 5000);
-      setResponses(surveyResponses);
-      
-      // Marcar encuesta como revisada por admin
-      if (user?.role === "admin" && survey.respuestas_nuevas > 0) {
-        await base44.entities.Survey.update(survey.id, {
-          respuestas_nuevas: 0,
-          ultima_revision_admin: new Date().toISOString()
-        });
-        toast.success("✅ Respuestas marcadas como revisadas");
+      try {
+        if (user?.role !== "admin") {
+          toast.error("No tienes permiso para ver las respuestas");
+          return;
+        }
+        const surveyResponses = await base44.entities.SurveyResponse.filter({ survey_id: survey.id }, "-created_date", 5000);
+        setResponses(surveyResponses || []);
+
+        if (survey.respuestas_nuevas > 0) {
+          await base44.entities.Survey.update(survey.id, {
+            respuestas_nuevas: 0,
+            ultima_revision_admin: new Date().toISOString()
+          });
+          toast.success("Respuestas marcadas como revisadas");
+        }
+      } catch (error) {
+        console.error("Error cargando respuestas:", error);
+        toast.error("No se han podido cargar las respuestas");
       }
     };
-    if (user) {
-      fetchResponses();
-    }
+    if (user) fetchResponses();
   }, [survey.id, user]);
 
   // Lista de usuarios únicos que respondieron (NUNCA si es anónima)
@@ -135,9 +145,9 @@ export default function SurveyResults({ survey, onBack }) {
       </head>
       <body>
         <h1>📊 Reporte de Encuesta</h1>
-        <h2>${survey.titulo}</h2>
-        <p>${survey.descripcion || ''}</p>
-        <p><strong>Destinatarios:</strong> ${survey.destinatarios}</p>
+        <h2>${escapeHtml(survey.titulo)}</h2>
+        <p>${escapeHtml(survey.descripcion || '')}</p>
+        <p><strong>Destinatarios:</strong> ${escapeHtml(survey.destinatarios)}</p>
         <p><strong>Periodo:</strong> ${format(new Date(survey.fecha_inicio), 'dd/MM/yyyy')} - ${format(new Date(survey.fecha_fin), 'dd/MM/yyyy')}</p>
         
         <div class="stats">
@@ -154,14 +164,14 @@ export default function SurveyResults({ survey, onBack }) {
         <h2>Resumen de Valoraciones</h2>
         <table>
           <tr><th>Pregunta</th><th>Promedio</th></tr>
-          ${ratingStats.map(s => `<tr><td>${s.pregunta}</td><td>${s.promedio} ⭐</td></tr>`).join('')}
+          ${ratingStats.map(s => `<tr><td>${escapeHtml(s.pregunta)}</td><td>${escapeHtml(s.promedio)} ⭐</td></tr>`).join('')}
         </table>
 
         <h2>Detalle por Pregunta</h2>
     `;
 
     survey.preguntas.forEach((q, idx) => {
-      htmlContent += `<div class="question"><div class="question-title">${idx + 1}. ${q.pregunta}</div>`;
+      htmlContent += `<div class="question"><div class="question-title">${idx + 1}. ${escapeHtml(q.pregunta)}</div>`;
       
       if (q.tipo_respuesta === "rating") {
         const data = getRatingData(idx);
@@ -173,7 +183,7 @@ export default function SurveyResults({ survey, onBack }) {
         const textResponses = getTextResponses(idx);
         htmlContent += `<p><strong>${textResponses.length} respuestas</strong></p>`;
         textResponses.slice(0, 10).forEach(r => {
-          htmlContent += `<div class="text-response">"${r.respuesta}" ${!survey.anonima ? `<em>- ${r.nombre}</em>` : ''}</div>`;
+          htmlContent += `<div class="text-response">"${escapeHtml(r.respuesta)}" ${!survey.anonima ? `<em>- ${escapeHtml(r.nombre)}</em>` : ''}</div>`;
         });
         if (textResponses.length > 10) {
           htmlContent += `<p><em>... y ${textResponses.length - 10} respuestas más</em></p>`;
