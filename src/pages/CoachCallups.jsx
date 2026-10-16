@@ -663,10 +663,37 @@ export default function CoachCallups() {
         const draftCount = upcomingCallups.filter(c => !c.publicada).length;
         return (
           <Tabs value={statusFilter} onValueChange={setStatusFilter} className="mt-4">
-            <TabsList className="w-full sm:w-auto bg-slate-100 p-1 rounded-xl h-auto grid grid-cols-3 sm:flex">
-              <TabsTrigger value="all">Todas ({upcomingCallups.length})</TabsTrigger>
-              <TabsTrigger value="published">✅ Publicadas ({publishedCount})</TabsTrigger>
-              <TabsTrigger value="draft">📝 Borradores ({draftCount})</TabsTrigger>
+            <TabsList className="w-full sm:w-auto h-auto grid grid-cols-3 gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2 shadow-sm sm:inline-grid">
+              <TabsTrigger
+                value="all"
+                className="min-h-11 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900 data-[state=active]:border-orange-500 data-[state=active]:bg-orange-500 data-[state=active]:text-white data-[state=active]:shadow-md"
+              >
+                <span className="flex items-center justify-center gap-1.5 whitespace-nowrap">
+                  <span aria-hidden="true">▦</span>
+                  <span>Todas</span>
+                  <span className="rounded-full bg-black/5 px-2 py-0.5 text-xs font-bold data-[state=active]:bg-white/20">{upcomingCallups.length}</span>
+                </span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="published"
+                className="min-h-11 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900 data-[state=active]:border-emerald-600 data-[state=active]:bg-emerald-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+              >
+                <span className="flex items-center justify-center gap-1.5 whitespace-nowrap">
+                  <span aria-hidden="true">✓</span>
+                  <span>Publicadas</span>
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-bold text-emerald-700">{publishedCount}</span>
+                </span>
+              </TabsTrigger>
+              <TabsTrigger
+                value="draft"
+                className="min-h-11 rounded-xl border border-transparent px-3 py-2.5 text-sm font-semibold text-slate-600 transition-all hover:bg-white hover:text-slate-900 data-[state=active]:border-blue-600 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:shadow-md"
+              >
+                <span className="flex items-center justify-center gap-1.5 whitespace-nowrap">
+                  <span aria-hidden="true">▤</span>
+                  <span>Borradores</span>
+                  <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-bold text-blue-700">{draftCount}</span>
+                </span>
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         );
