@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Plus, X, Loader2, Sparkles } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
+import { toast } from "sonner";
 
 const SURVEY_TEMPLATES = {
   "Satisfacción General": [
@@ -139,6 +140,10 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!currentSurvey.fecha_inicio || !currentSurvey.fecha_fin || currentSurvey.fecha_fin < currentSurvey.fecha_inicio) {
+      toast.error("La fecha de cierre debe ser igual o posterior a la fecha de inicio");
+      return;
+    }
     onSubmit(currentSurvey);
   };
 
@@ -238,6 +243,7 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
                 <Label>Fecha Inicio *</Label>
                 <Input
                   type="date"
+                  max={currentSurvey.fecha_fin || undefined}
                   value={currentSurvey.fecha_inicio}
                   onChange={(e) => setCurrentSurvey({...currentSurvey, fecha_inicio: e.target.value})}
                   required
@@ -248,6 +254,7 @@ export default function SurveyForm({ survey, onSubmit, onCancel, isSubmitting })
                 <Label>Fecha Fin *</Label>
                 <Input
                   type="date"
+                  min={currentSurvey.fecha_inicio || undefined}
                   value={currentSurvey.fecha_fin}
                   onChange={(e) => setCurrentSurvey({...currentSurvey, fecha_fin: e.target.value})}
                   required
