@@ -5,7 +5,16 @@ import { jsPDF } from 'npm:jspdf@2.5.2';
 const loadImageAsDataUrl = async (url) => {
   if (!url) return null;
   try {
-    const res = await fetch(url);
+    // Nunca permitir que una imagen externa bloquee indefinidamente la creación del recibo.
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 7000);
+    let res;
+    try {
+      res = await fetch(url, { signal: controller.signal });
+    } finally {
+      clearTimeout(timeout);
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status} al cargar imagen`);
     const buf = await res.arrayBuffer();
     const bytes = new Uint8Array(buf);
     let binary = '';
@@ -14,7 +23,7 @@ const loadImageAsDataUrl = async (url) => {
     const contentType = res.headers.get('content-type') || 'image/png';
     return `data:${contentType};base64,${base64}`;
   } catch (e) {
-    console.warn('No se pudo cargar imagen:', url, e);
+    console.warn('No se pudo cargar imagen (se continuará sin ella):', url, e);
     return null;
   }
 };
