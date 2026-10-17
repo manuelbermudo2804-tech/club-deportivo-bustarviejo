@@ -14,6 +14,7 @@ export default function MandatoryReadModal({ user }) {
   const [checked, setChecked] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (!user || user.role === "admin") return;
@@ -71,6 +72,7 @@ export default function MandatoryReadModal({ user }) {
   const handleConfirm = async () => {
     if (!current || confirming) return;
     setConfirming(true);
+    setErrorMessage("");
     try {
       // Guardar mediante función de servidor para evitar bloqueos por permisos
       // de actualización de anuncios desde cuentas que no son administradoras.
@@ -89,7 +91,8 @@ export default function MandatoryReadModal({ user }) {
         setPending([]);
       }
     } catch (e) {
-      // dejar el modal abierto para reintentar
+      // Mostrar el error real y permitir reintentar.
+      setErrorMessage(e?.message || "No se pudo guardar la confirmación. Inténtalo de nuevo.");
     } finally {
       setConfirming(false);
     }
@@ -130,8 +133,13 @@ export default function MandatoryReadModal({ user }) {
             />
             <span className="text-sm font-medium text-slate-800">He leído este anuncio</span>
           </label>
+          {errorMessage && (
+            <p role="alert" className="text-sm text-red-700 bg-red-50 border border-red-200 rounded-lg p-3 break-words">
+              {errorMessage}
+            </p>
+          )}
           <Button
-            onClick={handleConfirm}
+            onClick={handleConfirm
             disabled={!checked || confirming}
             className="w-full bg-red-600 hover:bg-red-700 h-11"
           >
