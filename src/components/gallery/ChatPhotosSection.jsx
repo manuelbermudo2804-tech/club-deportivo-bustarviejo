@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Camera, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Camera, ChevronLeft, ChevronRight, X, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -46,8 +47,9 @@ function PhotoLightbox({ photos, initialIndex, onClose }) {
   );
 }
 
-export default function ChatPhotosSection({ myCategories }) {
+export default function ChatPhotosSection({ myCategories, canDelete = false }) {
   const [lightboxIdx, setLightboxIdx] = useState(null);
+  const queryClient = useQueryClient();
 
   const { data: chatPhotos = [] } = useQuery({
     queryKey: ["galleryChatPhotos", myCategories],

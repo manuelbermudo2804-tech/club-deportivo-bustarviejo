@@ -1,0 +1,86 @@
+{
+  "name": "GalleryHiddenChatPhoto",
+  "type": "object",
+  "properties": {
+    "photo_url": {
+      "type": "string",
+      "description": "URL de la foto ocultada en la galer\u00eda; el adjunto original del chat se conserva"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda/equipo de la foto"
+    },
+    "chat_message_id": {
+      "type": "string",
+      "description": "Identificador del mensaje original del chat"
+    },
+    "nombre_archivo": {
+      "type": "string",
+      "description": "Nombre original del archivo"
+    },
+    "hidden_by": {
+      "type": "string",
+      "description": "Email del administrador que ocult\u00f3 la foto"
+    }
+  },
+  "required": [
+    "photo_url",
+    "categoria"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "user"
+          }
+        },
+        {
+          "user_condition": {
+            "role": "jugador"
+          }
+        },
+        {
+          "user_condition": {
+            "es_entrenador": true
+          }
+        },
+        {
+          "user_condition": {
+            "es_coordinador": true
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_entrenador": true
+          }
+        },
+        {
+          "user_condition": {
+            "data.es_coordinador": true
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
