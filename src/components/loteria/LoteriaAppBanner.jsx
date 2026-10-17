@@ -18,7 +18,7 @@ export default function LoteriaAppBanner() {
   return (
     <a
       href="/loteria"
-      className="block relative overflow-hidden rounded-xl border border-amber-300 shadow-md transition-all hover:brightness-110 active:scale-[0.99] bg-gradient-to-r from-red-950 via-red-900 to-emerald-950"
+      className="loteria-pulse-border block relative overflow-hidden rounded-xl border border-amber-300 shadow-md transition-all hover:brightness-110 active:scale-[0.99] bg-gradient-to-r from-red-950 via-red-900 to-emerald-950"
     >
       <div className="relative flex items-center gap-2.5 p-3 sm:p-4">
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-300 shadow">
