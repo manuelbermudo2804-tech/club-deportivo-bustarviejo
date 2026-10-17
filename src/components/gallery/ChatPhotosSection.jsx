@@ -110,8 +110,8 @@ export default function ChatPhotosSection({ myCategories, canDelete = false }) {
         });
       }
       // Retirar también la copia que pudiera existir en el álbum automático del chat.
-      const categoryAlbums = await base44.entities.PhotoGallery.filter({ categoria: photo.category || myCategories[0] || "" });
-      for (const album of categoryAlbums || []) {
+      const allAlbums = await base44.entities.PhotoGallery.list("-fecha_evento");
+      for (const album of allAlbums || []) {
         if (!album.titulo?.toLowerCase().includes("chat entrenador")) continue;
         const remainingPhotos = (album.fotos || []).filter((item) => item.url !== photo.url);
         if (remainingPhotos.length !== (album.fotos || []).length) {
