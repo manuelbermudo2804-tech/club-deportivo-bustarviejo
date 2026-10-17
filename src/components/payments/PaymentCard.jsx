@@ -80,8 +80,8 @@ export default function PaymentCard({
         })
         .catch((error) => {
           console.error('[PaymentCard] Error generando recibo:', error);
-          // El PDF puede haberse guardado aunque la llamada falle o tarde en responder.
-          return new Promise(() => {});
+          // No ocultar el fallo: la interfaz debe mostrar el error real al usuario.
+          throw error;
         });
 
       const url = await Promise.race([
@@ -100,7 +100,10 @@ export default function PaymentCard({
       }
     } catch (error) {
       console.error('[PaymentCard] Error generando recibo:', error);
-      toast.error('No se ha podido generar el recibo. Inténtalo de nuevo.');
+      const detail = error?.response?.data?.error || error?.data?.error || error?.message;
+      toast.error(detail
+        ? `No se ha podido generar el recibo: ${detail}`
+        : 'No se ha podido generar el recibo. Revisa la consola para ver el error.');
     } finally {
       clearTimeout(pollTimer);
       clearTimeout(timeoutId);
