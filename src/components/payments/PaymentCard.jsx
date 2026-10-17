@@ -40,18 +40,46 @@ export default function PaymentCard({
     // Generar al vuelo para pagos antiguos sin recibo
     if (payment.isVirtual) return;
     setGeneratingReceipt(true);
+    // La función también envía emails y a veces tarda aunque ya haya guardado el PDF.
+    // Limitamos la espera para que el botón nunca se quede bloqueado indefinidamente.
+    let timeoutId;
     try {
-      const res = await base44.functions.invoke('generatePaymentReceipt', { paymentId: payment.id });
-      const url = res?.data?.recibo_url;
+      const res = await Promise.race([
+        base44.functions.invoke('generatePaymentReceipt', { paymentId: payment.id }),
+        new Promise((_, reject) => {
+          timeoutId = setTimeout(() => reject(new Error('RECEIPT_TIMEOUT')), 25000);
+        }),
+      ]);
+      let url = res?.data?.recibo_url;
+
+      // Si la respuesta llegó sin URL, consultar el pago por si el recibo ya se guardó.
+      if (!url) {
+        const latestPayment = await base44.entities.Payment.get(payment.id).catch(() => null);
+        url = latestPayment?.recibo_url;
+      }
+
       if (url) {
-        window.open(url, '_blank');
-        toast.success('Recibo generado');
+        const receiptWindow = window.open(url, '_blank');
+        if (!receiptWindow) window.location.href = url;
+        toast.success('Recibo disponible');
       } else {
-        toast.error('No se pudo generar el recibo');
+        toast.error('No se pudo generar el recibo. Inténtalo de nuevo en unos segundos.');
       }
     } catch (e) {
-      toast.error('Error al generar el recibo');
+      console.error('[PaymentCard] Error descargando recibo:', e);
+      // El servidor puede haber guardado el PDF aunque el envío del email siga tardando.
+      const latestPayment = await base44.entities.Payment.get(payment.id).catch(() => null);
+      if (latestPayment?.recibo_url) {
+        const receiptWindow = window.open(latestPayment.recibo_url, '_blank');
+        if (!receiptWindow) window.location.href = latestPayment.recibo_url;
+        toast.success('El recibo ya estaba generado');
+      } else if (e?.message === 'RECEIPT_TIMEOUT') {
+        toast.error('Está tardando más de lo normal. Vuelve a intentarlo en unos segundos.');
+      } else {
+        toast.error('Error al generar el recibo. Puedes volver a intentarlo.');
+      }
     } finally {
+      clearTimeout(timeoutId);
       setGeneratingReceipt(false);
     }
   };
