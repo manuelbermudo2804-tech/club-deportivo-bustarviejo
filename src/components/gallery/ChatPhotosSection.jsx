@@ -51,7 +51,7 @@ export default function ChatPhotosSection({ myCategories, canDelete = false }) {
   const [lightboxIdx, setLightboxIdx] = useState(null);
   const queryClient = useQueryClient();
 
-  const { data: chatPhotos = [] } = useQuery({
+  const { data: chatPhotos = [], isLoading } = useQuery({
     queryKey: ["galleryChatPhotos", myCategories],
     queryFn: async () => {
       if (!myCategories || myCategories.length === 0) return [];
@@ -67,7 +67,7 @@ export default function ChatPhotosSection({ myCategories, canDelete = false }) {
         msgs.forEach((msg) => {
           // Solo fotos que comparte el staff (entrenadores/admin), no lo que manda cualquiera
           if (msg.eliminado || msg.tipo === "padre_a_grupo") return;
-          const attachments = msg.archivos_adjuntos || [];
+          const attachments = msg.archivos_adjuntos || msg.adjuntos || [];
           attachments.forEach((att) => {
             if (att.tipo?.startsWith("image/") || att.url?.match(/\.(jpg|jpeg|png|gif|webp)/i)) {
               allPhotos.push({
@@ -76,14 +76,20 @@ export default function ChatPhotosSection({ myCategories, canDelete = false }) {
                 date: msg.created_date,
                 sender: msg.remitente_nombre,
                 category: cat,
+                messageId: msg.id,
               });
             }
           });
         });
       }
-      // Sort by date descending, max 30
-      allPhotos.sort((a, b) => new Date(b.date) - new Date(a.date));
-      return allPhotos.slice(0, 30);
+      // Las exclusiones solo ocultan la foto de la galería; el mensaje original se conserva.
+      const hiddenRecords = await base44.entities.GalleryHiddenChatPhoto.filter({}, "-created_date", 500);
+      const hiddenUrls = new Set((hiddenRecords || []).map((record) => record.photo_url).filter(Boolean));
+      const visiblePhotos = allPhotos.filter((photo) => !hiddenUrls.has(photo.url));
+      // Si el mismo archivo aparece en más de un mensaje, se muestra una sola vez.
+      const uniquePhotos = [...new Map(visiblePhotos.map((photo) => [photo.url, photo])).values()];
+      uniquePhotos.sort((a, b) => new Date(b.date) - new Date(a.date));
+      return uniquePhotos.slice(0, 30);
     },
     enabled: myCategories?.length > 0,
     staleTime: 120000,
