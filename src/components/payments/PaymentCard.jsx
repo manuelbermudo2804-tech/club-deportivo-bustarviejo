@@ -86,10 +86,11 @@ export default function PaymentCard({
       });
 
       const generation = base44.functions.invoke('generatePaymentReceipt', { paymentId: payment.id })
-        .then((res) => res?.data?.recibo_url || null)
+        .then((res) => res?.data?.recibo_url || new Promise(() => {}))
         .catch((error) => {
           console.error('[PaymentCard] Error generando recibo:', error);
-          return null;
+          // Seguimos consultando el pago: el PDF puede haberse guardado aunque la llamada falle.
+          return new Promise(() => {});
         });
 
       const url = await Promise.race([
