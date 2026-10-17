@@ -1,7 +1,7 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShoppingCart, ArrowUpRight } from "lucide-react";
 import DecimoTicket from "@/components/loteria/DecimoTicket";
 import SeccionLoteria from "@/components/loteria/SeccionLoteria";
 import TuLoteroAccess from "@/components/loteria/TuLoteroAccess";
@@ -13,6 +13,7 @@ import BackToWebsiteButton from "@/components/public/BackToWebsiteButton";
 import usePublicPageTracker from "@/components/public/usePublicPageTracker";
 
 const FONDO = "min-h-screen bg-gradient-to-b from-[#0b1f16] via-[#12261c] to-[#3b0a12]";
+const URL_TULOTERO = "https://web.tulotero.es/empresas/cdb26";
 
 export default function LoteriaNavidad() {
   usePublicPageTracker("LoteriaNavidad");
@@ -53,6 +54,19 @@ export default function LoteriaNavidad() {
       <BackToWebsiteButton />
       <div className="max-w-2xl mx-auto px-4 pt-16 space-y-5">
         {campana.resultado_publicado === true && <PremioResultado campana={campana} />}
+
+        <section className="overflow-hidden rounded-3xl border-2 border-amber-300 bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500 p-5 text-center text-red-950 shadow-2xl sm:p-6">
+          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-950 text-amber-300 shadow-lg">
+            <ShoppingCart className="h-7 w-7" />
+          </div>
+          <p className="mb-2 text-xs font-black uppercase tracking-[0.16em]">🎟️ Lotería de Navidad · CD Bustarviejo</p>
+          <h2 className="text-2xl font-black leading-tight sm:text-3xl">¡Quedan muy pocos décimos en los comercios!</h2>
+          <p className="mx-auto mt-3 max-w-lg text-sm font-semibold leading-relaxed sm:text-base">Si todavía no tienes el tuyo, aún puedes conseguirlo online. ¡Colabora con el club y no te quedes sin lotería!</p>
+          <a href={campana.tulotero_url || URL_TULOTERO} target="_blank" rel="noopener noreferrer" className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-red-950 px-5 py-4 text-base font-black text-white shadow-lg transition hover:bg-red-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white sm:text-lg">
+            COMPRAR LOTERÍA ONLINE <ArrowUpRight className="h-5 w-5" />
+          </a>
+          <p className="mt-3 text-xs font-semibold text-red-950/80">Compra online a través de TuLotero</p>
+        </section>
 
         <DecimoTicket
           titulo={campana.titulo}
