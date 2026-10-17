@@ -22,20 +22,20 @@ export default function ContentTypeGrid({ onSelect, search = "" }) {
     <div className="space-y-4">
       {gruposVisibles.map((group) => (
         <div key={group.id}>
-          <p className={`text-xs font-bold mb-2 ${group.color}`}>{group.label}</p>
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-700">{group.label}</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {group.items.map((type) => (
               <button
                 key={type.id}
                 onClick={() => onSelect(type.id)}
-                className="flex items-center gap-2.5 bg-slate-800/70 hover:bg-slate-700/80 border border-slate-700 hover:border-slate-500 rounded-xl px-3 py-2.5 text-left transition-all active:scale-95"
+                className="flex min-h-[68px] items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-left shadow-sm transition-colors hover:border-orange-300 hover:bg-orange-50 active:bg-orange-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400"
               >
                 <span
-                  className={`w-8 h-8 rounded-lg bg-gradient-to-br ${type.gradient} flex items-center justify-center flex-shrink-0`}
+                  className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-orange-50 ring-1 ring-orange-100"
                 >
-                  <type.icon className="w-4 h-4 text-white" />
+                  <type.icon className="h-4 w-4 text-orange-700" />
                 </span>
-                <p className="font-semibold text-xs text-slate-100 leading-tight">{limpiar(type.title)}</p>
+                <p className="text-xs font-semibold leading-tight text-slate-800">{limpiar(type.title)}</p>
               </button>
             ))}
           </div>
