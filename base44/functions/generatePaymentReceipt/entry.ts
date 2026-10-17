@@ -273,71 +273,63 @@ Deno.serve(async (req) => {
     });
     console.log('✅ [generatePaymentReceipt] Pago actualizado con recibo_url');
     
-    // Convertir el PDF a base64 para enviarlo como adjunto por email
-    const pdfBase64 = doc.output('datauristring').split(',')[1];
-    
-    // Enviar el recibo por email con PDF adjunto usando función personalizada
-    const emailBody = `
-      <h2>Recibo de Pago - CD Bustarviejo</h2>
-      <p>Estimados padres/tutores,</p>
-      <p>En el archivo adjunto encontrará el recibo correspondiente al pago de <strong>${player.nombre}</strong>.</p>
-      <hr>
-      <p><strong>Temporada:</strong> ${payment.temporada}</p>
-      <p><strong>Mes:</strong> ${payment.mes}</p>
-      <p><strong>Tipo de Pago:</strong> ${payment.tipo_pago}</p>
-      <p><strong>Importe:</strong> ${payment.cantidad}€</p>
-      <p><strong>Estado:</strong> ✅ Pagado</p>
-      <hr>
-      <p style="font-size: 14px; color: #16a34a; font-weight: bold;">📎 El recibo está adjunto a este correo en formato PDF</p>
-      <br>
-      <p style="font-size: 12px; color: #666;">Este es un correo automático del sistema de gestión de CD Bustarviejo</p>
-      <p style="font-size: 12px; color: #666;">Email: cdbustarviejo@gmail.com</p>
-    `;
-    
-    const emailWithAttachment = {
-      subject: `Recibo de Pago - ${player.nombre} - ${payment.mes}`,
-      html: emailBody,
-      attachments: [{
-        filename: `Recibo_${player.nombre.replace(/\s+/g, '_')}_${payment.mes}.pdf`,
-        content: pdfBase64,
-        encoding: 'base64',
-        type: 'application/pdf'
-      }]
-    };
-    
-    // Enviar a padre principal
-    if (player.email_padre) {
+    // Devolver el recibo en cuanto está guardado. El envío de emails no debe
+    // bloquear la generación ni dejar el botón esperando indefinidamente.
+    console.log('✅ [generatePaymentReceipt] Recibo guardado; devolviendo URL:', reciboUrl);
+
+    // Enviar los correos en segundo plano, sin bloquear la respuesta de generación.
+    // Un fallo de email no invalida el PDF ya generado y guardado.
+    void (async () => {
       try {
-        console.log('📧 [generatePaymentReceipt] Enviando a padre:', player.email_padre);
-        await base44.asServiceRole.functions.invoke('sendEmail', {
-          ...emailWithAttachment,
-          to: player.email_padre
-        });
-        console.log('✅ [generatePaymentReceipt] Email enviado a padre');
+        const pdfBase64 = doc.output('datauristring').split(',')[1];
+        const emailBody = `
+          <h2>Recibo de Pago - CD Bustarviejo</h2>
+          <p>Estimados padres/tutores,</p>
+          <p>En el archivo adjunto encontrará el recibo correspondiente al pago de <strong>${player.nombre}</strong>.</p>
+          <hr>
+          <p><strong>Temporada:</strong> ${payment.temporada}</p>
+          <p><strong>Mes:</strong> ${payment.mes}</p>
+          <p><strong>Tipo de Pago:</strong> ${payment.tipo_pago}</p>
+          <p><strong>Importe:</strong> ${payment.cantidad}€</p>
+          <p><strong>Estado:</strong> ✅ Pagado</p>
+          <hr>
+          <p style="font-size: 14px; color: #16a34a; font-weight: bold;">📎 El recibo está adjunto a este correo en formato PDF</p>
+          <br>
+          <p style="font-size: 12px; color: #666;">Este es un correo automático del sistema de gestión de CD Bustarviejo</p>
+          <p style="font-size: 12px; color: #666;">Email: cdbustarviejo@gmail.com</p>
+        `;
+        const emailWithAttachment = {
+          subject: `Recibo de Pago - ${player.nombre} - ${payment.mes}`,
+          html: emailBody,
+          attachments: [{
+            filename: `Recibo_${player.nombre.replace(/\s+/g, '_')}_${payment.mes}.pdf`,
+            content: pdfBase64,
+            encoding: 'base64',
+            type: 'application/pdf'
+          }]
+        };
+
+        for (const email of [player.email_padre, player.email_tutor_2].filter(Boolean)) {
+          try {
+            console.log('[generatePaymentReceipt] Enviando recibo por email a:', email);
+            await Promise.race([
+              base44.asServiceRole.functions.invoke('sendEmail', { ...emailWithAttachment, to: email }),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout enviando email')), 5000))
+            ]);
+            console.log('[generatePaymentReceipt] Email enviado a:', email);
+          } catch (emailError) {
+            console.error('[generatePaymentReceipt] Fallo al enviar email a', email, emailError);
+          }
+        }
       } catch (emailError) {
-        console.error('❌ [generatePaymentReceipt] Error email padre:', emailError);
+        console.error('[generatePaymentReceipt] No se pudo preparar el email; el recibo ya está guardado:', emailError);
       }
-    }
-    
-    // Enviar a segundo tutor si existe
-    if (player.email_tutor_2) {
-      try {
-        console.log('📧 [generatePaymentReceipt] Enviando a tutor 2:', player.email_tutor_2);
-        await base44.asServiceRole.functions.invoke('sendEmail', {
-          ...emailWithAttachment,
-          to: player.email_tutor_2
-        });
-        console.log('✅ [generatePaymentReceipt] Email enviado a tutor 2');
-      } catch (emailError) {
-        console.error('❌ [generatePaymentReceipt] Error email tutor 2:', emailError);
-      }
-    }
-    
-    console.log('✅ [generatePaymentReceipt] PROCESO COMPLETO - Recibo generado y enviado');
+    })();
+
     return Response.json({
       success: true,
       recibo_url: reciboUrl,
-      message: 'Recibo generado y enviado por email correctamente'
+      message: 'Recibo generado y guardado correctamente'
     });
     
   } catch (error) {
