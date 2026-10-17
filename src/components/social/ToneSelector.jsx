@@ -3,8 +3,8 @@ import { TONOS } from "./contentTypes";
 
 export default function ToneSelector({ value, onChange }) {
   return (
-    <div className="bg-slate-800/80 rounded-2xl p-3">
-      <p className="text-slate-400 text-xs font-bold mb-2">🎨 Tono</p>
+    <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+      <p className="mb-2 text-xs font-bold text-slate-700">🎨 Tono</p>
       <div className="grid grid-cols-2 gap-2">
         {TONOS.map((t) => (
           <button
@@ -13,12 +13,12 @@ export default function ToneSelector({ value, onChange }) {
             onClick={() => onChange(t.id)}
             className={`text-left rounded-xl px-3 py-2 transition-all border ${
               value === t.id
-                ? "bg-gradient-to-br from-sky-600 to-blue-700 border-sky-400 shadow-lg scale-[1.02]"
-                : "bg-slate-900/60 border-slate-700 hover:border-slate-500"
+                ? "border-orange-400 bg-orange-50 ring-1 ring-orange-100"
+                : "border-slate-200 bg-white hover:border-orange-300 hover:bg-orange-50/50"
             }`}
           >
-            <div className="font-bold text-white text-sm">{t.label}</div>
-            <div className="text-[11px] text-slate-300 mt-0.5">{t.desc}</div>
+            <div className="text-sm font-bold text-slate-800">{t.label}</div>
+            <div className="mt-0.5 text-[11px] text-slate-600">{t.desc}</div>
           </button>
         ))}
       </div>
