@@ -69,7 +69,8 @@ export default function ChatPhotosSection({ myCategories, canDelete = false }) {
           if (msg.eliminado || msg.tipo === "padre_a_grupo") return;
           const attachments = msg.archivos_adjuntos || msg.adjuntos || [];
           attachments.forEach((att) => {
-            if (att.tipo?.startsWith("image/") || att.url?.match(/\.(jpg|jpeg|png|gif|webp)/i)) {
+            const isImage = att.tipo?.startsWith("image/") || /\.(jpg|jpeg|png|gif|webp|heic|heif|avif|bmp)(?:$|\?)/i.test(att.url || "") || /\.(jpg|jpeg|png|gif|webp|heic|heif|avif|bmp)$/i.test(att.nombre || "");
+            if (att.url && isImage) {
               allPhotos.push({
                 url: att.url,
                 nombre: att.nombre,
