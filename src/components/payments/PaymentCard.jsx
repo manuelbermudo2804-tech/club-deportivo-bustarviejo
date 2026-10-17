@@ -32,53 +32,88 @@ export default function PaymentCard({
   const [generatingReceipt, setGeneratingReceipt] = useState(false);
 
   const handleDownloadReceipt = async () => {
-    // Si ya tiene recibo guardado, abrirlo directamente
+    if (payment.isVirtual || generatingReceipt) return;
+
+    // Abrir la pestaña durante el clic del usuario para evitar bloqueos del navegador.
+    const receiptWindow = window.open('about:blank', '_blank');
+    if (receiptWindow) {
+      receiptWindow.document.title = 'Preparando recibo…';
+      receiptWindow.document.body.innerHTML = '<p style="font-family: sans-serif; padding: 24px">Preparando el recibo…</p>';
+    }
+
+    const openReceipt = (url) => {
+      if (!url) return false;
+      if (receiptWindow && !receiptWindow.closed) {
+        receiptWindow.location.replace(url);
+      } else {
+        window.location.assign(url);
+      }
+      return true;
+    };
+
     if (payment.recibo_url) {
-      window.open(payment.recibo_url, '_blank');
+      if (!openReceipt(payment.recibo_url) && receiptWindow && !receiptWindow.closed) receiptWindow.close();
       return;
     }
-    // Generar al vuelo para pagos antiguos sin recibo
-    if (payment.isVirtual) return;
+
     setGeneratingReceipt(true);
-    // La función también envía emails y a veces tarda aunque ya haya guardado el PDF.
-    // Limitamos la espera para que el botón nunca se quede bloqueado indefinidamente.
+    let pollTimer;
     let timeoutId;
+    let opened = false;
+
     try {
-      const res = await Promise.race([
-        base44.functions.invoke('generatePaymentReceipt', { paymentId: payment.id }),
-        new Promise((_, reject) => {
-          timeoutId = setTimeout(() => reject(new Error('RECEIPT_TIMEOUT')), 25000);
+      // No dependemos de que termine el envío de emails: comprobamos la base de datos
+      // hasta que el PDF quede guardado, aunque la función tarde en responder.
+      const waitForSavedReceipt = new Promise((resolve) => {
+        const startedAt = Date.now();
+        const poll = async () => {
+          try {
+            const latestPayment = await base44.entities.Payment.get(payment.id);
+            if (latestPayment?.recibo_url) {
+              resolve(latestPayment.recibo_url);
+              return;
+            }
+          } catch (error) {
+            console.warn('[PaymentCard] No se pudo consultar el recibo todavía:', error);
+          }
+          if (Date.now() - startedAt >= 60000) {
+            resolve(null);
+            return;
+          }
+          pollTimer = setTimeout(poll, 2000);
+        };
+        poll();
+      });
+
+      const generation = base44.functions.invoke('generatePaymentReceipt', { paymentId: payment.id })
+        .then((res) => res?.data?.recibo_url || null)
+        .catch((error) => {
+          console.error('[PaymentCard] Error generando recibo:', error);
+          return null;
+        });
+
+      const url = await Promise.race([
+        waitForSavedReceipt,
+        generation,
+        new Promise((resolve) => {
+          timeoutId = setTimeout(() => resolve(null), 60000);
         }),
       ]);
-      let url = res?.data?.recibo_url;
-
-      // Si la respuesta llegó sin URL, consultar el pago por si el recibo ya se guardó.
-      if (!url) {
-        const latestPayment = await base44.entities.Payment.get(payment.id).catch(() => null);
-        url = latestPayment?.recibo_url;
-      }
 
       if (url) {
-        const receiptWindow = window.open(url, '_blank');
-        if (!receiptWindow) window.location.href = url;
-        toast.success('Recibo disponible');
+        opened = openReceipt(url);
+        if (opened) toast.success('Recibo listo');
+        else toast.error('El recibo está listo, pero el navegador bloqueó la apertura. Pulsa de nuevo para abrirlo.');
       } else {
-        toast.error('No se pudo generar el recibo. Inténtalo de nuevo en unos segundos.');
+        toast.error('El recibo sigue sin estar disponible. Inténtalo de nuevo en unos segundos.');
+        if (receiptWindow && !receiptWindow.closed) receiptWindow.close();
       }
-    } catch (e) {
-      console.error('[PaymentCard] Error descargando recibo:', e);
-      // El servidor puede haber guardado el PDF aunque el envío del email siga tardando.
-      const latestPayment = await base44.entities.Payment.get(payment.id).catch(() => null);
-      if (latestPayment?.recibo_url) {
-        const receiptWindow = window.open(latestPayment.recibo_url, '_blank');
-        if (!receiptWindow) window.location.href = latestPayment.recibo_url;
-        toast.success('El recibo ya estaba generado');
-      } else if (e?.message === 'RECEIPT_TIMEOUT') {
-        toast.error('Está tardando más de lo normal. Vuelve a intentarlo en unos segundos.');
-      } else {
-        toast.error('Error al generar el recibo. Puedes volver a intentarlo.');
-      }
+    } catch (error) {
+      console.error('[PaymentCard] Error descargando recibo:', error);
+      toast.error('No se pudo abrir el recibo. Inténtalo de nuevo.');
+      if (receiptWindow && !receiptWindow.closed) receiptWindow.close();
     } finally {
+      clearTimeout(pollTimer);
       clearTimeout(timeoutId);
       setGeneratingReceipt(false);
     }
