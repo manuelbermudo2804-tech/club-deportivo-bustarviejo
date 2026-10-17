@@ -109,7 +109,17 @@ export default function ChatPhotosSection({ myCategories, canDelete = false }) {
           nombre_archivo: photo.nombre || "",
         });
       }
+      // Retirar también la copia que pudiera existir en el álbum automático del chat.
+      const categoryAlbums = await base44.entities.PhotoGallery.filter({ categoria: photo.category || myCategories[0] || "" });
+      for (const album of categoryAlbums || []) {
+        if (!album.titulo?.toLowerCase().includes("chat entrenador")) continue;
+        const remainingPhotos = (album.fotos || []).filter((item) => item.url !== photo.url);
+        if (remainingPhotos.length !== (album.fotos || []).length) {
+          await base44.entities.PhotoGallery.update(album.id, { fotos: remainingPhotos });
+        }
+      }
       await queryClient.invalidateQueries({ queryKey: ["galleryChatPhotos"] });
+      await queryClient.invalidateQueries({ queryKey: ["photoGallery"] });
       toast.success("Foto retirada de la galería. El mensaje del chat se conserva.");
       setLightboxIdx(null);
     } catch (error) {
