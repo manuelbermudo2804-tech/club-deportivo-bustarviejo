@@ -93,9 +93,9 @@ export default function LoteriaNavidad() {
           )}
         </SeccionLoteria>
 
-        {(campana.tulotero_url || campana.tulotero_password) && (
-          <SeccionLoteria numero="2" titulo="Comprar online en TuLotero" icono="📱">
-            <TuLoteroAccess url={campana.tulotero_url} password={campana.tulotero_password} />
+        {campana.tulotero_password && (
+          <SeccionLoteria numero="2" titulo="Acceso a TuLotero" icono="📱">
+            <TuLoteroAccess password={campana.tulotero_password} />
           </SeccionLoteria>
         )}
 
