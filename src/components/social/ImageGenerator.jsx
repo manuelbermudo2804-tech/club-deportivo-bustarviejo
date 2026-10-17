@@ -45,9 +45,9 @@ export default function ImageGenerator({ value, onChange, suggestedPrompt }) {
 
   if (value) {
     return (
-      <div className="bg-slate-800/80 rounded-2xl p-3">
+      <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-slate-400 text-xs font-bold flex items-center gap-1.5">
+          <p className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
             <ImageIcon className="w-3.5 h-3.5" /> Imagen adjunta
           </p>
           <button
@@ -65,25 +65,25 @@ export default function ImageGenerator({ value, onChange, suggestedPrompt }) {
 
   return (
     <div className="bg-slate-800/80 rounded-2xl p-3 space-y-2">
-      <p className="text-slate-400 text-xs font-bold flex items-center gap-1.5">
+      <p className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
         <ImageIcon className="w-3.5 h-3.5" /> Imagen (opcional)
       </p>
       <textarea
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
         placeholder="Describe la imagen que quieres (ej: jugadores celebrando un gol bajo la lluvia)"
-        className="w-full min-h-[60px] p-2 bg-slate-900/50 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 resize-y focus:ring-2 focus:ring-purple-500"
+        className="w-full min-h-[60px] resize-y rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-900 placeholder-slate-400 focus:border-orange-400 focus:outline-none focus:ring-2 focus:ring-orange-100"
       />
       <div className="grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={generate}
           disabled={generating || !prompt.trim()}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 text-white font-bold text-sm py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all"
+          className="flex items-center justify-center gap-1.5 rounded-xl bg-orange-600 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-700 disabled:opacity-50"
         >
           {generating ? <><Loader2 className="w-4 h-4 animate-spin" /> Generando...</> : <><Wand2 className="w-4 h-4" /> Generar IA</>}
         </button>
-        <label className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 text-white font-bold text-sm py-2.5 rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer">
+        <label className="flex cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white py-2.5 text-sm font-bold text-slate-700 transition-colors hover:border-orange-300 hover:bg-orange-50 disabled:opacity-50">
           {uploading ? <><Loader2 className="w-4 h-4 animate-spin" /> Subiendo...</> : <><Upload className="w-4 h-4" /> Subir foto</>}
           <input type="file" accept="image/*" onChange={handleUpload} className="hidden" disabled={uploading} />
         </label>
