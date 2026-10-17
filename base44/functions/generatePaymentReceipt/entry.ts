@@ -8,14 +8,14 @@ const loadImageAsDataUrl = async (url) => {
     // Nunca permitir que una imagen externa bloquee indefinidamente la creación del recibo.
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7000);
-    let res;
+    let buf;
     try {
-      res = await fetch(url, { signal: controller.signal });
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status} al cargar imagen`);
+      buf = await res.arrayBuffer();
     } finally {
       clearTimeout(timeout);
     }
-    if (!res.ok) throw new Error(`HTTP ${res.status} al cargar imagen`);
-    const buf = await res.arrayBuffer();
     const bytes = new Uint8Array(buf);
     let binary = '';
     for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
