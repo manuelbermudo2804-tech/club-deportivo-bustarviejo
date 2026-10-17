@@ -64,7 +64,7 @@ export default function ImageGenerator({ value, onChange, suggestedPrompt }) {
   }
 
   return (
-    <div className="bg-slate-800/80 rounded-2xl p-3 space-y-2">
+    <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
       <p className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
         <ImageIcon className="w-3.5 h-3.5" /> Imagen (opcional)
       </p>
