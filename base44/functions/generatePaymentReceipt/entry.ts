@@ -264,9 +264,13 @@ Deno.serve(async (req) => {
       file: pdfFile
     });
     
-    const reciboUrl = uploadResponse.file_url;
+    const reciboUrl = uploadResponse?.file_url || uploadResponse?.url;
+    if (typeof reciboUrl !== 'string' || !reciboUrl.startsWith('http')) {
+      console.error('[generatePaymentReceipt] UploadFile no devolvió una URL válida:', uploadResponse);
+      throw new Error('El PDF se ha creado, pero el almacenamiento no ha devuelto una URL válida. Revisa la respuesta de UploadFile.');
+    }
     console.log('✅ [generatePaymentReceipt] PDF subido:', reciboUrl);
-    
+
     // Actualizar el pago con la URL del recibo
     await base44.asServiceRole.entities.Payment.update(paymentId, {
       recibo_url: reciboUrl
