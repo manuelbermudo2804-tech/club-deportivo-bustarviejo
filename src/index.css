@@ -1,3 +1,24 @@
+@keyframes loteriaBorderPulse {
+  0%, 100% {
+    border-color: rgb(252 211 77 / 0.8);
+    box-shadow: 0 0 0 0 rgb(252 211 77 / 0.18);
+  }
+  50% {
+    border-color: rgb(252 211 77 / 1);
+    box-shadow: 0 0 0 3px rgb(252 211 77 / 0.16);
+  }
+}
+
+.loteria-pulse-border {
+  animation: loteriaBorderPulse 2.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .loteria-pulse-border {
+    animation: none;
+  }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
