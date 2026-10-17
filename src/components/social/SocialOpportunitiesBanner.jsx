@@ -4,10 +4,10 @@ import { base44 } from "@/api/base44Client";
 import { Sparkles, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 
 const PRIORITY_STYLES = {
-  urgent: { gradient: "from-red-500 to-rose-600", label: "🔥 URGENTE", pulse: true },
-  high: { gradient: "from-orange-500 to-amber-600", label: "⚡ Importante", pulse: false },
-  medium: { gradient: "from-blue-500 to-indigo-600", label: "💡 Sugerencia", pulse: false },
-  low: { gradient: "from-slate-500 to-slate-600", label: "📌 Recordatorio", pulse: false },
+  urgent: { accent: "border-red-300 bg-red-50 text-red-800", label: "🔥 URGENTE", pulse: true },
+  high: { accent: "border-orange-300 bg-orange-50 text-orange-800", label: "⚡ Importante", pulse: false },
+  medium: { accent: "border-slate-200 bg-white text-slate-800", label: "💡 Sugerencia", pulse: false },
+  low: { accent: "border-slate-200 bg-slate-50 text-slate-700", label: "📌 Recordatorio", pulse: false },
 };
 
 export default function SocialOpportunitiesBanner({ onSelect }) {
@@ -23,9 +23,9 @@ export default function SocialOpportunitiesBanner({ onSelect }) {
 
   if (isLoading) {
     return (
-      <div className="bg-gradient-to-br from-purple-900/40 to-indigo-900/40 border border-purple-500/30 rounded-2xl p-4 flex items-center gap-3">
-        <Loader2 className="w-5 h-5 animate-spin text-purple-300" />
-        <p className="text-purple-100 text-sm">Detectando oportunidades de difusión...</p>
+      <div className="flex items-center gap-3 rounded-2xl border border-orange-100 bg-white p-4 shadow-sm">
+        <Loader2 className="h-5 w-5 animate-spin text-orange-600" />
+        <p className="text-sm text-slate-700">Detectando oportunidades de difusión...</p>
       </div>
     );
   }
@@ -39,9 +39,9 @@ export default function SocialOpportunitiesBanner({ onSelect }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center gap-2 px-1">
-        <Sparkles className="w-5 h-5 text-yellow-400" />
-        <h2 className="text-white font-black text-base">Oportunidades detectadas</h2>
-        <span className="ml-auto text-xs bg-yellow-400/20 text-yellow-300 px-2 py-0.5 rounded-full font-bold">
+        <Sparkles className="h-5 w-5 text-orange-600" />
+        <h2 className="text-base font-black text-slate-900">Oportunidades detectadas</h2>
+        <span className="ml-auto rounded-full bg-orange-50 px-2 py-0.5 text-xs font-bold text-orange-800">
           {opportunities.length}
         </span>
       </div>
@@ -53,23 +53,23 @@ export default function SocialOpportunitiesBanner({ onSelect }) {
             <button
               key={opp.id}
               onClick={() => onSelect(opp)}
-              className={`w-full bg-gradient-to-r ${style.gradient} rounded-2xl p-4 text-left text-white shadow-lg hover:shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99] ${style.pulse ? "animate-pulse" : ""}`}
+              className={`w-full rounded-2xl border p-4 text-left shadow-sm transition-colors hover:shadow-md ${style.accent} ${style.pulse ? "animate-pulse" : ""}`}
             >
               <div className="flex items-start gap-3">
                 <div className="text-3xl flex-shrink-0">{opp.icon}</div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-0.5">
-                    <span className="text-[10px] font-black bg-white/25 px-2 py-0.5 rounded-full">
+                    <span className="rounded-full bg-white px-2 py-0.5 text-[10px] font-black">
                       {style.label}
                     </span>
                   </div>
                   <p className="font-bold text-sm leading-tight">{opp.title}</p>
-                  <p className="text-white/80 text-xs mt-1 flex items-center gap-1">
+                  <p className="mt-1 flex items-center gap-1 text-xs opacity-80">
                     <AlertCircle className="w-3 h-3" />
                     {opp.reason}
                   </p>
                 </div>
-                <ChevronRight className="w-5 h-5 flex-shrink-0 opacity-80" />
+                <ChevronRight className="h-5 w-5 flex-shrink-0 opacity-70" />
               </div>
             </button>
           );
