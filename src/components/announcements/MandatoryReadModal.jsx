@@ -139,7 +139,7 @@ export default function MandatoryReadModal({ user }) {
             </p>
           )}
           <Button
-            onClick={handleConfirm
+            onClick={handleConfirm}
             disabled={!checked || confirming}
             className="w-full bg-red-600 hover:bg-red-700 h-11"
           >
