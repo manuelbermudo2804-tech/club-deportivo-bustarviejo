@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, Copy, Check, KeyRound } from "lucide-react";
+import { Copy, Check, KeyRound } from "lucide-react";
 
-export default function TuLoteroAccess({ url, password }) {
+export default function TuLoteroAccess({ password }) {
   const [copiado, setCopiado] = useState(false);
 
-  if (!url && !password) return null;
+  if (!password) return null;
 
   const copiar = async () => {
     await navigator.clipboard.writeText(password);
@@ -15,15 +15,6 @@ export default function TuLoteroAccess({ url, password }) {
 
   return (
     <div className="space-y-3">
-      {url && (
-        <a href={url} target="_blank" rel="noopener noreferrer" className="block">
-          <Button size="lg" className="w-full h-14 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-red-900 font-bold text-base shadow-lg">
-            <ExternalLink className="w-5 h-5 mr-2" />
-            Comprar online en TuLotero
-          </Button>
-        </a>
-      )}
-
       {password && (
         <div className="bg-white/95 rounded-2xl p-4 space-y-2">
           <p className="flex items-center gap-2 font-bold text-slate-900">
@@ -43,8 +34,8 @@ export default function TuLoteroAccess({ url, password }) {
         </div>
       )}
 
-      <p className="text-center text-xs text-yellow-100/80 px-2">
-        Tus décimos quedan guardados en la app: no hay papel que perder.
+      <p className="text-center text-xs text-slate-500 px-2">
+        Abre TuLotero desde el botón de compra destacado al principio de esta página.
       </p>
     </div>
   );
