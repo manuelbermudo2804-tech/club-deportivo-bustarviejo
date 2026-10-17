@@ -1,16 +1,17 @@
 @keyframes loteriaBorderPulse {
   0%, 100% {
-    border-color: rgb(252 211 77 / 0.8);
-    box-shadow: 0 0 0 0 rgb(252 211 77 / 0.18);
+    border-color: rgb(252 211 77 / 0.75);
+    box-shadow: 0 0 0 0 rgb(252 211 77 / 0.1), 0 0 8px rgb(252 211 77 / 0.2);
   }
   50% {
-    border-color: rgb(252 211 77 / 1);
-    box-shadow: 0 0 0 3px rgb(252 211 77 / 0.16);
+    border-color: rgb(255 230 109 / 1);
+    box-shadow: 0 0 0 5px rgb(252 211 77 / 0.32), 0 0 20px rgb(252 211 77 / 0.72);
   }
 }
 
 .loteria-pulse-border {
-  animation: loteriaBorderPulse 2.4s ease-in-out infinite;
+  border-width: 2px;
+  animation: loteriaBorderPulse 1.35s ease-in-out infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
