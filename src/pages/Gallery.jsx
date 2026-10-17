@@ -7,14 +7,12 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Search, Calendar, Image as ImageIcon } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import GalleryForm from "../components/gallery/GalleryForm";
 import GalleryAlbum from "../components/gallery/GalleryAlbum";
 import ContactCard from "../components/ContactCard";
 import TeamFolders, { folderLabel, sameCat, normalizeFolders } from "../components/gallery/TeamFolders";
-import ChatPhotosSection from "../components/gallery/ChatPhotosSection";
 import { ArrowLeft } from "lucide-react";
 
 
@@ -26,7 +24,6 @@ export default function Gallery() {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState("parent"); // admin, coach, parent, player
   const [myCategories, setMyCategories] = useState([]);
-  const [folderTab, setFolderTab] = useState("albums");
   
   const queryClient = useQueryClient();
 
@@ -284,21 +281,13 @@ export default function Gallery() {
         )}
       </AnimatePresence>
 
-      {/* Carpeta abierta: volver + pestañas Álbumes / Fotos del chat */}
+      {/* Carpeta abierta: volver a equipos */}
       {categoryFilter !== "all" && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <Button variant="outline" size="sm" onClick={() => { setCategoryFilter("all"); setFolderTab("albums"); }}>
+          <Button variant="outline" size="sm" onClick={() => setCategoryFilter("all")}>
             <ArrowLeft className="w-4 h-4 mr-1" /> Equipos
           </Button>
           <h2 className="text-lg font-bold text-slate-900">{folderLabel(categoryFilter)}</h2>
-          {categoryFilter !== "Todas las Categorías" && (
-            <Tabs value={folderTab} onValueChange={setFolderTab} className="sm:ml-auto">
-              <TabsList>
-                <TabsTrigger value="albums">📁 Álbumes</TabsTrigger>
-                <TabsTrigger value="chat">💬 Fotos del chat</TabsTrigger>
-              </TabsList>
-            </Tabs>
-          )}
         </div>
       )}
 
@@ -314,9 +303,7 @@ export default function Gallery() {
       </div>
 
       {/* Albums Grid */}
-      {folderTab === "chat" && categoryFilter !== "all" ? (
-        <ChatPhotosSection myCategories={[categoryFilter]} canDelete={userRole === "admin"} />
-      ) : isLoading ? (
+      {isLoading ? (
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
           {[...Array(6)].map((_, i) => (
             <Skeleton key={i} className="h-48 w-full rounded-lg" />
