@@ -96,8 +96,34 @@ export default function ChatPhotosSection({ myCategories, canDelete = false }) {
     staleTime: 120000,
   });
 
+  const hidePhoto = async (photo) => {
+    if (!canDelete || !photo?.url) return;
+    if (!confirm("¿Ocultar esta foto de la galería? Seguirá disponible en el mensaje original del chat.")) return;
+    try {
+      const existing = await base44.entities.GalleryHiddenChatPhoto.filter({ photo_url: photo.url });
+      if (!existing?.length) {
+        await base44.entities.GalleryHiddenChatPhoto.create({
+          photo_url: photo.url,
+          categoria: photo.category || myCategories[0] || "",
+          chat_message_id: photo.messageId || "",
+          nombre_archivo: photo.nombre || "",
+        });
+      }
+      await queryClient.invalidateQueries({ queryKey: ["galleryChatPhotos"] });
+      toast.success("Foto retirada de la galería. El mensaje del chat se conserva.");
+      setLightboxIdx(null);
+    } catch (error) {
+      console.error("No se pudo ocultar la foto de la galería:", error);
+      toast.error("No se pudo retirar la foto. Comprueba los permisos e inténtalo de nuevo.");
+    }
+  };
+
+  if (isLoading) {
+    return <p className="text-sm text-slate-500 py-8 text-center">Cargando fotos del chat…</p>;
+  }
+
   if (!chatPhotos.length) {
-    return <p className="text-sm text-slate-500 py-8 text-center">Todavía no hay fotos compartidas por los entrenadores en el chat de este equipo.</p>;
+    return <p className="text-sm text-slate-500 py-8 text-center">Todavía no hay fotos visibles compartidas por los entrenadores en el chat de este equipo.</p>;
   }
 
   return (
@@ -113,8 +139,8 @@ export default function ChatPhotosSection({ myCategories, canDelete = false }) {
         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
           {chatPhotos.map((photo, i) => (
             <div
-              key={i}
-              className="aspect-square rounded-xl overflow-hidden cursor-pointer group ring-2 ring-transparent hover:ring-teal-400 transition-all shadow-md"
+              key={`${photo.url}-${i}`}
+              className="relative aspect-square rounded-xl overflow-hidden cursor-pointer group ring-2 ring-transparent hover:ring-teal-400 transition-all shadow-md"
               onClick={() => setLightboxIdx(i)}
             >
               <img
@@ -123,6 +149,17 @@ export default function ChatPhotosSection({ myCategories, canDelete = false }) {
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                 loading="lazy"
               />
+              {canDelete && (
+                <button
+                  type="button"
+                  aria-label="Ocultar foto de la galería"
+                  title="Ocultar de la galería (no borra el mensaje del chat)"
+                  onClick={(event) => { event.stopPropagation(); hidePhoto(photo); }}
+                  className="absolute right-1 top-1 z-10 rounded-full bg-black/70 p-2 text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-white"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
             </div>
           ))}
         </div>
