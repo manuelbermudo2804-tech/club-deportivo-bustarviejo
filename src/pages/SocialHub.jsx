@@ -187,7 +187,7 @@ export default function SocialHub() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 text-slate-900">
       <div className="mx-auto w-full max-w-[1600px] space-y-5 p-3 sm:p-5 lg:p-6">
 
         {/* Cabecera común del club */}
@@ -215,7 +215,7 @@ export default function SocialHub() {
         {view === 'menu' && (
           <div className="space-y-5">
             <SocialOpportunitiesBanner onSelect={selectOpportunity} />
-            <p className="text-slate-300 text-sm font-medium text-center">¿Qué quieres publicar?</p>
+            <p className="text-slate-700 text-sm font-semibold text-center">¿Qué quieres publicar?</p>
             <ContentTypeSearch value={search} onChange={setSearch} />
             <ContentTypeGrid onSelect={selectType} search={search} />
 
@@ -238,7 +238,7 @@ export default function SocialHub() {
 
         {view === 'editor' && (
           <div className="space-y-3">
-            <button onClick={goBackToMenu} className="text-slate-400 text-sm flex items-center gap-1 hover:text-white">
+            <button onClick={goBackToMenu} className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-orange-700">
               <ArrowLeft className="w-4 h-4" /> Volver
             </button>
 
@@ -252,29 +252,29 @@ export default function SocialHub() {
             ) : (
               <>
                 <div className="flex items-center justify-between">
-                  <span className={`text-xs px-3 py-1 rounded-full bg-gradient-to-r ${typeConfig?.gradient} text-white font-bold`}>
+                  <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-bold text-orange-800">
                     {typeConfig?.title}
                   </span>
                   <button
                     onClick={() => setShowDatos(s => !s)}
-                    className="text-xs text-slate-400 hover:text-white"
+                    className="text-xs font-semibold text-slate-600 underline-offset-4 hover:text-orange-700 hover:underline"
                   >
                     {showDatos ? "Ocultar datos" : "Ver/editar datos"}
                   </button>
                 </div>
 
                 {showDatos && (
-                  <div className="bg-slate-800/80 rounded-2xl p-3">
-                    <p className="text-slate-400 text-xs font-bold mb-2">📝 Datos usados por la IA</p>
+                  <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                    <p className="mb-2 text-xs font-bold text-slate-700">📝 Datos usados por la IA</p>
                     <textarea
                       value={datos}
                       onChange={(e) => setDatos(e.target.value)}
-                      className="w-full min-h-[80px] p-2 bg-slate-900/50 border border-slate-700 rounded-lg text-xs text-slate-200 resize-y focus:ring-2 focus:ring-orange-500"
+                      className="w-full min-h-[80px] resize-y rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-800 outline-none focus:border-orange-400 focus:ring-2 focus:ring-orange-100"
                     />
                     <button
                       onClick={() => generateText(datos, selectedType)}
                       disabled={generating}
-                      className="w-full mt-2 bg-orange-600 hover:bg-orange-700 disabled:opacity-50 text-white font-bold text-xs py-2 rounded-lg flex items-center justify-center gap-1"
+                      className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-orange-600 py-2.5 text-sm font-bold text-white transition-colors hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <RefreshCw className={`w-3 h-3 ${generating ? "animate-spin" : ""}`} />
                       Regenerar con estos datos
@@ -298,7 +298,7 @@ export default function SocialHub() {
                     <button
                       onClick={() => generateText(datos, selectedType)}
                       disabled={generating}
-                      className="w-full bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white py-3 text-sm font-bold text-slate-700 shadow-sm transition-colors hover:border-orange-300 hover:bg-orange-50 hover:text-orange-800 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <RefreshCw className={`w-4 h-4 ${generating ? "animate-spin" : ""}`} />
                       Regenerar mensaje
@@ -311,7 +311,7 @@ export default function SocialHub() {
                     <button
                       onClick={publishNow}
                       disabled={publishing || !canales.length}
-                      className="w-full bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 disabled:opacity-60 text-white font-black text-lg py-5 rounded-2xl shadow-2xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3"
+                      className="flex w-full items-center justify-center gap-3 rounded-xl bg-orange-600 py-4 text-base font-bold text-white shadow-md transition-colors hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-60 sm:text-lg"
                     >
                       {publishing ? (
                         <><Loader2 className="w-6 h-6 animate-spin" /> Publicando...</>
