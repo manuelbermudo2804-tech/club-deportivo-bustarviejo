@@ -72,14 +72,14 @@ export default function MandatoryReadModal({ user }) {
     if (!current || confirming) return;
     setConfirming(true);
     try {
-      const confirmadoPor = current.confirmado_por || [];
-      confirmadoPor.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
-      // También lo marcamos como leído normal para que no salga "NUEVO"
-      const leidoPor = current.leido_por || [];
-      if (!leidoPor.some((l) => l.email === user.email)) {
-        leidoPor.push({ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() });
+      // Guardar mediante función de servidor para evitar bloqueos por permisos
+      // de actualización de anuncios desde cuentas que no son administradoras.
+      const response = await base44.functions.invoke("confirmAnnouncementRead", {
+        announcement_id: current.id
+      });
+      if (response?.data?.success !== true) {
+        throw new Error(response?.data?.error || "No se pudo guardar la confirmación");
       }
-      await base44.entities.Announcement.update(current.id, { confirmado_por: confirmadoPor, leido_por: leidoPor });
 
       // Avanzar al siguiente o cerrar
       if (index < pending.length - 1) {
