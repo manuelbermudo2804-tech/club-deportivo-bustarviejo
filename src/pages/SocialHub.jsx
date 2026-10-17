@@ -245,7 +245,7 @@ export default function SocialHub() {
             {loading || (generating && !text) ? (
               <div className="flex flex-col items-center py-16">
                 <Loader2 className="w-12 h-12 animate-spin text-orange-400" />
-                <p className="text-slate-300 mt-4 text-sm font-bold">
+                <p className="mt-4 text-sm font-bold text-slate-700">
                   {loading ? "Cargando datos del club..." : "✨ Generando mensaje..."}
                 </p>
               </div>
