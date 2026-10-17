@@ -12,7 +12,7 @@ export default function CanalSelector({ value = [], onChange }) {
 
   return (
     <div className="space-y-2">
-      <p className="text-slate-300 text-xs font-bold">¿Dónde lo publicamos?</p>
+      <p className="text-xs font-bold text-slate-800">¿Dónde lo publicamos?</p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {CANALES.map((c) => {
           const active = value.includes(c.id);
@@ -23,17 +23,17 @@ export default function CanalSelector({ value = [], onChange }) {
               onClick={() => toggle(c.id)}
               className={`flex items-start gap-3 p-3 rounded-xl border text-left transition-all ${
                 active
-                  ? "bg-slate-700/70 border-slate-500"
-                  : "bg-slate-800/60 border-slate-700 hover:border-slate-600"
+                  ? "bg-orange-50 border-orange-400 ring-1 ring-orange-100"
+                  : "bg-white border-slate-200 hover:border-orange-300 hover:bg-orange-50/50"
               }`}
             >
               <c.icon className={`w-5 h-5 mt-0.5 flex-shrink-0 ${c.color}`} />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-white flex items-center gap-1.5">
+                <p className="flex items-center gap-1.5 text-sm font-bold text-slate-800">
                   {c.label}
-                  {active && <Check className="w-3.5 h-3.5 text-green-400" />}
+                  {active && <Check className="h-3.5 w-3.5 text-orange-700" />}
                 </p>
-                <p className="text-xs text-slate-400 leading-snug">{c.desc}</p>
+                <p className="text-xs leading-snug text-slate-600">{c.desc}</p>
               </div>
             </button>
           );
