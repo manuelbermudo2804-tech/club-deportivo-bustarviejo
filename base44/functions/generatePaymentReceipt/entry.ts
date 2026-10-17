@@ -9,9 +9,11 @@ const loadImageAsDataUrl = async (url) => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7000);
     let buf;
+    let contentType = 'image/png';
     try {
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`HTTP ${res.status} al cargar imagen`);
+      contentType = res.headers.get('content-type') || 'image/png';
       buf = await res.arrayBuffer();
     } finally {
       clearTimeout(timeout);
@@ -20,7 +22,6 @@ const loadImageAsDataUrl = async (url) => {
     let binary = '';
     for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
     const base64 = btoa(binary);
-    const contentType = res.headers.get('content-type') || 'image/png';
     return `data:${contentType};base64,${base64}`;
   } catch (e) {
     console.warn('No se pudo cargar imagen (se continuará sin ella):', url, e);
