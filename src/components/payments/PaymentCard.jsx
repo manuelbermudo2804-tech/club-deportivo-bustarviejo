@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -30,52 +30,36 @@ export default function PaymentCard({
   const StatusIcon = cfg.icon;
 
   const [generatingReceipt, setGeneratingReceipt] = useState(false);
+  const [receiptUrl, setReceiptUrl] = useState(payment.recibo_url || null);
 
-  const handleDownloadReceipt = async () => {
-    if (payment.isVirtual || generatingReceipt) return;
+  useEffect(() => {
+    if (payment.recibo_url) setReceiptUrl(payment.recibo_url);
+  }, [payment.recibo_url]);
 
-    // Abrir la pestaña durante el clic del usuario para evitar bloqueos del navegador.
-    const receiptWindow = window.open('about:blank', '_blank');
-    if (receiptWindow) {
-      receiptWindow.document.title = 'Preparando recibo…';
-      receiptWindow.document.body.innerHTML = '<p style="font-family: sans-serif; padding: 24px">Preparando el recibo…</p>';
-    }
-
-    const openReceipt = (url) => {
-      if (!url) return false;
-      if (receiptWindow && !receiptWindow.closed) {
-        receiptWindow.location.replace(url);
-      } else {
-        window.location.assign(url);
-      }
-      return true;
-    };
-
-    if (payment.recibo_url) {
-      if (!openReceipt(payment.recibo_url) && receiptWindow && !receiptWindow.closed) receiptWindow.close();
-      return;
-    }
-
+  const handleGenerateReceipt = async () => {
+    if (payment.isVirtual || generatingReceipt || receiptUrl) return;
     setGeneratingReceipt(true);
+
     let pollTimer;
     let timeoutId;
-    let opened = false;
 
     try {
-      // No dependemos de que termine el envío de emails: comprobamos la base de datos
-      // hasta que el PDF quede guardado, aunque la función tarde en responder.
+      // La URL se guarda en el pago antes de que termine el envío de emails.
+      // Esperamos a que esté guardada y actualizamos el botón sin abrir pestañas.
       const waitForSavedReceipt = new Promise((resolve) => {
         const startedAt = Date.now();
         const poll = async () => {
           try {
             const latestPayment = await base44.entities.Payment.get(payment.id);
             if (latestPayment?.recibo_url) {
+              setReceiptUrl(latestPayment.recibo_url);
               resolve(latestPayment.recibo_url);
               return;
             }
           } catch (error) {
             console.warn('[PaymentCard] No se pudo consultar el recibo todavía:', error);
           }
+
           if (Date.now() - startedAt >= 60000) {
             resolve(null);
             return;
@@ -86,10 +70,17 @@ export default function PaymentCard({
       });
 
       const generation = base44.functions.invoke('generatePaymentReceipt', { paymentId: payment.id })
-        .then((res) => res?.data?.recibo_url || new Promise(() => {}))
+        .then((res) => {
+          const url = res?.data?.recibo_url;
+          if (url) {
+            setReceiptUrl(url);
+            return url;
+          }
+          return new Promise(() => {});
+        })
         .catch((error) => {
           console.error('[PaymentCard] Error generando recibo:', error);
-          // Seguimos consultando el pago: el PDF puede haberse guardado aunque la llamada falle.
+          // El PDF puede haberse guardado aunque la llamada falle o tarde en responder.
           return new Promise(() => {});
         });
 
@@ -102,22 +93,32 @@ export default function PaymentCard({
       ]);
 
       if (url) {
-        opened = openReceipt(url);
-        if (opened) toast.success('Recibo listo');
-        else toast.error('El recibo está listo, pero el navegador bloqueó la apertura. Pulsa de nuevo para abrirlo.');
+        setReceiptUrl(url);
+        toast.success('Recibo generado. Ya puedes descargarlo.');
       } else {
-        toast.error('El recibo sigue sin estar disponible. Inténtalo de nuevo en unos segundos.');
-        if (receiptWindow && !receiptWindow.closed) receiptWindow.close();
+        toast.error('No se ha podido generar el recibo. Inténtalo de nuevo en unos segundos.');
       }
     } catch (error) {
-      console.error('[PaymentCard] Error descargando recibo:', error);
-      toast.error('No se pudo abrir el recibo. Inténtalo de nuevo.');
-      if (receiptWindow && !receiptWindow.closed) receiptWindow.close();
+      console.error('[PaymentCard] Error generando recibo:', error);
+      toast.error('No se ha podido generar el recibo. Inténtalo de nuevo.');
     } finally {
       clearTimeout(pollTimer);
       clearTimeout(timeoutId);
       setGeneratingReceipt(false);
     }
+  };
+
+  const handleDownloadReceipt = () => {
+    if (!receiptUrl) {
+      toast.error('Primero genera el recibo.');
+      return;
+    }
+    // La descarga es una acción independiente y directa del usuario.
+    const link = document.createElement('a');
+    link.href = receiptUrl;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.click();
   };
 
   return (
@@ -208,21 +209,23 @@ export default function PaymentCard({
             </Button>
           )}
 
-          {/* Recibo — disponible para cualquier cuota pagada (genera al vuelo si aún no existe) */}
+          {/* Recibo: primero se genera y, cuando existe, se ofrece la descarga */}
           {payment.estado === "Pagado" && !payment.isVirtual && (
             <Button
               size="sm"
               variant="outline"
-              onClick={handleDownloadReceipt}
+              onClick={receiptUrl ? handleDownloadReceipt : handleGenerateReceipt}
               disabled={generatingReceipt}
               className="h-8 text-xs border-green-300 text-green-700 hover:bg-green-50"
             >
               {generatingReceipt ? (
                 <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
-              ) : (
+              ) : receiptUrl ? (
                 <Download className="w-3.5 h-3.5 mr-1" />
+              ) : (
+                <FileText className="w-3.5 h-3.5 mr-1" />
               )}
-              {generatingReceipt ? 'Generando…' : 'Descargar recibo'}
+              {generatingReceipt ? 'Generando recibo…' : receiptUrl ? 'Descargar archivo' : 'Generar recibo'}
             </Button>
           )}
         </div>
