@@ -280,13 +280,13 @@ export default function PlayerProfile() {
           <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-950">Mi espacio<span className="text-orange-600">.</span></h1>
           <p className="text-sm text-slate-500 mt-1">Tu ficha deportiva, tus estadísticas y tu temporada en el C.D. Bustarviejo.</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-        <Button variant="outline" onClick={() => setShowExtra(true)} className="rounded-xl border-slate-200 bg-white shadow-sm hover:border-orange-300 hover:bg-orange-50 text-slate-700">
+        <div className="profile-page-actions flex w-full sm:w-auto gap-2 flex-col sm:flex-row">
+        <Button variant="outline" onClick={() => setShowExtra(true)} className="rounded-xl border-slate-200 bg-white shadow-sm hover:border-orange-300 hover:bg-orange-50 text-slate-700 w-full sm:w-auto">
           <PlusCircle className="w-4 h-4 mr-2" /> Apuntarme a otra actividad
         </Button>
         <Button
           onClick={() => (editMode ? handleSave() : setEditMode(true))}
-          className={`rounded-xl shadow-md shadow-orange-600/15 ${editMode ? "bg-emerald-600 hover:bg-emerald-700" : "bg-orange-600 hover:bg-orange-700"}`}
+          className={`rounded-xl shadow-md shadow-orange-600/15 w-full sm:w-auto ${editMode ? "bg-emerald-600 hover:bg-emerald-700" : "bg-orange-600 hover:bg-orange-700"}`}
         >
           <Save className="w-4 h-4 mr-2" />
           {editMode ? "Guardar" : "Editar"}
