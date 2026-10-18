@@ -52,6 +52,10 @@ const PorraMiPorra = lazy(() => import('@/pages/PorraMiPorra'));
 const PorraRanking = lazy(() => import('@/pages/PorraRanking'));
 const Eurocopa2028 = lazy(() => import('@/pages/Eurocopa2028'));
 const Eurocopa2028Admin = lazy(() => import('@/pages/Eurocopa2028Admin'));
+const Eurocopa2028Crear = lazy(() => import('@/pages/Eurocopa2028Crear'));
+const Eurocopa2028MiPorra = lazy(() => import('@/pages/Eurocopa2028MiPorra'));
+const Eurocopa2028Ranking = lazy(() => import('@/pages/Eurocopa2028Ranking'));
+const Eurocopa2028Exito = lazy(() => import('@/pages/Eurocopa2028Exito'));
 const PropuestaGVCGaesco = lazy(() => import('@/pages/PropuestaGVCGaesco'));
 const PublicLanding = lazy(() => import('@/pages/PublicLanding'));
 const PublicTorneo = lazy(() => import('@/pages/PublicTorneo'));
@@ -122,7 +126,7 @@ const AppRouter = () => {
   
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').replace(/^\/+/, '/').toLowerCase();
-  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/eurocopa2028', '/propuestagvcgaesco', '/privacidad', '/colabora', '/altasocio', '/loteria', '/instalarapp', '/enviarfotos'];
+  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/eurocopa2028', '/eurocopa2028crear', '/eurocopa2028miporra', '/eurocopa2028ranking', '/eurocopa2028exito', '/propuestagvcgaesco', '/privacidad', '/colabora', '/altasocio', '/loteria', '/instalarapp', '/enviarfotos'];
   // Constructor de páginas: cualquier URL que empiece por /l/ es pública
   const isLandingPath = cleanPath.startsWith('/l/');
   // Página pública propia de torneo: cualquier URL que empiece por /torneo/
@@ -172,6 +176,10 @@ const AppRouter = () => {
         <Route path="/SANISIDRO" element={<SanIsidroInscripcion />} />
         <Route path="/Eurocopa2028" element={<Eurocopa2028 />} />
         <Route path="/eurocopa2028" element={<Eurocopa2028 />} />
+        <Route path="/Eurocopa2028Crear" element={<Eurocopa2028Crear />} />
+        <Route path="/Eurocopa2028MiPorra" element={<Eurocopa2028MiPorra />} />
+        <Route path="/Eurocopa2028Ranking" element={<Eurocopa2028Ranking />} />
+        <Route path="/Eurocopa2028Exito" element={<Eurocopa2028Exito />} />
         <Route path="/Porra" element={<Porra />} />
         <Route path="/porra" element={<Porra />} />
         <Route path="/PORRA" element={<Porra />} />
@@ -277,6 +285,10 @@ const AuthenticatedApp = () => {
       <Route path="/MyFeedback" element={<LayoutWrapper currentPageName="MyFeedback"><MyFeedback /></LayoutWrapper>} />
       <Route path="/PorraAdmin" element={<LayoutWrapper currentPageName="PorraAdmin"><PorraAdmin /></LayoutWrapper>} />
       <Route path="/Eurocopa2028Admin" element={<LayoutWrapper currentPageName="Eurocopa2028Admin"><Eurocopa2028Admin /></LayoutWrapper>} />
+      <Route path="/Eurocopa2028Crear" element={<Eurocopa2028Crear />} />
+      <Route path="/Eurocopa2028MiPorra" element={<Eurocopa2028MiPorra />} />
+      <Route path="/Eurocopa2028Ranking" element={<Eurocopa2028Ranking />} />
+      <Route path="/Eurocopa2028Exito" element={<Eurocopa2028Exito />} />
       <Route path="/MiPorra" element={<LayoutWrapper currentPageName="MiPorra"><MiPorra /></LayoutWrapper>} />
       <Route path="/PageBuilder" element={<LayoutWrapper currentPageName="PageBuilder"><PageBuilder /></LayoutWrapper>} />
       <Route path="/PageBuilderEditor" element={<LayoutWrapper currentPageName="PageBuilderEditor"><PageBuilderEditor /></LayoutWrapper>} />
