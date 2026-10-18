@@ -75,16 +75,16 @@ export default function PlayerStatsWidget({ playerId, playerName, playerCategory
   // Goles oficiales importados desde el centro de competición (temporada actual).
   const { data: scorerRecords = [] } = useQuery({
     queryKey: ["playerScorerRecords", normalizedSeason],
-    queryFn: () => base44.entities.Goleador.filter({ temporada: normalizedSeason }),
+    queryFn: () => base44.entities.Goleador.filter({ temporada: normalizedSeason }, "-goles", 500),
     staleTime: 300_000,
     refetchOnWindowFocus: true,
     enabled: !!playerName,
   });
 
   const normalizeName = (value) => String(value || "")
-    .normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .toLowerCase().replace(/[^a-z0-9 ]/g, " ")
-    .split(/\\s+/).filter(Boolean).sort().join(" ");
+    .split(/\s+/).filter(Boolean).sort().join(" ");
   const normalizedPlayerName = normalizeName(playerName);
   const clubScorerRecords = scorerRecords.filter(record =>
     String(record.equipo || "").toUpperCase().includes("BUSTARVIEJO") &&
