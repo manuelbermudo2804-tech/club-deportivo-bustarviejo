@@ -12,12 +12,12 @@ Deno.serve(async(req)=>{
   const tel=String(telefono).replace(/[\s\-+]/g,'').replace(/^34/,'');
   if(!/^[6789]\d{8}$/.test(tel))return Response.json({error:'Teléfono español no válido.'},{status:400});
   const cfg=(await b.asServiceRole.entities.EurocopaConfig.list())[0];
-  if(!cfg?.activa||cfg.estado==='finalizada'||cfg.estado==='cerrada')return Response.json({error:'Las inscripciones de Eurocopa 2028 no están abiertas.'},{status:403});
+  if(!cfg?.activa||cfg.estado!=='inscripciones_abiertas')return Response.json({error:'Las inscripciones de Eurocopa 2028 no están abiertas.'},{status:403});
   const [teams,matches]=await Promise.all([b.asServiceRole.entities.EurocopaEquipo.list('grupo',100),b.asServiceRole.entities.EurocopaPartido.list('numero_partido',200)]);
   const activeTeams=teams.filter(t=>['A','B','C','D','E','F'].includes(t.grupo));
   const codes=activeTeams.map(t=>String(t.codigo||'').trim());
   const complete=activeTeams.length===24&&new Set(codes).size===24&&activeTeams.every(t=>t.nombre&&!/por definir|tbd|provisional/i.test(t.nombre)&&!/^TBD-/i.test(t.codigo||''))&&matches.filter(m=>m.fase==='grupos').length===36&&matches.filter(m=>m.fase!=='grupos').length===15;
-  if(!complete)return Response.json({error:'La competición aún está en preparación: el club debe confirmar las selecciones oficiales y el calendario antes de abrir inscripciones.'},{status:503});
+  if(!complete)return Response.json({error:'La competición aún está en preparación: el club debe confirmar las 24 selecciones oficiales y los 51 partidos antes de abrir inscripciones.'},{status:503});
   if(cfg.fecha_inicio_torneo&&Date.now()>=new Date(cfg.fecha_inicio_torneo).getTime())return Response.json({error:'El plazo de inscripción ha terminado.'},{status:403});
   const all=await b.asServiceRole.entities.EurocopaParticipante.list('',5000);
   if(all.some(p=>(p.alias_equipo||'').trim().toLowerCase()===alias_equipo.trim().toLowerCase()))return Response.json({error:'Ese alias ya está cogido.'},{status:409});
