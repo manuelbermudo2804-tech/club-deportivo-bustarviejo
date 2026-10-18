@@ -1,71 +1,37 @@
-import React, { useEffect, useState } from "react";
-import { base44 } from "@/api/base44Client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { toast } from "sonner";
-import { Trophy, RefreshCw, ShieldCheck, Users, Flag, CalendarDays } from "lucide-react";
+import React,{useEffect,useState} from "react";
+import {base44} from "@/api/base44Client";
+import {Card,CardContent,CardHeader,CardTitle} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
+import {Switch} from "@/components/ui/switch";
+import {Badge} from "@/components/ui/badge";
+import {toast} from "sonner";
+import {Trophy,RefreshCw,ShieldCheck,Users,Flag,CalendarDays,Save,Settings,AlertTriangle} from "lucide-react";
 
-export default function Eurocopa2028Admin() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState({ equipos: 0, partidos: 0, participantes: 0, ligas: 0, config: null });
-
-  const load = async () => {
-    setLoading(true);
-    try {
-      const me = await base44.auth.me();
-      setUser(me);
-      if (me.role !== "admin") return;
-      const [configs, equipos, partidos, participantes, ligas] = await Promise.all([
-        base44.entities.EurocopaConfig.list(),
-        base44.entities.EurocopaEquipo.list("grupo", 100),
-        base44.entities.EurocopaPartido.list("numero_partido", 200),
-        base44.entities.EurocopaParticipante.list("-created_date", 500),
-        base44.entities.EurocopaLiga.list("-created_date", 200),
-      ]);
-      setStats({ equipos: equipos.length, partidos: partidos.length, participantes: participantes.length, ligas: ligas.length, config: configs[0] || null });
-    } catch (error) {
-      console.error(error);
-      toast.error("No se han podido cargar los datos de Eurocopa.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => { load(); }, []);
-
-  if (loading) return <div className="flex min-h-screen items-center justify-center"><RefreshCw className="h-8 w-8 animate-spin text-orange-600" /></div>;
-  if (user?.role !== "admin") return <div className="p-8 text-center font-bold">Acceso restringido: solo administradores.</div>;
-
-  const items = [
-    { label: "Selecciones", value: stats.equipos, icon: Flag },
-    { label: "Partidos", value: stats.partidos, icon: CalendarDays },
-    { label: "Participantes", value: stats.participantes, icon: Users },
-    { label: "Mini-ligas", value: stats.ligas, icon: Trophy },
-  ];
-
-  return (
-    <main className="min-h-screen bg-slate-50 px-4 py-6 sm:px-6">
-      <div className="mx-auto max-w-6xl space-y-6">
-        <header className="rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 p-6 text-white shadow-lg sm:p-8">
-          <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-            <div><div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-400/15"><Trophy className="h-6 w-6 text-orange-300" /></div><h1 className="text-3xl font-black">Eurocopa 2028 · Administración</h1><p className="mt-2 max-w-2xl text-sm text-slate-300">Sección independiente del Mundial 2026. Sus selecciones, partidos, participantes y mini-ligas usan entidades propias.</p></div>
-            <Button onClick={load} variant="secondary" className="gap-2"><RefreshCw className="h-4 w-4" /> Actualizar</Button>
-          </div>
-        </header>
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          {items.map(({ label, value, icon: Icon }) => <Card key={label} className="rounded-2xl border-slate-200 shadow-sm"><CardContent className="flex items-center gap-4 p-5"><div className="rounded-xl bg-orange-50 p-3"><Icon className="h-5 w-5 text-orange-600" /></div><div><p className="text-sm text-slate-500">{label}</p><p className="text-3xl font-black text-slate-900">{value}</p></div></CardContent></Card>)}
-        </div>
-        <Card className="rounded-2xl">
-          <CardHeader><CardTitle className="flex items-center gap-2"><ShieldCheck className="h-5 w-5 text-emerald-600" /> Estado de la competición</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex flex-wrap items-center gap-3"><Badge variant="outline">{stats.config?.estado || "preparacion"}</Badge><span className="text-sm text-slate-600">{stats.config?.nombre_torneo || "Porra Eurocopa 2028 — CD Bustarviejo"}</span></div>
-            <p className="text-sm leading-relaxed text-slate-600">La sección está creada, pero aún no se han cargado selecciones ni calendario oficial, ni se ha conectado el flujo completo de inscripción, pronósticos y pagos. Se mantiene cerrada para evitar registros incompletos.</p>
-            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">Los pagos históricos de Stripe y los datos de la porra del Mundial no se modifican desde este panel.</div>
-          </CardContent>
-        </Card>
-      </div>
-    </main>
-  );
+export default function Eurocopa2028Admin(){
+ const [user,setUser]=useState(null),[loading,setLoading]=useState(true),[saving,setSaving]=useState(false);
+ const [config,setConfig]=useState(null),[teams,setTeams]=useState([]),[matches,setMatches]=useState([]),[participants,setParticipants]=useState([]),[leagues,setLeagues]=useState([]);
+ const load=async()=>{setLoading(true);try{const me=await base44.auth.me();setUser(me);if(me.role!=="admin")return;const [cs,es,ms,ps,ls]=await Promise.all([base44.entities.EurocopaConfig.list(),base44.entities.EurocopaEquipo.list("grupo",100),base44.entities.EurocopaPartido.list("numero_partido",200),base44.entities.EurocopaParticipante.list("-created_date",500),base44.entities.EurocopaLiga.list("-created_date",200)]);setConfig(cs[0]||null);setTeams(es);setMatches(ms);setParticipants(ps);setLeagues(ls);}catch(e){console.error(e);toast.error("Error al cargar Eurocopa 2028.");}finally{setLoading(false);}};
+ useEffect(()=>{load();},[]);
+ const saveConfig=async()=>{if(!config)return;setSaving(true);try{await base44.entities.EurocopaConfig.update(config.id,{nombre_torneo:config.nombre_torneo,activa:!!config.activa,estado:config.estado,precio_entrada:Number(config.precio_entrada||10),comision_club_porcentaje:Number(config.comision_club_porcentaje||10),fecha_inicio_torneo:config.fecha_inicio_torneo||null,fecha_limite_predicciones:config.fecha_limite_predicciones||null,permitir_multiples_porras:!!config.permitir_multiples_porras,mostrar_ranking_publico:!!config.mostrar_ranking_publico,permitir_mini_ligas:!!config.permitir_mini_ligas});toast.success("Configuración guardada.");await load();}catch(e){toast.error("No se pudo guardar la configuración.");}finally{setSaving(false);}};
+ const saveTeam=async(t)=>{try{await base44.entities.EurocopaEquipo.update(t.id,{nombre:t.nombre,codigo:t.codigo,grupo:t.grupo,bandera_emoji:t.bandera_emoji||"⚽",orden_grupo:Number(t.orden_grupo||1)});toast.success("Selección guardada.");}catch(e){toast.error("No se pudo guardar la selección.");}};
+ const saveMatch=async(m)=>{try{await base44.entities.EurocopaPartido.update(m.id,{resultado_real:m.resultado_real||"",goles_local:m.goles_local===""?null:Number(m.goles_local),goles_visitante:m.goles_visitante===""?null:Number(m.goles_visitante),finalizado:!!m.finalizado,fecha_partido:m.fecha_partido||null,estadio:m.estadio||"",ciudad:m.ciudad||""});toast.success("Partido actualizado.");}catch(e){toast.error("No se pudo guardar el partido.");}};
+ if(loading)return <div className="flex min-h-screen items-center justify-center"><RefreshCw className="h-8 w-8 animate-spin text-orange-600"/></div>;
+ if(user?.role!=="admin")return <div className="p-8 text-center font-bold">Acceso restringido: solo administradores.</div>;
+ const setC=(k,v)=>setConfig(p=>({...p,[k]:v})),setT=(id,k,v)=>setTeams(p=>p.map(t=>t.id===id?{...t,[k]:v}:t)),setM=(id,k,v)=>setMatches(p=>p.map(m=>m.id===id?{...m,[k]:v}:m));
+ const groupMatches=matches.filter(m=>m.fase==="grupos"),knockouts=matches.filter(m=>m.fase!=="grupos");
+ return <main className="min-h-screen bg-slate-50 px-3 py-5 sm:px-6"><div className="mx-auto max-w-6xl space-y-5">
+ <header className="rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-blue-950 p-6 text-white shadow-lg"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"><div><div className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-400/15"><Trophy className="h-6 w-6 text-orange-300"/></div><h1 className="text-3xl font-black">Eurocopa 2028 · Administración</h1><p className="mt-2 text-sm text-slate-300">Panel independiente. No comparte datos con el Mundial.</p></div><div className="flex gap-2"><Button variant="secondary" onClick={()=>window.open("/Eurocopa2028","_blank")}>Ver página pública</Button><Button variant="secondary" onClick={load}><RefreshCw className="mr-2 h-4 w-4"/>Actualizar</Button></div></div></header>
+ <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{[{l:"Selecciones",v:teams.length,I:Flag},{l:"Partidos",v:matches.length,I:CalendarDays},{l:"Participantes",v:participants.length,I:Users},{l:"Mini-ligas",v:leagues.length,I:Trophy}].map(x=><Card key={x.l} className="rounded-2xl"><CardContent className="flex items-center gap-4 p-4"><div className="rounded-xl bg-orange-50 p-3"><x.I className="h-5 w-5 text-orange-600"/></div><div><p className="text-sm text-slate-500">{x.l}</p><p className="text-3xl font-black">{x.v}</p></div></CardContent></Card>)}</div>
+ <Card className="rounded-2xl"><CardHeader><CardTitle className="flex items-center gap-2"><Settings className="h-5 w-5 text-orange-600"/>Configuración y apertura</CardTitle></CardHeader><CardContent className="space-y-4">
+ <div className="grid gap-4 sm:grid-cols-2"><div><Label>Nombre de la competición</Label><Input className="mt-1" value={config?.nombre_torneo||""} onChange={e=>setC("nombre_torneo",e.target.value)}/></div><div><Label>Estado</Label><select className="mt-1 w-full rounded-md border bg-white p-2" value={config?.estado||"preparacion"} onChange={e=>setC("estado",e.target.value)}>{["preparacion","inscripciones_abiertas","cerrada","en_curso","finalizada"].map(s=><option key={s} value={s}>{s}</option>)}</select></div><div><Label>Precio de entrada (€)</Label><Input className="mt-1" type="number" min="0" value={config?.precio_entrada??10} onChange={e=>setC("precio_entrada",e.target.value)}/></div><div><Label>Comisión del club (%)</Label><Input className="mt-1" type="number" min="0" max="100" value={config?.comision_club_porcentaje??10} onChange={e=>setC("comision_club_porcentaje",e.target.value)}/></div><div><Label>Fecha/hora de inicio (cierre automático)</Label><Input className="mt-1" type="datetime-local" value={config?.fecha_inicio_torneo?new Date(config.fecha_inicio_torneo).toISOString().slice(0,16):""} onChange={e=>setC("fecha_inicio_torneo",e.target.value?new Date(e.target.value).toISOString():null)}/></div><div><Label>Fecha límite de predicciones</Label><Input className="mt-1" type="datetime-local" value={config?.fecha_limite_predicciones?new Date(config.fecha_limite_predicciones).toISOString().slice(0,16):""} onChange={e=>setC("fecha_limite_predicciones",e.target.value?new Date(e.target.value).toISOString():null)}/></div></div>
+ <div className="grid gap-3 sm:grid-cols-2">{[["activa","Inscripciones activas"],["mostrar_ranking_publico","Mostrar ranking público"],["permitir_mini_ligas","Permitir mini-ligas"],["permitir_multiples_porras","Permitir varias porras por email"]].map(([k,l])=><div key={k} className="flex items-center justify-between rounded-xl bg-slate-50 p-3"><Label>{l}</Label><Switch checked={!!config?.[k]} onCheckedChange={v=>setC(k,v)}/></div>)}</div>
+ <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><AlertTriangle className="mr-2 inline h-4 w-4"/>Antes de abrir inscripciones, sustituye las 24 plazas provisionales por las selecciones oficiales y revisa el calendario y las fechas. No actives la porra mientras los datos sigan como «Por definir».</div>
+ <Button disabled={saving||!config} onClick={saveConfig} className="bg-orange-600 hover:bg-orange-700"><Save className="mr-2 h-4 w-4"/>{saving?"Guardando…":"Guardar configuración"}</Button>
+ </CardContent></Card>
+ <Card className="rounded-2xl"><CardHeader><CardTitle>Selecciones y grupos (24 plazas)</CardTitle></CardHeader><CardContent className="space-y-4">{["A","B","C","D","E","F"].map(g=><div key={g} className="rounded-xl border bg-white p-3"><h3 className="mb-3 font-black">Grupo {g}</h3><div className="grid gap-2 sm:grid-cols-2">{teams.filter(t=>t.grupo===g).sort((a,b)=>(a.orden_grupo||0)-(b.orden_grupo||0)).map(t=><div key={t.id} className="flex gap-2"><Input aria-label="Código" className="w-28 font-mono" value={t.codigo||""} onChange={e=>setT(t.id,"codigo",e.target.value.toUpperCase())}/><Input aria-label="Nombre de selección" value={t.nombre||""} onChange={e=>setT(t.id,"nombre",e.target.value)}/><Button size="sm" variant="outline" onClick={()=>saveTeam(teams.find(x=>x.id===t.id))}><Save className="h-4 w-4"/></Button></div>)}</div></div>)}</CardContent></Card>
+ <Card className="rounded-2xl"><CardHeader><CardTitle>Calendario y resultados</CardTitle></CardHeader><CardContent className="space-y-5"><div><h3 className="mb-3 font-bold">Fase de grupos · {groupMatches.length} partidos</h3><div className="space-y-3">{groupMatches.map(m=><div key={m.id} className="grid gap-2 rounded-xl border bg-white p-3 sm:grid-cols-[70px_1fr_100px_100px_120px] sm:items-center"><Badge>Grupo {m.grupo}</Badge><div className="text-sm font-semibold">{teams.find(t=>t.codigo===m.equipo_local_codigo)?.nombre||m.equipo_local_codigo} vs {teams.find(t=>t.codigo===m.equipo_visitante_codigo)?.nombre||m.equipo_visitante_codigo}</div><Input type="number" min="0" placeholder="Goles local" value={m.goles_local??""} onChange={e=>setM(m.id,"goles_local",e.target.value)}/><Input type="number" min="0" placeholder="Goles visita" value={m.goles_visitante??""} onChange={e=>setM(m.id,"goles_visitante",e.target.value)}/><Button variant="outline" onClick={()=>saveMatch(m)}><Save className="mr-1 h-4 w-4"/>Guardar</Button></div>)}</div></div><div><h3 className="mb-3 font-bold">Eliminatorias · {knockouts.length} partidos</h3><div className="space-y-3">{knockouts.map(m=><div key={m.id} className="grid gap-2 rounded-xl border bg-white p-3 sm:grid-cols-[100px_1fr_100px_100px_120px] sm:items-center"><Badge>{m.fase}</Badge><div className="text-sm">{m.equipo_local_placeholder||m.equipo_local_codigo||"Local por definir"} vs {m.equipo_visitante_placeholder||m.equipo_visitante_codigo||"Visitante por definir"}</div><Input type="number" min="0" placeholder="Goles local" value={m.goles_local??""} onChange={e=>setM(m.id,"goles_local",e.target.value)}/><Input type="number" min="0" placeholder="Goles visita" value={m.goles_visitante??""} onChange={e=>setM(m.id,"goles_visitante",e.target.value)}/><Button variant="outline" onClick={()=>saveMatch(m)}><Save className="mr-1 h-4 w-4"/>Guardar</Button></div>)}</div></div></CardContent></Card>
+ <Card className="rounded-2xl"><CardHeader><CardTitle>Protección de datos</CardTitle></CardHeader><CardContent className="text-sm text-slate-600"><ShieldCheck className="mr-2 inline h-4 w-4 text-emerald-600"/>Las entidades y los participantes de Eurocopa son independientes del Mundial. Los registros históricos de Stripe se conservan.</CardContent></Card>
+ </div></main>;
 }
