@@ -277,8 +277,8 @@ export default function PlayerProfile() {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
           <p className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-700 mb-2"><span className="h-1.5 w-1.5 rounded-full bg-orange-500"></span> Área personal del jugador</p>
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-950">Mi perfil<span className="text-orange-600">.</span></h1>
-          <p className="text-sm text-slate-500 mt-1">Tus datos, tu temporada y tu evolución en el club.</p>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-950">Mi espacio<span className="text-orange-600">.</span></h1>
+          <p className="text-sm text-slate-500 mt-1">Tu ficha deportiva, tus estadísticas y tu temporada en el C.D. Bustarviejo.</p>
         </div>
         <div className="flex gap-2 flex-wrap">
         <Button variant="outline" onClick={() => setShowExtra(true)} className="rounded-xl border-slate-200 bg-white shadow-sm hover:border-orange-300 hover:bg-orange-50 text-slate-700">
@@ -302,19 +302,19 @@ export default function PlayerProfile() {
 
       {/* Cabecera de perfil clara: identidad del club sin fondo oscuro */}
       <Card className="profile-hero border border-slate-200/80 shadow-lg shadow-slate-900/5 overflow-hidden rounded-[1.6rem] ring-1 ring-orange-600/10">
-        <div className="bg-white px-6 py-8 md:px-8 md:py-10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-orange-100/70 rounded-full blur-3xl -mr-24 -mt-32 pointer-events-none"></div>
-          <div className="absolute bottom-0 right-1/4 w-40 h-40 bg-amber-50 rounded-full blur-3xl -mb-28 pointer-events-none"></div>
+        <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-800 text-white px-6 py-8 md:px-8 md:py-10 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500/20 rounded-full blur-3xl -mr-24 -mt-32 pointer-events-none"></div>
+          <div className="absolute bottom-0 right-1/4 w-40 h-40 bg-slate-400/10 rounded-full blur-3xl -mb-28 pointer-events-none"></div>
           <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-orange-500 rounded-r-full"></div>
 
           <div className="relative flex flex-col md:flex-row items-center md:items-center gap-6 md:gap-8">
             {/* Foto destacada */}
             <div className="relative shrink-0">
-              <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden bg-orange-50 shadow-xl shadow-orange-900/10 flex items-center justify-center border-4 border-white ring-2 ring-orange-200">
+              <div className="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden bg-slate-800 shadow-xl shadow-black/20 flex items-center justify-center border-4 border-slate-700 ring-2 ring-orange-500/70">
                 {form.foto_url ? (
                   <img src={form.foto_url} alt="Foto" className="w-full h-full object-cover" />
                 ) : (
-                  <UserCircle className="w-20 h-20 text-orange-300" />
+                  <UserCircle className="w-20 h-20 text-slate-400" />
                 )}
               </div>
               {editMode && (
@@ -341,34 +341,34 @@ export default function PlayerProfile() {
             </div>
 
             {/* Datos principales */}
-            <div className="flex-1 min-w-0 text-slate-800 text-center md:text-left self-center">
+            <div className="flex-1 min-w-0 text-white text-center md:text-left self-center">
               {editMode ? (
                 <Input
                   value={form.nombre}
                   onChange={(e) => setForm((p) => ({ ...p, nombre: e.target.value }))}
                   placeholder="Nombre completo"
-                  className="text-2xl md:text-3xl font-bold mb-2 bg-white border-slate-200 text-slate-800 placeholder:text-slate-400 focus-visible:ring-orange-500"
+                  className="text-2xl md:text-3xl font-bold mb-2 bg-slate-800 border-slate-600 text-white placeholder:text-slate-400 focus-visible:ring-orange-500"
                 />
               ) : (
-                <h2 className="text-2xl md:text-4xl font-black tracking-tight mb-3 text-slate-800">{form.nombre}</h2>
+                <h2 className="text-2xl md:text-4xl font-black tracking-tight mb-3 text-white">{form.nombre}</h2>
               )}
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
-                <Badge className="bg-orange-50 text-orange-800 border border-orange-200 rounded-full px-3 py-1 text-xs sm:text-sm">
+                <Badge className="bg-orange-500/15 text-orange-200 border border-orange-400/40 rounded-full px-3 py-1 text-xs sm:text-sm">
                   ⚽ {player.deporte}
                 </Badge>
                 {form.posicion !== "Sin asignar" && (
-                  <Badge className="bg-slate-50 text-slate-700 border border-slate-200 rounded-full px-3 py-1 text-xs sm:text-sm">
+                  <Badge className="bg-white/10 text-slate-100 border border-white/15 rounded-full px-3 py-1 text-xs sm:text-sm">
                     📍 {form.posicion}
                   </Badge>
                 )}
                 {edad && (
-                  <Badge className="bg-slate-50 text-slate-700 border border-slate-200 rounded-full px-3 py-1 text-xs sm:text-sm">
+                  <Badge className="bg-white/10 text-slate-100 border border-white/15 rounded-full px-3 py-1 text-xs sm:text-sm">
                     🎂 {edad} años
                   </Badge>
                 )}
               </div>
-              <p className="text-sm text-slate-500 mt-4">Tu perfil de jugador · C.D. Bustarviejo</p>
+              <p className="text-sm text-slate-300 mt-4">Tu ficha deportiva · C.D. Bustarviejo</p>
             </div>
           </div>
         </div>
@@ -410,6 +410,7 @@ export default function PlayerProfile() {
           <CardContent className="p-5 md:p-6">
             <PlayerStatsWidget
               playerId={player.id}
+              playerName={player.nombre}
               playerCategory={player.categoria_principal || player.deporte}
               fechaNacimiento={player.fecha_nacimiento}
               createdDate={player.created_date}
