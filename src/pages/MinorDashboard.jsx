@@ -422,8 +422,38 @@ export default function MinorDashboard() {
       .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9\s]/g, " ")
       .split(/\s+/).filter(Boolean).sort().join(" ");
-    const found = scorers.filter(s => norm(s.jugador_nombre) === norm(linkedPlayer.nombre));
-    return found.reduce((total, s) => total + (Number(s.goles) || 0), 0);
+    const levenshteinOne = (a, b) => {
+      if (Math.abs(a.length - b.length) > 1) return false;
+      let i = 0, j = 0, edits = 0;
+      while (i < a.length && j < b.length) {
+        if (a[i] === b[j]) { i++; j++; continue; }
+        if (++edits > 1) return false;
+        if (a.length > b.length) i++;
+        else if (b.length > a.length) j++;
+        else { i++; j++; }
+      }
+      if (i < a.length || j < b.length) edits++;
+      return edits <= 1;
+    };
+    const fuzzyNameMatch = (a, b) => {
+      const left = norm(a).split(" ");
+      const right = norm(b).split(" ");
+      if (left.length !== right.length || !left.length) return false;
+      const remaining = [...right];
+      for (const token of left) {
+        let index = remaining.indexOf(token);
+        if (index < 0 && token.length >= 5) {
+          index = remaining.findIndex(candidate => candidate.length >= 5 && levenshteinOne(token, candidate));
+        }
+        if (index < 0) return false;
+        remaining.splice(index, 1);
+      }
+      return remaining.length === 0;
+    };
+    const exact = scorers.filter(s => norm(s.jugador_nombre) === norm(linkedPlayer.nombre));
+    const matches = exact.length ? exact : scorers.filter(s => fuzzyNameMatch(s.jugador_nombre, linkedPlayer.nombre));
+    if (!exact.length && matches.length !== 1) return 0;
+    return matches.reduce((total, s) => total + (Number(s.goles) || 0), 0);
   }, [linkedPlayer?.nombre, scorers]);
 
   const unreadAnnouncements = announcements.filter((a) => {
