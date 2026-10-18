@@ -33,6 +33,32 @@
 .player-profile-wow .profile-hero {
   box-shadow: 0 24px 55px -32px rgba(15, 23, 42, .55);
 }
+.player-profile-wow .profile-page-heading {
+  backdrop-filter: blur(10px);
+}
+.player-profile-wow .profile-hero > div:first-child {
+  isolation: isolate;
+}
+.player-profile-wow .profile-stats-card {
+  background: linear-gradient(180deg, #fff 0%, #fbfcfe 100%);
+}
+.player-profile-wow .player-stat-tile {
+  box-shadow: 0 2px 8px rgb(15 23 42 / 3%);
+}
+.player-profile-wow .player-stat-tile:hover {
+  border-color: rgb(249 115 22 / 35%);
+}
+.player-profile-wow .player-achievements {
+  box-shadow: 0 8px 22px rgb(180 83 9 / 5%);
+}
+@media (max-width: 639px) {
+  .player-profile-wow .profile-hero > div:first-child { padding: 1.5rem 1rem; }
+  .player-profile-wow .profile-page-heading { align-items: stretch; }
+  .player-profile-wow .profile-page-heading > div:first-child { width: 100%; }
+  .player-profile-wow .profile-page-actions { width: 100%; }
+  .player-profile-wow .profile-page-actions > button { min-height: 44px; }
+  .player-profile-wow .player-stat-tile { padding: .8rem; border-radius: 1rem; }
+}
 .player-profile-wow > .rounded-2xl,
 .player-profile-wow > [data-radix-tabs-content] {
   animation: profileFadeIn .28s ease-out both;
