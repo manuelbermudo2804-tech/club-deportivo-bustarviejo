@@ -401,7 +401,7 @@ export default function MinorDashboard() {
   // Scorers for badge count
   const goalsSeason = React.useMemo(() => {
     const now = new Date();
-    const startYear = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
+    const startYear = now.getMonth() >= 6 ? now.getFullYear() : now.getFullYear() - 1;
     return String(startYear) + "/" + String(startYear + 1);
   }, []);
 
