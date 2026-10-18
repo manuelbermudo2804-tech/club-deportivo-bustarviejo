@@ -47,7 +47,7 @@ export default function AgendaMonthView({ items, referenceDate, onSelectDay }) {
                 }
               }}
               aria-label={delDia.length > 0 ? `${format(day, "d MMMM", { locale: es })}: ${delDia.length} actividades` : undefined}
-              className={`relative min-h-[70px] rounded-xl border p-1.5 transition-all sm:min-h-[90px] sm:p-2 ${
+              className={`relative min-w-0 min-h-[70px] overflow-hidden rounded-xl border p-1.5 transition-all sm:min-h-[90px] sm:p-2 ${
                 diaSinEntrenoCompleto
                   ? "bg-rose-50 border-rose-300 ring-1 ring-rose-100"
                   : hoy ? "bg-orange-50 border-orange-300 ring-1 ring-orange-100" : "bg-white border-slate-200"
@@ -60,7 +60,7 @@ export default function AgendaMonthView({ items, referenceDate, onSelectDay }) {
                 {diaSinEntrenoCompleto && <span title="Día sin entrenamiento" aria-label="Día sin entrenamiento" className="text-[10px] font-black leading-none text-rose-600">✕</span>}
               </div>
               {diaSinEntrenoCompleto && (
-                <p className="mb-1 rounded-md border border-rose-200 bg-rose-100 px-1 py-0.5 text-[8px] font-extrabold uppercase leading-tight tracking-wide text-rose-700 sm:text-[9px]">
+                <p className="mb-1 block w-full max-w-full overflow-hidden rounded-md border border-rose-200 bg-rose-100 px-0.5 py-1 text-center text-[7px] font-extrabold uppercase leading-tight tracking-normal break-words text-rose-700 sm:px-1 sm:text-[9px] sm:tracking-wide">
                   Sin entreno
                 </p>
               )}
