@@ -14,12 +14,14 @@ Deno.serve(async(req)=>{
     if(m.fase==='grupos'&&p.predicciones_grupos?.[m.id]&&m.goles_local!=null&&m.goles_visitante!=null){
      const actual=Number(m.goles_local)>Number(m.goles_visitante)?'1':Number(m.goles_local)<Number(m.goles_visitante)?'2':'X';
      if(p.predicciones_grupos[m.id]===actual)pg+=pointsGroup;
-    }else if(m.fase!=='grupos'&&p.predicciones_eliminatorias?.[m.id]&&m.ganador_codigo&&p.predicciones_eliminatorias[m.id]===m.ganador_codigo){
-     pe+=pointsRound[m.fase]||0;
+    }else if(m.fase!=='grupos'&&p.predicciones_eliminatorias?.[m.id]&&m.ganador_codigo){
+     const actualWinnerSide=m.ganador_codigo===m.equipo_local_codigo?'1':m.ganador_codigo===m.equipo_visitante_codigo?'2':'';
+     if(actualWinnerSide&&p.predicciones_eliminatorias[m.id]===actualWinnerSide)pe+=pointsRound[m.fase]||0;
     }
    }
    const champion=ms.find(m=>m.fase==='final'&&m.finalizado);
-   const winnerBonus=champion&&p.predicciones_eliminatorias?.[champion.id]===champion.ganador_codigo?Number(cfg.puntos_campeon||15):0;
+   const championSide=champion?(champion.ganador_codigo===champion.equipo_local_codigo?'1':champion.ganador_codigo===champion.equipo_visitante_codigo?'2':''):'';
+   const winnerBonus=champion&&championSide&&p.predicciones_eliminatorias?.[champion.id]===championSide?Number(cfg.puntos_campeon||15):0;
    await b.asServiceRole.entities.EurocopaParticipante.update(p.id,{puntos_grupos:pg,puntos_eliminatorias:pe,puntos_campeon:winnerBonus,puntos_total:pg+pe+winnerBonus});
    updated++;
   }
