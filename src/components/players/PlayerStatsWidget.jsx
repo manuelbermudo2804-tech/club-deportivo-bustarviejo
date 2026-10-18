@@ -41,7 +41,7 @@ const getNextBirthday = (fechaNac) => {
   return diff;
 };
 
-export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacimiento, createdDate, compact = false }) {
+export default function PlayerStatsWidget({ playerId, playerName, playerCategory, fechaNacimiento, createdDate, compact = false }) {
   const currentSeason = getCurrentSeason();
   const normalizedSeason = currentSeason.replace(/-/g, "/").trim();
 
@@ -71,6 +71,26 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
     refetchOnWindowFocus: false,
     enabled: !!playerCategory,
   });
+
+  // Goles oficiales importados desde el centro de competición (temporada actual).
+  const { data: scorerRecords = [] } = useQuery({
+    queryKey: ["playerScorerRecords", normalizedSeason],
+    queryFn: () => base44.entities.Goleador.filter({ temporada: normalizedSeason }),
+    staleTime: 300_000,
+    refetchOnWindowFocus: true,
+    enabled: !!playerName,
+  });
+
+  const normalizeName = (value) => String(value || "")
+    .normalize("NFD").replace(/[\\u0300-\\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9 ]/g, " ")
+    .split(/\\s+/).filter(Boolean).sort().join(" ");
+  const normalizedPlayerName = normalizeName(playerName);
+  const clubScorerRecords = scorerRecords.filter(record =>
+    String(record.equipo || "").toUpperCase().includes("BUSTARVIEJO") &&
+    normalizeName(record.jugador_nombre) === normalizedPlayerName
+  );
+  const playerGoals = clubScorerRecords.reduce((sum, record) => sum + (Number(record.goles) || 0), 0);
 
   // Pagos
   const { data: payments = [] } = useQuery({
@@ -153,6 +173,7 @@ export default function PlayerStatsWidget({ playerId, playerCategory, fechaNacim
   const cumplePronto = diasParaCumple !== null && diasParaCumple <= 30;
 
   const stats = [
+    { icon: "⚽", label: "Goles", value: String(playerGoals), color: "text-orange-800 bg-orange-50 border-orange-200", show: true },
     { icon: "🏟️", label: "Convocatorias", value: `${convocatoriasConfirmadas}/${totalConvocatorias}`, color: "text-blue-700 bg-blue-50 border-blue-200", show: totalConvocatorias > 0 },
     { icon: "⭐", label: "Evaluación", value: avgEvalFinal ? `${avgEvalFinal}/5` : "—", color: "text-yellow-700 bg-yellow-50 border-yellow-200", show: true },
     { icon: "📋", label: "Entrenamientos", value: `${totalTrainings}/${totalTrainingsSessions}`, color: "text-purple-700 bg-purple-50 border-purple-200", show: totalTrainingsSessions > 0 },
