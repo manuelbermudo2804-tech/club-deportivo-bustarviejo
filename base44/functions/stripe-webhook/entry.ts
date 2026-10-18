@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
         // Fallback log: si el tipo no es uno de los conocidos, registramos igualmente
         try {
           const tipo = metadata?.tipo;
-          if (!['pago_cuota','pago_cuota_batch','loteria','cuota_socio'].includes(tipo)) {
+          if (!['pago_cuota','pago_cuota_batch','loteria','cuota_socio','porra_eurocopa'].includes(tipo)) {
             await base44.asServiceRole.entities.StripePaymentLog.create({
               section: 'extra',
               amount: Number(session.amount_total || 0) / 100,
