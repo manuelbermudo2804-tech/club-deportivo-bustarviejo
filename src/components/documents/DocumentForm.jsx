@@ -42,7 +42,8 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
     firmas: [],
     frecuencia_recordatorios_dias: 3,
     dias_antes_alerta_admin: 3,
-    porcentaje_alerta_admin: 50
+    porcentaje_alerta_admin: 50,
+    destinatario_por_jugador: {}
   });
 
   const [uploading, setUploading] = useState(false);
@@ -121,14 +122,20 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
       } else {
         firmasIniciales = players
           .filter(p => formData.jugadores_destino.includes(p.id))
-          .map(p => ({
-            jugador_id: p.id,
-            jugador_nombre: p.nombre,
-            email_padre: p.email_padre,
-            firmado: false,
-            fecha_firma: null,
-            comentario: ""
-          }));
+          .map(p => {
+            const eleccion = formData.destinatario_por_jugador?.[p.id] || "padre";
+            const emailSeleccionado = eleccion === "tutor2" ? p.email_tutor_2 : p.email_padre;
+            return {
+              jugador_id: p.id,
+              jugador_nombre: p.nombre,
+              email_padre: emailSeleccionado || p.email_padre || p.email_tutor_2 || "",
+              progenitor_seleccionado: eleccion,
+              firmado: false,
+              fecha_firma: null,
+              comentario: ""
+            };
+          })
+          .filter(f => Boolean(f.email_padre));
       }
       
       formData.firmas = firmasIniciales;
@@ -269,8 +276,36 @@ export default function DocumentForm({ document, players, onSubmit, onCancel, is
                             <span className="text-sm font-medium">{player.nombre}</span>
                             <span className="text-xs text-slate-500">{player.deporte}</span>
                           </div>
-                          <div className="text-xs text-slate-500 mt-1">
-                            👤 {player.email_padre}
+                          <div className="mt-2 space-y-2 rounded-md bg-slate-50 p-2">
+                            <p className="text-xs font-semibold text-slate-600">¿A qué progenitor se envía la autorización?</p>
+                            <label className={`flex items-start gap-2 text-xs ${!player.email_padre ? "opacity-50" : "cursor-pointer"}`}>
+                              <input
+                                type="radio"
+                                name={`progenitor-${player.id}`}
+                                disabled={!player.email_padre}
+                                checked={(formData.destinatario_por_jugador?.[player.id] || "padre") === "padre"}
+                                onChange={() => setFormData({
+                                  ...formData,
+                                  destinatario_por_jugador: { ...(formData.destinatario_por_jugador || {}), [player.id]: "padre" }
+                                })}
+                                className="mt-0.5"
+                              />
+                              <span><strong>Progenitor 1:</strong> {player.email_padre || "Sin email registrado"}</span>
+                            </label>
+                            <label className={`flex items-start gap-2 text-xs ${!player.email_tutor_2 ? "opacity-50" : "cursor-pointer"}`}>
+                              <input
+                                type="radio"
+                                name={`progenitor-${player.id}`}
+                                disabled={!player.email_tutor_2}
+                                checked={(formData.destinatario_por_jugador?.[player.id] || "padre") === "tutor2"}
+                                onChange={() => setFormData({
+                                  ...formData,
+                                  destinatario_por_jugador: { ...(formData.destinatario_por_jugador || {}), [player.id]: "tutor2" }
+                                })}
+                                className="mt-0.5"
+                              />
+                              <span><strong>Progenitor 2:</strong> {player.email_tutor_2 || "Sin email registrado"}</span>
+                            </label>
                           </div>
                         </div>
                       </label>
