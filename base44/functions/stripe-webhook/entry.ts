@@ -690,6 +690,34 @@ Deno.serve(async (req) => {
           }
         }
 
+        // ============ PORRA EUROCOPA 2028 (entidades y enlaces independientes) ============
+        if (metadata.tipo === 'porra_eurocopa' && metadata.participante_id) {
+          try {
+            const amountPaid = Number(session.amount_total || 0) / 100;
+            const payerEmail = session.customer_details?.email || session.customer_email || metadata.user_email;
+            await base44.asServiceRole.entities.StripePaymentLog.create({
+              section: 'porra_eurocopa', amount: amountPaid, currency: session.currency || 'eur',
+              status: 'succeeded', session_id: session.id, payment_intent_id: session.payment_intent || null,
+              email: payerEmail, related_entity: 'EurocopaParticipante', related_id: metadata.participante_id,
+              metadata, created_at: new Date().toISOString()
+            });
+            await base44.asServiceRole.entities.EurocopaParticipante.update(metadata.participante_id, {
+              estado_pago: 'pagado', cantidad_pagada: amountPaid, fecha_pago: new Date().toISOString(),
+              stripe_payment_intent: session.payment_intent || null
+            });
+            const baseUrl = 'https://app.cdbustarviejo.com';
+            const enlace = `${baseUrl}/Eurocopa2028MiPorra?token=${metadata.token_acceso}`;
+            const nombre = String(metadata.nombre || '').replace(/[<>]/g, '');
+            const alias = String(metadata.alias_equipo || 'Tu equipo').replace(/[<>]/g, '');
+            const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+            if (RESEND_API_KEY) {
+              const html = `<!doctype html><html><body style="font-family:Arial,sans-serif;background:#f1f5f9;padding:24px;color:#1e293b"><div style="max-width:560px;margin:auto;background:white;border-radius:16px;overflow:hidden"><div style="background:#172554;color:white;padding:28px;text-align:center"><div style="font-size:44px">🏆</div><h1>¡Inscripción confirmada!</h1><p>Porra Eurocopa 2028 · CD Bustarviejo</p></div><div style="padding:28px"><p>Hola <strong>${nombre}</strong>,</p><p>Hemos recibido tu pago de <strong>${amountPaid.toFixed(2)} €</strong>. Tu equipo es <strong>${alias}</strong>.</p><p>Guarda este enlace mágico personal para completar y editar tus pronósticos:</p><p style="text-align:center;margin:28px 0"><a href="${enlace}" style="background:#ea580c;color:white;padding:14px 22px;border-radius:10px;text-decoration:none;font-weight:bold">ABRIR MI PORRA</a></p><p style="font-size:12px;color:#64748b;word-break:break-all">${enlace}</p><p>No compartas este enlace: permite acceder a tu porra.</p></div></div></body></html>`;
+              await fetch('https://api.resend.com/emails', {method:'POST',headers:{Authorization:`Bearer ${RESEND_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify({from:'CD Bustarviejo <noreply@cdbustarviejo.com>',to:[payerEmail],subject:'🏆 Inscripción confirmada — Porra Eurocopa 2028',html})});
+            }
+            console.log('[stripe-webhook] Eurocopa 2028 participante pagado', metadata.participante_id);
+          } catch (e) { console.error('[stripe-webhook] Error procesando porra Eurocopa:', e?.message || e); }
+        }
+
         // ============ PORRA MUNDIAL 2026 ============
         if (metadata.tipo === 'porra' && metadata.participante_id) {
           try {
