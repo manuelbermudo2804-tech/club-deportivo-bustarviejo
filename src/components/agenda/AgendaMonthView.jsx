@@ -30,6 +30,9 @@ export default function AgendaMonthView({ items, referenceDate, onSelectDay }) {
           const delDia = items.filter((i) => i.date === iso);
           const hoy = isSameDay(day, new Date());
           const kinds = ORDEN_KIND.filter((k) => delDia.some((i) => i.kind === k));
+          const entrenosCancelados = delDia.filter((i) => i.kind === "entrenamiento" && i.cancelado);
+          const hayEntrenoActivo = delDia.some((i) => i.kind === "entrenamiento" && !i.cancelado);
+          const diaSinEntrenoCompleto = entrenosCancelados.length > 0 && !hayEntrenoActivo;
 
           return (
             <div
@@ -44,20 +47,30 @@ export default function AgendaMonthView({ items, referenceDate, onSelectDay }) {
                 }
               }}
               aria-label={delDia.length > 0 ? `${format(day, "d MMMM", { locale: es })}: ${delDia.length} actividades` : undefined}
-              className={`min-h-[70px] rounded-xl border p-1.5 transition-all sm:min-h-[90px] sm:p-2 ${
-                hoy ? "bg-orange-50 border-orange-300 ring-1 ring-orange-100" : "bg-white border-slate-200"
+              className={`relative min-h-[70px] rounded-xl border p-1.5 transition-all sm:min-h-[90px] sm:p-2 ${
+                diaSinEntrenoCompleto
+                  ? "bg-rose-50 border-rose-300 ring-1 ring-rose-100"
+                  : hoy ? "bg-orange-50 border-orange-300 ring-1 ring-orange-100" : "bg-white border-slate-200"
               } ${delDia.length > 0 ? "cursor-pointer hover:border-orange-300 hover:bg-orange-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400" : ""}`}
             >
-              <p className={`text-sm font-bold mb-1 ${hoy ? "text-orange-600" : "text-slate-800"}`}>
-                {format(day, "d")}
-              </p>
+              <div className="mb-1 flex items-center justify-between gap-1">
+                <p className={`text-sm font-bold ${diaSinEntrenoCompleto ? "text-rose-700" : hoy ? "text-orange-600" : "text-slate-800"}`}>
+                  {format(day, "d")}
+                </p>
+                {diaSinEntrenoCompleto && <span title="Día sin entrenamiento" aria-label="Día sin entrenamiento" className="text-[10px] font-black leading-none text-rose-600">✕</span>}
+              </div>
+              {diaSinEntrenoCompleto && (
+                <p className="mb-1 rounded-md border border-rose-200 bg-rose-100 px-1 py-0.5 text-[8px] font-extrabold uppercase leading-tight tracking-wide text-rose-700 sm:text-[9px]">
+                  Sin entreno
+                </p>
+              )}
               <div className="flex flex-wrap gap-1 mb-1">
                 {kinds.map((k) => (
                   <span key={k} className={`w-2 h-2 rounded-full ${KIND_STYLES[k].dot}`} />
                 ))}
               </div>
               {delDia.slice(0, 2).map((item) => (
-                <p key={item.id} className="text-[10px] leading-tight text-slate-600 truncate">
+                <p key={item.id} className={`text-[10px] leading-tight truncate ${item.kind === "entrenamiento" && item.cancelado ? "text-rose-700 line-through decoration-rose-500 decoration-2" : "text-slate-600"}`} title={item.cancelado ? `${item.titulo} · Cancelado${item.motivoCancelacion ? `: ${item.motivoCancelacion}` : ""}` : item.titulo}>
                   {item.hora ? `${item.hora} ` : ""}
                   {item.titulo}
                 </p>
