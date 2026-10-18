@@ -25,7 +25,11 @@ function normalizeName(name) {
 export default function MinorGoalsCard({ playerName, playerCategory, compact = false }) {
   const { data: scorers = [] } = useQuery({
     queryKey: ["minorScorers", playerCategory],
-    queryFn: () => base44.entities.Goleador.filter({ categoria: playerCategory, equipo: "C.D. BUSTARVIEJO" }),
+    queryFn: async () => {
+      const records = await base44.entities.Goleador.filter({ categoria: playerCategory });
+      // El equipo puede figurar como "C.D. BUSTARVIEJO A", "B" u otra variante oficial.
+      return records.filter(s => (s.equipo || "").toUpperCase().includes("BUSTARVIEJO"));
+    },
     enabled: !!playerCategory,
     staleTime: 300000,
   });
