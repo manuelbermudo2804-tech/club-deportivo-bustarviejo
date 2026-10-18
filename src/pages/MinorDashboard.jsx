@@ -401,7 +401,11 @@ export default function MinorDashboard() {
   // Scorers for badge count
   const { data: scorers = [] } = useQuery({
     queryKey: ["minorScorersBadge", playerCategory],
-    queryFn: () => base44.entities.Goleador.filter({ categoria: playerCategory, equipo: "C.D. BUSTARVIEJO" }),
+    queryFn: async () => {
+      const records = await base44.entities.Goleador.filter({ categoria: playerCategory });
+      // Aceptar las variantes de equipo del club (por ejemplo, "C.D. BUSTARVIEJO A").
+      return records.filter(s => (s.equipo || "").toUpperCase().includes("BUSTARVIEJO"));
+    },
     enabled: !!playerCategory,
     staleTime: 300000,
   });
