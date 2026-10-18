@@ -222,24 +222,31 @@ export default function PlayerStatsWidget({ playerId, playerName, playerCategory
 
   // Versión expandida para PlayerProfile
   return (
-    <div className="space-y-3">
-      <h3 className="font-bold text-slate-900 text-sm flex items-center gap-2">
-        📊 Estadísticas de la Temporada
-      </h3>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+    <div className="player-season-stats space-y-4">
+      <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
+        <div>
+          <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-orange-600 mb-1">Tu rendimiento</p>
+          <h3 className="font-extrabold text-slate-950 text-base sm:text-lg flex items-center gap-2">📊 Estadísticas de la temporada</h3>
+        </div>
+        <span className="hidden sm:inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-500">C.D. Bustarviejo</span>
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-2.5 sm:gap-3">
         {visibleStats.map((stat, i) => (
-          <div key={i} className={`rounded-xl border p-4 text-center transition-all hover:-translate-y-0.5 hover:shadow-sm ${stat.color}`}>
-            <div className="text-2xl mb-1">{stat.icon}</div>
-            <div className="text-lg font-bold">{stat.value}</div>
-            <div className="text-xs opacity-70">{stat.label}</div>
+          <div key={i} className={`player-stat-tile min-w-0 rounded-2xl border p-3 sm:p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${stat.color}`}>
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <span className="text-xl sm:text-2xl leading-none">{stat.icon}</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-current opacity-30" aria-hidden="true"></span>
+            </div>
+            <div className="text-lg sm:text-xl font-extrabold tracking-tight tabular-nums break-words">{stat.value}</div>
+            <div className="text-[11px] sm:text-xs font-semibold opacity-70 mt-1">{stat.label}</div>
           </div>
         ))}
       </div>
 
       {/* Logros */}
       {(racha >= 5 || totalTrainings >= 20 || Number(avgEvalFinal) >= 4) && (
-        <div className="bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-300 rounded-xl p-3">
-          <p className="text-xs font-bold text-yellow-900 mb-2">🏅 Logros</p>
+        <div className="player-achievements bg-gradient-to-r from-amber-50 via-white to-orange-50 border border-amber-200 rounded-2xl p-4 shadow-sm">
+          <p className="text-sm font-extrabold text-amber-950 mb-3">🏅 Tus logros</p>
           <div className="flex flex-wrap gap-2">
             {racha >= 5 && <Badge className="bg-orange-100 text-orange-800 text-xs">🔥 Racha +5 entrenamientos</Badge>}
             {racha >= 10 && <Badge className="bg-orange-200 text-orange-900 text-xs">💪 Racha +10 entrenamientos</Badge>}
