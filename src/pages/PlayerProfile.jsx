@@ -270,11 +270,11 @@ export default function PlayerProfile() {
   ];
 
   return (
-    <div className="player-profile-wow max-w-5xl mx-auto p-4 md:p-7 space-y-7 text-slate-800">
+    <div className="player-profile-wow max-w-6xl mx-auto px-3 py-4 sm:px-5 md:px-7 md:py-8 space-y-5 md:space-y-7 text-slate-800">
 
 
       {/* Header con acciones */}
-      <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="profile-page-heading flex items-center justify-between gap-4 flex-wrap rounded-2xl border border-slate-200/80 bg-white/90 p-4 sm:p-5 shadow-sm shadow-slate-900/[0.03]">
         <div>
           <p className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-700 mb-2"><span className="h-1.5 w-1.5 rounded-full bg-orange-500"></span> Área personal del jugador</p>
           <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-950">Mi espacio<span className="text-orange-600">.</span></h1>
@@ -406,7 +406,7 @@ export default function PlayerProfile() {
 
       {/* Estadísticas del Jugador */}
       {player && (
-        <Card className="border border-slate-200/80 shadow-md rounded-2xl overflow-hidden">
+        <Card className="profile-stats-card border border-slate-200/80 shadow-sm shadow-slate-900/[0.04] rounded-2xl overflow-hidden">
           <CardContent className="p-5 md:p-6">
             <PlayerStatsWidget
               playerId={player.id}
