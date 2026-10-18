@@ -249,7 +249,66 @@ export default function PorraAdminTesting({ participantes = [], partidos = [], e
     } finally { clearBusy(); }
   };
 
-  // 8) Desbloquear todas las porras (para seguir testeando)
+  // 8) Borrado total explícito: elimina TODOS los participantes, incluidos los reales.
+  const borrarTodosParticipantes = async () => {
+    const frase = window.prompt(
+      'PELIGRO: se eliminarán TODOS los participantes de la Porra Mundial, incluidos los reales y pagados. No se puede deshacer.\\n\\nEscribe BORRAR TODAS LAS PORRAS para continuar.'
+    );
+    if (frase !== 'BORRAR TODAS LAS PORRAS') {
+      if (frase !== null) toast.info('Operación cancelada: la frase no coincide');
+      return;
+    }
+    setBusyOp('borrar_todos');
+    try {
+      const todos = await base44.entities.PorraParticipante.list('-created_date', 1000);
+      for (const p of (todos || [])) {
+        await base44.entities.PorraParticipante.delete(p.id);
+      }
+      toast.success('Se han eliminado ' + (todos || []).length + ' participantes');
+      onUpdate?.();
+    } catch (e) {
+      console.error(e);
+      toast.error('Error en el borrado total: ' + (e.message || 'error desconocido'));
+    } finally { clearBusy(); }
+  };
+
+  // 9) Reset completo de la competición: participantes + resultados + regeneración de partidos.
+  const resetCompletoPorra = async () => {
+    const frase = window.prompt(
+      'PELIGRO: RESET COMPLETO. Se eliminarán TODOS los participantes (reales y de prueba), se limpiarán los resultados y se regenerarán los partidos. No se puede deshacer.\\n\\nEscribe REINICIAR PORRA MUNDIAL para continuar.'
+    );
+    if (frase !== 'REINICIAR PORRA MUNDIAL') {
+      if (frase !== null) toast.info('Operación cancelada: la frase no coincide');
+      return;
+    }
+    setBusyOp('reset_completo');
+    try {
+      const todos = await base44.entities.PorraParticipante.list('-created_date', 1000);
+      for (const p of (todos || [])) {
+        await base44.entities.PorraParticipante.delete(p.id);
+      }
+      const conResultado = (partidos || []).filter(p => p.resultado_real || p.finalizado);
+      for (const p of conResultado) {
+        await base44.entities.PorraPartido.update(p.id, {
+          resultado_real: '',
+          goles_local: null,
+          goles_visitante: null,
+          finalizado: false,
+          ganador_codigo: '',
+        });
+      }
+      await base44.functions.invoke('porraGenerarPartidos', {});
+      await base44.functions.invoke('porraGenerarEliminatorias', {});
+      toast.success('Reset completo terminado: participantes eliminados y partidos regenerados');
+      onUpdate?.();
+    } catch (e) {
+      console.error(e);
+      toast.error('El reset no se ha completado: ' + (e.message || 'error desconocido') + '. Revisa el estado antes de repetirlo.');
+      onUpdate?.();
+    } finally { clearBusy(); }
+  };
+
+  // 10) Desbloquear todas las porras (para seguir testeando)
   const desbloquearTodas = async () => {
     const bloqueadas = participantes.filter(p => p.bloqueada);
     if (bloqueadas.length === 0) return toast.info('Ninguna porra está bloqueada');
@@ -401,7 +460,34 @@ export default function PorraAdminTesting({ participantes = [], partidos = [], e
         </CardContent>
       </Card>
 
-      {/* SECCIÓN 4: Acceso rápido a porras test */}
+      {/* SECCIÓN 4: Operaciones irreversibles */}
+      <Card className="border-2 border-red-300 bg-red-50">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base text-red-900">
+            <AlertTriangle className="w-5 h-5" /> Zona peligrosa · Borrado y reinicio
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-red-900">
+            Estas acciones afectan también a participantes reales y pagados. No realizan reembolsos ni borran movimientos de Stripe. Antes de continuar, exporta los participantes a CSV desde la pestaña Participantes si necesitas conservar un registro.
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button onClick={borrarTodosParticipantes} disabled={busy === 'borrar_todos' || busy === 'reset_completo'} variant="destructive" className="flex-1">
+              <Trash2 className="w-4 h-4 mr-2" />
+              {busy === 'borrar_todos' ? 'Borrando participantes…' : 'BORRAR TODOS LOS PARTICIPANTES'}
+            </Button>
+            <Button onClick={resetCompletoPorra} disabled={busy === 'reset_completo' || busy === 'borrar_todos'} variant="destructive" className="flex-1 bg-red-900 hover:bg-red-800">
+              <AlertTriangle className="w-4 h-4 mr-2" />
+              {busy === 'reset_completo' ? 'Reiniciando porra…' : 'RESET TOTAL DE LA PORRA'}
+            </Button>
+          </div>
+          <p className="text-xs text-red-800">
+            Borrar participantes conserva equipos y partidos. El reset total además limpia resultados y regenera los partidos. Ambos exigen escribir una frase de confirmación.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* SECCIÓN 5: Acceso rápido a porras test */}
       {participantesTest.length > 0 && (
         <Card>
           <CardHeader>
@@ -433,7 +519,7 @@ export default function PorraAdminTesting({ participantes = [], partidos = [], e
         </Card>
       )}
 
-      {/* SECCIÓN 5: Flujo recomendado */}
+      {/* SECCIÓN 6: Flujo recomendado */}
       <Card className="border-2 border-amber-300 bg-amber-50">
         <CardContent className="p-5 text-sm">
           <h3 className="font-black text-amber-900 mb-2 flex items-center gap-1">
