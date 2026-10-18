@@ -1,0 +1,41 @@
+{
+  "type": "object",
+  "properties": {
+    "codigo": {
+      "type": "string"
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "bandera_emoji": {
+      "type": "string"
+    },
+    "bandera_url": {
+      "type": "string"
+    },
+    "grupo": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F"
+      ]
+    },
+    "confederacion": {
+      "type": "string",
+      "default": "UEFA"
+    },
+    "orden_grupo": {
+      "type": "number"
+    }
+  },
+  "required": [
+    "codigo",
+    "nombre",
+    "grupo"
+  ],
+  "name": "EurocopaEquipo"
+}

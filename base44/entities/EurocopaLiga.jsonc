@@ -1,0 +1,39 @@
+{
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string"
+    },
+    "codigo": {
+      "type": "string"
+    },
+    "descripcion": {
+      "type": "string"
+    },
+    "creador_email": {
+      "type": "string"
+    },
+    "creador_nombre": {
+      "type": "string"
+    },
+    "participantes_emails": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "max_participantes": {
+      "type": "number"
+    },
+    "publica": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "nombre",
+    "codigo",
+    "creador_email"
+  ],
+  "name": "EurocopaLiga"
+}

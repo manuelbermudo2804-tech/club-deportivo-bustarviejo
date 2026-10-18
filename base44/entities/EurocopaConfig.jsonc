@@ -1,0 +1,108 @@
+{
+  "type": "object",
+  "properties": {
+    "nombre_torneo": {
+      "type": "string",
+      "default": "Porra Eurocopa 2028 \u2014 CD Bustarviejo"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": false
+    },
+    "modo_preview": {
+      "type": "boolean",
+      "default": false
+    },
+    "codigo_preview": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "preparacion",
+        "inscripciones_abiertas",
+        "cerrada",
+        "en_curso",
+        "finalizada"
+      ],
+      "default": "preparacion"
+    },
+    "precio_entrada": {
+      "type": "number",
+      "default": 10
+    },
+    "comision_club_porcentaje": {
+      "type": "number",
+      "default": 10
+    },
+    "fecha_limite_predicciones": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "fecha_inicio_torneo": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "fecha_fin_torneo": {
+      "type": "string",
+      "format": "date"
+    },
+    "permitir_multiples_porras": {
+      "type": "boolean",
+      "default": true
+    },
+    "mostrar_ranking_publico": {
+      "type": "boolean",
+      "default": true
+    },
+    "permitir_mini_ligas": {
+      "type": "boolean",
+      "default": true
+    },
+    "reparto_premios": {
+      "type": "object",
+      "properties": {
+        "primero_porcentaje": {
+          "type": "number",
+          "default": 60
+        },
+        "segundo_porcentaje": {
+          "type": "number",
+          "default": 25
+        },
+        "tercero_porcentaje": {
+          "type": "number",
+          "default": 15
+        }
+      }
+    },
+    "puntos_resultado_grupo": {
+      "type": "number",
+      "default": 1
+    },
+    "puntos_octavos": {
+      "type": "number",
+      "default": 3
+    },
+    "puntos_cuartos": {
+      "type": "number",
+      "default": 5
+    },
+    "puntos_semis": {
+      "type": "number",
+      "default": 7
+    },
+    "puntos_final": {
+      "type": "number",
+      "default": 10
+    },
+    "puntos_campeon": {
+      "type": "number",
+      "default": 15
+    }
+  },
+  "required": [
+    "nombre_torneo"
+  ],
+  "name": "EurocopaConfig"
+}

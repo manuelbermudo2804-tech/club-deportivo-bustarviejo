@@ -1,0 +1,82 @@
+{
+  "type": "object",
+  "properties": {
+    "fase": {
+      "type": "string",
+      "enum": [
+        "grupos",
+        "octavos",
+        "cuartos",
+        "semis",
+        "tercer_puesto",
+        "final"
+      ]
+    },
+    "grupo": {
+      "type": "string",
+      "enum": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F"
+      ]
+    },
+    "numero_partido": {
+      "type": "number"
+    },
+    "equipo_local_codigo": {
+      "type": "string"
+    },
+    "equipo_visitante_codigo": {
+      "type": "string"
+    },
+    "equipo_local_placeholder": {
+      "type": "string"
+    },
+    "equipo_visitante_placeholder": {
+      "type": "string"
+    },
+    "fecha_partido": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "estadio": {
+      "type": "string"
+    },
+    "ciudad": {
+      "type": "string"
+    },
+    "resultado_real": {
+      "type": "string",
+      "enum": [
+        "1",
+        "X",
+        "2",
+        ""
+      ]
+    },
+    "goles_local": {
+      "type": "number"
+    },
+    "goles_visitante": {
+      "type": "number"
+    },
+    "ganador_codigo": {
+      "type": "string"
+    },
+    "partido_siguiente_id": {
+      "type": "string"
+    },
+    "finalizado": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "fase",
+    "numero_partido"
+  ],
+  "name": "EurocopaPartido"
+}

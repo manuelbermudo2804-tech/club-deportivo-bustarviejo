@@ -1,0 +1,116 @@
+{
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "alias_equipo": {
+      "type": "string"
+    },
+    "telefono": {
+      "type": "string"
+    },
+    "token_acceso": {
+      "type": "string"
+    },
+    "estado_pago": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "pagado",
+        "reembolsado",
+        "fallido"
+      ],
+      "default": "pendiente"
+    },
+    "stripe_session_id": {
+      "type": "string"
+    },
+    "stripe_payment_intent": {
+      "type": "string"
+    },
+    "cantidad_pagada": {
+      "type": "number"
+    },
+    "fecha_pago": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "predicciones_grupos": {
+      "type": "object"
+    },
+    "clasificacion_grupos": {
+      "type": "object"
+    },
+    "predicciones_eliminatorias": {
+      "type": "object"
+    },
+    "prediccion_tercer_puesto": {
+      "type": "object"
+    },
+    "puntos_grupos": {
+      "type": "number",
+      "default": 0
+    },
+    "puntos_eliminatorias": {
+      "type": "number",
+      "default": 0
+    },
+    "puntos_campeon": {
+      "type": "number",
+      "default": 0
+    },
+    "puntos_total": {
+      "type": "number",
+      "default": 0
+    },
+    "posicion_ranking": {
+      "type": "number"
+    },
+    "completado_grupos": {
+      "type": "boolean",
+      "default": false
+    },
+    "completado_bracket": {
+      "type": "boolean",
+      "default": false
+    },
+    "porcentaje_completado": {
+      "type": "number",
+      "default": 0
+    },
+    "bloqueada": {
+      "type": "boolean",
+      "default": false
+    },
+    "mini_liga_codigos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ip_creacion": {
+      "type": "string"
+    },
+    "user_agent": {
+      "type": "string"
+    },
+    "origen": {
+      "type": "string",
+      "enum": [
+        "app",
+        "web"
+      ]
+    }
+  },
+  "required": [
+    "nombre",
+    "email",
+    "alias_equipo"
+  ],
+  "name": "EurocopaParticipante"
+}
