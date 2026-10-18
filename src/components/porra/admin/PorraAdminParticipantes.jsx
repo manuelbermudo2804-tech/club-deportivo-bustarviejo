@@ -3,7 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, Copy, Download, ExternalLink, Smartphone, Globe, Users } from "lucide-react";
+import { Search, Copy, Download, ExternalLink, Smartphone, Globe, Users, Trash2 } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
 
 // Devuelve el origen del participante: 'app' | 'web' | 'desconocido'.
@@ -22,7 +23,7 @@ function detectarOrigen(p) {
 }
 
 // Lista administrativa de participantes con búsqueda, exportación y enlaces directos
-export default function PorraAdminParticipantes({ participantes = [] }) {
+export default function PorraAdminParticipantes({ participantes = [], config, onUpdate }) {
   const [busqueda, setBusqueda] = useState('');
   const [filtroEstado, setFiltroEstado] = useState('todos'); // todos | pagado | pendiente | multiples
 
@@ -91,6 +92,30 @@ export default function PorraAdminParticipantes({ participantes = [] }) {
     pagados.forEach(p => { stats[detectarOrigen(p)]++; });
     return stats;
   }, [pagados]);
+
+  const eliminarParticipante = async (p) => {
+    const avisoPago = p.estado_pago === 'pagado'
+      ? '\\n\\nATENCIÓN: figura como PAGADO. Esta acción elimina su ficha y sus predicciones, pero NO realiza ningún reembolso en Stripe.'
+      : '';
+    if (!window.confirm('¿Eliminar definitivamente la porra de "' + (p.alias_equipo || p.nombre) + '" (' + p.email + ')?' + avisoPago + '\\n\\nEsta acción no se puede deshacer.')) return;
+    try {
+      const ligas = await base44.entities.PorraLiga.list();
+      for (const liga of (ligas || [])) {
+        const emails = liga.participantes_emails || [];
+        if (emails.some(email => (email || '').trim().toLowerCase() === (p.email || '').trim().toLowerCase())) {
+          await base44.entities.PorraLiga.update(liga.id, {
+            participantes_emails: emails.filter(email => (email || '').trim().toLowerCase() !== (p.email || '').trim().toLowerCase())
+          });
+        }
+      }
+      await base44.entities.PorraParticipante.delete(p.id);
+      toast.success('Participante "' + (p.alias_equipo || p.nombre) + '" eliminado');
+      onUpdate?.();
+    } catch (e) {
+      console.error('Error eliminando participante:', e);
+      toast.error('No se ha podido eliminar: ' + (e.message || 'error desconocido'));
+    }
+  };
 
   const copiarEnlace = (token) => {
     if (!token) return toast.error('Sin token');
@@ -302,6 +327,16 @@ export default function PorraAdminParticipantes({ participantes = [] }) {
                             <ExternalLink className="w-3.5 h-3.5" />
                           </Button>
                         )}
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="h-7 w-7 text-red-600 hover:bg-red-50 hover:text-red-700"
+                          onClick={() => eliminarParticipante(p)}
+                          title="Eliminar participante"
+                          aria-label={"Eliminar participante " + (p.alias_equipo || p.nombre)}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
                       </div>
                     </td>
                   </tr>
