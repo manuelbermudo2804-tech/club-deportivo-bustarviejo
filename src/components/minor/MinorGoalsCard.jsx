@@ -12,32 +12,38 @@ import { base44 } from "@/api/base44Client";
  */
 function normalizeName(name) {
   if (!name) return "";
-  let n = name.toLowerCase().trim();
-  // Si tiene formato "APELLIDO, NOMBRE" → invertir
-  if (n.includes(",")) {
-    const parts = n.split(",").map(p => p.trim());
-    n = parts.reverse().join(" ");
-  }
-  // Eliminar dobles espacios y acentos para match más flexible
-  return n.replace(/\s+/g, " ").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  // Compara palabras sin depender del orden, acentos, comas o espacios.
+  return name.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/).filter(Boolean).sort().join(" ");
+}
+
+function currentSeason() {
+  const now = new Date();
+  const startYear = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
+  return String(startYear) + "/" + String(startYear + 1);
 }
 
 export default function MinorGoalsCard({ playerName, playerCategory, compact = false }) {
+  const season = currentSeason();
   const { data: scorers = [] } = useQuery({
-    queryKey: ["minorScorers", playerCategory],
+    queryKey: ["minorScorers", season],
     queryFn: async () => {
-      const records = await base44.entities.Goleador.filter({ categoria: playerCategory });
-      // El equipo puede figurar como "C.D. BUSTARVIEJO A", "B" u otra variante oficial.
+      // Buscar en todas las categorías: la categoría del perfil puede diferir de la importada.
+      const records = await base44.entities.Goleador.filter({ temporada: season });
       return records.filter(s => (s.equipo || "").toUpperCase().includes("BUSTARVIEJO"));
     },
-    enabled: !!playerCategory,
+    enabled: !!playerName,
     staleTime: 300000,
   });
 
   const myGoals = useMemo(() => {
     if (!playerName || !scorers.length) return null;
     const norm = normalizeName(playerName);
-    return scorers.find(s => normalizeName(s.jugador_nombre) === norm);
+    const matches = scorers.filter(s => normalizeName(s.jugador_nombre) === norm);
+    if (!matches.length) return null;
+    return { ...matches[0], goles: matches.reduce((total, s) => total + (Number(s.goles) || 0), 0) };
   }, [playerName, scorers]);
 
   if (!myGoals) return null;
