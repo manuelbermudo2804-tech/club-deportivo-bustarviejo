@@ -103,10 +103,15 @@ function getPendingFamilies(document, players) {
   for (const player of relevantPlayers) {
     const firma = document.firmas?.find(f => f.jugador_id === player.id);
     if (!firma?.firmado && !firma?.confirmado_firma_externa) {
-      const email = player.email_padre;
+      // Para documentos individuales, recordar al progenitor elegido al crear la firma.
+      // Los documentos antiguos y los dirigidos por categoría mantienen el comportamiento previo.
+      const email = document.tipo_destinatario === "individual"
+        ? (firma?.email_padre || player.email_padre || player.email_tutor_2)
+        : (player.email_padre || player.email_tutor_2);
+      if (!email) continue;
       if (!familiesMap.has(email)) {
         familiesMap.set(email, {
-          email: email,
+          email,
           players: []
         });
       }
