@@ -399,23 +399,31 @@ export default function MinorDashboard() {
   });
 
   // Scorers for badge count
+  const goalsSeason = React.useMemo(() => {
+    const now = new Date();
+    const startYear = now.getMonth() >= 7 ? now.getFullYear() : now.getFullYear() - 1;
+    return String(startYear) + "/" + String(startYear + 1);
+  }, []);
+
   const { data: scorers = [] } = useQuery({
-    queryKey: ["minorScorersBadge", playerCategory],
+    queryKey: ["minorScorersBadge", goalsSeason],
     queryFn: async () => {
-      const records = await base44.entities.Goleador.filter({ categoria: playerCategory });
-      // Aceptar las variantes de equipo del club (por ejemplo, "C.D. BUSTARVIEJO A").
+      // La categoría importada puede diferir de la categoría asignada al jugador.
+      const records = await base44.entities.Goleador.filter({ temporada: goalsSeason });
       return records.filter(s => (s.equipo || "").toUpperCase().includes("BUSTARVIEJO"));
     },
-    enabled: !!playerCategory,
+    enabled: !!linkedPlayer?.nombre,
     staleTime: 300000,
   });
 
   const myGolesCount = React.useMemo(() => {
     if (!linkedPlayer?.nombre || !scorers.length) return 0;
-    // Compara por conjunto de palabras (vale para "APELLIDO1 APELLIDO2, NOMBRE" y "Nombre Apellido1 Apellido2")
-    const norm = (n) => (n || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/,/g, " ").split(/\s+/).filter(Boolean).sort().join(" ");
-    const found = scorers.find(s => norm(s.jugador_nombre) === norm(linkedPlayer.nombre));
-    return found?.goles || 0;
+    const norm = (n) => (n || "").toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s]/g, " ")
+      .split(/\s+/).filter(Boolean).sort().join(" ");
+    const found = scorers.filter(s => norm(s.jugador_nombre) === norm(linkedPlayer.nombre));
+    return found.reduce((total, s) => total + (Number(s.goles) || 0), 0);
   }, [linkedPlayer?.nombre, scorers]);
 
   const unreadAnnouncements = announcements.filter((a) => {
