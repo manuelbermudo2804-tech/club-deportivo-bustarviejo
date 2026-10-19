@@ -695,16 +695,26 @@ Deno.serve(async (req) => {
           try {
             const amountPaid = Number(session.amount_total || 0) / 100;
             const payerEmail = session.customer_details?.email || session.customer_email || metadata.user_email;
-            await base44.asServiceRole.entities.StripePaymentLog.create({
-              section: 'porra_eurocopa', amount: amountPaid, currency: session.currency || 'eur',
-              status: 'succeeded', session_id: session.id, payment_intent_id: session.payment_intent || null,
-              email: payerEmail, related_entity: 'EurocopaParticipante', related_id: metadata.participante_id,
-              metadata, created_at: new Date().toISOString()
-            });
+            // Confirmar primero el estado del participante: un fallo del registro auxiliar
+            // nunca debe dejar una compra cobrada como pendiente.
             await base44.asServiceRole.entities.EurocopaParticipante.update(metadata.participante_id, {
               estado_pago: 'pagado', cantidad_pagada: amountPaid, fecha_pago: new Date().toISOString(),
               stripe_payment_intent: session.payment_intent || null
             });
+            // Stripe puede reintentar eventos; no duplicar el registro contable de la misma sesión.
+            try {
+              const existingLogs = await base44.asServiceRole.entities.StripePaymentLog.filter({ session_id: session.id });
+              if (!existingLogs.length) {
+                await base44.asServiceRole.entities.StripePaymentLog.create({
+                  section: 'porra_eurocopa', amount: amountPaid, currency: session.currency || 'eur',
+                  status: 'succeeded', session_id: session.id, payment_intent_id: session.payment_intent || null,
+                  email: payerEmail, related_entity: 'EurocopaParticipante', related_id: metadata.participante_id,
+                  metadata, created_at: new Date().toISOString()
+                });
+              }
+            } catch (logErr) {
+              console.error('[stripe-webhook] No se pudo registrar el log de Eurocopa; pago confirmado igualmente:', logErr?.message || logErr);
+            }
             const baseUrl = 'https://app.cdbustarviejo.com';
             const enlace = `${baseUrl}/Eurocopa2028MiPorra?token=${metadata.token_acceso}`;
             const nombre = String(metadata.nombre || '').replace(/[<>]/g, '');
