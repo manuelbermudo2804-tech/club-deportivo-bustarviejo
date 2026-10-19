@@ -78,15 +78,23 @@ export default function NuevoContratoForm({ onCreated }) {
   const lista = (familia ? data?.familias : data?.staff) || [];
   const elegido = lista.find((s) => s.key === destino);
   const [quienes, setQuienes] = useState([]);
+  const [entrenadoraMenor, setEntrenadoraMenor] = useState(false);
+  const [tutorNombre, setTutorNombre] = useState("");
+  const [tutorEmail, setTutorEmail] = useState("");
   const elegir = (key) => {
     setDestino(key);
     const f = lista.find((s) => s.key === key);
     setQuienes(f?.tutores ? f.tutores.filter((t) => t.enApp).map((t) => t.email).slice(0, 1) : []);
+    setEntrenadoraMenor(false);
+    setTutorNombre("");
+    setTutorEmail("");
   };
   const toggleQuien = (email) => setQuienes((q) => q.includes(email) ? q.filter((e) => e !== email) : [...q, email]);
   const requiereTutor = !!(elegido?.menor && elegido?.tutores);
   const seleccionaTutores = (familia || requiereTutor) && elegido;
-  const sinFirmante = seleccionaTutores && quienes.length === 0;
+  const dobleFirmaEntrenadora = !familia && !!elegido && !requiereTutor && entrenadoraMenor;
+  const sinFirmante = (seleccionaTutores && quienes.length === 0) ||
+    (dobleFirmaEntrenadora && (!tutorNombre.trim() || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(tutorEmail.trim())));
 
   const cambiarTipo = (id) => {
     const p = PLANTILLAS.find((x) => x.id === id);
@@ -95,27 +103,71 @@ export default function NuevoContratoForm({ onCreated }) {
   };
 
   const crear = async () => {
+    if (!elegido) return;
     setSaving(true);
-    const firmaPorTutor = familia || requiereTutor;
-    const firmantes = firmaPorTutor ? elegido.tutores.filter((t) => t.enApp && quienes.includes(t.email)) : [elegido];
-    for (const f of firmantes) {
-    const nombreParaDocumento = requiereTutor ? elegido.jugador.nombre : f.nombre;
-    const final = rellenar(texto, nombreParaDocumento, elegido.jugador?.nombre);
-    await base44.entities.ContratoVoluntariado.create({
-      entrenador_email: f.email,
-      entrenador_nombre: firmaPorTutor ? `${elegido.jugador.nombre} (tutor legal · ${f.nombre})` : elegido.nombre,
-      es_menor: !!elegido.menor, tipo, grupo: plantilla.grupo,
-      jugador_id: elegido.jugador?.id, jugador_nombre: elegido.jugador?.nombre,
-      titulo, texto: final, texto_hash: await sha256(final), estado: "pendiente",
-      ...(conSello && hayFirmaClub ? {
-        club_sello_uri: firmaClub.sello_uri, club_firma_uri: firmaClub.firma_uri,
-        club_firmante: [firmaClub.firmante_nombre, firmaClub.firmante_cargo].filter(Boolean).join(" · "),
-      } : {}),
-    });
+    try {
+      const datosBase = {
+        tipo, grupo: plantilla.grupo, titulo, estado: "pendiente",
+        ...(conSello && hayFirmaClub ? {
+          club_sello_uri: firmaClub.sello_uri, club_firma_uri: firmaClub.firma_uri,
+          club_firmante: [firmaClub.firmante_nombre, firmaClub.firmante_cargo].filter(Boolean).join(" · "),
+        } : {}),
+      };
+      const crearFirma = async ({ email, nombre, textoFirmar, esMenor, jugadorId, jugadorNombre, rolFirmante }) => {
+        await base44.entities.ContratoVoluntariado.create({
+          ...datosBase,
+          entrenador_email: email,
+          entrenador_nombre: nombre,
+          es_menor: !!esMenor,
+          jugador_id: jugadorId,
+          jugador_nombre: jugadorNombre,
+          texto: textoFirmar,
+          texto_hash: await sha256(textoFirmar),
+          ...(rolFirmante ? { rol_firmante: rolFirmante } : {}),
+        });
+      };
+
+      if (dobleFirmaEntrenadora) {
+        // Se generan dos solicitudes independientes: una para la entrenadora menor y otra para su tutor legal.
+        const textoEntrenadora = rellenar(texto, elegido.nombre, elegido.nombre);
+        const textoTutor = rellenar(
+          `Como padre, madre o tutor legal de ${elegido.nombre}, declaro que conozco y autorizo este documento.\\n\\n${texto}`,
+          tutorNombre.trim(),
+          elegido.nombre
+        );
+        await crearFirma({
+          email: elegido.email, nombre: `${elegido.nombre} (firma propia)`,
+          textoFirmar: textoEntrenadora, esMenor: true, rolFirmante: "menor",
+        });
+        await crearFirma({
+          email: tutorEmail.trim().toLowerCase(), nombre: `${elegido.nombre} (tutor legal · ${tutorNombre.trim()})`,
+          textoFirmar: textoTutor, esMenor: true, rolFirmante: "tutor_legal",
+        });
+      } else {
+        const firmaPorTutor = familia || requiereTutor;
+        const firmantes = firmaPorTutor ? elegido.tutores.filter((t) => t.enApp && quienes.includes(t.email)) : [elegido];
+        for (const f of firmantes) {
+          const nombreParaDocumento = requiereTutor ? elegido.jugador.nombre : f.nombre;
+          const final = rellenar(texto, nombreParaDocumento, elegido.jugador?.nombre);
+          await crearFirma({
+            email: f.email,
+            nombre: firmaPorTutor ? `${elegido.jugador.nombre} (tutor legal · ${f.nombre})` : elegido.nombre,
+            textoFirmar: final, esMenor: !!elegido.menor,
+            jugadorId: elegido.jugador?.id, jugadorNombre: elegido.jugador?.nombre,
+          });
+        }
+      }
+      toast.success(dobleFirmaEntrenadora
+        ? "Enviadas las dos solicitudes: firma de la entrenadora y firma de su tutor legal."
+        : "Documento enviado. Le aparecerá al abrir la app.");
+      setDestino(""); setTexto(plantilla.texto); setEntrenadoraMenor(false); setTutorNombre(""); setTutorEmail("");
+      onCreated();
+    } catch (error) {
+      console.error("Error al crear documentos para firma", error);
+      toast.error("No se pudieron enviar todos los documentos. Revisa los datos e inténtalo de nuevo.");
+    } finally {
+      setSaving(false);
     }
-    toast.success("Documento enviado. Le aparecerá al abrir la app.");
-    setDestino(""); setTexto(plantilla.texto); setSaving(false);
-    onCreated();
   };
 
   return (
@@ -137,6 +189,21 @@ export default function NuevoContratoForm({ onCreated }) {
           ))}
         </SelectContent>
       </Select>
+      {!familia && elegido && !requiereTutor && (
+        <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 space-y-2">
+          <label className="flex items-start gap-2 text-sm font-medium">
+            <Checkbox checked={entrenadoraMenor} onCheckedChange={(v) => setEntrenadoraMenor(!!v)} />
+            <span>Esta entrenadora es menor de edad y necesita doble firma (la suya y la de su tutor legal).</span>
+          </label>
+          {entrenadoraMenor && (
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Input value={tutorNombre} onChange={(e) => setTutorNombre(e.target.value)} placeholder="Nombre y apellidos del tutor legal" />
+              <Input type="email" value={tutorEmail} onChange={(e) => setTutorEmail(e.target.value)} placeholder="Email del tutor legal" />
+              <p className="text-xs text-slate-600 sm:col-span-2">Se crearán dos solicitudes de firma: una para la entrenadora y otra para su tutor. El tutor no necesita ser entrenador en prácticas.</p>
+            </div>
+          )}
+        </div>
+      )}
       {seleccionaTutores && (
         <div className="border rounded-lg p-3 space-y-2 bg-slate-50">
           <p className="text-sm font-semibold">{requiereTutor && !familia ? "¿Qué tutor legal firma por el menor?" : "¿Quién tiene que firmar?"}</p>
