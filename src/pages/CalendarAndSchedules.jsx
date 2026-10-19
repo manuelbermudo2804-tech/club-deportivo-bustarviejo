@@ -294,8 +294,25 @@ export default function CalendarAndSchedules() {
     const normCat = (s) => (s || '').trim().toLowerCase().replace(/\(mixto\)/g, '').replace(/\s+/g, ' ').trim();
     const callupDates = new Set(callupItems.map(c => `${normCat(c.category)}|${c.date}`));
     const norm = (s) => (s || '').trim().toLowerCase();
+    // El partido del Aficionado del 22/10/2026 tiene un registro antiguo duplicado
+    // a las 20:00. El horario confirmado es 21:15: ocultar el registro obsoleto
+    // también en esta vista de calendario, sin modificar la convocatoria ni la BD.
+    const hasConfirmedAficionadoMatch = (proximosPartidos || []).some(m =>
+      m.fecha_iso === '2026-10-22' &&
+      normCat(m.categoria) === normCat('Fútbol Aficionado') &&
+      norm(m.local).includes('a.d. futbol base 3 cantos') &&
+      norm(m.visitante).includes('c.d. bustarviejo') &&
+      m.hora === '21:15'
+    );
     const matchItems = (proximosPartidos || [])
       .filter(m => m.fecha_iso && inSeason(m.fecha_iso))
+      .filter(m => !(hasConfirmedAficionadoMatch &&
+        m.fecha_iso === '2026-10-22' &&
+        normCat(m.categoria) === normCat('Fútbol Aficionado') &&
+        norm(m.local).includes('a.d. futbol base 3 cantos') &&
+        norm(m.visitante).includes('c.d. bustarviejo') &&
+        m.hora === '20:00'
+      ))
       .filter(m => {
         // Skip if there's already a callup for this category+date
         return !callupDates.has(`${normCat(m.categoria)}|${m.fecha_iso}`);
