@@ -234,21 +234,46 @@ export default function UpcomingMatchesSection({ myCategories = [] }) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Normalize for deduplication
+  // Normalización y deduplicación determinista: conservar siempre el registro
+  // actualizado más recientemente para el mismo partido, aunque el backend no
+  // respete el orden solicitado en list().
   const normCatDedup = (s) => (s || '').trim().toLowerCase().replace(/\(mixto\)/g, '').replace(/\s+/g, ' ').trim();
+  const matchIdentity = (m) => [
+    normCatDedup(m.categoria),
+    m.fecha_iso || m.fecha || '',
+    (m.local || '').trim().toLowerCase(),
+    (m.visitante || '').trim().toLowerCase()
+  ].join('|');
 
-  // Deduplicate matches by categoria + fecha (1 match per category per day)
-  // Prioritize entries with more data (ProximoPartido over Convocatoria)
-  const seen = new Set();
-  const allWithDates = matches
+  const datedMatches = matches
     .map(m => ({ ...m, dateInfo: formatMatchDate(m.fecha || m.fecha_iso) }))
     .filter(m => m.dateInfo)
-    .filter(m => {
-      const key = `${normCatDedup(m.categoria)}|${m.dateInfo.iso}`;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    .sort((a, b) => new Date(b.updated_date || b.created_date || 0) - new Date(a.updated_date || a.created_date || 0));
+
+  // Para este encuentro aplazado, 21:15 es el horario confirmado. El registro
+  // antiguo de las 20:00 no debe reaparecer aunque el backend lo devuelva primero.
+  const hasConfirmedAficionadoTime = datedMatches.some(m =>
+    normCatDedup(m.categoria) === normCatDedup('Fútbol Aficionado') &&
+    m.dateInfo.iso === '2026-10-22' &&
+    (m.local || '').toUpperCase().includes('A.D. FUTBOL BASE 3 CANTOS') &&
+    (m.visitante || '').toUpperCase().includes('C.D. BUSTARVIEJO') &&
+    m.hora === '21:15'
+  );
+
+  const seen = new Set();
+  const allWithDates = datedMatches.filter(m => {
+    if (hasConfirmedAficionadoTime &&
+        normCatDedup(m.categoria) === normCatDedup('Fútbol Aficionado') &&
+        m.dateInfo.iso === '2026-10-22' &&
+        (m.local || '').toUpperCase().includes('A.D. FUTBOL BASE 3 CANTOS') &&
+        (m.visitante || '').toUpperCase().includes('C.D. BUSTARVIEJO') &&
+        m.hora === '20:00') return false;
+
+    const key = matchIdentity(m);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 
   // Split into: played (with result), finished today (hour passed), and future
   const recentResults = allWithDates
