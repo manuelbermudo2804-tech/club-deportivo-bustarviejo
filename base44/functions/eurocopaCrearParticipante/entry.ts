@@ -14,7 +14,7 @@ Deno.serve(async(req)=>{
   const cfg=(await b.asServiceRole.entities.EurocopaConfig.list())[0];
   const modoPreview=!!(cfg?.modo_preview&&cfg?.codigo_preview&&preview_codigo&&preview_codigo===cfg.codigo_preview);
   const modoTest=!!(modoPreview&&cfg?.modo_test);
-  if((!cfg?.activa||cfg.estado!=='inscripciones_abiertas')&&!modoPreview)return Response.json({error:'Las inscripciones de Eurocopa 2028 no están abiertas.'},{status:403});
+  if((!cfg?.activa||cfg.estado!=='inscripciones_abiertas')&&!modoTest)return Response.json({error:'Las inscripciones oficiales no están abiertas. Para probar, activa el modo test y usa el enlace privado.'},{status:403});
   const [teams,matches]=await Promise.all([b.asServiceRole.entities.EurocopaEquipo.list('grupo',100),b.asServiceRole.entities.EurocopaPartido.list('numero_partido',200)]);
   const activeTeams=teams.filter(t=>['A','B','C','D','E','F'].includes(t.grupo));
   const codes=activeTeams.map(t=>String(t.codigo||'').trim());
