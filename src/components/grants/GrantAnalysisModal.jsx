@@ -85,6 +85,16 @@ export default function GrantAnalysisModal({ alert, open, onOpenChange, onAnalyz
 
         {analisis && !loading && (
           <div className="space-y-5 pt-1">
+            {analisis.decision && <div className={`rounded-xl border p-3 ${analisis.decision === "PRESENTAR" ? "border-emerald-200 bg-emerald-50" : analisis.decision === "NO_PRESENTAR" ? "border-slate-200 bg-slate-100" : "border-amber-200 bg-amber-50"}`}>
+              <p className="text-xs font-bold uppercase tracking-wide text-slate-500">Recomendación para el club</p>
+              <p className="mt-1 text-lg font-bold text-slate-900">{analisis.decision === "PRESENTAR" ? "PRESENTAR" : analisis.decision === "NO_PRESENTAR" ? "NO PRESENTAR" : "REVISAR ANTES DE DECIDIR"}</p>
+              {analisis.elegibilidad && <p className="mt-1 text-sm text-slate-700">Elegibilidad: {analisis.elegibilidad.replace("_", " ")}</p>}
+              {analisis.siguiente_accion && <p className="mt-2 text-sm text-slate-700"><strong>Siguiente paso:</strong> {analisis.siguiente_accion}</p>}
+              {analisis.motivos?.length > 0 && <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-700">{analisis.motivos.map((m, i) => <li key={i}>{m}</li>)}</ul>}
+              {analisis.dudas_criticas?.length > 0 && <div className="mt-3 rounded-lg bg-white/70 p-2 text-sm text-amber-900"><strong>Antes de decidir, falta:</strong><ul className="mt-1 list-disc pl-5">{analisis.dudas_criticas.map((d, i) => <li key={i}>{d}</li>)}</ul></div>}
+              {analisis.evidencias?.length > 0 && <div className="mt-3 space-y-1 text-xs text-slate-600"><strong>Evidencias:</strong>{analisis.evidencias.map((ev, i) => <p key={i}>{ev.documento}{ev.apartado ? " · " + ev.apartado : ""}{ev.url ? <> · <a className="underline text-blue-700" href={ev.url} target="_blank" rel="noreferrer">abrir fuente</a></> : ""}</p>)}</div>}
+              {analisis.decision === "PRESENTAR" && <p className="mt-2 text-xs font-medium text-emerald-800">Recomendación automática: confirma la revisión de la junta antes de presentar oficialmente.</p>}
+            </div>}
             {fiab && (
               <Badge className={`text-xs ${fiab.color}`}>
                 {analisis.fiabilidad === "baja" && <AlertTriangle className="w-3 h-3 mr-1" />}
