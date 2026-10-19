@@ -149,6 +149,10 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
           <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
             <p className="font-semibold text-slate-900">Motor de decisión del club</p>
             <p className="mt-1 text-sm text-slate-600">Analiza las bases, la elegibilidad, el plazo y la documentación. Cuando falte evidencia no marcará una ayuda como segura: explicará qué dato bloquea la decisión.</p>
+            <Button onClick={analysePending} disabled={analysingAll || loading || recomendables.every(a => assessmentsByAlert[a.id])} className="mt-3 rounded-xl bg-orange-600 hover:bg-orange-700">
+              {analysingAll ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4"/>}
+              {analysingAll ? "Analizando oportunidades…" : "Analizar todas las oportunidades pendientes"}
+            </Button>
           </div>
           {loading ? <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-orange-600" /></div> :
             recomendables.length === 0 ? <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-slate-500">No hay oportunidades pendientes. Pulsa «Revisar ahora» en la pestaña de subvenciones para detectar nuevas convocatorias.</div> :
@@ -171,6 +175,9 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
                     {assessment.fecha_limite && <p className="text-xs text-slate-500">Fecha límite evaluada: {assessment.fecha_limite}</p>}
                     {assessment.fuente_evidencias?.length > 0 && <div className="space-y-1 text-xs text-slate-500">{assessment.fuente_evidencias.map((ev,i)=><p key={i}>Fuente: {ev.documento}{ev.apartado ? " · " + ev.apartado : ""}{ev.url ? <> · <a className="text-blue-600 underline" href={ev.url} target="_blank" rel="noreferrer">abrir evidencia</a></> : ""}</p>)}</div>}
                     {!assessment.revisado_humano && <p className="text-xs text-amber-700">Recomendación automática pendiente de validación humana.</p>}
+                    <Button variant="outline" size="sm" onClick={() => markReviewed(assessment, !assessment.revisado_humano)} className="rounded-lg">
+                      {assessment.revisado_humano ? "Quitar marca de revisión" : "Marcar como revisada por la junta"}
+                    </Button>
                   </> : <>
                     {alert.resumen && <p className="text-sm text-slate-600">{alert.resumen}</p>}
                     <p className="text-sm text-amber-800">{days !== null && days < 0 ? "El plazo indicado parece cerrado; comprobar si hay ampliación o nueva convocatoria." : "Todavía no hay análisis suficiente para recomendar presentarla con seguridad."}</p>
@@ -194,6 +201,7 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
             <div><h3 className="flex items-center gap-2 font-semibold"><Archive className="h-5 w-5 text-orange-600"/>Añadir documento al archivo común</h3><p className="mt-1 text-sm text-slate-500">Guarda cada documento una vez y reutilízalo en expedientes. Las nuevas versiones se añadirán sin borrar silenciosamente las anteriores.</p></div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div><Label>Nombre del documento *</Label><Input className="mt-1" value={form.titulo} onChange={e=>updateForm("titulo",e.target.value)} placeholder="Certificado de estar al corriente con Hacienda"/></div>
+              <div><Label>Versión de documento existente (opcional)</Label><Select value={replacingId} onValueChange={setReplacingId}><SelectTrigger className="mt-1"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="nuevo">Documento nuevo</SelectItem>{docs.filter(d => d.estado !== "sustituido").map(d=><SelectItem key={d.id} value={d.id}>{d.titulo} · v{d.version || 1}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Categoría</Label><Select value={form.categoria} onValueChange={v=>updateForm("categoria",v)}><SelectTrigger className="mt-1"><SelectValue/></SelectTrigger><SelectContent>{CATEGORIAS.map(c=><SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent></Select></div>
               <div><Label>Entidad emisora</Label><Input className="mt-1" value={form.entidad_emisora} onChange={e=>updateForm("entidad_emisora",e.target.value)} placeholder="AEAT, Seguridad Social, RFFM…"/></div>
               <div><Label>Temporada / ejercicio</Label><Input className="mt-1" value={form.temporada} onChange={e=>updateForm("temporada",e.target.value)} placeholder="2025-2026"/></div>
