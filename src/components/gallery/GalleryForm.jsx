@@ -41,7 +41,7 @@ export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting, u
         let url = null;
         try {
           await validateImage(file);
-          const response = await base44.functions.invoke('processImage', { image: file });
+          const response = await base44.functions.invoke('processGalleryImage', { image: file });
           url = response.data?.error ? null : response.data?.file_url;
         } catch {}
         // Si no se pudo optimizar (formato raro, foto reenviada...), se sube la original
