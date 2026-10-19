@@ -31,7 +31,7 @@ function Lightbox({ photos, initialIndex, onClose }) {
       a.href = url;
       const fallbackName = photo.nombre || `foto_${index + 1}`;
       const extension = imageExtension(blob, photo.url, fallbackName);
-      a.download = /\.[a-z0-9]{2,5}$/i.test(fallbackName) ? fallbackName : `${fallbackName}.${extension}`;
+      a.download = `${fallbackName.replace(/\.[a-z0-9]{2,5}$/i, '')}.${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
