@@ -19,7 +19,7 @@ Deno.serve(async(req)=>{
   const activeTeams=teams.filter(t=>['A','B','C','D','E','F'].includes(t.grupo));
   const codes=activeTeams.map(t=>String(t.codigo||'').trim());
   const complete=activeTeams.length===24&&new Set(codes).size===24&&activeTeams.every(t=>t.nombre&&!/por definir|tbd|provisional/i.test(t.nombre)&&!/^TBD-/i.test(t.codigo||''))&&matches.filter(m=>m.fase==='grupos').length===36&&matches.filter(m=>m.fase!=='grupos').length===15;
-  if(!complete)return Response.json({error:'La competición aún está en preparación: el club debe confirmar las 24 selecciones oficiales y los 51 partidos antes de abrir inscripciones.'},{status:503});
+  if(!complete&&!modoTest)return Response.json({error:'La competición aún está en preparación: el club debe confirmar las 24 selecciones oficiales y los 51 partidos antes de abrir inscripciones.'},{status:503});
   if(!modoTest&&cfg.fecha_inicio_torneo&&Date.now()>=new Date(cfg.fecha_inicio_torneo).getTime())return Response.json({error:'El plazo de inscripción ha terminado.'},{status:403});
   const all=await b.asServiceRole.entities.EurocopaParticipante.list('',5000);
   if(all.some(p=>(p.alias_equipo||'').trim().toLowerCase()===alias_equipo.trim().toLowerCase()))return Response.json({error:'Ese alias ya está cogido.'},{status:409});
