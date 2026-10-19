@@ -10,6 +10,7 @@
         "loteria",
         "socios",
         "extra",
+        "porra",
         "porra_eurocopa"
       ],
       "description": "Secci\u00f3n/\u00e1rea del pago"
@@ -47,6 +48,7 @@
         "ClubMember",
         "BatchPayment",
         "Unknown",
+        "PorraParticipante",
         "EurocopaParticipante"
       ],
       "default": "Unknown"
