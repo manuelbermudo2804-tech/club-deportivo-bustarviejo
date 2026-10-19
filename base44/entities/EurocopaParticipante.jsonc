@@ -110,6 +110,10 @@
         "app",
         "web"
       ]
+    },
+    "es_prueba": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [
