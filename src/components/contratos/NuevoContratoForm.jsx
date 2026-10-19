@@ -35,17 +35,29 @@ export default function NuevoContratoForm({ onCreated }) {
       ]);
       const staff = users.filter((u) => u.es_entrenador || u.es_coordinador)
         .map((u) => ({ key: u.email, email: u.email, nombre: u.full_name || u.email, menor: false }));
-      const menores = practicas.filter((p) => p.acceso_menor_email)
-        .map((p) => ({ key: p.acceso_menor_email, email: p.acceso_menor_email, nombre: p.nombre, menor: true }));
+      // Los menores pueden necesitar firma de su tutor aunque NO sean entrenadores en prácticas.
+      const menoresPorId = new Map();
+      [...practicas, ...jugadores.filter((p) => p.acceso_menor_email)].forEach((p) => {
+        if (!p.acceso_menor_email || p.es_mayor_edad) return;
+        menoresPorId.set(p.id, p);
+      });
+      const menores = [...menoresPorId.values()].map((p) => ({
+        key: `menor:${p.id}`, email: p.acceso_menor_email, nombre: p.nombre, menor: true, jugador: p,
+      }));
       const familias = jugadores.filter((p) => p.email_padre).sort((a, b) => a.nombre.localeCompare(b.nombre))
         .map((p) => ({ key: p.id, email: p.email_padre, nombre: p.nombre_tutor_legal || p.email_padre, jugador: p }));
       const registrados = new Set(users.map((u) => (u.email || "").toLowerCase()));
-      familias.forEach((f) => {
-        f.tutores = [
-          { email: f.email, nombre: f.nombre },
-          f.jugador.email_tutor_2 && { email: f.jugador.email_tutor_2, nombre: f.jugador.nombre_tutor_2 || f.jugador.email_tutor_2 },
-        ].filter(Boolean).map((t) => ({ ...t, enApp: registrados.has(t.email.toLowerCase()) }));
-      });
+      const añadirTutores = (registro) => {
+        const p = registro.jugador;
+        registro.tutores = [
+          p.email_padre && { email: p.email_padre, nombre: p.nombre_tutor_legal || p.email_padre },
+          p.email_tutor_2 && { email: p.email_tutor_2, nombre: p.nombre_tutor_2 || p.email_tutor_2 },
+        ].filter(Boolean)
+          .filter((t, i, arr) => arr.findIndex((x) => x.email.toLowerCase() === t.email.toLowerCase()) === i)
+          .map((t) => ({ ...t, enApp: registrados.has(t.email.toLowerCase()) }));
+      };
+      familias.forEach(añadirTutores);
+      menores.forEach(añadirTutores);
       return { staff: [...staff, ...menores], familias };
     },
   });
@@ -58,7 +70,9 @@ export default function NuevoContratoForm({ onCreated }) {
     setQuienes(f?.tutores ? f.tutores.filter((t) => t.enApp).map((t) => t.email).slice(0, 1) : []);
   };
   const toggleQuien = (email) => setQuienes((q) => q.includes(email) ? q.filter((e) => e !== email) : [...q, email]);
-  const sinFirmante = familia && elegido && quienes.length === 0;
+  const requiereTutor = !!(elegido?.menor && elegido?.tutores);
+  const seleccionaTutores = (familia || requiereTutor) && elegido;
+  const sinFirmante = seleccionaTutores && quienes.length === 0;
 
   const cambiarTipo = (id) => {
     const p = PLANTILLAS.find((x) => x.id === id);
@@ -68,11 +82,14 @@ export default function NuevoContratoForm({ onCreated }) {
 
   const crear = async () => {
     setSaving(true);
-    const firmantes = familia ? elegido.tutores.filter((t) => t.enApp && quienes.includes(t.email)) : [elegido];
+    const firmaPorTutor = familia || requiereTutor;
+    const firmantes = firmaPorTutor ? elegido.tutores.filter((t) => t.enApp && quienes.includes(t.email)) : [elegido];
     for (const f of firmantes) {
-    const final = rellenar(texto, f.nombre, elegido.jugador?.nombre);
+    const nombreParaDocumento = requiereTutor ? elegido.jugador.nombre : f.nombre;
+    const final = rellenar(texto, nombreParaDocumento, elegido.jugador?.nombre);
     await base44.entities.ContratoVoluntariado.create({
-      entrenador_email: f.email, entrenador_nombre: familia ? `${elegido.jugador.nombre} (familia · ${f.nombre})` : elegido.nombre,
+      entrenador_email: f.email,
+      entrenador_nombre: firmaPorTutor ? `${elegido.jugador.nombre} (tutor legal · ${f.nombre})` : elegido.nombre,
       es_menor: !!elegido.menor, tipo, grupo: plantilla.grupo,
       jugador_id: elegido.jugador?.id, jugador_nombre: elegido.jugador?.nombre,
       titulo, texto: final, texto_hash: await sha256(final), estado: "pendiente",
@@ -101,14 +118,14 @@ export default function NuevoContratoForm({ onCreated }) {
         <SelectContent>
           {lista.map((s) => (
             <SelectItem key={s.key} value={s.key}>
-              {familia ? `${s.jugador.nombre} · ${s.email}` : `${s.nombre}${s.menor ? " · en prácticas (menor)" : ""}`}
+              {familia ? `${s.jugador.nombre} · ${s.email}` : `${s.nombre}${s.menor ? " · menor (firma su tutor legal)" : ""}`}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
-      {familia && elegido && (
+      {seleccionaTutores && (
         <div className="border rounded-lg p-3 space-y-2 bg-slate-50">
-          <p className="text-sm font-semibold">¿Quién tiene que firmar?</p>
+          <p className="text-sm font-semibold">{requiereTutor && !familia ? "¿Qué tutor legal firma por el menor?" : "¿Quién tiene que firmar?"}</p>
           {elegido.tutores.map((t) => (
             <label key={t.email} className={`flex items-center gap-2 text-sm ${t.enApp ? "" : "opacity-50"}`}>
               <Checkbox disabled={!t.enApp} checked={quienes.includes(t.email)} onCheckedChange={() => toggleQuien(t.email)} />
