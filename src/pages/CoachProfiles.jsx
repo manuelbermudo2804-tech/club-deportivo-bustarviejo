@@ -30,7 +30,7 @@ export default function CoachProfiles() {
         full_name: p.nombre,
         nombre_completo_oficial: p.nombre,
         email: p.acceso_menor_email || "",
-        categorias_entrena: p.entrenador_practicas?.categorias || [p.categoria_principal || p.deporte].filter(Boolean),
+        categorias_entrena: p.entrenador_practicas?.categorias?.length ? p.entrenador_practicas.categorias : p.entrenador_practicas?.categoria ? [p.entrenador_practicas.categoria] : [],
         tipo_entrenador: "practicas",
         es_practicas: true,
       }));
