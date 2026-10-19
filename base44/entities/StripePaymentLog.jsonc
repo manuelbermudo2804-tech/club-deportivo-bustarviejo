@@ -9,7 +9,8 @@
         "cuotas_batch",
         "loteria",
         "socios",
-        "extra"
+        "extra",
+        "porra_eurocopa"
       ],
       "description": "Secci\u00f3n/\u00e1rea del pago"
     },
@@ -45,7 +46,8 @@
         "LotteryOrder",
         "ClubMember",
         "BatchPayment",
-        "Unknown"
+        "Unknown",
+        "EurocopaParticipante"
       ],
       "default": "Unknown"
     },
