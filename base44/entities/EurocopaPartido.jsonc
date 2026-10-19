@@ -72,6 +72,10 @@
     "finalizado": {
       "type": "boolean",
       "default": false
+    },
+    "es_resultado_prueba": {
+      "type": "boolean",
+      "default": false
     }
   },
   "required": [
