@@ -123,20 +123,11 @@ export default function NuevoContratoForm({ onCreated }) {
       };
 
       if (dobleFirmaEntrenadora) {
-        // Se generan dos solicitudes independientes: una para la entrenadora menor y otra para su tutor legal.
-        const textoEntrenadora = rellenar(texto, elegido.nombre, elegido.nombre);
-        const textoTutor = rellenar(
-          `Como padre, madre o tutor legal de ${elegido.nombre}, declaro que conozco y autorizo este documento.\\n\\n${texto}`,
-          tutorNombre.trim(),
-          elegido.nombre
-        );
+        // La casilla marca el documento como menor: al firmarlo, la aplicación solicita también la firma del tutor legal.
+        const final = rellenar(texto, elegido.nombre, elegido.nombre);
         await crearFirma({
-          email: elegido.email, nombre: `${elegido.nombre} (firma propia)`,
-          textoFirmar: textoEntrenadora, esMenor: true, rolFirmante: "menor",
-        });
-        await crearFirma({
-          email: tutorEmail.trim().toLowerCase(), nombre: `${elegido.nombre} (tutor legal · ${tutorNombre.trim()})`,
-          textoFirmar: textoTutor, esMenor: true, rolFirmante: "tutor_legal",
+          email: elegido.email, nombre: elegido.nombre,
+          textoFirmar: final, esMenor: true,
         });
       } else {
         const firmaPorTutor = familia || requiereTutor;
@@ -155,7 +146,7 @@ export default function NuevoContratoForm({ onCreated }) {
       toast.success(dobleFirmaEntrenadora
         ? "Enviadas las dos solicitudes: firma de la entrenadora y firma de su tutor legal."
         : "Documento enviado. Le aparecerá al abrir la app.");
-      setDestino(""); setTexto(plantilla.texto); setEntrenadoraMenor(false); setTutorNombre(""); setTutorEmail("");
+      setDestino(""); setTexto(plantilla.texto); setEntrenadoraMenor(false);
       onCreated();
     } catch (error) {
       console.error("Error al crear documentos para firma", error);
@@ -190,13 +181,7 @@ export default function NuevoContratoForm({ onCreated }) {
             <Checkbox checked={entrenadoraMenor} onCheckedChange={(v) => setEntrenadoraMenor(!!v)} />
             <span>Esta entrenadora es menor de edad y necesita doble firma (la suya y la de su tutor legal).</span>
           </label>
-          {entrenadoraMenor && (
-            <div className="grid gap-2 sm:grid-cols-2">
-              <Input value={tutorNombre} onChange={(e) => setTutorNombre(e.target.value)} placeholder="Nombre y apellidos del tutor legal" />
-              <Input type="email" value={tutorEmail} onChange={(e) => setTutorEmail(e.target.value)} placeholder="Email del tutor legal" />
-              <p className="text-xs text-slate-600 sm:col-span-2">Se crearán dos solicitudes de firma: una para la entrenadora y otra para su tutor. El tutor no necesita ser entrenador en prácticas.</p>
-            </div>
-          )}
+          {entrenadoraMenor && <p className="text-xs text-slate-600">Al firmar el documento, se solicitarán también los datos y la firma del tutor legal.</p>}
         </div>
       )}
       {seleccionaTutores && (
