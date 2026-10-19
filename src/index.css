@@ -218,6 +218,7 @@ textarea {
 .festive-spider { animation: festiveSpider 6s ease-in-out infinite; }
 @keyframes festiveComet { 0% { transform: translate3d(-30vw, 8vh, 0) rotate(12deg); opacity: 0; } 4% { opacity: 1; } 30% { transform: translate3d(110vw, 40vh, 0) rotate(12deg); opacity: 1; } 31%, 100% { transform: translate3d(110vw, 40vh, 0) rotate(12deg); opacity: 0; } }
 .festive-comet { animation: festiveComet 14s ease-in infinite; }
+.festive-comet-reyes { animation-duration: 24s; }
 @keyframes festiveRise { 0% { transform: translate3d(0, 0, 0); opacity: 0; } 8% { opacity: 1; } 100% { transform: translate3d(40px, -125vh, 0); opacity: 1; } }
 .festive-rise { bottom: -80px; animation: festiveRise 15s linear infinite; opacity: 0; }
 @keyframes festiveWalk { from { left: 100%; } to { left: -40%; } }
@@ -225,6 +226,7 @@ textarea {
 @media (prefers-reduced-motion: reduce) {
   .festive-particles { display: none; }
   .festive-walk { display: none; }
+  .festive-fly, .festive-comet, .festive-rise, .festive-spider { animation: none !important; }
   .festive-float, .festive-twinkle, .festive-bulb, .festive-pulse-ring, .festive-enter { animation: none; }
 }
 
