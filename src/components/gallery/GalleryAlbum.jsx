@@ -7,6 +7,17 @@ import { Pencil, Image, X, Trash2, Check, Download, Share2, Plus, Loader2 } from
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
+
+function imageExtension(blob, sourceUrl) {
+  const mime = (blob?.type || '').toLowerCase();
+  const byMime = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/avif': 'avif', 'image/heic': 'heic', 'image/heif': 'heif' };
+  if (byMime[mime]) return byMime[mime];
+  try {
+    const ext = new URL(sourceUrl).pathname.match(/\\.([a-z0-9]{2,5})$/i)?.[1]?.toLowerCase();
+    if (ext && ['jpg','jpeg','png','webp','gif','avif','heic','heif'].includes(ext)) return ext;
+  } catch {}
+  return 'jpg';
+}
 import { base44 } from "@/api/base44Client";
 import {
   Dialog,
@@ -128,7 +139,7 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${album.titulo.replace(/\s+/g, '_')}_${i + 1}.jpg`;
+        a.download = `${album.titulo.replace(/\s+/g, '_')}_${i + 1}.${imageExtension(blob, foto.url)}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -158,7 +169,8 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
         for (let i = 0; i < photosToDownload.length; i++) {
           const res = await fetch(photosToDownload[i].url);
           const blob = await res.blob();
-          files.push(new File([blob], `${album.titulo.replace(/\s+/g, '_')}_${selectedPhotos[i] + 1}.jpg`, { type: blob.type || 'image/jpeg' }));
+          const extension = imageExtension(blob, photosToDownload[i].url);
+          files.push(new File([blob], `${album.titulo.replace(/\s+/g, '_')}_${selectedPhotos[i] + 1}.${extension}`, { type: blob.type || 'image/jpeg' }));
         }
         if (navigator.canShare && navigator.canShare({ files })) {
           await navigator.share({
@@ -186,7 +198,7 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `${album.titulo.replace(/\s+/g, '_')}_${selectedPhotos[i] + 1}.jpg`;
+        a.download = `${album.titulo.replace(/\s+/g, '_')}_${selectedPhotos[i] + 1}.${imageExtension(blob, photosToDownload[i].url)}`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
