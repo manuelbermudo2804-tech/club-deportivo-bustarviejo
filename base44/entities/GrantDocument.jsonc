@@ -1,0 +1,135 @@
+{
+  "type": "object",
+  "description": "Archivo documental com\u00fan del Club Deportivo Bustarviejo para reutilizar documentos en distintas subvenciones sin perder versiones.",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "Nombre descriptivo del documento"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "Identidad del club",
+        "Representaci\u00f3n",
+        "Fiscal y Seguridad Social",
+        "Estatutos y normativa",
+        "Deportivo y licencias",
+        "Presupuestos y cuentas",
+        "Memorias y proyectos",
+        "Facturas y pagos",
+        "Certificados",
+        "Resoluciones y registros",
+        "Otros"
+      ]
+    },
+    "entidad_emisora": {
+      "type": "string"
+    },
+    "numero_documento": {
+      "type": "string"
+    },
+    "fecha_documento": {
+      "type": "string",
+      "format": "date"
+    },
+    "fecha_caducidad": {
+      "type": "string",
+      "format": "date"
+    },
+    "temporada": {
+      "type": "string"
+    },
+    "version": {
+      "type": "number",
+      "default": 1
+    },
+    "archivo_url": {
+      "type": "string"
+    },
+    "nombre_archivo": {
+      "type": "string"
+    },
+    "tipo_mime": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "vigente",
+        "por_revisar",
+        "caducado",
+        "sustituido"
+      ],
+      "default": "por_revisar"
+    },
+    "documento_reutilizable": {
+      "type": "boolean",
+      "default": true
+    },
+    "expediente_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "notas": {
+      "type": "string"
+    },
+    "sustituye_documento_id": {
+      "type": "string"
+    },
+    "historial_versiones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "number"
+          },
+          "archivo_url": {
+            "type": "string"
+          },
+          "nombre_archivo": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notas": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "titulo",
+    "categoria",
+    "archivo_url",
+    "nombre_archivo"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "name": "GrantDocument"
+}

@@ -1,0 +1,167 @@
+{
+  "type": "object",
+  "description": "Evaluaci\u00f3n estructurada de una oportunidad de subvenci\u00f3n para recomendar presentar, revisar o descartar con evidencias.",
+  "properties": {
+    "alert_id": {
+      "type": "string"
+    },
+    "titulo": {
+      "type": "string"
+    },
+    "entidad": {
+      "type": "string"
+    },
+    "url_oficial": {
+      "type": "string"
+    },
+    "decision": {
+      "type": "string",
+      "enum": [
+        "PRESENTAR",
+        "REVISAR",
+        "NO_PRESENTAR"
+      ],
+      "default": "REVISAR"
+    },
+    "prioridad": {
+      "type": "string",
+      "enum": [
+        "urgente",
+        "alta",
+        "media",
+        "baja"
+      ],
+      "default": "media"
+    },
+    "puntuacion": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "elegibilidad": {
+      "type": "string",
+      "enum": [
+        "cumple",
+        "probable",
+        "desconocida",
+        "no_cumple"
+      ],
+      "default": "desconocida"
+    },
+    "plazo_estado": {
+      "type": "string",
+      "enum": [
+        "abierto",
+        "proximo",
+        "cerrado",
+        "desconocido"
+      ],
+      "default": "desconocido"
+    },
+    "fecha_limite": {
+      "type": "string",
+      "format": "date"
+    },
+    "importe_minimo": {
+      "type": "number"
+    },
+    "importe_maximo": {
+      "type": "number"
+    },
+    "esfuerzo": {
+      "type": "string",
+      "enum": [
+        "bajo",
+        "medio",
+        "alto",
+        "desconocido"
+      ],
+      "default": "desconocido"
+    },
+    "motivos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "requisitos_confirmados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "dudas_criticas": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "documentos_pendientes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "siguiente_accion": {
+      "type": "string"
+    },
+    "fecha_analisis": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "fuente_evidencias": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "documento": {
+            "type": "string"
+          },
+          "apartado": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "extracto": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "revisado_humano": {
+      "type": "boolean",
+      "default": false
+    },
+    "notas": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "titulo",
+    "decision"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "name": "GrantAssessment"
+}
