@@ -38,7 +38,7 @@ Deno.serve(async(req)=>{
    }
    const champion=ms.find(m=>m.fase==='final'&&m.finalizado);
    const championSide=champion?(champion.ganador_codigo===champion.equipo_local_codigo?'1':champion.ganador_codigo===champion.equipo_visitante_codigo?'2':''):'';
-   const winnerBonus=champion&&championSide&&p.predicciones_eliminatorias?.[champion.id]===championSide?Number(cfg.puntos_campeon||15):0;
+   const winnerBonus=champion&&championSide&&p.predicciones_eliminatorias?.[champion.id]===championSide?Number(cfg.puntos_campeon??15):0;
    await b.asServiceRole.entities.EurocopaParticipante.update(p.id,{puntos_grupos:pg,puntos_clasificacion_grupos:pr,puntos_eliminatorias:pe,puntos_campeon:winnerBonus,puntos_total:pg+pr+pe+winnerBonus});
    updated++;
   }
