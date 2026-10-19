@@ -7,12 +7,6 @@ import { Pencil, Image, X, Trash2, Check, Download, Share2, Plus, Loader2 } from
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { toast } from "sonner";
-
-function imageExtension(blob) {
-  const mime = (blob?.type || '').toLowerCase();
-  const byMime = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/avif': 'avif', 'image/heic': 'heic', 'image/heif': 'heif' };
-  return byMime[mime] || 'jpg';
-}
 import { base44 } from "@/api/base44Client";
 import {
   Dialog,
@@ -21,6 +15,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import PhotoLightbox from "./PhotoLightbox";
+
+function imageExtension(blob) {
+  const mime = (blob?.type || '').toLowerCase();
+  const byMime = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/avif': 'avif', 'image/heic': 'heic', 'image/heif': 'heif' };
+  return byMime[mime] || 'jpg';
+}
 
 export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuickUpload }) {
   const [showGallery, setShowGallery] = useState(false);
@@ -48,6 +48,17 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
     try {
       for (const file of files) {
         let url = null;
+        // Solo las imágenes de la galería pasan por el procesador de alta calidad.
+        // Los vídeos conservan su ruta de subida original.
+        if (file.type?.startsWith('image/')) {
+          try {
+            const response = await base44.functions.invoke('processGalleryImage', { image: file });
+            url = response.data?.error ? null : response.data?.file_url || null;
+          } catch {
+            // Si el procesador no está disponible, mantener la subida original.
+          }
+        }
+        // Respaldo original con reintentos para formatos no compatibles o fallos de red.
         for (let intento = 0; intento < 3 && !url; intento++) {
           try {
             url = (await base44.integrations.Core.UploadFile({ file })).file_url;
