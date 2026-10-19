@@ -4,6 +4,19 @@ import { Button } from "@/components/ui/button";
 import { X, ChevronLeft, ChevronRight, Download, Share2, ZoomIn, ZoomOut } from "lucide-react";
 import { toast } from "sonner";
 
+function imageExtension(blob, sourceUrl, fallbackName = '') {
+  const mime = (blob?.type || '').toLowerCase();
+  const byMime = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/avif': 'avif', 'image/heic': 'heic', 'image/heif': 'heif' };
+  if (byMime[mime]) return byMime[mime];
+  const nameExt = fallbackName.match(/\.([a-z0-9]{2,5})$/i)?.[1]?.toLowerCase();
+  if (nameExt && ['jpg','jpeg','png','webp','gif','avif','heic','heif'].includes(nameExt)) return nameExt;
+  try {
+    const ext = new URL(sourceUrl).pathname.match(/\.([a-z0-9]{2,5})$/i)?.[1]?.toLowerCase();
+    if (ext && ['jpg','jpeg','png','webp','gif','avif','heic','heif'].includes(ext)) return ext;
+  } catch {}
+  return 'jpg';
+}
+
 export default function PhotoLightbox({ 
   isOpen, 
   onClose, 
@@ -50,7 +63,7 @@ export default function PhotoLightbox({
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `${albumTitle}_foto_${currentIndex + 1}.jpg`;
+      a.download = `${albumTitle}_foto_${currentIndex + 1}.${imageExtension(blob, photo.url)}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -71,7 +84,8 @@ export default function PhotoLightbox({
       try {
         const response = await fetch(photo.url);
         const blob = await response.blob();
-        const file = new File([blob], `${albumTitle}_${currentIndex + 1}.jpg`, { type: blob.type || 'image/jpeg' });
+        const extension = imageExtension(blob, photo.url);
+        const file = new File([blob], `${albumTitle}_${currentIndex + 1}.${extension}`, { type: blob.type || 'image/jpeg' });
         
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({
