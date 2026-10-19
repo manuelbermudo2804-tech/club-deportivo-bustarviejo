@@ -3,6 +3,7 @@ import useTemaFestivo from "@/hooks/useTemaFestivo";
 import FestiveBanner from "./FestiveBanner";
 import FestiveParticles from "./FestiveParticles";
 import FestiveScenes from "./scenes/FestiveScenes";
+import HalloweenIntro from "./HalloweenIntro";
 
 // Decoración festiva de la app. Solo aparece cuando un administrador la activa.
 export default function FestiveTheme() {
@@ -13,6 +14,7 @@ export default function FestiveTheme() {
       {particulas && <FestiveParticles tema={tema} />}
       {particulas && <FestiveScenes clave={clave} />}
       <FestiveBanner key={`${clave}-${prueba}`} clave={clave} tema={tema} mensaje={mensaje} prueba={prueba} />
+      {clave === "halloween" && <HalloweenIntro preview={prueba} />}
     </>
   );
 }
