@@ -79,22 +79,17 @@ export default function NuevoContratoForm({ onCreated }) {
   const elegido = lista.find((s) => s.key === destino);
   const [quienes, setQuienes] = useState([]);
   const [entrenadoraMenor, setEntrenadoraMenor] = useState(false);
-  const [tutorNombre, setTutorNombre] = useState("");
-  const [tutorEmail, setTutorEmail] = useState("");
   const elegir = (key) => {
     setDestino(key);
     const f = lista.find((s) => s.key === key);
     setQuienes(f?.tutores ? f.tutores.filter((t) => t.enApp).map((t) => t.email).slice(0, 1) : []);
     setEntrenadoraMenor(false);
-    setTutorNombre("");
-    setTutorEmail("");
   };
   const toggleQuien = (email) => setQuienes((q) => q.includes(email) ? q.filter((e) => e !== email) : [...q, email]);
   const requiereTutor = !!(elegido?.menor && elegido?.tutores);
   const seleccionaTutores = (familia || requiereTutor) && elegido;
   const dobleFirmaEntrenadora = !familia && !!elegido && !requiereTutor && entrenadoraMenor;
-  const sinFirmante = (seleccionaTutores && quienes.length === 0) ||
-    (dobleFirmaEntrenadora && (!tutorNombre.trim() || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(tutorEmail.trim())));
+  const sinFirmante = seleccionaTutores && quienes.length === 0;
 
   const cambiarTipo = (id) => {
     const p = PLANTILLAS.find((x) => x.id === id);
