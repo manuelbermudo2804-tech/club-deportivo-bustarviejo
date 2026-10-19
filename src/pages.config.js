@@ -7,6 +7,7 @@ import { lazy } from 'react';
 import __Layout from './Layout.jsx';
 
 export const PAGES = {
+    "Halloween": lazy(() => import('./pages/Halloween')),
     "AdminAccessCodes": lazy(() => import('./pages/AdminAccessCodes')),
     "AdminChatsHub": lazy(() => import('./pages/AdminChatsHub')),
     "AdminGallery": lazy(() => import('./pages/AdminGallery')),
