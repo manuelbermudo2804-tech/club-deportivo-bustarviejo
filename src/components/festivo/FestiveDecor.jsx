@@ -37,7 +37,7 @@ export default function FestiveDecor({ clave }) {
         <svg viewBox="0 0 100 100" className="absolute top-0 left-0 w-24 lg:w-32 text-white/25 pointer-events-none">
           <path d="M0 0 L100 30 M0 0 L70 70 M0 0 L30 100 M20 6 Q18 18 6 20 M45 13 Q38 38 13 45 M72 21 Q58 58 21 72" stroke="currentColor" strokeWidth="1" fill="none" />
         </svg>
-        <Guirnalda items={["🎃", "💀", "🦇"]} total={14} />
+        <Guirnalda items={["🎃", "🦇", "🎃"]} total={10} />
       </>
     );
   }
