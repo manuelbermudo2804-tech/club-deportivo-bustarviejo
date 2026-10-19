@@ -4,11 +4,16 @@ import { TEMAS_FESTIVOS } from "./temasFestivos";
 
 // Modo prueba: el admin ve la decoración solo en su dispositivo, sin activarla para nadie más.
 export default function PruebaFestivaAdmin() {
-  const actual = localStorage.getItem("tema_festivo_prueba");
+  const actual = new URLSearchParams(window.location.search).get("epoca") || localStorage.getItem("tema_festivo_prueba");
 
   const probar = (clave) => {
-    if (clave) localStorage.setItem("tema_festivo_prueba", clave);
-    else localStorage.removeItem("tema_festivo_prueba");
+    if (clave) {
+      localStorage.setItem("tema_festivo_prueba", clave);
+      // El parámetro de URL hace la prueba más fiable en móviles/PWA.
+      window.location.href = `/?epoca=${encodeURIComponent(clave)}`;
+      return;
+    }
+    localStorage.removeItem("tema_festivo_prueba");
     window.location.href = "/";
   };
 
@@ -17,7 +22,8 @@ export default function PruebaFestivaAdmin() {
       <p className="text-sm font-semibold text-slate-800 flex items-center gap-2">
         <Eye className="w-4 h-4 text-violet-600" /> Probar solo en mi pantalla
       </p>
-      <p className="text-xs text-slate-500">Nadie más lo verá. Ideal para ver cómo queda antes de activarlo.</p>
+      <p className="text-xs text-slate-500">Solo se muestra en este dispositivo. La prueba no activa nada para el resto del club.</p>
+      <p className="text-[11px] text-violet-700 bg-violet-50 rounded-lg px-2.5 py-2">En móvil, abre la app con tu sesión iniciada y pulsa aquí. Si no carga, usa «Quitar prueba» y vuelve a elegir el tema.</p>
       <div className="flex flex-wrap gap-2">
         {Object.entries(TEMAS_FESTIVOS).map(([clave, t]) => (
           <button
