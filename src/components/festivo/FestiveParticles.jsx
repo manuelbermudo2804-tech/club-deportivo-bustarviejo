@@ -3,18 +3,19 @@ import { CONFETI_COLORES } from "./temasFestivos";
 
 // Capa animada (nieve, estrellas, murciélagos o confeti) que cae suavemente sobre la app sin bloquear clics.
 export default function FestiveParticles({ tema }) {
+  const esHalloween = tema.nombre === "Halloween";
   const items = useMemo(
     () =>
-      Array.from({ length: 26 }, (_, i) => ({
+      Array.from({ length: esHalloween ? 10 : 26 }, (_, i) => ({
         left: Math.random() * 100,
         delay: -Math.random() * 18,
-        duration: 10 + Math.random() * 10,
-        size: 10 + Math.random() * 16,
-        opacity: 0.35 + Math.random() * 0.55,
+        duration: esHalloween ? 18 + Math.random() * 12 : 10 + Math.random() * 10,
+        size: esHalloween ? 9 + Math.random() * 10 : 10 + Math.random() * 16,
+        opacity: esHalloween ? 0.18 + Math.random() * 0.22 : 0.35 + Math.random() * 0.55,
         glyph: Array.isArray(tema.particulas) ? tema.particulas[i % tema.particulas.length] : null,
         color: CONFETI_COLORES[i % CONFETI_COLORES.length],
       })),
-    [tema]
+    [tema, esHalloween]
   );
 
   return (
