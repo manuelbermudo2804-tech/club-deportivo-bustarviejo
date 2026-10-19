@@ -96,6 +96,9 @@ Cita el documento oficial y apartado que sustentan cada requisito o bloqueo. Sep
     const evidencias = Array.isArray(analisis.evidencias) ? analisis.evidencias : [];
     if (decision === 'PRESENTAR' && (!fecha || fecha < hoy || dudas.length > 0 || analisis.fiabilidad !== 'alta' || !['cumple', 'probable'].includes(analisis.elegibilidad) || evidencias.length === 0)) decision = 'REVISAR';
     if (decision === 'NO_PRESENTAR' && (analisis.fiabilidad !== 'alta' || evidencias.length === 0)) decision = 'REVISAR';
+    // La decisión final protegida por las reglas del servidor es la que ve el usuario.
+    analisis.decision = decision;
+    await base44.asServiceRole.entities.GrantAlert.update(alertId, { analisis_ia: JSON.stringify(analisis), analisis_fecha: new Date().toISOString() });
     const assessmentData = {
       alert_id: alertId,
       titulo: alert.titulo,
