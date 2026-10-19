@@ -45,6 +45,8 @@ const EMPTY = {
 
 export default function GrantCasesPanel() {
   const [cases, setCases] = useState([]);
+  const [requirements, setRequirements] = useState([]);
+  const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
@@ -55,8 +57,14 @@ export default function GrantCasesPanel() {
   const loadCases = useCallback(async () => {
     setLoading(true);
     try {
-      const rows = await base44.entities.GrantCase.list("-created_date", 200);
+      const [rows, reqs, docs] = await Promise.all([
+        base44.entities.GrantCase.list("-created_date", 200),
+        base44.entities.GrantRequirement.list("-created_date", 500),
+        base44.entities.GrantDocument.list("-created_date", 300),
+      ]);
       setCases(Array.isArray(rows) ? rows : []);
+      setRequirements(Array.isArray(reqs) ? reqs : []);
+      setDocuments(Array.isArray(docs) ? docs : []);
     } catch (e) {
       toast.error("No se pudieron cargar los expedientes");
     } finally {
@@ -92,6 +100,14 @@ export default function GrantCasesPanel() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const updateRequirement = async (req, patch) => {
+    try {
+      await base44.entities.GrantRequirement.update(req.id, patch);
+      toast.success("Checklist actualizado");
+      await loadCases();
+    } catch (e) { toast.error("No se pudo actualizar el requisito"); }
   };
 
   const changeStatus = async (item, estado) => {
@@ -183,6 +199,13 @@ export default function GrantCasesPanel() {
                     </div>
                     {item.estado === "presentada" && !item.justificante_uri && <p className="mt-3 flex items-center gap-2 text-xs font-medium text-amber-700"><AlertCircle className="h-4 w-4" /> Falta enlazar el justificante oficial de registro.</p>}
                     {item.notas && <p className="mt-3 whitespace-pre-wrap text-sm text-slate-600">{item.notas}</p>}
+                    {requirements.some(r => r.expediente_id === item.id) && <div className="mt-4 rounded-xl border border-slate-200 p-3">
+                      <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="font-semibold text-slate-800">Checklist documental</p><Badge variant="outline">{requirements.filter(r => r.expediente_id === item.id && ["preparado","revisado","no_aplica"].includes(r.estado)).length}/{requirements.filter(r => r.expediente_id === item.id).length} completados</Badge></div>
+                      <div className="space-y-3">{requirements.filter(r => r.expediente_id === item.id).map(req => <div key={req.id} className="grid gap-2 border-t border-slate-100 pt-3 sm:grid-cols-[minmax(0,1fr)_170px]">
+                        <div className="min-w-0"><p className="text-sm font-medium text-slate-800">{req.nombre}{req.obligatorio && <span className="ml-1 text-xs text-red-600">Obligatorio por verificar</span>}</p>{req.notas && <p className="mt-1 text-xs text-slate-500">{req.notas}</p>}{req.archivo_url && <a href={req.archivo_url} target="_blank" rel="noreferrer" className="mt-1 inline-flex text-xs font-semibold text-emerald-700 hover:underline">Abrir documento adjunto</a>}</div>
+                        <div className="space-y-2"><Select value={req.estado || "pendiente"} onValueChange={estado => updateRequirement(req, { estado })}><SelectTrigger className="h-9 rounded-lg"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="pendiente">Pendiente</SelectItem><SelectItem value="localizado">Localizado</SelectItem><SelectItem value="preparado">Preparado</SelectItem><SelectItem value="revisado">Revisado</SelectItem><SelectItem value="no_aplica">No aplica</SelectItem></SelectContent></Select><Select value={req.documento_archivo_id || "sin_documento"} onValueChange={id => { const doc = documents.find(d => d.id === id); updateRequirement(req, id === "sin_documento" ? { documento_archivo_id: "", archivo_url: "", estado: "pendiente" } : { documento_archivo_id: doc.id, archivo_url: doc.archivo_url, fecha_caducidad: doc.fecha_caducidad || "", estado: "localizado" }); }}><SelectTrigger className="h-9 rounded-lg"><SelectValue placeholder="Vincular archivo"/></SelectTrigger><SelectContent><SelectItem value="sin_documento">Vincular documento del archivo…</SelectItem>{documents.filter(d => d.estado === "vigente" && d.documento_reutilizable !== false).map(d => <SelectItem key={d.id} value={d.id}>{d.titulo} · v{d.version || 1}</SelectItem>)}</SelectContent></Select></div>
+                      </div>)}</div>
+                    </div>}
                   </div>
                   <div className="w-full shrink-0 lg:w-56">
                     <Label className="mb-1.5 block text-xs text-slate-500">Actualizar estado</Label>
