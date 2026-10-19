@@ -86,8 +86,11 @@ export default function NuevoContratoForm({ onCreated }) {
     setEntrenadoraMenor(false);
   };
   const toggleQuien = (email) => setQuienes((q) => q.includes(email) ? q.filter((e) => e !== email) : [...q, email]);
-  const requiereTutor = !!(elegido?.menor && elegido?.tutores);
-  const seleccionaTutores = (familia || requiereTutor) && elegido;
+  // En documentos de staff, el destinatario es siempre el propio entrenador, también si es menor.
+  // La firma del tutor legal se recoge dentro del modal de firma. Solo los documentos de familia
+  // se envían directamente al progenitor/tutor seleccionado.
+  const requiereTutor = false;
+  const seleccionaTutores = familia && elegido;
   const dobleFirmaEntrenadora = !familia && !!elegido && !requiereTutor && entrenadoraMenor;
   const sinFirmante = seleccionaTutores && quienes.length === 0;
 
@@ -130,7 +133,7 @@ export default function NuevoContratoForm({ onCreated }) {
           textoFirmar: final, esMenor: true,
         });
       } else {
-        const firmaPorTutor = familia || requiereTutor;
+        const firmaPorTutor = familia;
         const firmantes = firmaPorTutor ? elegido.tutores.filter((t) => t.enApp && quienes.includes(t.email)) : [elegido];
         for (const f of firmantes) {
           const nombreParaDocumento = requiereTutor ? elegido.jugador.nombre : f.nombre;
@@ -170,12 +173,12 @@ export default function NuevoContratoForm({ onCreated }) {
         <SelectContent>
           {lista.map((s) => (
             <SelectItem key={s.key} value={s.key}>
-              {familia ? `${s.jugador.nombre} · ${s.email}` : `${s.nombre}${s.menor ? " · menor (firma su tutor legal)" : ""}`}
+              {familia ? `${s.jugador.nombre} · ${s.email}` : `${s.nombre}${s.menor ? " · menor (firma en su panel y autoriza su tutor)" : ""}`}
             </SelectItem>
           ))}
         </SelectContent>
       </Select>
-      {!familia && elegido && !requiereTutor && (
+      {!familia && elegido && !elegido.menor && !requiereTutor && (
         <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 space-y-2">
           <label className="flex items-start gap-2 text-sm font-medium">
             <Checkbox checked={entrenadoraMenor} onCheckedChange={(v) => setEntrenadoraMenor(!!v)} />
@@ -186,7 +189,7 @@ export default function NuevoContratoForm({ onCreated }) {
       )}
       {seleccionaTutores && (
         <div className="border rounded-lg p-3 space-y-2 bg-slate-50">
-          <p className="text-sm font-semibold">{requiereTutor && !familia ? "¿Qué tutor legal firma por el menor?" : "¿Quién tiene que firmar?"}</p>
+          <p className="text-sm font-semibold">¿Quién tiene que firmar?</p>
           {elegido.tutores.map((t) => (
             <label key={t.email} className={`flex items-center gap-2 text-sm ${t.enApp ? "" : "opacity-50"}`}>
               <Checkbox disabled={!t.enApp} checked={quienes.includes(t.email)} onCheckedChange={() => toggleQuien(t.email)} />
