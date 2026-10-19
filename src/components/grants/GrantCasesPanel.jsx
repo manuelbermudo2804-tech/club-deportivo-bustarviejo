@@ -110,7 +110,19 @@ export default function GrantCasesPanel() {
     } catch (e) { toast.error("No se pudo actualizar el requisito"); }
   };
 
+  const saveEvidence = async (item, patch) => {
+    try {
+      await base44.entities.GrantCase.update(item.id, patch);
+      toast.success("Evidencia del expediente guardada");
+      await loadCases();
+    } catch (e) { toast.error("No se pudo guardar la evidencia"); }
+  };
+
   const changeStatus = async (item, estado) => {
+    if (estado === "presentada" && (!(item.numero_registro || "").trim() || !(item.justificante_uri || "").trim())) {
+      toast.error("No se puede marcar como presentada sin número de registro y justificante oficial.");
+      return;
+    }
     try {
       const historial = [...(item.historial || []), { fecha: new Date().toISOString(), accion: "Cambio de estado", detalle: estadoLabel(estado) }];
       await base44.entities.GrantCase.update(item.id, { estado, historial });
@@ -197,7 +209,11 @@ export default function GrantCasesPanel() {
                       {item.numero_registro && <span className="inline-flex items-center gap-1"><FileCheck2 className="h-3.5 w-3.5" /> Registro: {item.numero_registro}</span>}
                       {item.url_oficial && <a href={item.url_oficial} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-orange-700 hover:underline"><ExternalLink className="h-3.5 w-3.5" /> Convocatoria oficial</a>}
                     </div>
-                    {item.estado === "presentada" && !item.justificante_uri && <p className="mt-3 flex items-center gap-2 text-xs font-medium text-amber-700"><AlertCircle className="h-4 w-4" /> Falta enlazar el justificante oficial de registro.</p>}
+                    <div className="mt-4 grid gap-2 rounded-xl border border-slate-200 p-3 sm:grid-cols-2">
+                      <div><Label className="text-xs">Número de registro oficial</Label><Input className="mt-1 h-9" defaultValue={item.numero_registro || ""} onBlur={e => { if (e.target.value !== (item.numero_registro || "")) saveEvidence(item, { numero_registro: e.target.value }); }} placeholder="REGAGE…"/></div>
+                      <div><Label className="text-xs">URL del justificante oficial</Label><Input className="mt-1 h-9" defaultValue={item.justificante_uri || ""} onBlur={e => { if (e.target.value !== (item.justificante_uri || "")) saveEvidence(item, { justificante_uri: e.target.value }); }} placeholder="Enlace al PDF de registro"/></div>
+                      {item.estado === "presentada" && (!item.justificante_uri || !item.numero_registro) && <p className="sm:col-span-2 flex items-center gap-2 text-xs font-medium text-red-700"><AlertCircle className="h-4 w-4" /> Expediente marcado previamente como presentado sin evidencia completa. Añade registro y justificante y revisa el estado.</p>}
+                    </div>
                     {item.notas && <p className="mt-3 whitespace-pre-wrap text-sm text-slate-600">{item.notas}</p>}
                     {requirements.some(r => r.expediente_id === item.id) && <div className="mt-4 rounded-xl border border-slate-200 p-3">
                       <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="font-semibold text-slate-800">Checklist documental</p><Badge variant="outline">{requirements.filter(r => r.expediente_id === item.id && ["preparado","revisado","no_aplica"].includes(r.estado)).length}/{requirements.filter(r => r.expediente_id === item.id).length} completados</Badge></div>
