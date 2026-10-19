@@ -88,13 +88,22 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
     try {
       const uploaded = await base44.integrations.Core.UploadFile({ file });
       if (!uploaded?.file_url) throw new Error("No se recibió la URL del archivo");
+      const previous = replacingId !== "nuevo" ? docs.find(d => d.id === replacingId) : null;
+      const versionHistory = previous ? [...(previous.historial_versiones || []), {
+        version: previous.version || 1, archivo_url: previous.archivo_url, nombre_archivo: previous.nombre_archivo,
+        fecha: new Date().toISOString(), notas: "Versión anterior conservada automáticamente",
+      }] : [];
+      if (previous) await base44.entities.GrantDocument.update(previous.id, { estado: "sustituido" });
       await base44.entities.GrantDocument.create({
         ...form, archivo_url: uploaded.file_url, nombre_archivo: file.name, tipo_mime: file.type || "",
-        version: 1, estado: form.fecha_caducidad && form.fecha_caducidad < new Date().toISOString().slice(0,10) ? "caducado" : (form.fecha_caducidad ? "vigente" : "por_revisar"),
-        documento_reutilizable: true, expediente_ids: [], historial_versiones: [],
+        version: previous ? (Number(previous.version || 1) + 1) : 1,
+        estado: form.fecha_caducidad && form.fecha_caducidad < new Date().toISOString().slice(0,10) ? "caducado" : (form.fecha_caducidad ? "vigente" : "por_revisar"),
+        documento_reutilizable: true, expediente_ids: previous?.expediente_ids || [],
+        historial_versiones: versionHistory, sustituye_documento_id: previous?.id || "",
       });
       toast.success("Documento archivado y disponible para reutilizar");
       setForm({ titulo: "", categoria: "Identidad del club", entidad_emisora: "", fecha_documento: "", fecha_caducidad: "", temporada: "", notas: "" });
+      setReplacingId("nuevo");
       if (fileRef.current) fileRef.current.value = "";
       await load();
     } catch (e) { toast.error("No se pudo guardar el documento: " + (e.message || "error")); }
