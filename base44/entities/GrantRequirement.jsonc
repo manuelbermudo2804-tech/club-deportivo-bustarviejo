@@ -1,0 +1,96 @@
+{
+  "type": "object",
+  "description": "Requisito documental asociado a un expediente de subvenci\u00f3n, con seguimiento de estado y evidencia.",
+  "properties": {
+    "expediente_id": {
+      "type": "string"
+    },
+    "alert_id": {
+      "type": "string"
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "Identidad del club",
+        "Representaci\u00f3n",
+        "Fiscal y Seguridad Social",
+        "Estatutos y normativa",
+        "Deportivo y licencias",
+        "Presupuestos y cuentas",
+        "Memorias y proyectos",
+        "Facturas y pagos",
+        "Certificados",
+        "Resoluciones y registros",
+        "Otros"
+      ]
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "localizado",
+        "preparado",
+        "revisado",
+        "no_aplica"
+      ],
+      "default": "pendiente"
+    },
+    "obligatorio": {
+      "type": "boolean",
+      "default": true
+    },
+    "documento_archivo_id": {
+      "type": "string"
+    },
+    "archivo_url": {
+      "type": "string"
+    },
+    "fecha_caducidad": {
+      "type": "string",
+      "format": "date"
+    },
+    "responsable": {
+      "type": "string"
+    },
+    "notas": {
+      "type": "string"
+    },
+    "evidencia_oficial_url": {
+      "type": "string"
+    },
+    "apartado_bases": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "expediente_id",
+    "nombre",
+    "estado"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "name": "GrantRequirement"
+}

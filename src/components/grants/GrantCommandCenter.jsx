@@ -79,13 +79,20 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
   const createCase = async (alert, assessment) => {
     if (cases.some(c => c.fuente_alerta_id === alert.id)) { toast.info("Ya existe un expediente de trabajo para esta convocatoria"); return; }
     try {
-      await base44.entities.GrantCase.create({
+      const newCase = await base44.entities.GrantCase.create({
         titulo: alert.titulo, entidad: alert.categoria || alert.fuente_nombre || "",
         referencia: alert.guid || "", estado: "preparando", fecha_limite_solicitud: assessment.fecha_limite || alert.fecha_limite || undefined,
         url_oficial: alert.enlace || "", fuente_alerta_id: alert.id, requiere_revision: true,
         notas: "Expediente creado desde el motor de decisión. Recomendación: " + assessment.decision + ". Siguiente acción: " + (assessment.siguiente_accion || "revisar bases") + ". No marcar como presentada sin justificante oficial.",
         historial: [{ fecha: new Date().toISOString(), accion: "Expediente creado", detalle: "Creado desde la recomendación automática " + assessment.decision + ". Pendiente de revisión humana." }],
       });
+      const requiredDocs = Array.isArray(assessment.documentos_pendientes) ? assessment.documentos_pendientes : [];
+      if (newCase?.id && requiredDocs.length) {
+        await base44.entities.GrantRequirement.bulkCreate(requiredDocs.map(nombre => ({
+          expediente_id: newCase.id, alert_id: alert.id, nombre, estado: "pendiente", obligatorio: true,
+          evidencia_oficial_url: alert.enlace || "", notas: "Generado desde el análisis de bases. Confirmar si es obligatorio y si existe un documento vigente en el archivo común.",
+        })));
+      }
       await load();
       toast.success("Expediente de trabajo creado. Sigue pendiente de preparación y revisión.");
     } catch (e) { toast.error("No se pudo crear el expediente: " + (e.message || "error")); }
