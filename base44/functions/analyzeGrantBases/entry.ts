@@ -93,8 +93,9 @@ Cita el documento oficial y apartado que sustentan cada requisito o bloqueo. Sep
     const dudas = Array.isArray(analisis.dudas_criticas) ? analisis.dudas_criticas : [];
     const fecha = (analisis.fecha_limite_iso || alert.fecha_limite || '').trim();
     const hoy = new Date().toISOString().slice(0, 10);
-    if (decision === 'PRESENTAR' && (!fecha || fecha < hoy || dudas.length > 0 || analisis.fiabilidad !== 'alta')) decision = 'REVISAR';
-    if (decision === 'NO_PRESENTAR' && analisis.fiabilidad !== 'alta') decision = 'REVISAR';
+    const evidencias = Array.isArray(analisis.evidencias) ? analisis.evidencias : [];
+    if (decision === 'PRESENTAR' && (!fecha || fecha < hoy || dudas.length > 0 || analisis.fiabilidad !== 'alta' || !['cumple', 'probable'].includes(analisis.elegibilidad) || evidencias.length === 0)) decision = 'REVISAR';
+    if (decision === 'NO_PRESENTAR' && (analisis.fiabilidad !== 'alta' || evidencias.length === 0)) decision = 'REVISAR';
     const assessmentData = {
       alert_id: alertId,
       titulo: alert.titulo,
