@@ -11,7 +11,15 @@
         "socios",
         "extra",
         "porra",
-        "porra_eurocopa"
+        "porra_eurocopa",
+        "landing_submission",
+        "plan_mensual",
+        "extra_charge",
+        "socios_payment_link",
+        "plan_mensual_recurrente",
+        "socios_fallo",
+        "plan_mensual_fallo",
+        "payment_intent_failed"
       ],
       "description": "Secci\u00f3n/\u00e1rea del pago"
     },
@@ -49,7 +57,9 @@
         "BatchPayment",
         "Unknown",
         "PorraParticipante",
-        "EurocopaParticipante"
+        "EurocopaParticipante",
+        "LandingSubmission",
+        "ExtraChargePayment"
       ],
       "default": "Unknown"
     },
