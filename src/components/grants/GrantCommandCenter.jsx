@@ -28,6 +28,8 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
   const [categoryFilter, setCategoryFilter] = useState("todas");
   const [uploading, setUploading] = useState(false);
   const [analysingId, setAnalysingId] = useState("");
+  const [analysingAll, setAnalysingAll] = useState(false);
+  const [replacingId, setReplacingId] = useState("nuevo");
   const fileRef = useRef(null);
   const [form, setForm] = useState({ titulo: "", categoria: "Identidad del club", entidad_emisora: "", fecha_documento: "", fecha_caducidad: "", temporada: "", notas: "" });
 
@@ -52,6 +54,32 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
   }), [docs, search, categoryFilter]);
 
   const updateForm = (k, v) => setForm(prev => ({ ...prev, [k]: v }));
+
+  const analysePending = async () => {
+    const pending = recomendables.filter(a => !assessmentsByAlert[a.id]);
+    if (!pending.length) { toast.success("Todas las oportunidades visibles ya tienen análisis"); return; }
+    setAnalysingAll(true);
+    let ok = 0, failed = 0;
+    try {
+      for (const alert of pending) {
+        try {
+          const res = await base44.functions.invoke("analyzeGrantBases", { alertId: alert.id });
+          if (res.data?.success) ok++; else failed++;
+        } catch { failed++; }
+      }
+      await load();
+      onChanged?.();
+      toast.success("Análisis finalizado: " + ok + " correctos" + (failed ? ", " + failed + " con error" : ""));
+    } finally { setAnalysingAll(false); }
+  };
+
+  const markReviewed = async (assessment, reviewed) => {
+    try {
+      await base44.entities.GrantAssessment.update(assessment.id, { revisado_humano: reviewed });
+      await load();
+      toast.success(reviewed ? "Revisión humana registrada" : "Revisión humana retirada");
+    } catch { toast.error("No se pudo guardar la revisión"); }
+  };
 
   const saveDocument = async (file) => {
     if (!file) return;
