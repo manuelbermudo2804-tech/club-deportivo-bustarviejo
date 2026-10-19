@@ -82,6 +82,10 @@ export default function GrantCasesPanel() {
       toast.error("Indica el nombre de la convocatoria");
       return;
     }
+    if (form.estado === "presentada" && (!(form.numero_registro || "").trim() || !(form.justificante_uri || "").trim())) {
+      toast.error("No se puede crear como presentada sin número de registro y justificante oficial.");
+      return;
+    }
     setSaving(true);
     try {
       const payload = { ...form, titulo: form.titulo.trim() };
