@@ -14,6 +14,7 @@ import { formatDistanceToNow } from "date-fns";
 import { es } from "date-fns/locale";
 import GrantSourceForm from "@/components/grants/GrantSourceForm";
 import GrantAlertCard from "@/components/grants/GrantAlertCard";
+import GrantCasesPanel from "@/components/grants/GrantCasesPanel";
 
 export default function SubvencionesPanel() {
   const [isAdmin, setIsAdmin] = useState(true);
@@ -117,9 +118,10 @@ export default function SubvencionesPanel() {
       </div>
 
       <Tabs defaultValue="alertas">
-        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1 sm:inline-grid sm:w-auto">
+        <TabsList className="grid h-auto w-full grid-cols-3 gap-1 rounded-2xl bg-slate-100 p-1 sm:inline-grid sm:w-auto">
           <TabsTrigger value="alertas" className="min-w-0 rounded-xl px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">Subvenciones ({alerts.length})</TabsTrigger>
           <TabsTrigger value="fuentes" className="min-w-0 rounded-xl px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">Fuentes ({sources.length})</TabsTrigger>
+          <TabsTrigger value="expedientes" className="min-w-0 rounded-xl px-3 py-2.5 text-xs sm:text-sm data-[state=active]:bg-slate-900 data-[state=active]:text-white">Expedientes</TabsTrigger>
         </TabsList>
 
         {/* Alertas */}
@@ -206,6 +208,10 @@ export default function SubvencionesPanel() {
               );
             })
           )}
+        </TabsContent>
+
+        <TabsContent value="expedientes" className="mt-4 space-y-4">
+          <GrantCasesPanel />
         </TabsContent>
       </Tabs>
 
