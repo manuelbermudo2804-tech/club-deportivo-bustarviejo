@@ -215,6 +215,10 @@ export default function SubvencionesPanel() {
         <TabsContent value="expedientes" className="mt-4 space-y-4">
           <GrantCasesPanel />
         </TabsContent>
+
+        <TabsContent value="centro" className="mt-4 space-y-4">
+          <GrantCommandCenter alerts={alerts} onChanged={loadAll} />
+        </TabsContent>
       </Tabs>
 
       <GrantSourceForm
