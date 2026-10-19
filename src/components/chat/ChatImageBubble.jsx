@@ -2,6 +2,19 @@ import React, { useState } from "react";
 import { Download, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 
+function imageExtension(blob, sourceUrl, fallbackName = '') {
+  const mime = (blob?.type || '').toLowerCase();
+  const byMime = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/webp': 'webp', 'image/gif': 'gif', 'image/avif': 'avif', 'image/heic': 'heic', 'image/heif': 'heif' };
+  if (byMime[mime]) return byMime[mime];
+  const nameExt = fallbackName.match(/\.([a-z0-9]{2,5})$/i)?.[1]?.toLowerCase();
+  if (nameExt && ['jpg','jpeg','png','webp','gif','avif','heic','heif'].includes(nameExt)) return nameExt;
+  try {
+    const ext = new URL(sourceUrl).pathname.match(/\.([a-z0-9]{2,5})$/i)?.[1]?.toLowerCase();
+    if (ext && ['jpg','jpeg','png','webp','gif','avif','heic','heif'].includes(ext)) return ext;
+  } catch {}
+  return 'jpg';
+}
+
 function Lightbox({ photos, initialIndex, onClose }) {
   const [index, setIndex] = useState(initialIndex);
   const photo = photos[index];
@@ -16,7 +29,9 @@ function Lightbox({ photos, initialIndex, onClose }) {
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = photo.nombre || `foto_${index + 1}.jpg`;
+      const fallbackName = photo.nombre || `foto_${index + 1}`;
+      const extension = imageExtension(blob, photo.url, fallbackName);
+      a.download = /\.[a-z0-9]{2,5}$/i.test(fallbackName) ? fallbackName : `${fallbackName}.${extension}`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
