@@ -135,8 +135,7 @@ export default function HalloweenIntro({ preview = false }) {
       <button className="halloween-close" onClick={finish} aria-label="Saltar introducción"><X size={20}/></button>
       <div className="halloween-title">
         <div className="halloween-kicker">C.D. Bustarviejo · Especial Halloween</div>
-        <h1>{started ? "EL PARTIDO
-NUNCA TERMINA" : "EL ÚLTIMO PARTIDO"}</h1>
+        <h1>{started ? <>EL PARTIDO<br />NUNCA TERMINA</> : "EL ÚLTIMO PARTIDO"}</h1>
         <p>{started ? "En Bustarviejo, alguien sigue jugando…" : "El campo está vacío. Pero el balón acaba de moverse."}</p>
         {!started ? (
           <>
