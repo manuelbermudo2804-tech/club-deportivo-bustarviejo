@@ -25,9 +25,13 @@ CONVOCATORIA:
 - Categoría: ${alert.categoria || ''}
 - Enlace oficial: ${alert.enlace || 'no disponible'}
 
-Busca en internet la información oficial de esta convocatoria a partir del título y el enlace. Si no encuentras los detalles exactos, basa tu respuesta en cómo funcionan habitualmente las subvenciones deportivas de ese tipo de organismo, e indícalo claramente.
+Investiga primero la convocatoria oficial enlazada y sus bases, extracto, anexos y resolución si existen. La prioridad absoluta es la evidencia oficial concreta, no las prácticas habituales. NO inventes requisitos, importes ni plazos. Si no puedes verificar un requisito clave o no encuentras bases completas, la decisión debe ser REVISAR, nunca PRESENTAR por suposición. Considera el perfil del CD Bustarviejo: club deportivo sin ánimo de lucro de Bustarviejo (Madrid), fútbol base, cantera y menores, equipos federados, deporte femenino y actividades comunitarias. No des por cumplido ningún requisito del club que no esté acreditado.
 
-Responde en español, de forma sencilla para alguien sin experiencia en trámites administrativos.`;
+Devuelve una recomendación operativa para la junta:
+- PRESENTAR solo si la convocatoria oficial es identificable, el plazo está abierto o confirmado, la elegibilidad del club está razonablemente acreditada y no hay bloqueos críticos conocidos.
+- REVISAR si falta evidencia, hay incertidumbre en elegibilidad, documentación o plazo, o el beneficio/obligaciones no están claros.
+- NO_PRESENTAR solo si las bases oficiales muestran incompatibilidad, plazo cerrado sin posibilidad de solicitud o un requisito obligatorio incumplido.
+Cita el documento oficial y apartado que sustentan cada requisito o bloqueo. Separa hechos confirmados, inferencias y dudas. Explica el siguiente paso concreto y la documentación pendiente. Responde en español claro.`;
 
     const analisis = await base44.integrations.Core.InvokeLLM({
       prompt,
@@ -55,8 +59,17 @@ Responde en español, de forma sencilla para alguien sin experiencia en trámite
           },
           consejos: { type: 'string', description: 'Consejos prácticos para aumentar las opciones de que la concedan' },
           fiabilidad: { type: 'string', enum: ['alta', 'media', 'baja'], description: 'Si la info viene de la convocatoria real (alta) o es estimación general (baja)' },
+          decision: { type: 'string', enum: ['PRESENTAR', 'REVISAR', 'NO_PRESENTAR'], description: 'Recomendación de actuación con las reglas de elegibilidad y evidencia indicadas' },
+          prioridad: { type: 'string', enum: ['urgente', 'alta', 'media', 'baja'] },
+          elegibilidad: { type: 'string', enum: ['cumple', 'probable', 'desconocida', 'no_cumple'] },
+          esfuerzo: { type: 'string', enum: ['bajo', 'medio', 'alto', 'desconocido'] },
+          motivos: { type: 'array', items: { type: 'string' }, description: 'Motivos breves y específicos que justifican la recomendación' },
+          requisitos_confirmados: { type: 'array', items: { type: 'string' } },
+          dudas_criticas: { type: 'array', items: { type: 'string' }, description: 'Bloqueos o datos que hay que verificar antes de decidir' },
+          siguiente_accion: { type: 'string', description: 'Acción concreta inmediata para el club' },
+          evidencias: { type: 'array', items: { type: 'object', properties: { documento: { type: 'string' }, apartado: { type: 'string' }, url: { type: 'string' }, extracto: { type: 'string' } } } },
         },
-        required: ['resumen', 'documentos', 'proyecto_necesario', 'pasos'],
+        required: ['resumen', 'documentos', 'proyecto_necesario', 'pasos', 'decision', 'elegibilidad', 'motivos', 'dudas_criticas', 'siguiente_accion'],
       },
     });
 
@@ -74,7 +87,44 @@ Responde en español, de forma sencilla para alguien sin experiencia en trámite
     }
     await base44.asServiceRole.entities.GrantAlert.update(alertId, updates);
 
-    return Response.json({ success: true, analisis });
+    // Persistir una recomendación operativa estructurada para el panel de decisión.
+    // Si no hay fecha oficial o existen dudas críticas, no se fuerza PRESENTAR.
+    let decision = analisis.decision || 'REVISAR';
+    const dudas = Array.isArray(analisis.dudas_criticas) ? analisis.dudas_criticas : [];
+    const fecha = (analisis.fecha_limite_iso || alert.fecha_limite || '').trim();
+    const hoy = new Date().toISOString().slice(0, 10);
+    if (decision === 'PRESENTAR' && (!fecha || fecha < hoy || dudas.length > 0 || analisis.fiabilidad !== 'alta')) decision = 'REVISAR';
+    if (decision === 'NO_PRESENTAR' && analisis.fiabilidad !== 'alta') decision = 'REVISAR';
+    const assessmentData = {
+      alert_id: alertId,
+      titulo: alert.titulo,
+      entidad: alert.categoria || '',
+      url_oficial: alert.enlace || '',
+      decision,
+      prioridad: analisis.prioridad || (fecha && fecha >= hoy && fecha <= new Date(Date.now() + 7 * 86400000).toISOString().slice(0,10) ? 'urgente' : 'media'),
+      elegibilidad: analisis.elegibilidad || 'desconocida',
+      plazo_estado: !fecha ? 'desconocido' : fecha < hoy ? 'cerrado' : (fecha <= new Date(Date.now() + 7 * 86400000).toISOString().slice(0,10) ? 'proximo' : 'abierto'),
+      fecha_limite: fecha || undefined,
+      esfuerzo: analisis.esfuerzo || 'desconocido',
+      motivos: Array.isArray(analisis.motivos) ? analisis.motivos : [],
+      requisitos_confirmados: Array.isArray(analisis.requisitos_confirmados) ? analisis.requisitos_confirmados : [],
+      dudas_criticas: dudas,
+      documentos_pendientes: Array.isArray(analisis.documentos) ? analisis.documentos : [],
+      siguiente_accion: analisis.siguiente_accion || 'Revisar las bases oficiales y confirmar los requisitos.',
+      fecha_analisis: new Date().toISOString(),
+      fuente_evidencias: Array.isArray(analisis.evidencias) ? analisis.evidencias : [],
+      revisado_humano: false,
+      notas: 'Recomendación automática. Validar los requisitos y las evidencias oficiales antes de tomar la decisión definitiva.',
+    };
+    const allAssessments = await base44.asServiceRole.entities.GrantAssessment.list('-created_date', 300);
+    const existingAssessment = allAssessments.find((item) => item.alert_id === alertId);
+    if (existingAssessment) {
+      await base44.asServiceRole.entities.GrantAssessment.update(existingAssessment.id, assessmentData);
+    } else {
+      await base44.asServiceRole.entities.GrantAssessment.create(assessmentData);
+    }
+
+    return Response.json({ success: true, analisis, decision });
   } catch (error) {
     console.error('Error en analyzeGrantBases:', error);
     return Response.json({ error: error.message }, { status: 500 });
