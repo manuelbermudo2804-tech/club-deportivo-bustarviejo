@@ -9,10 +9,14 @@ Deno.serve(async (req) => {
    base44.asServiceRole.entities.EurocopaParticipante.filter({estado_pago:'pagado'})
   ]);
   const c=cfgs[0]||null;
-  // Los registros archivados no forman parte de los seis grupos oficiales.
+  // No mostrar la competición como abierta si los datos oficiales aún están incompletos.
   const equiposActivos=equipos.filter(e=>['A','B','C','D','E','F'].includes(e.grupo));
+  const codes=equiposActivos.map(e=>String(e.codigo||'').trim());
+  const partidosGrupos=(await base44.asServiceRole.entities.EurocopaPartido.list('numero_partido',200)).filter(m=>m.fase==='grupos');
+  const partidosEliminatorios=(await base44.asServiceRole.entities.EurocopaPartido.list('numero_partido',200)).filter(m=>m.fase!=='grupos');
+  const calendarioCompleto=equiposActivos.length===24&&new Set(codes).size===24&&equiposActivos.every(e=>e.nombre&&!/por definir|tbd|provisional/i.test(e.nombre)&&!/^TBD-/i.test(e.codigo||''))&&partidosGrupos.length===36&&partidosEliminatorios.length===15;
   const previewValido=!!(c?.modo_preview&&c?.codigo_preview&&previewCodigo&&previewCodigo===c.codigo_preview);
   const visibles=parts.filter(p=>!p.es_prueba);
-  return Response.json({preview_mode:previewValido,config:c?{activa:!!c.activa||previewValido,estado:previewValido?'inscripciones_abiertas':c.estado,nombre_torneo:c.nombre_torneo,precio_entrada:Number(c.precio_entrada||10),comision_club_porcentaje:Number(c.comision_club_porcentaje||10),permitir_mini_ligas:!!c.permitir_mini_ligas,permitir_multiples_porras:!!c.permitir_multiples_porras,mostrar_ranking_publico:c.mostrar_ranking_publico!==false,fecha_inicio_torneo:previewValido?null:c.fecha_inicio_torneo,fecha_limite_predicciones:previewValido?null:c.fecha_limite_predicciones}:null,equipos:equiposActivos,stats:{total_participantes:visibles.length,bote:visibles.length*Number(c?.precio_entrada||10)}});
+  return Response.json({preview_mode:previewValido,config:c?{activa:previewValido||(!!c.activa&&calendarioCompleto),estado:previewValido?'inscripciones_abiertas':(calendarioCompleto?c.estado:'preparacion'),nombre_torneo:c.nombre_torneo,precio_entrada:Number(c.precio_entrada||10),comision_club_porcentaje:Number(c.comision_club_porcentaje||10),permitir_mini_ligas:!!c.permitir_mini_ligas,permitir_multiples_porras:!!c.permitir_multiples_porras,mostrar_ranking_publico:c.mostrar_ranking_publico!==false,fecha_inicio_torneo:previewValido?null:c.fecha_inicio_torneo,fecha_limite_predicciones:previewValido?null:c.fecha_limite_predicciones}:null,equipos:equiposActivos,stats:{total_participantes:visibles.length,bote:visibles.length*Number(c?.precio_entrada||10)}});
  } catch(e){return Response.json({error:e.message},{status:500});}
 });
