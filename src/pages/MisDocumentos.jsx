@@ -14,8 +14,8 @@ export default function MisDocumentos() {
           </div>
           <div className="min-w-0">
             <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.2em] text-orange-300">Club Deportivo Bustarviejo</p>
-            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Mis documentos firmados</h1>
-            <p className="mt-2 text-sm text-slate-300">Consulta y descarga los documentos que has firmado con el club.</p>
+            <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Mis documentos</h1>
+            <p className="mt-2 text-sm text-slate-300">Retoma los documentos pendientes de firma y consulta o descarga los que ya has firmado con el club.</p>
           </div>
         </div>
       </header>
