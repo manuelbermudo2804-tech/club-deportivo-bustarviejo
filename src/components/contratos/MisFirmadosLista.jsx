@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "lucide-react";
+import { Download, Loader2, FileSignature, Clock } from "lucide-react";
 import { descargarContratoPdf } from "@/components/contratos/contratoPdf";
 
 // Lista de documentos firmados por el usuario actual. "ocultarVacio" para no mostrar nada si no hay.
@@ -12,16 +12,35 @@ export default function MisFirmadosLista({ ocultarVacio = false }) {
     queryKey: ["misDocumentosFirmados"],
     queryFn: async () => {
       const me = await base44.auth.me();
-      return base44.entities.ContratoVoluntariado.filter({ entrenador_email: me.email, estado: "firmado" }, "-firma_fecha");
+      const [firmados, pendientes] = await Promise.all([
+        base44.entities.ContratoVoluntariado.filter({ entrenador_email: me.email, estado: "firmado" }, "-firma_fecha"),
+        base44.entities.ContratoVoluntariado.filter({ entrenador_email: me.email, estado: "pendiente" }, "-created_date"),
+      ]);
+      return { firmados, pendientes };
     },
   });
   const descargar = async (c) => { setBusy(c.id); await descargarContratoPdf(c); setBusy(null); };
 
   if (isLoading) return <Loader2 className="w-6 h-6 animate-spin mx-auto" />;
-  if (docs.length === 0) return ocultarVacio ? null : <p className="text-sm text-slate-500 text-center py-6">Todavía no has firmado ningún documento.</p>;
+  const firmados = docs.firmados || [];
+  const pendientes = docs.pendientes || [];
+  if (firmados.length === 0 && pendientes.length === 0) return ocultarVacio ? null : <p className="text-sm text-slate-500 text-center py-6">Todavía no tienes documentos firmados ni pendientes.</p>;
+  const reabrirFirma = (c) => window.dispatchEvent(new CustomEvent("abrir-firma-documento", { detail: { contractId: c.id } }));
   return (
-    <div className="space-y-3">
-      {docs.map((c) => (
+    <div className="space-y-6">
+      {pendientes.length > 0 && (
+        <section className="space-y-3">
+          <div className="flex items-center gap-2"><Clock className="h-5 w-5 text-amber-600" /><h2 className="text-lg font-bold text-slate-900">Pendientes de firmar</h2><span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">{pendientes.length}</span></div>
+          {pendientes.map((c) => (
+            <article key={c.id} className="flex min-w-0 flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50/50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+              <div className="flex min-w-0 items-start gap-3"><div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700"><FileSignature className="h-5 w-5" /></div><div className="min-w-0 flex-1"><p className="break-words font-semibold leading-snug text-slate-900">{c.titulo}</p><p className="mt-1 text-xs text-amber-800">Estado: pendiente de firma</p></div></div>
+              <Button onClick={() => reabrirFirma(c)} className="h-10 w-full shrink-0 rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700 sm:w-auto">Firmar ahora</Button>
+            </article>
+          ))}
+        </section>
+      )}
+      {firmados.length > 0 && <section className="space-y-3"><h2 className="text-lg font-bold text-slate-900">Documentos firmados</h2>
+      {firmados.map((c) => (
         <article key={c.id} className="flex min-w-0 flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition-shadow hover:border-orange-200 hover:shadow-md sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <div className="flex min-w-0 items-start gap-3">
             <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-700"><Download className="h-5 w-5" /></div>
@@ -36,6 +55,7 @@ export default function MisFirmadosLista({ ocultarVacio = false }) {
           </Button>
         </article>
       ))}
+      </section>}
     </div>
   );
 }
