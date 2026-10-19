@@ -3,7 +3,7 @@ import SantaTrineo from "./SantaTrineo";
 import BrujaEscoba from "./BrujaEscoba";
 
 const ESTELA = ["✨", "⭐", "✨", "·"];
-const GLOBOS = ["🎈", "🎭", "🎈", "🎉", "🎈", "🪅"];
+const GLOBOS = ["🎈", "🎭", "🎉", "🪅"];
 
 function Volador({ children, top, duracion, retraso = "0s", estela }) {
   return (
@@ -32,7 +32,7 @@ export default function FestiveScenes({ clave }) {
   return (
     <div className="festive-particles fixed inset-0 z-[44] pointer-events-none overflow-hidden" aria-hidden="true">
       {clave === "navidad" && (
-        <Volador top="32vh" duracion="24s" estela><SantaTrineo className="w-44 lg:w-64" /></Volador>
+        <Volador top="30vh" duracion="34s" retraso="2s" estela><SantaTrineo className="w-36 lg:w-60" /></Volador>
       )}
       {clave === "halloween" && (
         <>
@@ -41,13 +41,13 @@ export default function FestiveScenes({ clave }) {
         </>
       )}
       {clave === "reyes" && (
-        <div className="festive-comet absolute left-0 top-0 flex items-center">
+        <div className="festive-comet festive-comet-reyes absolute left-0 top-0 flex items-center">
           <div className="w-32 lg:w-48 h-1 rounded-full bg-gradient-to-r from-transparent via-amber-200/70 to-amber-100" />
           <span className="text-3xl lg:text-4xl drop-shadow-[0_0_12px_rgba(251,191,36,0.9)]">🌟</span>
         </div>
       )}
       {clave === "carnaval" && GLOBOS.map((g, i) => (
-        <span key={i} className="festive-rise absolute text-4xl lg:text-5xl" style={{ left: `${8 + i * 16}%`, animationDelay: `${i * 2.3}s`, animationDuration: `${14 + (i % 3) * 3}s` }}>
+        <span key={i} className="festive-rise absolute text-4xl lg:text-5xl" style={{ left: `${12 + i * 24}%`, animationDelay: `${i * 3.5}s`, animationDuration: `${19 + (i % 2) * 3}s` }}>
           <span className="festive-bob inline-block">{g}</span>
         </span>
       ))}
