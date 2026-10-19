@@ -23,11 +23,11 @@ Deno.serve(async(req)=>{
    for(const g of ['A','B','C','D','E','F']){
     const gm=ms.filter(m=>m.fase==='grupos'&&m.grupo===g);
     if(gm.length!==6||!gm.every(m=>m.finalizado&&m.goles_local!=null&&m.goles_visitante!=null))continue;
-    const table={};
+    const table:Record<string,{codigo:string;pts:number;gf:number;ga:number}>={};
     for(const m of gm){
      const local=m.equipo_local_codigo,away=m.equipo_visitante_codigo;
      if(!local||!away)continue;
-     table[local]??={codigo:local,pts:0,gf:0,ga:0};table[away]??={codigo:away,pts:0,gf:0,ga:0};
+     table[local]=table[local]||{codigo:local,pts:0,gf:0,ga:0};table[away]=table[away]||{codigo:away,pts:0,gf:0,ga:0};
      const gl=Number(m.goles_local),ga=Number(m.goles_visitante);
      table[local].gf+=gl;table[local].ga+=ga;table[away].gf+=ga;table[away].ga+=gl;
      if(gl>ga)table[local].pts+=3;else if(gl<ga)table[away].pts+=3;else{table[local].pts+=1;table[away].pts+=1;}
