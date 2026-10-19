@@ -37,12 +37,26 @@ export default function NuevoContratoForm({ onCreated }) {
         .map((u) => ({ key: u.email, email: u.email, nombre: u.full_name || u.email, menor: false }));
       // Los menores pueden necesitar firma de su tutor aunque NO sean entrenadores en prácticas.
       const menoresPorId = new Map();
-      [...practicas, ...jugadores.filter((p) => p.acceso_menor_email)].forEach((p) => {
-        if (!p.acceso_menor_email || p.es_mayor_edad) return;
+      const esMenorLegal = (p) => {
+        if (p.es_mayor_edad === true) return false;
+        if (p.fecha_nacimiento) {
+          const nacimiento = new Date(p.fecha_nacimiento);
+          if (!Number.isNaN(nacimiento.getTime())) {
+            const hoy = new Date();
+            let edad = hoy.getFullYear() - nacimiento.getFullYear();
+            const cumpleEsteAño = new Date(hoy.getFullYear(), nacimiento.getMonth(), nacimiento.getDate());
+            if (hoy < cumpleEsteAño) edad--;
+            return edad < 18;
+          }
+        }
+        return !!p.acceso_menor_email && p.es_mayor_edad !== true;
+      };
+      [...practicas, ...jugadores].forEach((p) => {
+        if (!esMenorLegal(p) || !(p.email_padre || p.email_tutor_2)) return;
         menoresPorId.set(p.id, p);
       });
       const menores = [...menoresPorId.values()].map((p) => ({
-        key: `menor:${p.id}`, email: p.acceso_menor_email, nombre: p.nombre, menor: true, jugador: p,
+        key: `menor:${p.id}`, email: p.acceso_menor_email || p.email_padre || p.email_tutor_2, nombre: p.nombre, menor: true, jugador: p,
       }));
       const familias = jugadores.filter((p) => p.email_padre).sort((a, b) => a.nombre.localeCompare(b.nombre))
         .map((p) => ({ key: p.id, email: p.email_padre, nombre: p.nombre_tutor_legal || p.email_padre, jugador: p }));
