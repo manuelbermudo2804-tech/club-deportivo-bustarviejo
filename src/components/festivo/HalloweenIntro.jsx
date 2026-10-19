@@ -13,8 +13,9 @@ export default function HalloweenIntro({ preview = false }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
     const key = "cd_bustarviejo_halloween_intro_v1";
+    const today = new Date().toISOString().slice(0, 10);
     const seen = localStorage.getItem(key);
-    if (preview || !seen) {
+    if (preview || seen !== today) {
       setVisible(true);
     }
     return () => {
