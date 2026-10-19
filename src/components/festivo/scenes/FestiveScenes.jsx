@@ -36,9 +36,8 @@ export default function FestiveScenes({ clave }) {
       )}
       {clave === "halloween" && (
         <>
-          <Volador top="42vh" duracion="19s" retraso="3s"><BrujaEscoba className="w-32 lg:w-44" /></Volador>
-          <Arana left="88%" retraso="0s" />
-          <Arana left="72%" retraso="1.7s" />
+          <Volador top="42vh" duracion="32s" retraso="7s"><BrujaEscoba className="w-32 lg:w-44" /></Volador>
+          <Arana left="88%" retraso="2s" />
         </>
       )}
       {clave === "reyes" && (
