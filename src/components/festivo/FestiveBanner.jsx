@@ -27,6 +27,7 @@ export default function FestiveBanner({ clave, tema, mensaje, prueba }) {
               {tema.titulo}
             </h2>
             <p className="mt-2 text-sm lg:text-lg text-white/85 max-w-2xl leading-relaxed">{mensaje}</p>
+            {prueba && <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/20 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-white/80">👁 Vista previa · solo este dispositivo</span>}
           </div>
 
           <div className="relative shrink-0 hidden sm:flex items-center justify-center w-28 h-28 lg:w-40 lg:h-40">
