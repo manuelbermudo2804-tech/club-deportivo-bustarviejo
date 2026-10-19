@@ -1,0 +1,143 @@
+{
+  "type": "object",
+  "description": "Expediente general de una convocatoria de subvenci\u00f3n del Club Deportivo Bustarviejo. No sustituye al expediente espec\u00edfico de justificaci\u00f3n municipal.",
+  "properties": {
+    "titulo": {
+      "type": "string",
+      "description": "Nombre de la convocatoria o ayuda"
+    },
+    "entidad": {
+      "type": "string",
+      "description": "Administraci\u00f3n o entidad convocante"
+    },
+    "referencia": {
+      "type": "string",
+      "description": "N\u00famero de expediente, convocatoria u orden"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada o ejercicio al que corresponde"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "detectada",
+        "analisis",
+        "preparando",
+        "revision",
+        "firma_pendiente",
+        "firmada",
+        "presentada",
+        "resolucion",
+        "concedida",
+        "denegada",
+        "justificacion",
+        "cerrada"
+      ],
+      "default": "detectada"
+    },
+    "importe_solicitado": {
+      "type": "number",
+      "description": "Importe solicitado en euros"
+    },
+    "importe_concedido": {
+      "type": "number",
+      "description": "Importe concedido en euros"
+    },
+    "importe_cobrado": {
+      "type": "number",
+      "description": "Importe cobrado en euros"
+    },
+    "fecha_publicacion": {
+      "type": "string",
+      "format": "date"
+    },
+    "fecha_limite_solicitud": {
+      "type": "string",
+      "format": "date"
+    },
+    "fecha_presentacion": {
+      "type": "string",
+      "format": "date"
+    },
+    "fecha_limite_justificacion": {
+      "type": "string",
+      "format": "date"
+    },
+    "url_oficial": {
+      "type": "string"
+    },
+    "numero_registro": {
+      "type": "string",
+      "description": "N\u00famero de registro oficial de presentaci\u00f3n"
+    },
+    "justificante_uri": {
+      "type": "string",
+      "description": "Ruta o URL del justificante oficial"
+    },
+    "notas": {
+      "type": "string"
+    },
+    "fuente_alerta_id": {
+      "type": "string",
+      "description": "ID de GrantAlert relacionada, si procede"
+    },
+    "responsable": {
+      "type": "string",
+      "description": "Persona responsable interna"
+    },
+    "requiere_revision": {
+      "type": "boolean",
+      "default": true
+    },
+    "historial": {
+      "type": "array",
+      "description": "Historial resumido de actuaciones del expediente",
+      "items": {
+        "type": "object",
+        "properties": {
+          "fecha": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "accion": {
+            "type": "string"
+          },
+          "detalle": {
+            "type": "string"
+          },
+          "evidencia_uri": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "required": [
+    "titulo",
+    "estado"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  },
+  "name": "GrantCase"
+}
