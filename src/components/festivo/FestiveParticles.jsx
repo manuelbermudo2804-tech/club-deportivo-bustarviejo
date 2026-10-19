@@ -3,19 +3,24 @@ import { CONFETI_COLORES } from "./temasFestivos";
 
 // Capa animada (nieve, estrellas, murciélagos o confeti) que cae suavemente sobre la app sin bloquear clics.
 export default function FestiveParticles({ tema }) {
-  const esHalloween = tema.nombre === "Halloween";
+  const perfil = {
+    Halloween: { cantidad: 10, duracion: 18, variacion: 12, tamano: 9, variacionTamano: 10, opacidad: 0.18, variacionOpacidad: 0.22 },
+    Navidad: { cantidad: 16, duracion: 16, variacion: 10, tamano: 10, variacionTamano: 12, opacidad: 0.22, variacionOpacidad: 0.28 },
+    "Reyes Magos": { cantidad: 12, duracion: 18, variacion: 10, tamano: 9, variacionTamano: 10, opacidad: 0.18, variacionOpacidad: 0.24 },
+    Carnaval: { cantidad: 10, duracion: 16, variacion: 10, tamano: 9, variacionTamano: 11, opacidad: 0.2, variacionOpacidad: 0.25 },
+  }[tema.nombre] || { cantidad: 14, duracion: 16, variacion: 10, tamano: 10, variacionTamano: 12, opacidad: 0.22, variacionOpacidad: 0.28 };
   const items = useMemo(
     () =>
-      Array.from({ length: esHalloween ? 10 : 26 }, (_, i) => ({
+      Array.from({ length: perfil.cantidad }, (_, i) => ({
         left: Math.random() * 100,
         delay: -Math.random() * 18,
-        duration: esHalloween ? 18 + Math.random() * 12 : 10 + Math.random() * 10,
-        size: esHalloween ? 9 + Math.random() * 10 : 10 + Math.random() * 16,
-        opacity: esHalloween ? 0.18 + Math.random() * 0.22 : 0.35 + Math.random() * 0.55,
+        duration: perfil.duracion + Math.random() * perfil.variacion,
+        size: perfil.tamano + Math.random() * perfil.variacionTamano,
+        opacity: perfil.opacidad + Math.random() * perfil.variacionOpacidad,
         glyph: Array.isArray(tema.particulas) ? tema.particulas[i % tema.particulas.length] : null,
         color: CONFETI_COLORES[i % CONFETI_COLORES.length],
       })),
-    [tema, esHalloween]
+    [tema, perfil]
   );
 
   return (
