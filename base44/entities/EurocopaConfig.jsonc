@@ -14,6 +14,10 @@
       "type": "boolean",
       "default": false
     },
+    "modo_test": {
+      "type": "boolean",
+      "default": false
+    },
     "codigo_preview": {
       "type": "string"
     },
