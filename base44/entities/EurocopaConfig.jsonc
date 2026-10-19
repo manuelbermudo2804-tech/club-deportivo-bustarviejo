@@ -1,4 +1,5 @@
 {
+  "name": "EurocopaConfig",
   "type": "object",
   "properties": {
     "nombre_torneo": {
@@ -80,6 +81,10 @@
       "type": "number",
       "default": 1
     },
+    "puntos_clasificacion_grupo": {
+      "type": "number",
+      "default": 2
+    },
     "puntos_octavos": {
       "type": "number",
       "default": 3
@@ -103,6 +108,5 @@
   },
   "required": [
     "nombre_torneo"
-  ],
-  "name": "EurocopaConfig"
+  ]
 }
