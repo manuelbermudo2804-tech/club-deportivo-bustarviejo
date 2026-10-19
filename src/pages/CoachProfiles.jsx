@@ -18,8 +18,24 @@ export default function CoachProfiles() {
   const { data: coaches = [], isLoading } = useQuery({
     queryKey: ['coaches'],
     queryFn: async () => {
-      const users = await base44.entities.User.list();
-      return users.filter(u => u.es_entrenador === true);
+      const [users, players] = await Promise.all([
+        base44.entities.User.list(),
+        base44.entities.Player.filter({ activo: true, "entrenador_practicas.activo": true }),
+      ]);
+      const adultos = users
+        .filter(u => u.es_entrenador === true)
+        .map(u => ({ ...u, tipo_entrenador: "adulto" }));
+      const practicas = players.map(p => ({
+        id: `practicas-${p.id}`,
+        full_name: p.nombre,
+        nombre_completo_oficial: p.nombre,
+        email: p.acceso_menor_email || "",
+        categorias_entrena: p.entrenador_practicas?.categorias || [p.categoria_principal || p.deporte].filter(Boolean),
+        tipo_entrenador: "practicas",
+        es_practicas: true,
+      }));
+      const emailsAdultos = new Set(adultos.map(u => (u.email || "").toLowerCase()).filter(Boolean));
+      return [...adultos, ...practicas.filter(p => !p.email || !emailsAdultos.has(p.email.toLowerCase()))];
     },
   });
 
@@ -102,8 +118,8 @@ export default function CoachProfiles() {
                     </div>
                   )}
                   <h3 className="text-base font-bold leading-snug text-slate-900 sm:text-lg">{coach.full_name}</h3>
-                  <div className="mt-1 inline-flex items-center gap-1.5 rounded-full bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700"><ShieldCheck className="h-3.5 w-3.5" /> Entrenador</div>
-                  {isAdmin && (
+                  <div className={`mt-1 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ${coach.es_practicas ? "bg-violet-50 text-violet-700" : "bg-orange-50 text-orange-700"}`}><ShieldCheck className="h-3.5 w-3.5" /> {coach.es_practicas ? "Entrenador en prácticas" : "Entrenador"}</div>
+                  {isAdmin && !coach.es_practicas && (
                     <div className="mt-2 text-xs text-slate-600 space-y-0.5">
                       <p>{coach.nombre_completo_oficial || <span className="text-red-600">Sin nombre completo</span>}</p>
                       <p>DNI: {coach.dni_entrenador || <span className="text-red-600">pendiente</span>}</p>
