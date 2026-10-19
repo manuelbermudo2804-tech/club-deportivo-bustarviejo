@@ -23,6 +23,7 @@ const safeParse = (s) => { try { return JSON.parse(s || "null"); } catch { retur
 export default function GrantCommandCenter({ alerts = [], onChanged }) {
   const [docs, setDocs] = useState([]);
   const [assessments, setAssessments] = useState([]);
+  const [cases, setCases] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("todas");
@@ -36,12 +37,14 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [d, a] = await Promise.all([
+      const [d, a, c] = await Promise.all([
         base44.entities.GrantDocument.list("-created_date", 300),
         base44.entities.GrantAssessment.list("-created_date", 300),
+        base44.entities.GrantCase.list("-created_date", 300),
       ]);
       setDocs(d || []);
       setAssessments(a || []);
+      setCases(c || []);
     } catch (e) { toast.error("No se pudo cargar el archivo y las recomendaciones"); }
     finally { setLoading(false); }
   }, []);
@@ -71,6 +74,21 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
       onChanged?.();
       toast.success("Análisis finalizado: " + ok + " correctos" + (failed ? ", " + failed + " con error" : ""));
     } finally { setAnalysingAll(false); }
+  };
+
+  const createCase = async (alert, assessment) => {
+    if (cases.some(c => c.fuente_alerta_id === alert.id)) { toast.info("Ya existe un expediente de trabajo para esta convocatoria"); return; }
+    try {
+      await base44.entities.GrantCase.create({
+        titulo: alert.titulo, entidad: alert.categoria || alert.fuente_nombre || "",
+        referencia: alert.guid || "", estado: "preparando", fecha_limite_solicitud: assessment.fecha_limite || alert.fecha_limite || undefined,
+        url_oficial: alert.enlace || "", fuente_alerta_id: alert.id, requiere_revision: true,
+        notas: "Expediente creado desde el motor de decisión. Recomendación: " + assessment.decision + ". Siguiente acción: " + (assessment.siguiente_accion || "revisar bases") + ". No marcar como presentada sin justificante oficial.",
+        historial: [{ fecha: new Date().toISOString(), accion: "Expediente creado", detalle: "Creado desde la recomendación automática " + assessment.decision + ". Pendiente de revisión humana." }],
+      });
+      await load();
+      toast.success("Expediente de trabajo creado. Sigue pendiente de preparación y revisión.");
+    } catch (e) { toast.error("No se pudo crear el expediente: " + (e.message || "error")); }
   };
 
   const markReviewed = async (assessment, reviewed) => {
@@ -128,6 +146,10 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
   };
 
   const assessmentsByAlert = useMemo(() => Object.fromEntries(assessments.map(a => [a.alert_id, a])), [assessments]);
+  const sortedRecomendables = useMemo(() => [...recomendables].sort((a,b) => {
+    const rank = (item) => { const d = assessmentsByAlert[item.id]?.decision; return d === "PRESENTAR" ? 0 : d === "REVISAR" ? 1 : d === "NO_PRESENTAR" ? 3 : 2; };
+    return rank(a) - rank(b) || ((a.fecha_limite || "9999-12-31").localeCompare(b.fecha_limite || "9999-12-31"));
+  }), [recomendables, assessmentsByAlert]);
   const pendientes = docs.filter(d => d.estado === "por_revisar" || d.estado === "caducado").length;
   const recomendables = alerts.filter(a => !["descartada","solicitada"].includes(a.estado));
 
@@ -156,7 +178,7 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
           </div>
           {loading ? <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-orange-600" /></div> :
             recomendables.length === 0 ? <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-slate-500">No hay oportunidades pendientes. Pulsa «Revisar ahora» en la pestaña de subvenciones para detectar nuevas convocatorias.</div> :
-            recomendables.map(alert => {
+            sortedRecomendables.map(alert => {
               const assessment = assessmentsByAlert[alert.id];
               const meta = assessment ? (decisionMeta[assessment.decision] || decisionMeta.REVISAR) : decisionMeta.REVISAR;
               const Icon = meta.icon;
@@ -188,6 +210,7 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
                       {analysingId === alert.id ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <Sparkles className="mr-2 h-4 w-4"/>}
                       {assessment ? "Actualizar análisis y decisión" : "Analizar y decidir"}
                     </Button>
+                    {assessment && <Button variant="outline" onClick={() => createCase(alert, assessment)} className="rounded-xl" disabled={cases.some(c => c.fuente_alerta_id === alert.id)}><Archive className="mr-2 h-4 w-4"/>{cases.some(c => c.fuente_alerta_id === alert.id) ? "Expediente creado" : "Crear expediente de trabajo"}</Button>}
                     {alert.enlace && <a href={alert.enlace} target="_blank" rel="noreferrer"><Button variant="outline" className="rounded-xl"><ExternalLink className="mr-2 h-4 w-4"/>Bases oficiales</Button></a>}
                     {days !== null && days >= 0 && days <= 7 && <Badge className="bg-red-100 text-red-700"><Clock className="mr-1 h-3 w-3"/>{days === 0 ? "Cierra hoy" : days + " días restantes"}</Badge>}
                   </div>
