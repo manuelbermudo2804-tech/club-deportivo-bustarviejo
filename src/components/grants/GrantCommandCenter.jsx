@@ -88,7 +88,7 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
       });
       const requiredDocs = Array.isArray(assessment.documentos_pendientes) ? assessment.documentos_pendientes : [];
       if (newCase?.id && requiredDocs.length) {
-        await base44.entities.GrantRequirement.bulkCreate(requiredDocs.map(nombre => ({
+        await Promise.all(requiredDocs.map(nombre => base44.entities.GrantRequirement.create({
           expediente_id: newCase.id, alert_id: alert.id, nombre, estado: "pendiente", obligatorio: true,
           evidencia_oficial_url: alert.enlace || "", notas: "Generado desde el análisis de bases. Confirmar si es obligatorio y si existe un documento vigente en el archivo común.",
         })));
