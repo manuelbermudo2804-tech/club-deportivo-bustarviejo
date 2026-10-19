@@ -9,7 +9,7 @@ const captions = [
   { at: 11, text: "EN BUSTARVIEJO NO TENEMOS MIEDO." },
 ];
 
-export default function Halloween() {
+export default function Halloween({ onClose }) {
   const [playing, setPlaying] = useState(false);
   const [muted, setMuted] = useState(true);
   const [caption, setCaption] = useState("");
@@ -74,7 +74,7 @@ export default function Halloween() {
         @media(prefers-reduced-motion:reduce){.halloween-page *{animation:none!important;scroll-behavior:auto!important}}
       `}</style>
       <section className={`halloween-stage ${playing ? "is-playing" : ""}`} aria-label="Experiencia Halloween del C.D. Bustarviejo">
-        <button className="halloween-back" onClick={() => navigate(-1)} aria-label="Volver"><ArrowLeft size={18}/></button>
+        <button className="halloween-back" onClick={() => onClose ? onClose() : navigate(-1)} aria-label="Volver"><ArrowLeft size={18}/></button>
         <div className="halloween-moon"/><div className="halloween-mountains"/><div className="halloween-ridge"/>
         <div className="halloween-title"><div className="club">C.D. BUSTARVIEJO</div><h1>EN BUSTARVIEJO</h1><strong>NO TENEMOS MIEDO</strong></div>
         <div className="halloween-light l1"/><div className="halloween-light l2"/>
