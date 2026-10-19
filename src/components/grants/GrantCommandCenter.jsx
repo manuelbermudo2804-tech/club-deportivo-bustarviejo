@@ -146,12 +146,12 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
   };
 
   const assessmentsByAlert = useMemo(() => Object.fromEntries(assessments.map(a => [a.alert_id, a])), [assessments]);
+  const recomendables = alerts.filter(a => !["descartada","solicitada"].includes(a.estado));
   const sortedRecomendables = useMemo(() => [...recomendables].sort((a,b) => {
     const rank = (item) => { const d = assessmentsByAlert[item.id]?.decision; return d === "PRESENTAR" ? 0 : d === "REVISAR" ? 1 : d === "NO_PRESENTAR" ? 3 : 2; };
     return rank(a) - rank(b) || ((a.fecha_limite || "9999-12-31").localeCompare(b.fecha_limite || "9999-12-31"));
   }), [recomendables, assessmentsByAlert]);
   const pendientes = docs.filter(d => d.estado === "por_revisar" || d.estado === "caducado").length;
-  const recomendables = alerts.filter(a => !["descartada","solicitada"].includes(a.estado));
 
   return (
     <div className="space-y-4">
