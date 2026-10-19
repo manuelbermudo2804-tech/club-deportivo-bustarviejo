@@ -144,7 +144,7 @@ export default function NuevoContratoForm({ onCreated }) {
         }
       }
       toast.success(dobleFirmaEntrenadora
-        ? "Enviadas las dos solicitudes: firma de la entrenadora y firma de su tutor legal."
+        ? "Documento preparado para doble firma: entrenadora y tutor legal."
         : "Documento enviado. Le aparecerá al abrir la app.");
       setDestino(""); setTexto(plantilla.texto); setEntrenadoraMenor(false);
       onCreated();
