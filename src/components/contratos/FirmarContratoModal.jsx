@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -30,13 +30,23 @@ export default function FirmarContratoModal({ user }) {
   const [privacidad, setPrivacidad] = useState(false);
   const [saving, setSaving] = useState(false);
   const [later, setLater] = useState(false);
+  const [selectedId, setSelectedId] = useState(null);
+
+  useEffect(() => {
+    const reabrir = (event) => {
+      setSelectedId(event.detail?.contractId || null);
+      setLater(false);
+    };
+    window.addEventListener("abrir-firma-documento", reabrir);
+    return () => window.removeEventListener("abrir-firma-documento", reabrir);
+  }, []);
 
   const { data: pendientes = [] } = useQuery({
     queryKey: ["contratosPendientes", user?.email],
     queryFn: () => base44.entities.ContratoVoluntariado.filter({ entrenador_email: user.email, estado: "pendiente" }),
     enabled: !!user?.email,
   });
-  const c = pendientes[0];
+  const c = pendientes.find((doc) => doc.id === selectedId) || pendientes[0];
   if (!c || later) return null;
   const menor = !!c.es_menor;
 
@@ -62,7 +72,10 @@ export default function FirmarContratoModal({ user }) {
         await base44.auth.updateMe({ nombre_completo_oficial: data.firma_nombre, dni_entrenador: data.firma_dni });
       }
       toast.success("Acuerdo firmado. ¡Gracias!");
+      setLater(true);
+      setSelectedId(null);
       qc.invalidateQueries({ queryKey: ["contratosPendientes"] });
+      qc.invalidateQueries({ queryKey: ["misDocumentosFirmados"] });
     } catch (e) {
       toast.error("No se pudo firmar: " + e.message);
     }
