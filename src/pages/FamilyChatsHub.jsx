@@ -57,26 +57,34 @@ export default function FamilyChatsHub() {
     queryFn: async () => {
       if (myCategories.length === 0) return [];
       
-      const allMessages = await base44.entities.ChatMessage.list('-created_date', 100);
-      
-      // Crear una entrada por CADA categoría (tenga o no mensajes)
-      return myCategories.map(cat => {
+      // Leer cada grupo mediante el backend autorizado. La lectura directa de ChatMessage.list()
+      // está sujeta a reglas RLS que pueden ocultar mensajes de actividades adicionales.
+      const groups = await Promise.all(myCategories.map(async (cat) => {
         const groupId = normalizeId(cat);
-        const messagesInGroup = allMessages.filter(m => m.grupo_id === groupId);
-        return {
-          categoryName: cat,
-          groupId,
-          lastMessage: messagesInGroup.length > 0 ? messagesInGroup[0] : null,
-          unreadCount: 0
-        };
-      }).sort((a, b) => {
-        // Las que tienen mensajes primero, luego por fecha
+        try {
+          const response = await base44.functions.invoke("chatGetTeamMessages", { categoria: cat });
+          const messagesInGroup = (response?.data?.messages || [])
+            .filter(m => !m.eliminado)
+            .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0));
+          return {
+            categoryName: cat,
+            groupId,
+            lastMessage: messagesInGroup[0] || null,
+            unreadCount: 0
+          };
+        } catch (error) {
+          console.warn("No se pudo cargar el resumen del chat", cat, error);
+          return { categoryName: cat, groupId, lastMessage: null, unreadCount: 0 };
+        }
+      }));
+
+      return groups.sort((a, b) => {
         if (a.lastMessage && !b.lastMessage) return -1;
         if (!a.lastMessage && b.lastMessage) return 1;
         if (a.lastMessage && b.lastMessage) {
           return new Date(b.lastMessage.created_date) - new Date(a.lastMessage.created_date);
         }
-        return 0;
+        return a.categoryName.localeCompare(b.categoryName, "es");
       });
     },
     enabled: !!user && myCategories.length > 0,
