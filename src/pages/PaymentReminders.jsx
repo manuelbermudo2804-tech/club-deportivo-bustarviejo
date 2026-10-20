@@ -305,6 +305,55 @@ export default function PaymentReminders() {
         return;
       }
 
+      // Jugadores inscritos en varias actividades: calcular cada cuota por
+      // categoría_actividad. No permitir que un pago de una actividad cubra otra.
+      // Los pagos históricos sin categoría se mantienen sin asignación automática.
+      const playerCategories = [...new Set(
+        (Array.isArray(player.categorias) && player.categorias.length
+          ? player.categorias
+          : [player.deporte]).filter(Boolean)
+      )];
+      if (playerCategories.length > 1) {
+        const pendingMonths = [];
+        playerCategories.forEach(categoria => {
+          const categoryPayments = playerPayments.filter(p =>
+            p.categoria_actividad === categoria
+          );
+          ["Junio", "Septiembre", "Diciembre"].forEach(mes => {
+            const monthPayments = categoryPayments.filter(p => p.mes === mes);
+            const covered = monthPayments.some(p =>
+              p.estado === "Pagado" || p.estado === "En revisión"
+            );
+            if (covered) return;
+
+            const pendingPayment = monthPayments.find(p => p.estado === "Pendiente");
+            const cantidad = pendingPayment
+              ? Number(pendingPayment.cantidad) || 0
+              : Number(getCorrectAmount(categoria, mes)) || 0;
+
+            if (cantidad <= 0 && !pendingPayment) return;
+            pendingMonths.push({
+              mes: `${categoria} — ${mes}`,
+              cantidad,
+              payment_id: pendingPayment?.id || null,
+              isVirtual: !pendingPayment,
+              categoria_actividad: categoria
+            });
+          });
+        });
+
+        familyMap[familyEmail].jugadores.push({
+          id: player.id,
+          nombre: player.nombre,
+          deporte: playerCategories.join(" + "),
+          foto_url: player.foto_url,
+          pendingMonths,
+          totalDue: pendingMonths.reduce((sum, m) => sum + m.cantidad, 0),
+          hasPendingPayments: pendingMonths.length > 0
+        });
+        return;
+      }
+
       // Si hay cuotas del plan de tres meses registradas, tienen prioridad sobre
       // cualquier pago único antiguo/duplicado: evita mostrar el total de temporada
       // como deuda cuando solo queda diciembre, por ejemplo.
