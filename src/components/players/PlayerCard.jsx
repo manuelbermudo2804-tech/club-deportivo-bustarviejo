@@ -477,7 +477,33 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
             )}
 
             {/* ═══════ PAYMENT BAR ═══════ */}
-            <PaymentBar />
+            {playerCategories.length > 1 ? (
+              <div className="space-y-1.5">
+                {playerCategories.map((activity) => {
+                  const activityPayments = playerPayments.filter(p => p.categoria_actividad === activity);
+                  const hasUnassigned = playerPayments.some(p => !p.categoria_actividad);
+                  return (
+                    <div key={activity} className="space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[10px] font-semibold text-slate-600 truncate">{activity}</span>
+                        <span className={`text-[10px] font-semibold ${activityPayments.some(p => p.estado === "Pendiente") ? "text-red-600" : activityPayments.length ? "text-green-600" : "text-amber-600"}`}>
+                          {activityPayments.length ? `${activityPayments.filter(p => p.estado === "Pagado").length}/${activityPayments.length} pagados` : "Sin pagos identificados"}
+                        </span>
+                      </div>
+                      <div className="flex gap-0.5 h-4 rounded-lg overflow-hidden">
+                        {["Junio", "Septiembre", "Diciembre"].map((mes) => {
+                          const payment = activityPayments.find(p => p.mes === mes) || activityPayments.find(p => p.mes?.toLowerCase() === mes.toLowerCase());
+                          const paid = payment?.estado === "Pagado";
+                          const review = payment?.estado === "En revisión";
+                          return <div key={mes} title={`${activity} · ${mes}: ${payment ? payment.estado : "Sin cuota identificada"}`} className={`flex-1 flex items-center justify-center text-[9px] font-bold ${paid ? "bg-green-500 text-white" : review ? "bg-amber-400 text-white" : "bg-red-400 text-white"}`}>{mes.slice(0,3)}{paid ? "✓" : review ? "⏳" : ""}</div>;
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+                {playerPayments.some(p => !p.categoria_actividad) && <span className="block text-[9px] text-amber-700">⚠️ Hay pagos históricos pendientes de asignar a una actividad.</span>}
+              </div>
+            ) : <PaymentBar />
 
             {/* ═══════ NEXT MATCH ═══════ */}
             {nextCallup && (
