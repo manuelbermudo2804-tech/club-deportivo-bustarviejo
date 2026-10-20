@@ -86,7 +86,8 @@ export function getExpectedPaymentsCount(jugadorId, payments, customPlans, tempo
   const playerPayments = payments.filter(p => 
     p.jugador_id === jugadorId &&
     (!temporada || sameSeason(p.temporada, temporada)) &&
-    p.is_deleted !== true
+    p.is_deleted !== true &&
+    p.estado !== "Anulado"
   );
   
   const hasPagoUnico = playerPayments.some(p => 
@@ -115,7 +116,8 @@ export function getPendingPaymentsCount(jugadorId, payments, customPlans, tempor
   const playerPayments = payments.filter(p => 
     p.jugador_id === jugadorId &&
     (!temporada || sameSeason(p.temporada, temporada)) &&
-    p.is_deleted !== true
+    p.is_deleted !== true &&
+    p.estado !== "Anulado"
   );
   
   const hasPagoUnico = playerPayments.some(p => 
