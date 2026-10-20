@@ -585,7 +585,9 @@ export default function Payments() {
     let matchesCategoria = true;
     if (categoriaFilter !== "all") {
       const player = players.find(p => p.id === payment.jugador_id);
-      matchesCategoria = player?.deporte === categoriaFilter;
+      matchesCategoria = payment.categoria_actividad
+        ? payment.categoria_actividad === categoriaFilter
+        : (player?.deporte === categoriaFilter || player?.categoria_principal === categoriaFilter || (player?.categorias || []).includes(categoriaFilter));
     }
     
     // Filtro de vencidos
@@ -806,7 +808,7 @@ export default function Payments() {
   const temporadas = ["all", ...temporadasOrdenadas];
   
   // Categorías únicas
-  const categorias = ["all", ...new Set((players || []).map(p => p.deporte).filter(Boolean))];
+  const categorias = ["all", ...new Set((players || []).flatMap(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])]).filter(Boolean))];
 
   const prepareExportData = () => {
     return filteredPayments.map(p => ({
@@ -1599,7 +1601,7 @@ export default function Payments() {
                                             )}
                                           </p>
                                           <p className="text-[10px] lg:text-xs text-slate-600">
-                                            {payment.cantidad}€
+                                            {payment.cantidad}€{payment.categoria_actividad ? ` · ${payment.categoria_actividad}` : (Array.isArray(player.categorias) && player.categorias.length > 0 ? " · Actividad por identificar" : "")}
                                           </p>
                                         </div>
                                       </div>
