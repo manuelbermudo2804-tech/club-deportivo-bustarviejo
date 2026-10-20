@@ -168,15 +168,19 @@ async function enviarEmail(base44, abiertas, cerrando) {
       "<p>Entra en el panel de Subvenciones del club para gestionarlas.</p>";
 
     for (const email of emails) {
-      await base44.asServiceRole.integrations.Core.SendEmail({
-        to: email,
-        subject: abiertas.length > 0
-          ? "📢 Subvención con plazo abierto — CD Bustarviejo"
-          : "⏰ Subvención a punto de cerrar — CD Bustarviejo",
-        body: cuerpo,
-        from_name: "CD Bustarviejo · Subvenciones",
-      });
-      entregas++;
+      try {
+        await base44.asServiceRole.integrations.Core.SendEmail({
+          to: email,
+          subject: abiertas.length > 0
+            ? "📢 Subvención con plazo abierto — CD Bustarviejo"
+            : "⏰ Subvención a punto de cerrar — CD Bustarviejo",
+          body: cuerpo,
+          from_name: "CD Bustarviejo · Subvenciones",
+        });
+        entregas++;
+      } catch (e) {
+        console.error("Error enviando aviso a un administrador:", e.message);
+      }
     }
   } catch (e) {
     console.error("Error email plazos:", e.message);
