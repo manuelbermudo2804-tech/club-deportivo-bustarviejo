@@ -126,10 +126,12 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
       const plan = customPlans.find(p => p.jugador_id === player.id && p.estado === "Activo");
       if (plan && plan.cuotas) {
         const primeraPendiente = plan.cuotas.find(c => !c.pagada) || plan.cuotas[0];
+        const activities = [...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))];
         setCurrentPayment({
           ...currentPayment,
           jugador_id: player.id,
           jugador_nombre: player.nombre,
+          categoria_actividad: activities.length === 1 ? activities[0] : "",
           tipo_pago: "Plan Especial",
           plan_especial_id: plan.id,
           mes: `Cuota ${primeraPendiente.numero}`,
@@ -138,10 +140,12 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
         return;
       }
 
+      const activities = [...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))];
       setCurrentPayment({
         ...currentPayment,
         jugador_id: player.id,
-        jugador_nombre: player.nombre
+        jugador_nombre: player.nombre,
+        categoria_actividad: activities.length === 1 ? activities[0] : ""
       });
     }
   };
@@ -184,6 +188,15 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
     if (!currentPayment.jugador_id) {
       toast.error("Selecciona un jugador");
       return;
+    }
+
+    const playerActivities = [...new Set([selectedPlayer?.categoria_principal, selectedPlayer?.deporte, ...(Array.isArray(selectedPlayer?.categorias) ? selectedPlayer.categorias : [])].filter(Boolean))];
+    if (playerActivities.length > 1 && !currentPayment.categoria_actividad) {
+      toast.error("Selecciona la actividad a la que corresponde este pago");
+      return;
+    }
+    if (!currentPayment.categoria_actividad && playerActivities.length === 1) {
+      currentPayment.categoria_actividad = playerActivities[0];
     }
 
     // 🔒 Protección plan especial: si el jugador tiene un plan activo, el pago DEBE
@@ -284,6 +297,21 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Actividad a la que corresponde el pago: obligatoria para jugadores multiactividad */}
+              {selectedPlayer && [...new Set([selectedPlayer.categoria_principal, selectedPlayer.deporte, ...(Array.isArray(selectedPlayer.categorias) ? selectedPlayer.categorias : [])].filter(Boolean))].length > 1 && (
+                <div className="space-y-2">
+                  <Label>Actividad del pago *</Label>
+                  <Select value={currentPayment.categoria_actividad || ""} onValueChange={(value) => setCurrentPayment(prev => ({ ...prev, categoria_actividad: value }))} required>
+                    <SelectTrigger><SelectValue placeholder="Selecciona la actividad" /></SelectTrigger>
+                    <SelectContent>
+                      {[...new Set([selectedPlayer.categoria_principal, selectedPlayer.deporte, ...(Array.isArray(selectedPlayer.categorias) ? selectedPlayer.categorias : [])].filter(Boolean))].map(activity => (
+                        <SelectItem key={activity} value={activity}>{activity}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               {/* Plan especial activo → selector de cuota del plan (bloquea modo estándar) */}
               {activePlan ? (
