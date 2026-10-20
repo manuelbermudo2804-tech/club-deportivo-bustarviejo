@@ -19,6 +19,17 @@ const decisionMeta = {
   NO_PRESENTAR: { label: "NO PRESENTAR", cls: "bg-slate-200 text-slate-700", icon: XCircle },
 };
 const safeParse = (s) => { try { return JSON.parse(s || "null"); } catch { return null; } };
+const fechaMadridISO = () => {
+  const partes = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Madrid", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const valores = Object.fromEntries(partes.map((parte) => [parte.type, parte.value]));
+  return `${valores.year}-${valores.month}-${valores.day}`;
+};
+const diasNaturalesHasta = (fechaISO) => {
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(String(fechaISO || ""))) return null;
+  const limite = Date.parse(`${fechaISO}T00:00:00.000Z`);
+  const hoy = Date.parse(`${fechaMadridISO()}T00:00:00.000Z`);
+  return Number.isFinite(limite) && Number.isFinite(hoy) ? Math.round((limite - hoy) / 86400000) : null;
+};
 
 export default function GrantCommandCenter({ alerts = [], onChanged }) {
   const [docs, setDocs] = useState([]);
@@ -122,7 +133,7 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
       await base44.entities.GrantDocument.create({
         ...form, archivo_url: uploaded.file_url, nombre_archivo: file.name, tipo_mime: file.type || "",
         version: previous ? (Number(previous.version || 1) + 1) : 1,
-        estado: form.fecha_caducidad && form.fecha_caducidad < new Date().toISOString().slice(0,10) ? "caducado" : (form.fecha_caducidad ? "vigente" : "por_revisar"),
+        estado: form.fecha_caducidad && form.fecha_caducidad < fechaMadridISO() ? "caducado" : (form.fecha_caducidad ? "vigente" : "por_revisar"),
         documento_reutilizable: true, expediente_ids: previous?.expediente_ids || [],
         historial_versiones: versionHistory, sustituye_documento_id: previous?.id || "",
       });
@@ -158,7 +169,7 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
     return acc;
   }, {}), [assessments]);
   const recomendables = alerts.filter(a => !["descartada","solicitada"].includes(a.estado));
-  const todayISO = new Date().toISOString().slice(0, 10);
+  const todayISO = fechaMadridISO();
   const effectiveDecision = (alert) => {
     const assessment = assessmentsByAlert[alert.id];
     const deadline = assessment?.fecha_limite || alert.fecha_limite;
@@ -203,7 +214,7 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
               const decision = effectiveDecision(alert);
               const meta = decisionMeta[decision] || decisionMeta.REVISAR;
               const Icon = meta.icon;
-              const days = deadline ? Math.ceil((new Date(deadline + "T23:59:59").getTime() - Date.now()) / 86400000) : null;
+              const days = deadline ? diasNaturalesHasta(deadline) : null;
               const analysis = safeParse(alert.analisis_ia);
               return <Card key={alert.id} className="rounded-2xl border-slate-200">
                 <CardContent className="space-y-3 p-4">
