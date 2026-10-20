@@ -1318,6 +1318,13 @@ export default function Payments() {
                       if (temporadaFilter === "all") {
                         // Si el filtro es "all", SOLO mostrar los pagos reales que existen en BD
                         displayPayments = playerPayments;
+                      } else if (hasMultipleActivities) {
+                        // No inventar cuotas virtuales de la categoría principal para un jugador multiactividad.
+                        // Se muestran todos los pagos reales, aunque las actividades tengan planes distintos.
+                        displayPayments = [...playerPayments].sort((a, b) => {
+                          const order = { Junio: 1, Septiembre: 2, Diciembre: 3 };
+                          return (order[a.mes] || 99) - (order[b.mes] || 99) || String(a.categoria_actividad || "").localeCompare(String(b.categoria_actividad || ""));
+                        });
                       } else if (hasPlanMensual) {
                         // Plan Mensual: mostrar TODOS los pagos reales (inicial + mensualidades de webhook)
                         displayPayments = playerPayments.filter(p => p.tipo_pago === "Plan Mensual");
