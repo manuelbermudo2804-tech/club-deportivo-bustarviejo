@@ -105,7 +105,7 @@ export default function ParentCoachChat() {
         if (allPlayers.length > 0 && !selectedCategory) {
           const urlParams = new URLSearchParams(window.location.search);
           const urlCategory = urlParams.get('category');
-          if (urlCategory && allPlayers.some(p => (p.categoria_principal || p.deporte) === urlCategory)) {
+          if (urlCategory && allPlayers.some(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])].filter(Boolean).includes(urlCategory))) {
             setSelectedCategory(urlCategory);
             setLockedCategory(urlCategory);
           } else {
@@ -506,7 +506,7 @@ export default function ParentCoachChat() {
 
     const categories = Array.from(new Map(
       myPlayers
-        .map(p => (p.categoria_principal || p.deporte))
+        .flatMap(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])])
         .filter(Boolean)
         .map(cat => [normalizeCategory(cat), cat])
     ).values());
