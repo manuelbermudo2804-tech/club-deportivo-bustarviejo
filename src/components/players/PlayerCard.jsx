@@ -502,7 +502,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
                 })}
                 {playerPayments.some(p => !p.categoria_actividad) && <span className="block text-[9px] text-amber-700">⚠️ Hay pagos históricos pendientes de asignar a una actividad.</span>}
               </div>
-            ) : <PaymentBar />
+            ) : <PaymentBar />}
 
             {/* ═══════ NEXT MATCH ═══════ */}
             {nextCallup && (
