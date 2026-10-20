@@ -181,6 +181,7 @@ Deno.serve(async (req) => {
         for (const p of payments) {
           const created = await base44.asServiceRole.entities.Payment.create({
             ...p,
+            categoria_actividad: categoria,
             jugador_id: updated.id,
             jugador_nombre: updated.nombre,
           });
