@@ -60,6 +60,11 @@
       "type": "string",
       "format": "date"
     },
+    "fecha_resolucion": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha de resoluci\u00f3n o concesi\u00f3n de la ayuda"
+    },
     "fecha_limite_justificacion": {
       "type": "string",
       "format": "date"
