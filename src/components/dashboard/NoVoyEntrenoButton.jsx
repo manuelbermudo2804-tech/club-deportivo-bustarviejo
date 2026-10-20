@@ -27,21 +27,29 @@ export default function NoVoyEntrenoButton({ jugador, categoria, fechaISO, user,
     if (noVa && !window.confirm(`¿Seguro que ${jugador.nombre} no irá hoy a entrenar? Se avisa al entrenador y al chat del equipo.`)) return;
     setSending(true);
     const texto = noVa
-      ? `🚫 ${jugador.nombre} no irá al entrenamiento de hoy.`
-      : `✅ Al final ${jugador.nombre} sí irá al entrenamiento de hoy.`;
-    const creado = await base44.entities.ChatMessage.create({
-      tipo: "padre_a_grupo",
-      remitente_email: user.email,
-      remitente_nombre: user.full_name || jugador.nombre,
-      mensaje: texto,
-      grupo_id: grupoId,
-      deporte: categoria,
-      client_id: `${prefijo}${noVa ? "no" : "si"}_${Date.now()}`,
-      leido_por: [{ email: user.email, nombre: user.full_name || "", fecha: new Date().toISOString() }],
-    });
-    qc.setQueryData(key, creado);
-    setSending(false);
-    toast.success(noVa ? "Avisado al entrenador y al equipo" : "Aviso anulado");
+      ? `🚫 ${jugador.nombre} no irá al entrenamiento de hoy (${categoria}).`
+      : `✅ Al final ${jugador.nombre} sí irá al entrenamiento de hoy (${categoria}).`;
+    try {
+      const creado = await base44.entities.ChatMessage.create({
+        tipo: "padre_a_grupo",
+        remitente_email: user.email,
+        remitente_nombre: user.full_name || jugador.nombre,
+        mensaje: texto,
+        grupo_id: grupoId,
+        deporte: categoria,
+        client_id: `${prefijo}${noVa ? "no" : "si"}_${Date.now()}`,
+        leido_por: [{ email: user.email, nombre: user.full_name || "", fecha: new Date().toISOString() }],
+      });
+      qc.setQueryData(key, creado);
+      await qc.invalidateQueries({ queryKey: ["teamChatsHub"] });
+      await qc.invalidateQueries({ queryKey: ["coachParentChatMessages", grupoId] });
+      toast.success(noVa ? `Aviso enviado al chat de ${categoria}` : `Aviso actualizado en ${categoria}`);
+    } catch (error) {
+      console.error("[NoVoyEntrenoButton] No se pudo guardar el aviso", error);
+      toast.error("No se ha podido enviar el aviso. Inténtalo de nuevo.");
+    } finally {
+      setSending(false);
+    }
   };
 
   const nombre = jugador.nombre.split(" ")[0];
