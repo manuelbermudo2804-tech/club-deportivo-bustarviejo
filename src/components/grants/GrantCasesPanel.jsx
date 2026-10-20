@@ -39,7 +39,7 @@ const money = (v) => Number.isFinite(Number(v)) && v !== "" && v != null ? new I
 const EMPTY = {
   titulo: "", entidad: "", referencia: "", temporada: "", estado: "detectada",
   importe_solicitado: "", importe_concedido: "", importe_cobrado: "",
-  fecha_limite_solicitud: "", fecha_limite_justificacion: "", url_oficial: "",
+  fecha_limite_solicitud: "", fecha_presentacion: "", fecha_limite_justificacion: "", url_oficial: "",
   numero_registro: "", justificante_uri: "", notas: "", responsable: "", historial: [],
 };
 
@@ -53,6 +53,8 @@ export default function GrantCasesPanel() {
   const [form, setForm] = useState(EMPTY);
   const [filter, setFilter] = useState("todos");
   const [search, setSearch] = useState("");
+  const [requirementDrafts, setRequirementDrafts] = useState({});
+  const [addingRequirementTo, setAddingRequirementTo] = useState("");
 
   const loadCases = useCallback(async () => {
     setLoading(true);
@@ -94,6 +96,11 @@ export default function GrantCasesPanel() {
       });
       Object.keys(payload).forEach((k) => { if (payload[k] === "") delete payload[k]; });
       payload.historial = [{ fecha: new Date().toISOString(), accion: "Expediente creado", detalle: "Alta inicial en el gestor de subvenciones." }];
+      if (payload.estado === "presentada" && (!(payload.numero_registro || "").trim() || !(payload.justificante_uri || "").trim())) {
+        toast.error("Para crear un expediente como presentado debes incluir número de registro y justificante oficial.");
+        setSaving(false);
+        return;
+      }
       await base44.entities.GrantCase.create(payload);
       toast.success("Expediente creado");
       setForm(EMPTY);
@@ -112,6 +119,16 @@ export default function GrantCasesPanel() {
       toast.success("Checklist actualizado");
       await loadCases();
     } catch (e) { toast.error("No se pudo actualizar el requisito"); }
+  };
+
+  const addRequirement = async (item) => {
+    const draft = requirementDrafts[item.id] || {};
+    if (!(draft.nombre || "").trim()) { toast.error("Escribe el nombre del requisito o documento."); return; }
+    try {
+      await base44.entities.GrantRequirement.create({ expediente_id: item.id, nombre: draft.nombre.trim(), categoria: draft.categoria || "Otros", obligatorio: draft.obligatorio !== false, estado: "pendiente", notas: (draft.notas || "").trim() });
+      setRequirementDrafts(prev => ({ ...prev, [item.id]: { nombre: "", categoria: "Otros", obligatorio: true, notas: "" } }));
+      setAddingRequirementTo(""); toast.success("Requisito añadido al expediente"); await loadCases();
+    } catch (e) { toast.error("No se pudo añadir el requisito"); }
   };
 
   const saveEvidence = async (item, patch) => {
@@ -257,6 +274,7 @@ export default function GrantCasesPanel() {
               <div><Label htmlFor="grant-paid">Importe cobrado (€)</Label><Input id="grant-paid" type="number" min="0" step="0.01" value={form.importe_cobrado} onChange={(e) => updateForm("importe_cobrado", e.target.value)} className="mt-1 rounded-xl" /></div>
               <div><Label htmlFor="grant-deadline">Límite de solicitud</Label><Input id="grant-deadline" type="date" value={form.fecha_limite_solicitud} onChange={(e) => updateForm("fecha_limite_solicitud", e.target.value)} className="mt-1 rounded-xl" /></div>
               <div><Label htmlFor="grant-just-deadline">Límite de justificación</Label><Input id="grant-just-deadline" type="date" value={form.fecha_limite_justificacion} onChange={(e) => updateForm("fecha_limite_justificacion", e.target.value)} className="mt-1 rounded-xl" /></div>
+              <div><Label htmlFor="grant-submitted-date">Fecha de presentación</Label><Input id="grant-submitted-date" type="date" value={form.fecha_presentacion} onChange={(e) => updateForm("fecha_presentacion", e.target.value)} className="mt-1 rounded-xl" /></div>
               <div className="sm:col-span-2"><Label htmlFor="grant-url">Enlace oficial</Label><Input id="grant-url" type="url" value={form.url_oficial} onChange={(e) => updateForm("url_oficial", e.target.value)} className="mt-1 rounded-xl" placeholder="https://…" /></div>
               <div><Label htmlFor="grant-reg">N.º de registro (si ya está presentada)</Label><Input id="grant-reg" value={form.numero_registro} onChange={(e) => updateForm("numero_registro", e.target.value)} className="mt-1 rounded-xl" /></div>
               <div><Label htmlFor="grant-proof">Enlace al justificante oficial</Label><Input id="grant-proof" value={form.justificante_uri} onChange={(e) => updateForm("justificante_uri", e.target.value)} className="mt-1 rounded-xl" placeholder="URL o ruta del documento" /></div>
