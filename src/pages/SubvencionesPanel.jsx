@@ -23,6 +23,7 @@ export default function SubvencionesPanel() {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [checking, setChecking] = useState(false);
+  const [checkingDeadlines, setCheckingDeadlines] = useState(false);
   const [formOpen, setFormOpen] = useState(false);
   const [editingSource, setEditingSource] = useState(null);
   const [filtroEstado, setFiltroEstado] = useState("todas");
@@ -53,12 +54,34 @@ export default function SubvencionesPanel() {
     try {
       const res = await base44.functions.invoke("checkGrantFeeds", {});
       const d = res.data || {};
-      toast.success(`Revisión completada · ${d.nuevas || 0} nuevas${d.errores ? ` · ${d.errores} con error` : ""}`);
+      if (d.success !== true) throw new Error(d.error || "La revisión no se completó correctamente");
+      if (Number(d.errores || 0) > 0) {
+        const fallos = (d.detalles || []).filter((x) => x.error).slice(0, 3).map((x) => `${x.busqueda}: ${x.error}`).join(" · ");
+        toast.warning(`Revisión parcial: ${d.nuevas || 0} nuevas; ${d.errores} búsquedas con error${fallos ? ` · ${fallos}` : ""}`, { duration: 10000 });
+      } else {
+        toast.success(`Revisión completada · ${d.nuevas || 0} nuevas · ${d.revisadas || 0} registros revisados`);
+      }
       await loadAll();
     } catch (e) {
       toast.error("No se pudo revisar las fuentes");
     } finally {
       setChecking(false);
+    }
+  };
+
+  const runDeadlineCheck = async () => {
+    setCheckingDeadlines(true);
+    try {
+      const res = await base44.functions.invoke("checkGrantDeadlines", {});
+      const d = res.data || {};
+      if (d.success !== true) throw new Error(d.error || "No se pudo comprobar los plazos");
+      const messages = [`${d.seguidas || 0} subvenciones seguidas`, `${d.comprobadas_bdns || 0} fichas BDNS comprobadas`, `${d.abiertas || 0} plazos abiertos detectados`, `${d.cerrando || 0} avisos de cierre emitidos`];
+      toast.success(`Comprobación de plazos terminada · ${messages.join(" · ")}`, { duration: 9000 });
+      await loadAll();
+    } catch (e) {
+      toast.error(`No se pudo comprobar los plazos: ${e.message || "error desconocido"}`, { duration: 8000 });
+    } finally {
+      setCheckingDeadlines(false);
     }
   };
 
@@ -111,6 +134,10 @@ export default function SubvencionesPanel() {
         <Button onClick={runCheck} disabled={checking || sources.length === 0} className="w-full rounded-xl bg-orange-600 font-semibold hover:bg-orange-700 sm:w-auto">
           {checking ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
           Revisar ahora
+        </Button>
+        <Button variant="outline" onClick={runDeadlineCheck} disabled={checkingDeadlines} className="w-full rounded-xl border-slate-200 sm:w-auto">
+          {checkingDeadlines ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <ShieldCheck className="w-4 h-4 mr-2" />}
+          Comprobar plazos
         </Button>
         <Button variant="outline" onClick={() => { setEditingSource(null); setFormOpen(true); }} className="w-full rounded-xl border-slate-200 sm:w-auto">
           <Plus className="w-4 h-4 mr-2" /> Añadir fuente
