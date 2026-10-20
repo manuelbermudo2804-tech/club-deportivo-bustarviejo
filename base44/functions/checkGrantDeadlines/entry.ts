@@ -152,8 +152,10 @@ Deno.serve(async (req) => {
       if (alerta.fecha_limite) {
         const dias = diasHasta(alerta.fecha_limite);
         const yaAvisados = alerta.avisos_plazo_enviados || [];
-        for (const umbral of [7, 3, 1]) {
-          if (dias === umbral && !yaAvisados.includes(String(umbral))) {
+        // Si una ejecución diaria falla, emitir el siguiente aviso pendiente dentro del umbral,
+        // en vez de perderlo por no coincidir exactamente con el día 7, 3 o 1.
+        for (const umbral of [1, 3, 7]) {
+          if (dias >= 0 && dias <= umbral && !yaAvisados.includes(String(umbral))) {
             cerrando.push(alerta);
             await base44.asServiceRole.entities.GrantAlert.update(alerta.id, {
               avisos_plazo_enviados: [...yaAvisados, String(umbral)],
