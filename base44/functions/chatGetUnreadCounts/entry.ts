@@ -53,12 +53,12 @@ Deno.serve(async (req) => {
         $or: [{ email_padre: email }, { email_tutor_2: email }, { email_jugador: email }],
         activo: true
       }).catch(() => []);
-      const ownCats = ownPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean);
+      const ownCats = ownPlayers.flatMap(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])]).filter(Boolean);
       // El coordinador ve TODOS los chats de equipo del club
       let allClubCats = [];
       if (isCoordinator) {
         const clubPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 1000).catch(() => []);
-        allClubCats = clubPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean);
+        allClubCats = clubPlayers.flatMap(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])]).filter(Boolean);
       }
       const cats = [...new Set([...coachCats, ...coordCats, ...ownCats, ...allClubCats])];
       if (cats.length > 0) {
@@ -95,7 +95,7 @@ Deno.serve(async (req) => {
             $or: [{ email_padre: email }, { email_tutor_2: email }, { email_jugador: email }],
             activo: true
           });
-          const myCats = [...new Set(myPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
+          const myCats = [...new Set(myPlayers.flatMap(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])]).filter(Boolean))];
           if (myCats.length > 0) {
             const oldestLastRead = myCats.reduce((min, cat) => {
               const lr = chatLastRead[toGroupId(cat)] || '1970-01-01T00:00:00.000Z';
