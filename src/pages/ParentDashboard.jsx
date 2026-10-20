@@ -182,7 +182,7 @@ export default function ParentDashboard() {
   const allPayments = payments;
 
   const playerCategories = useMemo(() => 
-    [...new Set(players.map(p => p.categoria_principal || p.deporte).filter(Boolean))],
+    [...new Set(players.flatMap(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])]).filter(Boolean))],
     [players]
   );
 
