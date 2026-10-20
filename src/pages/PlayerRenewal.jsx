@@ -158,7 +158,12 @@ export default function PlayerRenewal() {
 
       // 3. Crear pagos automáticamente
       for (const payment of paymentsData.payments) {
-        await base44.entities.Payment.create(payment);
+        await base44.entities.Payment.create({
+          ...payment,
+          categoria_actividad: payment.categoria_actividad || newCategory,
+          jugador_id: payment.jugador_id || player.id,
+          jugador_nombre: payment.jugador_nombre || player.nombre,
+        });
       }
 
       // 4. Enviar email de confirmación
