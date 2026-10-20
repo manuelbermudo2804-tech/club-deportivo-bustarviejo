@@ -413,21 +413,25 @@ export default function PlayerProfile() {
         </CardContent>
       </Card>
 
-      {/* Estadísticas del Jugador */}
-      {player && (
-        <Card className="profile-stats-card border border-slate-200/80 shadow-sm shadow-slate-900/[0.04] rounded-2xl overflow-hidden">
-          <CardContent className="p-5 md:p-6">
-            <PlayerStatsWidget
-              playerId={player.id}
-              playerName={player.nombre}
-              playerCategory={player.categoria_principal || player.deporte}
-              fechaNacimiento={player.fecha_nacimiento}
-              createdDate={player.created_date}
-              compact={false}
-            />
-          </CardContent>
-        </Card>
-      )}
+      {/* Estadísticas separadas por actividad para evitar mezclar equipos y pagos */}
+      {player && (() => {
+        const activities = [...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))];
+        return activities.map((activity, index) => (
+          <Card key={activity} className="profile-stats-card border border-slate-200/80 shadow-sm shadow-slate-900/[0.04] rounded-2xl overflow-hidden">
+            <CardContent className="p-5 md:p-6">
+              <PlayerStatsWidget
+                playerId={player.id}
+                playerName={player.nombre}
+                playerCategory={activity}
+                fechaNacimiento={player.fecha_nacimiento}
+                createdDate={player.created_date}
+                compact={false}
+                showSharedStats={index === 0}
+              />
+            </CardContent>
+          </Card>
+        ));
+      })()}
 
       {/* Panel de Renovación Pendiente */}
       {player?.estado_renovacion === "pendiente" && !showPaymentFlow && (
