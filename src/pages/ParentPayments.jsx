@@ -1113,28 +1113,36 @@ export default function ParentPayments() {
                       <div className="space-y-3">
                         {displayPayments.map((payment) => {
                             let mostrarBotonPagar = false;
-                            if (hasPlanEspecial) {
-                              // En multiactividad, cada plan/actividad lleva su propia secuencia de cuotas.
-                              // Nunca bloquear una cuota por tener pendiente otra actividad distinta.
-                              const mismaActividad = (p) => payment.categoria_actividad
-                                ? p.categoria_actividad === payment.categoria_actividad
-                                : !hasMultipleActivities && !p.categoria_actividad;
+                            const mismaActividad = (p) => payment.categoria_actividad
+                              ? p.categoria_actividad === payment.categoria_actividad
+                              : !hasMultipleActivities && !p.categoria_actividad;
+
+                            // Aplicar la secuencia especial solo a las cuotas que realmente pertenecen
+                            // a un plan especial; un plan de Sala no debe ocultar botones de Aficionado.
+                            if (payment.tipo_pago === "Plan Especial") {
                               const cuotasActividad = displayPayments
-                                .filter(p => !p.isVirtual && mismaActividad(p))
+                                .filter(p => !p.isVirtual && p.tipo_pago === "Plan Especial" && mismaActividad(p))
                                 .sort((a, b) => cuotaNum(a.mes) - cuotaNum(b.mes));
                               const cuotasPendientes = cuotasActividad.filter(p => p.estado === "Pendiente");
-                              mostrarBotonPagar = cuotasPendientes.length > 0 && cuotasPendientes[0].id === payment.id;
+                              mostrarBotonPagar = payment.estado === "Pendiente" && cuotasPendientes[0]?.id === payment.id;
+                            } else if (payment.tipo_pago === "Plan Mensual") {
+                              // Las mensualidades del plan mensual se cobran automáticamente.
+                              mostrarBotonPagar = false;
                             } else {
                               const ordenMeses = ["Junio", "Septiembre", "Diciembre"];
                               const mesIndex = ordenMeses.indexOf(payment.mes);
-                              // Nunca usar la cuota de otra actividad para decidir si se puede pagar.
-                              // Los pagos históricos sin actividad quedan sin clasificar, no se asignan por suposición.
-                              const mismaActividad = (p) => payment.categoria_actividad
-                                ? p.categoria_actividad === payment.categoria_actividad
-                                : !hasMultipleActivities && !p.categoria_actividad;
-                              const cuotaAnterior = mesIndex > 0 ? displayPayments.find(p => p.mes === ordenMeses[mesIndex - 1] && mismaActividad(p)) : null;
-                              const cuotaAnteriorPagada = mesIndex === 0 || cuotaAnterior?.estado === "Pagado";
-                              mostrarBotonPagar = payment.estado === "Pendiente" && cuotaAnteriorPagada;
+                              const cuotasAnterioresPagadas = ordenMeses
+                                .slice(0, Math.max(0, mesIndex))
+                                .every(mesAnterior => displayPayments.some(p =>
+                                  !p.isVirtual &&
+                                  p.mes === mesAnterior &&
+                                  mismaActividad(p) &&
+                                  p.estado === "Pagado"
+                                ));
+                              // En multiactividad no bloquear por cuotas de otro equipo.
+                              // Una actividad sin pagos anteriores registrados permite pagar su primera cuota pendiente.
+                              mostrarBotonPagar = payment.estado === "Pendiente" &&
+                                (mesIndex === -1 || mesIndex === 0 || cuotasAnterioresPagadas);
                             }
 
                             const isSelected = cartSelected.some(s => s.payment.id === payment.id);
