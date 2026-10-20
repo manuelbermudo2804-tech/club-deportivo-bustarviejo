@@ -38,7 +38,7 @@ export default function MinorSkipTraining({ player, playerCategory, user }) {
   // Estado compartido con la familia: el último aviso en el chat del equipo manda
   const prefijo = next && player?.id ? `novoy_${player.id}_${next.fechaISO}_` : null;
   const { data: ultimo, refetch } = useQuery({
-    queryKey: ["noVoy", prefijo],
+    queryKey: ["noVoy", prefijo, toGroupId(playerCategory)],
     queryFn: async () => {
       const r = await base44.functions.invoke("noVoyEstado", { jugador_id: player.id, fecha: next.fechaISO, grupo_id: toGroupId(playerCategory) });
       return r.data?.ultimo || null;
