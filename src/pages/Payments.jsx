@@ -1348,6 +1348,13 @@ export default function Payments() {
                           const numB = parseInt(b.mes?.replace('Cuota ', '') || '0');
                           return numA - numB;
                         });
+                      } else if (hasMultipleActivities) {
+                        // No inventar cuotas virtuales de la categoría principal para un jugador multiactividad.
+                        // Se muestran los pagos reales y cada uno se identifica por su actividad.
+                        displayPayments = [...playerPayments].sort((a, b) => {
+                          const order = { Junio: 1, Septiembre: 2, Diciembre: 3 };
+                          return (order[a.mes] || 99) - (order[b.mes] || 99) || String(a.categoria_actividad || "").localeCompare(String(b.categoria_actividad || ""));
+                        });
                       } else {
                         // Si hay filtro de temporada, crear virtuales para meses que faltan
                         displayPayments = allMonths.map(mes => {
