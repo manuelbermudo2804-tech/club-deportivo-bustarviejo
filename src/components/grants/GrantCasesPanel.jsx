@@ -39,7 +39,7 @@ const money = (v) => Number.isFinite(Number(v)) && v !== "" && v != null ? new I
 const EMPTY = {
   titulo: "", entidad: "", referencia: "", temporada: "", estado: "detectada",
   importe_solicitado: "", importe_concedido: "", importe_cobrado: "",
-  fecha_limite_solicitud: "", fecha_presentacion: "", fecha_limite_justificacion: "", url_oficial: "",
+  fecha_limite_solicitud: "", fecha_presentacion: "", fecha_resolucion: "", fecha_limite_justificacion: "", url_oficial: "",
   numero_registro: "", justificante_uri: "", notas: "", responsable: "", historial: [],
 };
 
@@ -148,7 +148,7 @@ export default function GrantCasesPanel() {
       const now = new Date().toISOString();
       const patch = { estado, historial: [...(Array.isArray(item.historial) ? item.historial : []), { fecha: now, accion: "Cambio de estado", detalle: estadoLabel(estado) }] };
       if (estado === "presentada" && !item.fecha_presentacion) patch.fecha_presentacion = now.slice(0, 10);
-      if (estado === "concedida" && !item.fecha_resolucion) patch.fecha_resolucion = now.slice(0, 10);
+      if (["concedida", "denegada"].includes(estado) && !item.fecha_resolucion) patch.fecha_resolucion = now.slice(0, 10);
       await base44.entities.GrantCase.update(item.id, patch);
       toast.success("Estado actualizado");
       await loadCases();
@@ -223,14 +223,16 @@ export default function GrantCasesPanel() {
                     </div>
                     <p className="mt-1 text-sm text-slate-600">{[item.entidad, item.referencia, item.temporada].filter(Boolean).join(" · ") || "Sin entidad o referencia indicada"}</p>
                     <div className="mt-3 grid grid-cols-1 gap-2 text-sm sm:grid-cols-3">
-                      <div className="rounded-lg bg-slate-50 p-2.5"><span className="block text-xs text-slate-500">Solicitado</span><span className="font-semibold">{money(item.importe_solicitado)}</span></div>
-                      <div className="rounded-lg bg-slate-50 p-2.5"><span className="block text-xs text-slate-500">Concedido</span><span className="font-semibold">{money(item.importe_concedido)}</span></div>
-                      <div className="rounded-lg bg-slate-50 p-2.5"><span className="block text-xs text-slate-500">Cobrado</span><span className="font-semibold">{money(item.importe_cobrado)}</span></div>
+                      <div className="rounded-lg bg-slate-50 p-2.5"><Label className="block text-xs text-slate-500">Solicitado (€)</Label><Input type="number" min="0" step="0.01" className="mt-1 h-9 bg-white" defaultValue={item.importe_solicitado ?? ""} onBlur={e => { const value = e.target.value === "" ? undefined : Number(e.target.value); if (value !== item.importe_solicitado && (value === undefined || Number.isFinite(value) && value >= 0)) saveEvidence(item, { importe_solicitado: value }); }} /></div>
+                      <div className="rounded-lg bg-slate-50 p-2.5"><Label className="block text-xs text-slate-500">Concedido (€)</Label><Input type="number" min="0" step="0.01" className="mt-1 h-9 bg-white" defaultValue={item.importe_concedido ?? ""} onBlur={e => { const value = e.target.value === "" ? undefined : Number(e.target.value); if (value !== item.importe_concedido && (value === undefined || Number.isFinite(value) && value >= 0)) saveEvidence(item, { importe_concedido: value }); }} /></div>
+                      <div className="rounded-lg bg-slate-50 p-2.5"><Label className="block text-xs text-slate-500">Cobrado (€)</Label><Input type="number" min="0" step="0.01" className="mt-1 h-9 bg-white" defaultValue={item.importe_cobrado ?? ""} onBlur={e => { const value = e.target.value === "" ? undefined : Number(e.target.value); if (value !== item.importe_cobrado && (value === undefined || Number.isFinite(value) && value >= 0)) saveEvidence(item, { importe_cobrado: value }); }} /></div>
+                      {Number.isFinite(Number(item.importe_concedido)) && item.importe_concedido !== "" && <p className="sm:col-span-3 rounded-lg border border-orange-100 bg-orange-50 px-3 py-2 text-xs text-slate-700">Pendiente de cobro: <strong>{money(Math.max(0, Number(item.importe_concedido) - (Number(item.importe_cobrado) || 0)))}</strong>{Number(item.importe_cobrado) > Number(item.importe_concedido) && <span className="ml-2 text-amber-800">Revisa los importes: lo cobrado supera lo concedido.</span>}</p>}
                     </div>
                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-500">
                       {item.fecha_limite_solicitud && <span className="inline-flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" /> Límite solicitud: {item.fecha_limite_solicitud}</span>}
                       {item.fecha_limite_justificacion && <span className="inline-flex items-center gap-1"><FileCheck2 className="h-3.5 w-3.5" /> Límite justificación: {item.fecha_limite_justificacion}</span>}
                       {item.fecha_presentacion && <span className="inline-flex items-center gap-1"><FileCheck2 className="h-3.5 w-3.5" /> Presentada: {item.fecha_presentacion}</span>}
+                      {item.fecha_resolucion && <span className="inline-flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" /> Resolución: {item.fecha_resolucion}</span>}
                       {item.numero_registro && <span className="inline-flex items-center gap-1"><FileCheck2 className="h-3.5 w-3.5" /> Registro: {item.numero_registro}</span>}
                       {item.url_oficial && <a href={item.url_oficial} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-orange-700 hover:underline"><ExternalLink className="h-3.5 w-3.5" /> Convocatoria oficial</a>}
                     </div>
@@ -238,6 +240,7 @@ export default function GrantCasesPanel() {
                       <div><Label className="text-xs">Número de registro oficial</Label><Input className="mt-1 h-9" defaultValue={item.numero_registro || ""} onBlur={e => { if (e.target.value !== (item.numero_registro || "")) saveEvidence(item, { numero_registro: e.target.value }); }} placeholder="REGAGE…"/></div>
                       <div><Label className="text-xs">URL del justificante oficial</Label><Input className="mt-1 h-9" defaultValue={item.justificante_uri || ""} onBlur={e => { if (e.target.value !== (item.justificante_uri || "")) saveEvidence(item, { justificante_uri: e.target.value }); }} placeholder="Enlace al PDF de registro"/></div>
                       <div><Label className="text-xs">Fecha de presentación</Label><Input type="date" className="mt-1 h-9" defaultValue={item.fecha_presentacion || ""} onBlur={e => { if (e.target.value !== (item.fecha_presentacion || "")) saveEvidence(item, { fecha_presentacion: e.target.value }); }}/></div>
+                      <div><Label className="text-xs">Fecha de resolución</Label><Input type="date" className="mt-1 h-9" defaultValue={item.fecha_resolucion || ""} onBlur={e => { if (e.target.value !== (item.fecha_resolucion || "")) saveEvidence(item, { fecha_resolucion: e.target.value }); }}/></div>
                       {item.estado === "presentada" && (!item.justificante_uri || !item.numero_registro) && <p className="sm:col-span-2 flex items-center gap-2 text-xs font-medium text-red-700"><AlertCircle className="h-4 w-4" /> Expediente marcado previamente como presentado sin evidencia completa. Añade registro y justificante y revisa el estado.</p>}
                     </div>
                     <div className="mt-3">
@@ -293,6 +296,7 @@ export default function GrantCasesPanel() {
               <div><Label htmlFor="grant-deadline">Límite de solicitud</Label><Input id="grant-deadline" type="date" value={form.fecha_limite_solicitud} onChange={(e) => updateForm("fecha_limite_solicitud", e.target.value)} className="mt-1 rounded-xl" /></div>
               <div><Label htmlFor="grant-just-deadline">Límite de justificación</Label><Input id="grant-just-deadline" type="date" value={form.fecha_limite_justificacion} onChange={(e) => updateForm("fecha_limite_justificacion", e.target.value)} className="mt-1 rounded-xl" /></div>
               <div><Label htmlFor="grant-submitted-date">Fecha de presentación</Label><Input id="grant-submitted-date" type="date" value={form.fecha_presentacion} onChange={(e) => updateForm("fecha_presentacion", e.target.value)} className="mt-1 rounded-xl" /></div>
+              <div><Label htmlFor="grant-resolution-date">Fecha de resolución</Label><Input id="grant-resolution-date" type="date" value={form.fecha_resolucion} onChange={(e) => updateForm("fecha_resolucion", e.target.value)} className="mt-1 rounded-xl" /></div>
               <div className="sm:col-span-2"><Label htmlFor="grant-url">Enlace oficial</Label><Input id="grant-url" type="url" value={form.url_oficial} onChange={(e) => updateForm("url_oficial", e.target.value)} className="mt-1 rounded-xl" placeholder="https://…" /></div>
               <div><Label htmlFor="grant-reg">N.º de registro (si ya está presentada)</Label><Input id="grant-reg" value={form.numero_registro} onChange={(e) => updateForm("numero_registro", e.target.value)} className="mt-1 rounded-xl" /></div>
               <div><Label htmlFor="grant-proof">Enlace al justificante oficial</Label><Input id="grant-proof" value={form.justificante_uri} onChange={(e) => updateForm("justificante_uri", e.target.value)} className="mt-1 rounded-xl" placeholder="URL o ruta del documento" /></div>
