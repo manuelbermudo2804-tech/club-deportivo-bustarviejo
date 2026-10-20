@@ -258,9 +258,12 @@ export default function Payments() {
       });
       
       // 2. Crear automáticamente los pagos pendientes según las cuotas del plan
+      const planPlayer = players.find(p => p.id === planData.jugador_id);
+      const planActivities = [...new Set([planPlayer?.categoria_principal, planPlayer?.deporte, ...(Array.isArray(planPlayer?.categorias) ? planPlayer.categorias : [])].filter(Boolean))];
       const paymentsToCreate = planData.cuotas.map(cuota => ({
         jugador_id: planData.jugador_id,
         jugador_nombre: planData.jugador_nombre,
+        categoria_actividad: planActivities.length === 1 ? planActivities[0] : planData.categoria_actividad || "",
         tipo_pago: "Plan Especial",
         mes: `Cuota ${cuota.numero}`,
         temporada: planData.temporada,
