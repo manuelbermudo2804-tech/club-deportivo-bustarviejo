@@ -235,7 +235,7 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
                     {assessment && <Button variant="outline" onClick={() => createCase(alert, assessment)} className="rounded-xl" disabled={cases.some(c => c.fuente_alerta_id === alert.id)}><Archive className="mr-2 h-4 w-4"/>{cases.some(c => c.fuente_alerta_id === alert.id) ? "Expediente creado" : "Crear expediente de trabajo"}</Button>}
                     {alert.enlace && <a href={alert.enlace} target="_blank" rel="noreferrer"><Button variant="outline" className="rounded-xl"><ExternalLink className="mr-2 h-4 w-4"/>Bases oficiales</Button></a>}
                     {days !== null && days >= 0 && days <= 7 && <Badge className="bg-red-100 text-red-700"><Clock className="mr-1 h-3 w-3"/>{days === 0 ? "Cierra hoy" : days + " días restantes"}</Badge>}
-                    {days !== null && days < 0 && <Badge variant="outline" className="border-slate-300 text-slate-600">Plazo vencido</Badge>
+                    {days !== null && days < 0 && <Badge variant="outline" className="border-slate-300 text-slate-600">Plazo vencido</Badge>}
                   </div>
                 </CardContent>
               </Card>;
