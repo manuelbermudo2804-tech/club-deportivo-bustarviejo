@@ -11,7 +11,9 @@ export default function NoVoyEntrenoButton({ jugador, categoria, fechaISO, user,
   const [sending, setSending] = useState(false);
   const grupoId = toGroupId(categoria);
   const prefijo = `novoy_${jugador.id}_${fechaISO}_`;
-  const key = ["noVoy", prefijo];
+  // La clave debe incluir la actividad: un jugador puede tener botones separados para Aficionado y Sala.
+  // Si solo usamos el prefijo jugador+fecha, React Query comparte el estado entre ambos botones.
+  const key = ["noVoy", prefijo, grupoId];
 
   const { data: ultimo } = useQuery({
     queryKey: key,
@@ -19,7 +21,8 @@ export default function NoVoyEntrenoButton({ jugador, categoria, fechaISO, user,
       const r = await base44.functions.invoke("noVoyEstado", { jugador_id: jugador.id, fecha: fechaISO, grupo_id: grupoId });
       return r.data?.ultimo || null;
     },
-    staleTime: 60000,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
   const avisado = ultimo?.client_id?.startsWith(`${prefijo}no_`);
 
