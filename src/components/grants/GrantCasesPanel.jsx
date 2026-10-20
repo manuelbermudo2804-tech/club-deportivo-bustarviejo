@@ -40,7 +40,7 @@ const EMPTY = {
   titulo: "", entidad: "", referencia: "", temporada: "", estado: "detectada",
   importe_solicitado: "", importe_concedido: "", importe_cobrado: "",
   fecha_limite_solicitud: "", fecha_limite_justificacion: "", url_oficial: "",
-  numero_registro: "", justificante_uri: "", notas: "", responsable: "",
+  numero_registro: "", justificante_uri: "", notas: "", responsable: "", historial: [],
 };
 
 export default function GrantCasesPanel() {
