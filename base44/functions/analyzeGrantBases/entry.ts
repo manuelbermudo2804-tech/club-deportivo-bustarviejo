@@ -6,6 +6,20 @@ function isValidIsoDate(value: string): boolean {
   return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
 }
 
+function fechaMadridIso(fecha = new Date()): string {
+  const partes = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(fecha);
+  const valores = Object.fromEntries(partes.map((parte) => [parte.type, parte.value]));
+  return `${valores.year}-${valores.month}-${valores.day}`;
+}
+
+function sumarDiasIso(fechaIso: string, dias: number): string {
+  const fecha = new Date(`${fechaIso}T00:00:00.000Z`);
+  fecha.setUTCDate(fecha.getUTCDate() + dias);
+  return fecha.toISOString().slice(0, 10);
+}
+
 // Analiza con IA las bases de una convocatoria de subvención y devuelve qué
 // documentos necesita el club y qué proyecto/memoria hay que preparar.
 Deno.serve(async (req) => {
@@ -99,7 +113,8 @@ Cita el documento oficial y apartado que sustentan cada requisito o bloqueo. Sep
     const dudas = Array.isArray(analisis.dudas_criticas) ? analisis.dudas_criticas : [];
     const fechaCandidata = (analisis.fecha_limite_iso || alert.fecha_limite || '').trim();
     const fecha = isValidIsoDate(fechaCandidata) ? fechaCandidata : '';
-    const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+    const hoy = fechaMadridIso();
+    const dentroDeSieteDias = sumarDiasIso(hoy, 7);
     const evidencias = Array.isArray(analisis.evidencias) ? analisis.evidencias : [];
     if (decision === 'PRESENTAR' && (!fecha || fecha < hoy || dudas.length > 0 || analisis.fiabilidad !== 'alta' || !['cumple', 'probable'].includes(analisis.elegibilidad) || evidencias.length === 0)) decision = 'REVISAR';
     if (decision === 'NO_PRESENTAR' && (analisis.fiabilidad !== 'alta' || evidencias.length === 0)) decision = 'REVISAR';
@@ -112,9 +127,9 @@ Cita el documento oficial y apartado que sustentan cada requisito o bloqueo. Sep
       entidad: alert.categoria || '',
       url_oficial: alert.enlace || '',
       decision,
-      prioridad: analisis.prioridad || (fecha && fecha >= hoy && fecha <= new Date(Date.now() + 7 * 86400000).toISOString().slice(0,10) ? 'urgente' : 'media'),
+      prioridad: analisis.prioridad || (fecha && fecha >= hoy && fecha <= dentroDeSieteDias ? 'urgente' : 'media'),
       elegibilidad: analisis.elegibilidad || 'desconocida',
-      plazo_estado: !fecha ? 'desconocido' : fecha < hoy ? 'cerrado' : (fecha <= new Date(Date.now() + 7 * 86400000).toISOString().slice(0,10) ? 'proximo' : 'abierto'),
+      plazo_estado: !fecha ? 'desconocido' : fecha < hoy ? 'cerrado' : (fecha <= dentroDeSieteDias ? 'proximo' : 'abierto'),
       fecha_limite: fecha || undefined,
       esfuerzo: analisis.esfuerzo || 'desconocido',
       motivos: Array.isArray(analisis.motivos) ? analisis.motivos : [],
