@@ -155,6 +155,10 @@
       "type": "number",
       "default": 0,
       "description": "Importe TOTAL (\u20ac) que la familia se comprometi\u00f3 a aportar al Fondo Solidario en esta inscripci\u00f3n"
+    },
+    "categoria_actividad": {
+      "type": "string",
+      "description": "Actividad deportiva a la que corresponde esta cuota. Los pagos hist\u00f3ricos sin este campo no se deben clasificar autom\u00e1ticamente."
     }
   },
   "required": [
