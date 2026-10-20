@@ -1113,9 +1113,15 @@ export default function ParentPayments() {
                         {displayPayments.map((payment) => {
                             let mostrarBotonPagar = false;
                             if (hasPlanEspecial) {
-                              const cuotasPendientes = displayPayments
-                                .filter(p => p.estado === "Pendiente" && !p.isVirtual)
+                              // En multiactividad, cada plan/actividad lleva su propia secuencia de cuotas.
+                              // Nunca bloquear una cuota por tener pendiente otra actividad distinta.
+                              const mismaActividad = (p) => payment.categoria_actividad
+                                ? p.categoria_actividad === payment.categoria_actividad
+                                : !hasMultipleActivities && !p.categoria_actividad;
+                              const cuotasActividad = displayPayments
+                                .filter(p => !p.isVirtual && mismaActividad(p))
                                 .sort((a, b) => cuotaNum(a.mes) - cuotaNum(b.mes));
+                              const cuotasPendientes = cuotasActividad.filter(p => p.estado === "Pendiente");
                               mostrarBotonPagar = cuotasPendientes.length > 0 && cuotasPendientes[0].id === payment.id;
                             } else {
                               const ordenMeses = ["Junio", "Septiembre", "Diciembre"];
