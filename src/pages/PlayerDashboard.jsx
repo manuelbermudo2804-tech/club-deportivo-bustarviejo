@@ -199,7 +199,6 @@ export default function PlayerDashboard() {
   });
 
   // Asistencias de todos los equipos a los que pertenece la misma ficha.
-  const playerCategories = useMemo(() => [...new Set([player?.categoria_principal, player?.deporte, ...(Array.isArray(player?.categorias) ? player.categorias : [])].filter(Boolean))], [player]);
   const { data: attendances } = useQuery({
     queryKey: ['playerAttendances', playerCategories.join('|')],
     queryFn: async () => {
