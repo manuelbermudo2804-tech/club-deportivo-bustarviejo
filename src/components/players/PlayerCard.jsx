@@ -481,7 +481,6 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               <div className="space-y-1.5">
                 {playerCategories.map((activity) => {
                   const activityPayments = playerPayments.filter(p => p.categoria_actividad === activity);
-                  const hasUnassigned = playerPayments.some(p => !p.categoria_actividad);
                   return (
                     <div key={activity} className="space-y-1">
                       <div className="flex items-center justify-between gap-2">
