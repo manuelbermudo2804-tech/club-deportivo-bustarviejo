@@ -162,6 +162,13 @@ export default function GrantCasesPanel() {
       toast.error("No se puede marcar como presentada sin número de registro y justificante oficial.");
       return;
     }
+    if (estado === "presentada") {
+      const pendingMandatory = requirements.filter(req => req.expediente_id === item.id && req.obligatorio !== false && !["revisado", "no_aplica"].includes(req.estado));
+      if (pendingMandatory.length > 0) {
+        toast.error("Revisa los " + pendingMandatory.length + " requisitos obligatorios pendientes antes de presentar el expediente.");
+        return;
+      }
+    }
     try {
       const now = new Date().toISOString();
       const patch = { estado, historial: [...(Array.isArray(item.historial) ? item.historial : []), { fecha: now, accion: "Cambio de estado", detalle: estadoLabel(estado) }] };
