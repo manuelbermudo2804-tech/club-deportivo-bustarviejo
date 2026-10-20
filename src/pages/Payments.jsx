@@ -183,7 +183,8 @@ export default function Payments() {
       try {
         const allPayments = await base44.entities.Payment.list('-created_date');
         console.log('[DEBUG PAGOS QUERY] Total pagos en BD:', allPayments?.length);
-        return (allPayments || []).filter(p => p.is_deleted !== true);
+        // En administración solo se muestran pagos activos. Los anulados permanecen en BD para auditoría, pero no deben generar deuda ni aparecer como cuotas.
+        return (allPayments || []).filter(p => p.is_deleted !== true && p.estado !== "Anulado");
       } catch (error) {
         console.error("Error loading payments:", error);
         return [];
