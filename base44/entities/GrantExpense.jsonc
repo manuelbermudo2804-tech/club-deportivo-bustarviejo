@@ -1,0 +1,95 @@
+{
+  "name": "GrantExpense",
+  "type": "object",
+  "description": "Gastos y evidencias econ\u00f3micas asociados individualmente a un expediente de subvenci\u00f3n.",
+  "properties": {
+    "expediente_id": {
+      "type": "string",
+      "description": "ID del GrantCase al que pertenece este gasto."
+    },
+    "concepto": {
+      "type": "string",
+      "description": "Concepto del gasto seg\u00fan factura."
+    },
+    "proveedor": {
+      "type": "string"
+    },
+    "numero_factura": {
+      "type": "string"
+    },
+    "fecha_factura": {
+      "type": "string",
+      "format": "date"
+    },
+    "importe": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Importe registrado en euros; verificar elegibilidad en las bases."
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "Personal y servicios",
+        "Material deportivo",
+        "Instalaciones",
+        "Transporte",
+        "Seguros",
+        "Organizaci\u00f3n de actividades",
+        "Otros"
+      ]
+    },
+    "factura_url": {
+      "type": "string",
+      "description": "URL de la factura o documento."
+    },
+    "fecha_pago": {
+      "type": "string",
+      "format": "date"
+    },
+    "referencia_pago": {
+      "type": "string",
+      "description": "Referencia de transferencia u otra evidencia del pago."
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "revisado",
+        "aceptado",
+        "rechazado"
+      ],
+      "default": "pendiente"
+    },
+    "notas": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "expediente_id",
+    "concepto",
+    "importe",
+    "estado"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

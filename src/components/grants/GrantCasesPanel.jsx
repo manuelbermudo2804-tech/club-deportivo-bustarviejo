@@ -47,6 +47,8 @@ export default function GrantCasesPanel() {
   const [cases, setCases] = useState([]);
   const [requirements, setRequirements] = useState([]);
   const [documents, setDocuments] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [expenseDrafts, setExpenseDrafts] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [open, setOpen] = useState(false);
@@ -62,14 +64,16 @@ export default function GrantCasesPanel() {
   const loadCases = useCallback(async () => {
     setLoading(true);
     try {
-      const [rows, reqs, docs] = await Promise.all([
+      const [rows, reqs, docs, expenseRows] = await Promise.all([
         base44.entities.GrantCase.list("-created_date", 200),
         base44.entities.GrantRequirement.list("-created_date", 500),
         base44.entities.GrantDocument.list("-created_date", 300),
+        base44.entities.GrantExpense.list("-created_date", 500),
       ]);
       setCases(Array.isArray(rows) ? rows : []);
       setRequirements(Array.isArray(reqs) ? reqs : []);
       setDocuments(Array.isArray(docs) ? docs : []);
+      setExpenses(Array.isArray(expenseRows) ? expenseRows : []);
     } catch (e) {
       toast.error("No se pudieron cargar los expedientes");
     } finally {
@@ -132,6 +136,37 @@ export default function GrantCasesPanel() {
       setRequirementDrafts(prev => ({ ...prev, [item.id]: { nombre: "", categoria: "Otros", obligatorio: true, notas: "" } }));
       setAddingRequirementTo(""); toast.success("Requisito añadido al expediente"); await loadCases();
     } catch (e) { toast.error("No se pudo añadir el requisito"); }
+  };
+
+  const addExpense = async (item) => {
+    const draft = expenseDrafts[item.id] || {};
+    if (!(draft.concepto || "").trim()) { toast.error("Indica el concepto del gasto."); return; }
+    const amount = Number(draft.importe);
+    if (draft.importe === "" || !Number.isFinite(amount) || amount < 0) { toast.error("Introduce un importe válido, igual o superior a cero."); return; }
+    try {
+      await base44.entities.GrantExpense.create({
+        expediente_id: item.id, concepto: draft.concepto.trim(), importe: amount, estado: "pendiente",
+        ...(draft.proveedor?.trim() ? { proveedor: draft.proveedor.trim() } : {}),
+        ...(draft.numero_factura?.trim() ? { numero_factura: draft.numero_factura.trim() } : {}),
+        ...(draft.fecha_factura ? { fecha_factura: draft.fecha_factura } : {}),
+        ...(draft.categoria ? { categoria: draft.categoria } : {}),
+        ...(draft.factura_url?.trim() ? { factura_url: draft.factura_url.trim() } : {}),
+        ...(draft.fecha_pago ? { fecha_pago: draft.fecha_pago } : {}),
+        ...(draft.referencia_pago?.trim() ? { referencia_pago: draft.referencia_pago.trim() } : {}),
+        ...(draft.notas?.trim() ? { notas: draft.notas.trim() } : {}),
+      });
+      setExpenseDrafts(prev => ({ ...prev, [item.id]: { concepto: "", proveedor: "", numero_factura: "", fecha_factura: "", importe: "", categoria: "Otros", factura_url: "", fecha_pago: "", referencia_pago: "", notas: "" } }));
+      toast.success("Gasto vinculado al expediente");
+      await loadCases();
+    } catch (e) { toast.error("No se pudo guardar el gasto"); }
+  };
+
+  const updateExpense = async (expense, patch) => {
+    try {
+      await base44.entities.GrantExpense.update(expense.id, patch);
+      toast.success("Gasto actualizado");
+      await loadCases();
+    } catch (e) { toast.error("No se pudo actualizar el gasto"); }
   };
 
   const saveEvidence = async (item, patch) => {
