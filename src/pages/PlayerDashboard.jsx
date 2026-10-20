@@ -163,17 +163,20 @@ export default function PlayerDashboard() {
       setAllowCreatePrompt(false);
     }
   }, [playerFetched, player]);
-  // Convocatorias del jugador - OPTIMIZADO: menos datos
+  // Convocatorias de la ficha única: consultar todas las actividades del jugador, no solo las últimas 10 del club.
+  const playerCategories = useMemo(() => [...new Set([player?.categoria_principal, player?.deporte, ...(Array.isArray(player?.categorias) ? player.categorias : [])].filter(Boolean))], [player]);
   const { data: callups } = useQuery({
-    queryKey: ['playerCallups', player?.id],
+    queryKey: ['playerCallups', player?.id, playerCategories.join('|')],
     queryFn: async () => {
       const today = new Date().toISOString().split('T')[0];
-      const convs = await base44.entities.Convocatoria.filter({ publicada: true, cerrada: false }, '-fecha_partido', 10);
+      const results = await Promise.all(playerCategories.map(category => base44.entities.Convocatoria.filter({ categoria: category, publicada: true, cerrada: false }, '-fecha_partido', 30).catch(() => [])));
+      const convs = [...new Map(results.flat().map(c => [c.id, c])).values()];
       return convs
         .filter(c => c.fecha_partido >= today && c.jugadores_convocados?.some(j => j.jugador_id === player?.id))
+        .sort((a, b) => new Date(a.fecha_partido) - new Date(b.fecha_partido))
         .slice(0, 5);
     },
-    enabled: !!player?.id,
+    enabled: !!player?.id && playerCategories.length > 0,
     staleTime: 120000,
     refetchOnWindowFocus: false,
     initialData: [],
