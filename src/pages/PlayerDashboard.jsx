@@ -195,28 +195,32 @@ export default function PlayerDashboard() {
     initialData: [],
   });
 
-  // Asistencias para logros - LAZY: solo cargar las últimas 20
+  // Asistencias de todos los equipos a los que pertenece la misma ficha.
+  const playerCategories = useMemo(() => [...new Set([player?.categoria_principal, player?.deporte, ...(Array.isArray(player?.categorias) ? player.categorias : [])].filter(Boolean))], [player]);
   const { data: attendances } = useQuery({
-    queryKey: ['playerAttendances', player?.deporte],
+    queryKey: ['playerAttendances', playerCategories.join('|')],
     queryFn: async () => {
-      if (!player?.deporte) return [];
-      return await base44.entities.Attendance.filter({ categoria: player?.deporte }, '-fecha', 20);
+      if (!playerCategories.length) return [];
+      const results = await Promise.all(playerCategories.map(category => base44.entities.Attendance.filter({ categoria: category }, '-fecha', 20).catch(() => [])));
+      return [...new Map(results.flat().map(item => [item.id, item])).values()].sort((a, b) => new Date(b.fecha || 0) - new Date(a.fecha || 0)).slice(0, 40);
     },
-    enabled: !!player?.deporte,
+    enabled: playerCategories.length > 0,
     staleTime: 600000,
     refetchOnWindowFocus: false,
     initialData: [],
   });
 
-  // Horarios de entrenamiento
+  // Horarios de todos los equipos a los que pertenece la ficha.
   const { data: schedules } = useQuery({
-    queryKey: ['playerSchedules', player?.deporte],
+    queryKey: ['playerSchedules', playerCategories.join('|')],
     queryFn: async () => {
-      const filtered = await base44.entities.TrainingSchedule.filter({ activo: true, categoria: player?.deporte }, '-dia_semana', 20);
+      if (!playerCategories.length) return [];
+      const results = await Promise.all(playerCategories.map(category => base44.entities.TrainingSchedule.filter({ activo: true, categoria: category }, '-dia_semana', 20).catch(() => [])));
+      const filtered = [...new Map(results.flat().map(item => [item.id, item])).values()];
       const dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"];
       return filtered.sort((a, b) => dias.indexOf(a.dia_semana) - dias.indexOf(b.dia_semana));
     },
-    enabled: !!player?.deporte,
+    enabled: playerCategories.length > 0,
     staleTime: 300000,
     refetchOnWindowFocus: false,
     initialData: [],
