@@ -1270,8 +1270,12 @@ export default function Payments() {
                     // Plan Mensual: mostrar TODOS los pagos del plan (inicial + mensualidades creadas por webhook)
                     const hasPlanMensual = allPlayerPaymentsRaw.some(p => p.tipo_pago === "Plan Mensual");
 
-                    // Filtrar según tipo de pago
-                    const playerPayments = hasPlanEspecial
+                    // Para jugadores con varias actividades, conservar todas las cuotas reales:
+                    // cada actividad puede tener su propio plan y su propia cuota de junio.
+                    const hasMultipleActivities = Array.isArray(player.categorias) && player.categorias.length > 0;
+                    const playerPayments = hasMultipleActivities
+                      ? allPlayerPaymentsRaw
+                      : hasPlanEspecial
                       ? allPlayerPaymentsRaw
                       : hasPlanMensual
                       ? allPlayerPaymentsRaw.filter(p => p.tipo_pago === "Plan Mensual")
