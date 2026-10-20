@@ -133,10 +133,28 @@ export default function GrantCasesPanel() {
 
   const saveEvidence = async (item, patch) => {
     try {
-      await base44.entities.GrantCase.update(item.id, patch);
-      toast.success("Evidencia del expediente guardada");
+      const labels = {
+        numero_registro: "número de registro",
+        justificante_uri: "justificante oficial",
+        fecha_presentacion: "fecha de presentación",
+        fecha_resolucion: "fecha de resolución",
+        importe_solicitado: "importe solicitado",
+        importe_concedido: "importe concedido",
+        importe_cobrado: "importe cobrado",
+      };
+      const changed = Object.keys(patch).map(key => labels[key] || key.replaceAll("_", " "));
+      const now = new Date().toISOString();
+      const payload = {
+        ...patch,
+        historial: [
+          ...(Array.isArray(item.historial) ? item.historial : []),
+          { fecha: now, accion: "Actualización de expediente", detalle: "Actualizado: " + changed.join(", ") + "." },
+        ],
+      };
+      await base44.entities.GrantCase.update(item.id, payload);
+      toast.success("Expediente actualizado");
       await loadCases();
-    } catch (e) { toast.error("No se pudo guardar la evidencia"); }
+    } catch (e) { toast.error("No se pudo guardar la actualización"); }
   };
 
   const changeStatus = async (item, estado) => {
