@@ -144,6 +144,16 @@ export default function PaymentCard({
               <Badge className={`${cfg.badgeCls} text-xs`}>
                 {cfg.emoji} {payment.estado}
               </Badge>
+              {payment.categoria_actividad && (
+                <Badge variant="outline" className="border-orange-300 bg-orange-50 text-orange-800 text-xs">
+                  ⚽ {payment.categoria_actividad}
+                </Badge>
+              )}
+              {!payment.categoria_actividad && Array.isArray(player?.categorias) && player.categorias.length > 0 && (
+                <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 text-xs">
+                  Actividad por identificar
+                </Badge>
+              )}
               {payment.tipo_pago === "Plan Especial" && (
                 <Badge className="bg-purple-100 text-purple-700 text-xs">Plan Especial</Badge>
               )}
