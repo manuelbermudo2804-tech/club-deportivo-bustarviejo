@@ -18,7 +18,7 @@ function fechaMadridIso(fecha = new Date()) {
 function diasHasta(fechaIso) {
   // Comparar días naturales en UTC evita errores de zona horaria y cambios de horario.
   const fecha = String(fechaIso || '').slice(0, 10);
-  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(fecha)) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) return null;
   const limiteMs = Date.parse(`${fecha}T00:00:00.000Z`);
   const hoyMs = Date.parse(`${fechaMadridIso()}T00:00:00.000Z`);
   if (!Number.isFinite(limiteMs) || !Number.isFinite(hoyMs)) return null;
@@ -190,7 +190,7 @@ Deno.serve(async (req) => {
         const updates = { plazo_abierto_notificado: true };
         if (info.fin) {
           const fin = String(info.fin).slice(0, 10);
-          if (/^\\d{4}-\\d{2}-\\d{2}$/.test(fin) && !Number.isNaN(Date.parse(`${fin}T00:00:00.000Z`))) updates.fecha_limite = fin;
+          if (/^\d{4}-\d{2}-\d{2}$/.test(fin) && !Number.isNaN(Date.parse(`${fin}T00:00:00.000Z`))) updates.fecha_limite = fin;
         }
         if (!alerta.plazo_abierto_notificado) {
           recienAbiertas.push({ ...alerta, ...updates });
