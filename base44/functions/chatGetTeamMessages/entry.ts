@@ -53,7 +53,7 @@ Deno.serve(async (req) => {
         $or: [{ email_padre: email }, { email_tutor_2: email }, { email_jugador: email }],
         activo: true
       });
-      const myCats = myPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean);
+      const myCats = myPlayers.flatMap(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])]).filter(Boolean);
       hasAccess = myCats.some(c => toGroupId(c) === targetGid);
     }
 
