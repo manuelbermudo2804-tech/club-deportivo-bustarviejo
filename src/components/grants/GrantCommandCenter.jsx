@@ -152,10 +152,22 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
     finally { setAnalysingId(""); }
   };
 
-  const assessmentsByAlert = useMemo(() => Object.fromEntries(assessments.map(a => [a.alert_id, a])), [assessments]);
+  // Las evaluaciones llegan ordenadas por fecha descendente: conservar siempre la más reciente por alerta.
+  const assessmentsByAlert = useMemo(() => assessments.reduce((acc, item) => {
+    if (item.alert_id && !acc[item.alert_id]) acc[item.alert_id] = item;
+    return acc;
+  }, {}), [assessments]);
   const recomendables = alerts.filter(a => !["descartada","solicitada"].includes(a.estado));
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const effectiveDecision = (alert) => {
+    const assessment = assessmentsByAlert[alert.id];
+    const deadline = assessment?.fecha_limite || alert.fecha_limite;
+    // Un plazo vencido nunca debe mostrarse como recomendación de presentar una solicitud nueva.
+    if (deadline && deadline < todayISO && assessment?.decision === "PRESENTAR") return "REVISAR";
+    return assessment?.decision || "REVISAR";
+  };
   const sortedRecomendables = useMemo(() => [...recomendables].sort((a,b) => {
-    const rank = (item) => { const d = assessmentsByAlert[item.id]?.decision; return d === "PRESENTAR" ? 0 : d === "REVISAR" ? 1 : d === "NO_PRESENTAR" ? 3 : 2; };
+    const rank = (item) => { const d = effectiveDecision(item); return d === "PRESENTAR" ? 0 : d === "REVISAR" ? 1 : d === "NO_PRESENTAR" ? 3 : 2; };
     return rank(a) - rank(b) || ((a.fecha_limite || "9999-12-31").localeCompare(b.fecha_limite || "9999-12-31"));
   }), [recomendables, assessmentsByAlert]);
   const pendientes = docs.filter(d => d.estado === "por_revisar" || d.estado === "caducado").length;
@@ -187,9 +199,11 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
             recomendables.length === 0 ? <div className="rounded-2xl border border-dashed p-8 text-center text-sm text-slate-500">No hay oportunidades pendientes. Pulsa «Revisar ahora» en la pestaña de subvenciones para detectar nuevas convocatorias.</div> :
             sortedRecomendables.map(alert => {
               const assessment = assessmentsByAlert[alert.id];
-              const meta = assessment ? (decisionMeta[assessment.decision] || decisionMeta.REVISAR) : decisionMeta.REVISAR;
+              const deadline = assessment?.fecha_limite || alert.fecha_limite;
+              const decision = effectiveDecision(alert);
+              const meta = decisionMeta[decision] || decisionMeta.REVISAR;
               const Icon = meta.icon;
-              const days = alert.fecha_limite ? Math.ceil((new Date(alert.fecha_limite + "T23:59:59") - new Date()) / 86400000) : null;
+              const days = deadline ? Math.ceil((new Date(deadline + "T23:59:59") - new Date()) / 86400000) : null;
               const analysis = safeParse(alert.analisis_ia);
               return <Card key={alert.id} className="rounded-2xl border-slate-200">
                 <CardContent className="space-y-3 p-4">
@@ -201,7 +215,8 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
                     {assessment.motivos?.length > 0 && <ul className="list-disc space-y-1 pl-5 text-sm text-slate-700">{assessment.motivos.map((m,i)=><li key={i}>{m}</li>)}</ul>}
                     {assessment.dudas_criticas?.length > 0 && <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900"><strong>Bloqueos por resolver:</strong><ul className="mt-1 list-disc pl-5">{assessment.dudas_criticas.map((m,i)=><li key={i}>{m}</li>)}</ul></div>}
                     {assessment.siguiente_accion && <p className="text-sm"><strong>Siguiente acción:</strong> {assessment.siguiente_accion}</p>}
-                    {assessment.fecha_limite && <p className="text-xs text-slate-500">Fecha límite evaluada: {assessment.fecha_limite}</p>}
+                    {deadline && <p className="text-xs text-slate-500">Fecha límite evaluada: {deadline}</p>}
+                    {days !== null && days < 0 && <div className="rounded-xl bg-slate-100 p-3 text-sm text-slate-700"><strong>Plazo vencido.</strong> No preparar una solicitud nueva con esta fecha. Comprobar si existe una nueva edición, ampliación oficial o un trámite de recurso independiente.</div>}
                     {assessment.fuente_evidencias?.length > 0 && <div className="space-y-1 text-xs text-slate-500">{assessment.fuente_evidencias.map((ev,i)=><p key={i}>Fuente: {ev.documento}{ev.apartado ? " · " + ev.apartado : ""}{ev.url ? <> · <a className="text-blue-600 underline" href={ev.url} target="_blank" rel="noreferrer">abrir evidencia</a></> : ""}</p>)}</div>}
                     {!assessment.revisado_humano && <p className="text-xs text-amber-700">Recomendación automática pendiente de validación humana.</p>}
                     <Button variant="outline" size="sm" onClick={() => markReviewed(assessment, !assessment.revisado_humano)} className="rounded-lg">
@@ -220,6 +235,7 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
                     {assessment && <Button variant="outline" onClick={() => createCase(alert, assessment)} className="rounded-xl" disabled={cases.some(c => c.fuente_alerta_id === alert.id)}><Archive className="mr-2 h-4 w-4"/>{cases.some(c => c.fuente_alerta_id === alert.id) ? "Expediente creado" : "Crear expediente de trabajo"}</Button>}
                     {alert.enlace && <a href={alert.enlace} target="_blank" rel="noreferrer"><Button variant="outline" className="rounded-xl"><ExternalLink className="mr-2 h-4 w-4"/>Bases oficiales</Button></a>}
                     {days !== null && days >= 0 && days <= 7 && <Badge className="bg-red-100 text-red-700"><Clock className="mr-1 h-3 w-3"/>{days === 0 ? "Cierra hoy" : days + " días restantes"}</Badge>}
+                    {days !== null && days < 0 && <Badge variant="outline" className="border-slate-300 text-slate-600">Plazo vencido</Badge>
                   </div>
                 </CardContent>
               </Card>;
