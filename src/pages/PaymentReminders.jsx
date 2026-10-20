@@ -109,9 +109,15 @@ export default function PaymentReminders() {
       }
     }
     
-    // Fallback
+    // Fallback por mes: nunca devolver el total de temporada ni la primera cuota
+    // cuando el recordatorio corresponde solo a septiembre o diciembre.
     const cuotas = getCuotasPorCategoriaSync(deporte);
-    return cuotas.junio || cuotas.septiembre || cuotas.diciembre || 0;
+    switch (mes) {
+      case "Junio": return cuotas.inscripcion ?? 0;
+      case "Septiembre": return cuotas.segunda ?? 0;
+      case "Diciembre": return cuotas.tercera ?? 0;
+      default: return 0;
+    }
   };
 
   // Siempre la temporada activa
@@ -163,8 +169,10 @@ export default function PaymentReminders() {
       };
 
       // Calcular estado de pagos del jugador - FILTRAR CORRECTAMENTE
-      const playerPayments = payments.filter(p => 
-        p.jugador_id === player.id && 
+      const playerPayments = payments.filter(p =>
+        p.jugador_id === player.id &&
+        p.is_deleted !== true &&
+        p.estado !== "Anulado" &&
         normalizeSeason(p.temporada) === currentSeason
       );
 
@@ -297,8 +305,13 @@ export default function PaymentReminders() {
         return;
       }
 
-      // Detectar si tiene pago único (pagado, en revisión O pendiente)
-      const hasPagoUnico = playerPayments.some(p => 
+      // Si hay cuotas del plan de tres meses registradas, tienen prioridad sobre
+      // cualquier pago único antiguo/duplicado: evita mostrar el total de temporada
+      // como deuda cuando solo queda diciembre, por ejemplo.
+      const hasPlanTresMeses = playerPayments.some(p => p.tipo_pago === "Tres meses");
+
+      // Detectar pago único solo cuando no existe un plan de tres meses para esta temporada.
+      const hasPagoUnico = !hasPlanTresMeses && playerPayments.some(p =>
         p.tipo_pago === "Único" || p.tipo_pago === "único"
       );
 
