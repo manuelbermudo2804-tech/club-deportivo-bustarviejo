@@ -243,7 +243,7 @@ export default function GrantCasesPanel() {
       "Notas del expediente: " + (item.notas || "Sin notas registradas"),
     ];
     setDraftTitle("Borrador - " + (item.titulo || "subvencion"));
-    setDraftText(lines.join("\\n"));
+    setDraftText(lines.join("\n"));
     setDraftOpen(true);
   };
 
@@ -368,6 +368,7 @@ export default function GrantCasesPanel() {
                     </div>}
                   </div>
                   <div className="w-full shrink-0 lg:w-56">
+                    <Button type="button" variant="outline" onClick={() => openDraft(item)} className="mb-3 w-full rounded-xl"><FileText className="mr-2 h-4 w-4" /> Generar borrador</Button>
                     <Label className="mb-1.5 block text-xs text-slate-500">Actualizar estado</Label>
                     <Select value={item.estado || "detectada"} onValueChange={(v) => changeStatus(item, v)}>
                       <SelectTrigger className="rounded-xl"><SelectValue /></SelectTrigger>
@@ -381,6 +382,16 @@ export default function GrantCasesPanel() {
           ))}
         </div>
       )}
+
+      <Dialog open={draftOpen} onOpenChange={setDraftOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+          <DialogHeader><DialogTitle>Generador de borrador de subvención</DialogTitle></DialogHeader>
+          <p className="text-sm text-amber-800">Documento de trabajo, no oficial. Revisa las bases de la convocatoria y completa los apartados antes de utilizarlo.</p>
+          <div className="space-y-2"><Label>Título del archivo</Label><Input value={draftTitle} onChange={e => setDraftTitle(e.target.value)} /></div>
+          <div className="space-y-2"><Label>Contenido editable</Label><Textarea value={draftText} onChange={e => setDraftText(e.target.value)} rows={18} className="font-mono text-sm" /></div>
+          <DialogFooter><Button type="button" variant="outline" onClick={() => setDraftOpen(false)} className="rounded-xl">Cerrar</Button><Button type="button" onClick={downloadDraft} className="rounded-xl bg-orange-600 hover:bg-orange-700"><Download className="mr-2 h-4 w-4" /> Descargar borrador (.txt)</Button></DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
