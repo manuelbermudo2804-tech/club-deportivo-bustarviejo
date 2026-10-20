@@ -38,7 +38,8 @@ export default function SubvencionesPanel() {
       setSources(s);
       setAlerts(a);
     } catch (e) {
-      // no-op
+      console.error("Error al cargar el panel de subvenciones:", e);
+      toast.error("No se pudieron cargar las subvenciones. Comprueba la conexión y vuelve a intentarlo.");
     } finally {
       setLoading(false);
     }
