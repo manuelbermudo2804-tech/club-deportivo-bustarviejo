@@ -28,7 +28,7 @@ Deno.serve(async (req) => {
         $or: [{ email_padre: user.email }, { email_tutor_2: user.email }, { email_jugador: user.email }],
         activo: true,
       });
-      players.forEach((p) => cats.push(p.categoria_principal || p.deporte));
+      players.forEach((p) => cats.push(p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])));
       myGids = new Set(cats.filter(Boolean).map(norm));
       return myGids;
     };
