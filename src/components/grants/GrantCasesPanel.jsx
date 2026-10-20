@@ -145,8 +145,11 @@ export default function GrantCasesPanel() {
       return;
     }
     try {
-      const historial = [...(Object(item).historial || []), { fecha: new Date().toISOString(), accion: "Cambio de estado", detalle: estadoLabel(estado) }];
-      await base44.entities.GrantCase.update(item.id, { estado, historial });
+      const now = new Date().toISOString();
+      const patch = { estado, historial: [...(Array.isArray(item.historial) ? item.historial : []), { fecha: now, accion: "Cambio de estado", detalle: estadoLabel(estado) }] };
+      if (estado === "presentada" && !item.fecha_presentacion) patch.fecha_presentacion = now.slice(0, 10);
+      if (estado === "concedida" && !item.fecha_resolucion) patch.fecha_resolucion = now.slice(0, 10);
+      await base44.entities.GrantCase.update(item.id, patch);
       toast.success("Estado actualizado");
       await loadCases();
     } catch (e) {
