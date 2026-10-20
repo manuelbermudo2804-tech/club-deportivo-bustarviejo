@@ -60,6 +60,9 @@ export default function GrantCasesPanel() {
   const [draftOpen, setDraftOpen] = useState(false);
   const [draftTitle, setDraftTitle] = useState("");
   const [draftText, setDraftText] = useState("");
+  const [editingExpenseId, setEditingExpenseId] = useState("");
+  const [editingExpense, setEditingExpense] = useState({});
+  const [uploadingExpenseId, setUploadingExpenseId] = useState("");
 
   const loadCases = useCallback(async () => {
     setLoading(true);
@@ -167,6 +170,55 @@ export default function GrantCasesPanel() {
       toast.success("Gasto actualizado");
       await loadCases();
     } catch (e) { toast.error("No se pudo actualizar el gasto"); }
+  };
+
+  const startEditExpense = (expense) => {
+    setEditingExpenseId(expense.id);
+    setEditingExpense({ concepto: expense.concepto || "", proveedor: expense.proveedor || "", numero_factura: expense.numero_factura || "", fecha_factura: expense.fecha_factura || "", importe: String(expense.importe ?? ""), categoria: expense.categoria || "Otros", factura_url: expense.factura_url || "", fecha_pago: expense.fecha_pago || "", referencia_pago: expense.referencia_pago || "", notas: expense.notas || "" });
+  };
+
+  const saveEditedExpense = async (expense) => {
+    const amount = Number(editingExpense.importe);
+    if (!editingExpense.concepto?.trim() || editingExpense.importe === "" || !Number.isFinite(amount) || amount < 0) {
+      toast.error("Revisa el concepto y el importe del gasto."); return;
+    }
+    await updateExpense(expense, { ...editingExpense, concepto: editingExpense.concepto.trim(), importe: amount });
+    setEditingExpenseId("");
+  };
+
+  const uploadExpenseFile = async (file, expense) => {
+    if (!file || !expense) return;
+    setUploadingExpenseId(expense.id);
+    try {
+      const uploaded = await base44.integrations.Core.UploadFile({ file });
+      if (!uploaded?.file_url) throw new Error("No se recibió URL de archivo");
+      await base44.entities.GrantExpense.update(expense.id, { factura_url: uploaded.file_url, nombre_archivo: file.name });
+      toast.success("Factura adjuntada al gasto");
+      await loadCases();
+    } catch (e) { toast.error("No se pudo adjuntar la factura"); }
+    finally { setUploadingExpenseId(""); }
+  };
+
+  const downloadExpenseCSV = (item, itemExpenses) => {
+    const columns = ["Convocatoria", "Entidad", "Concepto", "Proveedor", "Numero factura", "Fecha factura", "Categoria", "Importe EUR", "Fecha pago", "Referencia pago", "Factura URL", "Estado interno", "Notas"];
+    const rows = itemExpenses.map(e => [item.titulo, item.entidad, e.concepto, e.proveedor, e.numero_factura, e.fecha_factura, e.categoria, Number(e.importe || 0).toFixed(2), e.fecha_pago, e.referencia_pago, e.factura_url, e.estado, e.notas]);
+    const quote = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+    const csv = "\ufeff" + [columns, ...rows].map(row => row.map(quote).join(";")).join("\r\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob); const a = document.createElement("a");
+    a.href = url; a.download = (item.titulo || "expediente").replace(/[^a-z0-9áéíóúñü_-]+/gi, "-") + "-relacion-gastos.csv";
+    document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+  };
+
+  const downloadJustificationDraft = (item, itemExpenses) => {
+    const total = itemExpenses.reduce((sum, e) => sum + (Number(e.importe) || 0), 0);
+    const paid = itemExpenses.filter(e => e.fecha_pago || e.referencia_pago).reduce((sum, e) => sum + (Number(e.importe) || 0), 0);
+    const lines = ["BORRADOR ORIENTATIVO DE CUENTA JUSTIFICATIVA", "C.D. Bustarviejo — documento de trabajo, no formulario oficial.", "Adaptar obligatoriamente a las bases y al modelo del organismo concedente.", "", "CONVOCATORIA: " + (item.titulo || "Pendiente"), "ENTIDAD: " + (item.entidad || "Pendiente"), "REFERENCIA: " + (item.referencia || "Pendiente"), "IMPORTE CONCEDIDO: " + money(item.importe_concedido), "", "RELACIÓN DE GASTOS"];
+    if (!itemExpenses.length) lines.push("No hay gastos registrados en este expediente.");
+    itemExpenses.forEach((e, i) => lines.push(`${i + 1}. ${e.concepto || "Sin concepto"} | Proveedor: ${e.proveedor || "Pendiente"} | Factura: ${e.numero_factura || "Pendiente"} | Fecha: ${e.fecha_factura || "Pendiente"} | Categoría: ${e.categoria || "Otros"} | Importe: ${money(e.importe)} | Pago: ${e.fecha_pago || "Pendiente"} | Referencia pago: ${e.referencia_pago || "Pendiente"} | Factura/evidencia: ${e.factura_url || "Pendiente"} | Estado interno: ${e.estado || "pendiente"}`));
+    lines.push("", "TOTAL GASTOS REGISTRADOS: " + money(total), "TOTAL CON EVIDENCIA DE PAGO REGISTRADA: " + money(paid), "", "DOCUMENTACIÓN Y COMPROBACIONES PENDIENTES", "- Verificar elegibilidad y periodo de cada gasto conforme a las bases.", "- Adjuntar todas las facturas completas y sus justificantes bancarios.", "- Verificar pagos, importes, impuestos y ausencia de doble financiación.", "- Incorporar relación de ingresos y otras ayudas cuando lo exijan las bases.", "- Completar memoria de actuación y anexos oficiales.", "- Revisar y firmar por persona autorizada antes de presentar.", "", "Este documento no certifica elegibilidad ni sustituye el modelo oficial de justificación.");
+    const blob = new Blob([lines.join("\n")], { type: "text/plain;charset=utf-8" }); const url = URL.createObjectURL(blob); const a = document.createElement("a");
+    a.href = url; a.download = (item.titulo || "expediente").replace(/[^a-z0-9áéíóúñü_-]+/gi, "-") + "-borrador-cuenta-justificativa.txt"; document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
   };
 
   const saveEvidence = async (item, patch) => {
@@ -403,8 +455,9 @@ export default function GrantCasesPanel() {
                         return <>
                           <div className="flex flex-wrap items-start justify-between gap-2"><div><h4 className="font-semibold text-slate-900">Justificación económica</h4><p className="text-xs text-slate-500">Gastos vinculados solo a este expediente; registra factura y evidencia de pago.</p></div><Badge variant="outline">{itemExpenses.length} gastos</Badge></div>
                           <div className="grid grid-cols-1 gap-2 sm:grid-cols-3"><div className="rounded-lg bg-white p-2"><Label className="text-xs text-slate-500">Total registrado</Label><p className="mt-1 font-bold">{money(total)}</p></div><div className="rounded-lg bg-white p-2"><Label className="text-xs text-slate-500">Revisado / aceptado internamente</Label><p className="mt-1 font-bold">{money(reviewedTotal)}</p></div><div className="rounded-lg bg-white p-2"><Label className="text-xs text-slate-500">Concedido</Label><p className="mt-1 font-bold">{money(item.importe_concedido)}</p></div></div>
+                          <div className="flex flex-wrap gap-2"><Button type="button" size="sm" variant="outline" onClick={() => downloadExpenseCSV(item, itemExpenses)} className="rounded-lg"><Download className="mr-1 h-4 w-4"/>Exportar relación de gastos (CSV)</Button><Button type="button" size="sm" variant="outline" onClick={() => downloadJustificationDraft(item, itemExpenses)} className="rounded-lg"><FileText className="mr-1 h-4 w-4"/>Borrador de cuenta justificativa</Button></div>
                           {item.importe_concedido != null && Number(item.importe_concedido) > 0 && <p className="text-xs text-slate-600">Gasto registrado: {Math.round(total / Number(item.importe_concedido) * 100)}% del importe concedido. Este cálculo no confirma la elegibilidad del gasto.</p>}
-                          {itemExpenses.length > 0 && <div className="space-y-2">{itemExpenses.map(exp => <div key={exp.id} className="rounded-lg border border-slate-200 bg-white p-3"><div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><p className="break-words text-sm font-semibold text-slate-900">{exp.concepto} <span className="whitespace-nowrap">{money(exp.importe)}</span></p><p className="mt-1 break-words text-xs text-slate-500">{[exp.proveedor, exp.numero_factura ? "Factura " + exp.numero_factura : "", exp.fecha_factura].filter(Boolean).join(" · ") || "Sin proveedor, número ni fecha de factura"}</p>{exp.fecha_pago && <p className="mt-1 text-xs text-slate-500">Pago: {exp.fecha_pago}{exp.referencia_pago ? " · " + exp.referencia_pago : ""}</p>}{exp.factura_url && <a href={exp.factura_url} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-orange-700 hover:underline"><ExternalLink className="h-3 w-3" /> Abrir factura / evidencia</a>}{exp.notas && <p className="mt-1 whitespace-pre-wrap text-xs text-slate-500">{exp.notas}</p>}</div><Select value={exp.estado || "pendiente"} onValueChange={estado => updateExpense(exp, { estado })}><SelectTrigger className="h-8 w-full rounded-lg sm:w-40"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="pendiente">Pendiente</SelectItem><SelectItem value="revisado">Revisado internamente</SelectItem><SelectItem value="aceptado">Aceptado internamente</SelectItem><SelectItem value="rechazado">Rechazado</SelectItem></SelectContent></Select></div></div>)}</div>}
+                          {itemExpenses.length > 0 && <div className="space-y-2">{itemExpenses.map(exp => <div key={exp.id} className="rounded-lg border border-slate-200 bg-white p-3">{editingExpenseId === exp.id ? <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">{[["concepto","Concepto"],["proveedor","Proveedor"],["numero_factura","Número factura"],["fecha_factura","Fecha factura"],["importe","Importe (€)"],["fecha_pago","Fecha pago"],["factura_url","URL factura/evidencia"],["referencia_pago","Referencia pago"],["categoria","Categoría"]].map(([key,label]) => <div key={key}><Label className="text-xs">{label}</Label><Input type={key.startsWith("fecha_") ? "date" : key === "importe" ? "number" : "text"} min={key === "importe" ? "0" : undefined} step={key === "importe" ? "0.01" : undefined} value={editingExpense[key] || ""} onChange={e => setEditingExpense(prev => ({...prev,[key]:e.target.value}))} className="mt-1 h-9" /></div>)}<div className="sm:col-span-2"><Label className="text-xs">Notas</Label><Textarea value={editingExpense.notas || ""} onChange={e => setEditingExpense(prev => ({...prev,notas:e.target.value}))} rows={2}/></div><div className="flex flex-wrap gap-2 sm:col-span-2"><Button size="sm" onClick={() => saveEditedExpense(exp)} className="rounded-lg bg-orange-600 hover:bg-orange-700"><Save className="mr-1 h-4 w-4"/>Guardar cambios</Button><Button size="sm" variant="outline" onClick={() => setEditingExpenseId("")}>Cancelar</Button></div></div> : <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><p className="break-words text-sm font-semibold text-slate-900">{exp.concepto} <span className="whitespace-nowrap">{money(exp.importe)}</span></p><p className="mt-1 break-words text-xs text-slate-500">{[exp.proveedor, exp.numero_factura ? "Factura " + exp.numero_factura : "", exp.fecha_factura].filter(Boolean).join(" · ") || "Sin proveedor, número ni fecha de factura"}</p>{exp.fecha_pago && <p className="mt-1 text-xs text-slate-500">Pago: {exp.fecha_pago}{exp.referencia_pago ? " · " + exp.referencia_pago : ""}</p>}{exp.factura_url && <a href={exp.factura_url} target="_blank" rel="noreferrer" className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-orange-700 hover:underline"><ExternalLink className="h-3 w-3" /> Abrir factura / evidencia</a>}{exp.notas && <p className="mt-1 whitespace-pre-wrap text-xs text-slate-500">{exp.notas}</p>}<div className="mt-2 flex flex-wrap gap-2"><Button type="button" size="sm" variant="outline" onClick={() => startEditExpense(exp)} className="h-8 rounded-lg">Editar gasto</Button><label className="inline-flex h-8 cursor-pointer items-center rounded-lg border px-3 text-xs font-medium hover:bg-slate-50">{uploadingExpenseId === exp.id ? "Subiendo…" : "Adjuntar factura"}<input type="file" className="hidden" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx,.xls,.xlsx" disabled={!!uploadingExpenseId} onChange={e => { uploadExpenseFile(e.target.files?.[0], exp); e.target.value = ""; }}/></label></div></div><Select value={exp.estado || "pendiente"} onValueChange={estado => updateExpense(exp, { estado })}><SelectTrigger className="h-8 w-full rounded-lg sm:w-40"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="pendiente">Pendiente</SelectItem><SelectItem value="revisado">Revisado internamente</SelectItem><SelectItem value="aceptado">Aceptado internamente</SelectItem><SelectItem value="rechazado">Rechazado</SelectItem></SelectContent></Select></div>}</div>)}</div>}
                           <div className="rounded-lg border border-dashed border-slate-300 bg-white p-3"><p className="mb-2 text-sm font-semibold">Añadir gasto / factura</p><div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                             <div className="sm:col-span-2"><Label className="text-xs">Concepto *</Label><Input value={draft.concepto} onChange={e => setDraft("concepto", e.target.value)} className="mt-1 h-9" placeholder="Ej. Material deportivo para actividad subvencionada" /></div>
                             <div><Label className="text-xs">Proveedor</Label><Input value={draft.proveedor} onChange={e => setDraft("proveedor", e.target.value)} className="mt-1 h-9" /></div><div><Label className="text-xs">Número de factura</Label><Input value={draft.numero_factura} onChange={e => setDraft("numero_factura", e.target.value)} className="mt-1 h-9" /></div>
