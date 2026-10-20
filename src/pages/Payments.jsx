@@ -1324,8 +1324,14 @@ export default function Payments() {
                       // SOLO crear pagos virtuales si hay filtro de temporada específico (NO si es "all")
                       let displayPayments;
                       if (temporadaFilter === "all") {
-                        // Si el filtro es "all", SOLO mostrar los pagos reales que existen en BD
-                        displayPayments = playerPayments;
+                        // Si el filtro es "all", mostrar pagos reales ordenados de forma estable.
+                        displayPayments = [...playerPayments].sort((a, b) => {
+                          const cuotaA = String(a.mes || "").match(/cuota\s*(\d+)/i);
+                          const cuotaB = String(b.mes || "").match(/cuota\s*(\d+)/i);
+                          if (cuotaA || cuotaB) return Number(cuotaA?.[1] || 9999) - Number(cuotaB?.[1] || 9999);
+                          const order = { Junio: 1, Septiembre: 2, Diciembre: 3 };
+                          return (order[a.mes] || 99) - (order[b.mes] || 99) || new Date(a.created_date || 0) - new Date(b.created_date || 0);
+                        });
                       } else if (hasMultipleActivities) {
                         // No inventar cuotas virtuales de la categoría principal para un jugador multiactividad.
                         // Se muestran todos los pagos reales, aunque las actividades tengan planes distintos.
