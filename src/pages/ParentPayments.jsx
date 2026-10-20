@@ -896,7 +896,8 @@ export default function ParentPayments() {
               // Si el jugador tiene varias actividades, mostrar todos los pagos reales juntos y etiquetados.
               // No generar cuotas virtuales ni deduplicar por mes: cada actividad puede tener su propio junio/septiembre/diciembre.
               let displayPayments;
-              const hasMultipleActivities = Array.isArray(player.categorias) && player.categorias.length > 0;
+              const playerActivities = [...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))];
+              const hasMultipleActivities = playerActivities.length > 1;
               
               if (hasMultipleActivities) {
                 displayPayments = [...allPlayerPayments].sort((a, b) => {
