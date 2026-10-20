@@ -361,9 +361,11 @@ export default function PlayerProfile() {
               )}
 
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5">
-                <Badge className="bg-orange-500/15 text-orange-200 border border-orange-400/40 rounded-full px-3 py-1 text-xs sm:text-sm">
-                  ⚽ {player.deporte}
-                </Badge>
+                {[...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))].map((activity) => (
+                  <Badge key={activity} className="bg-orange-500/15 text-orange-200 border border-orange-400/40 rounded-full px-3 py-1 text-xs sm:text-sm">
+                    ⚽ {activity}
+                  </Badge>
+                ))}
                 {form.posicion !== "Sin asignar" && (
                   <Badge className="bg-white/10 text-slate-100 border border-white/15 rounded-full px-3 py-1 text-xs sm:text-sm">
                     📍 {form.posicion}
