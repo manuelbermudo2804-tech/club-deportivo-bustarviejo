@@ -7,12 +7,22 @@ import webpush from 'npm:web-push@3.6.7';
 //  2) Si vienen de la BDNS y aún no tenían plazo -> consulta su ficha oficial
 //     para detectar si ya se ha publicado el extracto y se ha abierto el periodo.
 
+function fechaMadridIso(fecha = new Date()) {
+  const partes = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).formatToParts(fecha);
+  const valores = Object.fromEntries(partes.map((parte) => [parte.type, parte.value]));
+  return `${valores.year}-${valores.month}-${valores.day}`;
+}
+
 function diasHasta(fechaIso) {
-  const hoy = new Date();
-  hoy.setHours(0, 0, 0, 0);
-  const limite = new Date(fechaIso);
-  limite.setHours(0, 0, 0, 0);
-  return Math.round((limite - hoy) / (1000 * 60 * 60 * 24));
+  // Comparar días naturales en UTC evita errores de zona horaria y cambios de horario.
+  const fecha = String(fechaIso || '').slice(0, 10);
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(fecha)) return null;
+  const limiteMs = Date.parse(`${fecha}T00:00:00.000Z`);
+  const hoyMs = Date.parse(`${fechaMadridIso()}T00:00:00.000Z`);
+  if (!Number.isFinite(limiteMs) || !Number.isFinite(hoyMs)) return null;
+  return Math.round((limiteMs - hoyMs) / 86400000);
 }
 
 // Extrae el código BDNS del enlace de infosubvenciones (.../convocatoria/909145)
@@ -151,7 +161,11 @@ Deno.serve(async (req) => {
       // CASO 1: ya tiene fecha límite -> comprobar proximidad del cierre
       if (alerta.fecha_limite) {
         const dias = diasHasta(alerta.fecha_limite);
-        const yaAvisados = alerta.avisos_plazo_enviados || [];
+        if (dias === null) {
+          console.warn('Fecha límite no válida en subvención:', alerta.id, alerta.fecha_limite);
+          continue;
+        }
+        const yaAvisados = Array.isArray(alerta.avisos_plazo_enviados) ? alerta.avisos_plazo_enviados : [];
         // Si una ejecución diaria falla, emitir el siguiente aviso pendiente dentro del umbral,
         // en vez de perderlo por no coincidir exactamente con el día 7, 3 o 1.
         for (const umbral of [1, 3, 7]) {
@@ -175,8 +189,8 @@ Deno.serve(async (req) => {
         // ¡Se publicó el extracto y se abrió el plazo!
         const updates = { plazo_abierto_notificado: true };
         if (info.fin) {
-          const d = new Date(info.fin);
-          if (!isNaN(d.getTime())) updates.fecha_limite = d.toISOString().slice(0, 10);
+          const fin = String(info.fin).slice(0, 10);
+          if (/^\\d{4}-\\d{2}-\\d{2}$/.test(fin) && !Number.isNaN(Date.parse(`${fin}T00:00:00.000Z`))) updates.fecha_limite = fin;
         }
         if (!alerta.plazo_abierto_notificado) {
           recienAbiertas.push({ ...alerta, ...updates });
