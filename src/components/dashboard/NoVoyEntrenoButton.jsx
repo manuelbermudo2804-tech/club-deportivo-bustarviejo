@@ -58,7 +58,7 @@ export default function NoVoyEntrenoButton({ jugador, categoria, fechaISO, user,
     return (
       <div className="flex items-center gap-2 text-xs flex-wrap">
         <span className="px-3 py-1 rounded-full bg-red-50 border border-red-200 text-red-700 font-semibold">
-          🚫 {solo ? "Avisado: no vas" : `Avisado: ${nombre} no va`}{quien}
+          🚫 Avisado en {categoria}: {solo ? "no vas" : `${nombre} no va`}{quien}
         </span>
         <button disabled={sending} onClick={() => enviar(false)}
           className="px-3 py-1 rounded-full border border-green-300 bg-green-50 text-green-700 font-semibold hover:bg-green-100 disabled:opacity-50 whitespace-nowrap">
@@ -70,7 +70,7 @@ export default function NoVoyEntrenoButton({ jugador, categoria, fechaISO, user,
   return (
     <button disabled={sending} onClick={() => enviar(true)}
       className="text-xs font-medium px-3 py-1 rounded-full border border-slate-300 text-slate-600 bg-white hover:border-orange-400 hover:text-orange-600 disabled:opacity-50 whitespace-nowrap">
-      {sending ? "Avisando..." : solo ? "No voy" : `${nombre} no va`}
+      {sending ? "Avisando..." : `${categoria}: ${solo ? "No voy" : `${nombre} no va`}`}
     </button>
   );
 }
