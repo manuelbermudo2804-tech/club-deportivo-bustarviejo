@@ -76,8 +76,17 @@ export default function SubvencionesPanel() {
       const res = await base44.functions.invoke("checkGrantDeadlines", {});
       const d = res.data || {};
       if (d.success !== true) throw new Error(d.error || "No se pudo comprobar los plazos");
-      const messages = [`${d.seguidas || 0} subvenciones seguidas`, `${d.comprobadas_bdns || 0} fichas BDNS comprobadas`, `${d.abiertas || 0} plazos abiertos detectados`, `${d.cerrando || 0} avisos de cierre emitidos`];
-      toast.success(`Comprobación de plazos terminada · ${messages.join(" · ")}`, { duration: 9000 });
+      const messages = [`${d.seguidas || 0} subvenciones seguidas`, `${d.comprobadas_bdns || 0} fichas BDNS comprobadas`, `${d.abiertas || 0} plazos abiertos detectados`, `${d.cerrando || 0} avisos de cierre pendientes`];
+      const resumen = `Comprobación de plazos terminada · ${messages.join(" · ")}`;
+      if ((d.abiertas || 0) > 0 || (d.cerrando || 0) > 0) {
+        if (d.notificaciones_confirmadas) {
+          toast.success(`${resumen} · Al menos un canal confirmó la entrega`, { duration: 10000 });
+        } else {
+          toast.warning(`${resumen} · No se pudo confirmar la entrega; se volverá a intentar`, { duration: 10000 });
+        }
+      } else {
+        toast.success(resumen, { duration: 9000 });
+      }
       await loadAll();
     } catch (e) {
       toast.error(`No se pudo comprobar los plazos: ${e.message || "error desconocido"}`, { duration: 8000 });
