@@ -1,5 +1,11 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
+function isValidIsoDate(value: string): boolean {
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(value || '')) return false;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return !Number.isNaN(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
 // Analiza con IA las bases de una convocatoria de subvención y devuelve qué
 // documentos necesita el club y qué proyecto/memoria hay que preparar.
 Deno.serve(async (req) => {
@@ -69,7 +75,7 @@ Cita el documento oficial y apartado que sustentan cada requisito o bloqueo. Sep
           siguiente_accion: { type: 'string', description: 'Acción concreta inmediata para el club' },
           evidencias: { type: 'array', items: { type: 'object', properties: { documento: { type: 'string' }, apartado: { type: 'string' }, url: { type: 'string' }, extracto: { type: 'string' } } } },
         },
-        required: ['resumen', 'documentos', 'proyecto_necesario', 'pasos', 'decision', 'elegibilidad', 'motivos', 'dudas_criticas', 'siguiente_accion'],
+        required: ['resumen', 'documentos', 'proyecto_necesario', 'pasos', 'fiabilidad', 'decision', 'prioridad', 'elegibilidad', 'esfuerzo', 'motivos', 'requisitos_confirmados', 'dudas_criticas', 'siguiente_accion', 'evidencias', 'fecha_limite_iso'],
       },
     });
 
@@ -81,7 +87,7 @@ Cita el documento oficial y apartado que sustentan cada requisito o bloqueo. Sep
     // Si la IA detectó una fecha límite concreta y la alerta aún no la tiene, rellenarla
     // automáticamente para activar los avisos de cierre (7/3/1 días).
     const iso = (analisis.fecha_limite_iso || '').trim();
-    if (!alert.fecha_limite && /^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    if (!alert.fecha_limite && isValidIsoDate(iso)) {
       updates.fecha_limite = iso;
       updates.avisos_plazo_enviados = [];
     }
@@ -91,8 +97,9 @@ Cita el documento oficial y apartado que sustentan cada requisito o bloqueo. Sep
     // Si no hay fecha oficial o existen dudas críticas, no se fuerza PRESENTAR.
     let decision = analisis.decision || 'REVISAR';
     const dudas = Array.isArray(analisis.dudas_criticas) ? analisis.dudas_criticas : [];
-    const fecha = (analisis.fecha_limite_iso || alert.fecha_limite || '').trim();
-    const hoy = new Date().toISOString().slice(0, 10);
+    const fechaCandidata = (analisis.fecha_limite_iso || alert.fecha_limite || '').trim();
+    const fecha = isValidIsoDate(fechaCandidata) ? fechaCandidata : '';
+    const hoy = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
     const evidencias = Array.isArray(analisis.evidencias) ? analisis.evidencias : [];
     if (decision === 'PRESENTAR' && (!fecha || fecha < hoy || dudas.length > 0 || analisis.fiabilidad !== 'alta' || !['cumple', 'probable'].includes(analisis.elegibilidad) || evidencias.length === 0)) decision = 'REVISAR';
     if (decision === 'NO_PRESENTAR' && (analisis.fiabilidad !== 'alta' || evidencias.length === 0)) decision = 'REVISAR';
