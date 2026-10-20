@@ -169,7 +169,14 @@ export default function PlayerProfile() {
 
   const paymentMutation = useMutation({
     mutationFn: async (payments) => {
-      return base44.entities.Payment.bulkCreate(payments);
+      const activities = [...new Set([player?.categoria_principal, player?.deporte, ...(Array.isArray(player?.categorias) ? player.categorias : [])].filter(Boolean))];
+      const taggedPayments = payments.map(p => ({
+        ...p,
+        categoria_actividad: p.categoria_actividad || (activities.length === 1 ? activities[0] : ""),
+        jugador_id: p.jugador_id || player.id,
+        jugador_nombre: p.jugador_nombre || player.nombre,
+      }));
+      return base44.entities.Payment.bulkCreate(taggedPayments);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payments"] });
