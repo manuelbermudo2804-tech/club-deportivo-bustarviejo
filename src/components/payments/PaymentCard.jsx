@@ -28,6 +28,8 @@ export default function PaymentCard({
 }) {
   const cfg = statusConfig[payment.estado] || statusConfig["Pendiente"];
   const StatusIcon = cfg.icon;
+  const playerActivities = [...new Set([player?.categoria_principal, player?.deporte, ...(Array.isArray(player?.categorias) ? player.categorias : [])].filter(Boolean))];
+  const paymentActivity = payment.categoria_actividad || (playerActivities.length === 1 ? playerActivities[0] : null);
 
   const [generatingReceipt, setGeneratingReceipt] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState(payment.recibo_url || null);
@@ -144,14 +146,14 @@ export default function PaymentCard({
               <Badge className={`${cfg.badgeCls} text-xs`}>
                 {cfg.emoji} {payment.estado}
               </Badge>
-              {payment.categoria_actividad && (
+              {paymentActivity && (
                 <Badge variant="outline" className="border-orange-300 bg-orange-50 text-orange-800 text-xs">
-                  ⚽ {payment.categoria_actividad}
+                  ⚽ {paymentActivity}
                 </Badge>
               )}
-              {!payment.categoria_actividad && Array.isArray(player?.categorias) && player.categorias.length > 0 && (
+              {!paymentActivity && playerActivities.length > 1 && (
                 <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-800 text-xs">
-                  Actividad por identificar
+                  ⚠️ Actividad pendiente de asignar
                 </Badge>
               )}
               {payment.tipo_pago === "Plan Especial" && (
