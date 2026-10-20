@@ -587,7 +587,11 @@ export default function Payments() {
       const player = players.find(p => p.id === payment.jugador_id);
       matchesCategoria = payment.categoria_actividad
         ? payment.categoria_actividad === categoriaFilter
-        : (player?.deporte === categoriaFilter || player?.categoria_principal === categoriaFilter || (player?.categorias || []).includes(categoriaFilter));
+        : (() => {
+            const activities = [...new Set([player?.categoria_principal, player?.deporte, ...(Array.isArray(player?.categorias) ? player.categorias : [])].filter(Boolean))];
+            // Los pagos históricos de multiactividad no se duplican en cada filtro: primero hay que asignarles actividad.
+            return activities.length === 1 && activities[0] === categoriaFilter;
+          })();
     }
     
     // Filtro de vencidos
@@ -1619,8 +1623,29 @@ export default function Payments() {
                                             )}
                                           </p>
                                           <p className="text-[10px] lg:text-xs text-slate-600">
-                                            {payment.cantidad}€{payment.categoria_actividad ? ` · ${payment.categoria_actividad}` : (Array.isArray(player.categorias) && player.categorias.length > 0 ? " · Actividad por identificar" : "")}
+                                            {payment.cantidad}€{payment.categoria_actividad ? ` · ${payment.categoria_actividad}` : ([...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))].length === 1 ? ` · ${player.categoria_principal || player.deporte || player.categorias?.[0]}` : " · Actividad pendiente de asignar")}
                                           </p>
+                                          {!payment.categoria_actividad && [...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))].length > 1 && (
+                                            <div className="mt-2 max-w-[230px]">
+                                              <Select
+                                                value="__unassigned__"
+                                                onValueChange={(activity) => {
+                                                  if (activity === "__unassigned__") return;
+                                                  updatePaymentMutation.mutate({ id: payment.id, paymentData: { categoria_actividad: activity } });
+                                                }}
+                                              >
+                                                <SelectTrigger className="h-8 text-xs bg-white">
+                                                  <SelectValue placeholder="Asignar actividad" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                  <SelectItem value="__unassigned__" disabled>Asignar actividad a esta cuota…</SelectItem>
+                                                  {[...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))].map(activity => (
+                                                    <SelectItem key={activity} value={activity}>{activity}</SelectItem>
+                                                  ))}
+                                                </SelectContent>
+                                              </Select>
+                                            </div>
+                                          )}
                                         </div>
                                       </div>
                                       <div className="flex gap-1 items-center">
