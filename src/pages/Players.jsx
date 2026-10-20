@@ -651,9 +651,9 @@ export default function Players() {
       (statusRenewalFilter === "pendiente" && player.estado_renovacion === "pendiente" && player.temporada_renovacion === activeSeason?.temporada) ||
       (statusRenewalFilter === "no_renueva" && player.estado_renovacion === "no_renueva" && player.temporada_renovacion === activeSeason?.temporada);
     
-    // Filtro de categoría: comparar con categoria_principal Y con deporte (legacy)
-    const playerCat = player.categoria_principal || player.deporte;
-    const matchesCategory = categoryFilter === "all" || playerCat === categoryFilter || player.deporte === categoryFilter;
+    // Una misma ficha puede pertenecer a varias categorías/equipos.
+    const playerCategories = [...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))];
+    const matchesCategory = categoryFilter === "all" || playerCategories.includes(categoryFilter);
     
     const matchesRevision = !filterRevisionCategoria || player.categoria_requiere_revision === true;
     
@@ -671,8 +671,8 @@ export default function Players() {
     setCurrentPage(1);
   }, [searchTerm, sportFilter, statusFilter, categoryFilter]);
 
-  // Obtener todas las categorías únicas (usar categoria_principal con fallback a deporte)
-  const allCategories = [...new Set(players.map(p => p.categoria_principal || p.deporte).filter(Boolean))].sort();
+  // Obtener todas las categorías, incluidas las actividades adicionales.
+  const allCategories = [...new Set(players.flatMap(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])]).filter(Boolean))].sort();
 
   // Contar jugadores por estado
   const allCount = players.length;
@@ -979,7 +979,7 @@ export default function Players() {
                       <SelectItem value="all">Todas</SelectItem>
                       {allCategories.map(cat => (
                         <SelectItem key={cat} value={cat}>
-                          {cat} ({players.filter(p => (p.categoria_principal || p.deporte) === cat).length})
+                          {cat} ({players.filter(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])].filter(Boolean).includes(cat)).length})
                         </SelectItem>
                       ))}
                     </SelectContent>
