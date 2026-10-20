@@ -9,7 +9,8 @@ export default function useTeamChatCategories(user) {
     queryKey: ["clubTeamCategories"],
     queryFn: async () => {
       const players = await base44.entities.Player.filter({ activo: true }, "-created_date", 1000);
-      return [...new Set(players.map((p) => p.categoria_principal || p.deporte).filter(Boolean))].sort();
+      // Incluir también las actividades extra para que sus equipos tengan chat propio.
+      return [...new Set(players.flatMap((p) => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])]).filter(Boolean))].sort();
     },
     enabled: isCoordinator,
     staleTime: 10 * 60_000,
