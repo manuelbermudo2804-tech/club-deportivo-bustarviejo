@@ -1440,9 +1440,9 @@ export default function Payments() {
                       const porcentajePagado = totalCuotasEsperadas > 0 ? Math.round((cuotasPagadas / totalCuotasEsperadas) * 100) : 0;
 
                       return (
-                        <Card key={player.id} className="border hover:shadow-lg transition-shadow">
-                          <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 border-b p-3 lg:p-4">
-                            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+                        <Card key={player.id} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+                          <CardHeader className="border-b border-slate-200 bg-gradient-to-r from-slate-50 via-white to-slate-50 p-3 sm:p-4">
+                            <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                               <div className="flex items-center gap-2 min-w-0">
                                 {player.foto_url ? (
                                   <img src={player.foto_url} className="w-9 h-9 lg:w-10 lg:h-10 rounded-full object-cover flex-shrink-0" alt="" />
@@ -1456,7 +1456,7 @@ export default function Payments() {
                                   <p className="text-xs text-slate-600 truncate">{player.deporte || "Sin categoría"}</p>
                                 </div>
                               </div>
-                              <div className="flex gap-2 items-center flex-wrap lg:flex-nowrap lg:flex-shrink-0">
+                              <div className="flex min-w-0 flex-wrap items-center gap-2 sm:justify-end">
                                 {isAdmin && (() => {
                                   const pagoUnicoPendiente = allPlayerPaymentsRaw.find(p =>
                                     (p.tipo_pago === "Único" || p.tipo_pago === "único") && p.estado === "Pendiente"
@@ -1500,10 +1500,10 @@ export default function Payments() {
                               </div>
                             </div>
                           </CardHeader>
-                          <CardContent className="p-3 lg:p-4">
+                          <CardContent className="min-w-0 space-y-1 p-3 sm:p-4">
                             {/* Banner de ajuste de cuota */}
                             {player.ajuste_cuota?.cuota_ajustada != null && (
-                              <div className="mb-3 p-2 bg-yellow-50 border-2 border-yellow-300 rounded-lg">
+                              <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50/80 p-3">
                                 <div className="flex min-w-0 items-center justify-between gap-3">
                                   <div>
                                     <p className="text-xs font-bold text-yellow-900">💰 Cuota Ajustada</p>
@@ -1524,7 +1524,7 @@ export default function Payments() {
 
                             {/* Alerta de plan especial */}
                             {playerCustomPlan && (
-                              <div className="mb-3 p-2 bg-purple-50 border-2 border-purple-300 rounded-lg">
+                              <div className="mb-3 rounded-xl border border-violet-200 bg-violet-50/80 p-3">
                                 <p className="text-xs font-bold text-purple-900">💰 Plan de Pago Personalizado</p>
                                 <p className="text-xs text-purple-700 mt-1">
                                   {playerCustomPlan.numero_cuotas} cuotas de {(playerCustomPlan.deuda_final / playerCustomPlan.numero_cuotas).toFixed(2)}€
@@ -1534,7 +1534,7 @@ export default function Payments() {
                             
                             {/* Info Plan Mensual */}
                             {hasPlanMensual && planMensualInfo && (
-                              <div className="mb-3 p-2 bg-blue-50 border-2 border-blue-300 rounded-lg">
+                              <div className="mb-3 rounded-xl border border-sky-200 bg-sky-50/80 p-3">
                                 <p className="text-xs font-bold text-blue-900">🔄 Plan Mensual (Stripe)</p>
                                 <div className="text-xs text-blue-700 mt-1 space-y-0.5">
                                   <p>Pago inicial: <strong>{planMensualInfo.inicial}€</strong> (Junio)</p>
@@ -1554,25 +1554,25 @@ export default function Payments() {
                               </div>
                             )}
                             {hasPlanMensual && !planMensualInfo && (
-                              <div className="mb-3 p-2 bg-blue-50 border-2 border-blue-300 rounded-lg">
+                              <div className="mb-3 rounded-xl border border-sky-200 bg-sky-50/80 p-3">
                                 <p className="text-xs font-bold text-blue-900">🔄 Plan Mensual</p>
                                 <p className="text-xs text-blue-700 mt-1">Pago inicial + mensualidades automáticas por Stripe</p>
                               </div>
                             )}
                             
-                            <div className="grid grid-cols-3 gap-2 mb-3">
-                              <div className="bg-red-50 rounded p-2 border border-red-200">
+                            <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+                              <div className="min-w-0 rounded-xl border border-red-200 bg-red-50/80 p-3">
                                 <p className="text-[10px] lg:text-xs text-red-700">Pendientes</p>
                                 <p className="text-lg lg:text-xl font-bold text-red-600">{totalPaymentsDue}</p>
                                 {totalPending > 0 && (
                                   <p className="text-[10px] text-red-600">{totalPending.toFixed(0)}€</p>
                                 )}
                               </div>
-                              <div className="bg-orange-50 rounded p-2 border border-orange-200">
+                              <div className="min-w-0 rounded-xl border border-orange-200 bg-orange-50/80 p-3">
                                 <p className="text-[10px] lg:text-xs text-orange-700">Revisión</p>
                                 <p className="text-lg lg:text-xl font-bold text-orange-600">{reviewPayments.length}</p>
                               </div>
-                              <div className="bg-green-50 rounded p-2 border border-green-200">
+                              <div className="min-w-0 rounded-xl border border-green-200 bg-green-50/80 p-3">
                                 <p className="text-[10px] lg:text-xs text-green-700">Pagados</p>
                                 <p className="text-lg lg:text-xl font-bold text-green-600">{paidPayments.length}</p>
                                 <p className="text-[10px] text-green-600">{cuotasPagadas}/{totalCuotasEsperadas}</p>
@@ -1602,14 +1602,14 @@ export default function Payments() {
                               </p>
                             </div>
 
-                            <div className="space-y-1.5">
+                            <div className="space-y-2">
                                 {displayPayments.map(payment => {
                                   const daysOverdue = calculateDaysOverdue(payment.mes);
                                   const isOverdue = payment.estado !== "Pagado" && daysOverdue > 0;
 
                                   return (
-                                    <div key={payment.id} className="flex items-center justify-between p-2 bg-slate-50 rounded hover:bg-slate-100 transition-colors gap-2">
-                                      <div className="flex items-center gap-2 min-w-0 flex-1">
+                                    <div key={payment.id} className="flex min-w-0 flex-col gap-2 rounded-xl border border-slate-100 bg-slate-50/80 p-3 transition-colors hover:border-slate-200 hover:bg-white sm:flex-row sm:items-center sm:justify-between">
+                                      <div className="flex min-w-0 flex-1 items-start gap-2 sm:items-center">
                                         <Badge className={
                                           payment.estado === "Pagado" ? "bg-green-100 text-green-700 text-[10px] lg:text-xs" :
                                           payment.estado === "En revisión" ? "bg-orange-100 text-orange-700 text-[10px] lg:text-xs" :
@@ -1652,7 +1652,7 @@ export default function Payments() {
                                           )}
                                         </div>
                                       </div>
-                                      <div className="flex gap-1 items-center">
+                                      <div className="flex shrink-0 flex-wrap items-center justify-end gap-1 self-end sm:self-auto">
                                        {payment.justificante_url ? (
                                          <Button
                                            variant="ghost"
