@@ -203,7 +203,7 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
               const decision = effectiveDecision(alert);
               const meta = decisionMeta[decision] || decisionMeta.REVISAR;
               const Icon = meta.icon;
-              const days = deadline ? Math.ceil((new Date(deadline + "T23:59:59") - new Date()) / 86400000) : null;
+              const days = deadline ? Math.ceil((new Date(deadline + "T23:59:59").getTime() - Date.now()) / 86400000) : null;
               const analysis = safeParse(alert.analisis_ia);
               return <Card key={alert.id} className="rounded-2xl border-slate-200">
                 <CardContent className="space-y-3 p-4">
