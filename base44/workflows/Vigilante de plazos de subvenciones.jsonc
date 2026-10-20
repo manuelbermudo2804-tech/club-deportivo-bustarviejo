@@ -1,6 +1,4 @@
 {
-  "name": "Vigilante de plazos de subvenciones",
-  "description": "Revisa cada d\u00eda las subvenciones marcadas como 'interesa' o 'revisando'. Avisa por push y email cuando se abre el plazo (extracto publicado en BOCM) o cuando faltan 7, 3 o 1 d\u00edas para el cierre.",
   "trigger": {
     "condition": null,
     "config": {
@@ -38,6 +36,8 @@
       }
     ]
   },
+  "description": "Revisa cada d\u00eda las subvenciones marcadas como 'interesa' o 'revisando'. Avisa por push y email cuando se abre el plazo (extracto publicado en BOCM) o cuando faltan 7, 3 o 1 d\u00edas para el cierre.",
+  "name": "Vigilante de plazos de subvenciones",
   "x-base44-migrated-from-automation": {
     "legacy_payload_function": "checkGrantDeadlines"
   }
