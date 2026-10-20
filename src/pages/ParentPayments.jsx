@@ -1112,38 +1112,13 @@ export default function ParentPayments() {
                     ) : (
                       <div className="space-y-3">
                         {displayPayments.map((payment) => {
-                            let mostrarBotonPagar = false;
-                            const mismaActividad = (p) => payment.categoria_actividad
-                              ? p.categoria_actividad === payment.categoria_actividad
-                              : !hasMultipleActivities && !p.categoria_actividad;
-
-                            // Aplicar la secuencia especial solo a las cuotas que realmente pertenecen
-                            // a un plan especial; un plan de Sala no debe ocultar botones de Aficionado.
-                            if (payment.tipo_pago === "Plan Especial") {
-                              const cuotasActividad = displayPayments
-                                .filter(p => !p.isVirtual && p.tipo_pago === "Plan Especial" && mismaActividad(p))
-                                .sort((a, b) => cuotaNum(a.mes) - cuotaNum(b.mes));
-                              const cuotasPendientes = cuotasActividad.filter(p => p.estado === "Pendiente");
-                              mostrarBotonPagar = payment.estado === "Pendiente" && cuotasPendientes[0]?.id === payment.id;
-                            } else if (payment.tipo_pago === "Plan Mensual") {
-                              // Las mensualidades del plan mensual se cobran automáticamente.
-                              mostrarBotonPagar = false;
-                            } else {
-                              const ordenMeses = ["Junio", "Septiembre", "Diciembre"];
-                              const mesIndex = ordenMeses.indexOf(payment.mes);
-                              const cuotasAnterioresPagadas = ordenMeses
-                                .slice(0, Math.max(0, mesIndex))
-                                .every(mesAnterior => displayPayments.some(p =>
-                                  !p.isVirtual &&
-                                  p.mes === mesAnterior &&
-                                  mismaActividad(p) &&
-                                  p.estado === "Pagado"
-                                ));
-                              // En multiactividad no bloquear por cuotas de otro equipo.
-                              // Una actividad sin pagos anteriores registrados permite pagar su primera cuota pendiente.
-                              mostrarBotonPagar = payment.estado === "Pendiente" &&
-                                (mesIndex === -1 || mesIndex === 0 || cuotasAnterioresPagadas);
-                            }
+                            // Todas las cuotas reales pendientes deben ofrecer el botón Pagar.
+                            // No se exige haber abonado meses anteriores ni otras actividades.
+                            // Los planes mensuales conservan su cobro automático.
+                            const mostrarBotonPagar =
+                              !payment.isVirtual &&
+                              payment.estado === "Pendiente" &&
+                              payment.tipo_pago !== "Plan Mensual";
 
                             const isSelected = cartSelected.some(s => s.payment.id === payment.id);
 
