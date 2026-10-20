@@ -61,7 +61,8 @@ async function consultarExtractoBDNS(codigo) {
 }
 
 async function enviarPush(base44, alertas, tipo) {
-  if (alertas.length === 0) return;
+  if (alertas.length === 0) return false;
+  let entregas = 0;
   try {
     webpush.setVapidDetails(
       "mailto:CDBUSTARVIEJO@GMAIL.COM",
@@ -117,6 +118,7 @@ async function enviarPush(base44, alertas, tipo) {
           payloadJson,
           { urgency: "high", TTL: 86400 },
         );
+        entregas++;
       } catch (e) {
         if (e.statusCode === 410 || e.statusCode === 404) {
           try {
@@ -131,9 +133,11 @@ async function enviarPush(base44, alertas, tipo) {
   } catch (e) {
     console.error("Error push plazos:", e.message);
   }
+  return entregas > 0;
 }
 
 async function enviarEmail(base44, abiertas, cerrando) {
+  let entregas = 0;
   try {
     const admins = await base44.asServiceRole.entities.User.filter({
       role: "admin",
@@ -172,10 +176,12 @@ async function enviarEmail(base44, abiertas, cerrando) {
         body: cuerpo,
         from_name: "CD Bustarviejo · Subvenciones",
       });
+      entregas++;
     }
   } catch (e) {
     console.error("Error email plazos:", e.message);
   }
+  return entregas > 0;
 }
 
 Deno.serve(async (req) => {
@@ -232,10 +238,7 @@ Deno.serve(async (req) => {
           if (
             dias >= 0 && dias <= umbral && !yaAvisados.includes(String(umbral))
           ) {
-            cerrando.push(alerta);
-            await base44.asServiceRole.entities.GrantAlert.update(alerta.id, {
-              avisos_plazo_enviados: [...yaAvisados, String(umbral)],
-            });
+            cerrando.push({ ...alerta, _umbralAvisoPendiente: String(umbral) });
             break;
           }
         }
@@ -249,7 +252,7 @@ Deno.serve(async (req) => {
       const info = await consultarExtractoBDNS(codigo);
       if (info && info.inicio) {
         // ¡Se publicó el extracto y se abrió el plazo!
-        const updates = { plazo_abierto_notificado: true };
+        const updates = {};
         if (info.fin) {
           const fin = String(info.fin).slice(0, 10);
           if (
@@ -259,10 +262,11 @@ Deno.serve(async (req) => {
         }
         if (!alerta.plazo_abierto_notificado) {
           recienAbiertas.push({ ...alerta, ...updates });
-          await base44.asServiceRole.entities.GrantAlert.update(
-            alerta.id,
-            updates,
-          );
+          // Guardamos la fecha detectada, pero no marcamos el aviso como enviado
+          // hasta que haya constancia de al menos una entrega.
+          if (Object.keys(updates).length > 0) {
+            await base44.asServiceRole.entities.GrantAlert.update(alerta.id, updates);
+          }
         }
       }
     }
@@ -270,15 +274,45 @@ Deno.serve(async (req) => {
     summary.abiertas = recienAbiertas.length;
     summary.cerrando = cerrando.length;
 
-    if (recienAbiertas.length > 0) {
-      await enviarPush(base44, recienAbiertas, "abierto");
+    const abiertasPushOk = recienAbiertas.length > 0
+      ? await enviarPush(base44, recienAbiertas, "abierto")
+      : false;
+    const cerrandoPushOk = cerrando.length > 0
+      ? await enviarPush(base44, cerrando, "cerrando")
+      : false;
+    const emailOk = recienAbiertas.length > 0 || cerrando.length > 0
+      ? await enviarEmail(base44, recienAbiertas, cerrando)
+      : false;
+
+    // Registrar avisos solo si al menos un canal confirma entrega. Si todos fallan,
+    // el siguiente ciclo volverá a intentarlo en lugar de perder el aviso.
+    for (const alerta of recienAbiertas) {
+      if (abiertasPushOk || emailOk) {
+        await base44.asServiceRole.entities.GrantAlert.update(alerta.id, {
+          plazo_abierto_notificado: true,
+        });
+      }
     }
-    if (cerrando.length > 0) await enviarPush(base44, cerrando, "cerrando");
-    if (recienAbiertas.length > 0 || cerrando.length > 0) {
-      await enviarEmail(base44, recienAbiertas, cerrando);
+    const confirmados = cerrandoPushOk || emailOk;
+    if (confirmados) {
+      for (const alerta of cerrando) {
+        const umbral = alerta._umbralAvisoPendiente;
+        if (!umbral) continue;
+        const actuales = Array.isArray(alerta.avisos_plazo_enviados)
+          ? alerta.avisos_plazo_enviados
+          : [];
+        await base44.asServiceRole.entities.GrantAlert.update(alerta.id, {
+          avisos_plazo_enviados: [...new Set([...actuales, umbral])],
+        });
+      }
     }
 
-    return Response.json({ success: true, manual: isManual, ...summary });
+    return Response.json({
+      success: true,
+      manual: isManual,
+      ...summary,
+      notificaciones_confirmadas: abiertasPushOk || cerrandoPushOk || emailOk,
+    });
   } catch (error) {
     console.error("Error en checkGrantDeadlines:", error);
     return Response.json({ error: error.message }, { status: 500 });
