@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { FolderKanban, Plus, RefreshCw, CalendarClock, ExternalLink, FileCheck2, Loader2, Save, AlertCircle } from "lucide-react";
+import { FolderKanban, Plus, RefreshCw, CalendarClock, ExternalLink, FileCheck2, Loader2, Save, AlertCircle, FileText, Download } from "lucide-react";
 import { toast } from "sonner";
 
 const ESTADOS = [
@@ -55,6 +55,9 @@ export default function GrantCasesPanel() {
   const [search, setSearch] = useState("");
   const [requirementDrafts, setRequirementDrafts] = useState({});
   const [addingRequirementTo, setAddingRequirementTo] = useState("");
+  const [draftOpen, setDraftOpen] = useState(false);
+  const [draftTitle, setDraftTitle] = useState("");
+  const [draftText, setDraftText] = useState("");
 
   const loadCases = useCallback(async () => {
     setLoading(true);
@@ -180,6 +183,80 @@ export default function GrantCasesPanel() {
     } catch (e) {
       toast.error("No se pudo actualizar el estado");
     }
+  };
+
+  const openDraft = (item) => {
+    const itemRequirements = requirements.filter(req => req.expediente_id === item.id);
+    const lines = [
+      "BORRADOR DE TRABAJO — SUBVENCIÓN",
+      "Documento orientativo generado desde el gestor del C.D. Bustarviejo.",
+      "IMPORTANTE: no es un formulario oficial. Contrastar con las bases, completar los campos y revisar antes de firmar o presentar.",
+      "",
+      "1. DATOS DE LA CONVOCATORIA",
+      "Convocatoria: " + (item.titulo || "Pendiente"),
+      "Entidad convocante: " + (item.entidad || "Pendiente"),
+      "Referencia: " + (item.referencia || "Pendiente"),
+      "Temporada/ejercicio: " + (item.temporada || "Pendiente"),
+      "Enlace oficial: " + (item.url_oficial || "Pendiente de incorporar"),
+      "Estado interno: " + estadoLabel(item.estado),
+      "",
+      "2. DATOS ECONÓMICOS",
+      "Importe solicitado: " + money(item.importe_solicitado),
+      "Importe concedido: " + money(item.importe_concedido),
+      "Importe cobrado: " + money(item.importe_cobrado),
+      "Pendiente de cobro: " + (item.importe_concedido != null && item.importe_concedido !== "" ? money(Math.max(0, Number(item.importe_concedido) - (Number(item.importe_cobrado) || 0))) : "Pendiente de calcular"),
+      "",
+      "3. FECHAS Y PRESENTACIÓN",
+      "Límite de solicitud: " + (item.fecha_limite_solicitud || "Pendiente"),
+      "Fecha de presentación: " + (item.fecha_presentacion || "Pendiente"),
+      "Fecha de resolución: " + (item.fecha_resolucion || "Pendiente"),
+      "Límite de justificación: " + (item.fecha_limite_justificacion || "Pendiente"),
+      "Número de registro: " + (item.numero_registro || "Pendiente"),
+      "Justificante oficial: " + (item.justificante_uri || "Pendiente"),
+      "",
+      "4. CHECKLIST DOCUMENTAL",
+      ...(itemRequirements.length ? itemRequirements.map(req => "- [" + (["revisado", "no_aplica"].includes(req.estado) ? "x" : " ") + "] " + req.nombre + " — " + (req.estado || "pendiente") + (req.obligatorio === false ? " (no obligatorio)" : " (obligatorio)")) : ["- No se han registrado requisitos para este expediente. Revisar las bases oficiales."]),
+      "",
+      "5. MEMORIA / PROYECTO DE ACTUACIÓN (COMPLETAR Y ADAPTAR A LAS BASES)",
+      "Entidad solicitante y trayectoria:",
+      "[Completar]",
+      "",
+      "Objetivos y necesidad del proyecto:",
+      "[Completar]",
+      "",
+      "Actividades, calendario y personas destinatarias:",
+      "[Completar]",
+      "",
+      "Resultados e indicadores de evaluación:",
+      "[Completar]",
+      "",
+      "Presupuesto detallado y financiación:",
+      "[Completar con importes contrastados y documentación justificativa]",
+      "",
+      "6. REVISIÓN FINAL",
+      "- Confirmar requisitos, elegibilidad, plazos y formato exigidos en las bases.",
+      "- Verificar que los importes coinciden con presupuesto, facturas y justificantes.",
+      "- Revisar anexos, firmas y certificados vigentes.",
+      "- No presentar hasta que una persona responsable haya validado el contenido.",
+      "",
+      "Responsable interno: " + (item.responsable || "Pendiente de asignar"),
+      "Notas del expediente: " + (item.notas || "Sin notas registradas"),
+    ];
+    setDraftTitle("Borrador - " + (item.titulo || "subvencion"));
+    setDraftText(lines.join("\\n"));
+    setDraftOpen(true);
+  };
+
+  const downloadDraft = () => {
+    const blob = new Blob([draftText], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = (draftTitle || "borrador-subvencion").replace(/[^a-z0-9áéíóúñü_-]+/gi, "-") + ".txt";
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
   };
 
   const filtered = cases.filter((c) => {
