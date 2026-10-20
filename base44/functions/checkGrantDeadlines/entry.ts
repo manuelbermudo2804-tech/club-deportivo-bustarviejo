@@ -265,7 +265,10 @@ Deno.serve(async (req) => {
           // Guardamos la fecha detectada, pero no marcamos el aviso como enviado
           // hasta que haya constancia de al menos una entrega.
           if (Object.keys(updates).length > 0) {
-            await base44.asServiceRole.entities.GrantAlert.update(alerta.id, updates);
+            await base44.asServiceRole.entities.GrantAlert.update(
+              alerta.id,
+              updates,
+            );
           }
         }
       }
