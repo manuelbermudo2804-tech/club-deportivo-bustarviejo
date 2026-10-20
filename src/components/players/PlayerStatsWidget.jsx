@@ -41,7 +41,7 @@ const getNextBirthday = (fechaNac) => {
   return diff;
 };
 
-export default function PlayerStatsWidget({ playerId, playerName, playerCategory, fechaNacimiento, createdDate, compact = false }) {
+export default function PlayerStatsWidget({ playerId, playerName, playerCategory, fechaNacimiento, createdDate, compact = false, showSharedStats = true }) {
   const currentSeason = getCurrentSeason();
   const normalizedSeason = currentSeason.replace(/-/g, "/").trim();
 
@@ -75,10 +75,10 @@ export default function PlayerStatsWidget({ playerId, playerName, playerCategory
   // Goles oficiales importados desde el centro de competición (temporada actual).
   const { data: scorerRecords = [] } = useQuery({
     queryKey: ["playerScorerRecords", normalizedSeason],
-    queryFn: () => base44.entities.Goleador.filter({ temporada: normalizedSeason }, "-goles", 500),
+    queryFn: () => base44.entities.Goleador.filter({ temporada: normalizedSeason, categoria: playerCategory }, "-goles", 500),
     staleTime: 300_000,
     refetchOnWindowFocus: true,
-    enabled: !!playerName,
+    enabled: !!playerName && !!playerCategory,
   });
 
   const normalizeName = (value) => String(value || "")
@@ -114,7 +114,7 @@ export default function PlayerStatsWidget({ playerId, playerName, playerCategory
   // Media de evaluación: usar solo puntuaciones numéricas existentes para evitar NaN.
   // La consulta ya está filtrada por jugador. No volver a filtrar por jugador_id,
   // porque algunas evaluaciones históricas pueden devolver ese campo con otro formato.
-  const evaluationScores = evaluations
+  const evaluationScores = (showSharedStats ? evaluations : [])
     .map(e => [e.tecnica, e.tactica, e.fisica, e.actitud, e.trabajo_equipo]
       .map(value => value === "" || value === null || value === undefined ? null : Number(value))
       .filter(value => value !== null && Number.isFinite(value)))
@@ -159,7 +159,8 @@ export default function PlayerStatsWidget({ playerId, playerName, playerCategory
   // Pagos al día
   const seasonPayments = payments.filter(p => {
     const norm = (p.temporada || "").replace(/-/g, "/").trim();
-    return norm === normalizedSeason && !p.is_deleted;
+    // No atribuir pagos históricos sin categoría a una actividad concreta.
+    return norm === normalizedSeason && !p.is_deleted && p.categoria_actividad === playerCategory;
   });
   const pendingPayments = seasonPayments.filter(p => p.estado === "Pendiente").length;
   const paymentsInReview = seasonPayments.filter(p => p.estado === "En revisión").length;
@@ -175,14 +176,14 @@ export default function PlayerStatsWidget({ playerId, playerName, playerCategory
   const stats = [
     { icon: "⚽", label: "Goles", value: String(playerGoals), color: "text-orange-800 bg-orange-50 border-orange-200", show: true },
     { icon: "🏟️", label: "Convocatorias", value: `${convocatoriasConfirmadas}/${totalConvocatorias}`, color: "text-blue-700 bg-blue-50 border-blue-200", show: totalConvocatorias > 0 },
-    { icon: "⭐", label: "Evaluación", value: avgEvalFinal ? `${avgEvalFinal}/5` : "—", color: "text-yellow-700 bg-yellow-50 border-yellow-200", show: true },
+    { icon: "⭐", label: "Evaluación general", value: avgEvalFinal ? `${avgEvalFinal}/5` : "—", color: "text-yellow-700 bg-yellow-50 border-yellow-200", show: showSharedStats },
     { icon: "📋", label: "Entrenamientos", value: `${totalTrainings}/${totalTrainingsSessions}`, color: "text-purple-700 bg-purple-50 border-purple-200", show: totalTrainingsSessions > 0 },
     { icon: "🔥", label: "Racha", value: racha > 0 ? `${racha} seguidos` : "—", color: "text-orange-700 bg-orange-50 border-orange-200", show: true },
     { icon: "💳", label: "Pagos", value: paymentStatus ? "Al día ✅" : pendingPayments > 0 ? `${pendingPayments} pend.` : paymentsInReview > 0 ? `${paymentsInReview} en revisión` : "—", color: paymentStatus ? "text-green-700 bg-green-50 border-green-200" : "text-amber-700 bg-amber-50 border-amber-200", show: seasonPayments.length > 0 },
-    { icon: "🏅", label: "Antigüedad", value: `${antiguedad} temp.`, color: "text-slate-700 bg-slate-50 border-slate-200", show: true },
+    { icon: "🏅", label: "Antigüedad", value: `${antiguedad} temp.`, color: "text-slate-700 bg-slate-50 border-slate-200", show: showSharedStats },
   ];
 
-  if (cumplePronto) {
+  if (cumplePronto && showSharedStats) {
     stats.push({
       icon: "🎂",
       label: "Cumpleaños",
@@ -226,7 +227,7 @@ export default function PlayerStatsWidget({ playerId, playerName, playerCategory
       <div className="flex items-center justify-between gap-3 border-b border-slate-100 pb-3">
         <div>
           <p className="text-[10px] font-extrabold uppercase tracking-[0.18em] text-orange-600 mb-1">Tu rendimiento</p>
-          <h3 className="font-extrabold text-slate-950 text-base sm:text-lg flex items-center gap-2">📊 Estadísticas de la temporada</h3>
+          <h3 className="font-extrabold text-slate-950 text-base sm:text-lg flex items-center gap-2">📊 {playerCategory} · Estadísticas de la temporada</h3>
         </div>
         <span className="hidden sm:inline-flex items-center rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-500">C.D. Bustarviejo</span>
       </div>
