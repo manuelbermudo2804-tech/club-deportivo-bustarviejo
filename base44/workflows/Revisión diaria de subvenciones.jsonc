@@ -9,7 +9,7 @@
       "schedule_mode": "recurring",
       "cron_expression": "0 8 * * *",
       "one_time_date": null,
-      "timezone": "UTC",
+      "timezone": "Europe/Madrid",
       "interval_value": null,
       "interval_unit": null,
       "interval_anchor": null,
