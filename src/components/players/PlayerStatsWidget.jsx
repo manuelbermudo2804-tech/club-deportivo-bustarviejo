@@ -74,7 +74,7 @@ export default function PlayerStatsWidget({ playerId, playerName, playerCategory
 
   // Goles oficiales importados desde el centro de competición (temporada actual).
   const { data: scorerRecords = [] } = useQuery({
-    queryKey: ["playerScorerRecords", normalizedSeason],
+    queryKey: ["playerScorerRecords", normalizedSeason, playerCategory],
     queryFn: () => base44.entities.Goleador.filter({ temporada: normalizedSeason, categoria: playerCategory }, "-goles", 500),
     staleTime: 300_000,
     refetchOnWindowFocus: true,
