@@ -1120,7 +1120,12 @@ export default function ParentPayments() {
                             } else {
                               const ordenMeses = ["Junio", "Septiembre", "Diciembre"];
                               const mesIndex = ordenMeses.indexOf(payment.mes);
-                              const cuotaAnterior = mesIndex > 0 ? displayPayments.find(p => p.mes === ordenMeses[mesIndex - 1]) : null;
+                              // Nunca usar la cuota de otra actividad para decidir si se puede pagar.
+                              // Los pagos históricos sin actividad quedan sin clasificar, no se asignan por suposición.
+                              const mismaActividad = (p) => payment.categoria_actividad
+                                ? p.categoria_actividad === payment.categoria_actividad
+                                : !hasMultipleActivities && !p.categoria_actividad;
+                              const cuotaAnterior = mesIndex > 0 ? displayPayments.find(p => p.mes === ordenMeses[mesIndex - 1] && mismaActividad(p)) : null;
                               const cuotaAnteriorPagada = mesIndex === 0 || cuotaAnterior?.estado === "Pagado";
                               mostrarBotonPagar = payment.estado === "Pendiente" && cuotaAnteriorPagada;
                             }
