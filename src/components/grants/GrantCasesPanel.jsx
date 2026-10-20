@@ -227,12 +227,14 @@ export default function GrantCasesPanel() {
                     <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-500">
                       {item.fecha_limite_solicitud && <span className="inline-flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" /> Límite solicitud: {item.fecha_limite_solicitud}</span>}
                       {item.fecha_limite_justificacion && <span className="inline-flex items-center gap-1"><FileCheck2 className="h-3.5 w-3.5" /> Límite justificación: {item.fecha_limite_justificacion}</span>}
+                      {item.fecha_presentacion && <span className="inline-flex items-center gap-1"><FileCheck2 className="h-3.5 w-3.5" /> Presentada: {item.fecha_presentacion}</span>}
                       {item.numero_registro && <span className="inline-flex items-center gap-1"><FileCheck2 className="h-3.5 w-3.5" /> Registro: {item.numero_registro}</span>}
                       {item.url_oficial && <a href={item.url_oficial} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-orange-700 hover:underline"><ExternalLink className="h-3.5 w-3.5" /> Convocatoria oficial</a>}
                     </div>
                     <div className="mt-4 grid gap-2 rounded-xl border border-slate-200 p-3 sm:grid-cols-2">
                       <div><Label className="text-xs">Número de registro oficial</Label><Input className="mt-1 h-9" defaultValue={item.numero_registro || ""} onBlur={e => { if (e.target.value !== (item.numero_registro || "")) saveEvidence(item, { numero_registro: e.target.value }); }} placeholder="REGAGE…"/></div>
                       <div><Label className="text-xs">URL del justificante oficial</Label><Input className="mt-1 h-9" defaultValue={item.justificante_uri || ""} onBlur={e => { if (e.target.value !== (item.justificante_uri || "")) saveEvidence(item, { justificante_uri: e.target.value }); }} placeholder="Enlace al PDF de registro"/></div>
+                      <div><Label className="text-xs">Fecha de presentación</Label><Input type="date" className="mt-1 h-9" defaultValue={item.fecha_presentacion || ""} onBlur={e => { if (e.target.value !== (item.fecha_presentacion || "")) saveEvidence(item, { fecha_presentacion: e.target.value }); }}/></div>
                       {item.estado === "presentada" && (!item.justificante_uri || !item.numero_registro) && <p className="sm:col-span-2 flex items-center gap-2 text-xs font-medium text-red-700"><AlertCircle className="h-4 w-4" /> Expediente marcado previamente como presentado sin evidencia completa. Añade registro y justificante y revisa el estado.</p>}
                     </div>
                     {item.notas && <p className="mt-3 whitespace-pre-wrap text-sm text-slate-600">{item.notas}</p>}
