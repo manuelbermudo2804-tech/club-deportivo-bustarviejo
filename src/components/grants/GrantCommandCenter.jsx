@@ -163,7 +163,7 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
     const assessment = assessmentsByAlert[alert.id];
     const deadline = assessment?.fecha_limite || alert.fecha_limite;
     // Un plazo vencido nunca debe mostrarse como recomendación de presentar una solicitud nueva.
-    if (deadline && deadline < todayISO && assessment?.decision === "PRESENTAR") return "REVISAR";
+    if (deadline && deadline < todayISO) return "NO_PRESENTAR";
     return assessment?.decision || "REVISAR";
   };
   const sortedRecomendables = useMemo(() => [...recomendables].sort((a,b) => {
@@ -176,8 +176,8 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card className="rounded-2xl"><CardContent className="p-4"><p className="text-xs text-slate-500">Oportunidades detectadas</p><p className="mt-1 text-2xl font-bold">{recomendables.length}</p></CardContent></Card>
-        <Card className="rounded-2xl"><CardContent className="p-4"><p className="text-xs text-slate-500">Recomendadas para presentar</p><p className="mt-1 text-2xl font-bold text-emerald-700">{assessments.filter(a => a.decision === "PRESENTAR").length}</p></CardContent></Card>
-        <Card className="rounded-2xl"><CardContent className="p-4"><p className="text-xs text-slate-500">Pendientes de comprobar</p><p className="mt-1 text-2xl font-bold text-amber-700">{assessments.filter(a => a.decision === "REVISAR").length + recomendables.filter(a => !assessmentsByAlert[a.id]).length}</p></CardContent></Card>
+        <Card className="rounded-2xl"><CardContent className="p-4"><p className="text-xs text-slate-500">Recomendadas para presentar</p><p className="mt-1 text-2xl font-bold text-emerald-700">{recomendables.filter(a => effectiveDecision(a) === "PRESENTAR").length}</p></CardContent></Card>
+        <Card className="rounded-2xl"><CardContent className="p-4"><p className="text-xs text-slate-500">Pendientes de comprobar</p><p className="mt-1 text-2xl font-bold text-amber-700">{recomendables.filter(a => effectiveDecision(a) === "REVISAR").length + recomendables.filter(a => !assessmentsByAlert[a.id]).length}</p></CardContent></Card>
         <Card className="rounded-2xl"><CardContent className="p-4"><p className="text-xs text-slate-500">Documentos por revisar/caducados</p><p className="mt-1 text-2xl font-bold">{pendientes}</p></CardContent></Card>
       </div>
 
