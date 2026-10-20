@@ -63,7 +63,7 @@ export default function SubvencionesPanel() {
       }
       await loadAll();
     } catch (e) {
-      toast.error("No se pudo revisar las fuentes");
+      toast.error(`No se pudo revisar las fuentes: ${e.message || "error desconocido"}`);
     } finally {
       setChecking(false);
     }
