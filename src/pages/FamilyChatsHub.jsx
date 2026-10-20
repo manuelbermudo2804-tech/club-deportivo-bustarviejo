@@ -45,7 +45,7 @@ export default function FamilyChatsHub() {
   });
 
   // Obtener categorías únicas de mis jugadores
-  const myCategories = [...new Set(players.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
+  const myCategories = [...new Set(players.flatMap(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])]).filter(Boolean))].sort();
 
   // Normalizar grupo_id
   const normalizeId = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\(.*?\)/g,'').trim().replace(/\s+/g,'_');
@@ -184,7 +184,7 @@ export default function FamilyChatsHub() {
             </div>
             {myCategories.map(cat => {
               const chatData = teamChats.find(c => c.categoryName === cat);
-              const playersInCat = players.filter(p => (p.categoria_principal || p.deporte) === cat);
+              const playersInCat = players.filter(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])].includes(cat));
               const playerNames = playersInCat.map(p => p.nombre?.split(' ')[0]).join(', ');
               return (
                 <ConversationRow
