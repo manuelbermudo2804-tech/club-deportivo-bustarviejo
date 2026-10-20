@@ -128,7 +128,7 @@ export default function GrantCasesPanel() {
       return;
     }
     try {
-      const historial = [...((item.historial || []) as any[]), { fecha: new Date().toISOString(), accion: "Cambio de estado", detalle: estadoLabel(estado) }];
+      const historial = [...(Object(item).historial || []), { fecha: new Date().toISOString(), accion: "Cambio de estado", detalle: estadoLabel(estado) }];
       await base44.entities.GrantCase.update(item.id, { estado, historial });
       toast.success("Estado actualizado");
       await loadCases();
