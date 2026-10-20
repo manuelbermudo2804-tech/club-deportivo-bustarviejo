@@ -195,9 +195,10 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
       toast.error("Selecciona la actividad a la que corresponde este pago");
       return;
     }
-    if (!currentPayment.categoria_actividad && playerActivities.length === 1) {
-      currentPayment.categoria_actividad = playerActivities[0];
-    }
+    const paymentPayload = {
+      ...currentPayment,
+      categoria_actividad: currentPayment.categoria_actividad || (playerActivities.length === 1 ? playerActivities[0] : ""),
+    };
 
     // 🔒 Protección plan especial: si el jugador tiene un plan activo, el pago DEBE
     // registrarse como cuota del plan (nunca como "Único"/"Tres meses" suelto).
@@ -213,7 +214,7 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
       
       for (const mes of months) {
         const paymentData = {
-          ...currentPayment,
+          ...paymentPayload,
           mes: mes,
           cantidad: cantidadPorMes
         };
@@ -236,7 +237,7 @@ export default function PaymentForm({ payment, players, onSubmit, onCancel, isSu
     } else {
       // Pago único
       try {
-        const createdPayment = await base44.entities.Payment.create(currentPayment);
+        const createdPayment = await base44.entities.Payment.create(paymentPayload);
         
         // Crear recordatorio (15 días antes)
         if (selectedPlayer?.email_padre) {
