@@ -119,6 +119,7 @@ Deno.serve(async (req) => {
         for (const p of payments) {
           const created = await base44.asServiceRole.entities.Payment.create({
             ...p,
+            categoria_actividad: p.categoria_actividad || playerData?.deporte || updated.categoria_principal || updated.deporte,
             jugador_id: updated.id,
             jugador_nombre: updated.nombre,
           });
@@ -249,6 +250,7 @@ Deno.serve(async (req) => {
         for (const p of payments) {
           const created = await base44.asServiceRole.entities.Payment.create({
             ...p,
+            categoria_actividad: p.categoria_actividad || playerData?.categoria_principal || playerData?.deporte,
             jugador_id: newPlayer.id,
             jugador_nombre: newPlayer.nombre,
           });
