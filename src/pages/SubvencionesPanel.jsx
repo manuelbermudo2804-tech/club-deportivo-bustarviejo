@@ -131,7 +131,7 @@ export default function SubvencionesPanel() {
       </section>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
-        <Button onClick={runCheck} disabled={checking || sources.length === 0} className="w-full rounded-xl bg-orange-600 font-semibold hover:bg-orange-700 sm:w-auto">
+        <Button onClick={runCheck} disabled={checking} className="w-full rounded-xl bg-orange-600 font-semibold hover:bg-orange-700 sm:w-auto">
           {checking ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
           Revisar ahora
         </Button>
