@@ -24,6 +24,14 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
 
   const [cuotas, setCuotas] = useState([]);
   const [activeSeason, setActiveSeason] = useState(null);
+  const activities = [...new Set([player?.categoria_principal, player?.deporte, ...(Array.isArray(player?.categorias) ? player.categorias : [])].filter(Boolean))];
+  const [categoriaActividad, setCategoriaActividad] = useState(existingPlan?.categoria_actividad || (activities.length === 1 ? activities[0] : ""));
+
+  useEffect(() => {
+    if (!open || !player) return;
+    const savedActivity = existingPlan?.categoria_actividad;
+    setCategoriaActividad(savedActivity || (activities.length === 1 ? activities[0] : ""));
+  }, [open, player?.id, existingPlan?.id, existingPlan?.categoria_actividad]);
 
   // Cargar temporada activa SOLO cuando se abre el modal (evita rate limit innecesario)
   useEffect(() => {
@@ -60,8 +68,10 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
       setCuotas(existingPlan.cuotas || []);
     } else if (player) {
       // CALCULAR DEUDA AUTOMÁTICAMENTE
-      const cuotas = getCuotasPorCategoriaSync(player.deporte);
-      const deudaTotal = cuotas.total;
+      const categoriaInicial = existingPlan?.categoria_actividad || (activities.length === 1 ? activities[0] : "");
+      setCategoriaActividad(categoriaInicial);
+      const cuotasConfig = getCuotasPorCategoriaSync(categoriaInicial || player.deporte);
+      const deudaTotal = cuotasConfig.total;
       
       setFormData({
         deuda_original: deudaTotal,
@@ -159,6 +169,11 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
       return;
     }
     
+    if (activities.length > 1 && !categoriaActividad) {
+      toast.error("Selecciona la actividad a la que corresponde este plan de pago");
+      return;
+    }
+
     if (formData.deuda_original <= 0) {
       toast.error("La deuda original debe ser mayor a 0");
       return;
@@ -175,6 +190,7 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
       jugador_id: player.id,
       jugador_nombre: player.nombre,
       familia_email: player.email_padre,
+      categoria_actividad: categoriaActividad || activities[0] || player.deporte || "",
       temporada: activeSeason || getCurrentSeason(),
       deuda_original: formData.deuda_original,
       deuda_condonada: formData.deuda_condonada,
@@ -224,6 +240,28 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {activities.length > 1 && (
+            <Card className="border-2 border-orange-200 bg-orange-50/50">
+              <CardContent className="pt-4 space-y-2">
+                <label className="text-sm font-semibold text-slate-800">Actividad a la que corresponde el plan *</label>
+                <Select value={categoriaActividad} onValueChange={(value) => {
+                  setCategoriaActividad(value);
+                  if (!existingPlan) {
+                    const cuotaConfig = getCuotasPorCategoriaSync(value);
+                    setFormData(prev => ({ ...prev, deuda_original: cuotaConfig.total || prev.deuda_original }));
+                    setCuotas([]);
+                  }
+                }}>
+                  <SelectTrigger className="bg-white"><SelectValue placeholder="Selecciona Fútbol Aficionado o Fútbol Sala" /></SelectTrigger>
+                  <SelectContent>
+                    {activities.map(activity => <SelectItem key={activity} value={activity}>{activity}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-slate-600">El plan y sus cuotas quedarán asociados exclusivamente a esta actividad.</p>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Deuda */}
           <Card className="border-2 border-purple-200">
             <CardContent className="pt-4 space-y-4">
