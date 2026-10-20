@@ -87,8 +87,10 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   const attendanceStatus = lastAttendance?.asistencias?.find(att => att.jugador_id === player.id)?.estado;
 
   const playerCategory = player.categoria_principal || player.deporte;
+  // Una ficha puede pertenecer a varios equipos: la categoría principal no debe ocultar las extras.
+  const playerCategories = [...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))];
   const playerSchedules = schedules
-    .filter(s => s.categoria === playerCategory && s.activo)
+    .filter(s => playerCategories.includes(s.categoria) && s.activo)
     .sort((a, b) => DIAS_ORDEN[a.dia_semana] - DIAS_ORDEN[b.dia_semana]);
 
   const hasMedicalInfo = player.ficha_medica && Object.values(player.ficha_medica).some(val => val);
@@ -298,7 +300,7 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
               </div>
               <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
                 <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full">
-                  {playerCategory || "Sin categoría"}
+                  {playerCategories.join(" · ") || "Sin categoría"}
                 </span>
                 {player.posicion && player.posicion !== "Sin asignar" && (
                   <span className="text-xs text-slate-500">
