@@ -345,7 +345,7 @@ function CodeCard({ code, onResend, onCancel, onDelete, isResending, telefono })
                 Reenviar
               </Button>
             )}
-            {displayEstado === 'pendiente' && telefono && (() => {
+            {displayEstado !== 'cancelado' && telefono && (() => {
               const waUrl = getWhatsAppUrl(telefono, code.tipo, code.nombre_destino, code.codigo, code.email);
               if (!waUrl) return null;
               return (
