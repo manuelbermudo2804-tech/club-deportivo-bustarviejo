@@ -165,7 +165,7 @@ export default function ParentPlayers() {
     refetchOnWindowFocus: false,
   });
 
-  const playerCategories = [...new Set(players.map(p => p.categoria_principal || p.deporte).filter(Boolean))];
+  const playerCategories = [...new Set(players.flatMap(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])]).filter(Boolean))];
   const { data: callups } = useQuery({
     queryKey: ['myCallups', playerCategories.join(',')],
     queryFn: async () => {
