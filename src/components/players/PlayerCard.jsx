@@ -138,9 +138,12 @@ export default function PlayerCard({ player, onEdit, onViewProfile, isParent = f
   });
   // Si no encontramos pagos para la temporada actual pero el jugador SÍ tiene pagos,
   // usar los pagos más recientes (evitar falso ❌ por desajuste de temporada)
-  const playerPayments = seasonFilteredPayments.length > 0 
-    ? seasonFilteredPayments 
-    : allPlayerPayments;
+  // Los pagos anulados se conservan en el historial contable, pero nunca deben generar deuda ni aparecer como cuotas activas.
+  const activeSeasonPayments = seasonFilteredPayments.filter(p => p.estado !== "Anulado" && p.is_deleted !== true);
+  const activeAllPlayerPayments = allPlayerPayments.filter(p => p.estado !== "Anulado" && p.is_deleted !== true);
+  const playerPayments = activeSeasonPayments.length > 0 
+    ? activeSeasonPayments 
+    : activeAllPlayerPayments;
 
   const customPlan = getActiveCustomPlan(player.id, customPlans, normalizedCurrentSeason);
   let expectedPayments, paidCount, pendingCount, allPaid;
