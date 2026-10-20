@@ -38,7 +38,7 @@ export default function HoyEntrenamientoLine({ items = [] }) {
           {user && (
             <div className="flex flex-col items-start gap-1 pl-6">
               {(it.jugadoresIds || []).map((j) => (
-                <NoVoyEntrenoButton key={j.id} jugador={j} categoria={it.subtitulo} fechaISO={fechaISO} user={user} solo={deHoy.reduce((n, x) => n + (x.jugadoresIds || []).length, 0) === 1} />
+                <NoVoyEntrenoButton key={`${j.id}-${it.subtitulo}-${fechaISO}`} jugador={j} categoria={it.subtitulo} fechaISO={fechaISO} user={user} solo={deHoy.reduce((n, x) => n + (x.jugadoresIds || []).length, 0) === 1} />
               ))}
             </div>
           )}
