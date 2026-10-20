@@ -136,7 +136,7 @@ export default function CoachParentChat({ embedded = false }) {
   }
 
   const categories = user?.role === "admin" 
-    ? ["Todas las categorías", ...[...new Set(allPlayers.map(p => p.categoria_principal || p.deporte).filter(Boolean))]]
+    ? ["Todas las categorías", ...[...new Set(allPlayers.flatMap(p => [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])]).filter(Boolean))]]
     : teamCats;
 
   if (categories.length === 0) {
