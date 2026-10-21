@@ -30,6 +30,11 @@
       "default": true,
       "description": "Si se muestra el aviso en la app"
     },
+    "solicitar_confirmacion": {
+      "type": "boolean",
+      "default": true,
+      "description": "Si se muestra autom\u00e1ticamente la pantalla para confirmar asistencia"
+    },
     "ludoteca": {
       "type": "boolean",
       "default": false,
