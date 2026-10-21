@@ -573,7 +573,11 @@ export default function UserManagement() {
 
   // ===== DERIVED DATA (memoized) =====
   const usersWithPlayerAccessIds = useMemo(
-    () => users.filter((u) => u.es_jugador === true).map((u) => u.player_id).filter(Boolean),
+    () =>
+      users
+        .filter((u) => u.es_jugador === true && u.eliminado !== true)
+        .flatMap((u) => [u.player_id, u.jugador_id])
+        .filter(Boolean),
     [users]
   );
 
@@ -581,13 +585,16 @@ export default function UserManagement() {
     () =>
       users.filter((user) => {
         if (user.eliminado || user.es_jugador || user.role === "admin") return false;
-        const matchingPlayer = players.find(
-          (p) =>
-            p.activo &&
-            p.email_padre === user.email &&
+        const userEmail = (user.email || "").trim().toLowerCase();
+        const matchingPlayer = players.find((p) => {
+          const parentEmail = (p.email_padre || "").trim().toLowerCase();
+          return (
+            p.activo === true &&
+            parentEmail === userEmail &&
             calcularEdad(p.fecha_nacimiento) >= 18 &&
             !usersWithPlayerAccessIds.includes(p.id)
-        );
+          );
+        });
         return !!matchingPlayer;
       }),
     [users, players, usersWithPlayerAccessIds]
