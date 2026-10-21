@@ -63,7 +63,7 @@ export default function LoteriaNavidad() {
           <h2 className="text-2xl font-black leading-tight sm:text-3xl">¡Quedan muy pocos décimos en los comercios!</h2>
           <p className="mx-auto mt-3 max-w-lg text-sm font-semibold leading-relaxed sm:text-base">Si todavía no tienes el tuyo, aún puedes conseguirlo online. ¡Colabora con el club y no te quedes sin lotería!</p>
           <div className="mx-auto mt-4 max-w-lg rounded-2xl border border-red-950/15 bg-white/45 px-4 py-3 text-sm leading-relaxed shadow-sm sm:text-base">
-            <p className="font-black">💛 Tu décimo también ayuda al Bustar</p>
+            <p className="font-black">🧡 Tu décimo también ayuda al club</p>
             <p className="mt-1">De los 22 €, <strong>2 € son para el CD Bustarviejo</strong> y contribuyen a financiar la actividad de nuestros equipos. ¡Gracias por apoyar al club! ⚽</p>
           </div>
           <a href={campana.tulotero_url || URL_TULOTERO} target="_blank" rel="noopener noreferrer" className="mt-5 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-red-950 px-5 py-4 text-base font-black text-white shadow-lg transition hover:bg-red-900 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white sm:text-lg">
