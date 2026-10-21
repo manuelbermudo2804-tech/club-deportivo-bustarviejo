@@ -710,12 +710,16 @@ export default function UserManagement() {
   // ===== FILTERED USERS =====
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
+      // La vista de eliminados debe ser exclusiva: nunca mezclar cuentas activas.
+      if (showDeleted && user.eliminado !== true) return false;
       if (!showDeleted && user.eliminado === true) return false;
 
-      // Ocultar visitantes sin código validado de TODAS las vistas excepto su filtro propio
-      if (roleFilter !== "unvalidated" && isUnvalidatedVisitor(user)) return false;
+      // Las cuentas eliminadas se muestran siempre en su vista, aunque fueran visitantes
+      // sin código validado. En la vista normal se mantiene el filtro de visitantes.
+      if (!showDeleted && roleFilter !== "unvalidated" && isUnvalidatedVisitor(user)) return false;
 
-      if (roleFilter !== "all") {
+      // En la vista de eliminados no aplicar filtros de rol: solo buscar dentro de ellas.
+      if (!showDeleted && roleFilter !== "all") {
         if (roleFilter === "admin" && user.role !== "admin") return false;
         if (roleFilter === "parent" && (user.role === "admin" || user.es_jugador || user.es_menor || (user.tiene_hijos_jugando !== true && user.tipo_panel !== "familia"))) return false;
         if (roleFilter === "player" && user.es_jugador !== true) return false;
