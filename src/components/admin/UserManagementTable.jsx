@@ -116,7 +116,7 @@ export default function UserManagementTable({
       <table className="w-full min-w-[1050px] border-separate border-spacing-0 text-sm">
         <thead>
           <tr className="sticky top-0 z-10 border-b-2 border-slate-300 bg-slate-100">
-            <th className="sticky left-0 z-20 border-b border-slate-200 bg-slate-100 px-4 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600 whitespace-nowrap">Usuario</th>
+            <th className="border-b border-slate-200 px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-slate-600 whitespace-nowrap">Usuario</th>
             <th className="border-b border-slate-200 px-3 py-3 text-center text-xs font-bold uppercase tracking-wide text-slate-600">Acceso</th>
             <th className="border-b border-slate-200 px-3 py-3 text-center text-xs font-bold uppercase tracking-wide text-slate-600 whitespace-nowrap">
               📚 Entrenador
@@ -185,9 +185,9 @@ export default function UserManagementTable({
                 >
                   {/* Usuario */}
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="min-w-0">
-                        <p className="font-medium text-slate-900 truncate">
+                    <div className="flex min-w-[220px] items-center gap-2">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-slate-900 truncate">
                           {user.full_name || user.email?.split("@")[0]}
                         </p>
                         <p className="text-xs text-slate-500 truncate">{user.email}</p>
@@ -305,7 +305,7 @@ export default function UserManagementTable({
                   <td className="px-4 py-3 text-center">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Button variant="ghost" size="sm" aria-label={`Acciones para ${user.full_name || user.email || "usuario"}`} className="h-9 w-9 rounded-lg p-0 text-slate-600 hover:bg-orange-50 hover:text-orange-700">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
