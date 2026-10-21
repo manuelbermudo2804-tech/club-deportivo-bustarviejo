@@ -18,6 +18,8 @@ import PlayerCardSkeleton from "../components/skeletons/PlayerCardSkeleton";
 import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymentFlow";
+import PreRegistrationGate from "../components/inscriptions/PreRegistrationGate";
+import PrepaidPlayerFormWizard from "../components/players/PrepaidPlayerFormWizard";
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 import ShareFormButton from "../components/players/ShareFormButton";
 import MinorAccessBanner from "../components/minor/MinorAccessBanner";
@@ -32,6 +34,8 @@ export default function ParentPlayers() {
   const [suggestedCategory, setSuggestedCategory] = useState(null);
   const [showPaymentFlow, setShowPaymentFlow] = useState(false);
   const [pendingPlayerData, setPendingPlayerData] = useState(null);
+  const [showPreRegistrationGate, setShowPreRegistrationGate] = useState(false);
+  const [prepaidRegistration, setPrepaidRegistration] = useState(null);
   const [showInscriptionSuccess, setShowInscriptionSuccess] = useState(false);
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   const [isAdultPlayerSelfRegistration, setIsAdultPlayerSelfRegistration] = useState(false);
@@ -936,6 +940,8 @@ Email: info@cdbustarviejo.com
               descuentoHermano={pendingPlayerData._descuentoCalculado || 0}
               onContinue={handlePaymentFlowContinue}
               userEmail={user?.email}
+              prepaidSessionId={prepaidRegistration?.sessionId || ""}
+              prepaidModality={prepaidRegistration?.modality || ""}
             />
           </div>
         </div>
@@ -999,7 +1005,13 @@ Email: info@cdbustarviejo.com
                   // Si es +18 sin ficha, activar auto-registro
                   const esJugadorAdulto = (user?.tipo_panel === 'jugador_adulto' || user?.es_jugador === true) && !user?.player_id;
                   setIsAdultPlayerSelfRegistration(esJugadorAdulto);
-                  setShowForm(!showForm);
+                  if (!showForm) {
+                    setShowPreRegistrationGate(categoryConfigs.some(c => c.activa !== false && c.exigir_primer_pago === true));
+                    setShowForm(true);
+                  } else {
+                    setShowForm(false);
+                    setShowPreRegistrationGate(false);
+                  }
                 }}
                 className="bg-white text-orange-700 hover:bg-orange-50 shadow-lg font-bold"
               >
@@ -1082,6 +1094,24 @@ Email: info@cdbustarviejo.com
             setIsAdultPlayerSelfRegistration(false);
           }}
         >
+          {showPreRegistrationGate && !editingPlayer ? (
+            <PreRegistrationGate
+              categoryConfigs={categoryConfigs}
+              seasonConfig={seasonConfig}
+              userEmail={user?.email}
+              onCancel={() => { setShowPreRegistrationGate(false); setShowForm(false); }}
+              onContinue={(selection) => {
+                setShowPreRegistrationGate(false);
+                if (selection.requiresPayment === false) {
+                  setPrepaidRegistration(null);
+                  setShowForm(true);
+                  return;
+                }
+                setPrepaidRegistration(selection);
+                setShowForm(true);
+              }}
+            />
+          ) : <>
           {/* Banners informativos */}
           {isAdultPlayerSelfRegistration && (
             <div className="mb-4 bg-gradient-to-r from-green-50 to-green-100 border-2 border-green-400 rounded-xl p-4">
@@ -1137,7 +1167,16 @@ Email: info@cdbustarviejo.com
               isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
             />
           ) : (
-            <PlayerFormWizard
+            {prepaidRegistration?.sessionId ? <PrepaidPlayerFormWizard
+              player={null}
+              prepaidCategory={prepaidRegistration.category}
+              allPlayers={players}
+              onSubmit={handleSubmit}
+              onCancel={() => { setShowForm(false); setPrepaidRegistration(null); }}
+              isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
+              isParent={true}
+              isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
+            /> : <PlayerFormWizard
               player={null}
               allPlayers={players}
               onSubmit={handleSubmit}
@@ -1150,8 +1189,9 @@ Email: info@cdbustarviejo.com
               isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
               isParent={true}
               isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
-            />
+            />}
           )}
+          </>}
         </FullscreenFormModal>
       )}
 
