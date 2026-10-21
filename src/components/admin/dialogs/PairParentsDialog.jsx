@@ -37,7 +37,7 @@ export default function PairParentsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto rounded-2xl border-slate-200 p-5 shadow-2xl sm:p-6">
         <DialogHeader>
           <DialogTitle className="text-xl">👨‍👩‍👧 Casar progenitores</DialogTitle>
           <DialogDescription>
@@ -49,7 +49,7 @@ export default function PairParentsDialog({
 
         <div className="space-y-4 py-2">
           {pairingContext.user && (
-            <div className="bg-blue-50 border border-blue-300 rounded p-3 text-sm">
+            <div className="rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm">
               <p className="font-bold text-blue-900">Progenitor actual:</p>
               <p className="text-blue-800">
                 {pairingContext.user.full_name} ({pairingContext.user.email})
@@ -79,7 +79,7 @@ export default function PairParentsDialog({
           </div>
 
           {selectedPlayer && (
-            <div className="bg-slate-50 border border-slate-200 rounded p-3 text-xs space-y-1">
+            <div className="space-y-1 rounded-xl border border-slate-200 bg-slate-50 p-4 text-xs">
               <p>
                 <strong>Progenitor 1:</strong>{" "}
                 {selectedPlayer.email_padre || <em className="text-slate-400">vacío</em>}
@@ -110,7 +110,7 @@ export default function PairParentsDialog({
           </div>
         </div>
 
-        <DialogFooter className="gap-2 flex-wrap">
+        <DialogFooter className="flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:flex-wrap sm:gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
