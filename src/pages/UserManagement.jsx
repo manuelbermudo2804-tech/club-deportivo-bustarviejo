@@ -596,7 +596,7 @@ export default function UserManagement() {
   const pendingPlayerAccessUsers = useMemo(
     () =>
       users.filter((user) => {
-        if (user.eliminado || user.es_jugador || user.role === "admin") return false;
+        if (user.eliminado || user.es_jugador || user.role === "jugador" || user.role === "admin") return false;
         const userEmail = (user.email || "").trim().toLowerCase();
         const matchingPlayer = players.find((p) => {
           const playerEmail = (p.email_jugador || "").trim().toLowerCase();
