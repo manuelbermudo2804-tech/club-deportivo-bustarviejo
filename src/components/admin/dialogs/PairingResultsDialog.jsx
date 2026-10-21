@@ -12,9 +12,9 @@ import { Heart } from "lucide-react";
 export default function PairingResultsDialog({ open, onOpenChange, pairingResults, onAccept }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[85vh] max-w-2xl overflow-y-auto rounded-2xl border-slate-200 p-5 shadow-2xl sm:p-6">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-3 text-xl font-bold tracking-tight">
             <Heart className="w-6 h-6 text-pink-600" />
             Parejas de Progenitores Detectadas
           </DialogTitle>
@@ -22,7 +22,7 @@ export default function PairingResultsDialog({ open, onOpenChange, pairingResult
 
         {pairingResults && (
           <div className="space-y-4">
-            <div className="bg-green-50 border border-green-300 rounded-lg p-3">
+            <div className="rounded-xl border border-green-200 bg-green-50 p-4">
               <p className="text-sm font-bold text-green-900">
                 ✅ Se detectaron <strong>{pairingResults.pairsDetected}</strong> parejas y se guardaron{" "}
                 <strong>{pairingResults.pairsSaved || 0}</strong> en los jugadores
@@ -32,7 +32,7 @@ export default function PairingResultsDialog({ open, onOpenChange, pairingResult
             <div className="space-y-3 max-h-[400px] overflow-y-auto">
               {pairingResults.pairs &&
                 pairingResults.pairs.map((pair, idx) => (
-                  <div key={idx} className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                  <div key={idx} className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2 flex-1">
                         <Heart className="w-5 h-5 text-pink-500" />
@@ -57,7 +57,7 @@ export default function PairingResultsDialog({ open, onOpenChange, pairingResult
           </div>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="border-t border-slate-100 pt-4">
           <Button onClick={onAccept} className="bg-blue-600 hover:bg-blue-700">
             ✅ Entendido
           </Button>
