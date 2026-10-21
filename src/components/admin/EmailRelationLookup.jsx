@@ -41,13 +41,13 @@ export default function EmailRelationLookup({ players = [], users = [] }) {
 
   return (
     <Card className="h-full overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
-      <CardHeader className="py-3">
+      <CardHeader className="border-b border-slate-100 bg-white px-4 py-4 sm:px-5">
         <CardTitle className="flex items-center gap-2 text-base">
           <Search className="w-4 h-4 text-orange-600" />
           Comprobar un correo
         </CardTitle>
       </CardHeader>
-      <CardContent className="p-4 space-y-4">
+      <CardContent className="space-y-4 bg-white p-4 sm:p-5">
         <Input
           type="email"
           placeholder="correo@ejemplo.com"
