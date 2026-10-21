@@ -758,6 +758,7 @@ export default function UserManagement() {
     staff: staffUsers.length,
     admin: admins.length,
     player: jugadores.length,
+    pending_player: pendingPlayerAccessUsers.length,
     minor: menores.length,
     inactive_minors: minorsWithoutActivePlayer.length,
     coach: entrenadores.length,
