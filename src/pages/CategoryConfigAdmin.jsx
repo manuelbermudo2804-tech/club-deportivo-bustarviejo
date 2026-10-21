@@ -14,7 +14,6 @@ import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock, Loader2, Smartp
 import { toast } from "sonner";
 import PlazasCategoriaPanel from "@/components/categories/PlazasCategoriaPanel";
 import PrimerPagoCell from "@/components/categories/PrimerPagoCell";
-import UpfrontPaymentPreview from "@/components/categories/UpfrontPaymentPreview";
 
 // 9 categorías BASE que NUNCA pueden ser eliminadas
 const BASE_CATEGORIES = [
@@ -352,8 +351,6 @@ export default function CategoryConfigAdmin() {
 
   return (
     <div className="min-w-0 space-y-5 bg-slate-50/70 p-3 sm:p-5 lg:p-7">
-      <UpfrontPaymentPreview categories={categories.filter(c => c.activa !== false)} />
-
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-xl sm:p-7">
         <div className="relative z-10 flex items-start gap-4">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-500 shadow-md shadow-orange-950/30"><CreditCard className="h-6 w-6 text-white" /></div>
