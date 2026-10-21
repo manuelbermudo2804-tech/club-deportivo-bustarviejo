@@ -334,9 +334,25 @@ export default function UserManagementTable({
                           👨‍👩‍👧 Emparejar progenitores
                         </DropdownMenuItem>
                         {user.es_junta && (
-                          <DropdownMenuItem onClick={() => onSetCargoJunta(user, "presidente")}>
-                            🎖️ Cargo en Junta
-                          </DropdownMenuItem>
+                          <>
+                            <DropdownMenuItem onClick={() => onSetCargoJunta(user, "presidente")}>
+                              🎖️ Junta: Presidente
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onSetCargoJunta(user, "vicepresidente")}>
+                              🎖️ Junta: Vicepresidente
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onSetCargoJunta(user, "secretario")}>
+                              🎖️ Junta: Secretario/a
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onSetCargoJunta(user, "vocal")}>
+                              🎖️ Junta: Vocal
+                            </DropdownMenuItem>
+                            {user.cargo_junta && (
+                              <DropdownMenuItem onClick={() => onSetCargoJunta(user, null)}>
+                                Quitar cargo de Junta
+                              </DropdownMenuItem>
+                            )}
+                          </>
                         )}
                         {!user.app_instalada && (
                           <DropdownMenuItem
