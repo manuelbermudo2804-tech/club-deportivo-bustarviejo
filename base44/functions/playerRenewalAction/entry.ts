@@ -237,17 +237,82 @@ Deno.serve(async (req) => {
       const bloqueo = await comprobarCupo(playerData.deporte);
       if (bloqueo) return Response.json({ success: false, error: bloqueo }, { status: 409 });
 
-      // Forzar email_padre = email del usuario autenticado (no se acepta arbitrario)
-      const safePlayerData = {
-        ...playerData,
-        email_padre: user.email,
-      };
+      const configs = await base44.asServiceRole.entities.CategoryConfig.filter({
+        nombre: playerData.deporte,
+        activa: true,
+      });
+      const categoryConfig = configs.find((c) => !c.temporada || c.temporada === temporada) || configs[0];
+      const exigePagoPrevio = categoryConfig?.exigir_primer_pago === true;
+      let verifiedPrepayment = null;
 
+      // Si la categoría exige pago previo, no se crea ninguna ficha sin una sesión de Stripe pagada.
+      if (exigePagoPrevio) {
+        const sessionId = body.prepaymentSessionId;
+        if (typeof sessionId !== 'string' || !sessionId.startsWith('cs_')) {
+          return Response.json({ success: false, error: 'Debes completar el pago con tarjeta antes de inscribirte.' }, { status: 402 });
+        }
+        const stripeSecret = Deno.env.get('STRIPE_SECRET_KEY');
+        if (!stripeSecret) return Response.json({ success: false, error: 'Stripe no está configurado.' }, { status: 500 });
+        const stripeModule = await import('npm:stripe@14.21.0');
+        const Stripe = stripeModule.default;
+        const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' });
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        const meta = session.metadata || {};
+        if (session.payment_status !== 'paid' ||
+            meta.tipo !== 'inscripcion_previa' ||
+            String(meta.user_email || '').toLowerCase() !== String(user.email).toLowerCase() ||
+            meta.categoria !== playerData.deporte ||
+            !['Único', 'Tres meses'].includes(meta.modalidad)) {
+          return Response.json({ success: false, error: 'No se ha podido verificar el pago previo para esta categoría.' }, { status: 402 });
+        }
+        const paidAmount = Number(meta.importe_euros);
+        const expectedAmount = Number(meta.modalidad === 'Único' ? categoryConfig.cuota_total : categoryConfig.cuota_inscripcion);
+        if (!Number.isFinite(expectedAmount) || Math.round(expectedAmount * 100) !== Number(session.amount_total) ||
+            Math.round(paidAmount * 100) !== Number(session.amount_total)) {
+          return Response.json({ success: false, error: 'El importe pagado no coincide con la cuota configurada.' }, { status: 409 });
+        }
+        verifiedPrepayment = {
+          sessionId: session.id,
+          paymentIntentId: typeof session.payment_intent === 'string' ? session.payment_intent : session.payment_intent?.id || null,
+          modalidad: meta.modalidad,
+          amount: paidAmount,
+          temporada: meta.temporada || temporada || categoryConfig.temporada || '',
+        };
+      }
+
+      // Forzar email_padre = email del usuario autenticado (no se acepta arbitrario).
+      const safePlayerData = { ...playerData, email_padre: user.email };
       const newPlayer = await base44.asServiceRole.entities.Player.create(safePlayerData);
 
+      const paymentsToCreate = Array.isArray(payments) ? [...payments] : [];
+      if (verifiedPrepayment) {
+        // El pago cobrado en Stripe se refleja como pagado para no volver a generarlo como pendiente.
+        const existingJune = paymentsToCreate.findIndex((p) => p.mes === 'Junio');
+        const paidJune = {
+          tipo_pago: verifiedPrepayment.modalidad === 'Único' ? 'Único' : 'Tres meses',
+          mes: 'Junio',
+          temporada: verifiedPrepayment.temporada,
+          cantidad: verifiedPrepayment.amount,
+          estado: 'Pagado',
+          metodo_pago: 'Tarjeta',
+          referencia_externa: verifiedPrepayment.sessionId,
+          stripe_payment_intent_id: verifiedPrepayment.paymentIntentId,
+          notas: 'Pago previo confirmado por Stripe',
+        };
+        if (existingJune >= 0) paymentsToCreate[existingJune] = paidJune;
+        else paymentsToCreate.unshift(paidJune);
+
+        if (verifiedPrepayment.modalidad === 'Único') {
+          // Pago único cubre la temporada completa: no deben quedar cuotas adicionales.
+          for (let i = paymentsToCreate.length - 1; i >= 0; i--) {
+            if (paymentsToCreate[i].mes !== 'Junio') paymentsToCreate.splice(i, 1);
+          }
+        }
+      }
+
       const createdPayments = [];
-      if (Array.isArray(payments) && payments.length > 0) {
-        for (const p of payments) {
+      if (paymentsToCreate.length > 0) {
+        for (const p of paymentsToCreate) {
           const created = await base44.asServiceRole.entities.Payment.create({
             ...p,
             categoria_actividad: p.categoria_actividad || playerData?.categoria_principal || playerData?.deporte,
@@ -258,7 +323,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      return Response.json({ success: true, player: newPlayer, payments: createdPayments });
+      return Response.json({ success: true, player: newPlayer, payments: createdPayments, verifiedPrepayment: !!verifiedPrepayment });
     }
 
     return Response.json({ error: `Acción no soportada: ${action}` }, { status: 400 });
