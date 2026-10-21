@@ -103,7 +103,7 @@ const NEW_TOTAL_ADULT = 8;
 
 // --- STEPS for edit (reduced: no authorizations step, no summary) ---
 
-export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitting, isParent = false, allPlayers = [], isAdultPlayerSelfRegistration: isAdultPlayerSelfRegistrationProp = false }) {
+export default function PrepaidPlayerFormWizard({ player, onSubmit, onCancel, isSubmitting, isParent = false, allPlayers = [], isAdultPlayerSelfRegistration: isAdultPlayerSelfRegistrationProp = false, prepaidCategory = "" }) {
   const formRef = useRef(null);
   const [step, setStep] = useState(0);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -144,7 +144,7 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   const [currentPlayer, setCurrentPlayer] = useState(() => {
     if (player) return player;
     return {
-      nombre: "", foto_url: "", deporte: "Fútbol Pre-Benjamín (Mixto)", tipo_inscripcion: "Nueva Inscripción",
+      nombre: "", foto_url: "", deporte: prepaidCategory || "Fútbol Pre-Benjamín (Mixto)", tipo_inscripcion: "Nueva Inscripción",
       fecha_nacimiento: "", es_mayor_edad: false, tipo_documento: "DNI", dni_jugador: "", dni_jugador_url: "",
       libro_familia_url: "", tipo_documento_tutor: "DNI", nombre_tutor_legal: "", dni_tutor_legal: "",
       dni_tutor_legal_url: "", enlace_firma_jugador: "", enlace_firma_tutor: "", firma_jugador_completada: false,
@@ -182,7 +182,8 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   // Contador de fallos de subida — al llegar a 2 aparece el banner de ayuda
   const [uploadFailCount, setUploadFailCount] = useState(0);
 
-  const categories = useCategoriesFromConfig();
+  const categoriesFromConfig = useCategoriesFromConfig();
+  const categories = prepaidCategory ? categoriesFromConfig.filter(c => c.value === prepaidCategory) : categoriesFromConfig;
   const { getEstado: getEstadoPlazas } = useCategoryPlazas();
 
   // Load categoryConfigs for complementary detection (used by StepAuthorizations)
