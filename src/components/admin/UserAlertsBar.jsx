@@ -20,9 +20,9 @@ export default function UserAlertsBar({
   if (!showAny) return null;
 
   return (
-    <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-4">
+    <div className="grid min-w-0 grid-cols-1 gap-3 xl:grid-cols-2 2xl:grid-cols-4">
       {usersWithoutApp.length > 5 && (
-        <div className="flex min-w-0 items-center gap-3 rounded-xl border border-amber-200 bg-white p-4 shadow-sm">
+        <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-2xl border border-amber-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
           <Smartphone className="w-5 h-5 text-amber-600 flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-amber-900">📵 {usersWithoutApp.length} sin app</p>
@@ -34,7 +34,7 @@ export default function UserAlertsBar({
         </div>
       )}
       {pendingPlayerAccessUsers.length > 0 && (
-        <div className="flex min-w-0 items-center gap-3 rounded-xl border border-purple-200 bg-white p-4 shadow-sm">
+        <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-2xl border border-purple-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
           <User className="w-5 h-5 text-purple-600 flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-purple-900">⚽ {pendingPlayerAccessUsers.length} jugadores +18 pendientes</p>
@@ -45,7 +45,7 @@ export default function UserAlertsBar({
         </div>
       )}
       {minorsWithoutActivePlayer.length > 0 && (
-        <div className="flex min-w-0 items-center gap-3 rounded-xl border border-teal-200 bg-white p-4 shadow-sm">
+        <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-2xl border border-teal-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
           <AlertTriangle className="w-5 h-5 text-teal-600 flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-teal-900">🧒 {minorsWithoutActivePlayer.length} juveniles sin jugador activo</p>
@@ -57,7 +57,7 @@ export default function UserAlertsBar({
         </div>
       )}
       {usersWithoutActivePlayers.length > 0 && (
-        <div className="flex min-w-0 items-center gap-3 rounded-xl border border-red-200 bg-white p-4 shadow-sm">
+        <div className="flex min-w-0 flex-wrap items-center gap-3 rounded-2xl border border-red-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
           <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-red-900">🔴 {usersWithoutActivePlayers.length} sin hijos activos</p>
@@ -69,7 +69,7 @@ export default function UserAlertsBar({
             <Button
               size="sm"
               variant="outline"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-7"
+              className="h-8 rounded-lg bg-blue-600 text-xs text-white hover:bg-blue-700"
               onClick={onBulkRenewalReminders}
             >
               <Send className="w-3 h-3 mr-1" />
