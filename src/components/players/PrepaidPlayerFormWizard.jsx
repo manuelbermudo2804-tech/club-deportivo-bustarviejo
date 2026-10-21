@@ -272,7 +272,7 @@ export default function PrepaidPlayerFormWizard({ player, onSubmit, onCancel, is
 
   useEffect(() => {
     // Only auto-suggest if: new player, not femenino, and user hasn't manually chosen
-    if (!player && currentPlayer.fecha_nacimiento && currentPlayer.deporte !== "Fútbol Femenino" && !userChangedCategory) {
+    if (!player && !prepaidCategory && currentPlayer.fecha_nacimiento && currentPlayer.deporte !== "Fútbol Femenino" && !userChangedCategory) {
       const suggested = suggestCategoryByAge(currentPlayer.fecha_nacimiento);
       if (suggested) setCurrentPlayer(prev => ({ ...prev, deporte: suggested }));
     }
