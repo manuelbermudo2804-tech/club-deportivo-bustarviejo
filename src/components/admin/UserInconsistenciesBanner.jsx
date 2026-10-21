@@ -97,8 +97,8 @@ export default function UserInconsistenciesBanner({ users, players, onAutoFix, o
   };
 
   return (
-    <Card className="border-2 border-red-400 bg-gradient-to-br from-red-50 to-orange-50 shadow-md">
-      <CardContent className="p-4">
+    <Card className="overflow-hidden rounded-2xl border border-red-200 bg-gradient-to-br from-red-50 to-orange-50 shadow-sm">
+      <CardContent className="p-3 sm:p-4">
         <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center justify-between gap-3 text-left">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-red-600 flex items-center justify-center flex-shrink-0">
@@ -119,7 +119,7 @@ export default function UserInconsistenciesBanner({ users, players, onAutoFix, o
             {sections.filter(s => buckets[s.key].length > 0).map(section => {
               const list = buckets[section.key];
               return (
-                <div key={section.key} className={`rounded-lg border-2 p-3 ${colorMap[section.color]}`}>
+                <div key={section.key} className={`rounded-xl border p-3 sm:p-4 ${colorMap[section.color]}`}>
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
