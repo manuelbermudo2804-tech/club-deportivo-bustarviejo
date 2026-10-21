@@ -553,9 +553,15 @@ export default function UserManagement() {
   };
 
   const sendBulkRenewalReminders = async () => {
-    toast.info(`Enviando ${usersWithoutActivePlayers.length} recordatorios...`);
+    const usersToRemind = usersWithoutActivePlayers.filter((user) => Boolean(user.email));
+    if (usersToRemind.length === 0) {
+      toast.info("No hay usuarios con email para recordar");
+      return;
+    }
+    toast.info(`Enviando ${usersToRemind.length} recordatorios...`);
     let sent = 0;
-    for (const u of usersWithoutActivePlayers) {
+    let failed = 0;
+    for (const u of usersToRemind) {
       try {
         await base44.integrations.Core.SendEmail({
           from_name: "CD Bustarviejo",
@@ -564,12 +570,17 @@ export default function UserManagement() {
           body: `Hola ${u.full_name},\n\nVemos que aún no has renovado a tus jugadores para la nueva temporada.\n\n¿Tienes pensado inscribirlos de nuevo este año?\n\nAtentamente,\nCD Bustarviejo`,
         });
         sent++;
-        await new Promise((r) => setTimeout(r, 300));
       } catch (e) {
-        console.error(e);
+        failed++;
+        console.error("Error enviando recordatorio de renovación:", u.email, e);
       }
+      await new Promise((r) => setTimeout(r, 300));
     }
-    toast.success(`✅ ${sent} recordatorios enviados`);
+    if (failed > 0) {
+      toast.warning(`Envío finalizado: ${sent} correctos y ${failed} con error`);
+    } else {
+      toast.success(`✅ ${sent} recordatorios enviados correctamente`);
+    }
   };
 
   // ===== DERIVED DATA (memoized) =====
