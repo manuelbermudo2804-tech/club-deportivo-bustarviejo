@@ -23,6 +23,7 @@ export default function UserFilters({
     { key: "staff", label: "👔 Staff", count: filterCounts.staff },
     { key: "admin", label: "🎓 Admin", count: filterCounts.admin },
     { key: "player", label: "⚽ Jugad.+18", count: filterCounts.player },
+    { key: "pending_player", label: "⚽ +18 pendientes", count: filterCounts.pending_player || 0, highlight: (filterCounts.pending_player || 0) > 0 },
     { key: "minor", label: "🧒 Juvenil", count: filterCounts.minor },
     {
       key: "inactive_minors",
