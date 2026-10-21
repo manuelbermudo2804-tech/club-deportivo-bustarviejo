@@ -116,7 +116,7 @@ export default function UserManagementTable({
       <table className="w-full min-w-[1050px] border-separate border-spacing-0 text-sm">
         <thead>
           <tr className="sticky top-0 z-10 border-b-2 border-slate-300 bg-slate-100">
-            <th className="border-b border-slate-200 px-4 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600 whitespace-nowrap">Usuario</th>
+            <th className="sticky left-0 z-20 border-b border-slate-200 bg-slate-100 px-4 py-4 text-left text-xs font-bold uppercase tracking-wide text-slate-600 whitespace-nowrap">Usuario</th>
             <th className="border-b border-slate-200 px-3 py-3 text-center text-xs font-bold uppercase tracking-wide text-slate-600">Acceso</th>
             <th className="border-b border-slate-200 px-3 py-3 text-center text-xs font-bold uppercase tracking-wide text-slate-600 whitespace-nowrap">
               📚 Entrenador
