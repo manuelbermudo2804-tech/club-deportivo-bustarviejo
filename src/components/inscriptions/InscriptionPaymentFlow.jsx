@@ -225,6 +225,7 @@ export default function InscriptionPaymentFlow({
         const returnUrl = window.location.origin + window.location.pathname + window.location.search;
         window.sessionStorage.setItem('cdb_pre_registration_pending', JSON.stringify({
           category: playerData.deporte,
+          playerData,
           userEmail: userEmail || '',
           tipoPago,
           paymentsData: { tipoPago, payments: paymentsToCreate },
