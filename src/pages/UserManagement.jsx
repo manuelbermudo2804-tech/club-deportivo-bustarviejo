@@ -520,9 +520,11 @@ export default function UserManagement() {
       });
       queryClient.invalidateQueries({ queryKey: ["allUsers"] });
       toast.success(`✅ Recordatorio enviado a ${user.full_name}`);
+      return true;
     } catch (error) {
       console.error(error);
       toast.error("Error al enviar el recordatorio");
+      return false;
     }
   };
 
@@ -533,14 +535,19 @@ export default function UserManagement() {
     let sent = 0;
     for (const user of usersToRemind) {
       try {
-        await sendInstallReminder(user);
-        sent++;
+        const success = await sendInstallReminder(user);
+        if (success) sent++;
       } catch (e) {
         console.error(e);
       }
       await new Promise((r) => setTimeout(r, 300));
     }
-    toast.success(`✅ ${sent} recordatorios enviados`);
+    const failed = usersToRemind.length - sent;
+    if (failed > 0) {
+      toast.warning(`Envío finalizado: ${sent} correctos y ${failed} con error`);
+    } else {
+      toast.success(`✅ ${sent} recordatorios enviados y registrados`);
+    }
   };
 
   const sendBulkRenewalReminders = async () => {
