@@ -46,6 +46,21 @@ export default function ParentPlayers() {
   
   useEffect(() => {
     try {
+      const gateRaw = window.sessionStorage.getItem('cdb_pre_registration_gate');
+      if (gateRaw) {
+        setShowForm(true);
+        setShowPreRegistrationGate(true);
+      }
+      const verifiedRaw = window.sessionStorage.getItem('cdb_pre_registration_verified');
+      if (verifiedRaw) {
+        const verified = JSON.parse(verifiedRaw);
+        if (verified?.sessionId && verified?.category) {
+          setPrepaidRegistration({ category: verified.category, modality: verified.modality, sessionId: verified.sessionId });
+          setShowForm(true);
+          setShowPreRegistrationGate(false);
+          window.sessionStorage.removeItem('cdb_pre_registration_verified');
+        }
+      }
       const raw = window.sessionStorage.getItem('cdb_pre_registration_pending');
       if (!raw) return;
       const saved = JSON.parse(raw);
