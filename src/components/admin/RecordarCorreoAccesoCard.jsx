@@ -14,17 +14,31 @@ export default function RecordarCorreoAccesoCard() {
   const [resultado, setResultado] = useState(null);
 
   const enviar = async (soloPrueba) => {
+    if (enviando) return;
+    const destinatarioPrueba = emailPrueba.trim();
+    if (soloPrueba && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(destinatarioPrueba)) {
+      toast.error("Introduce una dirección de correo válida para la prueba.");
+      return;
+    }
     if (!soloPrueba && !window.confirm("Se enviará un correo a TODOS los usuarios de la app recordándoles con qué correo entran. ¿Continuar?")) return;
     setEnviando(true);
     setResultado(null);
     try {
       const { data } = await base44.functions.invoke("recordarCorreoAcceso",
-        soloPrueba ? { test_email: emailPrueba.trim() } : {});
+        soloPrueba ? { test_email: destinatarioPrueba } : {});
       if (data?.error) throw new Error(data.error);
+      if (!data || typeof data.enviados !== "number" || typeof data.total !== "number") {
+        throw new Error("La respuesta del servidor no incluye un resumen válido del envío.");
+      }
       setResultado(data);
-      toast.success(`Enviados ${data.enviados} de ${data.total}`);
+      if (data.errores?.length > 0 || data.enviados < data.total) {
+        toast.warning(`Envío parcial: ${data.enviados} de ${data.total}. Revisa los errores indicados.`);
+      } else {
+        toast.success(`Enviados ${data.enviados} de ${data.total}`);
+      }
     } catch (e) {
-      toast.error("Error al enviar: " + e.message);
+      setResultado(null);
+      toast.error("Error al enviar: " + (e?.message || "error desconocido"));
     } finally {
       setEnviando(false);
     }
@@ -50,7 +64,7 @@ export default function RecordarCorreoAccesoCard() {
             aria-label="Correo electrónico para enviar una prueba"
             className="h-10 min-w-0 flex-1 rounded-xl border-orange-200 sm:max-w-xs"
           />
-          <Button variant="outline" disabled={enviando || !emailPrueba.trim()} onClick={() => enviar(true)} className="h-10 rounded-xl border-orange-200 whitespace-nowrap">
+          <Button variant="outline" disabled={enviando || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailPrueba.trim())} onClick={() => enviar(true)} className="h-10 rounded-xl border-orange-200 whitespace-nowrap">
             Enviar prueba
           </Button>
         </div>
