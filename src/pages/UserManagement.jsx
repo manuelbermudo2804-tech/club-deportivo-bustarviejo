@@ -220,7 +220,7 @@ export default function UserManagement() {
 
   const handlePlayerToggle = (user) => {
     setSelectedUser(user);
-    setSelectedPlayerId(user.player_id || "");
+    setSelectedPlayerId(user.player_id || user.jugador_id || "");
     setShowPlayerDialog(true);
   };
 
@@ -233,6 +233,7 @@ export default function UserManagement() {
         es_jugador: isSettingAsPlayer,
         tipo_panel: isSettingAsPlayer ? "jugador_adulto" : null,
         player_id: isSettingAsPlayer && selectedPlayerId ? selectedPlayerId : null,
+        jugador_id: isSettingAsPlayer && selectedPlayerId ? selectedPlayerId : null,
       },
     });
   };
@@ -664,8 +665,8 @@ export default function UserManagement() {
   const pairByEmail = useMemo(() => {
     const map = {};
     parentPairs.forEach((pair) => {
-      const p1 = pair.parent1?.email?.toLowerCase();
-      const p2 = pair.parent2?.email?.toLowerCase();
+      const p1 = (pair.parent1?.email || "").trim().toLowerCase();
+      const p2 = (pair.parent2?.email || "").trim().toLowerCase();
       if (p1) map[p1] = { partner: pair.parent2, sharedPlayers: pair.sharedPlayers };
       if (p2) map[p2] = { partner: pair.parent1, sharedPlayers: pair.sharedPlayers };
     });
