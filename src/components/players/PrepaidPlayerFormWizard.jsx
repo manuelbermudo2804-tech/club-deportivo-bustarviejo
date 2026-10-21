@@ -697,6 +697,14 @@ export default function PrepaidPlayerFormWizard({ player, onSubmit, onCancel, is
             </CardTitle>
             <Button variant="ghost" size="icon" onClick={() => { clearFormDraft(); onCancel(); }}><X className="w-5 h-5" /></Button>
           </div>
+          {prepaidCategory && !isEditing && (
+            <Alert className="border-green-300 bg-green-50">
+              <AlertCircle className="h-4 w-4 text-green-700" />
+              <AlertDescription className="text-green-900">
+                <strong>Pago previo confirmado.</strong> La categoría está bloqueada: {prepaidCategory}.
+              </AlertDescription>
+            </Alert>
+          )}
           <WizardProgress currentStep={step} totalSteps={totalSteps} stepLabels={stepLabels} />
         </CardHeader>
         <CardContent className="pt-6">
