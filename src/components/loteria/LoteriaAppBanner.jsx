@@ -29,7 +29,7 @@ export default function LoteriaAppBanner() {
           <p className="text-[13px] font-black leading-tight text-white sm:text-base">🍀 {campana.titulo || "Lotería de Navidad"}</p>
           <p className="mt-0.5 text-[11px] font-medium leading-snug text-white/90 sm:mt-1 sm:text-sm">Casi agotada en el pueblo · Todavía disponible online</p>
           {campana.precio_decimo && <p className="mt-0.5 text-[11px] font-semibold text-amber-200 sm:mt-1 sm:text-xs">{campana.precio_decimo}€ el décimo</p>}
-          <p className="mt-0.5 text-[10px] font-semibold leading-snug text-amber-200 sm:mt-1 sm:text-xs">💛 2 € de cada décimo ayudan a financiar al CD Bustarviejo.</p>
+          <p className="mt-0.5 text-[10px] font-semibold leading-snug text-amber-200 sm:mt-1 sm:text-xs">🧡 2 € de cada décimo ayudan a financiar al CD Bustarviejo.</p>
         </div>
         <span className="flex shrink-0 items-center gap-1 rounded-lg bg-amber-300 px-2 py-1.5 text-[11px] font-black text-red-950 shadow sm:px-2.5 sm:py-2 sm:text-sm">
           Comprar <ArrowUpRight className="h-3.5 w-3.5" />
