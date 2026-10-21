@@ -106,7 +106,7 @@ export default function UserFilters({
           </div>
           <span className="shrink-0 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-600">{filters.find((f) => f.key === roleFilter)?.count ?? 0} usuarios</span>
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-2 min-[380px]:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5">
           {filters.map((f) => {
             const selected = roleFilter === f.key;
             const warning = f.highlight && f.count > 0;
