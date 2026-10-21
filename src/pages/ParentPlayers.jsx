@@ -63,6 +63,13 @@ export default function ParentPlayers() {
   useEffect(() => {
     const checkAutoOpenForm = async () => {
       try {
+        // Si estamos recuperando una inscripción tras volver de Stripe, no abrir
+        // simultáneamente el formulario inicial encima del flujo de pago.
+        const pendingCheckout = window.sessionStorage.getItem('cdb_pre_registration_pending');
+        if (pendingCheckout) {
+          const saved = JSON.parse(pendingCheckout);
+          if (saved?.playerData && saved?.category) return;
+        }
         const currentUser = await base44.auth.me();
         const esJugadorAdulto = currentUser?.tipo_panel === 'jugador_adulto' || currentUser?.es_jugador === true;
         
