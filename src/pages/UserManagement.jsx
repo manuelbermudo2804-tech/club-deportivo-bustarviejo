@@ -587,7 +587,7 @@ export default function UserManagement() {
   const usersWithPlayerAccessIds = useMemo(
     () =>
       users
-        .filter((u) => u.es_jugador === true && u.eliminado !== true)
+        .filter((u) => (u.es_jugador === true || u.role === "jugador") && u.eliminado !== true)
         .flatMap((u) => [u.player_id, u.jugador_id])
         .filter(Boolean),
     [users]
@@ -599,10 +599,11 @@ export default function UserManagement() {
         if (user.eliminado || user.es_jugador || user.role === "admin") return false;
         const userEmail = (user.email || "").trim().toLowerCase();
         const matchingPlayer = players.find((p) => {
-          const parentEmail = (p.email_padre || "").trim().toLowerCase();
+          const playerEmail = (p.email_jugador || "").trim().toLowerCase();
           return (
             p.activo === true &&
-            parentEmail === userEmail &&
+            playerEmail !== "" &&
+            playerEmail === userEmail &&
             calcularEdad(p.fecha_nacimiento) >= 18 &&
             !usersWithPlayerAccessIds.includes(p.id)
           );
