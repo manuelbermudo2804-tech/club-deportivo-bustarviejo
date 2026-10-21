@@ -815,9 +815,10 @@ export default function UserManagement() {
         <div className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-orange-500/10 blur-2xl" />
       </div>
 
-      <EmailRelationLookup players={players} users={users} />
-
-      <RecordarCorreoAccesoCard />
+      <div className="grid min-w-0 grid-cols-1 items-start gap-4 xl:grid-cols-2">
+        <EmailRelationLookup players={players} users={users} />
+        <RecordarCorreoAccesoCard />
+      </div>
 
       <UserStats
         activeUsers={parents}
