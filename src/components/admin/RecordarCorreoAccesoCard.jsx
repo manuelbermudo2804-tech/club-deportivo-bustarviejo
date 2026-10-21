@@ -43,12 +43,14 @@ export default function RecordarCorreoAccesoCard() {
       <CardContent className="space-y-4 bg-white p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-2">
           <Input
+            type="email"
             value={emailPrueba}
             onChange={(e) => setEmailPrueba(e.target.value)}
             placeholder="correo@para.probar"
-            className="max-w-xs"
+            aria-label="Correo electrónico para enviar una prueba"
+            className="h-10 min-w-0 flex-1 rounded-xl border-orange-200 sm:max-w-xs"
           />
-          <Button variant="outline" disabled={enviando || !emailPrueba.trim()} onClick={() => enviar(true)}>
+          <Button variant="outline" disabled={enviando || !emailPrueba.trim()} onClick={() => enviar(true)} className="h-10 rounded-xl border-orange-200 whitespace-nowrap">
             Enviar prueba
           </Button>
         </div>
@@ -56,7 +58,7 @@ export default function RecordarCorreoAccesoCard() {
         <Button
           onClick={() => enviar(false)}
           disabled={enviando}
-          className="rounded-xl bg-orange-600 font-semibold shadow-sm transition-colors hover:bg-orange-700"
+          className="w-full rounded-xl bg-orange-600 font-semibold shadow-sm transition-colors hover:bg-orange-700 sm:w-auto"
         >
           {enviando ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</> : <><Send className="w-4 h-4 mr-2" /> Enviar a todas las familias</>}
         </Button>
