@@ -36,6 +36,7 @@ export default function ParentPlayers() {
   const [pendingPlayerData, setPendingPlayerData] = useState(null);
   const [showPreRegistrationGate, setShowPreRegistrationGate] = useState(false);
   const [prepaidRegistration, setPrepaidRegistration] = useState(null);
+  const [preRegistrationResolved, setPreRegistrationResolved] = useState(false);
   const [showInscriptionSuccess, setShowInscriptionSuccess] = useState(false);
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   const [isAdultPlayerSelfRegistration, setIsAdultPlayerSelfRegistration] = useState(false);
