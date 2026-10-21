@@ -217,7 +217,9 @@ export default function ParentPlayers() {
       const { data: result } = await base44.functions.invoke('playerRenewalAction', {
         action: 'create_with_payments',
         playerData: dataWithParentEmail,
-        payments: paymentsData?.payments || []
+        payments: paymentsData?.payments || [],
+        prepaymentSessionId: paymentsData?.prepaymentSessionId,
+        temporada: seasonConfig?.temporada
       });
       if (!result?.success) {
         throw new Error(result?.error || 'Error al crear jugador');
