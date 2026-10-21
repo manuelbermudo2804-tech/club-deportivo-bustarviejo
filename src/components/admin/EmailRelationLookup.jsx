@@ -53,6 +53,8 @@ export default function EmailRelationLookup({ players = [], users = [] }) {
           placeholder="correo@ejemplo.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          aria-label="Correo electrónico que quieres comprobar"
+          className="h-11 rounded-xl border-slate-200 shadow-sm focus-visible:ring-orange-500"
         />
 
         {!result && (
@@ -93,7 +95,7 @@ export default function EmailRelationLookup({ players = [], users = [] }) {
                 {result.matches.map(({ player, rol }, i) => {
                   const edad = calcularEdad(player.fecha_nacimiento);
                   return (
-                    <div key={i} className="rounded-lg border border-slate-200 p-3 flex flex-wrap items-center gap-2">
+                    <div key={i} className="flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
                       <span className="font-semibold text-slate-900">{player.nombre}</span>
                       <Badge variant="secondary">{rol}</Badge>
                       {player.categoria_principal && (
