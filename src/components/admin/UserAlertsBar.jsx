@@ -20,7 +20,7 @@ export default function UserAlertsBar({
   if (!showAny) return null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2 2xl:grid-cols-4">
       {usersWithoutApp.length > 5 && (
         <div className="bg-amber-50 border border-amber-300 rounded-lg p-3 flex items-center gap-3">
           <Smartphone className="w-5 h-5 text-amber-600 flex-shrink-0" />
