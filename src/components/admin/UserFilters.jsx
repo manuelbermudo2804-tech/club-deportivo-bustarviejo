@@ -56,11 +56,25 @@ export default function UserFilters({
             className="pl-9 h-9 text-sm"
           />
         </div>
-        <div className="flex items-center gap-2 bg-slate-50 rounded px-3 py-1">
-          <Switch id="show-deleted" checked={showDeleted} onCheckedChange={setShowDeleted} className="scale-90" />
-          <Label htmlFor="show-deleted" className="text-xs cursor-pointer">
-            Eliminados
-          </Label>
+        <div className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition-colors ${showDeleted ? "border-orange-300 bg-orange-50" : "border-slate-200 bg-slate-50 hover:border-slate-300"}`}>
+          <Switch
+            id="show-deleted"
+            checked={showDeleted}
+            onCheckedChange={(checked) => {
+              setShowDeleted(checked);
+              // Al abrir eliminados, quitar otros filtros para que no parezca que faltan cuentas.
+              if (checked) setRoleFilter("all");
+            }}
+          />
+          <div className="min-w-0">
+            <Label htmlFor="show-deleted" className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-slate-800">
+              Cuentas eliminadas
+              <span className={`rounded-full px-2 py-0.5 text-xs font-bold tabular-nums ${showDeleted ? "bg-orange-600 text-white" : "bg-slate-200 text-slate-700"}`}>
+                {filterCounts.deleted ?? 0}
+              </span>
+            </Label>
+            <p className="text-xs text-slate-500">Mostrar y restaurar cuentas eliminadas</p>
+          </div>
         </div>
       </div>
 
