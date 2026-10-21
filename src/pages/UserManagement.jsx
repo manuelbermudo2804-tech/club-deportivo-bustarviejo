@@ -124,6 +124,27 @@ export default function UserManagement() {
     },
   });
 
+  const restaurarUsuarioEliminadoMutation = useMutation({
+    mutationFn: async (user) => {
+      if (!user?.id || !user?.eliminado) throw new Error("La cuenta no está marcada como eliminada");
+      return await base44.entities.User.update(user.id, {
+        eliminado: false,
+        acceso_activo: true,
+        fecha_eliminacion: null,
+        motivo_eliminacion: null,
+        motivo_restriccion: null,
+        fecha_restriccion: null,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["allUsers"] });
+      toast.success("Cuenta restaurada y acceso activado");
+    },
+    onError: (error) => {
+      toast.error("No se pudo restaurar la cuenta: " + (error?.message || "error desconocido"));
+    },
+  });
+
   const pairParentsMutation = useMutation({
     mutationFn: async ({ playerId, data }) => base44.entities.Player.update(playerId, data),
     onSuccess: () => {
@@ -856,6 +877,11 @@ export default function UserManagement() {
               }}
               onSendInstallReminder={sendInstallReminder}
               onActivateAccess={activarAccesoMutation.mutate}
+              onRestoreDeleted={(user) => {
+                if (window.confirm(`¿Restaurar la cuenta de ${user.email || user.full_name} y volver a activar su acceso?`)) {
+                  restaurarUsuarioEliminadoMutation.mutate(user);
+                }
+              }}
             />
           )}
         </CardContent>
