@@ -149,6 +149,13 @@ export default function ParentPlayers() {
     refetchOnWindowFocus: false,
   });
 
+  // Intercepta también los auto-registros de onboarding, una vez por apertura.
+  useEffect(() => {
+    if (showForm && !editingPlayer && !preRegistrationResolved && !showPreRegistrationGate && !prepaidRegistration && categoryConfigs.some(c => c.activa !== false && c.exigir_primer_pago === true)) {
+      setShowPreRegistrationGate(true);
+    }
+  }, [showForm, editingPlayer, preRegistrationResolved, showPreRegistrationGate, prepaidRegistration, categoryConfigs]);
+
   const { data: players = [], isLoading } = useQuery({
     queryKey: ['myPlayers', user?.email, seasonConfig?.permitir_renovaciones],
     queryFn: async () => {
@@ -1022,6 +1029,8 @@ Email: info@cdbustarviejo.com
                   const esJugadorAdulto = (user?.tipo_panel === 'jugador_adulto' || user?.es_jugador === true) && !user?.player_id;
                   setIsAdultPlayerSelfRegistration(esJugadorAdulto);
                   if (!showForm) {
+                    setPreRegistrationResolved(false);
+                    setPrepaidRegistration(null);
                     setShowPreRegistrationGate(categoryConfigs.some(c => c.activa !== false && c.exigir_primer_pago === true));
                     setShowForm(true);
                   } else {
@@ -1117,6 +1126,7 @@ Email: info@cdbustarviejo.com
               userEmail={user?.email}
               onCancel={() => { setShowPreRegistrationGate(false); setShowForm(false); }}
               onContinue={(selection) => {
+                setPreRegistrationResolved(true);
                 setShowPreRegistrationGate(false);
                 if (selection.requiresPayment === false) {
                   setPrepaidRegistration(null);
