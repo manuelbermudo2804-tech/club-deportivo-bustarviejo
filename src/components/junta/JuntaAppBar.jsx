@@ -22,10 +22,17 @@ export default function JuntaAppBar({ user, isAdmin }) {
   const loVe = prueba ? user.email?.toLowerCase() === prueba : !isAdmin;
   if (!junta || !loVe) return null;
   const r = miRespuesta && RESPUESTAS[miRespuesta.respuesta];
-  const obligatorio = !miRespuesta;
+  const solicitudActiva = junta.solicitar_confirmacion !== false;
+  const obligatorio = solicitudActiva && !miRespuesta;
 
   return (
     <>
+      {!solicitudActiva && !miRespuesta && !editar && (
+        <button type="button" onClick={() => setEditar(true)} className="fixed bottom-4 left-3 right-3 z-[60] mx-auto flex max-w-xl items-center justify-between gap-3 rounded-2xl border border-orange-200 bg-white p-4 text-left shadow-xl sm:bottom-5">
+          <span className="min-w-0"><span className="block font-bold text-slate-900">🗳️ {junta.titulo || "Junta de Socios"}</span><span className="mt-1 block text-sm text-slate-600">⏳ {faltaTexto(junta.fecha)} · Pulsa para confirmar asistencia</span></span>
+          <span className="shrink-0 rounded-xl bg-orange-600 px-3 py-2 text-sm font-bold text-white">Responder</span>
+        </button>
+      )}
       <JuntaResponderDialog
         open={obligatorio || editar}
         forzado={obligatorio}
