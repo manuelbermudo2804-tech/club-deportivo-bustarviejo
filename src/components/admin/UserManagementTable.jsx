@@ -39,6 +39,8 @@ export default function UserManagementTable({
 }) {
   const [expandedUser, setExpandedUser] = useState(null);
 
+  const normalizeEmail = (value) => (value || "").trim().toLowerCase();
+
   const getUserPlayers = (userEmail) => {
     const email = (userEmail || "").trim().toLowerCase();
     if (!email) return [];
@@ -65,9 +67,10 @@ export default function UserManagementTable({
       result.push(user);
       
       // Si tiene pareja, buscar y colocar justo después
-      const pair = pairByEmail[user.email?.toLowerCase()];
+      const pair = pairByEmail[normalizeEmail(user.email)];
       if (pair?.partner?.email) {
-        const partner = users.find(u => u.email?.toLowerCase() === pair.partner.email.toLowerCase());
+        const partnerEmail = normalizeEmail(pair.partner.email);
+        const partner = users.find((u) => normalizeEmail(u.email) === partnerEmail);
         if (partner && !placed.has(partner.id)) {
           placed.add(partner.id);
           result.push(partner);
@@ -93,11 +96,11 @@ export default function UserManagementTable({
     if (!pairByEmail) return map;
     const processed = new Set();
     sortedUsers.forEach((user) => {
-      const email = user.email?.toLowerCase();
+      const email = normalizeEmail(user.email);
       if (!email || processed.has(email)) return;
       const pair = pairByEmail[email];
       if (!pair?.partner?.email) return;
-      const partnerEmail = pair.partner.email.toLowerCase();
+      const partnerEmail = normalizeEmail(pair.partner.email);
       if (processed.has(partnerEmail)) return;
       processed.add(email);
       processed.add(partnerEmail);
@@ -154,7 +157,7 @@ export default function UserManagementTable({
             const isDeleted = user.eliminado === true;
             const hasAnomalies =
               isRestricted || isDeleted || (user.role === "user" && userPlayers.length === 0);
-            const pairGroup = pairGroupMap[user.email?.toLowerCase()];
+            const pairGroup = pairGroupMap[normalizeEmail(user.email)];
 
             return (
               <React.Fragment key={user.id}>
