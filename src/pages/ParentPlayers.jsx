@@ -1166,8 +1166,8 @@ Email: info@cdbustarviejo.com
               parentEmail={user?.email}
               isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
             />
-          ) : (
-            {prepaidRegistration?.sessionId ? <PrepaidPlayerFormWizard
+          ) : prepaidRegistration?.sessionId ? (
+            <PrepaidPlayerFormWizard
               player={null}
               prepaidCategory={prepaidRegistration.category}
               allPlayers={players}
@@ -1176,7 +1176,9 @@ Email: info@cdbustarviejo.com
               isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
               isParent={true}
               isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
-            /> : <PlayerFormWizard
+            />
+          ) : (
+            <PlayerFormWizard
               player={null}
               allPlayers={players}
               onSubmit={handleSubmit}
@@ -1189,7 +1191,7 @@ Email: info@cdbustarviejo.com
               isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
               isParent={true}
               isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
-            />}
+            />
           )}
           </>}
         </FullscreenFormModal>
