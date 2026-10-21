@@ -638,7 +638,11 @@ export default function PlayerDashboard() {
                 </div>
               </div>
               <Button
-                onClick={() => setShowCreateProfile(true)}
+                onClick={() => {
+                  setPrepaidRegistration(null);
+                  setShowPreRegistrationGate(categoryConfigs.some(c => c.activa !== false && c.exigir_primer_pago === true));
+                  setShowCreateProfile(true);
+                }}
                 className="bg-white text-orange-700 hover:bg-amber-50 font-bold w-full sm:w-auto flex-shrink-0"
                 size="lg"
               >
