@@ -40,7 +40,7 @@ export default function EmailRelationLookup({ players = [], users = [] }) {
   }, [term, players, users]);
 
   return (
-    <Card className="border-none shadow-lg">
+    <Card className="h-full overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
       <CardHeader className="py-3">
         <CardTitle className="flex items-center gap-2 text-base">
           <Search className="w-4 h-4 text-orange-600" />
