@@ -25,8 +25,6 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import PlayerForm from "../components/players/PlayerForm";
 import PlayerFormWizard from "../components/players/PlayerFormWizard";
 import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymentFlow";
-import PreRegistrationGate from "../components/inscriptions/PreRegistrationGate";
-import PrepaidPlayerFormWizard from "../components/players/PrepaidPlayerFormWizard";
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 import ContactCard from "../components/ContactCard";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
@@ -47,45 +45,11 @@ export default function PlayerDashboard() {
   const [showCreateProfile, setShowCreateProfile] = useState(false);
   const [showPaymentFlow, setShowPaymentFlow] = useState(false);
   const [pendingPlayerData, setPendingPlayerData] = useState(null);
-  const [showPreRegistrationGate, setShowPreRegistrationGate] = useState(false);
-  const [prepaidRegistration, setPrepaidRegistration] = useState(null);
-  const [preRegistrationResolved, setPreRegistrationResolved] = useState(false);
   const [showInscriptionSuccess, setShowInscriptionSuccess] = useState(false);
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [allowCreatePrompt, setAllowCreatePrompt] = useState(false);
   const queryClient = useQueryClient();
-
-  // Recuperar la inscripción pendiente al volver de Stripe (flujo de jugador adulto).
-  useEffect(() => {
-    try {
-      const gateRaw = window.sessionStorage.getItem('cdb_pre_registration_gate');
-      if (gateRaw) {
-        setShowCreateProfile(true);
-        setShowPreRegistrationGate(true);
-      }
-      const verifiedRaw = window.sessionStorage.getItem('cdb_pre_registration_verified');
-      if (verifiedRaw) {
-        const verified = JSON.parse(verifiedRaw);
-        if (verified?.sessionId && verified?.category) {
-          setPrepaidRegistration({ category: verified.category, modality: verified.modality, sessionId: verified.sessionId });
-          setShowCreateProfile(true);
-          setShowPreRegistrationGate(false);
-          window.sessionStorage.removeItem('cdb_pre_registration_verified');
-        }
-      }
-      const raw = window.sessionStorage.getItem('cdb_pre_registration_pending');
-      if (!raw) return;
-      const saved = JSON.parse(raw);
-      if (saved?.playerData && saved?.category) {
-        setPendingPlayerData(saved.playerData);
-        setShowPaymentFlow(true);
-        setShowCreateProfile(false);
-      }
-    } catch (error) {
-      console.error('[PlayerDashboard] Recuperación de inscripción pendiente fallida:', error);
-    }
-  }, []);
 
   // Mutation: crear jugador +18 con pagos (vía backend con service role)
   const createAdultPlayerMutation = useMutation({
@@ -95,8 +59,6 @@ export default function PlayerDashboard() {
         action: 'create_with_payments',
         playerData,
         payments: paymentsData?.payments || [],
-        prepaymentSessionId: paymentsData?.prepaymentSessionId,
-        temporada: seasonConfig?.temporada,
       });
       console.log('📦 [createAdultPlayer] Resultado:', result);
       if (!result?.success || !result?.player) {
@@ -291,12 +253,6 @@ export default function PlayerDashboard() {
     staleTime: 600000,
   });
 
-  useEffect(() => {
-    if (showCreateProfile && !preRegistrationResolved && !showPreRegistrationGate && !prepaidRegistration && categoryConfigs.some(c => c.activa !== false && c.exigir_primer_pago === true)) {
-      setShowPreRegistrationGate(true);
-    }
-  }, [showCreateProfile, preRegistrationResolved, showPreRegistrationGate, prepaidRegistration, categoryConfigs]);
-
   // Compañeros de equipo - DESACTIVADO para mejorar rendimiento (no se usa en la UI)
   const teammates = [];
 
@@ -478,9 +434,6 @@ export default function PlayerDashboard() {
             seasonConfig={seasonConfig}
             categoryConfigs={categoryConfigs}
             descuentoHermano={0}
-            userEmail={user?.email}
-            prepaidSessionId={prepaidRegistration?.sessionId || ""}
-            prepaidModality={prepaidRegistration?.modality || ""}
             onContinue={(paymentsData) => {
               console.log('🎬 [PlayerDashboard] onContinue invocado', { 
                 paymentsCount: paymentsData?.payments?.length,
@@ -546,30 +499,7 @@ export default function PlayerDashboard() {
             </Button>
           </div>
           <div className="p-3 lg:p-6 max-w-5xl mx-auto">
-            {showPreRegistrationGate ? <PreRegistrationGate
-              categoryConfigs={categoryConfigs}
-              seasonConfig={seasonConfig}
-              userEmail={user?.email}
-              onCancel={() => { setShowPreRegistrationGate(false); setShowCreateProfile(false); }}
-              onContinue={(selection) => {
-                setPreRegistrationResolved(true);
-                setShowPreRegistrationGate(false);
-                setPrepaidRegistration(selection.requiresPayment === false ? null : selection);
-              }}
-            /> : prepaidRegistration?.sessionId ? <PrepaidPlayerFormWizard
-              player={null}
-              prepaidCategory={prepaidRegistration.category}
-              allPlayers={[]}
-              isParent={false}
-              isAdultPlayerSelfRegistration={true}
-              isSubmitting={isCreatingProfile}
-              onSubmit={(playerData) => {
-                setPendingPlayerData({ ...playerData, es_mayor_edad: true, email_jugador: user.email, email_padre: user.email, acceso_jugador_autorizado: true, activo: true, tipo_inscripcion: "Nueva Inscripción", tiene_descuento_hermano: false, descuento_aplicado: 0, _descuentoCalculado: 0 });
-                setShowCreateProfile(false);
-                setShowPaymentFlow(true);
-              }}
-              onCancel={() => { setShowCreateProfile(false); setPrepaidRegistration(null); }}
-            /> : <PlayerFormWizard
+            <PlayerFormWizard
               player={null}
               allPlayers={[]}
               isParent={false}
@@ -592,7 +522,7 @@ export default function PlayerDashboard() {
                 setShowPaymentFlow(true);
               }}
               onCancel={() => setShowCreateProfile(false)}
-            />}
+            />
           </div>
         </div>,
         document.body
@@ -645,12 +575,7 @@ export default function PlayerDashboard() {
                 </div>
               </div>
               <Button
-                onClick={() => {
-                  setPreRegistrationResolved(false);
-                  setPrepaidRegistration(null);
-                  setShowPreRegistrationGate(categoryConfigs.some(c => c.activa !== false && c.exigir_primer_pago === true));
-                  setShowCreateProfile(true);
-                }}
+                onClick={() => setShowCreateProfile(true)}
                 className="bg-white text-orange-700 hover:bg-amber-50 font-bold w-full sm:w-auto flex-shrink-0"
                 size="lg"
               >

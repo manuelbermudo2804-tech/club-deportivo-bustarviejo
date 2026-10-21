@@ -14,10 +14,6 @@
       "type": "string",
       "description": "Categor\u00eda principal (LEGACY - mantener para compatibilidad)"
     },
-    "prepayment_session_id": {
-      "type": "string",
-      "description": "Sesi\u00f3n de Stripe que respalda el pago previo de inscripci\u00f3n; clave de idempotencia"
-    },
     "categorias": {
       "type": "array",
       "items": {

@@ -5,7 +5,6 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreditCard, Gift, Info, Loader2, CheckCircle2, Heart } from "lucide-react";
-import { toast } from "sonner";
 
 import { CATEGORY_NAME_MAPPING, getCuotasFromConfig as getCuotasFromConfigShared } from '../../lib/cuotasConfig';
 
@@ -24,58 +23,15 @@ export default function InscriptionPaymentFlow({
   descuentoHermano = 0,
   motivoDescuento = "hermano",
   onContinue,
-  userEmail,
-  prepaidSessionId = "",
-  prepaidModality = ""
+  userEmail
 }) {
-  const [tipoPago, setTipoPago] = useState(prepaidModality || "");
+  const [tipoPago, setTipoPago] = useState("");
   const [aportacionSolidaria, setAportacionSolidaria] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadedConfigs, setLoadedConfigs] = useState(null);
   
   const [retryCount, setRetryCount] = useState(0);
-  const [checkingReturnedPayment, setCheckingReturnedPayment] = useState(false);
-
-  // Tras volver de Stripe, verificar el cobro en servidor antes de continuar con la inscripción.
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const sessionId = params.get('session_id');
-    if (!sessionId || checkingReturnedPayment) return;
-    const storedRaw = window.sessionStorage.getItem('cdb_pre_registration_pending');
-    if (!storedRaw) return;
-    let stored;
-    try { stored = JSON.parse(storedRaw); } catch { return; }
-    if (stored?.category !== playerData?.deporte || stored?.userEmail !== (userEmail || '')) return;
-
-    setCheckingReturnedPayment(true);
-    (async () => {
-      try {
-        const { base44 } = await import('@/api/base44Client');
-        const { data } = await base44.functions.invoke('verifyPreRegistrationPayment', { sessionId });
-        if (!data?.paid) throw new Error(data?.error || 'Stripe todavía no confirma el pago.');
-        if (data.categoria !== playerData.deporte ||
-            data.modalidad !== stored.tipoPago ||
-            (seasonConfig?.temporada && data.temporada !== seasonConfig.temporada)) {
-          throw new Error('El pago confirmado no coincide con la categoría, temporada o modalidad seleccionada.');
-        }
-        window.sessionStorage.removeItem('cdb_pre_registration_pending');
-        params.delete('session_id');
-        const cleanUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : '') + window.location.hash;
-        window.history.replaceState({}, '', cleanUrl);
-        await onContinue({ ...stored.paymentsData, prepaymentSessionId: sessionId });
-      } catch (error) {
-        console.error('[InscriptionPaymentFlow] No se pudo confirmar el pago:', error);
-        window.sessionStorage.removeItem('cdb_pre_registration_pending');
-        toast.error(error?.message || 'No se ha podido confirmar el pago.');
-        params.delete('session_id');
-        const cleanUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : '') + window.location.hash;
-        window.history.replaceState({}, '', cleanUrl);
-      } finally {
-        setCheckingReturnedPayment(false);
-      }
-    })();
-  }, [playerData?.deporte, userEmail, checkingReturnedPayment]);
-
+  
   // Si no llegan categoryConfigs o están vacías, cargar directamente
   useEffect(() => {
     if (categoryConfigsProp && categoryConfigsProp.length > 0) return;
@@ -222,43 +178,6 @@ export default function InscriptionPaymentFlow({
     }
 
     try {
-      const categoryConfig = categoryConfigs.find((c) => c.nombre === playerData.deporte && c.activa !== false);
-      // En el flujo independiente de pago anticipado, Stripe ya verificó el cobro.
-      // Reutilizamos la sesión y jamás volvemos a iniciar un checkout.
-      if (prepaidSessionId) {
-        if (!['Único', 'Tres meses'].includes(prepaidModality) || tipoPago !== prepaidModality) {
-          throw new Error('La modalidad no coincide con el pago anticipado confirmado.');
-        }
-        await onContinue({ tipoPago: prepaidModality, payments: paymentsToCreate, prepaymentSessionId: prepaidSessionId });
-        return;
-      }
-      if (categoryConfig?.exigir_primer_pago === true && !playerData?._isRenewal) {
-        if (!['Único', 'Tres meses'].includes(tipoPago)) {
-          throw new Error('Para el pago previo, elige Pago Único o Tres Pagos.');
-        }
-        const returnUrl = window.location.origin + window.location.pathname + window.location.search;
-        window.sessionStorage.setItem('cdb_pre_registration_pending', JSON.stringify({
-          category: playerData.deporte,
-          playerData,
-          userEmail: userEmail || '',
-          tipoPago,
-          paymentsData: { tipoPago, payments: paymentsToCreate },
-        }));
-        const { base44 } = await import('@/api/base44Client');
-        const { data } = await base44.functions.invoke('preRegistrationCheckout', {
-          categoria: playerData.deporte,
-          modalidad: tipoPago,
-          temporada: seasonToUse,
-          successUrl: returnUrl,
-          cancelUrl: returnUrl,
-        });
-        if (!data?.success || !data?.url) {
-          window.sessionStorage.removeItem('cdb_pre_registration_pending');
-          throw new Error(data?.error || 'No se pudo iniciar el pago con tarjeta.');
-        }
-        window.location.assign(data.url);
-        return;
-      }
       await onContinue({ tipoPago, payments: paymentsToCreate });
     } catch (err) {
       console.error('[InscriptionPaymentFlow] Error en onContinue:', err);
@@ -295,9 +214,9 @@ export default function InscriptionPaymentFlow({
       <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
         <CardTitle className="flex items-center gap-2 text-lg">
           <CreditCard className="w-6 h-6" />
-          {prepaidSessionId ? 'Confirmar inscripción' : 'Último paso: elige cómo fraccionar'}
+          Último paso: elige cómo fraccionar
         </CardTitle>
-        <p className="text-blue-100 text-xs mt-1">{prepaidSessionId ? 'El pago anticipado ya está confirmado. No se realizará otro cobro.' : 'No tienes que pagar ahora — solo elegir la modalidad'}</p>
+        <p className="text-blue-100 text-xs mt-1">No tienes que pagar ahora — solo elegir la modalidad</p>
       </CardHeader>
       <CardContent className="pt-6 space-y-6">
         
@@ -330,7 +249,7 @@ export default function InscriptionPaymentFlow({
 
         <div className="space-y-3">
           <label className="text-sm font-bold text-slate-700">📋 ¿Cómo quieres fraccionar la cuota?</label>
-          <Select value={tipoPago} onValueChange={setTipoPago} disabled={!!prepaidSessionId}>
+          <Select value={tipoPago} onValueChange={setTipoPago}>
             <SelectTrigger className={`h-14 text-base border-2 hover:border-blue-500 ${tipoPago ? 'border-slate-300' : 'border-orange-400 bg-orange-50'}`}>
               <SelectValue placeholder="👉 Pulsa aquí y elige una modalidad" />
             </SelectTrigger>
