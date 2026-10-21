@@ -31,8 +31,8 @@ export default function RecordarCorreoAccesoCard() {
   };
 
   return (
-    <Card className="border-2 border-orange-300">
-      <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50">
+    <Card className="h-full overflow-hidden rounded-2xl border border-orange-200 shadow-sm transition-shadow hover:shadow-md">
+      <CardHeader className="border-b border-orange-100 bg-gradient-to-r from-orange-50 to-amber-50 px-4 py-4 sm:px-5">
         <CardTitle className="text-orange-900 flex items-center gap-2">
           <Mail className="w-5 h-5" /> Recordar a las familias su correo de acceso
         </CardTitle>
@@ -40,7 +40,7 @@ export default function RecordarCorreoAccesoCard() {
           Envía a cada persona un correo indicándole con qué dirección está dada de alta y pidiéndole que no cree cuentas nuevas.
         </p>
       </CardHeader>
-      <CardContent className="pt-6 space-y-4">
+      <CardContent className="space-y-4 bg-white p-4 sm:p-5">
         <div className="flex flex-wrap items-center gap-2">
           <Input
             value={emailPrueba}
@@ -56,7 +56,7 @@ export default function RecordarCorreoAccesoCard() {
         <Button
           onClick={() => enviar(false)}
           disabled={enviando}
-          className="bg-orange-600 hover:bg-orange-700"
+          className="rounded-xl bg-orange-600 font-semibold shadow-sm transition-colors hover:bg-orange-700"
         >
           {enviando ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Enviando...</> : <><Send className="w-4 h-4 mr-2" /> Enviar a todas las familias</>}
         </Button>
