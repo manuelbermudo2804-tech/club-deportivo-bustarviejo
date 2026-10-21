@@ -452,6 +452,7 @@ export default function PlayerDashboard() {
             seasonConfig={seasonConfig}
             categoryConfigs={categoryConfigs}
             descuentoHermano={0}
+            userEmail={user?.email}
             onContinue={(paymentsData) => {
               console.log('🎬 [PlayerDashboard] onContinue invocado', { 
                 paymentsCount: paymentsData?.payments?.length,
