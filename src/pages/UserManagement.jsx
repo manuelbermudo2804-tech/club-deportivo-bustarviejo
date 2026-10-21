@@ -739,6 +739,7 @@ export default function UserManagement() {
 
   const filterCounts = {
     all: users.filter((u) => !u.eliminado && !isUnvalidatedVisitor(u)).length,
+    deleted: deletedUsers.length,
     unvalidated: unvalidatedVisitors.length,
     parent: parents.length,
     inactive_parents: usersWithoutActivePlayers.length,
