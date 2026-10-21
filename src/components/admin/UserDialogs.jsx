@@ -514,7 +514,7 @@ export default function UserDialogs(props) {
                   <SelectTrigger><SelectValue placeholder="Selecciona el jugador..." /></SelectTrigger>
                   <SelectContent>
                     {players
-                      .filter((p) => p.acceso_jugador_autorizado && p.email_jugador === selectedUser?.email)
+                      .filter((p) => p.acceso_jugador_autorizado && (p.email_jugador || "").trim().toLowerCase() === (selectedUser?.email || "").trim().toLowerCase())
                       .map((p) => (
                         <SelectItem key={p.id} value={p.id}>
                           {p.nombre} - {p.deporte}
