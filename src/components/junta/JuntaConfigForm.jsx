@@ -13,14 +13,14 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
   useEffect(() => {
     setF({
       titulo: junta?.titulo || "Junta General de Socios", fecha: junta?.fecha || "", lugar: junta?.lugar || "",
-      orden: (junta?.orden_dia || []).join("\n"), landing_slug: junta?.landing_slug || "", email_prueba: junta?.email_prueba || "", activa: junta?.activa ?? true, ludoteca: !!junta?.ludoteca,
+      orden: (junta?.orden_dia || []).join("\n"), landing_slug: junta?.landing_slug || "", email_prueba: junta?.email_prueba || "", activa: junta?.activa ?? true, solicitar_confirmacion: junta?.solicitar_confirmacion ?? true, ludoteca: !!junta?.ludoteca,
     });
   }, [junta]);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
 
   const guardar = async (silencioso) => {
     if (!f.fecha) return toast.error("Pon la fecha y hora");
-    const data = { titulo: f.titulo, fecha: f.fecha, lugar: f.lugar, landing_slug: f.landing_slug.trim().replace(/^.*\/l\//, ""), ...(silencioso === true ? {} : { activa: f.activa, ludoteca: !!f.ludoteca }), email_prueba: (f.email_prueba || "").trim(), orden_dia: f.orden.split("\n").map((s) => s.trim()).filter(Boolean) };
+    const data = { titulo: f.titulo, fecha: f.fecha, lugar: f.lugar, landing_slug: f.landing_slug.trim().replace(/^.*\/l\//, ""), ...(silencioso === true ? {} : { activa: f.activa, solicitar_confirmacion: f.solicitar_confirmacion !== false, ludoteca: !!f.ludoteca }), email_prueba: (f.email_prueba || "").trim(), orden_dia: f.orden.split("\n").map((s) => s.trim()).filter(Boolean) };
     const saved = junta ? await base44.entities.JuntaSocios.update(junta.id, data) : await base44.entities.JuntaSocios.create(data);
     toast.success(silencioso === true ? "Cambio guardado ✓" : "Junta creada");
     onSaved(saved);
@@ -42,6 +42,13 @@ export default function JuntaConfigForm({ junta, onSaved, onDeleted }) {
         toast.success(v ? "Pregunta de ludoteca activada" : "Pregunta de ludoteca quitada");
         onSaved(saved);
       }} />{f.ludoteca ? "🧸 Preguntar a las familias si les facilitaría venir con servicio de ludoteca — ACTIVADO" : "🧸 Preguntar a las familias por el servicio de ludoteca"}</div>
+      <div className={`flex items-start gap-3 rounded-xl border p-4 text-sm font-semibold md:col-span-2 ${f.solicitar_confirmacion ? "border-orange-200 bg-orange-50 text-orange-900" : "border-slate-200 bg-slate-50 text-slate-700"}`}><Megaphone className="mt-0.5 h-5 w-5 shrink-0" /><Switch checked={f.solicitar_confirmacion !== false} onCheckedChange={async (v) => {
+        setF((prev) => ({ ...prev, solicitar_confirmacion: v }));
+        if (!junta) return;
+        const saved = await base44.entities.JuntaSocios.update(junta.id, { solicitar_confirmacion: v });
+        toast.success(v ? "Pantalla de confirmación activada" : "Pantalla de confirmación desactivada; la junta y la cuenta atrás siguen activas");
+        onSaved(saved);
+      }} />{f.solicitar_confirmacion !== false ? "🗳️ Pantalla de confirmación automática ACTIVADA" : "⏸️ Pantalla automática desactivada — la junta, la cuenta atrás y el acceso al formulario se mantienen"}</div>
       <div className={`flex items-start gap-3 rounded-xl border p-4 text-sm font-semibold md:col-span-2 ${f.activa ? "border-green-200 bg-green-50 text-green-900" : "border-slate-200 bg-slate-50 text-slate-700"}`}><Megaphone className="mt-0.5 h-5 w-5 shrink-0" /><Switch checked={!!f.activa} onCheckedChange={async (v) => {
         setF({ ...f, activa: v });
         if (!junta) return;
