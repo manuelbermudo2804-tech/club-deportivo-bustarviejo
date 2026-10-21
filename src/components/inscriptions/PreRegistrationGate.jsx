@@ -104,8 +104,7 @@ export default function PreRegistrationGate({ categoryConfigs = [], seasonConfig
           <SelectContent>{configs.map(c => <SelectItem key={c.id || c.nombre} value={c.nombre}>{c.nombre}{c.exigir_primer_pago === true ? " · Pago previo" : ""}</SelectItem>)}</SelectContent>
         </Select>
       </div>
-      {#if selected}
-        {requiresPayment ? <div className="space-y-3">
+      {selected && (requiresPayment ? <div className="space-y-3">
           <div className="space-y-2">
             <label className="text-sm font-semibold">Modalidad de pago</label>
             <Select value={modality} onValueChange={setModality}>
@@ -118,8 +117,7 @@ export default function PreRegistrationGate({ categoryConfigs = [], seasonConfig
           </div>
           <Alert><ShieldCheck className="h-4 w-4" /><AlertDescription>Pago con tarjeta mediante Stripe. El formulario se abrirá después de confirmar el cobro.</AlertDescription></Alert>
           <div className="rounded-xl bg-orange-50 p-4 text-center"><p className="text-sm text-slate-600">Importe a pagar ahora</p><p className="text-3xl font-bold text-orange-800">{Number.isFinite(amount) ? amount.toFixed(2) : "—"} €</p></div>
-        </div> : <Alert><AlertDescription>Esta categoría no exige pago previo. Continuarás con el proceso de inscripción habitual.</AlertDescription></Alert>}
-      {/if}
+        </div> : <Alert><AlertDescription>Esta categoría no exige pago previo. Continuarás con el proceso de inscripción habitual.</AlertDescription></Alert>)}
       <div className="flex gap-3">
         <Button variant="outline" className="flex-1" onClick={onCancel} disabled={busy}>Cancelar</Button>
         <Button className="flex-1 bg-orange-600 hover:bg-orange-700" onClick={proceed} disabled={!selected || busy}>{requiresPayment ? "Pagar y continuar" : "Continuar al formulario"}</Button>
