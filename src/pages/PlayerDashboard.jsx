@@ -191,7 +191,6 @@ export default function PlayerDashboard() {
         const params = new URLSearchParams(window.location.search);
         if (params.get('registro') === '1') {
           setShowCreateProfile(true);
-          setShowPreRegistrationGate(categoryConfigs.some(c => c.activa !== false && c.exigir_primer_pago === true));
           // Limpiar el query param para que no se reabra al refrescar
           const cleanUrl = window.location.pathname + window.location.hash;
           window.history.replaceState({}, '', cleanUrl);
@@ -200,7 +199,7 @@ export default function PlayerDashboard() {
     } else {
       setAllowCreatePrompt(false);
     }
-  }, [playerFetched, player, categoryConfigs]);
+  }, [playerFetched, player]);
   // Convocatorias de la ficha única: consultar todas las actividades del jugador, no solo las últimas 10 del club.
   const playerCategories = useMemo(() => [...new Set([player?.categoria_principal, player?.deporte, ...(Array.isArray(player?.categorias) ? player.categorias : [])].filter(Boolean))], [player]);
   const { data: callups } = useQuery({
