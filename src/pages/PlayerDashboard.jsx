@@ -51,6 +51,22 @@ export default function PlayerDashboard() {
   const [allowCreatePrompt, setAllowCreatePrompt] = useState(false);
   const queryClient = useQueryClient();
 
+  // Recuperar la inscripción pendiente al volver de Stripe (flujo de jugador adulto).
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem('cdb_pre_registration_pending');
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (saved?.playerData && saved?.category) {
+        setPendingPlayerData(saved.playerData);
+        setShowPaymentFlow(true);
+        setShowCreateProfile(false);
+      }
+    } catch (error) {
+      console.error('[PlayerDashboard] Recuperación de inscripción pendiente fallida:', error);
+    }
+  }, []);
+
   // Mutation: crear jugador +18 con pagos (vía backend con service role)
   const createAdultPlayerMutation = useMutation({
     mutationFn: async ({ playerData, paymentsData }) => {
@@ -59,6 +75,8 @@ export default function PlayerDashboard() {
         action: 'create_with_payments',
         playerData,
         payments: paymentsData?.payments || [],
+        prepaymentSessionId: paymentsData?.prepaymentSessionId,
+        temporada: seasonConfig?.temporada,
       });
       console.log('📦 [createAdultPlayer] Resultado:', result);
       if (!result?.success || !result?.player) {
