@@ -339,15 +339,30 @@ Deno.serve(async (req) => {
         : [];
       if (paymentsToCreate.length > 0) {
         for (const p of paymentsToCreate) {
-          const alreadyExistsForMonth = existingPlayerPayments.some(existing =>
+          const existingForMonth = existingPlayerPayments.find(existing =>
             existing.mes === p.mes && existing.temporada === (p.temporada || verifiedPrepayment?.temporada)
           );
-          if (alreadyExistsForMonth) continue;
+          if (existingForMonth) {
+            // Si se reintenta tras una interrupción, reconciliar la cuota de junio con Stripe
+            // en lugar de dejarla pendiente o crear una segunda fila para el mismo mes.
+            if (verifiedPrepayment && p.mes === 'Junio' && p.referencia_externa === verifiedPrepayment.sessionId) {
+              const reconciled = await base44.asServiceRole.entities.Payment.update(existingForMonth.id, {
+                ...p,
+                categoria_actividad: p.categoria_actividad || playerData?.categoria_principal || playerData?.deporte,
+                jugador_id: newPlayer.id,
+                jugador_nombre: newPlayer.nombre,
+                email_padre: user.email,
+              });
+              createdPayments.push(reconciled);
+            }
+            continue;
+          }
           const created = await base44.asServiceRole.entities.Payment.create({
             ...p,
             categoria_actividad: p.categoria_actividad || playerData?.categoria_principal || playerData?.deporte,
             jugador_id: newPlayer.id,
             jugador_nombre: newPlayer.nombre,
+            email_padre: user.email,
           });
           createdPayments.push(created);
         }
