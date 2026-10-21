@@ -259,11 +259,24 @@ Deno.serve(async (req) => {
         const session = await stripe.checkout.sessions.retrieve(sessionId);
         const meta = session.metadata || {};
         if (session.payment_status !== 'paid' ||
+            session.mode !== 'payment' ||
+            session.currency !== 'eur' ||
+            !Array.isArray(session.payment_method_types) ||
+            !session.payment_method_types.includes('card') ||
             meta.tipo !== 'inscripcion_previa' ||
             String(meta.user_email || '').toLowerCase() !== String(user.email).toLowerCase() ||
             meta.categoria !== playerData.deporte ||
+            (temporada && meta.temporada !== temporada) ||
             !['Único', 'Tres meses'].includes(meta.modalidad)) {
           return Response.json({ success: false, error: 'No se ha podido verificar el pago previo para esta categoría.' }, { status: 402 });
+        }
+
+        // Una sesión de Stripe solo puede respaldar una inscripción: evita reutilizar el mismo pago.
+        const alreadyUsed = await base44.asServiceRole.entities.Payment.filter({
+          referencia_externa: sessionId,
+        });
+        if (alreadyUsed.length > 0) {
+          return Response.json({ success: false, error: 'Este pago ya está vinculado a una inscripción. Si necesitas ayuda, contacta con el club.' }, { status: 409 });
         }
         const paidAmount = Number(meta.importe_euros);
         const expectedAmount = Number(meta.modalidad === 'Único' ? categoryConfig.cuota_total : categoryConfig.cuota_inscripcion);
