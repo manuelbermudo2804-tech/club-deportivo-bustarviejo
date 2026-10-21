@@ -35,7 +35,8 @@ export default function UserManagementTable({
   onDeleteUser,
   onSendInstallReminder,
   onActivateAccess,
-}) {
+  onRestoreDeleted,
+) {
   const [expandedUser, setExpandedUser] = useState(null);
 
   const getUserPlayers = (userEmail) => {
@@ -311,6 +312,15 @@ export default function UserManagementTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-48">
+                        {isDeleted ? (
+                          <DropdownMenuItem
+                            onClick={() => onRestoreDeleted?.(user)}
+                            className="text-green-700 font-semibold"
+                          >
+                            ♻️ Restaurar cuenta y activar acceso
+                          </DropdownMenuItem>
+                        ) : (
+                          <>
                         <DropdownMenuItem onClick={() => setExpandedUser(user.id)}>
                           👁️ Ver detalles
                         </DropdownMenuItem>
@@ -354,13 +364,13 @@ export default function UserManagementTable({
                             ✅ Activar acceso
                           </DropdownMenuItem>
                         )}
-                        {!isDeleted && (
-                          <DropdownMenuItem
-                            onClick={() => onDeleteUser(user)}
-                            className="text-red-600"
-                          >
-                            🗑️ Eliminar usuario
-                          </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onDeleteUser(user)}
+                          className="text-red-600"
+                        >
+                          🗑️ Eliminar usuario
+                        </DropdownMenuItem>
+                          </>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
