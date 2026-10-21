@@ -41,14 +41,14 @@ export default function UserStats({
   };
 
   return (
-    <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-11">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-11">
       {stats.map((s) => (
         <div
           key={s.label}
-          className={`bg-white rounded-lg p-2 shadow text-center border-l-4 ${colorMap[s.color].split(" ")[0]}`}
+          className={`group min-w-0 rounded-xl border border-slate-200 border-l-4 bg-white px-3 py-3 text-center shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md ${colorMap[s.color].split(" ")[0]}`}
         >
-          <p className={`text-lg font-bold ${colorMap[s.color].split(" ")[1]}`}>{s.value}</p>
-          <p className="text-[10px] text-slate-500">{s.label}</p>
+          <p className={`text-xl font-extrabold tracking-tight tabular-nums sm:text-2xl ${colorMap[s.color].split(" ")[1]}`}>{s.value}</p>
+          <p className="mt-1 text-xs font-semibold leading-tight text-slate-500">{s.label}</p>
         </div>
       ))}
     </div>
