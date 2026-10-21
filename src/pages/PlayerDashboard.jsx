@@ -25,6 +25,8 @@ import AlertCenter from "../components/dashboard/AlertCenter";
 import PlayerForm from "../components/players/PlayerForm";
 import PlayerFormWizard from "../components/players/PlayerFormWizard";
 import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymentFlow";
+import PreRegistrationGate from "../components/inscriptions/PreRegistrationGate";
+import PrepaidPlayerFormWizard from "../components/players/PrepaidPlayerFormWizard";
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 import ContactCard from "../components/ContactCard";
 import ClassificationsAndMatchesBanner from "../components/dashboard/ClassificationsAndMatchesBanner";
@@ -45,6 +47,8 @@ export default function PlayerDashboard() {
   const [showCreateProfile, setShowCreateProfile] = useState(false);
   const [showPaymentFlow, setShowPaymentFlow] = useState(false);
   const [pendingPlayerData, setPendingPlayerData] = useState(null);
+  const [showPreRegistrationGate, setShowPreRegistrationGate] = useState(false);
+  const [prepaidRegistration, setPrepaidRegistration] = useState(null);
   const [showInscriptionSuccess, setShowInscriptionSuccess] = useState(false);
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
@@ -453,6 +457,8 @@ export default function PlayerDashboard() {
             categoryConfigs={categoryConfigs}
             descuentoHermano={0}
             userEmail={user?.email}
+            prepaidSessionId={prepaidRegistration?.sessionId || ""}
+            prepaidModality={prepaidRegistration?.modality || ""}
             onContinue={(paymentsData) => {
               console.log('🎬 [PlayerDashboard] onContinue invocado', { 
                 paymentsCount: paymentsData?.payments?.length,
