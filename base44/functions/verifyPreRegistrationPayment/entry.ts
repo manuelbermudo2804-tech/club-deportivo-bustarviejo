@@ -24,6 +24,15 @@ Deno.serve(async (req) => {
         String(metadata.user_email || '').toLowerCase() !== String(user.email).toLowerCase()) {
       return Response.json({ paid: false, error: 'El pago no corresponde a esta cuenta.' }, { status: 403 });
     }
+    if (session.mode !== 'payment' ||
+        session.currency !== 'eur' ||
+        !Array.isArray(session.payment_method_types) ||
+        !session.payment_method_types.includes('card') ||
+        !['Único', 'Tres meses'].includes(metadata.modalidad) ||
+        !metadata.categoria ||
+        !metadata.temporada) {
+      return Response.json({ paid: false, error: 'La sesión no corresponde a un pago previo válido con tarjeta.' }, { status: 409 });
+    }
     if (session.payment_status !== 'paid') {
       return Response.json({ paid: false, status: session.payment_status || session.status });
     }
