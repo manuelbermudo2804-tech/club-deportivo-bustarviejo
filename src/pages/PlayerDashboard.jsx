@@ -176,6 +176,7 @@ export default function PlayerDashboard() {
         const params = new URLSearchParams(window.location.search);
         if (params.get('registro') === '1') {
           setShowCreateProfile(true);
+          setShowPreRegistrationGate(categoryConfigs.some(c => c.activa !== false && c.exigir_primer_pago === true));
           // Limpiar el query param para que no se reabra al refrescar
           const cleanUrl = window.location.pathname + window.location.hash;
           window.history.replaceState({}, '', cleanUrl);
@@ -184,7 +185,7 @@ export default function PlayerDashboard() {
     } else {
       setAllowCreatePrompt(false);
     }
-  }, [playerFetched, player]);
+  }, [playerFetched, player, categoryConfigs]);
   // Convocatorias de la ficha única: consultar todas las actividades del jugador, no solo las últimas 10 del club.
   const playerCategories = useMemo(() => [...new Set([player?.categoria_principal, player?.deporte, ...(Array.isArray(player?.categorias) ? player.categorias : [])].filter(Boolean))], [player]);
   const { data: callups } = useQuery({
@@ -524,7 +525,29 @@ export default function PlayerDashboard() {
             </Button>
           </div>
           <div className="p-3 lg:p-6 max-w-5xl mx-auto">
-            <PlayerFormWizard
+            {showPreRegistrationGate ? <PreRegistrationGate
+              categoryConfigs={categoryConfigs}
+              seasonConfig={seasonConfig}
+              userEmail={user?.email}
+              onCancel={() => { setShowPreRegistrationGate(false); setShowCreateProfile(false); }}
+              onContinue={(selection) => {
+                setShowPreRegistrationGate(false);
+                setPrepaidRegistration(selection.requiresPayment === false ? null : selection);
+              }}
+            /> : prepaidRegistration?.sessionId ? <PrepaidPlayerFormWizard
+              player={null}
+              prepaidCategory={prepaidRegistration.category}
+              allPlayers={[]}
+              isParent={false}
+              isAdultPlayerSelfRegistration={true}
+              isSubmitting={isCreatingProfile}
+              onSubmit={(playerData) => {
+                setPendingPlayerData({ ...playerData, es_mayor_edad: true, email_jugador: user.email, email_padre: user.email, acceso_jugador_autorizado: true, activo: true, tipo_inscripcion: "Nueva Inscripción", tiene_descuento_hermano: false, descuento_aplicado: 0, _descuentoCalculado: 0 });
+                setShowCreateProfile(false);
+                setShowPaymentFlow(true);
+              }}
+              onCancel={() => { setShowCreateProfile(false); setPrepaidRegistration(null); }}
+            /> : <PlayerFormWizard
               player={null}
               allPlayers={[]}
               isParent={false}
@@ -547,7 +570,7 @@ export default function PlayerDashboard() {
                 setShowPaymentFlow(true);
               }}
               onCancel={() => setShowCreateProfile(false)}
-            />
+            />}
           </div>
         </div>,
         document.body
