@@ -271,12 +271,15 @@ Deno.serve(async (req) => {
           return Response.json({ success: false, error: 'No se ha podido verificar el pago previo para esta categoría.' }, { status: 402 });
         }
 
-        // Una sesión de Stripe solo puede respaldar una inscripción: evita reutilizar el mismo pago.
-        const alreadyUsed = await base44.asServiceRole.entities.Payment.filter({
-          referencia_externa: sessionId,
-        });
-        if (alreadyUsed.length > 0) {
-          return Response.json({ success: false, error: 'Este pago ya está vinculado a una inscripción. Si necesitas ayuda, contacta con el club.' }, { status: 409 });
+        // La sesión se vincula también a Player para poder recuperar un alta interrumpida.
+        const linkedPlayers = await base44.asServiceRole.entities.Player.filter({ prepayment_session_id: sessionId });
+        const recoveredPlayer = linkedPlayers.find(p => p.email_padre?.toLowerCase() === user.email.toLowerCase() && p.deporte === playerData.deporte) || null;
+        if (linkedPlayers.length > 0 && !recoveredPlayer) {
+          return Response.json({ success: false, error: 'Este pago ya está vinculado a otra inscripción.' }, { status: 409 });
+        }
+        const alreadyUsed = await base44.asServiceRole.entities.Payment.filter({ referencia_externa: sessionId });
+        if (alreadyUsed.length > 0 && (!recoveredPlayer || alreadyUsed.some(p => p.jugador_id !== recoveredPlayer.id))) {
+          return Response.json({ success: false, error: 'Este pago ya está vinculado a otra inscripción. Si necesitas ayuda, contacta con el club.' }, { status: 409 });
         }
         const paidAmount = Number(meta.importe_euros);
         const expectedAmount = Number(meta.modalidad === 'Único' ? categoryConfig.cuota_total : categoryConfig.cuota_inscripcion);
@@ -293,9 +296,16 @@ Deno.serve(async (req) => {
         };
       }
 
-      // Forzar email_padre = email del usuario autenticado (no se acepta arbitrario).
-      const safePlayerData = { ...playerData, email_padre: user.email };
-      const newPlayer = await base44.asServiceRole.entities.Player.create(safePlayerData);
+      // Forzar email_padre = email del usuario autenticado. Guardar la sesión en la ficha
+      // permite recuperar el alta si una operación posterior falla tras crear al jugador.
+      const safePlayerData = {
+        ...playerData,
+        email_padre: user.email,
+        ...(verifiedPrepayment ? { prepayment_session_id: verifiedPrepayment.sessionId } : {}),
+      };
+      const newPlayer = verifiedPrepayment
+        ? ((await base44.asServiceRole.entities.Player.filter({ prepayment_session_id: verifiedPrepayment.sessionId })).find(p => p.email_padre?.toLowerCase() === user.email.toLowerCase() && p.deporte === playerData.deporte) || await base44.asServiceRole.entities.Player.create(safePlayerData))
+        : await base44.asServiceRole.entities.Player.create(safePlayerData);
 
       const paymentsToCreate = Array.isArray(payments) ? [...payments] : [];
       if (verifiedPrepayment) {
@@ -324,8 +334,15 @@ Deno.serve(async (req) => {
       }
 
       const createdPayments = [];
+      const existingPlayerPayments = verifiedPrepayment
+        ? await base44.asServiceRole.entities.Payment.filter({ jugador_id: newPlayer.id })
+        : [];
       if (paymentsToCreate.length > 0) {
         for (const p of paymentsToCreate) {
+          const alreadyExistsForMonth = existingPlayerPayments.some(existing =>
+            existing.mes === p.mes && existing.temporada === (p.temporada || verifiedPrepayment?.temporada)
+          );
+          if (alreadyExistsForMonth) continue;
           const created = await base44.asServiceRole.entities.Payment.create({
             ...p,
             categoria_actividad: p.categoria_actividad || playerData?.categoria_principal || playerData?.deporte,
