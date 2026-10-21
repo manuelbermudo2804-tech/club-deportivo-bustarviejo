@@ -328,13 +328,14 @@ export default function UserManagement() {
       updateData.player_id = selectedPlayerId;
       updateData.es_jugador = true;
       updateData.tipo_panel = "jugador_adulto";
-    } else {
+    } else if (selectedUser.role === "jugador") {
+      // Limpiar la vinculación solo cuando se retira el rol general "jugador".
+      // Otras cuentas pueden tener acceso de jugador mediante es_jugador/tipo_panel
+      // sin que su role principal sea "jugador"; no debemos romper esa vinculación.
       updateData.jugador_id = null;
       updateData.player_id = null;
-      if (selectedUser.role === "jugador") {
-        updateData.es_jugador = false;
-        updateData.tipo_panel = null;
-      }
+      updateData.es_jugador = false;
+      updateData.tipo_panel = null;
     }
     updateUserMutation.mutate({ userId: selectedUser.id, userData: updateData });
   };
