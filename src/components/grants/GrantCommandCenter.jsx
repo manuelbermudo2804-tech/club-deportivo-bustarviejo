@@ -36,7 +36,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-const CATEGORIAS = [
+export const CATEGORIAS = [
   "Identidad del club",
   "Representación",
   "Fiscal y Seguridad Social",

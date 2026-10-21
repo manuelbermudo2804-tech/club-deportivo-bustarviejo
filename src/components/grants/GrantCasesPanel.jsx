@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FolderKanban, Plus, RefreshCw, CalendarClock, ExternalLink, FileCheck2, Loader2, Save, AlertCircle, FileText, Download } from "lucide-react";
 import { toast } from "sonner";
+import { CATEGORIAS } from "@/components/grants/GrantCommandCenter";
 
 const ESTADOS = [
   ["detectada", "Detectada"],

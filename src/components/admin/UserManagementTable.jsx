@@ -36,7 +36,7 @@ export default function UserManagementTable({
   onSendInstallReminder,
   onActivateAccess,
   onRestoreDeleted,
-) {
+}) {
   const [expandedUser, setExpandedUser] = useState(null);
 
   const getUserPlayers = (userEmail) => {
