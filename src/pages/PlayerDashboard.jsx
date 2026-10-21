@@ -49,6 +49,7 @@ export default function PlayerDashboard() {
   const [pendingPlayerData, setPendingPlayerData] = useState(null);
   const [showPreRegistrationGate, setShowPreRegistrationGate] = useState(false);
   const [prepaidRegistration, setPrepaidRegistration] = useState(null);
+  const [preRegistrationResolved, setPreRegistrationResolved] = useState(false);
   const [showInscriptionSuccess, setShowInscriptionSuccess] = useState(false);
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
@@ -289,6 +290,12 @@ export default function PlayerDashboard() {
     queryFn: () => base44.entities.CategoryConfig.list(),
     staleTime: 600000,
   });
+
+  useEffect(() => {
+    if (showCreateProfile && !preRegistrationResolved && !showPreRegistrationGate && !prepaidRegistration && categoryConfigs.some(c => c.activa !== false && c.exigir_primer_pago === true)) {
+      setShowPreRegistrationGate(true);
+    }
+  }, [showCreateProfile, preRegistrationResolved, showPreRegistrationGate, prepaidRegistration, categoryConfigs]);
 
   // Compañeros de equipo - DESACTIVADO para mejorar rendimiento (no se usa en la UI)
   const teammates = [];
@@ -545,6 +552,7 @@ export default function PlayerDashboard() {
               userEmail={user?.email}
               onCancel={() => { setShowPreRegistrationGate(false); setShowCreateProfile(false); }}
               onContinue={(selection) => {
+                setPreRegistrationResolved(true);
                 setShowPreRegistrationGate(false);
                 setPrepaidRegistration(selection.requiresPayment === false ? null : selection);
               }}
@@ -638,6 +646,7 @@ export default function PlayerDashboard() {
               </div>
               <Button
                 onClick={() => {
+                  setPreRegistrationResolved(false);
                   setPrepaidRegistration(null);
                   setShowPreRegistrationGate(categoryConfigs.some(c => c.activa !== false && c.exigir_primer_pago === true));
                   setShowCreateProfile(true);
