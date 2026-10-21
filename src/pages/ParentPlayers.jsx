@@ -40,6 +40,21 @@ export default function ParentPlayers() {
   
   const queryClient = useQueryClient();
   
+  useEffect(() => {
+    try {
+      const raw = window.sessionStorage.getItem('cdb_pre_registration_pending');
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (saved?.playerData && saved?.category) {
+        setPendingPlayerData(saved.playerData);
+        setShowPaymentFlow(true);
+        setShowForm(false);
+      }
+    } catch (error) {
+      console.error('[ParentPlayers] Recuperación de inscripción pendiente fallida:', error);
+    }
+  }, []);
+
   // Tutorial interactivo para primera visita
   usePageTutorial("parent_players");
 
