@@ -24,9 +24,11 @@ export default function InscriptionPaymentFlow({
   descuentoHermano = 0,
   motivoDescuento = "hermano",
   onContinue,
-  userEmail
+  userEmail,
+  prepaidSessionId = "",
+  prepaidModality = ""
 }) {
-  const [tipoPago, setTipoPago] = useState("");
+  const [tipoPago, setTipoPago] = useState(prepaidModality || "");
   const [aportacionSolidaria, setAportacionSolidaria] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadedConfigs, setLoadedConfigs] = useState(null);
@@ -221,6 +223,15 @@ export default function InscriptionPaymentFlow({
 
     try {
       const categoryConfig = categoryConfigs.find((c) => c.nombre === playerData.deporte && c.activa !== false);
+      // En el flujo independiente de pago anticipado, Stripe ya verificó el cobro.
+      // Reutilizamos la sesión y jamás volvemos a iniciar un checkout.
+      if (prepaidSessionId) {
+        if (!['Único', 'Tres meses'].includes(prepaidModality) || tipoPago !== prepaidModality) {
+          throw new Error('La modalidad no coincide con el pago anticipado confirmado.');
+        }
+        await onContinue({ tipoPago: prepaidModality, payments: paymentsToCreate, prepaymentSessionId: prepaidSessionId });
+        return;
+      }
       if (categoryConfig?.exigir_primer_pago === true && !playerData?._isRenewal) {
         if (!['Único', 'Tres meses'].includes(tipoPago)) {
           throw new Error('Para el pago previo, elige Pago Único o Tres Pagos.');
@@ -284,9 +295,9 @@ export default function InscriptionPaymentFlow({
       <CardHeader className="bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-t-lg">
         <CardTitle className="flex items-center gap-2 text-lg">
           <CreditCard className="w-6 h-6" />
-          Último paso: elige cómo fraccionar
+          {prepaidSessionId ? 'Confirmar inscripción' : 'Último paso: elige cómo fraccionar'}
         </CardTitle>
-        <p className="text-blue-100 text-xs mt-1">No tienes que pagar ahora — solo elegir la modalidad</p>
+        <p className="text-blue-100 text-xs mt-1">{prepaidSessionId ? 'El pago anticipado ya está confirmado. No se realizará otro cobro.' : 'No tienes que pagar ahora — solo elegir la modalidad'}</p>
       </CardHeader>
       <CardContent className="pt-6 space-y-6">
         
@@ -319,7 +330,7 @@ export default function InscriptionPaymentFlow({
 
         <div className="space-y-3">
           <label className="text-sm font-bold text-slate-700">📋 ¿Cómo quieres fraccionar la cuota?</label>
-          <Select value={tipoPago} onValueChange={setTipoPago}>
+          <Select value={tipoPago} onValueChange={setTipoPago} disabled={!!prepaidSessionId}>
             <SelectTrigger className={`h-14 text-base border-2 hover:border-blue-500 ${tipoPago ? 'border-slate-300' : 'border-orange-400 bg-orange-50'}`}>
               <SelectValue placeholder="👉 Pulsa aquí y elige una modalidad" />
             </SelectTrigger>
