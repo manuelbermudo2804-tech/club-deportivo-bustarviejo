@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CreditCard, Gift, Info, Loader2, CheckCircle2, Heart } from "lucide-react";
+import { toast } from "sonner";
 
 import { CATEGORY_NAME_MAPPING, getCuotasFromConfig as getCuotasFromConfigShared } from '../../lib/cuotasConfig';
 
@@ -50,8 +51,10 @@ export default function InscriptionPaymentFlow({
         const { base44 } = await import('@/api/base44Client');
         const { data } = await base44.functions.invoke('verifyPreRegistrationPayment', { sessionId });
         if (!data?.paid) throw new Error(data?.error || 'Stripe todavía no confirma el pago.');
-        if (data.categoria !== playerData.deporte || data.modalidad !== stored.tipoPago) {
-          throw new Error('El pago confirmado no coincide con la categoría o modalidad seleccionada.');
+        if (data.categoria !== playerData.deporte ||
+            data.modalidad !== stored.tipoPago ||
+            (seasonConfig?.temporada && data.temporada !== seasonConfig.temporada)) {
+          throw new Error('El pago confirmado no coincide con la categoría, temporada o modalidad seleccionada.');
         }
         window.sessionStorage.removeItem('cdb_pre_registration_pending');
         params.delete('session_id');
