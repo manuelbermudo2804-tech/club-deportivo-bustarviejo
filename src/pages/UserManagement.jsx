@@ -790,19 +790,19 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="min-w-0 space-y-5 p-3 sm:p-5 lg:p-8 bg-slate-50/70">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 sm:p-7 text-white shadow-lg">
+    <div className="min-w-0 space-y-6 bg-slate-50/80 p-3 sm:p-5 lg:p-8">
+      <div className="relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-xl sm:p-7 lg:p-8">
         <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
             <div className="mb-2 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-orange-500 shadow-md shadow-orange-950/30">
               <Users className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Gestión de Usuarios</h1>
-            <p className="mt-1 text-sm sm:text-base text-slate-300">Control de acceso, roles, permisos y entrenadores</p>
+            <h1 className="text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl">Gestión de Usuarios</h1>
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Administra cuentas, permisos, vinculaciones familiares y accesos del club desde un único lugar.</p>
           </div>
           <div className="mt-1 flex w-full flex-wrap gap-2 sm:w-auto">
           <Button
-            className="w-full whitespace-normal rounded-xl bg-orange-500 hover:bg-orange-600 text-white shadow-sm sm:w-auto"
+            className="w-full whitespace-normal rounded-xl bg-orange-500 px-4 py-3 font-semibold text-white shadow-lg shadow-orange-950/20 transition-colors hover:bg-orange-400 sm:w-auto"
             onClick={() => {
               setPairingContext({ user: null, playerId: "", partnerEmail: "" });
               setShowPairDialog(true);
@@ -815,7 +815,7 @@ export default function UserManagement() {
         <div className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-orange-500/10 blur-2xl" />
       </div>
 
-      <div className="grid min-w-0 grid-cols-1 items-start gap-4 xl:grid-cols-2">
+      <div className="grid min-w-0 grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
         <EmailRelationLookup players={players} users={users} />
         <RecordarCorreoAccesoCard />
       </div>
@@ -871,14 +871,14 @@ export default function UserManagement() {
         onDetectPairs={handleDetectPairs}
       />
 
-      <Card className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm">
-        <CardHeader className="border-b border-slate-100 bg-white px-4 py-4 sm:px-5">
+      <Card className="overflow-hidden rounded-2xl border border-slate-200 shadow-md shadow-slate-200/60">
+        <CardHeader className="border-b border-slate-200 bg-white px-4 py-4 sm:px-6">
           <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
             <Users className="w-4 h-4 text-orange-600" />
             Usuarios ({filteredUsers.length})
           </CardTitle>
         </CardHeader>
-        <CardContent className="min-w-0 bg-white p-2 sm:p-4">
+        <CardContent className="min-w-0 bg-slate-50/50 p-2 sm:p-4">
           {isLoading ? (
             <div className="space-y-3">
               {[...Array(5)].map((_, i) => (
