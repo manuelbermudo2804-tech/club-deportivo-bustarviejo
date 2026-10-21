@@ -31,7 +31,46 @@ export default function InscriptionPaymentFlow({
   const [loadedConfigs, setLoadedConfigs] = useState(null);
   
   const [retryCount, setRetryCount] = useState(0);
-  
+  const [checkingReturnedPayment, setCheckingReturnedPayment] = useState(false);
+
+  // Tras volver de Stripe, verificar el cobro en servidor antes de continuar con la inscripción.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const sessionId = params.get('session_id');
+    if (!sessionId || checkingReturnedPayment) return;
+    const storedRaw = window.sessionStorage.getItem('cdb_pre_registration_pending');
+    if (!storedRaw) return;
+    let stored;
+    try { stored = JSON.parse(storedRaw); } catch { return; }
+    if (stored?.category !== playerData?.deporte || stored?.userEmail !== (userEmail || '')) return;
+
+    setCheckingReturnedPayment(true);
+    (async () => {
+      try {
+        const { base44 } = await import('@/api/base44Client');
+        const { data } = await base44.functions.invoke('verifyPreRegistrationPayment', { sessionId });
+        if (!data?.paid) throw new Error(data?.error || 'Stripe todavía no confirma el pago.');
+        if (data.categoria !== playerData.deporte || data.modalidad !== stored.tipoPago) {
+          throw new Error('El pago confirmado no coincide con la categoría o modalidad seleccionada.');
+        }
+        window.sessionStorage.removeItem('cdb_pre_registration_pending');
+        params.delete('session_id');
+        const cleanUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : '') + window.location.hash;
+        window.history.replaceState({}, '', cleanUrl);
+        await onContinue({ ...stored.paymentsData, prepaymentSessionId: sessionId });
+      } catch (error) {
+        console.error('[InscriptionPaymentFlow] No se pudo confirmar el pago:', error);
+        window.sessionStorage.removeItem('cdb_pre_registration_pending');
+        toast.error(error?.message || 'No se ha podido confirmar el pago.');
+        params.delete('session_id');
+        const cleanUrl = window.location.pathname + (params.toString() ? `?${params.toString()}` : '') + window.location.hash;
+        window.history.replaceState({}, '', cleanUrl);
+      } finally {
+        setCheckingReturnedPayment(false);
+      }
+    })();
+  }, [playerData?.deporte, userEmail, checkingReturnedPayment]);
+
   // Si no llegan categoryConfigs o están vacías, cargar directamente
   useEffect(() => {
     if (categoryConfigsProp && categoryConfigsProp.length > 0) return;
@@ -178,6 +217,33 @@ export default function InscriptionPaymentFlow({
     }
 
     try {
+      const categoryConfig = categoryConfigs.find((c) => c.nombre === playerData.deporte && c.activa !== false);
+      if (categoryConfig?.exigir_primer_pago === true && !playerData?._isRenewal) {
+        if (!['Único', 'Tres meses'].includes(tipoPago)) {
+          throw new Error('Para el pago previo, elige Pago Único o Tres Pagos.');
+        }
+        const returnUrl = window.location.origin + window.location.pathname + window.location.search;
+        window.sessionStorage.setItem('cdb_pre_registration_pending', JSON.stringify({
+          category: playerData.deporte,
+          userEmail: userEmail || '',
+          tipoPago,
+          paymentsData: { tipoPago, payments: paymentsToCreate },
+        }));
+        const { base44 } = await import('@/api/base44Client');
+        const { data } = await base44.functions.invoke('preRegistrationCheckout', {
+          categoria: playerData.deporte,
+          modalidad: tipoPago,
+          temporada: seasonToUse,
+          successUrl: returnUrl,
+          cancelUrl: returnUrl,
+        });
+        if (!data?.success || !data?.url) {
+          window.sessionStorage.removeItem('cdb_pre_registration_pending');
+          throw new Error(data?.error || 'No se pudo iniciar el pago con tarjeta.');
+        }
+        window.location.assign(data.url);
+        return;
+      }
       await onContinue({ tipoPago, payments: paymentsToCreate });
     } catch (err) {
       console.error('[InscriptionPaymentFlow] Error en onContinue:', err);
