@@ -558,7 +558,7 @@ export default function ParentLottery() {
                 <p className="text-2xl font-bold text-red-900 mb-2">🎟️ Sobre la Lotería</p>
                 <div className="space-y-2 text-red-900">
                   <p>💰 <strong>Precio:</strong> {precioDecimo}€ por décimo</p>
-                  <p className="text-sm font-medium bg-white/70 rounded-lg p-3 border border-green-300">🤝 De los 22€, 2€ se destinan a financiar al CD Bustarviejo y apoyar la actividad del club.</p>
+                  <p className="text-xs font-semibold bg-white/70 rounded-lg px-3 py-2 border border-green-300">💛 Cada décimo ayuda al Bustar: 2 € de los 22 € contribuyen a financiar la actividad del CD Bustarviejo. ¡Gracias por apoyarnos! ⚽</p>
                   <p>📅 <strong>Sorteo:</strong> 22 de Diciembre</p>
                   <p>🎁 <strong>Premio Gordo:</strong> 400.000€ al décimo</p>
                 </div>
