@@ -134,9 +134,9 @@ export default function UserDialogs(props) {
     <>
       {/* Jugador +18 */}
       <Dialog open={showPlayerDialog} onOpenChange={setShowPlayerDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border-slate-200 p-5 shadow-2xl sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold tracking-tight sm:text-2xl">
               <User className="w-6 h-6 text-purple-600" />
               {selectedUser?.es_jugador ? "Quitar Acceso de Jugador" : "Activar Acceso de Jugador +18"}
             </DialogTitle>
@@ -186,7 +186,7 @@ export default function UserDialogs(props) {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:gap-2">
             <Button variant="outline" onClick={() => setShowPlayerDialog(false)}>Cancelar</Button>
             <Button
               onClick={onConfirmPlayer}
@@ -202,9 +202,9 @@ export default function UserDialogs(props) {
 
       {/* Entrenador */}
       <Dialog open={showCoachDialog} onOpenChange={setShowCoachDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border-slate-200 p-5 shadow-2xl sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold tracking-tight sm:text-2xl">
               <Users className="w-6 h-6 text-blue-600" />
               {selectedUser?.es_entrenador ? "Quitar Rol de Entrenador" : "Asignar como Entrenador"}
             </DialogTitle>
@@ -263,7 +263,7 @@ export default function UserDialogs(props) {
             )}
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:gap-2">
             <Button variant="outline" onClick={() => setShowCoachDialog(false)}>Cancelar</Button>
             <Button
               onClick={onConfirmCoach}
@@ -279,9 +279,9 @@ export default function UserDialogs(props) {
 
       {/* Coordinador */}
       <Dialog open={showCoordinatorDialog} onOpenChange={setShowCoordinatorDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border-slate-200 p-5 shadow-2xl sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold tracking-tight sm:text-2xl">
               <Shield className="w-6 h-6 text-cyan-600" />
               {selectedUser?.es_coordinador ? "Quitar Rol de Coordinador" : "Asignar como Coordinador Deportivo"}
             </DialogTitle>
@@ -293,7 +293,7 @@ export default function UserDialogs(props) {
               )}
             </DialogDescription>
           </DialogHeader>
-          <div className="bg-cyan-50 border-2 border-cyan-300 rounded-lg p-4 my-4">
+          <div className="my-4 rounded-xl border border-cyan-200 bg-cyan-50/80 p-4">
             <p className="text-sm text-cyan-900 font-bold mb-2">🎓 Permisos:</p>
             <ul className="text-sm text-cyan-800 space-y-1">
               <li>✅ Visibilidad completa de todas las categorías</li>
@@ -302,7 +302,7 @@ export default function UserDialogs(props) {
               <li>❌ NO gestiona pagos ni inscripciones</li>
             </ul>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:gap-2">
             <Button variant="outline" onClick={() => setShowCoordinatorDialog(false)}>Cancelar</Button>
             <Button
               onClick={onConfirmCoordinator}
@@ -318,9 +318,9 @@ export default function UserDialogs(props) {
 
       {/* Tesorero */}
       <Dialog open={showTreasurerDialog} onOpenChange={setShowTreasurerDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border-slate-200 p-5 shadow-2xl sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold tracking-tight sm:text-2xl">
               <Shield className="w-6 h-6 text-green-600" />
               {selectedUser?.es_tesorero ? "Quitar Rol de Tesorero" : "Asignar como Tesorero"}
             </DialogTitle>
@@ -332,7 +332,7 @@ export default function UserDialogs(props) {
               )}
             </DialogDescription>
           </DialogHeader>
-          <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4 my-4">
+          <div className="my-4 rounded-xl border border-green-200 bg-green-50/80 p-4">
             <p className="text-sm text-green-900 font-bold mb-2">💰 Permisos:</p>
             <ul className="text-sm text-green-800 space-y-1">
               <li>✅ Gestión completa de pagos</li>
@@ -341,7 +341,7 @@ export default function UserDialogs(props) {
               <li>❌ NO gestiona jugadores ni evaluaciones</li>
             </ul>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:gap-2">
             <Button variant="outline" onClick={() => setShowTreasurerDialog(false)}>Cancelar</Button>
             <Button
               onClick={onConfirmTreasurer}
@@ -357,9 +357,9 @@ export default function UserDialogs(props) {
 
       {/* Restricción */}
       <Dialog open={showRestrictDialog} onOpenChange={setShowRestrictDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border-slate-200 p-5 shadow-2xl sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold tracking-tight sm:text-2xl">
               {selectedUser?.acceso_activo !== false ? (
                 <><Ban className="w-6 h-6 text-red-600" />Restringir Acceso</>
               ) : (
@@ -395,7 +395,7 @@ export default function UserDialogs(props) {
               />
             </div>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:gap-2">
             <Button variant="outline" onClick={() => setShowRestrictDialog(false)}>Cancelar</Button>
             <Button
               onClick={onConfirmRestriction}
@@ -412,9 +412,9 @@ export default function UserDialogs(props) {
 
       {/* Bloqueo Chat */}
       <Dialog open={showChatBlockDialog} onOpenChange={setShowChatBlockDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border-slate-200 p-5 shadow-2xl sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold tracking-tight sm:text-2xl">
               {selectedUser?.chat_bloqueado ? (
                 <><CheckCircle2 className="w-6 h-6 text-green-600" />Desbloquear Chat</>
               ) : (
@@ -439,7 +439,7 @@ export default function UserDialogs(props) {
               </div>
             )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:gap-2">
             <Button variant="outline" onClick={() => setShowChatBlockDialog(false)}>Cancelar</Button>
             <Button
               onClick={onConfirmChatBlock}
@@ -455,16 +455,16 @@ export default function UserDialogs(props) {
 
       {/* Eliminar */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border-slate-200 p-5 shadow-2xl sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold tracking-tight sm:text-2xl">
               <Trash2 className="w-6 h-6 text-slate-700" />Eliminar Usuario
             </DialogTitle>
             <DialogDescription>
               Marcar como eliminado a <strong>{selectedUser?.full_name}</strong> ({selectedUser?.email})
             </DialogDescription>
           </DialogHeader>
-          <div className="bg-orange-50 border-2 border-orange-300 rounded-lg p-4 my-4">
+          <div className="my-4 rounded-xl border border-orange-200 bg-orange-50/80 p-4">
             <ul className="text-sm text-orange-800 space-y-2 list-disc list-inside">
               <li>El usuario <strong>NO podrá iniciar sesión</strong></li>
               <li>El usuario <strong>NO aparecerá en las listas</strong></li>
@@ -472,7 +472,7 @@ export default function UserDialogs(props) {
               <li>Es <strong>reversible</strong></li>
             </ul>
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:gap-2">
             <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>Cancelar</Button>
             <Button onClick={onConfirmDelete} disabled={isPending} className="bg-slate-700 hover:bg-slate-800">
               {isPending ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Procesando...</> :
@@ -484,9 +484,9 @@ export default function UserDialogs(props) {
 
       {/* Cambio de rol */}
       <Dialog open={showRoleDialog} onOpenChange={setShowRoleDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto rounded-2xl border-slate-200 p-5 shadow-2xl sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center gap-2">
+            <DialogTitle className="flex items-center gap-3 text-xl font-bold tracking-tight sm:text-2xl">
               <Shield className="w-6 h-6 text-purple-600" />Cambiar Rol
             </DialogTitle>
             <DialogDescription>
@@ -525,7 +525,7 @@ export default function UserDialogs(props) {
               </div>
             )}
           </div>
-          <DialogFooter>
+          <DialogFooter className="flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:gap-2">
             <Button variant="outline" onClick={() => setShowRoleDialog(false)}>Cancelar</Button>
             <Button
               onClick={onConfirmRoleChange}
@@ -541,12 +541,12 @@ export default function UserDialogs(props) {
 
       {/* Recordatorio renovación */}
       <Dialog open={!!showReminderDialog} onOpenChange={() => setShowReminderDialog(null)}>
-        <DialogContent>
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl border-slate-200 p-5 shadow-2xl sm:p-6">
           <DialogHeader>
             <DialogTitle>📧 Enviar Recordatorio de Renovación</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="bg-slate-50 rounded-lg p-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
               <p className="font-bold text-slate-900">{showReminderDialog?.full_name}</p>
               <p className="text-sm text-slate-600">{showReminderDialog?.email}</p>
             </div>
