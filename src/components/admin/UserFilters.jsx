@@ -47,14 +47,14 @@ export default function UserFilters({
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm space-y-4 sm:p-4">
-      <div className="flex flex-col md:flex-row gap-2">
-        <div className="relative flex-1">
+      <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-start">
+        <div className="relative min-w-0 flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
             placeholder="Buscar por nombre, email, DNI o teléfono..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 h-9 text-sm"
+            className="h-11 rounded-xl border-slate-200 bg-white pl-9 text-sm shadow-sm placeholder:text-slate-400 focus-visible:ring-orange-500"
           />
         </div>
         <div className={`flex items-center gap-3 rounded-xl border px-3 py-2 transition-colors ${showDeleted ? "border-orange-300 bg-orange-50" : "border-slate-200 bg-slate-50 hover:border-slate-300"}`}>
@@ -98,8 +98,8 @@ export default function UserFilters({
         )}
       </Button>
 
-      <div className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
+      <div className="space-y-3 border-t border-slate-100 pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
             <p className="text-sm font-semibold text-slate-900">Filtrar usuarios</p>
             <p className="text-xs text-slate-500">Selecciona un grupo para ver sus cuentas</p>
