@@ -54,7 +54,7 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
       const tag = nodo.tagName.toLowerCase();
       const contenido = Array.from(nodo.childNodes).map(recorrer).join("");
       if (tag === "strong" || tag === "b") return `**${contenido}**`;
-      if (tag === "mark") return `==${contenido}==`;
+      if (tag === "mark" || (tag === "span" && /background-color/i.test(nodo.getAttribute("style") || ""))) return `==${contenido}==`;
       if (tag === "h3" || tag === "h2") return `## ${contenido}\n`;
       if (tag === "div" || tag === "p") return `${contenido}\n`;
       if (tag === "br") return "\n";
@@ -102,10 +102,16 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const contenidoActual = convertirHtmlATexto(contenidoRef.current?.innerHTML || "");
+    if (!contenidoActual.replace(/[#*=]/g, "").trim()) {
+      alert("Escribe el contenido del anuncio antes de publicarlo.");
+      contenidoRef.current?.focus();
+      return;
+    }
     const emails = Array.isArray(currentAnnouncement.destinatarios_emails)
       ? currentAnnouncement.destinatarios_emails
       : (currentAnnouncement.destinatarios_emails || "").split(",").map((x) => x.trim()).filter(Boolean);
-    const payload = { ...currentAnnouncement, destinatarios_emails: emails };
+    const payload = { ...currentAnnouncement, contenido: contenidoActual, destinatarios_emails: emails };
     onSubmit(payload);
   };
 
