@@ -41,21 +41,33 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
 
   const [userSearch, setUserSearch] = useState("");
   const contenidoRef = useRef(null);
-  const insertarFormato = (inicio, fin = inicio, ejemplo = "texto destacado") => {
-    const area = contenidoRef.current;
-    const texto = currentAnnouncement.contenido || "";
-    const start = area?.selectionStart ?? texto.length;
-    const end = area?.selectionEnd ?? texto.length;
-    const seleccionado = texto.slice(start, end) || ejemplo;
-    const nuevo = texto.slice(0, start) + inicio + seleccionado + fin + texto.slice(end);
-    setCurrentAnnouncement((prev) => ({ ...prev, contenido: nuevo }));
-    requestAnimationFrame(() => {
-      if (!area) return;
-      area.focus();
-      const cursorStart = start + inicio.length;
-      area.setSelectionRange(cursorStart, cursorStart + seleccionado.length);
-    });
+  const convertirTextoAHtml = (texto = "") => texto.split("\n").map((linea) => {
+    if (linea.startsWith("## ")) return `<h3>${linea.slice(3)}</h3>`;
+    const html = linea.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>").replace(/==(.*?)==/g, "<mark>$1</mark>");
+    return `<p>${html || "<br>"}</p>`;
+  }).join("");
+  const convertirHtmlATexto = (html = "") => {
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    const recorrer = (nodo) => {
+      if (nodo.nodeType === Node.TEXT_NODE) return nodo.textContent || "";
+      if (nodo.nodeType !== Node.ELEMENT_NODE) return "";
+      const tag = nodo.tagName.toLowerCase();
+      const contenido = Array.from(nodo.childNodes).map(recorrer).join("");
+      if (tag === "strong" || tag === "b") return `**${contenido}**`;
+      if (tag === "mark") return `==${contenido}==`;
+      if (tag === "h3" || tag === "h2") return `## ${contenido}\n`;
+      if (tag === "div" || tag === "p") return `${contenido}\n`;
+      if (tag === "br") return "\n";
+      return contenido;
+    };
+    return Array.from(doc.body.childNodes).map(recorrer).join("").replace(/\n+$/, "").replace(/\n\n\n+/g, "\n\n");
   };
+  const aplicarFormato = (comando, valor = null) => {
+    contenidoRef.current?.focus();
+    document.execCommand(comando, false, valor);
+    setCurrentAnnouncement((prev) => ({ ...prev, contenido: convertirHtmlATexto(contenidoRef.current?.innerHTML || "") }));
+  };
+  const sincronizarContenido = () => setCurrentAnnouncement((prev) => ({ ...prev, contenido: convertirHtmlATexto(contenidoRef.current?.innerHTML || "") }));
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['announcementUsers'],
     queryFn: () => base44.entities.User.list(),
