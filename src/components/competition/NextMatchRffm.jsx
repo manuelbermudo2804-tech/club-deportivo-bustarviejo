@@ -32,6 +32,50 @@ function formatDate(dateStr) {
   return date.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
 }
 
+// Bloqueo por categoría: evita que dos ejecuciones simultáneas en el mismo navegador
+// (p. ej. dos consultas con distinta jornada inicial) creen el mismo partido dos veces.
+const bloqueosSync = new Map();
+function conBloqueo(clave, tarea) {
+  const previa = bloqueosSync.get(clave) || Promise.resolve();
+  const actual = previa.catch(() => {}).then(tarea);
+  bloqueosSync.set(clave, actual);
+  actual.catch(() => {}).then(() => {
+    if (bloqueosSync.get(clave) === actual) bloqueosSync.delete(clave);
+  });
+  return actual;
+}
+
+async function guardarProximoPartido(category, mismoPartido, datosPartido) {
+  await conBloqueo(`proximo-partido:${category}`, async () => {
+    const existentes = await base44.entities.ProximoPartido.filter({ categoria: category });
+    const existente = existentes.find(mismoPartido);
+    if (existente) {
+      await base44.entities.ProximoPartido.update(existente.id, datosPartido);
+    } else {
+      await base44.entities.ProximoPartido.create(datosPartido);
+    }
+  });
+
+  // Limpieza: si otra pestaña u otro usuario creó el mismo partido a la vez,
+  // se conserva solo el más antiguo (todos eligen el mismo, así que no se borran entre sí).
+  try {
+    const todos = await base44.entities.ProximoPartido.filter({ categoria: category });
+    const iguales = todos.filter(mismoPartido).sort((a, b) =>
+      String(a.created_date || "").localeCompare(String(b.created_date || "")) ||
+      String(a.id).localeCompare(String(b.id))
+    );
+    for (const duplicado of iguales.slice(1)) {
+      try {
+        await base44.entities.ProximoPartido.delete(duplicado.id);
+      } catch (e) {
+        console.warn("No se pudo eliminar partido duplicado:", e);
+      }
+    }
+  } catch (e) {
+    console.warn("Error limpiando duplicados de ProximoPartido:", e);
+  }
+}
+
 export default function NextMatchRffm({ config, category, standings, onMatchLoaded }) {
   const intranetUrl = config?.rfef_results_url ? buildIntranetUrl(config.rfef_results_url) : 
                       config?.rfef_url ? buildIntranetUrl(config.rfef_url) : null;
@@ -71,7 +115,6 @@ export default function NextMatchRffm({ config, category, standings, onMatchLoad
           // Sincronización idempotente: nunca borrar todos los partidos de la categoría.
           // Identificar el mismo encuentro por sus dos equipos y, si existe, contrastar fecha.
           const jornadaActual = res.data.jornada || startJornada;
-          const existentes = await base44.entities.ProximoPartido.filter({ categoria: category });
           const norm = (value) => (value || "").trim().toLocaleLowerCase("es").replace(/\s+/g, " ");
           const mismoPartido = (p) =>
             norm(p.local) === norm(m.local) &&
@@ -89,19 +132,7 @@ export default function NextMatchRffm({ config, category, standings, onMatchLoad
             fecha_iso: fechaIso || "",
           };
 
-          const existente = existentes.find(mismoPartido);
-          if (existente) {
-            await base44.entities.ProximoPartido.update(existente.id, datosPartido);
-          } else {
-            // Segunda comprobación para reducir carreras entre ejecuciones simultáneas.
-            const verificacion = await base44.entities.ProximoPartido.filter({ categoria: category });
-            const yaExiste = verificacion.find(mismoPartido);
-            if (yaExiste) {
-              await base44.entities.ProximoPartido.update(yaExiste.id, datosPartido);
-            } else {
-              await base44.entities.ProximoPartido.create(datosPartido);
-            }
-          }
+          await guardarProximoPartido(category, mismoPartido, datosPartido);
         } catch (e) { console.error("Error saving ProximoPartido:", e); }
       }
       return res.data;
