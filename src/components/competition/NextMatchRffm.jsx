@@ -68,25 +68,39 @@ export default function NextMatchRffm({ config, category, standings, onMatchLoad
             const [d, mo, y] = m.fecha.split("/");
             return `${y}-${mo.padStart(2,'0')}-${d.padStart(2,'0')}`;
           })() : null;
-          // Delete ALL old records for this category first, then create one new
-          const old = await base44.entities.ProximoPartido.filter({ categoria: category });
-          // Delete all in sequence to avoid race conditions
-          for (const o of old) { try { await base44.entities.ProximoPartido.delete(o.id); } catch {} }
-          // Small delay to ensure deletes are processed before create
-          await new Promise(r => setTimeout(r, 200));
-          // Check again to prevent duplicates from concurrent renders
-          const check = await base44.entities.ProximoPartido.filter({ categoria: category });
-          if (check.length === 0) {
-            await base44.entities.ProximoPartido.create({
-              categoria: category,
-              jornada: res.data.jornada || startJornada,
-              local: m.local,
-              visitante: m.visitante,
-              fecha: m.fecha,
-              hora: m.hora,
-              campo: m.campo,
-              fecha_iso: fechaIso,
-            });
+          // Sincronización idempotente: nunca borrar todos los partidos de la categoría.
+          // Identificar el mismo encuentro por sus dos equipos y, si existe, contrastar fecha.
+          const jornadaActual = res.data.jornada || startJornada;
+          const existentes = await base44.entities.ProximoPartido.filter({ categoria: category });
+          const norm = (value) => (value || "").trim().toLocaleLowerCase("es").replace(/\s+/g, " ");
+          const mismoPartido = (p) =>
+            norm(p.local) === norm(m.local) &&
+            norm(p.visitante) === norm(m.visitante) &&
+            (!fechaIso || !p.fecha_iso || p.fecha_iso === fechaIso);
+
+          const datosPartido = {
+            categoria: category,
+            jornada: jornadaActual,
+            local: m.local || "",
+            visitante: m.visitante || "",
+            fecha: m.fecha || "",
+            hora: m.hora || "",
+            campo: m.campo || "",
+            fecha_iso: fechaIso || "",
+          };
+
+          const existente = existentes.find(mismoPartido);
+          if (existente) {
+            await base44.entities.ProximoPartido.update(existente.id, datosPartido);
+          } else {
+            // Segunda comprobación para reducir carreras entre ejecuciones simultáneas.
+            const verificacion = await base44.entities.ProximoPartido.filter({ categoria: category });
+            const yaExiste = verificacion.find(mismoPartido);
+            if (yaExiste) {
+              await base44.entities.ProximoPartido.update(yaExiste.id, datosPartido);
+            } else {
+              await base44.entities.ProximoPartido.create(datosPartido);
+            }
           }
         } catch (e) { console.error("Error saving ProximoPartido:", e); }
       }
