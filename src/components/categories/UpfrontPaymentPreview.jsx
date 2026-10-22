@@ -13,8 +13,8 @@ export default function UpfrontPaymentPreview({ categories = [] }) {
   const [categoryName, setCategoryName] = useState("");
   const [paymentPlan, setPaymentPlan] = useState("Tres meses");
   const [stage, setStage] = useState("category");
-  const selected = categories.find(c => c.nombre === categoryName) || categories.find(c => c.exigir_primer_pago) || categories[0];
-  const upfrontRequired = previewEnabled && selected?.exigir_primer_pago === true;
+  const selected = categories.find(c => c.nombre === categoryName) || categories.find(c => c.pago_adelantado) || categories[0];
+  const upfrontRequired = previewEnabled && selected?.pago_adelantado === true;
   const amount = selected ? (paymentPlan === "Único" ? Number(selected.cuota_total ?? ((selected.cuota_inscripcion || 0) + (selected.cuota_segunda || 0) + (selected.cuota_tercera || 0))) : Number(selected.cuota_inscripcion || 0)) : 0;
   const reset = () => setStage("category");
 
@@ -42,7 +42,7 @@ export default function UpfrontPaymentPreview({ categories = [] }) {
         </div>
         {!testMode && <Alert className="border-amber-300 bg-amber-50"><AlertDescription className="text-amber-900">Esta pantalla es una simulación aislada. No inicia pagos reales aunque desactives este interruptor.</AlertDescription></Alert>}
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1"><label className="text-sm font-medium" htmlFor="preview-category">Categoría de ejemplo</label><select id="preview-category" className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={categoryName || selected?.nombre || ""} onChange={e => { setCategoryName(e.target.value); reset(); }}><option value="" disabled>Selecciona una categoría</option>{categories.map(c => <option key={c.id || c.nombre} value={c.nombre}>{c.nombre}{c.exigir_primer_pago ? " · pago exigido" : ""}</option>)}</select></div>
+          <div className="space-y-1"><label className="text-sm font-medium" htmlFor="preview-category">Categoría de ejemplo</label><select id="preview-category" className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={categoryName || selected?.nombre || ""} onChange={e => { setCategoryName(e.target.value); reset(); }}><option value="" disabled>Selecciona una categoría</option>{categories.map(c => <option key={c.id || c.nombre} value={c.nombre}>{c.nombre}{c.pago_adelantado ? " · pago exigido" : ""}</option>)}</select></div>
           <div className="space-y-1"><label className="text-sm font-medium" htmlFor="preview-plan">Modalidad</label><select id="preview-plan" className="h-11 w-full rounded-md border bg-white px-3 text-sm" value={paymentPlan} onChange={e => { setPaymentPlan(e.target.value); reset(); }}><option value="Único">Pago único · temporada completa</option><option value="Tres meses">Tres plazos · junio primero</option></select></div>
         </div>
         <div className="rounded-2xl border bg-white p-4 sm:p-5">
