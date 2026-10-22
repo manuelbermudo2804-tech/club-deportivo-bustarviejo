@@ -247,7 +247,7 @@ export default function Announcements() {
       const body = `
 Estimadas familias,
 
-${announcement.contenido}
+${(announcement.contenido || "").replace(/\*\*(.*?)\*\*/g, "$1").replace(/==(.*?)==/g, "$1").replace(/^## /gm, "")}
 
 ──────────
 Información del anuncio:
@@ -340,7 +340,8 @@ Bustarviejo, Madrid
       if (families.length === 0) return;
 
       const allConvs = await base44.entities.PrivateConversation.list('-ultimo_mensaje_fecha', 5000);
-      const text = `📢 ${announcement.titulo}\n\n${announcement.contenido}`;
+      const contenidoLimpio = (announcement.contenido || "").replace(/\*\*(.*?)\*\*/g, "$1").replace(/==(.*?)==/g, "$1").replace(/^## /gm, "");
+      const text = `📢 ${announcement.titulo}\n\n${contenidoLimpio}`;
 
       for (const family of families) {
         let conv = allConvs.find(c =>
