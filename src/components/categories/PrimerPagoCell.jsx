@@ -1,26 +1,20 @@
 import React from "react";
 
-// Celda de la tabla de categorías: exigir el primer pago para confirmar plaza
-// y, opcionalmente, que ese primer pago sea solo con tarjeta.
+// Celda de la tabla de categorías: activar el PAGO POR ADELANTADO en la inscripción.
+// Si está activado, en una NUEVA inscripción de esa categoría se pide pagar con tarjeta
+// justo después de elegir la categoría (pago único o, en tres plazos, la cuota de junio)
+// y después se completa el formulario habitual.
 export default function PrimerPagoCell({ cat, onUpdate }) {
-  const exige = cat.exigir_primer_pago === true;
-  const soloTarjeta = cat.primer_pago_solo_tarjeta === true;
+  const activo = cat.pago_adelantado === true;
   return (
     <div className="flex flex-col items-center gap-1">
       <button
-        onClick={() => onUpdate({ exigir_primer_pago: !exige })}
-        className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${exige ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
+        onClick={() => onUpdate({ pago_adelantado: !activo })}
+        title="Pago por adelantado con tarjeta al inscribirse (nuevas inscripciones)"
+        className={`px-2 py-1 rounded-full text-xs font-bold transition-colors ${activo ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-slate-100 text-slate-400 hover:bg-slate-200'}`}
       >
-        {exige ? '🔒 Exigido' : 'No'}
+        {activo ? '💳 Adelantado' : 'No'}
       </button>
-      {exige && (
-        <button
-          onClick={() => onUpdate({ primer_pago_solo_tarjeta: !soloTarjeta })}
-          className={`px-2 py-0.5 rounded-full text-[10px] font-semibold transition-colors ${soloTarjeta ? 'bg-blue-100 text-blue-700 hover:bg-blue-200' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
-        >
-          {soloTarjeta ? '💳 Solo tarjeta' : '💳/🏦 Tarjeta o transf.'}
-        </button>
-      )}
     </div>
   );
 }
