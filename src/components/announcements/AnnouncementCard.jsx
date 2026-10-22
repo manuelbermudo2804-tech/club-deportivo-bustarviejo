@@ -91,7 +91,11 @@ export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdm
               <span className="text-2xl">{config.icon}</span>
               <div className="flex-1">
                 <h3 className="text-base font-bold text-white leading-tight">
-                  {announcement.titulo}
+                  {(announcement.titulo || "").split(/(\*\*.*?\*\*|==.*?==)/g).map((parte, j) => {
+                    if (parte.startsWith("**") && parte.endsWith("**")) return <strong key={j} className="font-extrabold">{parte.slice(2, -2)}</strong>;
+                    if (parte.startsWith("==") && parte.endsWith("==")) return <span key={j} className="rounded bg-yellow-200 px-1 text-slate-900">{parte.slice(2, -2)}</span>;
+                    return <React.Fragment key={j}>{parte}</React.Fragment>;
+                  })}
                 </h3>
               </div>
             </div>
