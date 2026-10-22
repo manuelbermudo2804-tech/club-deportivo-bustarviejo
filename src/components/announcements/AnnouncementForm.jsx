@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -68,6 +68,9 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
     setCurrentAnnouncement((prev) => ({ ...prev, contenido: convertirHtmlATexto(contenidoRef.current?.innerHTML || "") }));
   };
   const sincronizarContenido = () => setCurrentAnnouncement((prev) => ({ ...prev, contenido: convertirHtmlATexto(contenidoRef.current?.innerHTML || "") }));
+  useEffect(() => {
+    if (contenidoRef.current) contenidoRef.current.innerHTML = convertirTextoAHtml(announcement?.contenido || "");
+  }, []);
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['announcementUsers'],
     queryFn: () => base44.entities.User.list(),
@@ -426,7 +429,6 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                 aria-multiline="true"
                 onInput={sincronizarContenido}
                 onBlur={sincronizarContenido}
-                dangerouslySetInnerHTML={{ __html: convertirTextoAHtml(currentAnnouncement.contenido || "") }}
                 className="min-h-36 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 whitespace-pre-wrap break-words [&_h3]:my-2 [&_h3]:text-lg [&_h3]:font-extrabold [&_h3]:text-orange-700 [&_p]:my-1 [&_mark]:rounded [&_mark]:bg-yellow-200 [&_mark]:px-1"
               />
               <p className="text-xs text-slate-500">Escribe directamente y selecciona cualquier fragmento para aplicarle formato. Los símbolos de formato no aparecen en el texto.</p>
