@@ -244,36 +244,32 @@ export default function Announcements() {
 
       const subject = `${priorityEmoji[announcement.prioridad]} - ${announcement.titulo} - CD Bustarviejo`;
 
+      // Convertir el contenido del editor a HTML real para que los estilos se vean en los correos.
+      const escaparHtml = (texto = "") => texto.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/\'/g, "&#39;");
+      const contenidoHtml = (announcement.contenido || "").split("\n").map((linea) => {
+        if (linea.startsWith("## ")) return `<h2 style="margin:18px 0 8px;color:#c2410c;font-size:20px;font-weight:800;">${escaparHtml(linea.slice(3))}</h2>`;
+        const textoSeguro = escaparHtml(linea)
+          .replace(/\*\*(.*?)\*\*/g, "<strong style=\"font-weight:800;\">$1</strong>")
+          .replace(/==(.*?)==/g, "<mark style=\"background:#fef08a;padding:2px 5px;border-radius:4px;font-weight:700;\">$1</mark>");
+        return `<p style="margin:0 0 10px;line-height:1.65;">${textoSeguro || "&nbsp;"}</p>`;
+      }).join("");
+      const fechaPublicacion = new Date(announcement.fecha_publicacion).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit" });
+      const fechaExpiracion = announcement.fecha_expiracion ? new Date(announcement.fecha_expiracion).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }) : "";
       const body = `
-Estimadas familias,
-
-${(announcement.contenido || "").replace(/\*\*(.*?)\*\*/g, "$1").replace(/==(.*?)==/g, "$1").replace(/^## /gm, "")}
-
-──────────
-Información del anuncio:
-Prioridad: ${announcement.prioridad}
-Destinatarios: ${announcement.destinatarios_tipo}
-Publicado: ${new Date(announcement.fecha_publicacion).toLocaleDateString('es-ES', { 
-  day: 'numeric', 
-  month: 'long', 
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit'
-})}
-${announcement.fecha_expiracion ? `Válido hasta: ${new Date(announcement.fecha_expiracion).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })}` : ''}
-
-Para más información, acceda a la aplicación del club.
-
-
-Atentamente,
-
-CD Bustarviejo
-Equipo de Administración
-
-──────────
-Contacto: info@cdbustarviejo.com
-Bustarviejo, Madrid
-            `;
+        <div style="font-family:Arial,Helvetica,sans-serif;color:#1f2937;font-size:15px;line-height:1.6;max-width:680px;margin:0 auto;">
+          <p>Estimadas familias:</p>
+          <div style="margin:20px 0;">${contenidoHtml}</div>
+          <hr style="border:0;border-top:1px solid #e5e7eb;margin:24px 0;" />
+          <p style="margin:4px 0;"><strong>Información del anuncio</strong></p>
+          <p style="margin:4px 0;">Prioridad: ${escaparHtml(announcement.prioridad || "")}</p>
+          <p style="margin:4px 0;">Destinatarios: ${escaparHtml(announcement.destinatarios_tipo || "")}</p>
+          <p style="margin:4px 0;">Publicado: ${escaparHtml(fechaPublicacion)}</p>
+          ${fechaExpiracion ? `<p style="margin:4px 0;">Válido hasta: ${escaparHtml(fechaExpiracion)}</p>` : ""}
+          <p style="margin-top:22px;">Para más información, acceda a la aplicación del club.</p>
+          <p>Atentamente,<br /><strong>CD Bustarviejo</strong><br />Equipo de Administración</p>
+          <hr style="border:0;border-top:1px solid #e5e7eb;margin:24px 0;" />
+          <p style="font-size:13px;color:#6b7280;">Contacto: info@cdbustarviejo.com<br />Bustarviejo, Madrid</p>
+        </div>`;
 
       for (const email of recipients) {
         try {
