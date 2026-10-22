@@ -44,6 +44,11 @@
       "default": false,
       "description": "Si TRUE, en una NUEVA inscripci\u00f3n de esta categor\u00eda hay que pagar por adelantado con tarjeta (Stripe) justo despu\u00e9s de elegir la categor\u00eda: pago \u00fanico completo o, en tres plazos, la cuota de junio. Despu\u00e9s se completa el formulario como siempre."
     },
+    "pago_adelantado_prueba": {
+      "type": "boolean",
+      "default": false,
+      "description": "Modo PRUEBA del pago por adelantado: si TRUE (junto con pago_adelantado), el aviso y el pago previo solo los ven los administradores; las familias siguen viendo el formulario de siempre."
+    },
     "es_actividad_complementaria": {
       "type": "boolean",
       "default": false,
