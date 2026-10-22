@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, Mail, Pin, Clock, AlertCircle, Sparkles, Bell, ShieldAlert } from "lucide-react";
+import { Loader2, Mail, Pin, Clock, AlertCircle, Sparkles, Bell, ShieldAlert, Bold, Highlighter, Heading2 } from "lucide-react";
 import AnnouncementCtaSelector from "./AnnouncementCtaSelector";
 
 export default function AnnouncementForm({ announcement, onSubmit, onCancel, isSubmitting }) {
@@ -40,6 +40,22 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
   });
 
   const [userSearch, setUserSearch] = useState("");
+  const contenidoRef = useRef(null);
+  const insertarFormato = (inicio, fin = inicio, ejemplo = "texto destacado") => {
+    const area = contenidoRef.current;
+    const texto = currentAnnouncement.contenido || "";
+    const start = area?.selectionStart ?? texto.length;
+    const end = area?.selectionEnd ?? texto.length;
+    const seleccionado = texto.slice(start, end) || ejemplo;
+    const nuevo = texto.slice(0, start) + inicio + seleccionado + fin + texto.slice(end);
+    setCurrentAnnouncement((prev) => ({ ...prev, contenido: nuevo }));
+    requestAnimationFrame(() => {
+      if (!area) return;
+      area.focus();
+      const cursorStart = start + inicio.length;
+      area.setSelectionRange(cursorStart, cursorStart + seleccionado.length);
+    });
+  };
   const { data: users = [], isLoading: usersLoading } = useQuery({
     queryKey: ['announcementUsers'],
     queryFn: () => base44.entities.User.list(),
@@ -381,16 +397,27 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
               )}
             </div>
 
-            {/* Contenido */}
-            <div className="space-y-2">
+            {/* Contenido con formato sencillo */}
+            <div className="space-y-3">
               <Label>Contenido del Anuncio *</Label>
+              <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
+                <Button type="button" size="sm" variant="outline" onClick={() => insertarFormato("**", "**", "texto en negrita")} className="bg-white"><Bold className="mr-1.5 h-4 w-4" />Negrita</Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => insertarFormato("==", "==", "frase resaltada")} className="bg-white"><Highlighter className="mr-1.5 h-4 w-4" />Resaltar</Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => insertarFormato("\n## ", "\n", "Título destacado")} className="bg-white"><Heading2 className="mr-1.5 h-4 w-4" />Título</Button>
+              </div>
               <Textarea
-                placeholder="Escribe el contenido del anuncio..."
+                ref={contenidoRef}
+                placeholder="Escribe el contenido. Selecciona una frase y pulsa Negrita, Resaltar o Título."
                 value={currentAnnouncement.contenido}
                 onChange={(e) => setCurrentAnnouncement({ ...currentAnnouncement, contenido: e.target.value })}
                 rows={6}
                 required
               />
+              <p className="text-xs text-slate-500">Selecciona primero el texto y después el formato. Si no seleccionas nada, se insertará un texto de ejemplo que puedes sustituir.</p>
+              <div className="rounded-xl border border-orange-200 bg-white p-4">
+                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-orange-700">Vista previa del texto</p>
+                <div className="space-y-1 text-sm text-slate-700 whitespace-pre-wrap break-words">{(currentAnnouncement.contenido || "Aquí verás cómo quedará el anuncio.").split("\n").map((linea, i) => <p key={i} className={linea.startsWith("## ") ? "text-base font-extrabold text-orange-700" : ""}>{linea.startsWith("## ") ? linea.slice(3) : linea.split(/(\*\*.*?\*\*|==.*?==)/g).map((parte, j) => parte.startsWith("**") && parte.endsWith("**") ? <strong key={j}>{parte.slice(2, -2)}</strong> : parte.startsWith("==") && parte.endsWith("==") ? <mark key={j} className="rounded bg-yellow-200 px-1 font-semibold text-slate-900">{parte.slice(2, -2)}</mark> : parte)}</p>)}</div>
+              </div>
             </div>
 
             {/* Botón de enlace a sección de la app */}
