@@ -419,7 +419,7 @@ export default function CategoryConfigAdmin() {
                   <th className="px-2 py-2 text-center font-bold text-slate-900">Tipo</th>
                   <th className="px-2 py-2 text-center font-bold text-slate-900">Extra</th>
                   <th className="px-2 py-2 text-center font-bold text-slate-900">Liga</th>
-                  <th className="px-2 py-2 text-center font-bold text-slate-900" title="Exigir pagar la primera cuota para confirmar la plaza">Pago inscr.</th>
+                  <th className="px-2 py-2 text-center font-bold text-slate-900" title="Pago por adelantado con tarjeta al inscribirse (nuevas inscripciones)">Pago inscr.</th>
                   <th className="px-2 py-2 text-center font-bold text-slate-900">Prep.Fís.</th>
                   <th className="px-2 py-2 text-center font-bold text-slate-900">📲</th>
                   <th className="px-2 py-2 text-right font-bold text-slate-900">Inscr.</th>
@@ -540,7 +540,7 @@ export default function CategoryConfigAdmin() {
                     <th className="px-2 py-2 text-center font-bold text-slate-900">Tipo</th>
                     <th className="px-2 py-2 text-center font-bold text-slate-900">Extra</th>
                     <th className="px-2 py-2 text-center font-bold text-slate-900">Liga</th>
-                    <th className="px-2 py-2 text-center font-bold text-slate-900" title="Exigir pagar la primera cuota para confirmar la plaza">Pago inscr.</th>
+                    <th className="px-2 py-2 text-center font-bold text-slate-900" title="Pago por adelantado con tarjeta al inscribirse (nuevas inscripciones)">Pago inscr.</th>
                   <th className="px-2 py-2 text-center font-bold text-slate-900">Prep.Fís.</th>
                     <th className="px-2 py-2 text-center font-bold text-slate-900">📲</th>
                     <th className="px-2 py-2 text-right font-bold text-slate-900">Inscr.</th>
