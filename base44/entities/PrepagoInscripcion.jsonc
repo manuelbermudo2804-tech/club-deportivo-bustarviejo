@@ -1,0 +1,153 @@
+{
+  "name": "PrepagoInscripcion",
+  "type": "object",
+  "properties": {
+    "user_email": {
+      "type": "string",
+      "description": "Email de la cuenta que paga (padre/madre/tutor o jugador adulto)"
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada de la inscripci\u00f3n"
+    },
+    "categoria": {
+      "type": "string",
+      "description": "Categor\u00eda elegida (nombre del deporte, igual que Player.deporte)"
+    },
+    "jugador_nombre": {
+      "type": "string",
+      "description": "Nombre del jugador tal y como se escribi\u00f3 en el paso 1 del formulario"
+    },
+    "fecha_nacimiento": {
+      "type": "string",
+      "description": "Fecha de nacimiento del jugador (YYYY-MM-DD) del paso 1 del formulario"
+    },
+    "es_adulto": {
+      "type": "boolean",
+      "default": false,
+      "description": "TRUE si es un jugador adulto que se inscribe por s\u00ed mismo (sin descuento por hermano)"
+    },
+    "tipo_pago": {
+      "type": "string",
+      "enum": [
+        "\u00danico",
+        "Tres meses"
+      ],
+      "description": "Modalidad elegida"
+    },
+    "descuento_hermano": {
+      "type": "number",
+      "default": 0,
+      "description": "Descuento por hermano aplicado (\u20ac), calculado en el servidor"
+    },
+    "aportacion_solidaria_total": {
+      "type": "number",
+      "default": 0,
+      "description": "Aportaci\u00f3n total al Fondo Solidario elegida (\u20ac)"
+    },
+    "importe_primer_pago": {
+      "type": "number",
+      "description": "Importe cobrado ahora (pago \u00fanico completo o cuota de junio)"
+    },
+    "pagos": {
+      "type": "array",
+      "description": "Plan completo de pagos que se crear\u00e1n al dar de alta al jugador",
+      "items": {
+        "type": "object",
+        "properties": {
+          "mes": {
+            "type": "string"
+          },
+          "cantidad": {
+            "type": "number"
+          },
+          "aportacion_solidaria": {
+            "type": "number"
+          },
+          "estado_inicial": {
+            "type": "string",
+            "enum": [
+              "Pagado",
+              "Pendiente"
+            ]
+          }
+        }
+      }
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "Pendiente",
+        "Pagado",
+        "Consumido",
+        "Cancelado"
+      ],
+      "default": "Pendiente",
+      "description": "Pendiente = en Stripe sin confirmar; Pagado = cobrado y con plaza reservada pero sin jugador creado; Consumido = ya se cre\u00f3 el jugador; Cancelado = anulado"
+    },
+    "es_prueba": {
+      "type": "boolean",
+      "default": false,
+      "description": "TRUE si lo cre\u00f3 un administrador salt\u00e1ndose Stripe para probar el flujo (no hubo cobro real)"
+    },
+    "saltado_por": {
+      "type": "string",
+      "description": "Email del administrador que se salt\u00f3 el pago (solo pruebas)"
+    },
+    "stripe_session_id": {
+      "type": "string",
+      "description": "ID de la sesi\u00f3n de Stripe Checkout"
+    },
+    "fecha_pago": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Momento en que se confirm\u00f3 el pago"
+    },
+    "jugador_id": {
+      "type": "string",
+      "description": "ID del jugador creado con este prepago (cuando estado = Consumido)"
+    },
+    "fecha_consumo": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Momento en que se cre\u00f3 el jugador"
+    }
+  },
+  "required": [
+    "user_email",
+    "temporada",
+    "categoria",
+    "tipo_pago",
+    "importe_primer_pago",
+    "estado"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        },
+        {
+          "data.user_email": "{{user.email}}"
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
