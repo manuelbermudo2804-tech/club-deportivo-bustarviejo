@@ -304,7 +304,12 @@ export default function CalendarAndSchedules() {
       norm(m.visitante).includes('c.d. bustarviejo') &&
       m.hora === '21:15'
     );
-    const matchItems = (proximosPartidos || [])
+    // Deduplicar partidos importados antes de pintarlos en la agenda.
+    // La identidad incluye la categoría completa: Fútbol Femenino y
+    // Fútbol Alevín Femenino deben seguir siendo equipos independientes.
+    const normTeam = (s) => (s || '').trim().toLowerCase().replace(/\\s+/g, ' ');
+    const seenMatchKeys = new Set();
+    const partidosUnicos = (proximosPartidos || [])
       .filter(m => m.fecha_iso && inSeason(m.fecha_iso))
       .filter(m => !(hasConfirmedAficionadoMatch &&
         m.fecha_iso === '2026-10-22' &&
@@ -313,6 +318,22 @@ export default function CalendarAndSchedules() {
         norm(m.visitante).includes('c.d. bustarviejo') &&
         m.hora === '20:00'
       ))
+      // Priorizar el registro actualizado más recientemente si el mismo partido
+      // aparece repetido en la importación de la federación.
+      .sort((a, b) => new Date(b.updated_date || b.created_date || 0) - new Date(a.updated_date || a.created_date || 0))
+      .filter(m => {
+        const key = [
+          normCat(m.categoria),
+          m.fecha_iso,
+          normTeam(m.local),
+          normTeam(m.visitante)
+        ].join('|');
+        if (seenMatchKeys.has(key)) return false;
+        seenMatchKeys.add(key);
+        return true;
+      });
+
+    const matchItems = partidosUnicos
       .filter(m => {
         // Skip if there's already a callup for this category+date
         return !callupDates.has(`${normCat(m.categoria)}|${m.fecha_iso}`);
