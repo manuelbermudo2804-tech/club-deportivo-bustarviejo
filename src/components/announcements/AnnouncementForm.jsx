@@ -413,19 +413,23 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
             <div className="space-y-3">
               <Label>Contenido del Anuncio *</Label>
               <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
-                <Button type="button" size="sm" variant="outline" onClick={() => insertarFormato("**", "**", "texto en negrita")} className="bg-white"><Bold className="mr-1.5 h-4 w-4" />Negrita</Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => insertarFormato("==", "==", "frase resaltada")} className="bg-white"><Highlighter className="mr-1.5 h-4 w-4" />Resaltar</Button>
-                <Button type="button" size="sm" variant="outline" onClick={() => insertarFormato("\n## ", "\n", "Título destacado")} className="bg-white"><Heading2 className="mr-1.5 h-4 w-4" />Título</Button>
+                <Button type="button" size="sm" variant="outline" onMouseDown={(e) => e.preventDefault()} onClick={() => aplicarFormato("bold")} className="bg-white"><Bold className="mr-1.5 h-4 w-4" />Negrita</Button>
+                <Button type="button" size="sm" variant="outline" onMouseDown={(e) => e.preventDefault()} onClick={() => aplicarFormato("hiliteColor", "#fef08a")} className="bg-white"><Highlighter className="mr-1.5 h-4 w-4" />Resaltar</Button>
+                <Button type="button" size="sm" variant="outline" onMouseDown={(e) => e.preventDefault()} onClick={() => aplicarFormato("formatBlock", "h3")} className="bg-white"><Heading2 className="mr-1.5 h-4 w-4" />Título</Button>
               </div>
-              <Textarea
+              <div
                 ref={contenidoRef}
-                placeholder="Escribe el contenido. Selecciona una frase y pulsa Negrita, Resaltar o Título."
-                value={currentAnnouncement.contenido}
-                onChange={(e) => setCurrentAnnouncement({ ...currentAnnouncement, contenido: e.target.value })}
-                rows={6}
-                required
+                contentEditable
+                suppressContentEditableWarning
+                role="textbox"
+                aria-label="Contenido del anuncio"
+                aria-multiline="true"
+                onInput={sincronizarContenido}
+                onBlur={sincronizarContenido}
+                dangerouslySetInnerHTML={{ __html: convertirTextoAHtml(currentAnnouncement.contenido || "") }}
+                className="min-h-36 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 whitespace-pre-wrap break-words [&_h3]:my-2 [&_h3]:text-lg [&_h3]:font-extrabold [&_h3]:text-orange-700 [&_p]:my-1 [&_mark]:rounded [&_mark]:bg-yellow-200 [&_mark]:px-1"
               />
-              <p className="text-xs text-slate-500">Selecciona primero el texto y después el formato. Si no seleccionas nada, se insertará un texto de ejemplo que puedes sustituir.</p>
+              <p className="text-xs text-slate-500">Escribe directamente y selecciona cualquier fragmento para aplicarle formato. Los símbolos de formato no aparecen en el texto.</p>
               <div className="rounded-xl border border-orange-200 bg-white p-4">
                 <p className="mb-2 text-xs font-bold uppercase tracking-wide text-orange-700">Vista previa del texto</p>
                 <div className="space-y-1 text-sm text-slate-700 whitespace-pre-wrap break-words">{(currentAnnouncement.contenido || "Aquí verás cómo quedará el anuncio.").split("\n").map((linea, i) => <p key={i} className={linea.startsWith("## ") ? "text-base font-extrabold text-orange-700" : ""}>{linea.startsWith("## ") ? linea.slice(3) : linea.split(/(\*\*.*?\*\*|==.*?==)/g).map((parte, j) => parte.startsWith("**") && parte.endsWith("**") ? <strong key={j}>{parte.slice(2, -2)}</strong> : parte.startsWith("==") && parte.endsWith("==") ? <mark key={j} className="rounded bg-yellow-200 px-1 font-semibold text-slate-900">{parte.slice(2, -2)}</mark> : parte)}</p>)}</div>
