@@ -99,9 +99,22 @@ export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdm
         </div>
 
         <CardContent className="p-3">
-          <p className={`text-sm text-slate-700 mb-2 leading-relaxed whitespace-pre-wrap break-words ${!expanded && necesitaExpandir ? "line-clamp-3" : ""}`}>
-            <LinkifiedText text={contenido} />
-          </p>
+          <div className={`text-sm text-slate-700 mb-2 leading-relaxed whitespace-pre-wrap break-words ${!expanded && necesitaExpandir ? "line-clamp-3" : ""}`}>
+            {contenido.split("\n").map((linea, i) => {
+              const esTitulo = linea.startsWith("## ");
+              const textoLinea = esTitulo ? linea.slice(3) : linea;
+              const partes = textoLinea.split(/(\*\*.*?\*\*|==.*?==)/g);
+              return (
+                <p key={i} className={esTitulo ? "text-base font-extrabold text-orange-700 my-1" : ""}>
+                  {partes.map((parte, j) => {
+                    if (parte.startsWith("**") && parte.endsWith("**")) return <strong key={j} className="font-extrabold"><LinkifiedText text={parte.slice(2, -2)} /></strong>;
+                    if (parte.startsWith("==") && parte.endsWith("==")) return <mark key={j} className="rounded bg-yellow-200 px-1 font-semibold text-slate-900"><LinkifiedText text={parte.slice(2, -2)} /></mark>;
+                    return <LinkifiedText key={j} text={parte} />;
+                  })}
+                </p>
+              );
+            })}
+          </div>
           {necesitaExpandir && (
             <button
               type="button"
