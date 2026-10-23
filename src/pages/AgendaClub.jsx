@@ -140,7 +140,11 @@ export default function AgendaClub() {
         </div>
       </section>
 
-      <AgendaSubscribeButtons categoria={filtroCategoria === "all" ? "" : filtroCategoria} />
+      <AgendaSubscribeButtons
+        categoria={filtroCategoria === "all" ? "" : filtroCategoria}
+        categorias={myCategories}
+        soloMisCategorias={!isAdmin && !isStaff}
+      />
 
       {(isAdmin || isStaff) && (
         <>
