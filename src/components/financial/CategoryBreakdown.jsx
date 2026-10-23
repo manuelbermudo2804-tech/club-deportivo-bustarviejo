@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BarChart as ReBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { Users, TrendingUp, BarChart } from "lucide-react";
+import { isPaymentOverdue } from "@/components/payments/paymentHelpers";
 
 const COLORS = ['#3b82f6', '#f97316', '#22c55e', '#a855f7', '#ef4444', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6'];
 
@@ -40,6 +41,7 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
           esperado: 0,
           cobrado: 0,
           pendiente: 0,
+          vencido: 0,
           enRevision: 0
         };
       }
@@ -63,6 +65,8 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
           categories[categoria].cobrado += importeEsperado;
         } else if (pagoUnico.estado === "En revisión") {
           categories[categoria].enRevision += importeEsperado;
+        } else if (pagoUnico.estado === "Pendiente" && isPaymentOverdue(pagoUnico)) {
+          categories[categoria].vencido += importeEsperado;
         } else {
           categories[categoria].pendiente += importeEsperado;
         }
@@ -78,6 +82,8 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
               categories[categoria].cobrado += (pago.cantidad || 0);
             } else if (pago.estado === "En revisión") {
               categories[categoria].enRevision += (pago.cantidad || 0);
+            } else if (pago.estado === "Pendiente" && isPaymentOverdue(pago)) {
+              categories[categoria].vencido += importe;
             } else {
               categories[categoria].pendiente += importe;
             }
@@ -90,13 +96,14 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
 
 // Normalización final para evitar tasas > 100% si los importes cobrados superan el esperado teórico
 const normalized = Object.values(categories).map(c => {
-  const sumActual = (c.cobrado || 0) + (c.enRevision || 0) + (c.pendiente || 0);
+  const sumActual = (c.cobrado || 0) + (c.enRevision || 0) + (c.pendiente || 0) + (c.vencido || 0);
   const esperadoAjustado = Math.max(c.esperado || 0, sumActual);
-  const pendienteAjustado = Math.max(0, esperadoAjustado - ((c.cobrado || 0) + (c.enRevision || 0)));
+  const pendienteAjustado = Math.max(0, esperadoAjustado - ((c.cobrado || 0) + (c.enRevision || 0) + (c.vencido || 0)));
   return {
     ...c,
     esperado: esperadoAjustado,
     pendiente: pendienteAjustado,
+    vencido: c.vencido || 0,
   };
 });
 
@@ -107,6 +114,7 @@ return normalized.sort((a, b) => b.esperado - a.esperado);
     name: c.nombre.replace('Fútbol ', '').replace(' (Mixto)', ''),
     Cobrado: c.cobrado,
     Pendiente: c.pendiente,
+    Vencido: c.vencido,
     EnRevision: c.enRevision
   }));
 
@@ -143,6 +151,7 @@ return normalized.sort((a, b) => b.esperado - a.esperado);
               <Bar dataKey="Cobrado" fill="#22c55e" stackId="a" />
               <Bar dataKey="EnRevision" fill="#f59e0b" stackId="a" />
               <Bar dataKey="Pendiente" fill="#ef4444" stackId="a" />
+              <Bar dataKey="Vencido" name="Pagos vencidos" fill="#7c3aed" stackId="a" />
             </ReBarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -188,7 +197,7 @@ return normalized.sort((a, b) => b.esperado - a.esperado);
                   </div>
 
                   {/* Desglose */}
-                  <div className="grid grid-cols-3 gap-2 text-center">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-center">
                     <div className="bg-green-50 rounded-lg p-2">
                       <p className="text-[10px] md:text-xs text-slate-600">Cobrado</p>
                       <p className="font-bold text-green-700 text-sm md:text-base">{formatCurrency(cat.cobrado)}€</p>
@@ -200,6 +209,10 @@ return normalized.sort((a, b) => b.esperado - a.esperado);
                     <div className="bg-red-50 rounded-lg p-2">
                       <p className="text-[10px] md:text-xs text-slate-600">Pendiente</p>
                       <p className="font-bold text-red-700 text-sm md:text-base">{formatCurrency(cat.pendiente)}€</p>
+                    </div>
+                    <div className="bg-purple-50 rounded-lg p-2">
+                      <p className="text-[10px] md:text-xs text-slate-600">Vencido</p>
+                      <p className="font-bold text-purple-700 text-sm md:text-base">{formatCurrency(cat.vencido)}€</p>
                     </div>
                   </div>
                 </div>
