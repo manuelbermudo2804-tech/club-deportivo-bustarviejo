@@ -25,6 +25,11 @@ import { logUploadError, logUploadButtonClick, logInputChange, generateDiagnosti
 import { trackWizardStep } from "@/lib/diagnosticLogger";
 // SendDiagnosticButton removed from wizard UI - only used in admin diagnostics page
 import { saveFormDraft, loadFormDraft, clearFormDraft, markCameraOpening, checkCameraReload, clearCameraFlag } from "./wizard/useFormPersistence";
+import UpfrontPaymentGate from "../inscriptions/UpfrontPaymentGate";
+import { CATEGORY_NAME_MAPPING } from "@/lib/cuotasConfig";
+
+// Clave donde se recuerda el prepago ya pagado si la página se recarga a mitad del formulario
+const PREPAGO_KEY = "playerFormWizard_prepago";
 import HelpRequestBanner from "./wizard/HelpRequestBanner";
 import { validators } from "../utils/validators";
 import useCategoryPlazas from "@/components/categories/useCategoryPlazas";
@@ -103,9 +108,43 @@ const NEW_TOTAL_ADULT = 8;
 
 // --- STEPS for edit (reduced: no authorizations step, no summary) ---
 
-export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitting, isParent = false, allPlayers = [], isAdultPlayerSelfRegistration: isAdultPlayerSelfRegistrationProp = false }) {
+/**
+ * COPIA de PlayerFormWizard con PAGO POR ADELANTADO.
+ *
+ * Es idéntica al formulario original (mismos pasos, pantallas, campos y validaciones). La ÚNICA diferencia:
+ * al salir del paso "Categoría", si esa categoría tiene el pago por adelantado activado, se muestra el aviso,
+ * las cuotas y el pago con tarjeta (UpfrontPaymentGate) y después el formulario sigue en "Documentos".
+ * Con una categoría sin pago adelantado se comporta exactamente igual que el original.
+ * Al terminar entrega `_prepago` en los datos: la página salta el paso de elegir cuotas.
+ *
+ * ⚠️ El formulario ORIGINAL (PlayerFormWizard.jsx) NO se modifica nunca. Si algún día se cambia el original,
+ * hay que replicar ese cambio aquí a mano. Las páginas eligen cuál abrir según las categorías con pago activo.
+ */
+export default function PlayerFormWizardPrepago({ player, onSubmit, onCancel, isSubmitting, isParent = false, allPlayers = [], isAdultPlayerSelfRegistration: isAdultPlayerSelfRegistrationProp = false, prepagoReturnId = null }) {
   const formRef = useRef(null);
   const [step, setStep] = useState(0);
+
+  // 💳 Pago por adelantado (solo se usa si la categoría elegida lo exige)
+  const [prepago, setPrepago] = useState(null);
+  const [gateOpen, setGateOpen] = useState(!!prepagoReturnId);
+
+  // Recupera el prepago ya pagado si la página se recarga a mitad del formulario (p. ej. al abrir la cámara)
+  useEffect(() => {
+    if (player) return;
+    try {
+      const saved = JSON.parse(localStorage.getItem(PREPAGO_KEY) || "null");
+      const draft = loadFormDraft();
+      if (
+        saved?.prepago && draft?.playerData &&
+        Date.now() - saved.savedAt < 2 * 60 * 60 * 1000 &&
+        saved.prepago.categoria === draft.playerData.deporte &&
+        String(saved.prepago.fecha_nacimiento || "").slice(0, 10) === String(draft.playerData.fecha_nacimiento || "").slice(0, 10)
+      ) {
+        setPrepago(saved.prepago);
+      }
+    } catch {}
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [fieldErrors, setFieldErrors] = useState({});
   const wizardStartRef = useRef(Date.now());
   const stepStartRef = useRef(Date.now());
@@ -543,10 +582,26 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
         durationMs: Date.now() - stepStartRef.current,
       });
     }
+    // 💳 Pago por adelantado: solo altas nuevas, al salir del paso Categoría, si esa categoría lo exige
+    if (!isEditing && step === 1 && !prepago) {
+      const nombreCfg = CATEGORY_NAME_MAPPING[currentPlayer.deporte] || currentPlayer.deporte;
+      const exige = categoryConfigsData.some(c =>
+        (c.nombre === currentPlayer.deporte || c.nombre === nombreCfg) &&
+        c.pago_adelantado === true &&
+        (c.pago_adelantado_prueba !== true || currentUser?.role === "admin"));
+      if (exige) { setGateOpen(true); return; }
+    }
     setStep(s => Math.min(s + 1, totalSteps - 1));
   };
 
-  const handleBack = () => { setFieldErrors({}); setStep(s => Math.max(s - 1, 0)); };
+  const handleBack = () => {
+    // 💳 Tras pagar por adelantado no se puede cambiar la categoría ni la fecha de nacimiento
+    if (prepago && step <= 2) {
+      toast.info("Tras el pago no se puede cambiar la categoría ni la fecha de nacimiento. Si hay un error, escribe al club.");
+      return;
+    }
+    setFieldErrors({}); setStep(s => Math.max(s - 1, 0));
+  };
 
   const handleFinalSubmit = () => {
     // Validate normativa + authorizations steps if new
@@ -626,6 +681,8 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
       finalData.deuda_pendiente_importe = debtState.total;
       finalData.deuda_pendiente_ids = (debtState.deudas || []).map(d => d.id);
     }
+    // 💳 Si ya pagó por adelantado, lo indicamos: la página salta el paso de elegir cuotas
+    if (prepago && prepago.categoria === finalData.deporte) finalData._prepago = prepago;
     clearFormDraft();
     onSubmit(finalData);
   };
@@ -685,6 +742,31 @@ export default function PlayerFormWizard({ player, onSubmit, onCancel, isSubmitt
   };
 
   const isLastStep = step === totalSteps - 1;
+
+  // 💳 Pantalla de pago por adelantado (aviso + cuotas + Stripe). Sustituye al formulario mientras está abierta.
+  if (gateOpen && !isEditing) {
+    return (
+      <motion.div ref={formRef} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
+        <UpfrontPaymentGate
+          categoria={currentPlayer.deporte}
+          nombre={currentPlayer.nombre}
+          fechaNacimiento={currentPlayer.fecha_nacimiento}
+          esAdulto={isAdultPlayerSelfRegistration}
+          returnPath={window.location.pathname}
+          returnPrepagoId={prepagoReturnId}
+          onConfirmed={(p) => {
+            setPrepago(p);
+            try { localStorage.setItem(PREPAGO_KEY, JSON.stringify({ prepago: p, savedAt: Date.now() })); } catch {}
+            setGateOpen(false);
+            setStep(2);
+          }}
+          onNotRequired={() => { setGateOpen(false); setStep(2); }}
+          onCancel={() => setGateOpen(false)}
+          onBeforeRedirect={() => saveFormDraft(currentPlayer, 1)}
+        />
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div ref={formRef} initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
