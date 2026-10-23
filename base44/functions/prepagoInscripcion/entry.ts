@@ -211,6 +211,37 @@ Deno.serve(async (req) => {
       return Response.json({ prepago: resumenPrepago(p) });
     }
 
+    // ---------- Acción: limpiar_prueba (solo admin, solo prepagos de prueba) ----------
+    if (action === 'limpiar_prueba') {
+      if (!esAdmin) return fail('Solo los administradores pueden borrar pruebas.', 403);
+      if (!body.prepago_id) return fail('Falta prepago_id.');
+      const p = await db.PrepagoInscripcion.get(body.prepago_id);
+      if (!p) return fail('Prepago no encontrado.', 404);
+      if (p.es_prueba !== true) return fail('Solo se pueden borrar prepagos marcados como prueba.', 403);
+
+      let pagosBorrados = 0;
+      let jugadorBorrado = false;
+      if (p.jugador_id) {
+        let jugador = null;
+        try { jugador = await db.Player.get(p.jugador_id); } catch (_) { jugador = null; }
+        // Solo se borra si el jugador es realmente el creado con esta prueba (mismo email de cuenta)
+        if (jugador && jugador.email_padre === p.user_email) {
+          const pagos = await db.Payment.filter({ jugador_id: jugador.id }, '-created_date', 100);
+          for (const pg of pagos) {
+            if (normTemp(pg.temporada) === normTemp(p.temporada)) {
+              await db.Payment.delete(pg.id);
+              pagosBorrados++;
+            }
+          }
+          await db.Player.delete(jugador.id);
+          jugadorBorrado = true;
+        }
+      }
+      await db.PrepagoInscripcion.delete(p.id);
+      console.log(`🧪 [prepago] prueba ${p.id} borrada por ${user.email}: pagos=${pagosBorrados} jugador=${jugadorBorrado}`);
+      return Response.json({ ok: true, pagos_borrados: pagosBorrados, jugador_borrado: jugadorBorrado });
+    }
+
     if (action !== 'estado' && action !== 'checkout') return fail('Acción no soportada.');
 
     const entrada = leerEntrada();
