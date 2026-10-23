@@ -7,11 +7,12 @@ import { toast } from "sonner";
  * Tres botones pequeños para llevarse la agenda al calendario del móvil.
  * Si hay un equipo filtrado, el enlace sólo trae ese equipo.
  */
-export default function AgendaSubscribeButtons({ categoria }) {
+export default function AgendaSubscribeButtons({ categoria, categorias = [], soloMisCategorias = false }) {
   const [copiado, setCopiado] = useState(false);
 
   const origin = typeof window !== "undefined" ? window.location.origin : "";
-  const url = `${origin}/functions/calendarioFeed${categoria ? `?cat=${encodeURIComponent(categoria)}` : ""}`;
+  const categoriasFiltro = categoria ? [categoria] : categorias;
+  const url = `${origin}/functions/calendarioFeed${categoriasFiltro.length ? `?cat=${encodeURIComponent(categoriasFiltro.join(","))}` : soloMisCategorias ? "?cat=__sin_categorias__" : ""}`;
   const webcal = url.replace(/^https?:/, "webcal:");
   const google = `https://calendar.google.com/calendar/r/settings/addbyurl?cid=${encodeURIComponent(url)}`;
 
