@@ -59,7 +59,8 @@
         "PorraParticipante",
         "EurocopaParticipante",
         "LandingSubmission",
-        "ExtraChargePayment"
+        "ExtraChargePayment",
+        "PrepagoInscripcion"
       ],
       "default": "Unknown"
     },
