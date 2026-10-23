@@ -8,9 +8,10 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const url = new URL(req.url);
     const cat = (url.searchParams.get('cat') || '').trim();
+    const cats = cat ? cat.split(',').map((c) => c.trim()).filter(Boolean) : [];
 
     const norm = (s) => (s || '').trim().toLowerCase().replace(/\(mixto\)/g, '').replace(/\s+/g, ' ').trim();
-    const matchCat = (c) => !cat || norm(c) === norm(cat);
+    const matchCat = (c) => cats.length === 0 || cats.some((requested) => norm(requested) === norm(c));
 
     const [partidos, convocatorias, horarios] = await Promise.all([
       base44.asServiceRole.entities.ProximoPartido.list('-fecha_iso', 300),
@@ -117,7 +118,7 @@ Deno.serve(async (req) => {
       'PRODID:-//CD Bustarviejo//Calendario//ES',
       'CALSCALE:GREGORIAN',
       'METHOD:PUBLISH',
-      `X-WR-CALNAME:CD Bustarviejo${cat ? ` · ${cat}` : ''}`,
+      `X-WR-CALNAME:CD Bustarviejo${cats.length ? ` · ${cats.join(' + ')}` : ''}`,
       'X-WR-TIMEZONE:Europe/Madrid',
       'REFRESH-INTERVAL;VALUE=DURATION:PT4H',
       'X-PUBLISHED-TTL:PT4H',
