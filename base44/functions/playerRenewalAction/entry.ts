@@ -6,6 +6,8 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
  *  - "renew": marca jugador como renovado (estado_renovacion=renovado, activo=true) y crea pagos
  *  - "not_renewing": marca como no_renueva
  *  - "create_with_payments": crea jugador nuevo + pagos asociados
+ *      (opcional: prepago_id = pago por adelantado ya cobrado; entonces los pagos se generan desde el prepago,
+ *       la plaza ya estaba reservada y se ignora el array "payments" del cliente)
  *
  * Verifica siempre que el usuario autenticado sea padre/tutor del jugador
  * (o esté creando uno nuevo asociado a su email).
@@ -234,8 +236,30 @@ Deno.serve(async (req) => {
     if (action === 'create_with_payments') {
       if (!playerData) return Response.json({ error: 'Falta playerData' }, { status: 400 });
 
-      const bloqueo = await comprobarCupo(playerData.deporte);
-      if (bloqueo) return Response.json({ success: false, error: bloqueo }, { status: 409 });
+      // ---- Pago por adelantado (opcional): si llega prepago_id, la plaza ya está reservada y pagada ----
+      let prepago = null;
+      if (body.prepago_id) {
+        const key = (t) => String(t || '').trim().replace(/\//g, '-');
+        prepago = await base44.asServiceRole.entities.PrepagoInscripcion.get(body.prepago_id);
+        if (!prepago || prepago.user_email !== user.email) {
+          return Response.json({ success: false, error: 'No se encontró el pago por adelantado de esta inscripción.' }, { status: 409 });
+        }
+        if (prepago.estado !== 'Pagado') {
+          return Response.json({ success: false, error: prepago.estado === 'Consumido' ? 'Este pago por adelantado ya se usó en otra inscripción.' : 'El pago por adelantado todavía no está confirmado.' }, { status: 409 });
+        }
+        if (
+          prepago.categoria !== playerData.deporte ||
+          String(prepago.fecha_nacimiento || '').slice(0, 10) !== String(playerData.fecha_nacimiento || '').slice(0, 10) ||
+          (temporada && key(prepago.temporada) !== key(temporada))
+        ) {
+          return Response.json({ success: false, error: 'El pago por adelantado no corresponde a la categoría o a la fecha de nacimiento de este jugador.' }, { status: 409 });
+        }
+        // Reservar el prepago antes de crear al jugador (evita usarlo dos veces)
+        await base44.asServiceRole.entities.PrepagoInscripcion.update(prepago.id, { estado: 'Consumido', fecha_consumo: new Date().toISOString() });
+      } else {
+        const bloqueo = await comprobarCupo(playerData.deporte);
+        if (bloqueo) return Response.json({ success: false, error: bloqueo }, { status: 409 });
+      }
 
       // Forzar email_padre = email del usuario autenticado (no se acepta arbitrario)
       const safePlayerData = {
@@ -243,10 +267,53 @@ Deno.serve(async (req) => {
         email_padre: user.email,
       };
 
-      const newPlayer = await base44.asServiceRole.entities.Player.create(safePlayerData);
+      let newPlayer;
+      try {
+        newPlayer = await base44.asServiceRole.entities.Player.create(safePlayerData);
+      } catch (e) {
+        if (prepago) {
+          try { await base44.asServiceRole.entities.PrepagoInscripcion.update(prepago.id, { estado: 'Pagado' }); } catch (_) { /* sin acción */ }
+        }
+        throw e;
+      }
 
       const createdPayments = [];
-      if (Array.isArray(payments) && payments.length > 0) {
+      if (prepago) {
+        // Pagos generados desde el prepago (mismos campos que InscriptionPaymentFlow). El primer pago se crea
+        // Pendiente y se pasa a Pagado, igual que hace el webhook de Stripe con una cuota normal.
+        await base44.asServiceRole.entities.PrepagoInscripcion.update(prepago.id, { jugador_id: newPlayer.id });
+        const hoy = new Date().toISOString().slice(0, 10);
+        const notaPago = prepago.es_prueba === true ? '🧪 PRUEBA (sin cobro real)' : 'Pagado con tarjeta (Stripe) · pago por adelantado';
+        for (const pg of prepago.pagos || []) {
+          const pagadoYa = pg.estado_inicial === 'Pagado';
+          const aport = Number(pg.aportacion_solidaria) || 0;
+          const notas = [
+            pagadoYa ? notaPago : null,
+            pagadoYa && Number(prepago.descuento_hermano) > 0 ? `Descuento hermano: -${prepago.descuento_hermano}€` : null,
+            aport > 0 ? `Incluye ${aport}€ Fondo Solidario` : null,
+          ].filter(Boolean).join(' | ');
+          const created = await base44.asServiceRole.entities.Payment.create({
+            tipo_pago: prepago.tipo_pago,
+            mes: pg.mes,
+            temporada: prepago.temporada,
+            cantidad: pg.cantidad,
+            estado: 'Pendiente',
+            metodo_pago: 'Transferencia',
+            notas,
+            aportacion_solidaria: aport,
+            aportacion_solidaria_total: Number(prepago.aportacion_solidaria_total) || 0,
+            categoria_actividad: playerData?.categoria_principal || playerData?.deporte,
+            jugador_id: newPlayer.id,
+            jugador_nombre: newPlayer.nombre,
+          });
+          if (pagadoYa) {
+            const pagado = await base44.asServiceRole.entities.Payment.update(created.id, { estado: 'Pagado', fecha_pago: hoy });
+            createdPayments.push(pagado || { ...created, estado: 'Pagado', fecha_pago: hoy });
+          } else {
+            createdPayments.push(created);
+          }
+        }
+      } else if (Array.isArray(payments) && payments.length > 0) {
         for (const p of payments) {
           const created = await base44.asServiceRole.entities.Payment.create({
             ...p,
