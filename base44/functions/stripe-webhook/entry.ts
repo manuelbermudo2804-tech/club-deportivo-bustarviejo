@@ -140,7 +140,7 @@ Deno.serve(async (req) => {
         // Fallback log: si el tipo no es uno de los conocidos, registramos igualmente
         try {
           const tipo = metadata?.tipo;
-          if (!['pago_cuota','pago_cuota_batch','loteria','cuota_socio','porra_eurocopa'].includes(tipo)) {
+          if (!['pago_cuota','pago_cuota_batch','loteria','cuota_socio','porra_eurocopa','prepago_inscripcion'].includes(tipo)) {
             await base44.asServiceRole.entities.StripePaymentLog.create({
               section: 'extra',
               amount: Number(session.amount_total || 0) / 100,
@@ -273,6 +273,60 @@ Deno.serve(async (req) => {
             }
           } catch (e) {
             console.error('[stripe-webhook] Error actualizando Payment:', e?.message || e);
+          }
+        }
+
+        // ============ PREPAGO DE INSCRIPCIÓN (pago por adelantado, antes de crear al jugador) ============
+        if (metadata.tipo === 'prepago_inscripcion' && metadata.prepago_id) {
+          try {
+            const prepago = await base44.asServiceRole.entities.PrepagoInscripcion.get(metadata.prepago_id);
+            if (!prepago) {
+              console.error('[stripe-webhook] Prepago no encontrado', { prepago_id: metadata.prepago_id });
+            } else if (prepago.estado === 'Pagado' || prepago.estado === 'Consumido') {
+              // Stripe puede repetir el evento: no se procesa dos veces
+              console.log('[stripe-webhook] Prepago ya procesado', { prepago_id: prepago.id, estado: prepago.estado });
+            } else {
+              const importePagado = Number(session.amount_total || 0) / 100;
+              if (Math.abs(importePagado - Number(prepago.importe_primer_pago)) > 0.01) {
+                console.warn('[stripe-webhook] Importe del prepago no coincide', { esperado: prepago.importe_primer_pago, pagado: importePagado });
+              }
+              try {
+                await base44.asServiceRole.entities.StripePaymentLog.create({
+                  section: 'cuotas',
+                  amount: importePagado,
+                  currency: session.currency || 'eur',
+                  status: 'succeeded',
+                  session_id: session.id,
+                  payment_intent_id: session.payment_intent || null,
+                  email: session.customer_details?.email || session.customer_email || metadata.user_email,
+                  related_entity: 'PrepagoInscripcion',
+                  related_id: prepago.id,
+                  metadata,
+                  created_at: new Date().toISOString()
+                });
+              } catch (logErr) {
+                console.error('[stripe-webhook] Error log prepago:', logErr?.message || logErr);
+              }
+              await base44.asServiceRole.entities.PrepagoInscripcion.update(prepago.id, {
+                estado: 'Pagado',
+                fecha_pago: new Date().toISOString(),
+                stripe_session_id: session.id,
+              });
+              console.log('[stripe-webhook] Prepago marcado Pagado', { prepago_id: prepago.id });
+
+              // Aviso al pagador: plaza reservada + recordatorio de terminar el formulario
+              try {
+                await sendEmailResend({
+                  to: session.customer_details?.email || session.customer_email || prepago.user_email,
+                  subject: `✅ Pago de inscripción recibido - ${prepago.categoria}`,
+                  body: `Hemos recibido tu pago de ${importePagado}€ (${prepago.tipo_pago === 'Único' ? 'pago único' : 'cuota de junio'}) para la inscripción en ${prepago.categoria} (${prepago.temporada}).\n\nTu plaza está reservada. Para terminar, vuelve a la app y completa el formulario de inscripción del jugador. Si lo cerraste, tu pago queda guardado y no tendrás que volver a pagar.\n\nCD Bustarviejo`
+                });
+              } catch (emailErr) {
+                console.error('[stripe-webhook] Error email prepago:', emailErr?.message || emailErr);
+              }
+            }
+          } catch (e) {
+            console.error('[stripe-webhook] Error procesando prepago:', e?.message || e);
           }
         }
 
