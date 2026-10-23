@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2, ShoppingCart, ArrowUpRight } from "lucide-react";
@@ -26,6 +26,32 @@ export default function LoteriaNavidad() {
     },
   });
 
+  // Metadatos específicos para buscadores y para compartir esta página pública.
+  // Se actualizan desde la página, sin alterar la carga de la campaña ni los pagos.
+  useEffect(() => {
+    const title = "Lotería de Navidad 2026 | CD Bustarviejo";
+    const description = "Compra la Lotería de Navidad del C.D. Bustarviejo online a través de TuLotero y consulta el número del club y los comercios colaboradores en Bustarviejo.";
+    document.title = title;
+
+    const setMeta = (selector, attribute, value) => {
+      let element = document.head.querySelector(selector);
+      if (!element) {
+        element = document.createElement("meta");
+        const match = selector.match(/\[(name|property)="([^"]+)"\]/);
+        if (match) element.setAttribute(match[1], match[2]);
+        document.head.appendChild(element);
+      }
+      element.setAttribute(attribute, value);
+    };
+
+    setMeta('meta[name="description"]', "content", description);
+    setMeta('meta[property="og:title"]', "content", title);
+    setMeta('meta[property="og:description"]', "content", description);
+    setMeta('meta[property="og:url"]', "content", window.location.href);
+    setMeta('meta[name="twitter:title"]', "content", title);
+    setMeta('meta[name="twitter:description"]', "content", description);
+  }, []);
+
   if (isLoading) {
     return (
       <div className={`${FONDO} flex items-center justify-center`}>
@@ -42,8 +68,8 @@ export default function LoteriaNavidad() {
       <div className={`${FONDO} flex items-center justify-center p-6 text-center`}>
         <div>
           <p className="text-4xl mb-3">🎄</p>
-          <p className="text-xl font-black text-white">La campaña de lotería no está disponible</p>
-          <p className="text-emerald-200/80 mt-2">Vuelve a consultarlo más adelante.</p>
+          <h1 className="text-xl font-black text-white">Lotería de Navidad del C.D. Bustarviejo</h1>
+          <p className="text-emerald-200/80 mt-2">Consulta la información de la campaña, el número del club y las opciones de compra online. Si los datos no se cargan, vuelve a intentarlo en unos minutos.</p>
         </div>
       </div>
     );
