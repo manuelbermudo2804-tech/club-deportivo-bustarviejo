@@ -14,6 +14,7 @@ import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock, Loader2, Smartp
 import { toast } from "sonner";
 import PlazasCategoriaPanel from "@/components/categories/PlazasCategoriaPanel";
 import PrimerPagoCell from "@/components/categories/PrimerPagoCell";
+import PruebasPagoAdelantadoPanel from "@/components/categories/PruebasPagoAdelantadoPanel";
 
 // 9 categorías BASE que NUNCA pueden ser eliminadas
 const BASE_CATEGORIES = [
@@ -382,6 +383,8 @@ export default function CategoryConfigAdmin() {
           </CardContent>
         </Card>
       )}
+
+      <PruebasPagoAdelantadoPanel />
 
       <PlazasCategoriaPanel categories={categories.filter(c => c.activa !== false).sort((a, b) => a.nombre.localeCompare(b.nombre))} />
 
