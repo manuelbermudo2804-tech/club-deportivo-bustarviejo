@@ -284,10 +284,10 @@ export default function ParentCallups() {
   });
 
   const today = new Date().toISOString().split('T')[0];
+  // Mostrar a las familias todos los partidos futuros publicados, aunque la convocatoria esté cerrada.
+  // El cierre solo bloquea las respuestas; no debe ocultar la información del partido.
   const upcomingCallups = relevantCallups.filter(c => 
-    (c.fecha_partido >= today && !c.cerrada) || 
-    (c.estado_convocatoria === "cancelada" && c.fecha_partido >= today) ||
-    (c.estado_convocatoria === "reprogramada" && c.fecha_partido >= today)
+    c.fecha_partido >= today
   );
 
   const getCallupPlayers = (callup) => {
@@ -395,6 +395,8 @@ export default function ParentCallups() {
                           <Badge className="bg-red-600 text-white text-xs">🚫 CANCELADA</Badge>
                         ) : callup.estado_convocatoria === "reprogramada" ? (
                           <Badge className="bg-amber-500 text-white text-xs">🔄 REPROGRAMADA</Badge>
+                        ) : callup.cerrada ? (
+                          <Badge className="bg-slate-500 text-white text-xs">🔒 Convocatoria cerrada</Badge>
                         ) : hasPending ? (
                           <Badge className="bg-red-500 text-white text-xs animate-pulse shadow-lg">
                             ⚠️ Confirmar Asistencia
