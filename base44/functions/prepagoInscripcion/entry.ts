@@ -11,7 +11,7 @@ import Stripe from 'npm:stripe@14.21.0';
  *  - "estado":    ¿esta categoría exige pago adelantado para este usuario? + planes de pago, fondo solidario,
  *                 plaza disponible y si ya existe un prepago pagado para ese jugador.
  *  - "checkout":  crea el cobro en Stripe (modalidad "Único" o "Tres meses" = cuota de junio).
- *                 Solo ADMIN + saltar_pago=true: se salta Stripe y deja un prepago de PRUEBA ya pagado.
+ *                 Solo CUENTAS DE PRUEBA + saltar_pago=true: se salta Stripe y deja un prepago de PRUEBA ya pagado.
  *  - "consultar": estado de un prepago propio (para confirmar el pago al volver de Stripe).
  *
  * El prepago pasa a "Pagado" por el webhook de Stripe (metadata.tipo = "prepago_inscripcion")
@@ -79,9 +79,12 @@ Deno.serve(async (req) => {
       return cfgs.find((c) => normTemp(c.temporada) === normTemp(temporada)) || cfgs[0] || null;
     };
 
-    // El pago adelantado aplica si está activo; en modo prueba solo lo ven los administradores
+    // Cuenta de prueba: su correo está en SeasonConfig.pago_adelantado_emails_prueba (se calcula al cargar la temporada)
+    let cuentaPrueba = false;
+
+    // El pago adelantado aplica si está activo; en modo prueba solo lo ven las cuentas de prueba
     const aplica = (cfg) =>
-      !!cfg && cfg.pago_adelantado === true && (cfg.pago_adelantado_prueba !== true || esAdmin);
+      !!cfg && cfg.pago_adelantado === true && (cfg.pago_adelantado_prueba !== true || cuentaPrueba);
 
     // Misma regla que ParentPlayers.handleSubmit: 25 € si hay un hermano/a mayor (por fecha de nacimiento)
     const calcularDescuento = async (fechaNac, esAdulto) => {
@@ -221,6 +224,7 @@ Deno.serve(async (req) => {
 
       let pagosBorrados = 0;
       let jugadorBorrado = false;
+      let usuarioRestablecido = false;
       if (p.jugador_id) {
         let jugador = null;
         try { jugador = await db.Player.get(p.jugador_id); } catch (_) { jugador = null; }
@@ -235,11 +239,27 @@ Deno.serve(async (req) => {
           }
           await db.Player.delete(jugador.id);
           jugadorBorrado = true;
+          // Si era la propia ficha de la cuenta (+18), quitar las marcas de "jugador" que puso la app al inscribirse,
+          // para poder repetir la prueba con la misma cuenta.
+          try {
+            const usuarios = await db.User.filter({ email: p.user_email });
+            const u = usuarios[0];
+            if (u && u.player_id === jugador.id) {
+              try {
+                await db.User.update(u.id, { player_id: null, es_jugador: false });
+              } catch (_) {
+                await db.User.update(u.id, { player_id: '', es_jugador: false });
+              }
+              usuarioRestablecido = true;
+            }
+          } catch (e) {
+            console.warn('[prepago] no se pudo restablecer el usuario de la prueba:', e);
+          }
         }
       }
       await db.PrepagoInscripcion.delete(p.id);
       console.log(`🧪 [prepago] prueba ${p.id} borrada por ${user.email}: pagos=${pagosBorrados} jugador=${jugadorBorrado}`);
-      return Response.json({ ok: true, pagos_borrados: pagosBorrados, jugador_borrado: jugadorBorrado });
+      return Response.json({ ok: true, pagos_borrados: pagosBorrados, jugador_borrado: jugadorBorrado, usuario_restablecido: usuarioRestablecido });
     }
 
     if (action !== 'estado' && action !== 'checkout') return fail('Acción no soportada.');
@@ -251,6 +271,9 @@ Deno.serve(async (req) => {
     const season = await getTemporada();
     if (!season) return fail('No hay una temporada activa.');
     const temporada = season.temporada;
+    const emailsPrueba = (Array.isArray(season.pago_adelantado_emails_prueba) ? season.pago_adelantado_emails_prueba : [])
+      .map((e) => String(e || '').trim().toLowerCase());
+    cuentaPrueba = emailsPrueba.includes(String(user.email || '').trim().toLowerCase());
 
     const cfg = await getCategoryConfig(categoria, temporada);
     if (!aplica(cfg)) return Response.json({ requerido: false });
@@ -270,6 +293,7 @@ Deno.serve(async (req) => {
         requerido: true,
         modo_prueba: cfg.pago_adelantado_prueba === true,
         es_admin: esAdmin,
+        puede_saltar: cuentaPrueba,
         temporada,
         bloqueo,
         prepago_pagado: existente ? resumenPrepago(existente) : null,
@@ -315,9 +339,9 @@ Deno.serve(async (req) => {
       pagos: plan.pagos,
     };
 
-    // Salto de Stripe: SOLO administradores (se comprueba aquí, en el servidor)
+    // Salto de Stripe: SOLO cuentas de prueba (se comprueba aquí, en el servidor)
     if (body.saltar_pago === true) {
-      if (!esAdmin) return fail('Solo los administradores pueden saltarse el pago.', 403);
+      if (!cuentaPrueba) return fail('Solo las cuentas de prueba pueden saltarse el pago.', 403);
       const prueba = await db.PrepagoInscripcion.create({
         ...datos,
         estado: 'Pagado',
@@ -325,7 +349,7 @@ Deno.serve(async (req) => {
         saltado_por: user.email,
         fecha_pago: new Date().toISOString(),
       });
-      console.log(`🧪 [prepago] PAGO SALTADO (prueba) por admin ${user.email} · ${categoria} · prepago ${prueba.id}`);
+      console.log(`🧪 [prepago] PAGO SALTADO (prueba) por cuenta de prueba ${user.email} · ${categoria} · prepago ${prueba.id}`);
       return Response.json({ saltado: true, prepago_id: prueba.id });
     }
 
