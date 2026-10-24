@@ -24,6 +24,8 @@ import AchievementsBadges from "../components/dashboard/AchievementsBadges";
 import AlertCenter from "../components/dashboard/AlertCenter";
 import PlayerForm from "../components/players/PlayerForm";
 import PlayerFormWizard from "../components/players/PlayerFormWizard";
+import PlayerFormWizardPrepago from "../components/players/PlayerFormWizardPrepago";
+import PrepagoSuccessScreen from "../components/inscriptions/PrepagoSuccessScreen";
 import InscriptionPaymentFlow from "../components/inscriptions/InscriptionPaymentFlow";
 import InscriptionSuccessScreen from "../components/inscriptions/InscriptionSuccessScreen";
 import ContactCard from "../components/ContactCard";
@@ -49,26 +51,37 @@ export default function PlayerDashboard() {
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   const [isCreatingProfile, setIsCreatingProfile] = useState(false);
   const [allowCreatePrompt, setAllowCreatePrompt] = useState(false);
+  // 💳 Pago por adelantado: vuelta de Stripe y pantalla de éxito propia
+  const [prepagoReturnId, setPrepagoReturnId] = useState(null);
+  const [prepagoSuccess, setPrepagoSuccess] = useState(null);
   const queryClient = useQueryClient();
 
   // Mutation: crear jugador +18 con pagos (vía backend con service role)
   const createAdultPlayerMutation = useMutation({
-    mutationFn: async ({ playerData, paymentsData }) => {
+    mutationFn: async ({ playerData, paymentsData, prepago }) => {
       console.log('🚀 [createAdultPlayer] Invocando backend...', { nombre: playerData.nombre, payments: paymentsData?.payments?.length });
       const { data: result } = await base44.functions.invoke('playerRenewalAction', {
         action: 'create_with_payments',
         playerData,
         payments: paymentsData?.payments || [],
+        prepago_id: prepago?.id,
       });
       console.log('📦 [createAdultPlayer] Resultado:', result);
       if (!result?.success || !result?.player) {
         throw new Error(result?.error || 'No se pudo crear el perfil');
       }
-      return { player: result.player, paymentsData };
+      return { player: result.player, paymentsData, prepago };
     },
-    onSuccess: async ({ player: newPlayer, paymentsData }) => {
+    onSuccess: async ({ player: newPlayer, paymentsData, prepago }) => {
       try { await base44.auth.updateMe({ player_id: newPlayer.id, es_jugador: true }); } catch {}
       setIsCreatingProfile(false);
+      // 💳 Inscripción con pago por adelantado: pantalla de éxito propia (no pide pagar lo ya pagado)
+      if (prepago) {
+        try { localStorage.removeItem('playerFormWizard_prepago'); } catch {}
+        setPrepagoSuccess({ player: newPlayer, prepago });
+        setShowPaymentFlow(false);
+        return;
+      }
       setInscriptionSuccessData({
         player: newPlayer,
         tipoPago: paymentsData.tipoPago,
@@ -162,6 +175,19 @@ export default function PlayerDashboard() {
     } else {
       setAllowCreatePrompt(false);
     }
+  }, [playerFetched, player]);
+  // 💳 Vuelta de Stripe tras el pago por adelantado: reabrir el formulario de inscripción para continuar
+  useEffect(() => {
+    if (!(playerFetched && !player)) return;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('prepago');
+      const cancelado = params.get('prepago_cancelado');
+      if (!id && !cancelado) return;
+      if (id) setPrepagoReturnId(id);
+      setShowCreateProfile(true);
+      window.history.replaceState({}, '', window.location.pathname + window.location.hash);
+    } catch {}
   }, [playerFetched, player]);
   // Convocatorias de la ficha única: consultar todas las actividades del jugador, no solo las últimas 10 del club.
   const playerCategories = useMemo(() => [...new Set([player?.categoria_principal, player?.deporte, ...(Array.isArray(player?.categorias) ? player.categorias : [])].filter(Boolean))], [player]);
@@ -460,6 +486,20 @@ export default function PlayerDashboard() {
     );
   }
 
+  // 💳 Pantalla de éxito de inscripción con pago por adelantado
+  if (prepagoSuccess) {
+    return (
+      <PrepagoSuccessScreen
+        player={prepagoSuccess.player}
+        prepago={prepagoSuccess.prepago}
+        onClose={() => {
+          setPrepagoSuccess(null);
+          window.location.reload();
+        }}
+      />
+    );
+  }
+
   // Pantalla de éxito inscripción
   if (showInscriptionSuccess && inscriptionSuccessData) {
     return (
@@ -475,6 +515,12 @@ export default function PlayerDashboard() {
       />
     );
   }
+
+  // 💳 Si alguna categoría tiene el pago por adelantado activo (o en prueba y eres admin) se abre el formulario con pago
+  // adelantado; si no, el formulario de siempre, sin ningún cambio.
+  const usarFormPrepago = !!prepagoReturnId || categoryConfigs.some(c =>
+    c.activa !== false && c.pago_adelantado === true && (c.pago_adelantado_prueba !== true || user?.role === 'admin'));
+  const FormularioNuevoJugador = usarFormPrepago ? PlayerFormWizardPrepago : PlayerFormWizard;
 
   // Formulario de inscripción +18 — renderizado vía PORTAL al body
   // (evita problemas de z-index/transform de ancestros como el Layout)
@@ -499,13 +545,37 @@ export default function PlayerDashboard() {
             </Button>
           </div>
           <div className="p-3 lg:p-6 max-w-5xl mx-auto">
-            <PlayerFormWizard
+            <FormularioNuevoJugador
               player={null}
               allPlayers={[]}
               isParent={false}
               isAdultPlayerSelfRegistration={true}
+              prepagoReturnId={prepagoReturnId}
               isSubmitting={isCreatingProfile}
               onSubmit={(playerData) => {
+                // 💳 Pago por adelantado ya realizado: NO hay paso de elegir cuotas. Se crea directamente con el prepago.
+                if (playerData._prepago) {
+                  if (isCreatingProfile) return;
+                  const { _prepago, ...datosJugador } = playerData;
+                  setIsCreatingProfile(true);
+                  setShowCreateProfile(false);
+                  createAdultPlayerMutation.mutate({
+                    playerData: {
+                      ...datosJugador,
+                      es_mayor_edad: true,
+                      email_jugador: user.email,
+                      email_padre: user.email,
+                      acceso_jugador_autorizado: true,
+                      activo: true,
+                      tipo_inscripcion: "Nueva Inscripción",
+                      tiene_descuento_hermano: false,
+                      descuento_aplicado: 0
+                    },
+                    paymentsData: null,
+                    prepago: _prepago
+                  });
+                  return;
+                }
                 setPendingPlayerData({
                   ...playerData,
                   es_mayor_edad: true,
