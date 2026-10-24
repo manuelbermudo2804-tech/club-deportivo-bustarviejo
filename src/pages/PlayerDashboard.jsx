@@ -558,7 +558,6 @@ export default function PlayerDashboard() {
                   if (isCreatingProfile) return;
                   const { _prepago, ...datosJugador } = playerData;
                   setIsCreatingProfile(true);
-                  setShowCreateProfile(false);
                   createAdultPlayerMutation.mutate({
                     playerData: {
                       ...datosJugador,
