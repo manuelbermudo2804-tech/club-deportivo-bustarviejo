@@ -203,6 +203,7 @@ export default function UpfrontPaymentGate({
 
   const planElegido = info?.planes?.[modalidad] || null;
   const esAdmin = info?.es_admin === true;
+  const puedeSaltarPago = info?.puede_saltar === true;
 
   const avisoAdmin = esAdmin ? (
       <Alert className="border-amber-300 bg-amber-50">
@@ -439,10 +440,10 @@ export default function UpfrontPaymentGate({
         </Button>
       </div>
 
-      {esAdmin && (
+      {puedeSaltarPago && (
         <div className="rounded-xl border border-dashed border-amber-400 bg-amber-50 p-3">
           <p className="mb-2 text-xs text-amber-900">
-            Solo administradores: continúa la inscripción sin pasar por Stripe. Queda marcado como prueba (sin cobro real).
+            Cuenta autorizada para pruebas: puedes continuar la inscripción sin pasar por Stripe. Quedará marcada como prueba (sin cobro real).
           </p>
           <Button
             variant="outline"
