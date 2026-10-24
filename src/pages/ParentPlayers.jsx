@@ -8,6 +8,7 @@ import { AnimatePresence } from "framer-motion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { useActiveSeason } from "../components/season/SeasonProvider";
+import { hayCategoriaConPago } from "@/lib/pagoAdelantado";
 
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerFormWizard from "../components/players/PlayerFormWizard";
@@ -214,8 +215,7 @@ export default function ParentPlayers() {
 
   // 💳 Si alguna categoría tiene el pago por adelantado activo (o en prueba y eres admin) se abre el formulario con pago
   // adelantado; si no, el formulario de siempre, sin ningún cambio.
-  const usarFormPrepago = !!prepagoReturnId || categoryConfigs.some(c =>
-    c.activa !== false && c.pago_adelantado === true && (c.pago_adelantado_prueba !== true || user?.role === 'admin'));
+  const usarFormPrepago = !!prepagoReturnId || hayCategoriaConPago(categoryConfigs, user?.email, seasonConfig?.pago_adelantado_emails_prueba);
   const FormularioNuevoJugador = usarFormPrepago ? PlayerFormWizardPrepago : PlayerFormWizard;
 
   const createPlayerMutation = useMutation({
