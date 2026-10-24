@@ -11,6 +11,8 @@ import { useActiveSeason } from "../components/season/SeasonProvider";
 
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerFormWizard from "../components/players/PlayerFormWizard";
+import PlayerFormWizardPrepago from "../components/players/PlayerFormWizardPrepago";
+import PrepagoSuccessScreen from "../components/inscriptions/PrepagoSuccessScreen";
 import PlayerForm from "../components/players/PlayerForm";
 import FullscreenFormModal from "../components/players/FullscreenFormModal";
 import ContactCard from "../components/ContactCard";
@@ -36,6 +38,26 @@ export default function ParentPlayers() {
   const [inscriptionSuccessData, setInscriptionSuccessData] = useState(null);
   const [isAdultPlayerSelfRegistration, setIsAdultPlayerSelfRegistration] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  // 💳 Pago por adelantado: vuelta de Stripe y pantalla de éxito propia
+  const [prepagoReturnId, setPrepagoReturnId] = useState(null);
+  const [prepagoSuccess, setPrepagoSuccess] = useState(null);
+
+  // 💳 Vuelta de Stripe tras el pago por adelantado: reabrir el formulario para continuar
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('prepago');
+      const cancelado = params.get('prepago_cancelado');
+      if (!id && !cancelado) return;
+      if (id) setPrepagoReturnId(id);
+      setEditingPlayer(null);
+      setSuggestedCategory(null);
+      setShowForm(true);
+      window.history.replaceState({}, '', window.location.pathname);
+    } catch (e) {
+      console.warn('[ParentPlayers] vuelta de pago adelantado:', e);
+    }
+  }, []);
   const [extraActivityPlayer, setExtraActivityPlayer] = useState(null);
   
   const queryClient = useQueryClient();
@@ -190,8 +212,14 @@ export default function ParentPlayers() {
   const evaluations = [];
   const attendanceRecords = [];
 
+  // 💳 Si alguna categoría tiene el pago por adelantado activo (o en prueba y eres admin) se abre el formulario con pago
+  // adelantado; si no, el formulario de siempre, sin ningún cambio.
+  const usarFormPrepago = !!prepagoReturnId || categoryConfigs.some(c =>
+    c.activa !== false && c.pago_adelantado === true && (c.pago_adelantado_prueba !== true || user?.role === 'admin'));
+  const FormularioNuevoJugador = usarFormPrepago ? PlayerFormWizardPrepago : PlayerFormWizard;
+
   const createPlayerMutation = useMutation({
-    mutationFn: async ({ playerData, paymentsData }) => {
+    mutationFn: async ({ playerData, paymentsData, prepago }) => {
       const currentUser = await base44.auth.me();
       const dataWithParentEmail = {
         ...playerData,
@@ -202,7 +230,8 @@ export default function ParentPlayers() {
       const { data: result } = await base44.functions.invoke('playerRenewalAction', {
         action: 'create_with_payments',
         playerData: dataWithParentEmail,
-        payments: paymentsData?.payments || []
+        payments: paymentsData?.payments || [],
+        prepago_id: prepago?.id
       });
       if (!result?.success) {
         throw new Error(result?.error || 'Error al crear jugador');
@@ -567,10 +596,23 @@ Email: info@cdbustarviejo.com
         console.error("Error sending email notification:", error);
       }
       
-      return { player: newPlayer, paymentsData };
+      return { player: newPlayer, paymentsData, prepago };
     },
     onSuccess: (data) => {
       setIsProcessing(false);
+      // 💳 Inscripción con pago por adelantado: pantalla de éxito propia (no pide pagar lo ya pagado)
+      if (data.prepago) {
+        queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
+        queryClient.invalidateQueries({ queryKey: ['players'] });
+        queryClient.invalidateQueries({ queryKey: ['allPlayersForRenewal'] });
+        queryClient.invalidateQueries({ queryKey: ['payments'] });
+        queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+        setShowForm(false);
+        setEditingPlayer(null);
+        try { localStorage.removeItem('playerFormWizard_prepago'); } catch {}
+        setPrepagoSuccess({ player: data.player, prepago: data.prepago });
+        return;
+      }
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
       queryClient.invalidateQueries({ queryKey: ['players'] });
       queryClient.invalidateQueries({ queryKey: ['allPlayersForRenewal'] });
@@ -672,6 +714,18 @@ Email: info@cdbustarviejo.com
     }
     if (editingPlayer) {
       updatePlayerMutation.mutate({ id: editingPlayer.id, playerData });
+    } else if (playerData._prepago) {
+      // 💳 Pago por adelantado ya realizado: NO hay paso de elegir cuotas. Se crea directamente con el prepago.
+      if (isProcessing) return;
+      const { _prepago, ...datosJugador } = playerData;
+      const descuentoPrepago = Number(_prepago.descuento_hermano) || 0;
+      setIsProcessing(true);
+      setShowForm(false);
+      createPlayerMutation.mutate({
+        playerData: { ...datosJugador, tiene_descuento_hermano: descuentoPrepago > 0, descuento_aplicado: descuentoPrepago },
+        paymentsData: null,
+        prepago: _prepago
+      });
     } else {
       try {
         // REFETCH FORZADO para obtener jugadores más actuales (evitar cache)
@@ -930,6 +984,15 @@ Email: info@cdbustarviejo.com
         />
       )}
 
+      {/* 💳 Pantalla de éxito de inscripción con pago por adelantado */}
+      {prepagoSuccess && (
+        <PrepagoSuccessScreen
+          player={prepagoSuccess.player}
+          prepago={prepagoSuccess.prepago}
+          onClose={() => setPrepagoSuccess(null)}
+        />
+      )}
+
       {/* Pantalla de éxito inscripción */}
       {showInscriptionSuccess && inscriptionSuccessData && (
         <InscriptionSuccessScreen
@@ -1113,7 +1176,7 @@ Email: info@cdbustarviejo.com
               isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
             />
           ) : (
-            <PlayerFormWizard
+            <FormularioNuevoJugador
               player={null}
               allPlayers={players}
               onSubmit={handleSubmit}
@@ -1126,6 +1189,7 @@ Email: info@cdbustarviejo.com
               isSubmitting={createPlayerMutation.isPending || updatePlayerMutation.isPending}
               isParent={true}
               isAdultPlayerSelfRegistration={isAdultPlayerSelfRegistration}
+              prepagoReturnId={prepagoReturnId}
             />
           )}
         </FullscreenFormModal>
