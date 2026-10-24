@@ -71,6 +71,22 @@ Deno.serve(async (req) => {
       return null;
     };
 
+    // 💳 ¿La categoría exige pago por adelantado ACTIVO (no en modo prueba)? Los admins nunca se bloquean.
+    const CATEGORY_NAME_MAPPING = {
+      'Fútbol Aficionado': 'AFICIONADO', 'Fútbol Juvenil': 'JUVENIL', 'Fútbol Cadete': 'CADETE',
+      'Fútbol Infantil (Mixto)': 'INFANTIL', 'Fútbol Alevín (Mixto)': 'ALEVIN', 'Fútbol Alevín Femenino': 'Alevin Femenino',
+      'Fútbol Benjamín (Mixto)': 'BENJAMIN', 'Fútbol Pre-Benjamín (Mixto)': 'PRE-BENJAMIN',
+      'Fútbol Femenino': 'FEMENINO', 'Baloncesto (Mixto)': 'BALONCESTO',
+    };
+    const exigePagoAdelantado = async (categoria) => {
+      if (!categoria || user.role === 'admin') return false;
+      for (const n of [categoria, CATEGORY_NAME_MAPPING[categoria]].filter(Boolean)) {
+        const cfgs = await base44.asServiceRole.entities.CategoryConfig.filter({ nombre: n, activa: true });
+        if (cfgs.length) return cfgs.some((c) => c.pago_adelantado === true && c.pago_adelantado_prueba !== true);
+      }
+      return false;
+    };
+
     // ============ PLAZAS (solo recuentos, sin datos personales) ============
     if (action === 'plazas_estado') {
       return Response.json({ success: true, counts: await contarPlazas() });
@@ -257,6 +273,10 @@ Deno.serve(async (req) => {
         // Reservar el prepago antes de crear al jugador (evita usarlo dos veces)
         await base44.asServiceRole.entities.PrepagoInscripcion.update(prepago.id, { estado: 'Consumido', fecha_consumo: new Date().toISOString() });
       } else {
+        // 💳 Categoría con pago por adelantado ACTIVO: sin prepago no se puede crear la inscripción (refuerzo de seguridad)
+        if (await exigePagoAdelantado(playerData.deporte)) {
+          return Response.json({ success: false, error: 'Esta categoría requiere pago por adelantado. Inicia de nuevo la inscripción y completa el pago primero.' }, { status: 409 });
+        }
         const bloqueo = await comprobarCupo(playerData.deporte);
         if (bloqueo) return Response.json({ success: false, error: bloqueo }, { status: 409 });
       }
