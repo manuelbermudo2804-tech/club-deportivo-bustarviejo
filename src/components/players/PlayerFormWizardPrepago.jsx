@@ -371,7 +371,7 @@ export default function PlayerFormWizardPrepago({ player, onSubmit, onCancel, is
 
   // Cargar SIEMPRE el currentUser para poder evaluar la medida de seguridad +18
   useEffect(() => {
-    base44.auth.me().then(user => {
+    base44.auth.me().then(async user => {
       setCurrentUser(user);
       try {
         const seasons = await base44.entities.SeasonConfig.filter({ activa: true });
