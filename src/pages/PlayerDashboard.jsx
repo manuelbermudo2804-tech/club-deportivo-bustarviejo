@@ -40,6 +40,7 @@ import MainSponsorBanner from "../components/sponsors/MainSponsorBanner";
 import MainSponsorBadge from "../components/sponsors/MainSponsorBadge";
 import PorraPromoBanner from "../components/porra/PorraPromoBanner";
 import VoluntariadoBanner from "@/components/volunteer/VoluntariadoBanner";
+import { hayCategoriaConPago } from "@/lib/pagoAdelantado";
 
 export default function PlayerDashboard() {
   const [user, setUser] = useState(null);
@@ -518,8 +519,7 @@ export default function PlayerDashboard() {
 
   // 💳 Si alguna categoría tiene el pago por adelantado activo (o en prueba y eres admin) se abre el formulario con pago
   // adelantado; si no, el formulario de siempre, sin ningún cambio.
-  const usarFormPrepago = !!prepagoReturnId || categoryConfigs.some(c =>
-    c.activa !== false && c.pago_adelantado === true && (c.pago_adelantado_prueba !== true || user?.role === 'admin'));
+  const usarFormPrepago = !!prepagoReturnId || hayCategoriaConPago(categoryConfigs, user?.email, seasonConfig?.pago_adelantado_emails_prueba);
   const FormularioNuevoJugador = usarFormPrepago ? PlayerFormWizardPrepago : PlayerFormWizard;
 
   // Formulario de inscripción +18 — renderizado vía PORTAL al body
