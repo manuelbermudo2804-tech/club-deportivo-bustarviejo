@@ -437,6 +437,14 @@
       "type": "string",
       "default": "\ud83d\udc9a Fondo Solidario de Becas",
       "description": "T\u00edtulo mostrado a las familias en la opci\u00f3n de aportaci\u00f3n"
+    },
+    "pago_adelantado_emails_prueba": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Cuentas de PRUEBA del pago por adelantado (correos). En las categorias en modo Prueba, solo estas cuentas ven el pago por adelantado y pueden saltarse Stripe. Las demas familias ven el formulario de siempre."
     }
   },
   "required": [
