@@ -27,6 +27,7 @@ import { trackWizardStep } from "@/lib/diagnosticLogger";
 import { saveFormDraft, loadFormDraft, clearFormDraft, markCameraOpening, checkCameraReload, clearCameraFlag } from "./wizard/useFormPersistence";
 import UpfrontPaymentGate from "../inscriptions/UpfrontPaymentGate";
 import { CATEGORY_NAME_MAPPING } from "@/lib/cuotasConfig";
+import { esCuentaPrueba } from "@/lib/pagoAdelantado";
 
 // Clave donde se recuerda el prepago ya pagado si la página se recarga a mitad del formulario
 const PREPAGO_KEY = "playerFormWizard_prepago";
@@ -200,6 +201,7 @@ export default function PlayerFormWizardPrepago({ player, onSubmit, onCancel, is
 
   const [usePreviousTutorData, setUsePreviousTutorData] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [testEmails, setTestEmails] = useState([]);
 
   // Una sola instancia del hook de upload — serializa las subidas para no saturar memoria
   const [uploadingAny, uploadFileSingle] = useImageUpload();
@@ -371,6 +373,12 @@ export default function PlayerFormWizardPrepago({ player, onSubmit, onCancel, is
   useEffect(() => {
     base44.auth.me().then(user => {
       setCurrentUser(user);
+      try {
+        const seasons = await base44.entities.SeasonConfig.filter({ activa: true });
+        setTestEmails(Array.isArray(seasons?.[0]?.pago_adelantado_emails_prueba) ? seasons[0].pago_adelantado_emails_prueba : []);
+      } catch (e) {
+        console.warn("No se pudo cargar la lista de cuentas de prueba", e);
+      }
       if (!player && (isParent || isAdultPlayerSelfRegistration)) {
         if (isAdultPlayerSelfRegistration) {
           setCurrentPlayer(prev => ({ ...prev, email_padre: user.email, email_jugador: user.email, nombre_tutor_legal: user.full_name || "", es_mayor_edad: true }));
@@ -588,7 +596,7 @@ export default function PlayerFormWizardPrepago({ player, onSubmit, onCancel, is
       const exige = categoryConfigsData.some(c =>
         (c.nombre === currentPlayer.deporte || c.nombre === nombreCfg) &&
         c.pago_adelantado === true &&
-        (c.pago_adelantado_prueba !== true || currentUser?.role === "admin"));
+        (c.pago_adelantado_prueba !== true || esCuentaPrueba(currentUser?.email, testEmails)));
       if (exige) { setGateOpen(true); return; }
     }
     setStep(s => Math.min(s + 1, totalSteps - 1));
