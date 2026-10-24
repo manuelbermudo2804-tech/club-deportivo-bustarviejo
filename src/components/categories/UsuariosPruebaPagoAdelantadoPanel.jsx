@@ -24,8 +24,8 @@ export default function UsuariosPruebaPagoAdelantadoPanel({ season, categories =
   const guardar = useMutation({
     mutationFn: async () => {
       if (!season?.id) throw new Error("No se ha encontrado la temporada activa");
-      const emails = [...new Set(emailsText.split(/[\\n,;\\s]+/).map(e => e.trim().toLowerCase()).filter(Boolean))];
-      const invalidos = emails.filter(e => !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(e));
+      const emails = [...new Set(emailsText.split(/[\n,;\s]+/).map(e => e.trim().toLowerCase()).filter(Boolean))];
+      const invalidos = emails.filter(e => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e));
       if (invalidos.length) throw new Error(`Correo no válido: ${invalidos[0]}`);
       await base44.entities.SeasonConfig.update(season.id, { pago_adelantado_emails_prueba: emails });
       return emails;
