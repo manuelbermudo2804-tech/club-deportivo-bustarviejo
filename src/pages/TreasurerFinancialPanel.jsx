@@ -503,6 +503,9 @@ export default function TreasurerFinancialPanel() {
   const totalIngresos = stats.cuotasPagadas + stats.loteriaPagada + stats.sociosPagados + stats.patrociniosTotal;
   const totalPendiente = stats.cuotasPendientes + stats.loteriaPendiente + stats.sociosPendientes;
   const totalEsperado = totalIngresos + totalPendiente + stats.cuotasEnRevision;
+  // Total de cuotas de jugadores separado del resumen global (socios, lotería y patrocinios).
+  const totalCuotasJugadores = stats.cuotasPagadas + stats.cuotasEnRevision + stats.cuotasPendientes;
+  const jugadoresActivosTemporada = players.filter(p => p.activo === true).length;
 
   // Datos para gráficos
   const chartData = useMemo(() => {
@@ -969,11 +972,11 @@ export default function TreasurerFinancialPanel() {
                   <DollarSign className="w-8 h-8 text-white/80" />
                   <BarChart3 className="w-5 h-5 text-white/60" />
                 </div>
-                <p className="text-sm text-blue-100 mb-1">Total Esperado</p>
+                <p className="text-sm text-blue-100 mb-1">Total esperado · todos los ingresos</p>
                 <p className="text-4xl font-bold">{totalEsperado.toFixed(2)}€</p>
                 <div className="mt-3 pt-3 border-t border-white/20">
                   <p className="text-xs text-blue-100">
-                    100% del objetivo de temporada
+                    Cuotas, socios, patrocinios y lotería · temporada {activeSeason?.temporada || "actual"}
                   </p>
                 </div>
               </CardContent>
@@ -1003,6 +1006,13 @@ export default function TreasurerFinancialPanel() {
                 </div>
               </CardHeader>
               <CardContent className="p-6">
+                <div className="mb-3 rounded-lg border border-blue-100 bg-blue-50 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm text-slate-700">Total previsto de cuotas</span>
+                    <span className="text-lg font-bold text-blue-800">{totalCuotasJugadores.toFixed(2)}€</span>
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">{jugadoresActivosTemporada} jugadores activos · incluye pagos únicos, fraccionados, planes especiales y mensuales calculados por el sistema.</p>
+                </div>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
                     <span className="text-sm text-slate-700">✅ Cobradas</span>
