@@ -98,7 +98,11 @@ Deno.serve(async (req) => {
 
       // Validación autoritativa: la interfaz no puede abrir renovaciones por sí sola.
       const configs = await base44.asServiceRole.entities.SeasonConfig.list();
-      const activeConfig = configs.find((c) => c.activa === true);
+      const activeConfigs = configs.filter((c) => c.activa === true);
+      const activeConfig = activeConfigs.length === 1 ? activeConfigs[0] : null;
+      if (activeConfigs.length !== 1) {
+        return Response.json({ success: false, error: 'Debe existir exactamente una temporada activa configurada. Contacta con el administrador.' }, { status: 409 });
+      }
       if (!activeConfig || activeConfig.permitir_renovaciones !== true) {
         return Response.json({ success: false, error: 'El plazo de renovaciones no está abierto actualmente.' }, { status: 409 });
       }
@@ -173,7 +177,11 @@ Deno.serve(async (req) => {
     if (action === 'not_renewing') {
       if (!playerId) return Response.json({ error: 'Falta playerId' }, { status: 400 });
       const configs = await base44.asServiceRole.entities.SeasonConfig.list();
-      const activeConfig = configs.find((c) => c.activa === true);
+      const activeConfigs = configs.filter((c) => c.activa === true);
+      const activeConfig = activeConfigs.length === 1 ? activeConfigs[0] : null;
+      if (activeConfigs.length !== 1) {
+        return Response.json({ success: false, error: 'Debe existir exactamente una temporada activa configurada. Contacta con el administrador.' }, { status: 409 });
+      }
       if (!activeConfig || activeConfig.permitir_renovaciones !== true) {
         return Response.json({ success: false, error: 'El plazo de renovaciones no está abierto actualmente.' }, { status: 409 });
       }
