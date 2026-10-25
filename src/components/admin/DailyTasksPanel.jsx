@@ -89,7 +89,9 @@ async function taskBirthdays() {
     const todayStr = today.toISOString().split("T")[0];
     const alreadySent = logs.some(l => l.fecha_envio_email?.split("T")[0] === todayStr);
     if (alreadySent) return "Ya enviados hoy ✅";
-  } catch {}
+  } catch (error) {
+    console.warn('[DailyTasksPanel] No se pudieron consultar los registros de cumpleaños enviados:', error);
+  }
 
   const players = await base44.entities.Player.filter({ activo: true });
   let count = 0;
