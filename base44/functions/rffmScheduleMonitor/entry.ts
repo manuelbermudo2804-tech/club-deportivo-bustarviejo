@@ -352,7 +352,7 @@ Deno.serve(async (req) => {
         // Sync EVERY returned jornada with its own convocatoria. The primary "next match"
         // can be a different jornada after postponed matches are sorted by date.
         const normTeam = (s) => String(s || '').normalize('NFKC')
-          .replace(/[\\s\\u00a0"'“”«»]+/g, ' ').trim().toUpperCase();
+          .replace(/[\s\u00a0"'“”«»]+/g, ' ').trim().toUpperCase();
         for (const um of allUpcoming) {
           const umMatch = um.match;
           const umJornada = um.jornada;
