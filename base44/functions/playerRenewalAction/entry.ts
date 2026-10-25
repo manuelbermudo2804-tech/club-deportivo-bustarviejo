@@ -95,6 +95,24 @@ Deno.serve(async (req) => {
     // ============ RENEW ============
     if (action === 'renew') {
       if (!playerId) return Response.json({ error: 'Falta playerId' }, { status: 400 });
+
+      // Validación autoritativa: la interfaz no puede abrir renovaciones por sí sola.
+      const configs = await base44.asServiceRole.entities.SeasonConfig.list();
+      const activeConfig = configs.find((c) => c.activa === true);
+      if (!activeConfig || activeConfig.permitir_renovaciones !== true) {
+        return Response.json({ success: false, error: 'El plazo de renovaciones no está abierto actualmente.' }, { status: 409 });
+      }
+      const requestedSeason = String(temporada || '').trim();
+      if (!requestedSeason || requestedSeason !== String(activeConfig.temporada || '').trim()) {
+        return Response.json({ success: false, error: 'La temporada de renovación no coincide con la temporada activa configurada.' }, { status: 409 });
+      }
+      if (activeConfig.fecha_limite_renovaciones) {
+        const deadline = new Date(`${String(activeConfig.fecha_limite_renovaciones).slice(0, 10)}T23:59:59`);
+        if (!Number.isNaN(deadline.getTime()) && new Date() > deadline) {
+          return Response.json({ success: false, error: 'El plazo de renovaciones ha finalizado.' }, { status: 409 });
+        }
+      }
+
       const actual = await verifyOwnership(playerId);
 
       // Bloqueo por deuda de temporadas anteriores (salvo excepción marcada por el club)
@@ -151,6 +169,20 @@ Deno.serve(async (req) => {
     // ============ NOT RENEWING ============
     if (action === 'not_renewing') {
       if (!playerId) return Response.json({ error: 'Falta playerId' }, { status: 400 });
+      const configs = await base44.asServiceRole.entities.SeasonConfig.list();
+      const activeConfig = configs.find((c) => c.activa === true);
+      if (!activeConfig || activeConfig.permitir_renovaciones !== true) {
+        return Response.json({ success: false, error: 'El plazo de renovaciones no está abierto actualmente.' }, { status: 409 });
+      }
+      if (String(temporada || '').trim() !== String(activeConfig.temporada || '').trim()) {
+        return Response.json({ success: false, error: 'La temporada de renovación no coincide con la temporada activa configurada.' }, { status: 409 });
+      }
+      if (activeConfig.fecha_limite_renovaciones) {
+        const deadline = new Date(`${String(activeConfig.fecha_limite_renovaciones).slice(0, 10)}T23:59:59`);
+        if (!Number.isNaN(deadline.getTime()) && new Date() > deadline) {
+          return Response.json({ success: false, error: 'El plazo de renovaciones ha finalizado.' }, { status: 409 });
+        }
+      }
       await verifyOwnership(playerId);
 
       const updated = await base44.asServiceRole.entities.Player.update(playerId, {
