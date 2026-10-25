@@ -145,26 +145,26 @@ export default function PlayerRenewal() {
       const esMayor = todosHermanos[0]?.id === playerId;
       const descuentoAplicado = esMayor ? 0 : 25;
 
-      // 2. Actualizar jugador
-      await base44.entities.Player.update(playerId, {
-        deporte: newCategory,
-        estado_renovacion: "renovado",
-        fecha_renovacion: new Date().toISOString(),
-        activo: true,
-        tiene_descuento_hermano: !esMayor,
-        descuento_aplicado: descuentoAplicado,
-        temporada_renovacion: seasonConfig?.temporada
-      });
-
-      // 3. Crear pagos automáticamente
-      for (const payment of paymentsData.payments) {
-        await base44.entities.Payment.create({
+      // Renovación y creación de pagos en una única ruta de servidor con validación de temporada/plazo.
+      const result = await base44.functions.invoke('playerRenewalAction', {
+        action: 'renew',
+        playerId,
+        temporada: seasonConfig?.temporada,
+        playerData: { deporte: newCategory, categoria_principal: newCategory },
+        payments: paymentsData.payments.map((payment) => ({
           ...payment,
           categoria_actividad: payment.categoria_actividad || newCategory,
-          jugador_id: payment.jugador_id || player.id,
-          jugador_nombre: payment.jugador_nombre || player.nombre,
-        });
+          jugador_id: player.id,
+          jugador_nombre: player.nombre,
+        })),
+      });
+      if (result?.data?.success === false || result?.success === false) {
+        throw new Error(result?.data?.error || result?.error || 'No se pudo completar la renovación.');
       }
+      await base44.entities.Player.update(playerId, {
+        tiene_descuento_hermano: !esMayor,
+        descuento_aplicado: descuentoAplicado,
+      });
 
       // 4. Enviar email de confirmación
       await base44.integrations.Core.SendEmail({
@@ -220,12 +220,14 @@ CD Bustarviejo`
   });
 
   const notRenewMutation = useMutation({
-    mutationFn: (playerId) => {
-      return base44.entities.Player.update(playerId, {
-        estado_renovacion: "no_renueva",
-        fecha_renovacion: new Date().toISOString(),
-        activo: false
+    mutationFn: async (playerId) => {
+      const result = await base44.functions.invoke('playerRenewalAction', {
+        action: 'not_renewing', playerId, temporada: seasonConfig?.temporada,
       });
+      if (result?.data?.success === false || result?.success === false) {
+        throw new Error(result?.data?.error || result?.error || 'No se pudo registrar la decisión.');
+      }
+      return result?.data || result;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPlayers'] });
