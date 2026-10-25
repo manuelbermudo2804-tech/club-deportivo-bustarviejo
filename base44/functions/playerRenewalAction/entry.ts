@@ -115,7 +115,10 @@ Deno.serve(async (req) => {
       }
       if (activeConfig.fecha_limite_renovaciones) {
         const deadline = new Date(`${String(activeConfig.fecha_limite_renovaciones).slice(0, 10)}T23:59:59`);
-        if (!Number.isNaN(deadline.getTime()) && new Date() > deadline) {
+        if (Number.isNaN(deadline.getTime())) {
+          return Response.json({ success: false, error: 'La fecha límite configurada no es válida. Contacta con el administrador.' }, { status: 409 });
+        }
+        if (new Date() > deadline) {
           return Response.json({ success: false, error: 'El plazo de renovaciones ha finalizado.' }, { status: 409 });
         }
       }
@@ -136,10 +139,16 @@ Deno.serve(async (req) => {
             if (!debt || debt.estado !== 'pendiente' || String(debt.email_familia || '').toLowerCase().trim() !== String(user.email || '').toLowerCase().trim()) {
               return Response.json({ success: false, error: 'Una de las deudas seleccionadas no está pendiente o no pertenece a tu familia.' }, { status: 409 });
             }
-            verifiedDebtTotal += Number(debt.importe) || 0;
+            const amount = Number(debt.importe);
+            if (!Number.isFinite(amount) || amount <= 0) {
+              return Response.json({ success: false, error: 'Una de las deudas tiene un importe no válido. Contacta con el club.' }, { status: 409 });
+            }
+            verifiedDebtTotal += amount;
           }
-          if (verifiedDebtTotal <= 0) {
-            return Response.json({ success: false, error: 'El importe de la deuda vinculada no es válido.' }, { status: 409 });
+          const declaredDebt = String(payments[0]?.notas || '').match(/\+([0-9]+(?:[.,][0-9]{1,2})?)€ deuda temp\. anterior/i);
+          const declaredDebtTotal = declaredDebt ? Number(declaredDebt[1].replace(',', '.')) : NaN;
+          if (verifiedDebtTotal <= 0 || !Number.isFinite(declaredDebtTotal) || Math.abs(Number(verifiedDebtTotal.toFixed(2)) - Number(declaredDebtTotal.toFixed(2))) > 0.009) {
+            return Response.json({ success: false, error: 'El importe añadido por deudas no coincide con las deudas pendientes verificadas.' }, { status: 409 });
           }
         }
       }
@@ -215,7 +224,10 @@ Deno.serve(async (req) => {
       }
       if (activeConfig.fecha_limite_renovaciones) {
         const deadline = new Date(`${String(activeConfig.fecha_limite_renovaciones).slice(0, 10)}T23:59:59`);
-        if (!Number.isNaN(deadline.getTime()) && new Date() > deadline) {
+        if (Number.isNaN(deadline.getTime())) {
+          return Response.json({ success: false, error: 'La fecha límite configurada no es válida. Contacta con el administrador.' }, { status: 409 });
+        }
+        if (new Date() > deadline) {
           return Response.json({ success: false, error: 'El plazo de renovaciones ha finalizado.' }, { status: 409 });
         }
       }
