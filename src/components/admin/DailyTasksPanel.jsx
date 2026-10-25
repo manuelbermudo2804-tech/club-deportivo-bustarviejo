@@ -50,25 +50,13 @@ async function taskCloseCallups() {
 }
 
 async function taskCloseRenewals() {
-  const configs = await base44.entities.SeasonConfig.filter({ activa: true });
-  const cfg = configs[0];
-  if (!cfg?.permitir_renovaciones || !cfg?.fecha_limite_renovaciones) return "Sin fecha límite configurada";
-  const limite = new Date(cfg.fecha_limite_renovaciones);
-  const hoy = new Date();
-  limite.setHours(0,0,0,0); hoy.setHours(0,0,0,0);
-  if (hoy <= limite) return "Aún no ha pasado la fecha límite";
-  const pend = await base44.entities.Player.filter({
-    estado_renovacion: "pendiente", temporada_renovacion: cfg.temporada
-  });
-  if (pend.length === 0) return "0 pendientes";
-  for (const p of pend) {
-    await base44.entities.Player.update(p.id, {
-      estado_renovacion: "no_renueva", activo: false,
-      fecha_renovacion: new Date().toISOString(),
-      observaciones: `${p.observaciones||""}\n[Sistema] No renovado antes de fecha límite`.trim()
-    });
-  }
-  return `${pend.length} jugadores cerrados`;
+  // Reutilizar la función de servidor para que el cierre manual y el programado
+  // apliquen exactamente las mismas validaciones y reglas de temporada.
+  const result = await base44.functions.invoke('autoCloseRenewals', {});
+  const data = result?.data || result;
+  if (data?.error) throw new Error(data.error);
+  if (data?.message) return data.message;
+  return `${Number(data?.processed) || 0} jugadores cerrados`;
 }
 
 async function taskExpireCodes() {
