@@ -11,6 +11,9 @@ Deno.serve(async (req) => {
 
     // Obtener configuración activa
     const configs = await base44.asServiceRole.entities.SeasonConfig.filter({ activa: true });
+    if (configs.length !== 1) {
+      return Response.json({ message: 'Debe existir exactamente una temporada activa; no se ha modificado ningún jugador', processed: 0 }, { status: 409 });
+    }
     const activeConfig = configs[0];
 
     if (!activeConfig || !activeConfig.permitir_renovaciones || !activeConfig.fecha_limite_renovaciones) {
