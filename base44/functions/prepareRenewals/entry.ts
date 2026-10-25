@@ -14,11 +14,11 @@ Deno.serve(async (req) => {
 
     // Configuración de temporada activa y validaciones
     const configs = await base44.asServiceRole.entities.SeasonConfig.list();
-    const activeConfig = configs.find((c) => c.activa === true);
-
-    if (!activeConfig) {
-      return Response.json({ error: 'No hay SeasonConfig activa' }, { status: 400 });
+    const activeConfigs = configs.filter((c) => c.activa === true);
+    if (activeConfigs.length !== 1) {
+      return Response.json({ error: 'Debe existir exactamente una SeasonConfig activa. No se ha modificado ningún jugador ni se han enviado avisos.' }, { status: 409 });
     }
+    const activeConfig = activeConfigs[0];
     if (!activeConfig.permitir_renovaciones) {
       return Response.json({ error: 'La opción permitir_renovaciones está desactivada' }, { status: 400 });
     }
