@@ -255,18 +255,27 @@ CD Bustarviejo`
       }))
     );
     
+    if (data.length === 0) {
+      toast.info("No hay familias pendientes para exportar.");
+      return;
+    }
+    const escapeCsv = (value) => {
+      const text = String(value ?? "");
+      return `"${text.replace(/"/g, '""')}"`;
+    };
     const csv = [
-      Object.keys(data[0]).join(','),
-      ...data.map(row => Object.values(row).join(','))
+      Object.keys(data[0]).map(escapeCsv).join(','),
+      ...data.map(row => Object.values(row).map(escapeCsv).join(','))
     ].join('\n');
-    
-    const blob = new Blob([csv], { type: 'text/csv' });
+
+    const blob = new Blob(["\uFEFF", csv], { type: 'text/csv;charset=utf-8;' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `renovaciones_pendientes_${seasonConfig?.temporada}.csv`;
+    a.download = `renovaciones_pendientes_${seasonConfig?.temporada || "sin-temporada"}.csv`;
     a.click();
-    toast.success("✅ Excel descargado");
+    window.URL.revokeObjectURL(url);
+    toast.success("✅ Listado CSV descargado");
   };
 
   return (
