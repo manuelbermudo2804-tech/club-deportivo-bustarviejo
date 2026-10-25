@@ -349,6 +349,69 @@ Deno.serve(async (req) => {
         const jornada = result?.jornada;
         const allUpcoming = result?.allMatches || [{ jornada, match }];
 
+        // Sync EVERY returned jornada with its own convocatoria. The primary "next match"
+        // can be a different jornada after postponed matches are sorted by date.
+        const normTeam = (s) => String(s || '').normalize('NFKC')
+          .replace(/[\\s\\u00a0"'“”«»]+/g, ' ').trim().toUpperCase();
+        for (const um of allUpcoming) {
+          const umMatch = um.match;
+          const umJornada = um.jornada;
+          if (!umMatch || !umJornada) continue;
+          const umLocal = umMatch.local?.toUpperCase().includes('BUSTARVIEJO');
+          const umRival = umLocal ? umMatch.visitante : umMatch.local;
+          const umDateParts = String(umMatch.fecha || '').split('/');
+          const umDate = umDateParts.length === 3
+            ? `${umDateParts[2]}-${umDateParts[1].padStart(2, '0')}-${umDateParts[0].padStart(2, '0')}`
+            : null;
+          if (!umDate) continue;
+
+          const candidates = allCallups.filter(c =>
+            c.categoria === config.categoria &&
+            !c.cerrada && c.estado_convocatoria !== 'cancelada' &&
+            (c.titulo?.includes(`Jornada ${umJornada}`) ||
+             c.descripcion?.includes(`(Jornada ${umJornada})`)) &&
+            (c.entrenador_email === 'sistema@cdbustarviejo.es' ||
+             normTeam(c.rival) === normTeam(umRival))
+          );
+          const target = candidates.find(c => normTeam(c.rival) === normTeam(umRival)) ||
+            candidates.find(c => c.entrenador_email === 'sistema@cdbustarviejo.es');
+          if (!target) continue;
+
+          const patch = {};
+          const parts = [];
+          if (target.fecha_partido !== umDate) {
+            patch.fecha_partido_original = target.fecha_partido || null;
+            patch.fecha_partido = umDate;
+            parts.push(`fecha ${target.fecha_partido || '?'} → ${umDate}`);
+          }
+          if (umMatch.hora && target.hora_partido !== umMatch.hora) {
+            patch.hora_partido_original = target.hora_partido || null;
+            patch.hora_partido = umMatch.hora;
+            parts.push(`hora ${target.hora_partido || '?'} → ${umMatch.hora}`);
+          }
+          if (umMatch.campo && target.ubicacion !== umMatch.campo) {
+            patch.ubicacion = umMatch.campo;
+            patch.enlace_ubicacion = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(umMatch.campo)}`;
+            parts.push('campo actualizado');
+          }
+          const correctTitle = `Jornada ${umJornada} vs ${umRival}`;
+          if (target.titulo !== correctTitle) patch.titulo = correctTitle;
+          if (target.rival !== umRival) patch.rival = umRival;
+          const correctHomeAway = umLocal ? 'Local' : 'Visitante';
+          if (target.local_visitante !== correctHomeAway) patch.local_visitante = correctHomeAway;
+
+          if (Object.keys(patch).length) {
+            patch.estado_convocatoria = 'reprogramada';
+            patch.motivo_cambio = `Cambio detectado automáticamente desde RFFM (Jornada ${umJornada})`;
+            await base44.asServiceRole.entities.Convocatoria.update(target.id, patch);
+            changes.push({
+              categoria: config.categoria, rival: umRival, jornada: umJornada,
+              changes: parts.length ? parts : ['datos del encuentro sincronizados'],
+              callup_id: target.id, silent: true
+            });
+          }
+        }
+
         // Parse RFFM date (dd/mm/yyyy) to ISO (yyyy-mm-dd)
         let matchDate = null;
         if (match.fecha) {
