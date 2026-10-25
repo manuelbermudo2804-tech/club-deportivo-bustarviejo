@@ -49,7 +49,9 @@ export default function PlayerProfile() {
         try {
           const byId = await base44.entities.Player.get(user.player_id);
           if (byId) return byId;
-        } catch {}
+        } catch (error) {
+          console.warn('[PlayerProfile] No se pudo recuperar la ficha por player_id; se usará la búsqueda por email:', error);
+        }
       }
       // Fallback: buscar por email
       const candidates = await base44.entities.Player.filter({
