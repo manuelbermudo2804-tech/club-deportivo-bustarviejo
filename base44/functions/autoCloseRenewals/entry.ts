@@ -20,10 +20,13 @@ Deno.serve(async (req) => {
       return Response.json({ message: 'No hay renovaciones activas o sin fecha límite', processed: 0 });
     }
 
-    const fechaLimite = new Date(activeConfig.fecha_limite_renovaciones);
+    const fechaLimite = new Date(`${String(activeConfig.fecha_limite_renovaciones).slice(0, 10)}T00:00:00`);
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
     fechaLimite.setHours(0, 0, 0, 0);
+    if (Number.isNaN(fechaLimite.getTime())) {
+      return Response.json({ message: 'La fecha límite configurada no es válida; no se ha modificado ningún jugador', processed: 0 }, { status: 409 });
+    }
 
     if (hoy <= fechaLimite) {
       return Response.json({ message: 'Fecha límite no alcanzada aún', processed: 0 });
