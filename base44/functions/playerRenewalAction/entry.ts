@@ -122,6 +122,28 @@ Deno.serve(async (req) => {
 
       const actual = await verifyOwnership(playerId);
 
+      // Validar en servidor las deudas que se adjuntan a la primera cuota. No confiar en IDs/notas del navegador.
+      if (user.role !== 'admin' && Array.isArray(payments) && payments.length > 0) {
+        const marker = String(payments[0]?.notas || '').match(/\\[DEUDA_SALDA_IDS:([^\\]]+)\\]/);
+        if (marker) {
+          const debtIds = [...new Set(marker[1].split(',').map((id) => id.trim()).filter(Boolean))];
+          if (debtIds.length === 0) {
+            return Response.json({ success: false, error: 'La deuda vinculada a la renovación no es válida.' }, { status: 400 });
+          }
+          let verifiedDebtTotal = 0;
+          for (const debtId of debtIds) {
+            const debt = await base44.asServiceRole.entities.Deuda.get(debtId);
+            if (!debt || debt.estado !== 'pendiente' || String(debt.email_familia || '').toLowerCase().trim() !== String(user.email || '').toLowerCase().trim()) {
+              return Response.json({ success: false, error: 'Una de las deudas seleccionadas no está pendiente o no pertenece a tu familia.' }, { status: 409 });
+            }
+            verifiedDebtTotal += Number(debt.importe) || 0;
+          }
+          if (verifiedDebtTotal <= 0) {
+            return Response.json({ success: false, error: 'El importe de la deuda vinculada no es válido.' }, { status: 409 });
+          }
+        }
+      }
+
       // Bloqueo por deuda de temporadas anteriores (salvo excepción marcada por el club)
       if (user.role !== 'admin' && !actual.exento_bloqueo_impago) {
         const key = (t) => String(t || '').trim().replace(/\//g, '-');
