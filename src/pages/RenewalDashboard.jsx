@@ -58,16 +58,18 @@ export default function RenewalDashboard() {
   // Estadísticas
   const stats = useMemo(() => {
     // Todas las cifras deben pertenecer a la temporada activa; no mezclar fichas históricas.
+    // Base elegible: plantilla activa y fichas ya vinculadas a esta temporada.
+    // Así el denominador no queda a cero antes de ejecutar "Preparar renovaciones".
     const seasonPlayers = seasonConfig?.temporada
-      ? allPlayers.filter(p => p.temporada_renovacion === seasonConfig.temporada)
+      ? allPlayers.filter(p => p.activo === true || p.temporada_renovacion === seasonConfig.temporada)
       : [];
     const total = seasonPlayers.length;
-    const renovados = seasonPlayers.filter(p => p.estado_renovacion === "renovado").length;
-    const noRenuevan = seasonPlayers.filter(p => p.estado_renovacion === "no_renueva").length;
-    const pendientes = seasonPlayers.filter(p => p.estado_renovacion === "pendiente").length;
+    const renovados = seasonPlayers.filter(p => p.estado_renovacion === "renovado" && p.temporada_renovacion === seasonConfig?.temporada).length;
+    const noRenuevan = seasonPlayers.filter(p => p.estado_renovacion === "no_renueva" && p.temporada_renovacion === seasonConfig?.temporada).length;
+    const pendientes = seasonPlayers.filter(p => p.estado_renovacion === "pendiente" && p.temporada_renovacion === seasonConfig?.temporada).length;
     const tasaRenovacion = total > 0 ? Math.round((renovados / total) * 100) : 0;
 
-    // Por categoría: tanto el denominador como los estados corresponden a la temporada activa.
+    // Por categoría, la base incluye jugadores activos; los estados cuentan solo para la temporada activa.
     const porCategoria = {};
     seasonPlayers.forEach(p => {
       const categoria = p.deporte || "Sin categoría";
@@ -75,6 +77,7 @@ export default function RenewalDashboard() {
         porCategoria[categoria] = { total: 0, renovados: 0, pendientes: 0, noRenuevan: 0 };
       }
       porCategoria[categoria].total++;
+      if (p.temporada_renovacion !== seasonConfig?.temporada) return;
       if (p.estado_renovacion === "renovado") porCategoria[categoria].renovados++;
       else if (p.estado_renovacion === "pendiente") porCategoria[categoria].pendientes++;
       else if (p.estado_renovacion === "no_renueva") porCategoria[categoria].noRenuevan++;
@@ -123,6 +126,16 @@ export default function RenewalDashboard() {
 
   const sendReminderMutation = useMutation({
     mutationFn: async (familias) => {
+      if (!seasonConfig || seasonConfig.activa !== true) {
+        throw new Error("No hay una temporada activa válida. No se han enviado recordatorios.");
+      }
+      if (seasonConfig.permitir_renovaciones !== true || !seasonConfig.fecha_limite_renovaciones) {
+        throw new Error("No se pueden enviar recordatorios: activa las renovaciones y configura una fecha límite.");
+      }
+      const deadline = new Date(`${String(seasonConfig.fecha_limite_renovaciones).slice(0, 10)}T23:59:59`);
+      if (Number.isNaN(deadline.getTime()) || deadline < new Date()) {
+        throw new Error("La fecha límite de renovación debe ser válida y no haber vencido.");
+      }
       for (const familia of familias) {
         const jugadoresNombres = familia.jugadores.map(j => j.nombre).join(", ");
         
@@ -164,6 +177,9 @@ CD Bustarviejo`
       setSuccessMessage(`✅ Recordatorios enviados a ${familias.length} familia(s)`);
       setShowSuccess(true);
       setSelectedFamilies([]);
+    },
+    onError: (error) => {
+      toast.error(error?.message || "No se pudieron enviar los recordatorios.");
     },
   });
 
