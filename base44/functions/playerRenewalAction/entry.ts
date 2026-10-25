@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
 
       // Validar en servidor las deudas que se adjuntan a la primera cuota. No confiar en IDs/notas del navegador.
       if (user.role !== 'admin' && Array.isArray(payments) && payments.length > 0) {
-        const marker = String(payments[0]?.notas || '').match(/\\[DEUDA_SALDA_IDS:([^\\]]+)\\]/);
+        const marker = String(payments[0]?.notas || '').match(/\[DEUDA_SALDA_IDS:([^\]]+)\]/);
         if (marker) {
           const debtIds = [...new Set(marker[1].split(',').map((id) => id.trim()).filter(Boolean))];
           if (debtIds.length === 0) {
