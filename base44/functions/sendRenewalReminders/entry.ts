@@ -23,7 +23,11 @@ Deno.serve(async (req) => {
     }
 
     const configs = await base44.asServiceRole.entities.SeasonConfig.list();
-    const activeConfig = configs.find(c => c.activa === true);
+    const activeConfigs = configs.filter(c => c.activa === true);
+    if (activeConfigs.length !== 1) {
+      return Response.json({ message: 'Debe existir exactamente una temporada activa; no se han enviado recordatorios', sent: 0 }, { status: 409 });
+    }
+    const activeConfig = activeConfigs[0];
 
     if (!activeConfig?.permitir_renovaciones ||
         !activeConfig?.enviar_recordatorios_renovacion ||
