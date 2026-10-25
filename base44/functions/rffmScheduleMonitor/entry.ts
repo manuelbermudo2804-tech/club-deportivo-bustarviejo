@@ -169,10 +169,9 @@ async function findNextMatch(url, cookies, lastKnownJornada) {
       !m.visitante?.toUpperCase().includes('DESCANSA')
     );
     if (bust) upcomingMatches.push({ jornada: j, match: bust });
-    // Stop scanning once we've found 2 future matches (covers same-week double headers)
-    if (upcomingMatches.length >= 2) break;
-    // Small pause between jornada fetches
-    if (j < maxScan) await new Promise(r => setTimeout(r, 800));
+    // Never stop after the first two matches: postponed fixtures can be several jornadas ahead.
+    // Use a deliberate pause to reduce load on the RFFM site and avoid rushed/partial reads.
+    if (j < maxScan) await new Promise(r => setTimeout(r, 2000));
   }
 
   // Backwards-compat: return primary "next match" plus the full list
@@ -365,16 +364,22 @@ Deno.serve(async (req) => {
             : null;
           if (!umDate) continue;
 
+          // Prefer the exact category + opponent match, even when the fixture date changed
+          // or the title/jornada text is stale. Never guess if multiple convocatorias match.
           const candidates = allCallups.filter(c =>
             c.categoria === config.categoria &&
             !c.cerrada && c.estado_convocatoria !== 'cancelada' &&
-            (c.titulo?.includes(`Jornada ${umJornada}`) ||
-             c.descripcion?.includes(`(Jornada ${umJornada})`)) &&
-            (c.entrenador_email === 'sistema@cdbustarviejo.es' ||
-             normTeam(c.rival) === normTeam(umRival))
+            normTeam(c.rival) === normTeam(umRival)
           );
-          const target = candidates.find(c => normTeam(c.rival) === normTeam(umRival)) ||
-            candidates.find(c => c.entrenador_email === 'sistema@cdbustarviejo.es');
+          const systemJornadaCandidates = allCallups.filter(c =>
+            c.categoria === config.categoria &&
+            !c.cerrada && c.estado_convocatoria !== 'cancelada' &&
+            c.entrenador_email === 'sistema@cdbustarviejo.es' &&
+            (c.titulo?.includes(`Jornada ${umJornada}`) ||
+             c.descripcion?.includes(`(Jornada ${umJornada})`))
+          );
+          const target = candidates.length === 1 ? candidates[0] :
+            (candidates.length === 0 && systemJornadaCandidates.length === 1 ? systemJornadaCandidates[0] : null);
           if (!target) continue;
 
           const patch = {};
@@ -401,9 +406,17 @@ Deno.serve(async (req) => {
           if (target.local_visitante !== correctHomeAway) patch.local_visitante = correctHomeAway;
 
           if (Object.keys(patch).length) {
-            patch.estado_convocatoria = 'reprogramada';
-            patch.motivo_cambio = `Cambio detectado automáticamente desde RFFM (Jornada ${umJornada})`;
+            if (parts.length) {
+              patch.estado_convocatoria = 'reprogramada';
+              patch.motivo_cambio = `Cambio detectado automáticamente desde RFFM (Jornada ${umJornada})`;
+            }
             await base44.asServiceRole.entities.Convocatoria.update(target.id, patch);
+            const verified = await base44.asServiceRole.entities.Convocatoria.get(target.id);
+            if (!verified || verified.fecha_partido !== (patch.fecha_partido || target.fecha_partido) ||
+                (patch.hora_partido && verified.hora_partido !== patch.hora_partido) ||
+                (patch.ubicacion && verified.ubicacion !== patch.ubicacion)) {
+              throw new Error(`No se pudo verificar el guardado de convocatoria ${target.id}`);
+            }
             changes.push({
               categoria: config.categoria, rival: umRival, jornada: umJornada,
               changes: parts.length ? parts : ['datos del encuentro sincronizados'],
