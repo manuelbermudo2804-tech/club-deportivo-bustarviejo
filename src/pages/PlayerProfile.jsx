@@ -498,12 +498,26 @@ export default function PlayerProfile() {
               categoryConfigs={categoryConfigs}
               onComplete={async (data) => {
                 try {
-                  await paymentMutation.mutateAsync(data.payments);
-                  await renewalMutation.mutateAsync(data.newCategory);
+                  const result = await base44.functions.invoke('playerRenewalAction', {
+                    action: 'renew',
+                    playerId: player.id,
+                    temporada: seasonConfig?.temporada,
+                    playerData: { deporte: data.newCategory || selectedCategory || player.deporte, categoria_principal: data.newCategory || selectedCategory || player.deporte },
+                    payments: (data.payments || []).map((payment) => ({
+                      ...payment,
+                      jugador_id: player.id,
+                      jugador_nombre: player.nombre,
+                    })),
+                  });
+                  if (result?.data?.success === false || result?.success === false) {
+                    throw new Error(result?.data?.error || result?.error || 'No se pudo completar la renovación.');
+                  }
+                  await queryClient.invalidateQueries({ queryKey: ["payments"] });
+                  await queryClient.invalidateQueries({ queryKey: ["player", user?.email] });
                   setRenewalData(data);
                 } catch (error) {
                   console.error("Error:", error);
-                  toast.error("Error procesando la renovación");
+                  toast.error(error?.message || "Error procesando la renovación");
                 }
               }}
               onCancel={() => setShowPaymentFlow(false)}
