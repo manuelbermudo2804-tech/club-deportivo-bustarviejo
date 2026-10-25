@@ -22,6 +22,13 @@ Deno.serve(async (req) => {
     if (!activeConfig.permitir_renovaciones) {
       return Response.json({ error: 'La opción permitir_renovaciones está desactivada' }, { status: 400 });
     }
+    if (!activeConfig.fecha_limite_renovaciones) {
+      return Response.json({ error: 'Configura la fecha límite antes de preparar las renovaciones y notificar a las familias.' }, { status: 400 });
+    }
+    const deadline = new Date(`${String(activeConfig.fecha_limite_renovaciones).slice(0, 10)}T23:59:59`);
+    if (Number.isNaN(deadline.getTime()) || deadline < new Date()) {
+      return Response.json({ error: 'La fecha límite debe ser válida y futura antes de preparar las renovaciones.' }, { status: 400 });
+    }
 
     const temporada = activeConfig.temporada;
 
