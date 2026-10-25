@@ -25,15 +25,19 @@ Deno.serve(async (req) => {
 
     const temporada = activeConfig.temporada;
 
-    // Obtener todos los jugadores (asServiceRole para evitar restricciones RLS)
+    // Solo preparar jugadores activos del club para la temporada siguiente.
+    // No incluir fichas históricas/inactivas ni desactivar a quienes siguen jugando.
     const allPlayers = await base44.asServiceRole.entities.Player.list('-updated_date', 20000);
+    const eligiblePlayers = allPlayers.filter((p) => p.activo === true || (
+      p.estado_renovacion === 'renovado' && p.temporada_renovacion === temporada
+    ));
 
     // Preparar cambios
     let updatedCount = 0;
     let skippedNoRenueva = 0;
     const affectedFamilies = new Set();
 
-    for (const p of allPlayers) {
+    for (const p of eligiblePlayers) {
       // ⚠️ FIX: Respetar jugadores ya marcados como "no_renueva" PARA ESTA TEMPORADA
       // (no se les vuelve a marcar pendiente ni se les notifica)
       if (p.estado_renovacion === 'no_renueva' && p.temporada_renovacion === temporada) {
@@ -49,8 +53,9 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.Player.update(p.id, {
         temporada_renovacion: temporada,
         estado_renovacion: 'pendiente',
-        activo: false,
+        // Mantener activo: preparar la temporada siguiente no debe desactivar al jugador actual.
         fecha_renovacion: null,
+        recordatorios_renovacion_enviados: [],
       });
       updatedCount += 1;
 
@@ -60,7 +65,7 @@ Deno.serve(async (req) => {
 
     // Detectar jugadores +18 que se gestionan solos
     const adultPlayerEmails = new Set();
-    for (const p of allPlayers) {
+    for (const p of eligiblePlayers) {
       if (p.es_mayor_edad && p.email_jugador && p.estado_renovacion !== 'no_renueva') {
         adultPlayerEmails.add(p.email_jugador);
       }
@@ -120,6 +125,7 @@ Deno.serve(async (req) => {
       success: true,
       temporada,
       updatedPlayers: updatedCount,
+      eligiblePlayers: eligiblePlayers.length,
       skippedNoRenueva,
       familiesNotified: Array.from(new Set(familiesNotified)).length,
       adultPlayersNotified: adultPlayersNotified.length,
