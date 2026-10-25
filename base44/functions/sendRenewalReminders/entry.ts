@@ -35,8 +35,11 @@ Deno.serve(async (req) => {
       return Response.json({ message: 'Recordatorios desactivados o sin fecha límite', sent: 0 });
     }
 
-    const fechaLimite = new Date(activeConfig.fecha_limite_renovaciones);
+    const fechaLimite = new Date(`${String(activeConfig.fecha_limite_renovaciones).slice(0, 10)}T00:00:00`);
     fechaLimite.setHours(0, 0, 0, 0);
+    if (Number.isNaN(fechaLimite.getTime())) {
+      return Response.json({ message: 'La fecha límite configurada no es válida; no se han enviado recordatorios', sent: 0 }, { status: 409 });
+    }
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
     const diasRestantes = Math.floor((fechaLimite - hoy) / (1000 * 60 * 60 * 24));
