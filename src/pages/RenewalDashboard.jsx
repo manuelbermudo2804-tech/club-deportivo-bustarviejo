@@ -185,16 +185,36 @@ CD Bustarviejo`
 
   const reactivatePlayerMutation = useMutation({
     mutationFn: async (playerId) => {
+      if (!seasonConfig || seasonConfig.activa !== true) {
+        throw new Error("No hay una temporada activa válida.");
+      }
+      if (seasonConfig.permitir_renovaciones !== true || !seasonConfig.fecha_limite_renovaciones) {
+        throw new Error("No se puede reabrir la renovación: la campaña está cerrada o no tiene fecha límite.");
+      }
+      const deadline = new Date(`${String(seasonConfig.fecha_limite_renovaciones).slice(0, 10)}T23:59:59`);
+      if (Number.isNaN(deadline.getTime()) || deadline < new Date()) {
+        throw new Error("La fecha límite de renovación ha vencido o no es válida.");
+      }
       const player = allPlayers.find(p => p.id === playerId);
+      if (!player) throw new Error("No se ha encontrado el jugador.");
+      if (player.temporada_renovacion !== seasonConfig.temporada || player.estado_renovacion !== "no_renueva") {
+        throw new Error("Solo se puede reabrir un jugador marcado como «no renueva» en la temporada activa.");
+      }
       await base44.entities.Player.update(playerId, {
         estado_renovacion: "pendiente",
         activo: false,
-        fecha_renovacion: null
+        temporada_renovacion: seasonConfig.temporada,
+        fecha_renovacion: null,
+        recordatorios_renovacion_enviados: []
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['allPlayers'] });
-      toast.success("Jugador reactivado para renovación");
+      queryClient.invalidateQueries({ queryKey: ['renewalReminders'] });
+      toast.success("Jugador reabierto para renovación; seguirá inactivo hasta confirmar la renovación.");
+    },
+    onError: (error) => {
+      toast.error(error?.message || "No se ha podido reabrir la renovación.");
     },
   });
 
