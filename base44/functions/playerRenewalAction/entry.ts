@@ -102,6 +102,9 @@ Deno.serve(async (req) => {
       if (!activeConfig || activeConfig.permitir_renovaciones !== true) {
         return Response.json({ success: false, error: 'El plazo de renovaciones no está abierto actualmente.' }, { status: 409 });
       }
+      if (!activeConfig.fecha_limite_renovaciones) {
+        return Response.json({ success: false, error: 'El administrador debe configurar la fecha límite antes de abrir las renovaciones.' }, { status: 409 });
+      }
       const requestedSeason = String(temporada || '').trim();
       if (!requestedSeason || requestedSeason !== String(activeConfig.temporada || '').trim()) {
         return Response.json({ success: false, error: 'La temporada de renovación no coincide con la temporada activa configurada.' }, { status: 409 });
@@ -173,6 +176,9 @@ Deno.serve(async (req) => {
       const activeConfig = configs.find((c) => c.activa === true);
       if (!activeConfig || activeConfig.permitir_renovaciones !== true) {
         return Response.json({ success: false, error: 'El plazo de renovaciones no está abierto actualmente.' }, { status: 409 });
+      }
+      if (!activeConfig.fecha_limite_renovaciones) {
+        return Response.json({ success: false, error: 'El administrador debe configurar la fecha límite antes de abrir las renovaciones.' }, { status: 409 });
       }
       if (String(temporada || '').trim() !== String(activeConfig.temporada || '').trim()) {
         return Response.json({ success: false, error: 'La temporada de renovación no coincide con la temporada activa configurada.' }, { status: 409 });
