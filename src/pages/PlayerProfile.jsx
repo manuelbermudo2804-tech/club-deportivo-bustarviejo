@@ -510,6 +510,7 @@ export default function PlayerProfile() {
                       jugador_id: player.id,
                       jugador_nombre: player.nombre,
                     })),
+                    debtSaldadaIds: data.debtSaldadaIds || [],
                   });
                   if (result?.data?.success === false || result?.success === false) {
                     throw new Error(result?.data?.error || result?.error || 'No se pudo completar la renovación.');
