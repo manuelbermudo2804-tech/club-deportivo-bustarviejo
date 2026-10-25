@@ -51,8 +51,35 @@ export default function FeatureControlSection({
         <CardContent className="space-y-4 sm:space-y-5 bg-slate-50/60 p-3 sm:p-6">
           <TemaFestivoPanel />
 
-          {/* Renovaciones */}
-          <FeatureRow icon={<RefreshCw className="w-5 h-5 text-blue-600" />} title="Permitir Renovaciones" subtitle="Los padres pueden renovar jugadores de temporadas anteriores" extra={<p className="text-xs text-blue-600 font-medium mt-1">⚠️ Activar DESPUÉS de resetear la temporada</p>} checked={activeSeason.permitir_renovaciones || false} onChange={(v) => toggleFeature('permitir_renovaciones', v)} />
+          {/* Renovaciones: controles de temporada, fecha límite y avisos */}
+          <div className="space-y-4 rounded-xl border border-blue-200 bg-blue-50/70 p-4">
+            <div className="flex items-start gap-3">
+              <RefreshCw className="mt-1 h-5 w-5 text-blue-600" />
+              <div className="flex-1">
+                <h3 className="font-semibold text-slate-900">Renovaciones · Temporada {activeSeason.temporada}</h3>
+                <p className="mt-1 text-sm text-slate-600">Configura la fecha límite y los avisos. Mantén las renovaciones cerradas hasta que el club decida abrir el proceso.</p>
+              </div>
+            </div>
+            <FeatureRow icon={<RefreshCw className="w-5 h-5 text-blue-600" />} title="Permitir Renovaciones" subtitle="Abre o cierra la renovación para la temporada activa" checked={activeSeason.permitir_renovaciones || false} onChange={(v) => toggleFeature('permitir_renovaciones', v)} />
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1">
+                <Label htmlFor="renewal-deadline">Fecha límite de renovación</Label>
+                <Input id="renewal-deadline" type="date" value={activeSeason.fecha_limite_renovaciones ? String(activeSeason.fecha_limite_renovaciones).slice(0, 10) : ""} onChange={(e) => update({ fecha_limite_renovaciones: e.target.value || null })} />
+                <p className="text-xs text-slate-500">El cierre automático se aplicará después de esta fecha.</p>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="renewal-reminders">Recordatorios automáticos</Label>
+                <div className="flex items-center justify-between rounded-lg border bg-white p-3">
+                  <span className="text-sm text-slate-700">Enviar avisos a 30, 15, 7, 3 y 1 día</span>
+                  <Switch id="renewal-reminders" checked={activeSeason.enviar_recordatorios_renovacion === true} onCheckedChange={(v) => update({ enviar_recordatorios_renovacion: v })} />
+                </div>
+                <p className="text-xs text-slate-500">Solo se enviarán si las renovaciones están abiertas y hay fecha límite.</p>
+              </div>
+            </div>
+            {activeSeason.permitir_renovaciones && !activeSeason.fecha_limite_renovaciones && (
+              <p className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">⚠️ Renovaciones abiertas sin fecha límite: configura una fecha antes de confiar en el cierre automático.</p>
+            )}
+          </div>
 
           {/* Bizum */}
           <FeatureRow icon={<Smartphone className="w-5 h-5 text-purple-600" />} title="Bizum Activo" subtitle="Permitir pagos con Bizum" checked={activeSeason.bizum_activo || false} onChange={(v) => toggleFeature('bizum_activo', v)} />
