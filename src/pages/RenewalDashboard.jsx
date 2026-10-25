@@ -35,7 +35,8 @@ export default function RenewalDashboard() {
     queryKey: ['seasonConfig'],
     queryFn: async () => {
       const configs = await base44.entities.SeasonConfig.list();
-      return configs.find(c => c.activa === true);
+      const activeConfigs = configs.filter(c => c.activa === true);
+      return activeConfigs.length === 1 ? activeConfigs[0] : null;
     },
   });
 
@@ -56,36 +57,27 @@ export default function RenewalDashboard() {
 
   // Estadísticas
   const stats = useMemo(() => {
-    const total = allPlayers.length;
-    const renovados = allPlayers.filter(p => 
-      p.estado_renovacion === "renovado" && 
-      p.temporada_renovacion === seasonConfig?.temporada
-    ).length;
-    const noRenuevan = allPlayers.filter(p => 
-      p.estado_renovacion === "no_renueva" && 
-      p.temporada_renovacion === seasonConfig?.temporada
-    ).length;
-    const pendientes = allPlayers.filter(p => 
-      p.estado_renovacion === "pendiente" && 
-      p.temporada_renovacion === seasonConfig?.temporada
-    ).length;
-
+    // Todas las cifras deben pertenecer a la temporada activa; no mezclar fichas históricas.
+    const seasonPlayers = seasonConfig?.temporada
+      ? allPlayers.filter(p => p.temporada_renovacion === seasonConfig.temporada)
+      : [];
+    const total = seasonPlayers.length;
+    const renovados = seasonPlayers.filter(p => p.estado_renovacion === "renovado").length;
+    const noRenuevan = seasonPlayers.filter(p => p.estado_renovacion === "no_renueva").length;
+    const pendientes = seasonPlayers.filter(p => p.estado_renovacion === "pendiente").length;
     const tasaRenovacion = total > 0 ? Math.round((renovados / total) * 100) : 0;
 
-    // Por categoría
+    // Por categoría: tanto el denominador como los estados corresponden a la temporada activa.
     const porCategoria = {};
-    allPlayers.forEach(p => {
-      if (!porCategoria[p.deporte]) {
-        porCategoria[p.deporte] = { total: 0, renovados: 0, pendientes: 0, noRenuevan: 0 };
+    seasonPlayers.forEach(p => {
+      const categoria = p.deporte || "Sin categoría";
+      if (!porCategoria[categoria]) {
+        porCategoria[categoria] = { total: 0, renovados: 0, pendientes: 0, noRenuevan: 0 };
       }
-      porCategoria[p.deporte].total++;
-      if (p.estado_renovacion === "renovado" && p.temporada_renovacion === seasonConfig?.temporada) {
-        porCategoria[p.deporte].renovados++;
-      } else if (p.estado_renovacion === "pendiente" && p.temporada_renovacion === seasonConfig?.temporada) {
-        porCategoria[p.deporte].pendientes++;
-      } else if (p.estado_renovacion === "no_renueva" && p.temporada_renovacion === seasonConfig?.temporada) {
-        porCategoria[p.deporte].noRenuevan++;
-      }
+      porCategoria[categoria].total++;
+      if (p.estado_renovacion === "renovado") porCategoria[categoria].renovados++;
+      else if (p.estado_renovacion === "pendiente") porCategoria[categoria].pendientes++;
+      else if (p.estado_renovacion === "no_renueva") porCategoria[categoria].noRenuevan++;
     });
 
     return { total, renovados, pendientes, noRenuevan, tasaRenovacion, porCategoria };
@@ -439,10 +431,19 @@ CD Bustarviejo`
                   </div>
                   <Button
                     onClick={async () => {
-                      const res = await base44.functions.invoke('prepareRenewals', {});
-                      const data = res?.data || {};
-                      setSuccessMessage(`Listo: ${data.updatedPlayers || 0} jugadores preparados, ${data.familiesNotified || 0} familias avisadas`);
-                      setShowSuccess(true);
+                      try {
+                        const res = await base44.functions.invoke('prepareRenewals', {});
+                        const data = res?.data || res || {};
+                        if (data.success === false || data.error) {
+                          throw new Error(data.error || 'No se pudieron preparar las renovaciones.');
+                        }
+                        setSuccessMessage(`Listo: ${data.updatedPlayers || 0} jugadores preparados, ${data.familiesNotified || 0} familias avisadas`);
+                        setShowSuccess(true);
+                        await queryClient.invalidateQueries({ queryKey: ['allPlayers'] });
+                        await queryClient.invalidateQueries({ queryKey: ['seasonConfig'] });
+                      } catch (error) {
+                        toast.error(error?.message || 'No se pudieron preparar las renovaciones.');
+                      }
                     }}
                     className="w-full bg-emerald-600 hover:bg-emerald-700"
                   >
