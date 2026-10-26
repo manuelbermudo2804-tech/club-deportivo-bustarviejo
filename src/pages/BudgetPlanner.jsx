@@ -175,7 +175,7 @@ export default function BudgetPlanner() {
 
   const byPartida = useMemo(() => {
     const map = new Map();
-    currentTransactions.forEach(t => {
+    operatingTransactions.forEach(t => {
       const name = keyOf(t);
       const key = groupKey(t.tipo, name);
       const row = map.get(key) || { nombre: name, tipo: t.tipo, total: 0, count: 0, review: 0, months: new Set() };
@@ -186,7 +186,7 @@ export default function BudgetPlanner() {
       map.set(key, row);
     });
     return [...map.values()].sort((a, b) => b.total - a.total);
-  }, [currentTransactions]);
+  }, [operatingTransactions]);
 
   if (loading) return <div className="mx-auto max-w-7xl p-6"><div className="flex items-center gap-3 rounded-2xl border bg-white p-8 text-slate-600"><Loader2 className="h-5 w-5 animate-spin" />Construyendo el presupuesto desde las transacciones reales…</div></div>;
 
@@ -295,7 +295,7 @@ export default function BudgetPlanner() {
 
 function buildActualGroups(transactions) {
   const map = new Map();
-  (transactions || []).filter(t => !t.is_sample && isCurrentSeasonDate(t.fecha) && t.estado !== "Anulado").forEach(t => {
+  (transactions || []).filter(t => !t.is_sample && isCurrentSeasonDate(t.fecha) && t.estado !== "Anulado" && !(t.tipo === "Ingreso" && /stripe/i.test([t.concepto, t.proveedor_cliente, t.referencia_origen].join(" ")))).forEach(t => {
     const nombre = keyOf(t);
     const key = groupKey(t.tipo, nombre);
     const row = map.get(key) || { nombre, tipo: t.tipo, ejecutado: 0, count: 0 };
