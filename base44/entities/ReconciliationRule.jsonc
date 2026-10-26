@@ -18,6 +18,14 @@
       ],
       "description": "Tipo de transacci\u00f3n"
     },
+    "partida_id": {
+      "type": "string",
+      "description": "ID de la partida presupuestaria asociada al patr\u00f3n"
+    },
+    "partida_nombre": {
+      "type": "string",
+      "description": "Nombre de la partida presupuestaria asociada al patr\u00f3n"
+    },
     "subtipo_documento": {
       "type": "string",
       "description": "Subtipo de documento a asignar"
