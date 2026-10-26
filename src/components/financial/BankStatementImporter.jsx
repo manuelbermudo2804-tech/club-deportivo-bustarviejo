@@ -82,7 +82,7 @@ export default function BankStatementImporter({ activeSeason, accountId }) {
       // confundir dos operaciones legítimas iguales dentro del mismo extracto.
       const signature = (mov) => [
         String(mov.fecha || "").trim().toLowerCase(),
-        String(mov.concepto || "").replace(/\\s+/g, " ").trim().toLowerCase(),
+        String(mov.concepto || "").replace(/\s+/g, " ").trim().toLowerCase(),
         Number(mov.cantidad || 0).toFixed(2),
         mov.tipo || (Number(mov.cantidad) >= 0 ? "Ingreso" : "Gasto")
       ].join("|");
