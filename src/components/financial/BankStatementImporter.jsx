@@ -426,7 +426,9 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         queryClient.invalidateQueries({ queryKey: ["bankAccounts"] }),
         queryClient.invalidateQueries({ queryKey: ["payments"] }),
         queryClient.invalidateQueries({ queryKey: ["reconciliationSessions"] }),
-        queryClient.invalidateQueries({ queryKey: ["transactions"] })
+        queryClient.invalidateQueries({ queryKey: ["transactions"] }),
+        queryClient.invalidateQueries({ queryKey: ["financialTransactions"] }),
+        queryClient.invalidateQueries({ queryKey: ["budgets"] })
       ]);
 
       if (discrepancy !== null && Math.abs(discrepancy) > 0.02) {
