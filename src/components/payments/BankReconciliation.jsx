@@ -74,7 +74,11 @@ export default function BankReconciliation({ payments, players, onReconcile }) {
     p.estado !== "Pagado" && p.estado !== "Anulado" && p.is_deleted !== true && !p.reconciliado_banco
   );
 
-  const unreconciledMovements = allBankMovements.filter(m => !m.reconciliado);
+  const unreconciledMovements = allBankMovements.filter((m) =>
+    !m.reconciliado &&
+    !m.financial_transaction_id &&
+    !String(m.notas_reconciliacion || "").includes("Omitido manualmente")
+  );
 
   return (
     <div className="space-y-6">
