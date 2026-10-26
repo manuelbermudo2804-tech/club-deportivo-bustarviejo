@@ -175,11 +175,11 @@ export default function BankStatementImporter({ activeSeason, accountId }) {
         <div>
           <Input 
             type="file"
-            accept=".csv,.txt"
+            accept=".csv,.txt,.pdf,.xls,.xlsx"
             onChange={handleFileUpload}
             disabled={uploading || extracting}
           />
-          <p className="text-xs text-slate-500 mt-1">Sube el extracto bancario en formato CSV</p>
+          <p className="text-xs text-slate-500 mt-1">Admite CSV, Excel (.xls/.xlsx), PDF y TXT. Para una importación más fiable, prioriza CSV o Excel.</p>
         </div>
 
         {(uploading || extracting) && (
