@@ -34,7 +34,8 @@ export default function FinancialAuditCenter({ activeSeason }) {
   const audit = useMemo(() => {
     const season = activeSeason?.temporada || "2026-2027";
     const norm = (v) => String(v || "").replace(/[^\d]/g, "");
-    const txSeason = transactions.filter(t => !t.temporada || norm(t.temporada) === norm(season)).filter(t => t.estado !== "Anulado");
+    const txSeason = transactions.filter(t => t.temporada && norm(t.temporada) === norm(season)).filter(t => t.estado !== "Anulado");
+    const unassignedSeasonTx = transactions.filter(t => !t.temporada && t.estado !== "Anulado");
     const bankSeason = movements.filter(m => {
       const movementDate = String(m.fecha || "");
       if (activeSeason?.fecha_inicio && movementDate < activeSeason.fecha_inicio) return false;
@@ -45,13 +46,16 @@ export default function FinancialAuditCenter({ activeSeason }) {
     const stripePayouts = txSeason.filter(t => /stripe/i.test(String(t.concepto || "")) && t.tipo === "Ingreso" && t.estado === "Cobrado");
     const unlinkedBank = bankSeason.filter(m => m.reconciliado === true && !m.financial_transaction_id && !m.payment_id);
     const pendingBank = bankSeason.filter(m => m.reconciliado !== true);
-    const missingTxLinks = txSeason.filter(t => t.bank_movement_id && !bankSeason.some(m => m.id === t.bank_movement_id));
-    const dupTxByBank = new Map();
-    txSeason.filter(t => t.bank_movement_id).forEach(t => {
-      const key = t.bank_movement_id;
-      dupTxByBank.set(key, (dupTxByBank.get(key) || 0) + 1);
+    // La relación canónica de conciliación está en BankMovement.financial_transaction_id.
+    const txIds = new Set(transactions.map(t => t.id));
+    const missingTxLinks = bankSeason.filter(m => m.financial_transaction_id && !txIds.has(m.financial_transaction_id));
+    const bankByTx = new Map();
+    bankSeason.filter(m => m.financial_transaction_id).forEach(m => {
+      const key = m.financial_transaction_id;
+      if (!bankByTx.has(key)) bankByTx.set(key, []);
+      bankByTx.get(key).push(m);
     });
-    const duplicateBankLinks = [...dupTxByBank.entries()].filter(([,n]) => n > 1);
+    const duplicateBankLinks = [...bankByTx.entries()].filter(([,items]) => items.length > 1).map(([id,items]) => [id,items.length]);
     const budgetsBySeason = new Map();
     budgets.filter(b => b.temporada).forEach(b => {
       const key = norm(b.temporada);
@@ -66,19 +70,20 @@ export default function FinancialAuditCenter({ activeSeason }) {
       const part = String(t.partida_nombre || "").trim().toLocaleLowerCase("es");
       return cat && part && !part.includes(cat) && !cat.includes(part);
     });
-    return { season, txSeason, bankSeason, stripePayouts, unlinkedBank, pendingBank, missingTxLinks, duplicateBankLinks, duplicateBudgets, balanceIssues, latestSession, categoryPartidaMismatch };
+    return { season, txSeason, unassignedSeasonTx, bankSeason, stripePayouts, unlinkedBank, pendingBank, missingTxLinks, duplicateBankLinks, duplicateBudgets, balanceIssues, latestSession, categoryPartidaMismatch };
   }, [activeSeason, transactions, movements, sessions, budgets]);
 
   const refreshAll = async () => { await Promise.all([refreshTx(), refreshMovements(), refreshSessions(), refreshBudgets()]); };
   const loading = txLoading || bankLoading;
   const issues = [
     { title: "Posibles liquidaciones Stripe contabilizadas como ingreso", count: audit.stripePayouts.length, detail: audit.stripePayouts.length ? audit.stripePayouts.map(t => `${dateText(t.fecha)} · ${money(t.cantidad)} · ${t.concepto}`).slice(0,5).join("\n") : "No se han detectado por el texto del concepto.", level: audit.stripePayouts.length ? "review" : "ok" },
+    { title: "Transacciones sin temporada asignada", count: audit.unassignedSeasonTx.length, detail: audit.unassignedSeasonTx.length ? audit.unassignedSeasonTx.slice(0,6).map(t => `${dateText(t.fecha)} · ${money(t.cantidad)} · ${t.tipo} · ${t.concepto}`).join("\n") : "No se han detectado.", level: audit.unassignedSeasonTx.length ? "review" : "ok" },
     { title: "Movimientos bancarios conciliados sin enlace a pago o transacción", count: audit.unlinkedBank.length, detail: audit.unlinkedBank.length ? audit.unlinkedBank.slice(0,6).map(m => `${dateText(m.fecha)} · ${money(m.importe)} · ${m.concepto}`).join("\n") : "No se han detectado.", level: audit.unlinkedBank.length ? "review" : "ok" },
     { title: "Movimientos bancarios pendientes de conciliación", count: audit.pendingBank.length, detail: audit.pendingBank.length ? audit.pendingBank.slice(0,6).map(m => `${dateText(m.fecha)} · ${money(m.importe)} · ${m.concepto}`).join("\n") : "No se han detectado.", level: audit.pendingBank.length ? "review" : "ok" },
     { title: "Presupuestos duplicados por temporada", count: audit.duplicateBudgets.reduce((n,x)=>n+x.items.length,0), detail: audit.duplicateBudgets.length ? audit.duplicateBudgets.map(x => `${x.season}: ${x.items.map(b=>b.nombre || b.id).join(" / ")} (${x.items.length} registros)`).join("\n") : "No se han detectado temporadas con más de un presupuesto.", level: audit.duplicateBudgets.length ? "review" : "ok" },
     { title: "Sesiones de extracto con diferencia de saldo", count: audit.balanceIssues.length, detail: audit.balanceIssues.length ? audit.balanceIssues.map(s => `${s.archivo_nombre || s.id}: diferencia ${money(s.diferencia_saldos)}`).join("\n") : "Todas las sesiones con diferencia informada cuadran dentro de 0,01 €.", level: audit.balanceIssues.length ? "review" : "ok" },
-    { title: "Transacciones con enlace bancario repetido", count: audit.duplicateBankLinks.length, detail: audit.duplicateBankLinks.length ? audit.duplicateBankLinks.map(([id,n])=>`${id}: ${n} transacciones`).join("\n") : "No se han detectado.", level: audit.duplicateBankLinks.length ? "review" : "ok" },
-    { title: "Transacciones cuyo movimiento bancario enlazado no aparece", count: audit.missingTxLinks.length, detail: audit.missingTxLinks.length ? audit.missingTxLinks.slice(0,6).map(t => `${dateText(t.fecha)} · ${money(t.cantidad)} · ${t.concepto}`).join("\n") : "No se han detectado.", level: audit.missingTxLinks.length ? "review" : "ok" },
+    { title: "Transacciones enlazadas a varios movimientos bancarios", count: audit.duplicateBankLinks.length, detail: audit.duplicateBankLinks.length ? audit.duplicateBankLinks.map(([id,n])=>`${id}: ${n} movimientos bancarios`).join("\n") : "No se han detectado.", level: audit.duplicateBankLinks.length ? "review" : "ok" },
+    { title: "Movimientos bancarios con enlace a transacción inexistente", count: audit.missingTxLinks.length, detail: audit.missingTxLinks.length ? audit.missingTxLinks.slice(0,6).map(m => `${dateText(m.fecha)} · ${money(m.importe)} · ${m.concepto}`).join("\n") : "No se han detectado.", level: audit.missingTxLinks.length ? "review" : "ok" },
   ];
   const issueCount = issues.filter(i=>i.level==="review").reduce((n,i)=>n+i.count,0);
 
