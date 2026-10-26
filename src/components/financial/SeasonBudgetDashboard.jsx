@@ -36,6 +36,11 @@ export default function SeasonBudgetDashboard({ activeSeason }) {
     queryFn: () => base44.entities.Payment.list("-created_date", 500),
     staleTime: 60000,
   });
+  const { data: players = [] } = useQuery({
+    queryKey: ["budgetDashboardPlayers"],
+    queryFn: () => base44.entities.Player.list(),
+    staleTime: 60000,
+  });
 
   const model = useMemo(() => {
     const season = activeSeason?.temporada || "2026-2027";
@@ -47,7 +52,8 @@ export default function SeasonBudgetDashboard({ activeSeason }) {
       return t >= new Date(activeSeason.fecha_inicio).getTime() && t <= new Date(activeSeason.fecha_fin).getTime();
     };
     const tx = transactions.filter(inSeason).filter(t => t.estado !== "Anulado");
-    const pay = payments.filter(p => inSeason(p) && p.is_deleted !== true && p.estado !== "Anulado");
+    const pay = payments.filter(p => inSeason(p) && p.is_deleted !== true && p.estado !== "Anulado" && p.estado !== "Cancelado");
+    const playersById = new Map(players.map(player => [player.id, player]));
     const budget = budgets.find(b => seasonMatches(b.temporada, season));
     const partidas = new Map();
     const add = (name, type, source) => {
@@ -76,9 +82,20 @@ export default function SeasonBudgetDashboard({ activeSeason }) {
     const pendingTx = tx.filter(t => t.estado === "Pendiente").reduce((s,t)=>s+Number(t.cantidad||0),0);
     const paidPlayerFees = pay.filter(p=>p.estado==="Pagado").reduce((s,p)=>s+Number(p.cantidad||0),0);
     const pendingPlayerFees = pay.filter(p=>p.estado==="Pendiente"||p.estado==="En revisión").reduce((s,p)=>s+Number(p.cantidad||0),0);
-    const unclassified = tx.filter(t=>t.revisar_clasificacion || !String(t.partida_nombre||"").trim());
-    return { season, tx, pay, rows, actualIncome, actualExpenses, pendingTx, paidPlayerFees, pendingPlayerFees, unclassified, budget };
-  }, [activeSeason, transactions, rules, customCategories, budgets, payments]);
+    // Solo contar como revisión lo que está marcado expresamente; no convertir automáticamente
+    // todas las transacciones sin partida detallada en incidencias.
+    const unclassified = tx.filter(t => t.revisar_clasificacion === true);
+    const sportsSummary = pay.reduce((acc, payment) => {
+      const player = playersById.get(payment.jugador_id);
+      const category = String(payment.categoria_actividad || payment.categoria_equipo || payment.equipo_nombre || player?.deporte || "Categoría no informada").trim();
+      if (!acc[category]) acc[category] = { count: 0, paid: 0, pending: 0 };
+      acc[category].count += 1;
+      if (payment.estado === "Pagado") acc[category].paid += Number(payment.cantidad || 0);
+      if (payment.estado === "Pendiente" || payment.estado === "En revisión") acc[category].pending += Number(payment.cantidad || 0);
+      return acc;
+    }, {});
+    return { season, tx, pay, rows, actualIncome, actualExpenses, pendingTx, paidPlayerFees, pendingPlayerFees, unclassified, sportsSummary, budget };
+  }, [activeSeason, transactions, rules, customCategories, budgets, payments, players]);
 
   const refreshAll = async () => { await Promise.all([refreshTx(), refreshRules(), refreshCategories(), refreshBudgets(), refreshPayments()]); };
 
@@ -101,6 +118,6 @@ export default function SeasonBudgetDashboard({ activeSeason }) {
         <div className="mt-4 flex flex-wrap gap-2 text-xs text-slate-500"><Badge variant="outline">{model.rows.length} nombres únicos detectados</Badge><Badge variant="outline">{model.tx.length} transacciones en el filtro</Badge><Badge variant="outline">{model.pay.length} registros de cuotas/pagos</Badge></div>
       </CardContent>
     </Card>
-    <Card><CardHeader><CardTitle className="flex items-center gap-2"><Euro className="h-5 w-5 text-orange-600"/>Control de inscripciones por categoría deportiva</CardTitle><p className="text-sm text-slate-500">Desglose de los registros de pagos; independiente de la contabilidad para evitar duplicidades.</p></CardHeader><CardContent><div className="overflow-x-auto"><table className="w-full min-w-[600px] text-sm"><thead><tr className="border-b text-left text-slate-500"><th className="py-3">Categoría deportiva registrada</th><th className="py-3 text-right">N.º pagos</th><th className="py-3 text-right">Pagado</th><th className="py-3 text-right">Pendiente / revisión</th></tr></thead><tbody>{Object.entries(model.pay.reduce((acc,p)=>{const k=String(p.categoria_actividad||p.categoria_equipo||p.equipo_nombre||"Categoría no informada");if(!acc[k])acc[k]={count:0,paid:0,pending:0};acc[k].count++;if(p.estado==="Pagado")acc[k].paid+=Number(p.cantidad||0);if(p.estado==="Pendiente"||p.estado==="En revisión")acc[k].pending+=Number(p.cantidad||0);return acc;},{})).sort((a,b)=>a[0].localeCompare(b[0],"es")).map(([name,v])=><tr key={name} className="border-b last:border-0"><td className="py-3">{name}</td><td className="py-3 text-right">{v.count}</td><td className="py-3 text-right text-emerald-700">{money(v.paid)}</td><td className="py-3 text-right">{money(v.pending)}</td></tr>)}</tbody></table></div><p className="mt-3 text-xs text-slate-500">Importes calculados desde registros de pagos existentes; antes de usarlos como presupuesto definitivo se comprobará que cancelaciones, planes especiales y cuotas fraccionadas se tratan como en el panel de tesorería.</p></CardContent></Card>
+    <Card><CardHeader><CardTitle className="flex items-center gap-2"><Euro className="h-5 w-5 text-orange-600"/>Control de inscripciones por categoría deportiva</CardTitle><p className="text-sm text-slate-500">Desglose de los registros de pagos; independiente de la contabilidad para evitar duplicidades.</p></CardHeader><CardContent><div className="overflow-x-auto"><table className="w-full min-w-[600px] text-sm"><thead><tr className="border-b text-left text-slate-500"><th className="py-3">Categoría deportiva registrada</th><th className="py-3 text-right">N.º pagos</th><th className="py-3 text-right">Pagado</th><th className="py-3 text-right">Pendiente / revisión</th></tr></thead><tbody>{Object.entries(model.sportsSummary).sort((a,b)=>a[0].localeCompare(b[0],"es")).map(([name,v])=><tr key={name} className="border-b last:border-0"><td className="py-3">{name}</td><td className="py-3 text-right">{v.count}</td><td className="py-3 text-right text-emerald-700">{money(v.paid)}</td><td className="py-3 text-right">{money(v.pending)}</td></tr>)}</tbody></table></div><p className="mt-3 text-xs text-slate-500">Categoría obtenida del pago o, si falta, del deporte del jugador asociado. Se excluyen pagos anulados y eliminados. Los importes reflejan pagos registrados; las cuotas futuras que aún no tienen registro se calculan aparte en el panel de tesorería.</p></CardContent></Card>
   </div>;
 }
