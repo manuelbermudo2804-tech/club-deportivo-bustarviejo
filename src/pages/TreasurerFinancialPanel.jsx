@@ -827,7 +827,7 @@ export default function TreasurerFinancialPanel() {
           />
 
           {/* Posición de caja conectada con Bancario y Tesorería */}
-          <CashPositionForecast compact />
+          <CashPositionForecast compact activeSeason={activeSeason} />
 
           {/* Fondo Solidario de Becas (solo si está activo en la temporada) */}
           <SolidarityFundWidget activeSeason={activeSeason} payments={payments} />
@@ -1670,7 +1670,7 @@ export default function TreasurerFinancialPanel() {
 
         {/* TAB TESORERÍA: compromisos recurrentes */}
         <TabsContent value="tesoreria" className="space-y-6 mt-6">
-          <CashPositionForecast />
+          <CashPositionForecast activeSeason={activeSeason} />
           <RecurringCommitmentsManager />
         </TabsContent>
 
