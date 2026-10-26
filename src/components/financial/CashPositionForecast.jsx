@@ -17,12 +17,15 @@ function paymentMonthKey(payment, activeSeason) {
   const currentYear = new Date().getFullYear();
   const startYear = Number(years[0]) || currentYear;
   const endYear = Number(years[1]) || startYear + 1;
+  const now = new Date();
+  const currentKey = monthKey(new Date(now.getFullYear(), now.getMonth(), 1));
   if (monthName in monthNames) {
     const year = monthName === "junio" ? endYear : startYear;
-    return monthKey(new Date(year, monthNames[monthName], 1));
+    const dueKey = monthKey(new Date(year, monthNames[monthName], 1));
+    // Las cuotas vencidas se proyectan como cobro pendiente del mes actual.
+    return dueKey < currentKey ? currentKey : dueKey;
   }
-  const now = new Date();
-  return monthKey(new Date(now.getFullYear(), now.getMonth(), 1));
+  return currentKey;
 }
 
 function isPendingPayment(payment) {
@@ -96,9 +99,13 @@ export default function CashPositionForecast({ compact = false, activeSeason }) 
     let running = cashNow;
     return Array.from({ length: 12 }, (_, i) => {
       const month = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + i, 1);
+      const currentKey = monthKey(currentMonth);
       const monthTransactions = transactions.filter((t) => {
         const d = t.fecha ? new Date(t.fecha + "T00:00:00") : null;
-        return d && monthKey(d) === monthKey(month) && t.estado !== "Anulado";
+        if (!d || t.estado === "Anulado") return false;
+        const actualKey = monthKey(d);
+        const effectiveKey = t.estado === "Pendiente" && actualKey < currentKey ? currentKey : actualKey;
+        return effectiveKey === monthKey(month);
       });
       const pendingExpenseTransactions = monthTransactions.filter((t) =>
         t.estado === "Pendiente" && t.tipo === "Gasto" && Number(t.cantidad) > 0
