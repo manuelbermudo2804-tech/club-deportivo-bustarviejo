@@ -13,14 +13,16 @@ const normalizeText = (value) => String(value || "").normalize("NFD").replace(/[
 function paymentMonthKey(payment, activeSeason, currentMonth) {
   const monthNames = { junio: 5, septiembre: 8, diciembre: 11 };
   const monthName = String(payment.mes || "").toLowerCase();
-  const years = String(activeSeason?.temporada || "").match(/\\d{4}/g) || [];
-  const startYear = Number(years[0]) || currentMonth.getFullYear();
+  const years = String(activeSeason?.temporada || "").match(/\d{4}/g) || [];
+  const currentYear = new Date().getFullYear();
+  const startYear = Number(years[0]) || currentYear;
   const endYear = Number(years[1]) || startYear + 1;
   if (monthName in monthNames) {
     const year = monthName === "junio" ? endYear : startYear;
     return monthKey(new Date(year, monthNames[monthName], 1));
   }
-  return monthKey(currentMonth);
+  const now = new Date();
+  return monthKey(new Date(now.getFullYear(), now.getMonth(), 1));
 }
 
 function isPendingPayment(payment) {
