@@ -11,7 +11,7 @@ import {
   CreditCard, ShoppingBag, Users, TrendingUp, TrendingDown, 
   Download, Euro, Clover, Building2, DollarSign, FileText,
   Calendar, CheckCircle2, Clock, AlertCircle, HelpCircle, BarChart3, Sparkles, Plus,
-  PieChart, Target, Award, Heart, Settings, RefreshCw, ExternalLink, AlertTriangle
+  PieChart, Target, Award, Heart, Settings, RefreshCw, ExternalLink, AlertTriangle, Calculator
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -64,6 +64,7 @@ export default function TreasurerFinancialPanel() {
   const [activeAnalysisTab, setActiveAnalysisTab] = useState("rentabilidad");
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [showAIForecasting, setShowAIForecasting] = useState(false);
+  const [budgetPlanForAI, setBudgetPlanForAI] = useState(null);
   const [generatingPDF, setGeneratingPDF] = useState(false);
   const [timeFilter, setTimeFilter] = useState("all");
   const [generatingExcel, setGeneratingExcel] = useState(false);
@@ -1710,7 +1711,7 @@ export default function TreasurerFinancialPanel() {
         </TabsContent>
 
         <TabsContent value="presupuesto2728" className="mt-6 space-y-8">
-          <BudgetPlanner />
+          <BudgetPlanner onScenarioChange={setBudgetPlanForAI} />
         </TabsContent>
 
         {/* TAB TRANSACCIONES */}
@@ -1762,6 +1763,7 @@ export default function TreasurerFinancialPanel() {
       <AIFinancialForecasting
         open={showAIForecasting}
         onClose={() => setShowAIForecasting(false)}
+        budgetPlan={budgetPlanForAI}
       />
 
       {/* Dialog: Comparación Temporadas */}
