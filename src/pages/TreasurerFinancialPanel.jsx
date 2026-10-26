@@ -109,7 +109,12 @@ export default function TreasurerFinancialPanel() {
     refetchOnWindowFocus: false,
   });
 
-  const clothingOrders = [];
+  const { data: clothingOrders = [] } = useQuery({
+    queryKey: ['clothingOrders'],
+    queryFn: () => base44.entities.ClothingOrder.list(),
+    staleTime: 120000, // 2 minutos
+    refetchOnWindowFocus: false,
+  });
 
   const { data: lotteryOrders = [] } = useQuery({
     queryKey: ['lotteryOrders'],
