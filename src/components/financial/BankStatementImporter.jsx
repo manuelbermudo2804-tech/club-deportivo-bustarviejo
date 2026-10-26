@@ -302,7 +302,16 @@ export default function BankStatementImporter({ activeSeason, accountId, account
             (txConcept.length > 5 && normalizedConcept.length > 5 && (txConcept.includes(normalizedConcept) || normalizedConcept.includes(txConcept)));
         });
 
-        const manualSettlement = !matchingPayment && !matchingTransaction && needsManualSettlementReview(mov.concepto);
+        const possiblePendingPayments = !matchingPayment && mov.tipo === "ingreso"
+          ? allPayments.filter((payment) =>
+              payment.is_deleted !== true &&
+              !["Pagado", "Anulado"].includes(payment.estado) &&
+              Math.abs(Math.abs(Number(payment.cantidad) || 0) - mov.importe) < 0.02
+            )
+          : [];
+        const ambiguousPayment = possiblePendingPayments.length > 0;
+        const manualSettlement = !matchingPayment && !matchingTransaction &&
+          (needsManualSettlementReview(mov.concepto) || ambiguousPayment);
         let createdTransaction = null;
         let categoryGuess = null;
         if (!matchingPayment && !matchingTransaction && !manualSettlement) {
@@ -345,7 +354,9 @@ export default function BankStatementImporter({ activeSeason, accountId, account
             : createdTransaction
             ? "Transacción financiera creada y vinculada. Revisar categoría si está marcada como provisional."
             : manualSettlement
-            ? "Liquidación de Stripe o traspaso interno: revisar y vincular sin contabilizar de nuevo."
+            ? ambiguousPayment
+              ? "Posible cuota pendiente de identificar por importe. Revisar manualmente; no se crea otro ingreso para evitar duplicidades."
+              : "Liquidación de Stripe o traspaso interno: revisar y vincular sin contabilizar de nuevo."
             : "Pendiente de revisión manual."
         });
         importedCount++;
