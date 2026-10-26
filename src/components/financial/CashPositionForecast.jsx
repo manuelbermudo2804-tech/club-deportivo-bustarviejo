@@ -8,6 +8,17 @@ import { AlertTriangle, TrendingDown, Wallet, CalendarRange } from "lucide-react
 const euro = (value) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(Number(value) || 0);
 const PERIOD_MONTHS = { mensual: 1, bimestral: 2, trimestral: 3, semestral: 6, anual: 12 };
 const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+const normalizeText = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+function matchesCommitment(commitment, transaction) {
+  const name = normalizeText(commitment.nombre);
+  const thirdParty = normalizeText(commitment.tercero);
+  const concept = normalizeText(transaction.concepto);
+  const party = normalizeText(transaction.proveedor_cliente);
+  const conceptMatch = name.length > 2 && (concept === name || concept.includes(name) || name.includes(concept));
+  const thirdPartyMatch = thirdParty.length > 2 && (concept.includes(thirdParty) || party.includes(thirdParty));
+  return conceptMatch || thirdPartyMatch;
+}
 
 function dueInMonth(item, month) {
   if (item.activo === false || !item.fecha_inicio || !(Number(item.importe) > 0)) return false;
@@ -47,17 +58,22 @@ export default function CashPositionForecast() {
     let running = cashNow;
     return Array.from({ length: 12 }, (_, i) => {
       const month = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + i, 1);
-      const recurring = commitments.reduce((sum, c) => sum + (dueInMonth(c, month) ? Number(c.importe) || 0 : 0), 0);
-      const outstanding = transactions.filter(t => {
-        if (t.estado !== "Pendiente" || t.tipo !== "Gasto" || t.estado === "Anulado") return false;
+      const monthTransactions = transactions.filter((t) => {
         const d = t.fecha ? new Date(t.fecha + "T00:00:00") : null;
-        return d && monthKey(d) === monthKey(month) && Number(t.cantidad) > 0;
-      }).reduce((sum, t) => sum + Number(t.cantidad || 0), 0);
-      const pendingIncome = transactions.filter(t => {
-        if (t.estado !== "Pendiente" || t.tipo !== "Ingreso") return false;
-        const d = t.fecha ? new Date(t.fecha + "T00:00:00") : null;
-        return d && monthKey(d) === monthKey(month) && Number(t.cantidad) > 0;
-      }).reduce((sum, t) => sum + Number(t.cantidad || 0), 0);
+        return d && monthKey(d) === monthKey(month) && t.estado !== "Anulado";
+      });
+      const pendingExpenseTransactions = monthTransactions.filter((t) =>
+        t.estado === "Pendiente" && t.tipo === "Gasto" && Number(t.cantidad) > 0
+      );
+      // Si una obligación recurrente ya tiene una transacción registrada (pendiente o pagada),
+      // esa transacción sustituye a la estimación y evita descontar el mismo gasto dos veces.
+      const recurring = commitments.filter((c) => dueInMonth(c, month)).filter((c) =>
+        !monthTransactions.some((t) => t.tipo === "Gasto" && matchesCommitment(c, t))
+      ).reduce((sum, c) => sum + (Number(c.importe) || 0), 0);
+      const outstanding = pendingExpenseTransactions.reduce((sum, t) => sum + Number(t.cantidad || 0), 0);
+      const pendingIncome = monthTransactions.filter((t) =>
+        t.estado === "Pendiente" && t.tipo === "Ingreso" && Number(t.cantidad) > 0
+      ).reduce((sum, t) => sum + Number(t.cantidad || 0), 0);
       // No se suman ingresos recurrentes estimados: solo ingresos pendientes registrados.
       const totalOut = recurring + outstanding;
       running = running - totalOut + pendingIncome;
@@ -90,7 +106,7 @@ export default function CashPositionForecast() {
         {(missingBalances > 0 || !hasBalances) && <p className="text-sm text-orange-700">Hay cuentas sin saldo registrado o no se ha podido verificar la vigencia de los saldos. La cifra de caja puede estar incompleta.</p>}
         {registeredCommitments === 0 && <p className="text-sm text-orange-700">Todavía no hay compromisos recurrentes activos registrados. La proyección podría infravalorar los gastos.</p>}
         <div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm"><thead><tr className="border-b text-left text-slate-500"><th className="p-3">Mes</th><th className="p-3 text-right">Recurrentes</th><th className="p-3 text-right">Gastos pendientes</th><th className="p-3 text-right">Ingresos pendientes</th><th className="p-3 text-right">Saldo final estimado</th></tr></thead><tbody>{forecast.map(m => <tr key={m.key} className="border-b last:border-0"><td className="p-3 capitalize">{m.label}</td><td className="p-3 text-right">{euro(m.recurring)}</td><td className="p-3 text-right">{euro(m.outstanding)}</td><td className="p-3 text-right">{euro(m.pendingIncome)}</td><td className="p-3 text-right font-semibold">{euro(m.closing)}</td></tr>)}</tbody></table></div>
-        <p className="text-xs text-slate-500">Aviso contra duplicidades: si un gasto pendiente también está registrado como compromiso recurrente, ambos podrían restarse. Revisa los conceptos y estados antes de usar el saldo proyectado como base de una decisión.</p>
+        <p className="text-xs text-slate-500">Control de duplicidades activo: cuando una transacción coincide con un compromiso recurrente del mismo mes, la previsión usa la transacción registrada en lugar de volver a descontar el compromiso. Las coincidencias dependen de que los conceptos o proveedores estén identificados de forma reconocible.</p>
       </CardContent>
     </Card>
   </div>;
