@@ -10,7 +10,7 @@ const PERIOD_MONTHS = { mensual: 1, bimestral: 2, trimestral: 3, semestral: 6, a
 const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 const normalizeText = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
-function paymentMonthKey(payment, activeSeason, currentMonth) {
+function paymentMonthKey(payment, activeSeason) {
   const monthNames = { junio: 5, septiembre: 8, diciembre: 11 };
   const monthName = String(payment.mes || "").toLowerCase();
   const years = String(activeSeason?.temporada || "").match(/\d{4}/g) || [];
@@ -106,7 +106,7 @@ export default function CashPositionForecast({ compact = false, activeSeason }) 
         t.estado === "Pendiente" && t.tipo === "Ingreso" && Number(t.cantidad) > 0
       ).reduce((sum, t) => sum + Number(t.cantidad || 0), 0);
       const pendingPaymentIncome = pendingPayments
-        .filter((payment) => paymentMonthKey(payment, activeSeason, month) === monthKey(month))
+        .filter((payment) => paymentMonthKey(payment, activeSeason) === monthKey(month))
         .reduce((sum, payment) => sum + (Number(payment.cantidad) || 0), 0);
       const pendingIncome = pendingIncomeTransactions + pendingPaymentIncome;
       // No se suman ingresos recurrentes estimados: solo ingresos pendientes registrados.
