@@ -36,12 +36,42 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
+const INCOME_CATEGORIES = ["Cuotas Socios", "Inscripciones", "Subvenciones", "Patrocinios", "Venta Equipación", "Eventos", "Lotería", "Otros Ingresos"];
+const EXPENSE_CATEGORIES = ["Material Deportivo", "Equipación", "Arbitrajes", "Desplazamientos", "Instalaciones", "Mantenimiento", "Seguros", "Federación", "Personal", "Suministros", "Marketing", "Eventos y Celebraciones", "Otros Gastos"];
+
 export default function TransactionList({ 
   transactions = [], 
   onDelete,
   onExport 
 }) {
+  const queryClient = useQueryClient();
+  const [categoryEdits, setCategoryEdits] = useState({});
+  const [savingReviewId, setSavingReviewId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const handleSaveCategory = async (transaction) => {
+    const category = categoryEdits[transaction.id] || transaction.categoria;
+    if (!category) return;
+    setSavingReviewId(transaction.id);
+    try {
+      await base44.entities.FinancialTransaction.update(transaction.id, {
+        categoria: category,
+        revisar_clasificacion: false,
+        notas: [transaction.notas, "Categoría revisada manualmente."].filter(Boolean).join("\\n")
+      });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["transactions"] }),
+        queryClient.invalidateQueries({ queryKey: ["financialTransactions"] }),
+        queryClient.invalidateQueries({ queryKey: ["budgets"] })
+      ]);
+      toast.success("Categoría revisada y guardada");
+    } catch (error) {
+      console.error("Error guardando categoría:", error);
+      toast.error("No se pudo guardar la categoría");
+    } finally {
+      setSavingReviewId(null);
+    }
+  };
   const [filterTipo, setFilterTipo] = useState("all");
   const [filterCategoria, setFilterCategoria] = useState("all");
   const [filterEstado, setFilterEstado] = useState("all");
