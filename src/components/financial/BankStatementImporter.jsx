@@ -421,6 +421,18 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         importe_neto_importado: Number(netNew.toFixed(2))
       });
 
+      if (activeSeason?.temporada) {
+        const budgets = await base44.entities.Budget.list("-created_date").catch(() => []);
+        await Promise.all(
+          budgets
+            .filter((budget) => budget.activo !== false && budget.temporada === activeSeason.temporada)
+            .map((budget) => base44.functions.invoke("updateBudgetExecuted", { budgetId: budget.id }).catch((error) => {
+              console.warn("No se pudo actualizar el ejecutado del presupuesto tras importar el banco:", error?.message || error);
+              return null;
+            }))
+        );
+      }
+
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["bankMovements"] }),
         queryClient.invalidateQueries({ queryKey: ["bankAccounts"] }),
@@ -471,6 +483,14 @@ export default function BankStatementImporter({ activeSeason, accountId, account
             <div>
               <p className="text-sm font-semibold text-blue-900">Control de períodos</p>
               <p className="mt-1 text-sm text-blue-800">{nextDateText}</p>
+              {lastSession && (
+                <div className="mt-2 grid gap-1 text-xs text-blue-900 sm:grid-cols-2">
+                  <p>Último período: {lastSession.fecha_inicio} – {lastSession.fecha_fin}</p>
+                  <p>Movimientos nuevos: {Number(lastSession.movimientos_totales) || 0} · Duplicados omitidos: {Number(lastSession.movimientos_duplicados) || 0}</p>
+                  <p>Pendientes de revisar: {Number(lastSession.movimientos_pendientes) || 0}</p>
+                  {lastSession.diferencia_saldos !== undefined && <p>Diferencia de saldos: {moneyText(lastSession.diferencia_saldos)}</p>}
+                </div>
+              )}
               <p className="mt-1 text-xs text-blue-700">Si los extractos se solapan, los movimientos ya importados se detectan y se omiten.</p>
             </div>
           </div>
