@@ -49,13 +49,58 @@ function normalizeMovement(raw) {
   };
 }
 
+function normalizeConcept(value) {
+  return String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+}
+
 function movementSignature(mov) {
   return [
     mov.fecha,
-    String(mov.concepto || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim(),
+    normalizeConcept(mov.concepto),
     Math.abs(Number(mov.importe ?? mov.cantidad ?? 0)).toFixed(2),
     String(mov.tipo || (Number(mov.importe ?? mov.cantidad ?? 0) < 0 ? "gasto" : "ingreso")).toLowerCase()
   ].join("|");
+}
+
+function guessCategory(mov, rules = []) {
+  const concept = normalizeConcept(mov.concepto);
+  const txType = mov.tipo === "ingreso" ? "Ingreso" : "Gasto";
+  const rule = rules.find((item) =>
+    item.activa !== false &&
+    item.tipo_transaccion === txType &&
+    normalizeConcept(item.patron_concepto) &&
+    concept.includes(normalizeConcept(item.patron_concepto))
+  );
+  const validIncome = ["Cuotas Socios", "Inscripciones", "Subvenciones", "Patrocinios", "Venta Equipación", "Eventos", "Lotería", "Otros Ingresos"];
+  const validExpense = ["Material Deportivo", "Equipación", "Arbitrajes", "Desplazamientos", "Instalaciones", "Mantenimiento", "Seguros", "Federación", "Personal", "Suministros", "Marketing", "Eventos y Celebraciones", "Otros Gastos"];
+  const allowed = txType === "Ingreso" ? validIncome : validExpense;
+  if (rule && allowed.includes(rule.categoria_destino)) return { categoria: rule.categoria_destino, fromRule: true };
+  if (txType === "Ingreso") {
+    if (/subvencion|ayuntamiento|comunidad de madrid/.test(concept)) return { categoria: "Subvenciones", fromRule: false };
+    if (/patrocin|sponsor/.test(concept)) return { categoria: "Patrocinios", fromRule: false };
+    if (/loteria|loteria/.test(concept)) return { categoria: "Lotería", fromRule: false };
+    if (/equipacion|ropa deportiva/.test(concept)) return { categoria: "Venta Equipación", fromRule: false };
+    if (/cuota|inscripcion|mensualidad/.test(concept)) return { categoria: "Cuotas Socios", fromRule: false };
+    return { categoria: "Otros Ingresos", fromRule: false };
+  }
+  if (/nomina|sueldo|coordinador|entrenador|personal/.test(concept)) return { categoria: "Personal", fromRule: false };
+  if (/federacion/.test(concept)) return { categoria: "Federación", fromRule: false };
+  if (/arbitro|arbitraje/.test(concept)) return { categoria: "Arbitrajes", fromRule: false };
+  if (/seguro|aseguradora/.test(concept)) return { categoria: "Seguros", fromRule: false };
+  if (/luz|agua|electricidad|telefono|internet|suministro/.test(concept)) return { categoria: "Suministros", fromRule: false };
+  if (/marketing|publicidad|instagram/.test(concept)) return { categoria: "Marketing", fromRule: false };
+  if (/instalacion|campo|pista/.test(concept)) return { categoria: "Instalaciones", fromRule: false };
+  if (/mantenimiento|reparacion/.test(concept)) return { categoria: "Mantenimiento", fromRule: false };
+  if (/material deportivo|balones|conos/.test(concept)) return { categoria: "Material Deportivo", fromRule: false };
+  if (/equipacion|ropa deportiva/.test(concept)) return { categoria: "Equipación", fromRule: false };
+  if (/evento|celebracion|torneo/.test(concept)) return { categoria: "Eventos y Celebraciones", fromRule: false };
+  if (/desplazamiento|autobus|combustible|gasolina/.test(concept)) return { categoria: "Desplazamientos", fromRule: false };
+  return { categoria: "Otros Gastos", fromRule: false };
+}
+
+function needsManualSettlementReview(concept) {
+  const normalized = normalizeConcept(concept);
+  return /stripe.*(payout|transfer|liquid|settlement)|payout.*stripe|liquidacion.*stripe|traspaso entre cuentas|transferencia entre cuentas|cuenta propia|traspaso propio/.test(normalized);
 }
 
 export default function BankStatementImporter({ activeSeason, accountId, account }) {
