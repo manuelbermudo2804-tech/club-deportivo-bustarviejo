@@ -37,6 +37,39 @@
       "type": "string",
       "format": "date",
       "description": "Fecha de fin del periodo"
+    },
+    "cuenta_bancaria": {
+      "type": "string",
+      "description": "Identificador de la cuenta asociada a esta importaci\u00f3n"
+    },
+    "archivo_nombre": {
+      "type": "string",
+      "description": "Nombre del archivo de extracto importado"
+    },
+    "movimientos_duplicados": {
+      "type": "number",
+      "default": 0,
+      "description": "Movimientos detectados y omitidos por duplicidad"
+    },
+    "saldo_inicial_extracto": {
+      "type": "number",
+      "description": "Saldo inicial declarado en el extracto"
+    },
+    "saldo_final_extracto": {
+      "type": "number",
+      "description": "Saldo final declarado en el extracto"
+    },
+    "saldo_calculado_extracto": {
+      "type": "number",
+      "description": "Saldo inicial m\u00e1s el neto de los movimientos del per\u00edodo"
+    },
+    "diferencia_saldos": {
+      "type": "number",
+      "description": "Diferencia entre saldo final declarado y saldo calculado"
+    },
+    "importe_neto_importado": {
+      "type": "number",
+      "description": "Neto de los movimientos nuevos incorporados"
     }
   },
   "required": [
