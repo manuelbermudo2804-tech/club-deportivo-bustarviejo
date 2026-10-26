@@ -1,40 +1,129 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
-import { useQueryClient } from "@tanstack/react-query";
-import { Upload, CheckCircle2, XCircle, AlertTriangle, Loader2 } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Upload, CheckCircle2, AlertTriangle, Loader2, CalendarDays, Wallet, FileCheck2 } from "lucide-react";
 import { toast } from "sonner";
 
-export default function BankStatementImporter({ activeSeason, accountId }) {
+const money = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
+const moneyText = (value) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(Number(value) || 0);
+
+function normalizeDate(value) {
+  if (!value) return "";
+  const raw = String(value).trim();
+  let match = raw.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+  if (match) return `${match[1]}-${match[2].padStart(2, "0")}-${match[3].padStart(2, "0")}`;
+  match = raw.match(/^(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})/);
+  if (match) return `${match[3]}-${match[2].padStart(2, "0")}-${match[1].padStart(2, "0")}`;
+  const parsed = new Date(raw);
+  return Number.isNaN(parsed.getTime()) ? "" : parsed.toISOString().slice(0, 10);
+}
+
+function addDays(isoDate, days) {
+  if (!isoDate) return "";
+  const d = new Date(`${isoDate}T12:00:00`);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function normalizeMovement(raw) {
+  const fecha = normalizeDate(raw.fecha || raw.date);
+  const concepto = String(raw.concepto || raw.concept || raw.descripcion || "").replace(/\s+/g, " ").trim();
+  let amount = money(raw.importe ?? raw.cantidad ?? raw.amount ?? raw.importe_eur);
+  if (!fecha || !concepto || amount === null || amount === 0) return null;
+  const kind = String(raw.tipo || raw.type || "").toLowerCase();
+  const expense = /gasto|cargo|debit|expense|salida/.test(kind);
+  const income = /ingreso|abono|credit|income|entrada/.test(kind);
+  // El signo explícito prevalece; si el extracto entrega importes positivos con tipo, se respeta el tipo.
+  if (amount > 0 && expense) amount = -amount;
+  else if (amount < 0 && income) amount = Math.abs(amount);
+  return {
+    fecha,
+    concepto,
+    signedAmount: amount,
+    importe: Math.abs(amount),
+    tipo: amount < 0 ? "gasto" : "ingreso"
+  };
+}
+
+function movementSignature(mov) {
+  return [
+    mov.fecha,
+    String(mov.concepto || "").toLowerCase().replace(/[^\p{L}\p{N}]+/gu, " ").trim(),
+    Math.abs(Number(mov.importe ?? mov.cantidad ?? 0)).toFixed(2),
+    String(mov.tipo || (Number(mov.importe ?? mov.cantidad ?? 0) < 0 ? "gasto" : "ingreso")).toLowerCase()
+  ].join("|");
+}
+
+export default function BankStatementImporter({ activeSeason, accountId, account }) {
   const queryClient = useQueryClient();
   const [uploading, setUploading] = useState(false);
   const [extracting, setExtracting] = useState(false);
+  const [importing, setImporting] = useState(false);
   const [movements, setMovements] = useState([]);
   const [fileName, setFileName] = useState("");
+  const [fileUrl, setFileUrl] = useState("");
+  const [periodStart, setPeriodStart] = useState("");
+  const [periodEnd, setPeriodEnd] = useState("");
+  const [openingBalance, setOpeningBalance] = useState("");
+  const [closingBalance, setClosingBalance] = useState("");
+  const [extractionWarning, setExtractionWarning] = useState("");
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
+  const { data: sessions = [] } = useQuery({
+    queryKey: ["reconciliationSessions", accountId],
+    queryFn: () => base44.entities.ReconciliationSession.list("-created_date", 100),
+    enabled: !!accountId
+  });
+
+  const { data: existingMovements = [] } = useQuery({
+    queryKey: ["bankMovements", accountId],
+    queryFn: () => base44.entities.BankMovement.filter({ cuenta_bancaria: accountId }),
+    enabled: !!accountId
+  });
+
+  const accountSessions = useMemo(
+    () => sessions.filter((s) => s.cuenta_bancaria === accountId && s.fecha_fin).sort((a, b) => String(b.fecha_fin).localeCompare(String(a.fecha_fin))),
+    [sessions, accountId]
+  );
+  const lastSession = accountSessions[0];
+  const suggestedStart = lastSession?.fecha_fin ? addDays(lastSession.fecha_fin, 1) : "";
+  const nextDateText = suggestedStart
+    ? `La última importación registrada termina el ${new Date(lastSession.fecha_fin + "T12:00:00").toLocaleDateString("es-ES")}. El siguiente período recomendado comienza el ${new Date(suggestedStart + "T12:00:00").toLocaleDateString("es-ES")}.`
+    : "Primera importación registrada para esta cuenta. El sistema guardará las fechas de este extracto para orientar las siguientes cargas.";
+
+  const normalizedMovements = useMemo(
+    () => movements.map(normalizeMovement).filter(Boolean).sort((a, b) => a.fecha.localeCompare(b.fecha)),
+    [movements]
+  );
+
+  const handleFileUpload = async (event) => {
+    const file = event.target.files?.[0];
     if (!file) return;
-
     setFileName(file.name);
     setUploading(true);
-
+    setExtractionWarning("");
+    setMovements([]);
+    setFileUrl("");
     try {
-      // Subir archivo
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
+      const uploaded = await base44.integrations.Core.UploadFile({ file });
+      const uploadedUrl = uploaded?.file_url;
+      if (!uploadedUrl) throw new Error("No se ha recibido la URL del archivo subido.");
+      setFileUrl(uploadedUrl);
       setUploading(false);
       setExtracting(true);
 
-      // Extraer datos con IA
       const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url,
+        file_url: uploadedUrl,
         json_schema: {
           type: "object",
           properties: {
+            fecha_inicio: { type: "string", description: "Fecha inicial del período del extracto, en formato YYYY-MM-DD si aparece" },
+            fecha_fin: { type: "string", description: "Fecha final del período del extracto, en formato YYYY-MM-DD si aparece" },
+            saldo_inicial: { type: "number", description: "Saldo inicial del extracto en euros, si aparece" },
+            saldo_final: { type: "number", description: "Saldo final del extracto en euros, si aparece" },
             movimientos: {
               type: "array",
               items: {
@@ -43,104 +132,129 @@ export default function BankStatementImporter({ activeSeason, accountId }) {
                   fecha: { type: "string" },
                   concepto: { type: "string" },
                   cantidad: { type: "number" },
-                  tipo: { type: "string" }
-                }
+                  tipo: { type: "string", description: "Ingreso/abono o gasto/cargo; conserva el signo del importe si el archivo lo incluye" }
+                },
+                required: ["fecha", "concepto", "cantidad"]
               }
             }
-          }
+          },
+          required: ["movimientos"]
         }
       });
 
-      if (result.status === "success") {
-        setMovements(result.output.movimientos || []);
-        toast.success(`${result.output.movimientos.length} movimientos extraídos`);
-      } else {
-        toast.error("Error extrayendo datos del archivo");
+      const output = result?.output || {};
+      if (result?.status !== "success" || !Array.isArray(output.movimientos) || output.movimientos.length === 0) {
+        throw new Error("No se han podido extraer movimientos válidos. Prueba con el extracto CSV o Excel del banco.");
       }
+      const valid = output.movimientos.map(normalizeMovement).filter(Boolean);
+      if (!valid.length) throw new Error("El archivo se ha leído, pero no contiene movimientos con fecha, concepto e importe válidos.");
+      setMovements(output.movimientos);
+      const minDate = valid[0].fecha;
+      const maxDate = valid[valid.length - 1].fecha;
+      setPeriodStart(normalizeDate(output.fecha_inicio) || suggestedStart || minDate);
+      setPeriodEnd(normalizeDate(output.fecha_fin) || maxDate);
+      setOpeningBalance(output.saldo_inicial !== undefined && output.saldo_inicial !== null ? String(output.saldo_inicial) : "");
+      setClosingBalance(output.saldo_final !== undefined && output.saldo_final !== null ? String(output.saldo_final) : "");
+      if (!output.fecha_inicio || !output.fecha_fin) {
+        setExtractionWarning("El archivo no ha proporcionado claramente el período completo. Revisa las fechas propuestas antes de importar.");
+      }
+      toast.success(`${valid.length} movimientos válidos extraídos`);
     } catch (error) {
-      toast.error("Error procesando archivo");
+      console.error("Error leyendo extracto bancario:", error);
+      toast.error(error?.message || "Error procesando el extracto bancario");
+      setMovements([]);
     } finally {
       setUploading(false);
       setExtracting(false);
+      event.target.value = "";
     }
   };
 
   const handleImport = async () => {
-    if (!accountId || !activeSeason?.temporada || movements.length === 0) {
-      toast.error("Selecciona una cuenta y una temporada antes de importar");
+    if (!accountId || !account?.id) {
+      toast.error("Selecciona una cuenta bancaria válida.");
+      return;
+    }
+    if (!fileUrl || !normalizedMovements.length) {
+      toast.error("Primero selecciona y analiza un extracto.");
+      return;
+    }
+    if (!periodStart || !periodEnd || periodStart > periodEnd) {
+      toast.error("Revisa las fechas de inicio y fin del extracto.");
+      return;
+    }
+    const outsidePeriod = normalizedMovements.filter((m) => m.fecha < periodStart || m.fecha > periodEnd);
+    if (outsidePeriod.length) {
+      toast.error(`Hay ${outsidePeriod.length} movimiento(s) fuera del período indicado. Corrige las fechas antes de importar.`);
       return;
     }
 
-    setExtracting(true);
+    setImporting(true);
     try {
-      const [payments, existingMovements] = await Promise.all([
-        base44.entities.Payment.filter({ temporada: activeSeason.temporada }),
-        base44.entities.BankMovement.filter({ cuenta_bancaria: accountId })
+      const [allPayments, user] = await Promise.all([
+        base44.entities.Payment.filter({ temporada: activeSeason?.temporada }).catch(() => []),
+        base44.auth.me()
       ]);
-
-      // Compara fecha, concepto, importe y tipo. Mantiene recuentos para no
-      // confundir dos operaciones legítimas iguales dentro del mismo extracto.
-      const signature = (mov) => [
-        String(mov.fecha || "").trim().toLowerCase(),
-        String(mov.concepto || "").replace(/\s+/g, " ").trim().toLowerCase(),
-        Number(mov.importe ?? mov.cantidad ?? 0).toFixed(2),
-        String(mov.tipo || (Number(mov.importe ?? mov.cantidad) >= 0 ? "ingreso" : "gasto")).toLowerCase()
-      ].join("|");
-
-      const importedCounts = new Map();
-      existingMovements.forEach((mov) => {
-        const key = signature(mov);
-        importedCounts.set(key, (importedCounts.get(key) || 0) + 1);
+      const existing = await base44.entities.BankMovement.filter({ cuenta_bancaria: accountId });
+      const existingCounts = new Map();
+      existing.forEach((m) => {
+        const normalized = {
+          fecha: normalizeDate(m.fecha),
+          concepto: m.concepto,
+          importe: Math.abs(Number(m.importe) || 0),
+          tipo: String(m.tipo || "").toLowerCase() === "gasto" || Number(m.importe) < 0 ? "gasto" : "ingreso"
+        };
+        const key = movementSignature(normalized);
+        existingCounts.set(key, (existingCounts.get(key) || 0) + 1);
       });
 
       const incomingCounts = new Map();
       const usedPaymentIds = new Set();
-      let imported = 0;
-      let skipped = 0;
+      let importedCount = 0;
+      let duplicateCount = 0;
       let matchedCount = 0;
+      let netNew = 0;
+      let allNet = 0;
 
-      for (const mov of movements) {
-        const key = signature({
-          ...mov,
-          importe: Number(mov.importe ?? mov.cantidad ?? 0),
-          tipo: Number(mov.importe ?? mov.cantidad) >= 0 ? "ingreso" : "gasto"
-        });
+      for (const mov of normalizedMovements) {
+        allNet += mov.signedAmount;
+        const key = movementSignature(mov);
         const occurrence = (incomingCounts.get(key) || 0) + 1;
         incomingCounts.set(key, occurrence);
-
-        if (occurrence <= (importedCounts.get(key) || 0)) {
-          skipped++;
+        if (occurrence <= (existingCounts.get(key) || 0)) {
+          duplicateCount++;
           continue;
         }
 
-        const concept = String(mov.concepto || "").toLowerCase();
-        const matching = payments.find((p) => {
+        const concept = mov.concepto.toLowerCase();
+        const matchingPayment = mov.tipo === "ingreso" ? allPayments.find((p) => {
           const playerName = String(p.jugador_nombre || "").trim().toLowerCase();
-          const amountMatch = Math.abs(Number(p.cantidad || 0) - Math.abs(Number(mov.importe ?? mov.cantidad ?? 0))) < 1;
+          const paymentAmount = Math.abs(Number(p.cantidad || 0));
+          const amountMatch = Math.abs(paymentAmount - mov.importe) < 0.02;
           const conceptMatch = playerName.length > 2 && concept.includes(playerName);
           return amountMatch && conceptMatch && !p.reconciliado_banco && !usedPaymentIds.has(p.id);
-        });
+        }) : null;
 
-        const bankMovement = {
+        await base44.entities.BankMovement.create({
           cuenta_bancaria: accountId,
           fecha: mov.fecha,
           concepto: mov.concepto,
-          importe: Number(mov.importe ?? mov.cantidad ?? 0),
-          tipo: Number(mov.importe ?? mov.cantidad ?? 0) >= 0 ? "ingreso" : "gasto",
-          reconciliado: !!matching,
-          payment_id: matching?.id || null,
-          confianza_match: matching ? 95 : 0,
-          fecha_reconciliacion: matching ? new Date().toISOString() : undefined,
-          notas_reconciliacion: matching ? "Coincidencia automática por nombre e importe" : undefined
-        };
+          importe: mov.importe,
+          tipo: mov.tipo,
+          reconciliado: !!matchingPayment,
+          payment_id: matchingPayment?.id || undefined,
+          jugador_nombre: matchingPayment?.jugador_nombre || undefined,
+          confianza_match: matchingPayment ? 95 : 0,
+          fecha_reconciliacion: matchingPayment ? new Date().toISOString() : undefined,
+          notas_reconciliacion: matchingPayment ? "Coincidencia automática por nombre e importe; revisar si procede." : undefined
+        });
+        importedCount++;
+        netNew += mov.signedAmount;
+        existingCounts.set(key, (existingCounts.get(key) || 0) + 1);
 
-        await base44.entities.BankMovement.create(bankMovement);
-        imported++;
-        importedCounts.set(key, (importedCounts.get(key) || 0) + 1);
-
-        if (matching) {
-          usedPaymentIds.add(matching.id);
-          await base44.entities.Payment.update(matching.id, {
+        if (matchingPayment) {
+          usedPaymentIds.add(matchingPayment.id);
+          await base44.entities.Payment.update(matchingPayment.id, {
             reconciliado_banco: true,
             fecha_reconciliacion: new Date().toISOString()
           });
@@ -148,88 +262,167 @@ export default function BankStatementImporter({ activeSeason, accountId }) {
         }
       }
 
-      queryClient.invalidateQueries({ queryKey: ['bankMovements'] });
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      const accountRecord = await base44.entities.BankAccount.get(account.id);
+      const parsedClosing = closingBalance.trim() === "" ? null : Number(closingBalance);
+      const parsedOpening = openingBalance.trim() === "" ? null : Number(openingBalance);
+      if (parsedClosing !== null && !Number.isFinite(parsedClosing)) throw new Error("El saldo final del extracto no es válido.");
+      if (parsedOpening !== null && !Number.isFinite(parsedOpening)) throw new Error("El saldo inicial del extracto no es válido.");
 
-      toast.success(`Importados ${imported} movimientos; ${matchedCount} conciliados automáticamente; ${skipped} posibles duplicados omitidos.`);
+      let saldoCalculado = null;
+      if (parsedClosing !== null) {
+        saldoCalculado = parsedClosing;
+      } else if (accountSessions.length === 0) {
+        saldoCalculado = (Number(accountRecord?.saldo_inicial ?? account?.saldo_inicial) || 0) + netNew;
+      } else {
+        saldoCalculado = (Number(accountRecord?.saldo_actual ?? account?.saldo_actual) || 0) + netNew;
+      }
+
+      const reconciliationExpected = parsedOpening !== null ? parsedOpening + allNet : null;
+      const discrepancy = parsedClosing !== null && reconciliationExpected !== null
+        ? Number((parsedClosing - reconciliationExpected).toFixed(2))
+        : null;
+
+      await base44.entities.BankAccount.update(account.id, {
+        saldo_actual: Number(saldoCalculado.toFixed(2)),
+        ultima_conciliacion: new Date().toISOString()
+      });
+
+      await base44.entities.ReconciliationSession.create({
+        extracto_url: fileUrl,
+        movimientos_totales: importedCount,
+        movimientos_reconciliados: matchedCount,
+        movimientos_pendientes: Math.max(0, importedCount - matchedCount),
+        admin_email: user?.email || "no-disponible",
+        completada: true,
+        fecha_inicio: periodStart,
+        fecha_fin: periodEnd,
+        cuenta_bancaria: accountId,
+        archivo_nombre: fileName,
+        movimientos_duplicados: duplicateCount,
+        saldo_inicial_extracto: parsedOpening,
+        saldo_final_extracto: parsedClosing,
+        saldo_calculado_extracto: reconciliationExpected,
+        diferencia_saldos: discrepancy,
+        importe_neto_importado: Number(netNew.toFixed(2))
+      });
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["bankMovements"] }),
+        queryClient.invalidateQueries({ queryKey: ["bankAccounts"] }),
+        queryClient.invalidateQueries({ queryKey: ["payments"] }),
+        queryClient.invalidateQueries({ queryKey: ["reconciliationSessions"] }),
+        queryClient.invalidateQueries({ queryKey: ["transactions"] })
+      ]);
+
+      if (discrepancy !== null && Math.abs(discrepancy) > 0.02) {
+        toast.warning(`Importación completada, pero el extracto presenta un descuadre de ${moneyText(discrepancy)}. Revisa el período y los movimientos.`);
+      } else {
+        toast.success(`Importación completada: ${importedCount} nuevos, ${duplicateCount} duplicados omitidos, ${matchedCount} cuotas vinculadas. Saldo registrado: ${moneyText(saldoCalculado)}.`);
+      }
       setMovements([]);
       setFileName("");
+      setFileUrl("");
+      setPeriodStart("");
+      setPeriodEnd("");
+      setOpeningBalance("");
+      setClosingBalance("");
+      setExtractionWarning("");
     } catch (error) {
-      console.error("Error importando movimientos:", error);
-      toast.error("Error importando movimientos. Revisa la cuenta y vuelve a intentarlo.");
+      console.error("Error importando extracto:", error);
+      toast.error(error?.message || "No se ha podido completar la importación. Comprueba la cuenta y vuelve a intentarlo.");
     } finally {
-      setExtracting(false);
+      setImporting(false);
     }
   };
+
+  const signedTotal = normalizedMovements.reduce((sum, m) => sum + m.signedAmount, 0);
+  const incomeTotal = normalizedMovements.filter((m) => m.tipo === "ingreso").reduce((sum, m) => sum + m.importe, 0);
+  const expenseTotal = normalizedMovements.filter((m) => m.tipo === "gasto").reduce((sum, m) => sum + m.importe, 0);
 
   return (
     <Card className="border-2 border-blue-200">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Upload className="w-5 h-5 text-blue-600" />
-          Importar Extracto Bancario
+          <Upload className="h-5 w-5 text-blue-600" />
+          Importar extracto bancario
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div>
-          <Input 
-            type="file"
-            accept=".csv,.txt,.pdf,.xls,.xlsx"
-            onChange={handleFileUpload}
-            disabled={uploading || extracting}
-          />
-          <p className="text-xs text-slate-500 mt-1">Admite CSV, Excel (.xls/.xlsx), PDF y TXT. Para una importación más fiable, prioriza CSV o Excel.</p>
+        <div className="rounded-lg border border-blue-100 bg-blue-50 p-3">
+          <div className="flex items-start gap-2">
+            <CalendarDays className="mt-0.5 h-5 w-5 shrink-0 text-blue-700" />
+            <div>
+              <p className="text-sm font-semibold text-blue-900">Control de períodos</p>
+              <p className="mt-1 text-sm text-blue-800">{nextDateText}</p>
+              <p className="mt-1 text-xs text-blue-700">Si los extractos se solapan, los movimientos ya importados se detectan y se omiten.</p>
+            </div>
+          </div>
         </div>
 
-        {(uploading || extracting) && (
-          <div className="text-center py-4">
-            <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-2" />
+        <div>
+          <Input type="file" accept=".csv,.txt,.pdf,.xls,.xlsx" onChange={handleFileUpload} disabled={uploading || extracting || importing} />
+          <p className="mt-1 text-xs text-slate-500">Recomendado: CSV o Excel descargado directamente del banco. También admite PDF y TXT.</p>
+        </div>
+
+        {(uploading || extracting || importing) && (
+          <div className="py-4 text-center">
+            <Loader2 className="mx-auto mb-2 h-8 w-8 animate-spin text-blue-600" />
             <p className="text-sm text-slate-600">
-              {uploading ? "Subiendo archivo..." : "Extrayendo movimientos con IA..."}
+              {uploading ? "Subiendo archivo..." : extracting ? "Leyendo movimientos, fechas y saldos..." : "Importando, conciliando y actualizando saldos..."}
             </p>
           </div>
         )}
 
         {movements.length > 0 && (
-          <>
-            <div className="bg-blue-50 rounded-lg p-4">
-              <p className="text-sm text-blue-800 font-medium mb-2">
-                📋 {movements.length} movimientos listos para importar
-              </p>
-              <div className="max-h-60 overflow-y-auto space-y-2">
-                {movements.slice(0, 10).map((mov, idx) => (
-                  <div key={idx} className="bg-white rounded p-2 text-xs flex justify-between">
-                    <span className="font-medium">{mov.concepto}</span>
-                    <span className={mov.cantidad >= 0 ? "text-green-600" : "text-red-600"}>
-                      {mov.cantidad >= 0 ? '+' : ''}{mov.cantidad}€
-                    </span>
-                  </div>
-                ))}
-                {movements.length > 10 && (
-                  <p className="text-xs text-slate-500 text-center">
-                    Y {movements.length - 10} movimientos más...
-                  </p>
-                )}
+          <div className="space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-medium">Inicio del período *</label>
+                <Input type="date" value={periodStart} onChange={(e) => setPeriodStart(e.target.value)} />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Fin del período *</label>
+                <Input type="date" value={periodEnd} onChange={(e) => setPeriodEnd(e.target.value)} />
               </div>
             </div>
-            <Button 
-              onClick={handleImport}
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={extracting}
-            >
-              {extracting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Importando y Conciliando...
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4 mr-2" />
-                  Importar y Conciliar Automáticamente
-                </>
-              )}
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div>
+                <label className="mb-1 block text-sm font-medium">Saldo inicial del extracto (€)</label>
+                <Input type="number" step="0.01" value={openingBalance} onChange={(e) => setOpeningBalance(e.target.value)} placeholder="Si aparece en el extracto" />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium">Saldo final del extracto (€)</label>
+                <Input type="number" step="0.01" value={closingBalance} onChange={(e) => setClosingBalance(e.target.value)} placeholder="Si aparece en el extracto" />
+              </div>
+            </div>
+
+            {extractionWarning && <div className="flex gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"><AlertTriangle className="h-5 w-5 shrink-0" />{extractionWarning}</div>}
+
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <div className="rounded-lg bg-blue-50 p-3"><p className="text-xs text-blue-700">Movimientos válidos</p><p className="text-xl font-bold text-blue-900">{normalizedMovements.length}</p></div>
+              <div className="rounded-lg bg-green-50 p-3"><p className="text-xs text-green-700">Ingresos</p><p className="text-lg font-bold text-green-800">{moneyText(incomeTotal)}</p></div>
+              <div className="rounded-lg bg-red-50 p-3"><p className="text-xs text-red-700">Gastos</p><p className="text-lg font-bold text-red-800">{moneyText(expenseTotal)}</p></div>
+              <div className="rounded-lg bg-slate-100 p-3"><p className="text-xs text-slate-600">Neto del extracto</p><p className="text-lg font-bold text-slate-900">{moneyText(signedTotal)}</p></div>
+            </div>
+
+            <div className="rounded-lg border p-3">
+              <p className="mb-2 flex items-center gap-2 text-sm font-semibold"><FileCheck2 className="h-4 w-4" />Vista previa · {fileName}</p>
+              <div className="max-h-60 space-y-2 overflow-y-auto">
+                {normalizedMovements.slice(0, 12).map((mov, idx) => (
+                  <div key={`${mov.fecha}-${idx}`} className="flex items-start justify-between gap-3 rounded border bg-white p-2 text-xs">
+                    <div><p className="font-medium">{mov.concepto}</p><p className="text-slate-500">{new Date(mov.fecha + "T12:00:00").toLocaleDateString("es-ES")}</p></div>
+                    <span className={mov.tipo === "ingreso" ? "whitespace-nowrap font-semibold text-green-700" : "whitespace-nowrap font-semibold text-red-700"}>{mov.tipo === "ingreso" ? "+" : "−"}{moneyText(mov.importe)}</span>
+                  </div>
+                ))}
+                {normalizedMovements.length > 12 && <p className="text-center text-xs text-slate-500">Y {normalizedMovements.length - 12} movimientos más.</p>}
+              </div>
+            </div>
+
+            <Button onClick={handleImport} disabled={importing || uploading || extracting || !periodStart || !periodEnd} className="w-full bg-blue-600 hover:bg-blue-700">
+              {importing ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Importando...</> : <><CheckCircle2 className="mr-2 h-4 w-4" />Importar y actualizar saldo</>}
             </Button>
-          </>
+          </div>
         )}
       </CardContent>
     </Card>
