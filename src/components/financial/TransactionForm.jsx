@@ -91,7 +91,7 @@ export default function TransactionForm({
 
   const cambiarTipo = (nuevoTipo) => {
     setTipo(nuevoTipo);
-    const categoriasPermitidas = nuevoTipo === "Ingreso" ? CATEGORIAS_INGRESO : CATEGORIAS_GASTO;
+    const categoriasPermitidas = [...CATEGORIAS_BASE, ...categoriasPersonalizadas];
     setFormData(prev => ({
       ...prev,
       categoria: categoriasPermitidas.includes(prev.categoria) ? prev.categoria : "",
