@@ -10,6 +10,23 @@ const PERIOD_MONTHS = { mensual: 1, bimestral: 2, trimestral: 3, semestral: 6, a
 const monthKey = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 const normalizeText = (value) => String(value || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
+function paymentMonthKey(payment, activeSeason, currentMonth) {
+  const monthNames = { junio: 5, septiembre: 8, diciembre: 11 };
+  const monthName = String(payment.mes || "").toLowerCase();
+  const years = String(activeSeason?.temporada || "").match(/\\d{4}/g) || [];
+  const startYear = Number(years[0]) || currentMonth.getFullYear();
+  const endYear = Number(years[1]) || startYear + 1;
+  if (monthName in monthNames) {
+    const year = monthName === "junio" ? endYear : startYear;
+    return monthKey(new Date(year, monthNames[monthName], 1));
+  }
+  return monthKey(currentMonth);
+}
+
+function isPendingPayment(payment) {
+  return payment.is_deleted !== true && !["Pagado", "Anulado"].includes(payment.estado) && Number(payment.cantidad) > 0;
+}
+
 function matchesCommitment(commitment, transaction) {
   const name = normalizeText(commitment.nombre);
   const thirdParty = normalizeText(commitment.tercero);
@@ -31,7 +48,7 @@ function dueInMonth(item, month) {
   return diff >= 0 && diff % interval === 0;
 }
 
-export default function CashPositionForecast({ compact = false }) {
+export default function CashPositionForecast({ compact = false, activeSeason }) {
   const { data: accounts = [], isLoading: accountsLoading, error: accountsError } = useQuery({
     queryKey: ["cashForecastBankAccounts"],
     queryFn: () => base44.entities.BankAccount.list(),
@@ -47,6 +64,18 @@ export default function CashPositionForecast({ compact = false }) {
     queryFn: () => base44.entities.FinancialTransaction.list("-fecha"),
     staleTime: 60000,
   });
+  const { data: payments = [], isLoading: paymentsLoading } = useQuery({
+    queryKey: ["cashForecastPayments", activeSeason?.temporada],
+    queryFn: () => activeSeason?.temporada
+      ? base44.entities.Payment.filter({ temporada: activeSeason.temporada })
+      : base44.entities.Payment.list(),
+    staleTime: 60000,
+  });
+
+  const pendingPayments = payments.filter(isPendingPayment);
+  const pendingFinancialIncome = transactions.filter((t) => t.estado === "Pendiente" && t.tipo === "Ingreso" && Number(t.cantidad) > 0);
+  const pendingPaymentsTotal = pendingPayments.reduce((sum, payment) => sum + (Number(payment.cantidad) || 0), 0);
+  const pendingFinancialIncomeTotal = pendingFinancialIncome.reduce((sum, transaction) => sum + (Number(transaction.cantidad) || 0), 0);
 
   const activeAccounts = accounts.filter(a => a.activa !== false);
   const hasBalances = activeAccounts.some(a => Number.isFinite(Number(a.saldo_actual)) && a.saldo_actual !== undefined && a.saldo_actual !== null);
@@ -71,17 +100,21 @@ export default function CashPositionForecast({ compact = false }) {
         !monthTransactions.some((t) => t.tipo === "Gasto" && matchesCommitment(c, t))
       ).reduce((sum, c) => sum + (Number(c.importe) || 0), 0);
       const outstanding = pendingExpenseTransactions.reduce((sum, t) => sum + Number(t.cantidad || 0), 0);
-      const pendingIncome = monthTransactions.filter((t) =>
+      const pendingIncomeTransactions = monthTransactions.filter((t) =>
         t.estado === "Pendiente" && t.tipo === "Ingreso" && Number(t.cantidad) > 0
       ).reduce((sum, t) => sum + Number(t.cantidad || 0), 0);
+      const pendingPaymentIncome = pendingPayments
+        .filter((payment) => paymentMonthKey(payment, activeSeason, month) === monthKey(month))
+        .reduce((sum, payment) => sum + (Number(payment.cantidad) || 0), 0);
+      const pendingIncome = pendingIncomeTransactions + pendingPaymentIncome;
       // No se suman ingresos recurrentes estimados: solo ingresos pendientes registrados.
       const totalOut = recurring + outstanding;
       running = running - totalOut + pendingIncome;
       return { key: monthKey(month), label: month.toLocaleDateString("es-ES", { month: "long", year: "numeric" }), opening: running + totalOut - pendingIncome, recurring, outstanding, pendingIncome, totalOut, closing: running };
     });
-  }, [cashNow, commitments, transactions]);
+  }, [cashNow, commitments, transactions, pendingPayments, activeSeason]);
 
-  const loading = accountsLoading || commitmentsLoading || transactionsLoading;
+  const loading = accountsLoading || commitmentsLoading || transactionsLoading || paymentsLoading;
   const last = forecast[forecast.length - 1];
   const minBalance = forecast.length ? Math.min(...forecast.map(m => m.closing)) : cashNow;
   const registeredCommitments = commitments.filter(c => c.activo !== false).length;
@@ -93,7 +126,7 @@ export default function CashPositionForecast({ compact = false }) {
   if (compact) return (
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
       <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Dinero disponible en bancos</p><p className="mt-2 text-2xl font-bold">{euro(cashNow)}</p><p className="mt-1 text-xs text-slate-500">Según los últimos saldos registrados</p></CardContent></Card>
-      <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Pendiente de cobrar</p><p className="mt-2 text-2xl font-bold text-green-700">{euro(forecast[0]?.pendingIncome)}</p><p className="mt-1 text-xs text-slate-500">Ingresos pendientes registrados para este mes</p></CardContent></Card>
+      <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Pendiente de cobrar</p><p className="mt-2 text-2xl font-bold text-green-700">{euro(pendingPaymentsTotal + pendingFinancialIncomeTotal)}</p><p className="mt-1 text-xs text-slate-500">Cuotas y otros ingresos pendientes de cobrar</p></CardContent></Card>
       <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Pendiente de pagar</p><p className="mt-2 text-2xl font-bold text-red-700">{euro((forecast[0]?.recurring || 0) + (forecast[0]?.outstanding || 0))}</p><p className="mt-1 text-xs text-slate-500">Gastos pendientes y compromisos no duplicados</p></CardContent></Card>
       <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Previsión a 12 meses</p><p className="mt-2 text-2xl font-bold">{euro(last?.closing)}</p><p className="mt-1 text-xs text-slate-500">Con los datos registrados actualmente</p></CardContent></Card>
       <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Mínimo proyectado</p><p className={`mt-2 text-2xl font-bold ${minBalance < 0 ? "text-red-700" : "text-slate-900"}`}>{euro(minBalance)}</p><Badge variant={minBalance < 0 ? "destructive" : "secondary"} className="mt-2">{minBalance < 0 ? "Riesgo de saldo negativo" : "Previsión preliminar"}</Badge></CardContent></Card>
