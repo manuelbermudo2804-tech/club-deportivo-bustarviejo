@@ -230,7 +230,7 @@ export default function BudgetPlanner() {
               <Table><TableHeader><TableRow><TableHead>Partida</TableHead><TableHead>Tipo</TableHead><TableHead className="text-right">Movimientos</TableHead><TableHead className="text-right">Meses activos</TableHead><TableHead className="text-right">Importe real</TableHead></TableRow></TableHeader><TableBody>
                 {byPartida.map(row => <TableRow key={groupKey(row.tipo, row.nombre)}><TableCell className="font-medium">{row.nombre}{row.review > 0 && <Badge variant="destructive" className="ml-2">{row.review} revisar</Badge>}</TableCell><TableCell><Badge variant="outline" className={row.tipo === "Ingreso" ? "border-emerald-200 text-emerald-700" : "border-rose-200 text-rose-700"}>{row.tipo}</Badge></TableCell><TableCell className="text-right">{row.count}</TableCell><TableCell className="text-right">{row.months.size}</TableCell><TableCell className={"text-right font-semibold " + (row.tipo === "Ingreso" ? "text-emerald-700" : "text-rose-700")}>{money(row.total)}</TableCell></TableRow>)}
                 {!byPartida.length && <TableRow><TableCell colSpan={5} className="py-10 text-center text-slate-500">No hay movimientos reales en el rango de fechas.</TableCell></TableRow>}
-              </Table>
+              </TableBody></Table>
             </CardContent></Card>
           </TabsContent>
 
