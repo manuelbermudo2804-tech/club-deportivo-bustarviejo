@@ -15,7 +15,7 @@ const normalizeSeason = (value) => String(value || "").replace(/[^\d]/g, "");
 const sameSeason = (a,b) => normalizeSeason(a) === normalizeSeason(b);
 const clean = (value) => String(value || "").trim();
 const canonicalName = (value) => {
-  const name = clean(value).toLocaleLowerCase("es").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "");
+  const name = clean(value).toLocaleLowerCase("es").replace(/[áàä]/g,"a").replace(/[éèë]/g,"e").replace(/[íìï]/g,"i").replace(/[óòö]/g,"o").replace(/[úùü]/g,"u").replace(/ñ/g,"n");
   if (["inscripciones jugadores", "inscripcion jugadores", "inscripciones"].includes(name)) return "inscripciones";
   if (["loteria navidad", "loteria"].includes(name)) return "loteria";
   if (["subvenciones ayuntamiento", "subvenciones"].includes(name)) return "subvenciones";
