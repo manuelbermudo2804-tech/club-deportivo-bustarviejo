@@ -79,7 +79,7 @@ function movementSignature(mov) {
   ].join("|");
 }
 
-function guessCategory(mov, rules = []) {
+function guessCategory(mov, rules = [], customCategories = []) {
   const concept = normalizeConcept(mov.concepto);
   const txType = mov.tipo === "ingreso" ? "Ingreso" : "Gasto";
   const rule = rules.find((item) =>
@@ -90,8 +90,8 @@ function guessCategory(mov, rules = []) {
   );
   const validIncome = ["Cuotas Socios", "Inscripciones", "Subvenciones", "Patrocinios", "Venta Equipación", "Eventos", "Lotería", "Otros Ingresos"];
   const validExpense = ["Material Deportivo", "Equipación", "Arbitrajes", "Desplazamientos", "Instalaciones", "Mantenimiento", "Seguros", "Federación", "Personal", "Suministros", "Marketing", "Eventos y Celebraciones", "Otros Gastos"];
-  const allowed = txType === "Ingreso" ? validIncome : validExpense;
-  if (rule && allowed.includes(rule.categoria_destino)) return { categoria: rule.categoria_destino, fromRule: true };
+  const allowed = [...validIncome, ...validExpense, ...customCategories];
+  if (rule && allowed.includes(rule.categoria_destino)) return { categoria: rule.categoria_destino, fromRule: true, ruleId: rule.id };
   if (txType === "Ingreso") {
     if (/subvencion|ayuntamiento|comunidad de madrid/.test(concept)) return { categoria: "Subvenciones", fromRule: false };
     if (/patrocin|sponsor/.test(concept)) return { categoria: "Patrocinios", fromRule: false };
@@ -307,12 +307,14 @@ export default function BankStatementImporter({ activeSeason, accountId, account
 
     setImporting(true);
     try {
-      const [allPayments, user, allTransactions, reconciliationRules] = await Promise.all([
+      const [allPayments, user, allTransactions, reconciliationRules, customCategoryRows] = await Promise.all([
         base44.entities.Payment.filter({ temporada: activeSeason?.temporada }).catch(() => []),
         base44.auth.me(),
         base44.entities.FinancialTransaction.list("-fecha").catch(() => []),
-        base44.entities.ReconciliationRule.list("-veces_aplicada").catch(() => [])
+        base44.entities.ReconciliationRule.list("-veces_aplicada").catch(() => []),
+        base44.entities.FinancialCategory.list("-orden", 500).catch(() => [])
       ]);
+      const customCategories = customCategoryRows.filter((row) => row.activa !== false).map((row) => row.nombre);
       const existing = await base44.entities.BankMovement.filter({ cuenta_bancaria: accountId });
       const existingCounts = new Map();
       existing.forEach((m) => {
@@ -410,7 +412,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         // aún no está identificado. Los casos Stripe/traspasos se registran como pendientes
         // de clasificación y no se duplican como ingreso operativo confirmado.
         if (!matchingPayment && !matchingTransaction) {
-          categoryGuess = guessCategory(mov, reconciliationRules);
+          categoryGuess = guessCategory(mov, reconciliationRules, customCategories);
           createdTransaction = await base44.entities.FinancialTransaction.create({
             tipo: mov.tipo === "ingreso" ? "Ingreso" : "Gasto",
             concepto: mov.concepto,
@@ -507,6 +509,16 @@ export default function BankStatementImporter({ activeSeason, accountId, account
               bank_movement_id: createdMovement.id,
               referencia_origen: createdMovement.id
             });
+          }
+          if (categoryGuess?.ruleId) {
+            const appliedRule = reconciliationRules.find((rule) => rule.id === categoryGuess.ruleId);
+            if (appliedRule) {
+              await base44.entities.ReconciliationRule.update(appliedRule.id, {
+                veces_aplicada: Number(appliedRule.veces_aplicada || 0) + 1,
+                ultima_aplicacion: now
+              }).catch(() => null);
+              appliedRule.veces_aplicada = Number(appliedRule.veces_aplicada || 0) + 1;
+            }
           }
           if (!manualSettlement) reconciledCount++;
         }
