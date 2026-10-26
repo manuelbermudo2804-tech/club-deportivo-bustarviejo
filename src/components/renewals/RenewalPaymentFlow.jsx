@@ -58,7 +58,7 @@ export default function RenewalPaymentFlow({
         fecha_nacimiento: p.fecha_nacimiento
       })).filter(p => p.fecha_nacimiento);
 
-      todosHermanos.sort((a, b) => new Date(a.fecha_nacimiento) - new Date(b.fecha_nacimiento));
+      todosHermanos.sort((a, b) => new Date(a.fecha_nacimiento).getTime() - new Date(b.fecha_nacimiento).getTime());
 
       // Si este jugador NO es el mayor, tiene descuento
       const esMayor = todosHermanos[0]?.id === player.id;
