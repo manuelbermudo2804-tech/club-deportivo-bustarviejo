@@ -24,6 +24,7 @@ import { toast } from "sonner";
 
 import BudgetManager from "../components/financial/BudgetManager";
 import SeasonBudgetDashboard from "../components/financial/SeasonBudgetDashboard";
+import FinancialAuditCenter from "../components/financial/FinancialAuditCenter";
 import TransactionList from "../components/financial/TransactionList";
 import TransactionForm from "../components/financial/TransactionForm";
 import AIFinancialForecasting from "../components/financial/AIFinancialForecasting";
@@ -1698,7 +1699,8 @@ export default function TreasurerFinancialPanel() {
         </TabsContent>
 
         {/* TAB PRESUPUESTOS: reconstrucción dinámica desde las partidas y registros existentes. */}
-        <TabsContent value="presupuestos" className="mt-6">
+        <TabsContent value="presupuestos" className="mt-6 space-y-8">
+          <FinancialAuditCenter activeSeason={activeSeason} />
           <SeasonBudgetDashboard activeSeason={activeSeason} />
         </TabsContent>
 
