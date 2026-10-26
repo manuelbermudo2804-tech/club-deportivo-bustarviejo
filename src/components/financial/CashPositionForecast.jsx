@@ -31,7 +31,7 @@ function dueInMonth(item, month) {
   return diff >= 0 && diff % interval === 0;
 }
 
-export default function CashPositionForecast() {
+export default function CashPositionForecast({ compact = false }) {
   const { data: accounts = [], isLoading: accountsLoading, error: accountsError } = useQuery({
     queryKey: ["cashForecastBankAccounts"],
     queryFn: () => base44.entities.BankAccount.list(),
@@ -89,6 +89,16 @@ export default function CashPositionForecast() {
 
   if (loading) return <Card><CardContent className="p-6 text-slate-500">Calculando posición de tesorería…</CardContent></Card>;
   if (accountsError) return <Card><CardContent className="p-6 text-red-600">No se pudieron cargar las cuentas bancarias. Revisa los permisos de tesorería.</CardContent></Card>;
+
+  if (compact) return (
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+      <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Dinero disponible en bancos</p><p className="mt-2 text-2xl font-bold">{euro(cashNow)}</p><p className="mt-1 text-xs text-slate-500">Según los últimos saldos registrados</p></CardContent></Card>
+      <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Pendiente de cobrar</p><p className="mt-2 text-2xl font-bold text-green-700">{euro(forecast[0]?.pendingIncome)}</p><p className="mt-1 text-xs text-slate-500">Ingresos pendientes registrados para este mes</p></CardContent></Card>
+      <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Pendiente de pagar</p><p className="mt-2 text-2xl font-bold text-red-700">{euro((forecast[0]?.recurring || 0) + (forecast[0]?.outstanding || 0))}</p><p className="mt-1 text-xs text-slate-500">Gastos pendientes y compromisos no duplicados</p></CardContent></Card>
+      <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Previsión a 12 meses</p><p className="mt-2 text-2xl font-bold">{euro(last?.closing)}</p><p className="mt-1 text-xs text-slate-500">Con los datos registrados actualmente</p></CardContent></Card>
+      <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Mínimo proyectado</p><p className={`mt-2 text-2xl font-bold ${minBalance < 0 ? "text-red-700" : "text-slate-900"}`}>{euro(minBalance)}</p><Badge variant={minBalance < 0 ? "destructive" : "secondary"} className="mt-2">{minBalance < 0 ? "Riesgo de saldo negativo" : "Previsión preliminar"}</Badge></CardContent></Card>
+    </div>
+  );
 
   return <div className="space-y-5">
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
