@@ -307,7 +307,7 @@ export default function RenewalPaymentFlow({
           <AlertDescription className="text-orange-800">
             <p className="font-bold text-sm mb-1">📌 Importante:</p>
             <p className="text-xs">
-              Las cuotas se crearán con estado <strong>"Pendiente"</strong>. Podrás registrar los pagos desde la sección "Pagos" cuando realices las transferencias.
+              {prepagoRenovacion ? <>El pago se realizará con tarjeta mediante Stripe. La renovación se confirmará cuando el servidor verifique el cobro. {tipoPago === "Tres meses" ? "Las cuotas de septiembre y diciembre quedarán pendientes." : "El pago único cubrirá toda la temporada."}</> : <>Las cuotas se crearán con estado <strong>"Pendiente"</strong>. Podrás registrar los pagos desde la sección "Pagos" cuando realices las transferencias.</>}
             </p>
           </AlertDescription>
         </Alert>
@@ -334,7 +334,7 @@ export default function RenewalPaymentFlow({
             ) : (
               <>
                 <CheckCircle2 className="w-4 h-4 mr-2" />
-                ✅ Confirmar Renovación
+                {prepagoRenovacion ? "💳 Pagar y renovar" : "✅ Confirmar Renovación"}
               </>
             )}
           </Button>
