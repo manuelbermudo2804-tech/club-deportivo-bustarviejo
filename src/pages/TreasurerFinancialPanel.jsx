@@ -1524,14 +1524,6 @@ export default function TreasurerFinancialPanel() {
             </Card>
           </div>
 
-          {/* Proyección de Ingresos */}
-          <IncomeProjection 
-            totalIngresos={totalIngresos}
-            totalPendiente={totalPendiente}
-            totalEsperado={totalEsperado}
-            stats={stats}
-          />
-
           {/* Evolución Mensual */}
           <MonthlyEvolutionChart 
             payments={payments}
@@ -1558,10 +1550,6 @@ export default function TreasurerFinancialPanel() {
             activeSeason={activeSeason}
             getImportePorMes={getImportePorMes}
           />
-
-
-          {/* Registro Stripe */}
-          <StripePaymentsPanel />
 
           {/* Predicción Fin de Temporada */}
           <EndOfSeasonForecast 
