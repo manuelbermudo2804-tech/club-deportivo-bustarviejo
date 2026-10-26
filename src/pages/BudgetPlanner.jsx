@@ -43,8 +43,8 @@ export default function BudgetPlanner() {
     setLoading(true);
     try {
       const [txs, movements, budgets] = await Promise.all([
-        base44.entities.FinancialTransaction.filter({}, "fecha", 500, 0),
-        base44.entities.BankMovement.filter({}, "fecha", 500, 0),
+        base44.entities.FinancialTransaction.filter({ fecha: { $gte: CURRENT_START, $lte: CURRENT_END } }, "fecha", 500, 0),
+        base44.entities.BankMovement.filter({ fecha: { $gte: CURRENT_START, $lte: CURRENT_END } }, "fecha", 500, 0),
         base44.entities.Budget.filter({ temporada: TARGET_SEASON }, "-updated_date", 20, 0)
       ]);
       const validTxs = (txs || []).filter(t => !t.is_sample && t.estado !== "Anulado");
