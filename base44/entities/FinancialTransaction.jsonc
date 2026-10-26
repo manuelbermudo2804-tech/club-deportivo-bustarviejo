@@ -188,6 +188,15 @@
     "temporada_actividad": {
       "type": "string",
       "description": "Temporada de la actividad a la que corresponde (\u00fatil para ayudas cobradas en una temporada por actividad de otra)"
+    },
+    "bank_movement_id": {
+      "type": "string",
+      "description": "Movimiento bancario que confirma o gener\u00f3 esta transacci\u00f3n"
+    },
+    "revisar_clasificacion": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indica que la categor\u00eda autom\u00e1tica debe revisarse"
     }
   },
   "required": [
