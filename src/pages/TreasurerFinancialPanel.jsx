@@ -49,6 +49,7 @@ import SeasonalityAnalysis from "../components/financial/SeasonalityAnalysis.jsx
 import BankReconciliationWizard from "../components/financial/BankReconciliationWizard.jsx";
 import BankStatementReconciliation from "../components/financial/BankStatementReconciliation.jsx";
 import RecurringCommitmentsManager from "../components/financial/RecurringCommitmentsManager.jsx";
+import CashPositionForecast from "../components/financial/CashPositionForecast.jsx";
 import { Input } from "@/components/ui/input";
 
 export default function TreasurerFinancialPanel() {
@@ -1695,6 +1696,7 @@ export default function TreasurerFinancialPanel() {
 
         {/* TAB TESORERÍA: compromisos recurrentes */}
         <TabsContent value="tesoreria" className="space-y-6 mt-6">
+          <CashPositionForecast />
           <RecurringCommitmentsManager />
         </TabsContent>
 
