@@ -117,12 +117,12 @@ export default function BudgetPlanner() {
 
   const actualGroups = useMemo(() => buildActualGroups(transactions), [transactions]);
   const totals = useMemo(() => {
-    const incomes = currentTransactions.filter(t => t.tipo === "Ingreso").reduce((sum, t) => sum + number(t.cantidad), 0);
-    const expenses = currentTransactions.filter(t => t.tipo === "Gasto").reduce((sum, t) => sum + number(t.cantidad), 0);
+    const incomes = operatingTransactions.filter(t => t.tipo === "Ingreso").reduce((sum, t) => sum + number(t.cantidad), 0);
+    const expenses = operatingTransactions.filter(t => t.tipo === "Gasto").reduce((sum, t) => sum + number(t.cantidad), 0);
     const incomesForecast = draftLines.filter(l => (l.tipoMovimiento || (l.categoria === "Ingresos" ? "Ingreso" : "Gasto")) === "Ingreso").reduce((sum, l) => sum + number(l.presupuestado), 0);
     const expensesForecast = draftLines.filter(l => (l.tipoMovimiento || (l.categoria === "Ingresos" ? "Ingreso" : "Gasto")) === "Gasto").reduce((sum, l) => sum + number(l.presupuestado), 0);
     return { incomes, expenses, net: incomes - expenses, incomesForecast, expensesForecast, forecastNet: incomesForecast - expensesForecast };
-  }, [currentTransactions, draftLines]);
+  }, [operatingTransactions, draftLines]);
 
   const updateLine = (id, field, value) => setDraftLines(prev => prev.map(line => line.id === id ? { ...line, [field]: field === "presupuestado" ? value : value } : line));
   const saveBudget = async () => {
@@ -137,8 +137,8 @@ export default function BudgetPlanner() {
       }));
       const incomes = partidas.filter(p => p.categoria === "Ingresos").reduce((s, p) => s + p.presupuestado, 0);
       const expenses = partidas.filter(p => p.categoria !== "Ingresos").reduce((s, p) => s + p.presupuestado, 0);
-      const executedIncome = currentTransactions.filter(t => t.tipo === "Ingreso").reduce((s, t) => s + number(t.cantidad), 0);
-      const executedExpenses = currentTransactions.filter(t => t.tipo === "Gasto").reduce((s, t) => s + number(t.cantidad), 0);
+      const executedIncome = operatingTransactions.filter(t => t.tipo === "Ingreso").reduce((s, t) => s + number(t.cantidad), 0);
+      const executedExpenses = operatingTransactions.filter(t => t.tipo === "Gasto").reduce((s, t) => s + number(t.cantidad), 0);
       const payload = {
         temporada: TARGET_SEASON,
         nombre: "Presupuesto construido desde movimientos",
