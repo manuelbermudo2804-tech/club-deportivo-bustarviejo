@@ -75,7 +75,7 @@ export default function BankStatementImporter({ activeSeason, accountId }) {
     try {
       const [payments, existingMovements] = await Promise.all([
         base44.entities.Payment.filter({ temporada: activeSeason.temporada }),
-        base44.entities.BankMovement.filter({ cuenta_id: accountId })
+        base44.entities.BankMovement.filter({ cuenta_bancaria: accountId })
       ]);
 
       // Compara fecha, concepto, importe y tipo. Mantiene recuentos para no
@@ -83,8 +83,8 @@ export default function BankStatementImporter({ activeSeason, accountId }) {
       const signature = (mov) => [
         String(mov.fecha || "").trim().toLowerCase(),
         String(mov.concepto || "").replace(/\s+/g, " ").trim().toLowerCase(),
-        Number(mov.cantidad || 0).toFixed(2),
-        mov.tipo || (Number(mov.cantidad) >= 0 ? "Ingreso" : "Gasto")
+        Number(mov.importe ?? mov.cantidad ?? 0).toFixed(2),
+        String(mov.tipo || (Number(mov.importe ?? mov.cantidad) >= 0 ? "ingreso" : "gasto")).toLowerCase()
       ].join("|");
 
       const importedCounts = new Map();
@@ -102,7 +102,8 @@ export default function BankStatementImporter({ activeSeason, accountId }) {
       for (const mov of movements) {
         const key = signature({
           ...mov,
-          tipo: Number(mov.cantidad) >= 0 ? "Ingreso" : "Gasto"
+          importe: Number(mov.importe ?? mov.cantidad ?? 0),
+          tipo: Number(mov.importe ?? mov.cantidad) >= 0 ? "ingreso" : "gasto"
         });
         const occurrence = (incomingCounts.get(key) || 0) + 1;
         incomingCounts.set(key, occurrence);
@@ -115,24 +116,22 @@ export default function BankStatementImporter({ activeSeason, accountId }) {
         const concept = String(mov.concepto || "").toLowerCase();
         const matching = payments.find((p) => {
           const playerName = String(p.jugador_nombre || "").trim().toLowerCase();
-          const amountMatch = Math.abs(Number(p.cantidad || 0) - Math.abs(Number(mov.cantidad || 0))) < 1;
+          const amountMatch = Math.abs(Number(p.cantidad || 0) - Math.abs(Number(mov.importe ?? mov.cantidad ?? 0))) < 1;
           const conceptMatch = playerName.length > 2 && concept.includes(playerName);
           return amountMatch && conceptMatch && !p.reconciliado_banco && !usedPaymentIds.has(p.id);
         });
 
         const bankMovement = {
-          cuenta_id: accountId,
+          cuenta_bancaria: accountId,
           fecha: mov.fecha,
           concepto: mov.concepto,
-          cantidad: mov.cantidad,
-          tipo: Number(mov.cantidad) >= 0 ? "Ingreso" : "Gasto",
-          conciliado: !!matching,
+          importe: Number(mov.importe ?? mov.cantidad ?? 0),
+          tipo: Number(mov.importe ?? mov.cantidad ?? 0) >= 0 ? "ingreso" : "gasto",
+          reconciliado: !!matching,
           payment_id: matching?.id || null,
-          conciliado_automaticamente: !!matching,
-          confianza_conciliacion: matching ? 95 : 0,
-          origen_importacion: fileName,
-          fecha_importacion: new Date().toISOString(),
-          temporada: activeSeason.temporada
+          confianza_match: matching ? 95 : 0,
+          fecha_reconciliacion: matching ? new Date().toISOString() : undefined,
+          notas_reconciliacion: matching ? "Coincidencia automática por nombre e importe" : undefined
         };
 
         await base44.entities.BankMovement.create(bankMovement);
@@ -152,7 +151,7 @@ export default function BankStatementImporter({ activeSeason, accountId }) {
       queryClient.invalidateQueries({ queryKey: ['bankMovements'] });
       queryClient.invalidateQueries({ queryKey: ['payments'] });
 
-      toast.success(`Importados ${imported} movimientos; ${matchedCount} conciliados automáticamente; ${skipped} duplicados omitidos.`);
+      toast.success(`Importados ${imported} movimientos; ${matchedCount} conciliados automáticamente; ${skipped} posibles duplicados omitidos.`);
       setMovements([]);
       setFileName("");
     } catch (error) {
