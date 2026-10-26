@@ -79,13 +79,26 @@ export default function CashPositionForecast({ compact = false, activeSeason }) 
   const seasonPayments = payments.filter((payment) =>
     !normalizedActiveSeason || !payment.temporada || String(payment.temporada).replace(/\D/g, "") === normalizedActiveSeason
   );
-  const pendingPayments = seasonPayments.filter(isPendingPayment);
   const pendingFinancialIncome = transactions.filter((t) =>
     t.estado === "Pendiente" &&
     t.tipo === "Ingreso" &&
     Number(t.cantidad) > 0 &&
     (!normalizedActiveSeason || !t.temporada || String(t.temporada).replace(/\D/g, "") === normalizedActiveSeason)
   );
+  // Un cobro solo puede aparecer una vez en la previsión: si ya existe como partida
+  // financiera pendiente, no volvemos a sumar el Payment equivalente.
+  const pendingPayments = seasonPayments.filter((payment) => {
+    if (!isPendingPayment(payment)) return false;
+    const paymentName = normalizeText(payment.jugador_nombre);
+    const amount = Number(payment.cantidad) || 0;
+    const representedInLedger = pendingFinancialIncome.some((transaction) => {
+      if (Math.abs((Number(transaction.cantidad) || 0) - amount) >= 0.02) return false;
+      const concept = normalizeText(transaction.concepto);
+      const party = normalizeText(transaction.proveedor_cliente);
+      return paymentName.length > 2 && (concept.includes(paymentName) || party.includes(paymentName));
+    });
+    return !representedInLedger;
+  });
   const pendingPaymentsTotal = pendingPayments.reduce((sum, payment) => sum + (Number(payment.cantidad) || 0), 0);
   const pendingFinancialIncomeTotal = pendingFinancialIncome.reduce((sum, transaction) => sum + (Number(transaction.cantidad) || 0), 0);
 
