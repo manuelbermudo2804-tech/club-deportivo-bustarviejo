@@ -286,7 +286,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
 
         const normalizedConcept = normalizeConcept(mov.concepto);
         const matchingTransaction = matchingPayment ? null : allTransactions.find((tx) => {
-          if (tx.bank_movement_id || usedTransactionIds.has(tx.id)) return false;
+          if (tx.bank_movement_id || existing.some((item) => item.financial_transaction_id === tx.id) || usedTransactionIds.has(tx.id)) return false;
           if (tx.tipo !== (mov.tipo === "ingreso" ? "Ingreso" : "Gasto")) return false;
           if (normalizeDate(tx.fecha) !== mov.fecha) return false;
           if (Math.abs(Math.abs(Number(tx.cantidad) || 0) - mov.importe) >= 0.02) return false;
@@ -405,8 +405,8 @@ export default function BankStatementImporter({ activeSeason, accountId, account
       await base44.entities.ReconciliationSession.create({
         extracto_url: fileUrl,
         movimientos_totales: importedCount,
-        movimientos_reconciliados: matchedCount,
-        movimientos_pendientes: Math.max(0, importedCount - matchedCount),
+        movimientos_reconciliados: reconciledCount,
+        movimientos_pendientes: Math.max(0, importedCount - reconciledCount),
         admin_email: user?.email || "no-disponible",
         completada: true,
         fecha_inicio: periodStart,
