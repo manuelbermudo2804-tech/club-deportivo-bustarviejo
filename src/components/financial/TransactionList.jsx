@@ -277,7 +277,24 @@ export default function TransactionList({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-xs">{t.categoria}</Badge>
+                      {t.revisar_clasificacion ? (
+                        <div className="min-w-[180px] space-y-2">
+                          <Badge className="bg-amber-100 text-amber-800"><AlertTriangle className="mr-1 h-3 w-3" />Revisar categoría</Badge>
+                          <Select value={categoryEdits[t.id] || t.categoria} onValueChange={(value) => setCategoryEdits((prev) => ({ ...prev, [t.id]: value }))}>
+                            <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Seleccionar categoría" /></SelectTrigger>
+                            <SelectContent>
+                              {(t.tipo === "Ingreso" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((category) => (
+                                <SelectItem key={category} value={category}>{category}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button size="sm" variant="outline" className="h-7 w-full text-xs" disabled={savingReviewId === t.id} onClick={() => handleSaveCategory(t)}>
+                            <CheckCircle2 className="mr-1 h-3 w-3" />{savingReviewId === t.id ? "Guardando..." : "Confirmar categoría"}
+                          </Button>
+                        </div>
+                      ) : (
+                        <Badge variant="outline" className="text-xs">{t.categoria}</Badge>
+                      )}
                     </TableCell>
                     <TableCell className="text-sm">{t.proveedor_cliente || "-"}</TableCell>
                     <TableCell className={`text-right font-bold ${t.tipo === "Ingreso" ? "text-green-600" : "text-red-600"}`}>
