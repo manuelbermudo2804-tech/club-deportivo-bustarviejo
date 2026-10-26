@@ -306,7 +306,17 @@ Deno.serve(async (req) => {
         for (const p of pendientes) await db.PrepagoInscripcion.update(p.id, { estado: 'Cancelado' });
       }
 
-      const descuento = Number(body.descuentoHermano) > 0 ? Math.min(25, Number(body.descuentoHermano)) : 0;
+      // Descuento por hermano calculado en servidor: no aceptar importes del navegador.
+      let descuento = 0;
+      if (player.fecha_nacimiento && player.email_padre) {
+        const siblings = await db.Player.filter({ email_padre: player.email_padre }, '-created_date', 200);
+        const siblings2 = player.email_tutor_2 ? await db.Player.filter({ email_tutor_2: player.email_tutor_2 }, '-created_date', 200) : [];
+        const allSiblings = [...new Map([...siblings, ...siblings2].map((p) => [p.id, p])).values()]
+          .filter((p) => p.id !== player.id && (p.activo === true || p.estado_renovacion === 'renovado') && p.fecha_nacimiento);
+        const playerBirth = new Date(player.fecha_nacimiento).getTime();
+        const hasOlder = allSiblings.some((p) => new Date(p.fecha_nacimiento).getTime() < playerBirth);
+        if (hasOlder) descuento = 25;
+      }
       const inscripcion = Number(cfg.cuota_inscripcion) || 0;
       const segunda = Number(cfg.cuota_segunda) || 0;
       const tercera = Number(cfg.cuota_tercera) || 0;
