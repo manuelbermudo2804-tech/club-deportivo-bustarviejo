@@ -371,7 +371,9 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         }) : null;
 
         const normalizedConcept = normalizeConcept(mov.concepto);
-        const transactionCandidates = matchingPayment ? [] : allTransactions.filter((tx) => {
+        // Busca también una partida financiera aunque el movimiento ya coincida con Payment:
+        // ambos registros pueden representar el mismo cobro y deben quedar enlazados al mismo movimiento bancario.
+        const transactionCandidates = allTransactions.filter((tx) => {
           if (tx.bank_movement_id || existing.some((item) => item.financial_transaction_id === tx.id) || usedTransactionIds.has(tx.id)) return false;
           if (tx.tipo !== (mov.tipo === "ingreso" ? "Ingreso" : "Gasto")) return false;
           if (normalizeDate(tx.fecha) !== mov.fecha) return false;
@@ -466,6 +468,21 @@ export default function BankStatementImporter({ activeSeason, accountId, account
             reconciliado_banco: true,
             fecha_reconciliacion: now
           });
+          // Si ya había una partida para el mismo movimiento, actualizarla en vez de
+          // dejarla pendiente y volver a contarla en la previsión de caja.
+          if (matchingTransaction) {
+            usedTransactionIds.add(matchingTransaction.id);
+            await base44.entities.FinancialTransaction.update(matchingTransaction.id, {
+              estado: "Cobrado",
+              bank_movement_id: createdMovement?.id || undefined,
+              ...(amountOnlyTransactionMatch ? { revisar_clasificacion: true } : {}),
+              notas: [
+                matchingTransaction.notas,
+                "Conciliado con extracto bancario y vinculado al pago existente.",
+                ...(amountOnlyTransactionMatch ? ["Coincidencia por fecha e importe: revisar concepto y categoría."] : [])
+              ].filter(Boolean).join(" ")
+            });
+          }
           matchedCount++;
           reconciledCount++;
         } else if (matchingTransaction) {
