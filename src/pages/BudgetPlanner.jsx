@@ -108,10 +108,9 @@ export default function BudgetPlanner({ onScenarioChange }) {
     setDraft(current => {
       const next = { ...current };
       baseRows.forEach(row => {
-        if (next[row.key] === undefined) {
-          const saved = targetBudget?.partidas?.find(p => keyFor(p.categoria, p.nombre) === row.key);
-          next[row.key] = saved ? Number(saved.presupuestado || 0) : (row.historico > 0 ? row.historico : (row.presupuestoBase || 0));
-        }
+        const saved = targetBudget?.partidas?.find(p => keyFor(p.categoria, p.nombre) === row.key);
+        if (saved) next[row.key] = Number(saved.presupuestado || 0);
+        else if (next[row.key] === undefined) next[row.key] = row.historico > 0 ? row.historico : (row.presupuestoBase || 0);
       });
       if (targetBudget?.notas && notes.startsWith("Borrador de planificación")) setNotes(targetBudget.notas);
       return next;
