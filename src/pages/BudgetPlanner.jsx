@@ -58,8 +58,15 @@ export default function BudgetPlanner({ onScenarioChange }) {
     (baseBudget?.partidas || []).forEach(p => add(p.categoria, p.nombre, p.presupuestado, "Presupuesto base", p.categoria === "Ingresos" ? "Ingreso" : "Gasto"));
     transactions.filter(t => sameSeason(t.temporada, BASE_SEASON) && t.estado !== "Anulado").forEach(t => {
       const income = t.tipo === "Ingreso";
-      const amount = income ? Number(t.cantidad || 0) : -Number(t.cantidad || 0);
-      add(income ? "Ingresos" : (clean(t.categoria) || "Gastos sin clasificar"), t.partida_nombre || t.categoria, amount, "Transacciones registradas", t.tipo);
+      if (income && t.estado !== "Cobrado") return;
+      if (!income && t.estado !== "Pagado") return;
+      // Las liquidaciones de Stripe son traspasos de tesorería: no se vuelven a sumar como ingreso.
+      if (income && /transferencia.*stripe|stripe.*transferencia/i.test(String(t.concepto || ""))) return;
+      const amount = Number(t.cantidad || 0);
+      const matchingBudgetLine = (baseBudget?.partidas || []).find(p => clean(p.nombre).toLocaleLowerCase("es") === clean(t.partida_nombre).toLocaleLowerCase("es"));
+      const budgetCategory = income ? "Ingresos" : (matchingBudgetLine?.categoria || "Gastos Variables");
+      // Se conserva la categoría real del movimiento como nombre de partida; no se fuerza "Otros Ingresos/Gastos".
+      add(budgetCategory, clean(t.categoria) || clean(t.partida_nombre) || "Categoría sin informar", amount, "Transacciones cobradas/pagadas", t.tipo);
     });
     // If the selected base season has no records, use the latest available prior season only as a clearly-labelled fallback.
     const hasBaseSeasonData = transactions.some(t => sameSeason(t.temporada, BASE_SEASON)) || Boolean(baseBudget);
@@ -68,7 +75,11 @@ export default function BudgetPlanner({ onScenarioChange }) {
       const fallback = seasons.find(s => normalizeSeason(s) < normalizeSeason(TARGET_SEASON));
       if (fallback) transactions.filter(t => sameSeason(t.temporada, fallback) && t.estado !== "Anulado").forEach(t => {
         const income = t.tipo === "Ingreso";
-        add(income ? "Ingresos" : (clean(t.categoria) || "Gastos sin clasificar"), t.partida_nombre || t.categoria, income ? Number(t.cantidad || 0) : -Number(t.cantidad || 0), "Histórico alternativo " + fallback, t.tipo);
+        if (income && t.estado !== "Cobrado") return;
+        if (!income && t.estado !== "Pagado") return;
+        if (income && /transferencia.*stripe|stripe.*transferencia/i.test(String(t.concepto || ""))) return;
+        const matchingBudgetLine = (baseBudget?.partidas || []).find(p => clean(p.nombre).toLocaleLowerCase("es") === clean(t.partida_nombre).toLocaleLowerCase("es"));
+        add(income ? "Ingresos" : (matchingBudgetLine?.categoria || "Gastos Variables"), clean(t.categoria) || clean(t.partida_nombre) || "Categoría sin informar", Number(t.cantidad || 0), "Histórico alternativo " + fallback, t.tipo);
       });
     }
     return [...map.values()].map(r => ({
