@@ -45,7 +45,6 @@ import CashFlowAnalysis from "../components/financial/CashFlowAnalysis.jsx";
 import FinancialRatios from "../components/financial/FinancialRatios.jsx";
 import SeasonalityAnalysis from "../components/financial/SeasonalityAnalysis.jsx";
 import BankReconciliationWizard from "../components/financial/BankReconciliationWizard.jsx";
-import BankStatementReconciliation from "../components/financial/BankStatementReconciliation.jsx";
 import RecurringCommitmentsManager from "../components/financial/RecurringCommitmentsManager.jsx";
 import CashPositionForecast from "../components/financial/CashPositionForecast.jsx";
 import { Input } from "@/components/ui/input";
@@ -1705,7 +1704,6 @@ export default function TreasurerFinancialPanel() {
               </Button>
             </CardContent>
           </Card>
-          <BankStatementReconciliation activeSeason={activeSeason} />
           <BankAccountManager activeSeason={activeSeason} />
         </TabsContent>
 
