@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +32,7 @@ export default function RenewalPaymentFlow({
   const [isProcessing, setIsProcessing] = useState(false);
   const [descuentoHermano, setDescuentoHermano] = useState(0);
   const [debtState, setDebtState] = useState({ has_debt: false, total: 0, accepted: false, deudas: [] });
+  const [prepagoRenovacion, setPrepagoRenovacion] = useState(false);
 
   const categoria = newCategory || player.deporte;
   const cuotas = getCuotasFromConfig(categoria, categoryConfigs, seasonConfig?.temporada);
@@ -69,6 +71,14 @@ export default function RenewalPaymentFlow({
   const importeTotal = cuotas ? cuotas.total - descuentoHermano : 0;
   const importeInscripcion = cuotas ? cuotas.inscripcion - descuentoHermano : 0;
 
+  useEffect(() => {
+    let cancelled = false;
+    base44.functions.invoke("prepagoInscripcion", { action: "estado_renovacion", playerId: player.id, categoria })
+      .then((r) => { if (!cancelled) setPrepagoRenovacion(r?.data?.requerido === true); })
+      .catch((e) => console.warn("No se pudo consultar el pago anticipado de renovación:", e));
+    return () => { cancelled = true; };
+  }, [player.id, categoria]);
+
   const handleConfirm = async () => {
     // 🔴 Bloquear si hay deuda pendiente sin aceptar
     if (debtState.has_debt && !debtState.accepted) {
@@ -77,6 +87,21 @@ export default function RenewalPaymentFlow({
     }
     setIsProcessing(true);
     try {
+      if (prepagoRenovacion) {
+        if (debtState.has_debt) {
+          toast.error("Para pagar la renovación con tarjeta, primero debes regularizar cualquier deuda pendiente.");
+          setIsProcessing(false);
+          return;
+        }
+        const response = await base44.functions.invoke("prepagoInscripcion", {
+          action: "checkout_renovacion", playerId: player.id, categoria, modalidad: tipoPago,
+          descuentoHermano, origin: window.location.origin,
+        });
+        const result = response?.data || {};
+        if (result.url) { window.location.assign(result.url); return; }
+        if (result.ya_pagado) { toast.success("El pago de esta renovación ya consta como realizado."); setIsProcessing(false); return; }
+        throw new Error(result.error || "No se pudo iniciar el pago con tarjeta.");
+      }
       const paymentsToCreate = [];
 
       if (tipoPago === "Único") {
