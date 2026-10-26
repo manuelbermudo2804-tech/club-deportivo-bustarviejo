@@ -85,6 +85,8 @@ export default function TransactionList({
           patron_concepto: pattern,
           categoria_destino: category,
           tipo_transaccion: transaction.tipo,
+          partida_id: transaction.partida_id || existingRule?.partida_id || "",
+          partida_nombre: transaction.partida_nombre || existingRule?.partida_nombre || "",
           confianza_minima: 85,
           activa: true,
           veces_aplicada: Number(existingRule?.veces_aplicada || 0)
