@@ -56,6 +56,14 @@
     "notas_reconciliacion": {
       "type": "string",
       "description": "Notas de la reconciliaci\u00f3n"
+    },
+    "financial_transaction_id": {
+      "type": "string",
+      "description": "Transacci\u00f3n financiera vinculada a este movimiento bancario"
+    },
+    "reconciliation_session_id": {
+      "type": "string",
+      "description": "Importaci\u00f3n del extracto que origin\u00f3 el movimiento"
     }
   },
   "required": [
