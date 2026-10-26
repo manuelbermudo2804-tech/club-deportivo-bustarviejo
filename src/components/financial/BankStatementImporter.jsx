@@ -236,9 +236,11 @@ export default function BankStatementImporter({ activeSeason, accountId, account
 
     setImporting(true);
     try {
-      const [allPayments, user] = await Promise.all([
+      const [allPayments, user, allTransactions, reconciliationRules] = await Promise.all([
         base44.entities.Payment.filter({ temporada: activeSeason?.temporada }).catch(() => []),
-        base44.auth.me()
+        base44.auth.me(),
+        base44.entities.FinancialTransaction.list("-fecha").catch(() => []),
+        base44.entities.ReconciliationRule.list("-veces_aplicada").catch(() => [])
       ]);
       const existing = await base44.entities.BankMovement.filter({ cuenta_bancaria: accountId });
       const existingCounts = new Map();
@@ -255,9 +257,11 @@ export default function BankStatementImporter({ activeSeason, accountId, account
 
       const incomingCounts = new Map();
       const usedPaymentIds = new Set();
+      const usedTransactionIds = new Set();
       let importedCount = 0;
       let duplicateCount = 0;
       let matchedCount = 0;
+      let reconciledCount = 0;
       let netNew = 0;
       let allNet = 0;
 
@@ -280,28 +284,90 @@ export default function BankStatementImporter({ activeSeason, accountId, account
           return amountMatch && conceptMatch && !p.reconciliado_banco && !usedPaymentIds.has(p.id);
         }) : null;
 
-        await base44.entities.BankMovement.create({
+        const normalizedConcept = normalizeConcept(mov.concepto);
+        const matchingTransaction = matchingPayment ? null : allTransactions.find((tx) => {
+          if (tx.bank_movement_id || usedTransactionIds.has(tx.id)) return false;
+          if (tx.tipo !== (mov.tipo === "ingreso" ? "Ingreso" : "Gasto")) return false;
+          if (normalizeDate(tx.fecha) !== mov.fecha) return false;
+          if (Math.abs(Math.abs(Number(tx.cantidad) || 0) - mov.importe) >= 0.02) return false;
+          const txConcept = normalizeConcept(tx.concepto);
+          return txConcept === normalizedConcept ||
+            (txConcept.length > 5 && normalizedConcept.length > 5 && (txConcept.includes(normalizedConcept) || normalizedConcept.includes(txConcept)));
+        });
+
+        const manualSettlement = !matchingPayment && !matchingTransaction && needsManualSettlementReview(mov.concepto);
+        let createdTransaction = null;
+        let categoryGuess = null;
+        if (!matchingPayment && !matchingTransaction && !manualSettlement) {
+          categoryGuess = guessCategory(mov, reconciliationRules);
+          createdTransaction = await base44.entities.FinancialTransaction.create({
+            tipo: mov.tipo === "ingreso" ? "Ingreso" : "Gasto",
+            concepto: mov.concepto,
+            cantidad: mov.importe,
+            fecha: mov.fecha,
+            categoria: categoryGuess.categoria,
+            estado: mov.tipo === "ingreso" ? "Cobrado" : "Pagado",
+            temporada: activeSeason?.temporada,
+            automatico: true,
+            referencia_origen: `bank-import:${accountId}:${key}`,
+            revisar_clasificacion: !categoryGuess.fromRule,
+            notas: categoryGuess.fromRule
+              ? "Importado desde extracto y clasificado mediante regla de conciliación."
+              : "Importado desde extracto. Categoría provisional: revisar antes de cerrar la contabilidad."
+          });
+        }
+
+        const linkedTransaction = matchingTransaction || createdTransaction;
+        const now = new Date().toISOString();
+        const createdMovement = await base44.entities.BankMovement.create({
           cuenta_bancaria: accountId,
           fecha: mov.fecha,
           concepto: mov.concepto,
           importe: mov.importe,
           tipo: mov.tipo,
-          reconciliado: !!matchingPayment,
+          reconciliado: !!matchingPayment || !!matchingTransaction || !!createdTransaction,
           payment_id: matchingPayment?.id || undefined,
+          financial_transaction_id: linkedTransaction?.id || undefined,
           jugador_nombre: matchingPayment?.jugador_nombre || undefined,
-          confianza_match: matchingPayment ? 95 : 0,
-          fecha_reconciliacion: matchingPayment ? new Date().toISOString() : undefined,
-          notas_reconciliacion: matchingPayment ? "Coincidencia automática por nombre e importe; revisar si procede." : undefined
+          confianza_match: matchingPayment || matchingTransaction ? 95 : createdTransaction ? 80 : 0,
+          fecha_reconciliacion: matchingPayment || matchingTransaction || createdTransaction ? now : undefined,
+          notas_reconciliacion: matchingPayment
+            ? "Conciliado con una cuota existente por nombre e importe."
+            : matchingTransaction
+            ? "Vinculado a una transacción financiera existente."
+            : createdTransaction
+            ? "Transacción financiera creada y vinculada. Revisar categoría si está marcada como provisional."
+            : manualSettlement
+            ? "Liquidación de Stripe o traspaso interno: revisar y vincular sin contabilizar de nuevo."
+            : "Pendiente de revisión manual."
         });
         importedCount++;
         netNew += mov.signedAmount;
+
         if (matchingPayment) {
           usedPaymentIds.add(matchingPayment.id);
           await base44.entities.Payment.update(matchingPayment.id, {
             reconciliado_banco: true,
-            fecha_reconciliacion: new Date().toISOString()
+            fecha_reconciliacion: now
           });
           matchedCount++;
+          reconciledCount++;
+        } else if (matchingTransaction) {
+          usedTransactionIds.add(matchingTransaction.id);
+          await base44.entities.FinancialTransaction.update(matchingTransaction.id, {
+            estado: mov.tipo === "ingreso" ? "Cobrado" : "Pagado",
+            bank_movement_id: createdMovement?.id || undefined,
+            notas: [matchingTransaction.notas, `Conciliado con extracto bancario: ${mov.concepto}`].filter(Boolean).join("\\n")
+          });
+          reconciledCount++;
+        } else if (createdTransaction) {
+          if (createdMovement?.id) {
+            await base44.entities.FinancialTransaction.update(createdTransaction.id, {
+              bank_movement_id: createdMovement.id,
+              referencia_origen: createdMovement.id
+            });
+          }
+          reconciledCount++;
         }
       }
 
