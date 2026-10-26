@@ -75,6 +75,11 @@
     "importe_neto_importado": {
       "type": "number",
       "description": "Neto de los movimientos nuevos incorporados"
+    },
+    "fecha_recepcion": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora en que el club recibi\u00f3/subi\u00f3 el extracto bancario"
     }
   },
   "required": [
