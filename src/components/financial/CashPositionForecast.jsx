@@ -68,14 +68,15 @@ export default function CashPositionForecast({ compact = false, activeSeason }) 
   });
   const { data: payments = [], isLoading: paymentsLoading } = useQuery({
     queryKey: ["cashForecastPayments", activeSeason?.temporada],
-    queryFn: () => activeSeason?.temporada
-      ? base44.entities.Payment.filter({ temporada: activeSeason.temporada })
-      : base44.entities.Payment.list(),
+    queryFn: () => base44.entities.Payment.list(),
     staleTime: 60000,
   });
 
-  const pendingPayments = payments.filter(isPendingPayment);
   const normalizedActiveSeason = String(activeSeason?.temporada || "").replace(/\D/g, "");
+  const seasonPayments = payments.filter((payment) =>
+    !normalizedActiveSeason || !payment.temporada || String(payment.temporada).replace(/\D/g, "") === normalizedActiveSeason
+  );
+  const pendingPayments = seasonPayments.filter(isPendingPayment);
   const pendingFinancialIncome = transactions.filter((t) =>
     t.estado === "Pendiente" &&
     t.tipo === "Ingreso" &&
