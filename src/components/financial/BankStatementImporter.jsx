@@ -315,6 +315,19 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         base44.entities.FinancialCategory.list("-orden", 500).catch(() => [])
       ]);
       const customCategories = customCategoryRows.filter((row) => row.activa !== false).map((row) => row.nombre);
+      // Aprovechar también las transacciones bancarias que ya estaban clasificadas antes
+      // de activar el aprendizaje persistente de reglas.
+      const historicalRules = allTransactions
+        .filter((tx) => tx.categoria && (tx.bank_movement_id || String(tx.referencia_origen || "").startsWith("bank-import:")))
+        .map((tx) => ({
+          id: null,
+          patron_concepto: tx.concepto,
+          categoria_destino: tx.categoria,
+          tipo_transaccion: tx.tipo,
+          activa: true,
+          veces_aplicada: 0
+        }));
+      const rulesForImport = [...reconciliationRules, ...historicalRules];
       const existing = await base44.entities.BankMovement.filter({ cuenta_bancaria: accountId });
       const existingCounts = new Map();
       existing.forEach((m) => {
@@ -412,7 +425,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         // aún no está identificado. Los casos Stripe/traspasos se registran como pendientes
         // de clasificación y no se duplican como ingreso operativo confirmado.
         if (!matchingPayment && !matchingTransaction) {
-          categoryGuess = guessCategory(mov, reconciliationRules, customCategories);
+          categoryGuess = guessCategory(mov, rulesForImport, customCategories);
           createdTransaction = await base44.entities.FinancialTransaction.create({
             tipo: mov.tipo === "ingreso" ? "Ingreso" : "Gasto",
             concepto: mov.concepto,
@@ -518,6 +531,27 @@ export default function BankStatementImporter({ activeSeason, accountId, account
                 ultima_aplicacion: now
               }).catch(() => null);
               appliedRule.veces_aplicada = Number(appliedRule.veces_aplicada || 0) + 1;
+            } else {
+              // Convertir la clasificación histórica aprovechada en una regla permanente.
+              const historicalPattern = categoryGuess.categoria && mov.concepto;
+              if (historicalPattern) {
+                const existingRule = reconciliationRules.find((rule) =>
+                  rule.tipo_transaccion === (mov.tipo === "ingreso" ? "Ingreso" : "Gasto") &&
+                  normalizeConcept(rule.patron_concepto) === normalizeConcept(historicalPattern)
+                );
+                if (!existingRule) {
+                  const persisted = await base44.entities.ReconciliationRule.create({
+                    patron_concepto: historicalPattern,
+                    categoria_destino: categoryGuess.categoria,
+                    tipo_transaccion: mov.tipo === "ingreso" ? "Ingreso" : "Gasto",
+                    confianza_minima: 85,
+                    activa: true,
+                    veces_aplicada: 1,
+                    ultima_aplicacion: now
+                  }).catch(() => null);
+                  if (persisted) reconciliationRules.push(persisted);
+                }
+              }
             }
           }
           if (!manualSettlement) reconciledCount++;
