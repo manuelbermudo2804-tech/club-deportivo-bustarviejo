@@ -826,6 +826,9 @@ export default function TreasurerFinancialPanel() {
             stats={stats}
           />
 
+          {/* Posición de caja conectada con Bancario y Tesorería */}
+          <CashPositionForecast compact />
+
           {/* Fondo Solidario de Becas (solo si está activo en la temporada) */}
           <SolidarityFundWidget activeSeason={activeSeason} payments={payments} />
 
