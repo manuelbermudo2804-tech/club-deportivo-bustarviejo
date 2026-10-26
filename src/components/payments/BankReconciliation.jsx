@@ -7,14 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Upload, FileSpreadsheet, CheckCircle2, AlertCircle, Loader2, Download } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
-import BankStatementUpload from "../financial/BankStatementUpload";
 import AutoMatchEngine from "../financial/AutoMatchEngine";
 
 export default function BankReconciliation({ payments, players, onReconcile }) {
   const queryClient = useQueryClient();
-  const [bankMovements, setBankMovements] = useState([]);
-  const [sessionData, setSessionData] = useState(null);
-
   const { data: sessions = [] } = useQuery({
     queryKey: ['reconciliationSessions'],
     queryFn: () => base44.entities.ReconciliationSession.list('-created_date', 20),
@@ -26,38 +22,6 @@ export default function BankReconciliation({ payments, players, onReconcile }) {
     queryFn: () => base44.entities.BankMovement.list('-fecha', 1000),
     initialData: [],
   });
-
-  const handleUploadComplete = async (movements, dateRange) => {
-    try {
-      const currentUser = await base44.auth.me();
-      
-      // Crear sesión de reconciliación
-      const session = await base44.entities.ReconciliationSession.create({
-        movimientos_totales: movements.length,
-        movimientos_pendientes: movements.length,
-        admin_email: currentUser.email,
-        fecha_inicio: dateRange.start,
-        fecha_fin: dateRange.end,
-        extracto_url: "uploaded_csv"
-      });
-
-      // Guardar movimientos bancarios
-      const savedMovements = await base44.entities.BankMovement.bulkCreate(
-        movements.map(m => ({
-          ...m,
-          session_id: session.id
-        }))
-      );
-
-      setBankMovements(savedMovements);
-      setSessionData(session);
-      queryClient.invalidateQueries({ queryKey: ['bankMovements'] });
-      queryClient.invalidateQueries({ queryKey: ['reconciliationSessions'] });
-    } catch (error) {
-      console.error("Error saving movements:", error);
-      toast.error("Error al guardar movimientos");
-    }
-  };
 
   const reconcileMutation = useMutation({
     mutationFn: async ({ movement, payment }) => {
@@ -80,16 +44,11 @@ export default function BankReconciliation({ payments, players, onReconcile }) {
         fecha_pago: movement.fecha
       });
 
-      // Actualizar sesión
-      if (sessionData) {
-        await base44.entities.ReconciliationSession.update(sessionData.id, {
-          movimientos_reconciliados: (sessionData.movimientos_reconciliados || 0) + 1,
-          movimientos_pendientes: sessionData.movimientos_pendientes - 1
-        });
-      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myPayments'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['cashForecastPayments'] });
       queryClient.invalidateQueries({ queryKey: ['bankMovements'] });
       queryClient.invalidateQueries({ queryKey: ['reconciliationSessions'] });
       toast.success("✅ Reconciliado correctamente");
@@ -112,7 +71,7 @@ export default function BankReconciliation({ payments, players, onReconcile }) {
   });
 
   const pendingPayments = payments.filter(p => 
-    p.estado === "Pendiente" && !p.reconciliado_banco
+    p.estado !== "Pagado" && p.estado !== "Anulado" && p.is_deleted !== true && !p.reconciliado_banco
   );
 
   const unreconciledMovements = allBankMovements.filter(m => !m.reconciliado);
@@ -145,13 +104,20 @@ export default function BankReconciliation({ payments, players, onReconcile }) {
         </Card>
       )}
 
-      {/* Subir extracto */}
-      <BankStatementUpload onUploadComplete={handleUploadComplete} />
+      <Card className="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle className="text-base">Importación bancaria centralizada</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm text-blue-900">
+          <p>Para evitar extractos duplicados y mantener los saldos correctos, los nuevos extractos se cargan desde <strong>Panel financiero → Bancario</strong>.</p>
+          <p>Esta pantalla sirve para revisar y vincular manualmente movimientos bancarios pendientes con cuotas de jugadores.</p>
+        </CardContent>
+      </Card>
 
-      {/* Motor de matching */}
-      {bankMovements.length > 0 && (
+      {/* Motor de matching sobre los movimientos ya guardados en el registro bancario central */}
+      {unreconciledMovements.length > 0 && (
         <AutoMatchEngine
-          movements={bankMovements}
+          movements={unreconciledMovements}
           payments={pendingPayments}
           onMatch={(movement, payment) => reconcileMutation.mutate({ movement, payment })}
           onSkip={(movement) => skipMutation.mutate(movement)}
@@ -159,7 +125,7 @@ export default function BankReconciliation({ payments, players, onReconcile }) {
       )}
 
       {/* Resumen de estado */}
-      {unreconciledMovements.length > 0 && bankMovements.length === 0 && (
+      {unreconciledMovements.length > 0 && (
         <Card className="bg-yellow-50 border-yellow-300">
           <CardContent className="pt-6">
             <div className="flex items-start gap-3">
