@@ -15,7 +15,7 @@ function matchesCommitment(commitment, transaction) {
   const thirdParty = normalizeText(commitment.tercero);
   const concept = normalizeText(transaction.concepto);
   const party = normalizeText(transaction.proveedor_cliente);
-  const conceptMatch = name.length > 2 && (concept === name || concept.includes(name) || name.includes(concept));
+  const conceptMatch = name.length > 2 && concept.length > 2 && (concept === name || concept.includes(name) || name.includes(concept));
   const thirdPartyMatch = thirdParty.length > 2 && (concept.includes(thirdParty) || party.includes(thirdParty));
   return conceptMatch || thirdPartyMatch;
 }
