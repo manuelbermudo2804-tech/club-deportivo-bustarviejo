@@ -66,18 +66,58 @@ export default function BankStatementImporter({ activeSeason, accountId }) {
   };
 
   const handleImport = async () => {
+    if (!accountId || !activeSeason?.temporada || movements.length === 0) {
+      toast.error("Selecciona una cuenta y una temporada antes de importar");
+      return;
+    }
+
     setExtracting(true);
     try {
-      // Obtener pagos para conciliación automática
-      const payments = await base44.entities.Payment.filter({ temporada: activeSeason.temporada });
-      
-      // Usar IA para conciliar movimientos
-      const conciliationPromises = movements.map(async (mov) => {
-        // Intentar matching automático
-        const matching = payments.find(p => {
-          const amountMatch = Math.abs(p.cantidad - Math.abs(mov.cantidad)) < 1;
-          const conceptMatch = mov.concepto?.toLowerCase().includes(p.jugador_nombre?.toLowerCase());
-          return amountMatch && conceptMatch && !p.reconciliado_banco;
+      const [payments, existingMovements] = await Promise.all([
+        base44.entities.Payment.filter({ temporada: activeSeason.temporada }),
+        base44.entities.BankMovement.filter({ cuenta_id: accountId })
+      ]);
+
+      // Compara fecha, concepto, importe y tipo. Mantiene recuentos para no
+      // confundir dos operaciones legítimas iguales dentro del mismo extracto.
+      const signature = (mov) => [
+        String(mov.fecha || "").trim().toLowerCase(),
+        String(mov.concepto || "").replace(/\\s+/g, " ").trim().toLowerCase(),
+        Number(mov.cantidad || 0).toFixed(2),
+        mov.tipo || (Number(mov.cantidad) >= 0 ? "Ingreso" : "Gasto")
+      ].join("|");
+
+      const importedCounts = new Map();
+      existingMovements.forEach((mov) => {
+        const key = signature(mov);
+        importedCounts.set(key, (importedCounts.get(key) || 0) + 1);
+      });
+
+      const incomingCounts = new Map();
+      const usedPaymentIds = new Set();
+      let imported = 0;
+      let skipped = 0;
+      let matchedCount = 0;
+
+      for (const mov of movements) {
+        const key = signature({
+          ...mov,
+          tipo: Number(mov.cantidad) >= 0 ? "Ingreso" : "Gasto"
+        });
+        const occurrence = (incomingCounts.get(key) || 0) + 1;
+        incomingCounts.set(key, occurrence);
+
+        if (occurrence <= (importedCounts.get(key) || 0)) {
+          skipped++;
+          continue;
+        }
+
+        const concept = String(mov.concepto || "").toLowerCase();
+        const matching = payments.find((p) => {
+          const playerName = String(p.jugador_nombre || "").trim().toLowerCase();
+          const amountMatch = Math.abs(Number(p.cantidad || 0) - Math.abs(Number(mov.cantidad || 0))) < 1;
+          const conceptMatch = playerName.length > 2 && concept.includes(playerName);
+          return amountMatch && conceptMatch && !p.reconciliado_banco && !usedPaymentIds.has(p.id);
         });
 
         const bankMovement = {
@@ -85,7 +125,7 @@ export default function BankStatementImporter({ activeSeason, accountId }) {
           fecha: mov.fecha,
           concepto: mov.concepto,
           cantidad: mov.cantidad,
-          tipo: mov.cantidad >= 0 ? "Ingreso" : "Gasto",
+          tipo: Number(mov.cantidad) >= 0 ? "Ingreso" : "Gasto",
           conciliado: !!matching,
           payment_id: matching?.id || null,
           conciliado_automaticamente: !!matching,
@@ -96,29 +136,28 @@ export default function BankStatementImporter({ activeSeason, accountId }) {
         };
 
         await base44.entities.BankMovement.create(bankMovement);
+        imported++;
+        importedCounts.set(key, (importedCounts.get(key) || 0) + 1);
 
-        // Si se concilió, marcar pago como reconciliado
         if (matching) {
+          usedPaymentIds.add(matching.id);
           await base44.entities.Payment.update(matching.id, {
             reconciliado_banco: true,
             fecha_reconciliacion: new Date().toISOString()
           });
+          matchedCount++;
         }
+      }
 
-        return { movement: mov, matched: !!matching };
-      });
+      queryClient.invalidateQueries({ queryKey: ['bankMovements'] });
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
 
-      const results = await Promise.all(conciliationPromises);
-      const matched = results.filter(r => r.matched).length;
-
-      queryClient.invalidateQueries(['bankMovements']);
-      queryClient.invalidateQueries(['payments']);
-      
-      toast.success(`Importados ${movements.length} movimientos. ${matched} conciliados automáticamente.`);
+      toast.success(`Importados ${imported} movimientos; ${matchedCount} conciliados automáticamente; ${skipped} duplicados omitidos.`);
       setMovements([]);
       setFileName("");
     } catch (error) {
-      toast.error("Error importando movimientos");
+      console.error("Error importando movimientos:", error);
+      toast.error("Error importando movimientos. Revisa la cuenta y vuelve a intentarlo.");
     } finally {
       setExtracting(false);
     }
