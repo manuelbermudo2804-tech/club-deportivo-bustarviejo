@@ -385,11 +385,14 @@ export default function BankStatementImporter({ activeSeason, accountId, account
       if (parsedClosing !== null && !Number.isFinite(parsedClosing)) throw new Error("El saldo final del extracto no es válido.");
       if (parsedOpening !== null && !Number.isFinite(parsedOpening)) throw new Error("El saldo inicial del extracto no es válido.");
 
-      const isHistoricalBackfill = Boolean(lastSession?.fecha_fin && periodEnd < lastSession.fecha_fin);
+      const isHistoricalBackfill = Boolean(
+        (lastSession?.fecha_fin && periodEnd <= lastSession.fecha_fin) ||
+        (!lastSession && latestMovementDate && periodEnd < latestMovementDate)
+      );
       let saldoCalculado = Number(accountRecord?.saldo_actual ?? account?.saldo_actual) || 0;
       if (isHistoricalBackfill) {
         // Un extracto anterior puede completar el histórico, pero nunca debe retroceder el saldo actual.
-        saldoCalculado = Number(accountRecord?.saldo_actual ?? account?.saldo_inicial ?? account?.saldo_actual) || 0;
+        saldoCalculado = Number(accountRecord?.saldo_actual ?? account?.saldo_actual ?? accountRecord?.saldo_inicial ?? 0) || 0;
       } else if (parsedClosing !== null) {
         saldoCalculado = parsedClosing;
       } else if (accountSessions.length === 0) {
