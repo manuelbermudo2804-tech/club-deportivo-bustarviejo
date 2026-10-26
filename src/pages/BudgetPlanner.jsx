@@ -68,7 +68,7 @@ export default function BudgetPlanner({ onScenarioChange }) {
       if (income && t.estado !== "Cobrado") return;
       if (!income && t.estado !== "Pagado") return;
       // Las liquidaciones de Stripe son traspasos de tesorería: no se vuelven a sumar como ingreso.
-      if (income && /transferencia.*stripe|stripe.*transferencia/i.test(String(t.concepto || ""))) return;
+      if (income && /transferencia.*stripe|stripe.*transferencia|transferencia.*club deportivo bustarviejo|traspaso entre cuentas|transferencia interna/i.test(String(t.concepto || ""))) return;
       const amount = Number(t.cantidad || 0);
       const matchingBudgetLine = (baseBudget?.partidas || []).find(p => clean(p.nombre).toLocaleLowerCase("es") === clean(t.partida_nombre).toLocaleLowerCase("es"));
       const budgetCategory = income ? "Ingresos" : (matchingBudgetLine?.categoria || "Gastos Variables");
@@ -84,7 +84,7 @@ export default function BudgetPlanner({ onScenarioChange }) {
         const income = t.tipo === "Ingreso";
         if (income && t.estado !== "Cobrado") return;
         if (!income && t.estado !== "Pagado") return;
-        if (income && /transferencia.*stripe|stripe.*transferencia/i.test(String(t.concepto || ""))) return;
+        if (income && /transferencia.*stripe|stripe.*transferencia|transferencia.*club deportivo bustarviejo|traspaso entre cuentas|transferencia interna/i.test(String(t.concepto || ""))) return;
         const matchingBudgetLine = (baseBudget?.partidas || []).find(p => clean(p.nombre).toLocaleLowerCase("es") === clean(t.partida_nombre).toLocaleLowerCase("es"));
         add(income ? "Ingresos" : (matchingBudgetLine?.categoria || "Gastos Variables"), clean(t.categoria) || clean(t.partida_nombre) || "Categoría sin informar", Number(t.cantidad || 0), "Histórico alternativo " + fallback, t.tipo);
       });
