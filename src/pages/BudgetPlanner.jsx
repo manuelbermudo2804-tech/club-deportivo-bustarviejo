@@ -14,7 +14,14 @@ const money = (value) => new Intl.NumberFormat("es-ES", { style: "currency", cur
 const normalizeSeason = (value) => String(value || "").replace(/[^\d]/g, "");
 const sameSeason = (a,b) => normalizeSeason(a) === normalizeSeason(b);
 const clean = (value) => String(value || "").trim();
-const keyFor = (category, name) => clean(category).toLocaleLowerCase("es") + "||" + clean(name).toLocaleLowerCase("es");
+const canonicalName = (value) => {
+  const name = clean(value).toLocaleLowerCase("es").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "");
+  if (["inscripciones jugadores", "inscripcion jugadores", "inscripciones"].includes(name)) return "inscripciones";
+  if (["loteria navidad", "loteria"].includes(name)) return "loteria";
+  if (["subvenciones ayuntamiento", "subvenciones"].includes(name)) return "subvenciones";
+  return name;
+};
+const keyFor = (category, name) => clean(category).toLocaleLowerCase("es") + "||" + canonicalName(name);
 
 export default function BudgetPlanner({ onScenarioChange }) {
   const queryClient = useQueryClient();
@@ -101,7 +108,7 @@ export default function BudgetPlanner({ onScenarioChange }) {
       baseRows.forEach(row => {
         if (next[row.key] === undefined) {
           const saved = targetBudget?.partidas?.find(p => keyFor(p.categoria, p.nombre) === row.key);
-          next[row.key] = saved ? Number(saved.presupuestado || 0) : (row.presupuestoBase || row.historico || 0);
+          next[row.key] = saved ? Number(saved.presupuestado || 0) : (row.historico > 0 ? row.historico : (row.presupuestoBase || 0));
         }
       });
       if (targetBudget?.notas && notes.startsWith("Borrador de planificación")) setNotes(targetBudget.notas);
