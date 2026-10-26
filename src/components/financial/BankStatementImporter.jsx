@@ -80,7 +80,8 @@ function guessCategory(mov, rules = []) {
     if (/patrocin|sponsor/.test(concept)) return { categoria: "Patrocinios", fromRule: false };
     if (/loteria|loteria/.test(concept)) return { categoria: "Lotería", fromRule: false };
     if (/equipacion|ropa deportiva/.test(concept)) return { categoria: "Venta Equipación", fromRule: false };
-    if (/cuota|inscripcion|mensualidad/.test(concept)) return { categoria: "Cuotas Socios", fromRule: false };
+    if (/socio|cuota socio/.test(concept)) return { categoria: "Cuotas Socios", fromRule: false };
+    if (/cuota|inscripcion|mensualidad|jugador|equipo/.test(concept)) return { categoria: "Inscripciones", fromRule: false };
     return { categoria: "Otros Ingresos", fromRule: false };
   }
   if (/nomina|sueldo|coordinador|entrenador|personal/.test(concept)) return { categoria: "Personal", fromRule: false };
@@ -96,6 +97,33 @@ function guessCategory(mov, rules = []) {
   if (/evento|celebracion|torneo/.test(concept)) return { categoria: "Eventos y Celebraciones", fromRule: false };
   if (/desplazamiento|autobus|combustible|gasolina/.test(concept)) return { categoria: "Desplazamientos", fromRule: false };
   return { categoria: "Otros Gastos", fromRule: false };
+}
+
+function budgetPartidaName(category) {
+  const names = {
+    "Inscripciones": "Inscripciones Jugadores",
+    "Cuotas Socios": "Cuotas Socios",
+    "Subvenciones": "Subvenciones Ayuntamiento",
+    "Patrocinios": "Patrocinios",
+    "Venta Equipación": "Venta Equipación",
+    "Eventos": "Eventos y Torneos",
+    "Lotería": "Lotería Navidad",
+    "Otros Ingresos": "Otros Ingresos",
+    "Material Deportivo": "Material Deportivo",
+    "Equipación": "Equipación",
+    "Arbitrajes": "Arbitrajes",
+    "Desplazamientos": "Desplazamientos",
+    "Instalaciones": "Mantenimiento Instalaciones",
+    "Mantenimiento": "Mantenimiento Instalaciones",
+    "Seguros": "Seguros",
+    "Federación": "Federación (Fichas)",
+    "Personal": "Personal/Entrenadores",
+    "Suministros": "Suministros (Agua, Luz)",
+    "Marketing": "Marketing",
+    "Eventos y Celebraciones": "Eventos y Torneos",
+    "Otros Gastos": "Otros Gastos"
+  };
+  return names[category] || category;
 }
 
 function needsManualSettlementReview(concept) {
@@ -322,6 +350,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
             cantidad: mov.importe,
             fecha: mov.fecha,
             categoria: categoryGuess.categoria,
+            partida_nombre: budgetPartidaName(categoryGuess.categoria),
             estado: mov.tipo === "ingreso" ? "Cobrado" : "Pagado",
             temporada: activeSeason?.temporada,
             automatico: true,
