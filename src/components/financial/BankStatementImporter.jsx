@@ -473,7 +473,13 @@ export default function BankStatementImporter({ activeSeason, accountId, account
           await base44.entities.FinancialTransaction.update(matchingTransaction.id, {
             estado: mov.tipo === "ingreso" ? "Cobrado" : "Pagado",
             bank_movement_id: createdMovement?.id || undefined,
-            notas: [matchingTransaction.notas, `Conciliado con extracto bancario: ${mov.concepto}`].filter(Boolean).join("\\n")
+            ...(amountOnlyTransactionMatch ? { revisar_clasificacion: true } : {}),
+            notas: [
+              matchingTransaction.notas,
+              amountOnlyTransactionMatch
+                ? "Vinculado por fecha e importe; revisar categoría y concepto."
+                : "Conciliado con extracto bancario."
+            ].filter(Boolean).join(" ")
           });
           reconciledCount++;
         } else if (createdTransaction) {
