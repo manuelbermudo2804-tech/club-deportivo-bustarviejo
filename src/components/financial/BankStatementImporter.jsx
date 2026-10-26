@@ -371,15 +371,25 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         }) : null;
 
         const normalizedConcept = normalizeConcept(mov.concepto);
-        const matchingTransaction = matchingPayment ? null : allTransactions.find((tx) => {
+        const transactionCandidates = matchingPayment ? [] : allTransactions.filter((tx) => {
           if (tx.bank_movement_id || existing.some((item) => item.financial_transaction_id === tx.id) || usedTransactionIds.has(tx.id)) return false;
           if (tx.tipo !== (mov.tipo === "ingreso" ? "Ingreso" : "Gasto")) return false;
           if (normalizeDate(tx.fecha) !== mov.fecha) return false;
           if (Math.abs(Math.abs(Number(tx.cantidad) || 0) - mov.importe) >= 0.02) return false;
+          return true;
+        });
+        const matchingTransaction = transactionCandidates.find((tx) => {
           const txConcept = normalizeConcept(tx.concepto);
           return txConcept === normalizedConcept ||
             (txConcept.length > 5 && normalizedConcept.length > 5 && (txConcept.includes(normalizedConcept) || normalizedConcept.includes(txConcept)));
-        });
+        }) || (transactionCandidates.length === 1 ? transactionCandidates[0] : null);
+        const amountOnlyTransactionMatch = !!matchingTransaction &&
+          !(() => {
+            const txConcept = normalizeConcept(matchingTransaction.concepto);
+            return txConcept === normalizedConcept ||
+              (txConcept.length > 5 && normalizedConcept.length > 5 && (txConcept.includes(normalizedConcept) || normalizedConcept.includes(txConcept)));
+          })();
+        const ambiguousTransaction = !matchingTransaction && transactionCandidates.length > 0;
 
         const possiblePendingPayments = !matchingPayment && mov.tipo === "ingreso"
           ? allPayments.filter((payment) =>
