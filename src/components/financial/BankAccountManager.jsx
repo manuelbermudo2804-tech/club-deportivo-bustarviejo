@@ -32,7 +32,7 @@ export default function BankAccountManager({ activeSeason }) {
     queryKey: ['bankMovements', selectedAccount?.id],
     queryFn: async () => {
       if (!selectedAccount) return [];
-      return base44.entities.BankMovement.filter({ cuenta_id: selectedAccount.id });
+      return base44.entities.BankMovement.filter({ cuenta_bancaria: selectedAccount.numero_cuenta || selectedAccount.id });
     },
     enabled: !!selectedAccount,
   });
@@ -58,18 +58,21 @@ export default function BankAccountManager({ activeSeason }) {
   const activeAccounts = accounts.filter(a => a.activa);
   const totalSaldo = activeAccounts.reduce((sum, a) => sum + (a.saldo_actual || 0), 0);
 
-  const conciliadosCount = movements.filter(m => m.conciliado).length;
-  const pendientesCount = movements.filter(m => !m.conciliado).length;
+  const conciliadosCount = movements.filter(m => m.reconciliado).length;
+  const pendientesCount = movements.filter(m => !m.reconciliado).length;
 
   return (
     <div className="space-y-6">
       <Card className="border-2 border-indigo-200">
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="w-6 h-6 text-indigo-600" />
-              Cuentas Bancarias
-            </CardTitle>
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Building2 className="w-6 h-6 text-indigo-600" />
+                1. Selecciona la cuenta bancaria
+              </CardTitle>
+              <p className="mt-1 text-sm text-slate-500">Después podrás cargar el extracto y revisar la conciliación desde esta misma sección.</p>
+            </div>
             <Button onClick={() => setShowAddAccount(true)} className="bg-indigo-600 hover:bg-indigo-700">
               <Plus className="w-4 h-4 mr-2" />
               Nueva Cuenta
@@ -105,7 +108,7 @@ export default function BankAccountManager({ activeSeason }) {
       {selectedAccount && (
         <BankStatementImporter 
           activeSeason={activeSeason}
-          accountId={selectedAccount.id}
+          accountId={selectedAccount.numero_cuenta || selectedAccount.id}
         />
       )}
 
@@ -128,17 +131,17 @@ export default function BankAccountManager({ activeSeason }) {
             <div className="space-y-2 max-h-96 overflow-y-auto">
               {movements.map(mov => (
                 <div key={mov.id} className={`flex justify-between p-3 rounded-lg border ${
-                  mov.conciliado ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200'
+                  mov.reconciliado ? 'bg-green-50 border-green-200' : 'bg-white border-slate-200'
                 }`}>
                   <div>
                     <p className="font-medium text-sm">{mov.concepto}</p>
                     <p className="text-xs text-slate-500">{new Date(mov.fecha).toLocaleDateString('es-ES')}</p>
-                    {mov.conciliado && (
+                    {mov.reconciliado && (
                       <Badge className="mt-1 bg-green-600 text-xs">✓ Conciliado</Badge>
                     )}
                   </div>
                   <p className={`font-bold ${mov.tipo === "Ingreso" ? 'text-green-600' : 'text-red-600'}`}>
-                    {mov.tipo === "Ingreso" ? '+' : '-'}{Math.abs(mov.cantidad).toFixed(2)}€
+                    {mov.tipo === "Ingreso" ? '+' : '-'}{Math.abs(mov.importe || 0).toFixed(2)}€
                   </p>
                 </div>
               ))}
