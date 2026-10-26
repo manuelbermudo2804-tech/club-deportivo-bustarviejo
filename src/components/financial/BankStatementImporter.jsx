@@ -437,17 +437,21 @@ export default function BankStatementImporter({ activeSeason, accountId, account
           payment_id: matchingPayment?.id || undefined,
           financial_transaction_id: linkedTransaction?.id || undefined,
           jugador_nombre: matchingPayment?.jugador_nombre || undefined,
-          confianza_match: matchingPayment || matchingTransaction ? 95 : createdTransaction ? 80 : 0,
+          confianza_match: matchingPayment ? 95 : matchingTransaction ? (amountOnlyTransactionMatch ? 75 : 95) : createdTransaction ? 80 : 0,
           fecha_reconciliacion: matchingPayment || matchingTransaction || createdTransaction ? now : undefined,
           notas_reconciliacion: matchingPayment
             ? "Conciliado con una cuota existente por nombre e importe."
             : matchingTransaction
-            ? "Vinculado a una transacción financiera existente."
+            ? amountOnlyTransactionMatch
+              ? "Vinculado por fecha e importe; revisar descripción y categoría."
+              : "Vinculado a una transacción financiera existente."
             : createdTransaction
             ? "Transacción financiera creada y vinculada. Revisar categoría si está marcada como provisional."
             : manualSettlement
             ? ambiguousPayment
               ? "Posible cuota pendiente de identificar por importe. Revisar manualmente; no se crea otro ingreso para evitar duplicidades."
+              : ambiguousTransaction
+              ? "Hay transacciones financieras con la misma fecha e importe. Revisar manualmente para evitar crear un duplicado."
               : "Liquidación de Stripe o traspaso interno: revisar y vincular sin contabilizar de nuevo."
             : "Pendiente de revisión manual."
         });
