@@ -400,7 +400,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
           : [];
         const ambiguousPayment = possiblePendingPayments.length > 0;
         const manualSettlement = !matchingPayment && !matchingTransaction &&
-          (needsManualSettlementReview(mov.concepto) || ambiguousPayment);
+          (needsManualSettlementReview(mov.concepto) || ambiguousPayment || ambiguousTransaction);
         let createdTransaction = null;
         let categoryGuess = null;
         if (!matchingPayment && !matchingTransaction && !manualSettlement) {
