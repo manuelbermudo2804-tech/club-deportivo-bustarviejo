@@ -134,9 +134,16 @@ export default function BankStatementImporter({ activeSeason, accountId, account
     [sessions, accountId]
   );
   const lastSession = accountSessions[0];
-  const suggestedStart = lastSession?.fecha_fin ? addDays(lastSession.fecha_fin, 1) : "";
-  const nextDateText = suggestedStart
+  const latestMovementDate = existingMovements
+    .map((movement) => normalizeDate(movement.fecha))
+    .filter(Boolean)
+    .sort((a, b) => b.localeCompare(a))[0] || "";
+  const latestKnownEnd = lastSession?.fecha_fin || latestMovementDate;
+  const suggestedStart = latestKnownEnd ? addDays(latestKnownEnd, 1) : "";
+  const nextDateText = lastSession
     ? `La última importación registrada termina el ${new Date(lastSession.fecha_fin + "T12:00:00").toLocaleDateString("es-ES")}. El siguiente período recomendado comienza el ${new Date(suggestedStart + "T12:00:00").toLocaleDateString("es-ES")}.`
+    : latestMovementDate
+    ? `No hay sesión de extracto guardada, pero el último movimiento histórico es del ${new Date(latestMovementDate + "T12:00:00").toLocaleDateString("es-ES")}. Como orientación, el siguiente período comenzaría el ${new Date(suggestedStart + "T12:00:00").toLocaleDateString("es-ES")}; revisa que coincida con tu extracto.`
     : "Primera importación registrada para esta cuenta. El sistema guardará las fechas de este extracto para orientar las siguientes cargas.";
 
   const normalizedMovements = useMemo(
@@ -378,8 +385,12 @@ export default function BankStatementImporter({ activeSeason, accountId, account
       if (parsedClosing !== null && !Number.isFinite(parsedClosing)) throw new Error("El saldo final del extracto no es válido.");
       if (parsedOpening !== null && !Number.isFinite(parsedOpening)) throw new Error("El saldo inicial del extracto no es válido.");
 
-      let saldoCalculado = null;
-      if (parsedClosing !== null) {
+      const isHistoricalBackfill = Boolean(lastSession?.fecha_fin && periodEnd < lastSession.fecha_fin);
+      let saldoCalculado = Number(accountRecord?.saldo_actual ?? account?.saldo_actual) || 0;
+      if (isHistoricalBackfill) {
+        // Un extracto anterior puede completar el histórico, pero nunca debe retroceder el saldo actual.
+        saldoCalculado = Number(accountRecord?.saldo_actual ?? account?.saldo_inicial ?? account?.saldo_actual) || 0;
+      } else if (parsedClosing !== null) {
         saldoCalculado = parsedClosing;
       } else if (accountSessions.length === 0) {
         const legacyNet = existing.reduce((sum, item) => {
@@ -397,10 +408,12 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         ? Number((parsedClosing - reconciliationExpected).toFixed(2))
         : null;
 
-      await base44.entities.BankAccount.update(account.id, {
-        saldo_actual: Number(saldoCalculado.toFixed(2)),
-        ultima_conciliacion: new Date().toISOString()
-      });
+      if (!isHistoricalBackfill) {
+        await base44.entities.BankAccount.update(account.id, {
+          saldo_actual: Number(saldoCalculado.toFixed(2)),
+          ultima_conciliacion: new Date().toISOString()
+        });
+      }
 
       await base44.entities.ReconciliationSession.create({
         extracto_url: fileUrl,
@@ -447,6 +460,8 @@ export default function BankStatementImporter({ activeSeason, accountId, account
 
       if (discrepancy !== null && Math.abs(discrepancy) > 0.02) {
         toast.warning(`Importación completada, pero el extracto presenta un descuadre de ${moneyText(discrepancy)}. Revisa el período y los movimientos.`);
+      } else if (isHistoricalBackfill) {
+        toast.warning(`Extracto histórico incorporado: ${importedCount} movimientos nuevos y ${duplicateCount} duplicados omitidos. El saldo actual no se ha modificado porque el período es anterior.`);
       } else {
         toast.success(`Importación completada: ${importedCount} nuevos, ${duplicateCount} duplicados omitidos, ${matchedCount} cuotas vinculadas. Saldo registrado: ${moneyText(saldoCalculado)}.`);
       }
