@@ -526,7 +526,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
               referencia_origen: createdMovement.id
             });
           }
-          if (categoryGuess?.ruleId) {
+          if (categoryGuess?.fromRule) {
             const appliedRule = reconciliationRules.find((rule) => rule.id === categoryGuess.ruleId);
             if (appliedRule) {
               await base44.entities.ReconciliationRule.update(appliedRule.id, {
