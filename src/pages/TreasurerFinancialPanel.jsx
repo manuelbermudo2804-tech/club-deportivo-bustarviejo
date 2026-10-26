@@ -1843,6 +1843,9 @@ export default function TreasurerFinancialPanel() {
               </div>
             </CardHeader>
             <CardContent>
+              <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900">
+                Este es el registro financiero central. Los movimientos nuevos del banco se incorporan aquí cuando no corresponden a una cuota ya registrada. <strong>No vuelvas a añadir manualmente una operación que ya se haya importado.</strong> Las categorías provisionales aparecen marcadas para que puedas revisarlas.
+              </div>
               <TransactionList
                 transactions={transactions.filter(t => !activeSeason || seasonMatches(t.temporada, activeSeason.temporada))}
                 onDelete={handleDeleteTransaction}
