@@ -6,6 +6,14 @@
       "type": "string",
       "description": "Email de la cuenta que paga (padre/madre/tutor o jugador adulto)"
     },
+    "tipo_operacion": {
+      "type": "string",
+      "description": "inscripcion o renovacion"
+    },
+    "player_id": {
+      "type": "string",
+      "description": "Jugador existente al que corresponde una renovaci\u00f3n"
+    },
     "temporada": {
       "type": "string",
       "description": "Temporada de la inscripci\u00f3n"
