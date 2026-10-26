@@ -49,6 +49,16 @@
       "default": false,
       "description": "Modo PRUEBA del pago por adelantado: si TRUE (junto con pago_adelantado), el aviso y el pago previo solo los ven los administradores; las familias siguen viendo el formulario de siempre."
     },
+    "pago_adelantado_renovaciones": {
+      "type": "boolean",
+      "default": false,
+      "description": "Activa el cobro anticipado con tarjeta en renovaciones, independiente de las nuevas inscripciones."
+    },
+    "pago_adelantado_renovaciones_prueba": {
+      "type": "boolean",
+      "default": false,
+      "description": "Modo prueba para el cobro anticipado de renovaciones; solo administradores."
+    },
     "es_actividad_complementaria": {
       "type": "boolean",
       "default": false,
