@@ -262,6 +262,91 @@ Deno.serve(async (req) => {
       return Response.json({ ok: true, pagos_borrados: pagosBorrados, jugador_borrado: jugadorBorrado, usuario_restablecido: usuarioRestablecido });
     }
 
+    // ---------- Renovaciones con pago anticipado (configuración independiente) ----------
+    if (action === 'estado_renovacion' || action === 'checkout_renovacion') {
+      const playerId = String(body.playerId || '').trim();
+      if (!playerId) return fail('Falta playerId.');
+      const player = await db.Player.get(playerId);
+      if (!player) return fail('Jugador no encontrado.', 404);
+      const owner = [player.email_padre, player.email_tutor_2, player.email_jugador]
+        .some((e) => String(e || '').toLowerCase() === String(user.email || '').toLowerCase());
+      if (!owner && !esAdmin) return fail('No tienes permiso para renovar este jugador.', 403);
+
+      const seasons = (await db.SeasonConfig.list()).filter((s) => s.activa === true);
+      if (seasons.length !== 1) return fail('Debe existir exactamente una temporada activa.', 409);
+      const season = seasons[0];
+      if (season.permitir_renovaciones !== true) return fail('El plazo de renovaciones no está abierto.', 409);
+      if (!season.fecha_limite_renovaciones || new Date() > new Date(String(season.fecha_limite_renovaciones).slice(0,10) + 'T23:59:59')) return fail('El plazo de renovaciones ha finalizado o no tiene fecha límite configurada.', 409);
+
+      const categoria = String(body.categoria || player.deporte || '').trim();
+      const cfg = await getCategoryConfig(categoria, season.temporada);
+      const activaRenovacion = !!cfg && cfg.pago_adelantado_renovaciones === true &&
+        (cfg.pago_adelantado_renovaciones_prueba !== true || esAdmin);
+      if (action === 'estado_renovacion') {
+        return Response.json({ requerido: activaRenovacion, modo_prueba: cfg?.pago_adelantado_renovaciones_prueba === true, temporada: season.temporada });
+      }
+      if (!activaRenovacion) return fail('El pago anticipado de renovaciones no está activo para esta categoría.', 409);
+
+      const pendingOld = await db.Payment.filter({ jugador_id: playerId, estado: 'Pendiente' }, '-created_date', 500);
+      const debt = pendingOld.filter((p) => !p.is_deleted && p.temporada && normTemp(p.temporada) !== normTemp(season.temporada));
+      if (debt.length && !esAdmin && !player.exento_bloqueo_impago) return fail('Hay cuotas pendientes de temporadas anteriores. Regularízalas antes de renovar.', 409);
+
+      const modalidad = String(body.modalidad || '');
+      if (!MODALIDADES.includes(modalidad)) return fail('Elige pago único o tres plazos.');
+      const ya = await db.PrepagoInscripcion.filter({ tipo_operacion: 'renovacion', player_id: playerId, temporada: season.temporada, estado: 'Pagado' }, '-created_date', 10);
+      if (ya.length) return Response.json({ ya_pagado: true, prepago_id: ya[0].id });
+      const pendientes = await db.PrepagoInscripcion.filter({ tipo_operacion: 'renovacion', player_id: playerId, temporada: season.temporada, estado: 'Pendiente' }, '-created_date', 10);
+      if (pendientes.length) {
+        const stripeSecret = Deno.env.get('STRIPE_SECRET_KEY');
+        if (stripeSecret && pendientes[0].stripe_session_id) {
+          const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' });
+          const existing = await stripe.checkout.sessions.retrieve(pendientes[0].stripe_session_id);
+          if (existing.status === 'open' && existing.url) return Response.json({ url: existing.url, prepago_id: pendientes[0].id });
+        }
+        for (const p of pendientes) await db.PrepagoInscripcion.update(p.id, { estado: 'Cancelado' });
+      }
+
+      const descuento = Number(body.descuentoHermano) > 0 ? Math.min(25, Number(body.descuentoHermano)) : 0;
+      const inscripcion = Number(cfg.cuota_inscripcion) || 0;
+      const segunda = Number(cfg.cuota_segunda) || 0;
+      const tercera = Number(cfg.cuota_tercera) || 0;
+      const totalCfg = Number(cfg.cuota_total) || inscripcion + segunda + tercera;
+      const pagos = modalidad === 'Único'
+        ? [{ mes: 'Junio', cantidad: round2(Math.max(0, totalCfg - descuento)), estado_inicial: 'Pagado' }]
+        : [
+            { mes: 'Junio', cantidad: round2(Math.max(0, inscripcion - descuento)), estado_inicial: 'Pagado' },
+            { mes: 'Septiembre', cantidad: segunda, estado_inicial: 'Pendiente' },
+            { mes: 'Diciembre', cantidad: tercera, estado_inicial: 'Pendiente' },
+          ];
+      const amount = pagos[0].cantidad;
+      if (amount < 0.5) return fail('El importe configurado no es válido para cobrar con tarjeta.');
+      const origin = getOrigin(req, body.origin);
+      const stripeSecret = Deno.env.get('STRIPE_SECRET_KEY');
+      if (!origin || !stripeSecret) return fail('Stripe o la URL de retorno no están configurados.', 500);
+      const prepago = await db.PrepagoInscripcion.create({
+        tipo_operacion: 'renovacion', player_id: player.id, user_email: user.email,
+        temporada: season.temporada, categoria, jugador_nombre: player.nombre,
+        fecha_nacimiento: player.fecha_nacimiento || '', tipo_pago: modalidad,
+        descuento_hermano: descuento, importe_primer_pago: amount, pagos, estado: 'Pendiente', es_prueba: false,
+      });
+      try {
+        const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' });
+        const session = await stripe.checkout.sessions.create({
+          mode: 'payment', customer_email: user.email,
+          success_url: `${origin}/PlayerRenewal?renovacion_prepago=${prepago.id}`,
+          cancel_url: `${origin}/PlayerRenewal?renovacion_cancelada=1`,
+          metadata: { base44_app_id: Deno.env.get('BASE44_APP_ID') || 'unknown', tipo: 'prepago_renovacion', prepago_id: prepago.id, player_id: player.id, user_email: user.email, temporada: season.temporada, categoria },
+          line_items: [{ price_data: { currency: 'eur', product_data: { name: `Renovación ${player.nombre} · ${categoria} · ${season.temporada} · ${modalidad}` }, unit_amount: Math.round(amount * 100) }, quantity: 1 }],
+        });
+        await db.PrepagoInscripcion.update(prepago.id, { stripe_session_id: session.id });
+        return Response.json({ url: session.url, prepago_id: prepago.id });
+      } catch (err) {
+        await db.PrepagoInscripcion.update(prepago.id, { estado: 'Cancelado' });
+        console.error('[prepago renovación] Stripe checkout error', err);
+        return fail('No se pudo iniciar el pago con tarjeta.', 500);
+      }
+    }
+
     if (action !== 'estado' && action !== 'checkout') return fail('Acción no soportada.');
 
     const entrada = leerEntrada();
