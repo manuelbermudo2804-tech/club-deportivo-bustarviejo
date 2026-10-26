@@ -48,6 +48,7 @@ import FinancialRatios from "../components/financial/FinancialRatios.jsx";
 import SeasonalityAnalysis from "../components/financial/SeasonalityAnalysis.jsx";
 import BankReconciliationWizard from "../components/financial/BankReconciliationWizard.jsx";
 import BankStatementReconciliation from "../components/financial/BankStatementReconciliation.jsx";
+import RecurringCommitmentsManager from "../components/financial/RecurringCommitmentsManager.jsx";
 import { Input } from "@/components/ui/input";
 
 export default function TreasurerFinancialPanel() {
@@ -774,7 +775,7 @@ export default function TreasurerFinancialPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid h-auto w-full grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:grid-cols-3 lg:grid-cols-6">
+        <TabsList className="grid h-auto w-full grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:grid-cols-3 lg:grid-cols-7">
           <TabsTrigger value="resumen" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <BarChart3 className="h-4 w-4 shrink-0" />
             <span>Resumen</span>
@@ -782,6 +783,10 @@ export default function TreasurerFinancialPanel() {
           <TabsTrigger value="analisis" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <TrendingUp className="h-4 w-4 shrink-0" />
             <span>Análisis</span>
+          </TabsTrigger>
+          <TabsTrigger value="tesoreria" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+            <Calendar className="h-4 w-4 shrink-0" />
+            <span>Tesorería</span>
           </TabsTrigger>
           <TabsTrigger value="bancario" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <Building2 className="h-4 w-4 shrink-0" />
@@ -1686,6 +1691,11 @@ export default function TreasurerFinancialPanel() {
               </div>
             )}
           </Tabs>
+        </TabsContent>
+
+        {/* TAB TESORERÍA: compromisos recurrentes */}
+        <TabsContent value="tesoreria" className="space-y-6 mt-6">
+          <RecurringCommitmentsManager />
         </TabsContent>
 
         {/* TAB BANCARIO */}

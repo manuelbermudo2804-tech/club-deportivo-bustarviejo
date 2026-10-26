@@ -1,0 +1,95 @@
+{
+  "name": "RecurringFinancialCommitment",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre del compromiso recurrente"
+    },
+    "tercero": {
+      "type": "string",
+      "description": "Persona, entrenador, proveedor u organismo"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "Personal",
+        "Federaci\u00f3n",
+        "Arbitrajes",
+        "Seguros",
+        "Suministros",
+        "Instalaciones",
+        "Material Deportivo",
+        "Marketing",
+        "Otros Gastos"
+      ],
+      "description": "Categor\u00eda financiera"
+    },
+    "subcategoria": {
+      "type": "string",
+      "description": "Detalle de la categor\u00eda"
+    },
+    "importe": {
+      "type": "number",
+      "description": "Importe previsto por periodo, en euros"
+    },
+    "periodicidad": {
+      "type": "string",
+      "enum": [
+        "mensual",
+        "bimestral",
+        "trimestral",
+        "semestral",
+        "anual"
+      ],
+      "default": "mensual"
+    },
+    "fecha_inicio": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha desde la que aplica el compromiso"
+    },
+    "fecha_fin": {
+      "type": "string",
+      "format": "date",
+      "description": "Fecha final opcional"
+    },
+    "dia_pago": {
+      "type": "number",
+      "description": "D\u00eda previsto de pago del mes, entre 1 y 31"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "temporada": {
+      "type": "string",
+      "description": "Temporada del club, si procede"
+    },
+    "notas": {
+      "type": "string",
+      "description": "Notas o condiciones del compromiso"
+    },
+    "ultimo_movimiento_conciliado": {
+      "type": "string",
+      "format": "date",
+      "description": "\u00daltimo pago que se vincul\u00f3 a un movimiento bancario"
+    },
+    "origen_registro": {
+      "type": "string",
+      "enum": [
+        "manual",
+        "detectado"
+      ],
+      "default": "manual",
+      "description": "Origen del compromiso"
+    }
+  },
+  "required": [
+    "nombre",
+    "categoria",
+    "importe",
+    "periodicidad",
+    "fecha_inicio"
+  ]
+}
