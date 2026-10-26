@@ -276,6 +276,65 @@ Deno.serve(async (req) => {
           }
         }
 
+        // ============ PREPAGO DE RENOVACIÓN (idempotente: Stripe puede repetir eventos) ============
+        if (metadata.tipo === 'prepago_renovacion' && metadata.prepago_id) {
+          try {
+            const prepago = await base44.asServiceRole.entities.PrepagoInscripcion.get(metadata.prepago_id);
+            if (!prepago) {
+              console.error('[stripe-webhook] Prepago de renovación no encontrado', metadata.prepago_id);
+            } else if (prepago.estado === 'Consumido' || prepago.estado === 'Pagado') {
+              console.log('[stripe-webhook] Renovación ya procesada', prepago.id);
+            } else if (prepago.tipo_operacion !== 'renovacion' || prepago.stripe_session_id !== session.id || session.payment_status !== 'paid') {
+              console.error('[stripe-webhook] Validación de renovación no superada', { prepago_id: prepago.id, session_id: session.id, estado: prepago.estado });
+            } else {
+              const paid = Number(session.amount_total || 0) / 100;
+              if (Math.abs(paid - Number(prepago.importe_primer_pago || 0)) > 0.01) {
+                console.error('[stripe-webhook] Importe de renovación no coincide', { expected: prepago.importe_primer_pago, paid });
+              } else {
+                const player = await base44.asServiceRole.entities.Player.get(prepago.player_id);
+                if (!player) throw new Error('Jugador de renovación no encontrado');
+                await base44.asServiceRole.entities.Player.update(player.id, {
+                  estado_renovacion: 'renovado', activo: true, tipo_inscripcion: 'Renovación',
+                  temporada_renovacion: prepago.temporada, fecha_renovacion: new Date().toISOString(),
+                  deporte: prepago.categoria,
+                });
+                const pagos = Array.isArray(prepago.pagos) ? prepago.pagos : [];
+                const existing = await base44.asServiceRole.entities.Payment.filter({ jugador_id: player.id, temporada: prepago.temporada }, '-created_date', 500);
+                for (const plan of pagos) {
+                  const notaTag = '[STRIPE_RENOVACION:' + prepago.id + ':' + plan.mes + ']';
+                  if (existing.some((p) => String(p.notas || '').includes(notaTag))) continue;
+                  await base44.asServiceRole.entities.Payment.create({
+                    jugador_id: player.id, jugador_nombre: player.nombre,
+                    email_padre: player.email_padre || '', email_tutor_2: player.email_tutor_2 || '',
+                    categoria_actividad: prepago.categoria, tipo_pago: prepago.tipo_pago,
+                    mes: plan.mes, temporada: prepago.temporada, cantidad: Number(plan.cantidad) || 0,
+                    estado: plan.estado_inicial === 'Pagado' ? 'Pagado' : 'Pendiente',
+                    metodo_pago: plan.estado_inicial === 'Pagado' ? 'Tarjeta' : 'Transferencia',
+                    fecha_pago: plan.estado_inicial === 'Pagado' ? new Date().toISOString().slice(0,10) : undefined,
+                    notas: [prepago.descuento_hermano ? 'Descuento hermano: -' + prepago.descuento_hermano + '€' : '', notaTag, 'Stripe Checkout: ' + session.id].filter(Boolean).join(' · '),
+                  });
+                }
+                await base44.asServiceRole.entities.PrepagoInscripcion.update(prepago.id, {
+                  estado: 'Consumido', fecha_pago: new Date().toISOString(), fecha_consumo: new Date().toISOString(),
+                  stripe_session_id: session.id,
+                });
+                try {
+                  await base44.asServiceRole.entities.StripePaymentLog.create({
+                    section: 'renovaciones', amount: paid, currency: session.currency || 'eur',
+                    status: 'succeeded', session_id: session.id, payment_intent_id: session.payment_intent || null,
+                    email: session.customer_details?.email || session.customer_email || prepago.user_email,
+                    related_entity: 'PrepagoInscripcion', related_id: prepago.id, metadata,
+                    created_at: new Date().toISOString(),
+                  });
+                } catch (logErr) { console.error('[stripe-webhook] log renovación:', logErr?.message || logErr); }
+                console.log('[stripe-webhook] Renovación confirmada', { player_id: player.id, prepago_id: prepago.id, paid });
+              }
+            }
+          } catch (e) {
+            console.error('[stripe-webhook] Error procesando renovación anticipada:', e?.message || e);
+          }
+        }
+
         // ============ PREPAGO DE INSCRIPCIÓN (pago por adelantado, antes de crear al jugador) ============
         if (metadata.tipo === 'prepago_inscripcion' && metadata.prepago_id) {
           try {
