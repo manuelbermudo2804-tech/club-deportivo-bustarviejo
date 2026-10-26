@@ -126,7 +126,7 @@ export default function BankStatementReconciliation({ activeSeason }) {
           <div className="border-2 border-dashed border-purple-300 rounded-xl p-8 text-center">
             <input
               type="file"
-              accept=".csv,.xlsx,.xls"
+              accept=".csv,.xlsx,.xls,.pdf,.txt"
               onChange={handleFileUpload}
               className="hidden"
               id="bank-upload"
@@ -142,7 +142,7 @@ export default function BankStatementReconciliation({ activeSeason }) {
                 <div className="space-y-3">
                   <Upload className="w-12 h-12 text-purple-500 mx-auto" />
                   <p className="font-semibold text-slate-900">Subir extracto bancario</p>
-                  <p className="text-sm text-slate-500">CSV o Excel</p>
+                  <p className="text-sm text-slate-500">CSV, Excel, PDF o TXT</p>
                 </div>
               )}
             </label>
