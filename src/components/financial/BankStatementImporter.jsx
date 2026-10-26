@@ -436,6 +436,8 @@ export default function BankStatementImporter({ activeSeason, accountId, account
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["bankMovements"] }),
         queryClient.invalidateQueries({ queryKey: ["bankAccounts"] }),
+        queryClient.invalidateQueries({ queryKey: ["cashForecastBankAccounts"] }),
+        queryClient.invalidateQueries({ queryKey: ["cashForecastFinancialTransactions"] }),
         queryClient.invalidateQueries({ queryKey: ["payments"] }),
         queryClient.invalidateQueries({ queryKey: ["reconciliationSessions"] }),
         queryClient.invalidateQueries({ queryKey: ["transactions"] }),
