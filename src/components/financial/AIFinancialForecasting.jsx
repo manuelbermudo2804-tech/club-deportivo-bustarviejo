@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -48,6 +48,10 @@ export default function AIFinancialForecasting({ open, onClose, budgetPlan = nul
   const [forecastMonths, setForecastMonths] = useState(6);
   
   // Scenario parameters
+  useEffect(() => {
+    if (open && budgetPlan?.temporada === "2027/2028") setActiveTab("insights");
+  }, [open, budgetPlan?.temporada]);
+
   const [scenario, setScenario] = useState({
     type: "membership_increase",
     feeChangePercent: 10,
