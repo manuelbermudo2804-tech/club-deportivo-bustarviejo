@@ -354,6 +354,8 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         if (matchingPayment) {
           usedPaymentIds.add(matchingPayment.id);
           await base44.entities.Payment.update(matchingPayment.id, {
+            estado: "Pagado",
+            fecha_pago: mov.fecha,
             reconciliado_banco: true,
             fecha_reconciliacion: now
           });
