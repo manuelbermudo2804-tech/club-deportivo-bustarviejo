@@ -110,7 +110,7 @@ export default function BankReconciliation({ payments, players, onReconcile }) {
                   <div>
                     <p className="text-sm font-medium">{new Date(session.created_date).toLocaleDateString('es-ES')}</p>
                     <p className="text-xs text-slate-600">
-                      {session.movimientos_reconciliados}/{session.movimientos_totales} reconciliados
+                      {session.movimientos_reconciliados || 0}/{session.movimientos_totales} conciliados · {session.movimientos_pendientes || 0} pendientes · {session.movimientos_omitidos || 0} omitidos
                     </p>
                   </div>
                   <Badge variant={session.completada ? "default" : "outline"}>
