@@ -75,7 +75,13 @@ export default function CashPositionForecast({ compact = false, activeSeason }) 
   });
 
   const pendingPayments = payments.filter(isPendingPayment);
-  const pendingFinancialIncome = transactions.filter((t) => t.estado === "Pendiente" && t.tipo === "Ingreso" && Number(t.cantidad) > 0);
+  const normalizedActiveSeason = String(activeSeason?.temporada || "").replace(/[^\\d]/g, "");
+  const pendingFinancialIncome = transactions.filter((t) =>
+    t.estado === "Pendiente" &&
+    t.tipo === "Ingreso" &&
+    Number(t.cantidad) > 0 &&
+    (!normalizedActiveSeason || !t.temporada || String(t.temporada).replace(/[^\\d]/g, "") === normalizedActiveSeason)
+  );
   const pendingPaymentsTotal = pendingPayments.reduce((sum, payment) => sum + (Number(payment.cantidad) || 0), 0);
   const pendingFinancialIncomeTotal = pendingFinancialIncome.reduce((sum, transaction) => sum + (Number(transaction.cantidad) || 0), 0);
 
