@@ -64,6 +64,14 @@ export default function TransactionList({
         queryClient.invalidateQueries({ queryKey: ["financialTransactions"] }),
         queryClient.invalidateQueries({ queryKey: ["budgets"] })
       ]);
+      if (transaction.temporada) {
+        const budgets = await base44.entities.Budget.list("-created_date").catch(() => []);
+        await Promise.all(
+          budgets
+            .filter((budget) => budget.activo !== false && budget.temporada === transaction.temporada)
+            .map((budget) => base44.functions.invoke("updateBudgetExecuted", { budgetId: budget.id }).catch(() => null))
+        );
+      }
       toast.success("Categoría revisada y guardada");
     } catch (error) {
       console.error("Error guardando categoría:", error);
