@@ -8,7 +8,20 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Upload, CheckCircle2, AlertTriangle, Loader2, CalendarDays, Wallet, FileCheck2 } from "lucide-react";
 import { toast } from "sonner";
 
-const money = (value) => Number.isFinite(Number(value)) ? Number(value) : null;
+function money(value) {
+  if (value === null || value === undefined || value === "") return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  let raw = String(value).trim().replace(/[€\\s]/g, "");
+  if (raw.includes(",") && raw.includes(".")) {
+    raw = raw.lastIndexOf(",") > raw.lastIndexOf(".")
+      ? raw.replace(/\\./g, "").replace(",", ".")
+      : raw.replace(/,/g, "");
+  } else if (raw.includes(",")) {
+    raw = /,\\d{2}$/.test(raw) ? raw.replace(/\\./g, "").replace(",", ".") : raw.replace(/,/g, "");
+  }
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) ? parsed : null;
+}
 const moneyText = (value) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(Number(value) || 0);
 
 function normalizeDate(value) {
@@ -33,6 +46,7 @@ function normalizeMovement(raw) {
   const fecha = normalizeDate(raw.fecha || raw.date);
   const concepto = String(raw.concepto || raw.concept || raw.descripcion || "").replace(/\s+/g, " ").trim();
   let amount = money(raw.importe ?? raw.cantidad ?? raw.amount ?? raw.importe_eur);
+  const balanceAfter = money(raw.saldo_despues ?? raw.saldo ?? raw.balance_after);
   if (!fecha || !concepto || amount === null || amount === 0) return null;
   const kind = String(raw.tipo || raw.type || "").toLowerCase();
   const expense = /gasto|cargo|debit|expense|salida/.test(kind);
@@ -45,7 +59,8 @@ function normalizeMovement(raw) {
     concepto,
     signedAmount: amount,
     importe: Math.abs(amount),
-    tipo: amount < 0 ? "gasto" : "ingreso"
+    tipo: amount < 0 ? "gasto" : "ingreso",
+    saldo_despues: balanceAfter
   };
 }
 
