@@ -91,7 +91,7 @@ function guessCategory(mov, rules = [], customCategories = []) {
   const validIncome = ["Cuotas Socios", "Inscripciones", "Subvenciones", "Patrocinios", "Venta Equipación", "Eventos", "Lotería", "Otros Ingresos"];
   const validExpense = ["Material Deportivo", "Equipación", "Arbitrajes", "Desplazamientos", "Instalaciones", "Mantenimiento", "Seguros", "Federación", "Personal", "Suministros", "Marketing", "Eventos y Celebraciones", "Otros Gastos"];
   const allowed = [...validIncome, ...validExpense, ...customCategories];
-  if (rule && allowed.includes(rule.categoria_destino)) return { categoria: rule.categoria_destino, fromRule: true, ruleId: rule.id };
+  if (rule && allowed.includes(rule.categoria_destino)) return { categoria: rule.categoria_destino, fromRule: true, ruleId: rule.id || null, partidaId: rule.partida_id || "", partidaNombre: rule.partida_nombre || "" };
   if (txType === "Ingreso") {
     if (/subvencion|ayuntamiento|comunidad de madrid/.test(concept)) return { categoria: "Subvenciones", fromRule: false };
     if (/patrocin|sponsor/.test(concept)) return { categoria: "Patrocinios", fromRule: false };
@@ -324,6 +324,8 @@ export default function BankStatementImporter({ activeSeason, accountId, account
           patron_concepto: tx.concepto,
           categoria_destino: tx.categoria,
           tipo_transaccion: tx.tipo,
+          partida_id: tx.partida_id || "",
+          partida_nombre: tx.partida_nombre || "",
           activa: true,
           veces_aplicada: 0
         }));
@@ -432,7 +434,8 @@ export default function BankStatementImporter({ activeSeason, accountId, account
             cantidad: mov.importe,
             fecha: mov.fecha,
             categoria: categoryGuess.categoria,
-            partida_nombre: budgetPartidaName(categoryGuess.categoria),
+            partida_id: categoryGuess.partidaId || "",
+            partida_nombre: categoryGuess.partidaNombre || budgetPartidaName(categoryGuess.categoria),
             estado: mov.tipo === "ingreso" ? "Cobrado" : "Pagado",
             temporada: activeSeason?.temporada,
             automatico: true,
@@ -544,6 +547,8 @@ export default function BankStatementImporter({ activeSeason, accountId, account
                     patron_concepto: historicalPattern,
                     categoria_destino: categoryGuess.categoria,
                     tipo_transaccion: mov.tipo === "ingreso" ? "Ingreso" : "Gasto",
+                    partida_id: categoryGuess.partidaId || "",
+                    partida_nombre: categoryGuess.partidaNombre || "",
                     confianza_minima: 85,
                     activa: true,
                     veces_aplicada: 1,
