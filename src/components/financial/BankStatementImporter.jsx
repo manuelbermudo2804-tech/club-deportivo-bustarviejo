@@ -335,6 +335,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         completada: false,
         fecha_inicio: periodStart,
         fecha_fin: periodEnd,
+        fecha_recepcion: new Date().toISOString(),
         cuenta_bancaria: accountId,
         archivo_nombre: fileName,
         movimientos_duplicados: 0,
@@ -405,7 +406,10 @@ export default function BankStatementImporter({ activeSeason, accountId, account
           (needsManualSettlementReview(mov.concepto) || ambiguousPayment || ambiguousTransaction);
         let createdTransaction = null;
         let categoryGuess = null;
-        if (!matchingPayment && !matchingTransaction && !manualSettlement) {
+        // Cada movimiento bancario debe tener su propio registro financiero, incluso si
+        // aún no está identificado. Los casos Stripe/traspasos se registran como pendientes
+        // de clasificación y no se duplican como ingreso operativo confirmado.
+        if (!matchingPayment && !matchingTransaction) {
           categoryGuess = guessCategory(mov, reconciliationRules);
           createdTransaction = await base44.entities.FinancialTransaction.create({
             tipo: mov.tipo === "ingreso" ? "Ingreso" : "Gasto",
@@ -418,10 +422,12 @@ export default function BankStatementImporter({ activeSeason, accountId, account
             temporada: activeSeason?.temporada,
             automatico: true,
             referencia_origen: `bank-import:${accountId}:${key}`,
-            revisar_clasificacion: !categoryGuess.fromRule,
-            notas: categoryGuess.fromRule
-              ? "Importado desde extracto y clasificado mediante regla de conciliación."
-              : "Importado desde extracto. Categoría provisional: revisar antes de cerrar la contabilidad."
+            revisar_clasificacion: !categoryGuess.fromRule || manualSettlement,
+            notas: manualSettlement
+              ? "Movimiento bancario registrado íntegramente. Pendiente de identificar su naturaleza contable; no considerar como ingreso/gasto operativo definitivo hasta revisar si es liquidación Stripe o traspaso interno."
+              : categoryGuess.fromRule
+                ? "Importado desde extracto y clasificado mediante regla de conciliación."
+                : "Importado desde extracto. Categoría provisional: revisar antes de cerrar la contabilidad."
           });
         }
 
@@ -435,7 +441,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
           importe: mov.importe,
           tipo: mov.tipo,
           ...(mov.saldo_despues !== null ? { saldo_despues: mov.saldo_despues } : {}),
-          reconciliado: !!matchingPayment || !!matchingTransaction || !!createdTransaction,
+          reconciliado: !!matchingPayment || !!matchingTransaction || (!!createdTransaction && !manualSettlement),
           payment_id: matchingPayment?.id || undefined,
           financial_transaction_id: linkedTransaction?.id || undefined,
           jugador_nombre: matchingPayment?.jugador_nombre || undefined,
@@ -448,13 +454,9 @@ export default function BankStatementImporter({ activeSeason, accountId, account
               ? "Vinculado por fecha e importe; revisar descripción y categoría."
               : "Vinculado a una transacción financiera existente."
             : createdTransaction
-            ? "Transacción financiera creada y vinculada. Revisar categoría si está marcada como provisional."
-            : manualSettlement
-            ? ambiguousPayment
-              ? "Posible cuota pendiente de identificar por importe. Revisar manualmente; no se crea otro ingreso para evitar duplicidades."
-              : ambiguousTransaction
-              ? "Hay transacciones financieras con la misma fecha e importe. Revisar manualmente para evitar crear un duplicado."
-              : "Liquidación de Stripe o traspaso interno: revisar y vincular sin contabilizar de nuevo."
+            ? manualSettlement
+              ? "Movimiento registrado en el libro financiero, pero pendiente de identificación/clasificación; revisar posible cuota, liquidación Stripe o traspaso interno antes de cerrar."
+              : "Transacción financiera creada y vinculada. Revisar categoría si está marcada como provisional."
             : "Pendiente de revisión manual."
         });
         importedCount++;
@@ -506,7 +508,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
               referencia_origen: createdMovement.id
             });
           }
-          reconciledCount++;
+          if (!manualSettlement) reconciledCount++;
         }
       }
 
