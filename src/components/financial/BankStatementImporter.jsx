@@ -428,7 +428,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
       if (parsedOpening !== null && !Number.isFinite(parsedOpening)) throw new Error("El saldo inicial del extracto no es válido.");
 
       const isHistoricalBackfill = Boolean(
-        (lastSession?.fecha_fin && periodEnd <= lastSession.fecha_fin) ||
+        (lastSession?.fecha_fin && (periodEnd < lastSession.fecha_fin || (periodEnd === lastSession.fecha_fin && parsedClosing === null))) ||
         (!lastSession && latestMovementDate && periodEnd < latestMovementDate)
       );
       let saldoCalculado = Number(accountRecord?.saldo_actual ?? account?.saldo_actual) || 0;
