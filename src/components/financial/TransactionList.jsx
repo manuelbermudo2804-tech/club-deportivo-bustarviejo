@@ -36,8 +36,13 @@ import {
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
-const INCOME_CATEGORIES = ["Cuotas Socios", "Inscripciones", "Subvenciones", "Patrocinios", "Venta Equipación", "Eventos", "Lotería", "Otros Ingresos"];
-const EXPENSE_CATEGORIES = ["Material Deportivo", "Equipación", "Arbitrajes", "Desplazamientos", "Instalaciones", "Mantenimiento", "Seguros", "Federación", "Personal", "Suministros", "Marketing", "Eventos y Celebraciones", "Otros Gastos"];
+const ALL_CATEGORIES = [
+  "Cuotas Socios", "Inscripciones", "Subvenciones", "Patrocinios",
+  "Venta Equipación", "Eventos", "Lotería", "Otros Ingresos",
+  "Material Deportivo", "Equipación", "Arbitrajes", "Desplazamientos",
+  "Instalaciones", "Mantenimiento", "Seguros", "Federación", "Personal",
+  "Suministros", "Marketing", "Eventos y Celebraciones", "Otros Gastos"
+];
 
 export default function TransactionList({ 
   transactions = [], 
@@ -48,6 +53,13 @@ export default function TransactionList({
   const [categoryEdits, setCategoryEdits] = useState({});
   const [savingReviewId, setSavingReviewId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [customCategories, setCustomCategories] = useState([]);
+
+  React.useEffect(() => {
+    base44.entities.FinancialCategory.list("-orden", 500)
+      .then(rows => setCustomCategories((rows || []).filter(row => row.activa !== false).map(row => row.nombre)))
+      .catch(() => setCustomCategories([]));
+  }, []);
 
   const handleSaveCategory = async (transaction) => {
     const category = categoryEdits[transaction.id] || transaction.categoria;
@@ -299,7 +311,7 @@ export default function TransactionList({
                             <SelectValue placeholder="Seleccionar categoría" />
                           </SelectTrigger>
                           <SelectContent>
-                            {(t.tipo === "Ingreso" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map((category) => (
+                            {[...new Set([...ALL_CATEGORIES, ...customCategories])].sort((a,b) => a.localeCompare(b, "es")).map((category) => (
                               <SelectItem key={category} value={category}>{category}</SelectItem>
                             ))}
                           </SelectContent>
