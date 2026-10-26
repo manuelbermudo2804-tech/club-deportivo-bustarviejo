@@ -16,7 +16,7 @@ const sameSeason = (a,b) => normalizeSeason(a) === normalizeSeason(b);
 const clean = (value) => String(value || "").trim();
 const keyFor = (category, name) => clean(category).toLocaleLowerCase("es") + "||" + clean(name).toLocaleLowerCase("es");
 
-export default function BudgetPlanner() {
+export default function BudgetPlanner({ onScenarioChange }) {
   const queryClient = useQueryClient();
   const [draft, setDraft] = useState({});
   const [notes, setNotes] = useState("Borrador de planificación. Las cifras se revisarán con los extractos y compromisos confirmados antes del cierre.");
@@ -122,6 +122,19 @@ export default function BudgetPlanner() {
     });
     return { income, expense, result: income - expense, baseIncome, baseExpense, baseResult: baseIncome - baseExpense };
   }, [targetRows, draft]);
+
+  const aiScenario = useMemo(() => ({
+    temporada: TARGET_SEASON,
+    ingresos: Math.round(totals.income * 100) / 100,
+    gastos: Math.round(totals.expense * 100) / 100,
+    resultado: Math.round(totals.result * 100) / 100,
+    baseIngresos: Math.round(totals.baseIncome * 100) / 100,
+    baseGastos: Math.round(totals.baseExpense * 100) / 100,
+    partidas: targetRows.map(row => ({ categoria: row.categoria, nombre: row.nombre, tipo: row.categoria === "Ingresos" || row.kind === "Ingreso" ? "Ingreso" : "Gasto", base: Number(row.presupuestoBase || row.historico || 0), propuesto: Number(draft[row.key] ?? row.actualTarget ?? 0) })).slice(0, 100),
+    notas: notes,
+  }), [totals, targetRows, draft, notes]);
+
+  useEffect(() => { if (onScenarioChange) onScenarioChange(aiScenario); }, [aiScenario, onScenarioChange]);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
