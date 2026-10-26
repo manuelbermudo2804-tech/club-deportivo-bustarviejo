@@ -1685,6 +1685,25 @@ export default function TreasurerFinancialPanel() {
 
         {/* TAB BANCARIO */}
         <TabsContent value="bancario" className="space-y-6 mt-6">
+          <Card className="overflow-hidden border-0 bg-gradient-to-r from-red-700 via-red-600 to-rose-600 text-white shadow-lg">
+            <CardContent className="flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center sm:p-6">
+              <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25">
+                  <Building2 className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold sm:text-xl">Santander Empresas</h3>
+                  <p className="mt-1 max-w-2xl text-sm text-white/90">Acceso directo a la banca online para descargar los extractos de la cuenta del club e importarlos después aquí para conciliarlos.</p>
+                  <p className="mt-2 text-xs text-white/75">Por seguridad, el acceso se abre en una pestaña nueva. La aplicación no guarda tus claves bancarias.</p>
+                </div>
+              </div>
+              <Button asChild className="shrink-0 bg-white font-semibold text-red-700 hover:bg-red-50">
+                <a href="https://empresas3.gruposantander.es/paas/loginnwe/" target="_blank" rel="noopener noreferrer">
+                  Abrir Santander <ExternalLink className="ml-2 h-4 w-4" />
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
           <BankStatementReconciliation activeSeason={activeSeason} />
           <BankAccountManager activeSeason={activeSeason} />
         </TabsContent>
