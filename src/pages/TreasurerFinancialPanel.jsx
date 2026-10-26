@@ -24,6 +24,7 @@ import { toast } from "sonner";
 
 import BudgetManager from "../components/financial/BudgetManager";
 import SeasonBudgetDashboard from "../components/financial/SeasonBudgetDashboard";
+import BudgetPlanner from "./BudgetPlanner";
 import FinancialAuditCenter from "../components/financial/FinancialAuditCenter";
 import TransactionList from "../components/financial/TransactionList";
 import TransactionForm from "../components/financial/TransactionForm";
@@ -759,7 +760,7 @@ export default function TreasurerFinancialPanel() {
               <FileText className="w-4 h-4 mr-2" />
               {generatingExcel ? 'Generando...' : 'Excel'}
             </Button>
-            {activeTab === "presupuestos" && (
+            {(activeTab === "presupuestos" || activeTab === "presupuesto2728") && (
               <Button 
                 onClick={() => setShowAIForecasting(true)}
                 className="h-11 w-full justify-center rounded-xl bg-purple-600 font-semibold text-white shadow-sm hover:bg-purple-500 hover:text-white"
@@ -773,7 +774,7 @@ export default function TreasurerFinancialPanel() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid h-auto w-full grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:grid-cols-3 lg:grid-cols-7">
+        <TabsList className="grid h-auto w-full grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:grid-cols-4 lg:grid-cols-8">
           <TabsTrigger value="resumen" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <BarChart3 className="h-4 w-4 shrink-0" />
             <span>Resumen</span>
@@ -793,6 +794,10 @@ export default function TreasurerFinancialPanel() {
           <TabsTrigger value="presupuestos" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <Euro className="h-4 w-4 shrink-0" />
             <span>Presup.</span>
+          </TabsTrigger>
+          <TabsTrigger value="presupuesto2728" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+            <Calculator className="h-4 w-4 shrink-0" />
+            <span>Presup. 27/28</span>
           </TabsTrigger>
           <TabsTrigger value="stripe" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
             <Euro className="h-4 w-4 shrink-0" />
@@ -1702,6 +1707,10 @@ export default function TreasurerFinancialPanel() {
         <TabsContent value="presupuestos" className="mt-6 space-y-8">
           <FinancialAuditCenter activeSeason={activeSeason} />
           <SeasonBudgetDashboard activeSeason={activeSeason} />
+        </TabsContent>
+
+        <TabsContent value="presupuesto2728" className="mt-6 space-y-8">
+          <BudgetPlanner />
         </TabsContent>
 
         {/* TAB TRANSACCIONES */}
