@@ -290,6 +290,20 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         existingCounts.set(key, (existingCounts.get(key) || 0) + 1);
       });
 
+      const importSession = await base44.entities.ReconciliationSession.create({
+        extracto_url: fileUrl,
+        movimientos_totales: normalizedMovements.length,
+        movimientos_reconciliados: 0,
+        movimientos_pendientes: normalizedMovements.length,
+        admin_email: user?.email || "no-disponible",
+        completada: false,
+        fecha_inicio: periodStart,
+        fecha_fin: periodEnd,
+        cuenta_bancaria: accountId,
+        archivo_nombre: fileName,
+        movimientos_duplicados: 0
+      });
+
       const incomingCounts = new Map();
       const usedPaymentIds = new Set();
       const usedTransactionIds = new Set();
@@ -366,6 +380,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         const now = new Date().toISOString();
         const createdMovement = await base44.entities.BankMovement.create({
           cuenta_bancaria: accountId,
+          reconciliation_session_id: importSession.id,
           fecha: mov.fecha,
           concepto: mov.concepto,
           importe: mov.importe,
@@ -460,18 +475,12 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         });
       }
 
-      await base44.entities.ReconciliationSession.create({
-        extracto_url: fileUrl,
+      await base44.entities.ReconciliationSession.update(importSession.id, {
         movimientos_totales: importedCount,
         movimientos_reconciliados: reconciledCount,
         movimientos_pendientes: Math.max(0, importedCount - reconciledCount),
-        admin_email: user?.email || "no-disponible",
-        completada: true,
-        fecha_inicio: periodStart,
-        fecha_fin: periodEnd,
-        cuenta_bancaria: accountId,
-        archivo_nombre: fileName,
         movimientos_duplicados: duplicateCount,
+        completada: true,
         ...(parsedOpening !== null ? { saldo_inicial_extracto: parsedOpening } : {}),
         ...(parsedClosing !== null ? { saldo_final_extracto: parsedClosing } : {}),
         ...(reconciliationExpected !== null ? { saldo_calculado_extracto: reconciliationExpected } : {}),
