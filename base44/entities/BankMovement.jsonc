@@ -64,6 +64,10 @@
     "reconciliation_session_id": {
       "type": "string",
       "description": "Importaci\u00f3n del extracto que origin\u00f3 el movimiento"
+    },
+    "saldo_despues": {
+      "type": "number",
+      "description": "Saldo de la cuenta despu\u00e9s de este movimiento, si aparece en el extracto"
     }
   },
   "required": [
