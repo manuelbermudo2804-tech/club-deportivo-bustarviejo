@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import AutoMatchEngine from "../financial/AutoMatchEngine";
@@ -23,6 +25,7 @@ async function refreshSessionStats(sessionId) {
 
 export default function BankReconciliation({ payments, players, onReconcile }) {
   const queryClient = useQueryClient();
+  const [transactionMatchSelection, setTransactionMatchSelection] = useState({});
   const { data: sessions = [] } = useQuery({
     queryKey: ['reconciliationSessions'],
     queryFn: () => base44.entities.ReconciliationSession.list('-created_date', 20),
@@ -33,6 +36,11 @@ export default function BankReconciliation({ payments, players, onReconcile }) {
     queryKey: ['bankMovements'],
     queryFn: () => base44.entities.BankMovement.list('-fecha', 1000),
     initialData: [],
+  });
+  const { data: financialTransactions = [] } = useQuery({
+    queryKey: ["financialTransactions"],
+    queryFn: () => base44.entities.FinancialTransaction.list("-fecha", 500),
+    initialData: []
   });
 
   const reconcileMutation = useMutation({
@@ -69,6 +77,51 @@ export default function BankReconciliation({ payments, players, onReconcile }) {
     },
   });
 
+  const transactionMatchMutation = useMutation({
+    mutationFn: async ({ movement, transaction }) => {
+      const currentUser = await base44.auth.me();
+      const now = new Date().toISOString();
+      const conceptsMatch = String(movement.concepto || "").trim().toLowerCase() === String(transaction.concepto || "").trim().toLowerCase();
+      await base44.entities.BankMovement.update(movement.id, {
+        reconciliado: true,
+        financial_transaction_id: transaction.id,
+        revisado_por: currentUser?.email,
+        confianza_match: conceptsMatch ? 95 : 75,
+        fecha_reconciliacion: now,
+        notas_reconciliacion: conceptsMatch
+          ? "Vinculado manualmente a la transacción financiera."
+          : "Vinculado manualmente por fecha e importe. Revisar descripción y categoría."
+      });
+      await base44.entities.FinancialTransaction.update(transaction.id, {
+        estado: movement.tipo === "ingreso" ? "Cobrado" : "Pagado",
+        bank_movement_id: movement.id,
+        ...(conceptsMatch ? {} : { revisar_clasificacion: true }),
+        notas: [transaction.notas, conceptsMatch ? "Conciliado manualmente con el banco." : "Conciliado por fecha e importe; revisar categoría y concepto."].filter(Boolean).join(" ")
+      });
+      if (movement.reconciliation_session_id) await refreshSessionStats(movement.reconciliation_session_id);
+      if (transaction.temporada) {
+        const budgets = await base44.entities.Budget.list("-created_date").catch(() => []);
+        await Promise.all(
+          budgets
+            .filter((budget) => budget.activo !== false && budget.temporada === transaction.temporada)
+            .map((budget) => base44.functions.invoke("updateBudgetExecuted", { budgetId: budget.id }).catch(() => null))
+        );
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bankMovements"] });
+      queryClient.invalidateQueries({ queryKey: ["financialTransactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["budgets"] });
+      queryClient.invalidateQueries({ queryKey: ["reconciliationSessions"] });
+      toast.success("Movimiento vinculado a la transacción financiera");
+    },
+    onError: (error) => {
+      console.error("Error vinculando transacción financiera:", error);
+      toast.error("No se pudo vincular la transacción");
+    }
+  });
+
   const skipMutation = useMutation({
     mutationFn: async (movement) => {
       const currentUser = await base44.auth.me();
@@ -94,6 +147,18 @@ export default function BankReconciliation({ payments, players, onReconcile }) {
     !m.financial_transaction_id &&
     !String(m.notas_reconciliacion || "").includes("Omitido manualmente")
   );
+  const movementsWithTransactionCandidates = unreconciledMovements.map((movement) => {
+    const expectedType = String(movement.tipo || "").toLowerCase() === "ingreso" ? "Ingreso" : "Gasto";
+    const candidates = financialTransactions.filter((transaction) =>
+      !transaction.bank_movement_id &&
+      !allBankMovements.some((item) => item.financial_transaction_id === transaction.id) &&
+      transaction.estado !== "Anulado" &&
+      transaction.tipo === expectedType &&
+      transaction.fecha === movement.fecha &&
+      Math.abs(Math.abs(Number(transaction.cantidad) || 0) - Math.abs(Number(movement.importe) || 0)) < 0.02
+    );
+    return { movement, candidates };
+  }).filter((item) => item.candidates.length > 0);
 
   return (
     <div className="space-y-6">
@@ -132,6 +197,41 @@ export default function BankReconciliation({ payments, players, onReconcile }) {
           <p>Esta pantalla sirve para revisar y vincular manualmente movimientos bancarios pendientes con cuotas de jugadores.</p>
         </CardContent>
       </Card>
+
+      {movementsWithTransactionCandidates.length > 0 && (
+        <Card className="border-amber-200">
+          <CardHeader>
+            <CardTitle className="text-base">Vincular movimientos a transacciones existentes</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <p className="text-sm text-slate-600">Si la fecha y el importe coinciden con una transacción ya registrada, vincúlala aquí para no crear un duplicado.</p>
+            {movementsWithTransactionCandidates.map(({ movement, candidates }) => (
+              <div key={movement.id} className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_1fr_auto] sm:items-center">
+                <div>
+                  <p className="text-sm font-medium">{movement.concepto}</p>
+                  <p className="text-xs text-slate-500">{movement.fecha} · {Number(movement.importe || 0).toLocaleString("es-ES", { style: "currency", currency: "EUR" })}</p>
+                </div>
+                <Select value={transactionMatchSelection[movement.id] || ""} onValueChange={(value) => setTransactionMatchSelection((prev) => ({ ...prev, [movement.id]: value }))}>
+                  <SelectTrigger><SelectValue placeholder="Elegir transacción existente" /></SelectTrigger>
+                  <SelectContent>
+                    {candidates.map((transaction) => (
+                      <SelectItem key={transaction.id} value={transaction.id}>
+                        {transaction.concepto} · {transaction.categoria} · {Number(transaction.cantidad || 0).toLocaleString("es-ES", { style: "currency", currency: "EUR" })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button size="sm" disabled={!transactionMatchSelection[movement.id] || transactionMatchMutation.isPending} onClick={() => {
+                  const transaction = candidates.find((item) => item.id === transactionMatchSelection[movement.id]);
+                  if (transaction) transactionMatchMutation.mutate({ movement, transaction });
+                }}>
+                  <CheckCircle2 className="mr-1 h-4 w-4" />Vincular
+                </Button>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Motor de matching sobre los movimientos ya guardados en el registro bancario central */}
       {unreconciledMovements.length > 0 && (
