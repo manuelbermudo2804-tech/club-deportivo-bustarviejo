@@ -16,31 +16,12 @@ import { Upload, FileText, Loader2, X, Receipt, TrendingUp, TrendingDown, Sparkl
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { toast } from "sonner";
 
-const CATEGORIAS_INGRESO = [
-  "Cuotas Socios",
-  "Inscripciones",
-  "Subvenciones",
-  "Patrocinios",
-  "Venta Equipación",
-  "Eventos",
-  "Lotería",
-  "Otros Ingresos"
-];
-
-const CATEGORIAS_GASTO = [
-  "Material Deportivo",
-  "Equipación",
-  "Arbitrajes",
-  "Desplazamientos",
-  "Instalaciones",
-  "Mantenimiento",
-  "Seguros",
-  "Federación",
-  "Personal",
-  "Suministros",
-  "Marketing",
-  "Eventos y Celebraciones",
-  "Otros Gastos"
+const CATEGORIAS_BASE = [
+  "Cuotas Socios", "Inscripciones", "Subvenciones", "Patrocinios",
+  "Venta Equipación", "Eventos", "Lotería", "Otros Ingresos",
+  "Material Deportivo", "Equipación", "Arbitrajes", "Desplazamientos",
+  "Instalaciones", "Mantenimiento", "Seguros", "Federación", "Personal",
+  "Suministros", "Marketing", "Eventos y Celebraciones", "Otros Gastos"
 ];
 
 const TIPOS_DOCUMENTO = ["Factura", "Recibo", "Justificante de pago", "Presupuesto", "Albarán", "Contrato", "Nómina", "Extracto bancario", "Otro"];
@@ -54,6 +35,36 @@ export default function TransactionForm({
   isSubmitting 
 }) {
   const [tipo, setTipo] = useState("Gasto");
+  const [categoriasPersonalizadas, setCategoriasPersonalizadas] = useState([]);
+  const [nuevaCategoria, setNuevaCategoria] = useState("");
+  const [guardandoCategoria, setGuardandoCategoria] = useState(false);
+
+  React.useEffect(() => {
+    base44.entities.FinancialCategory.list("-orden", 500)
+      .then(rows => setCategoriasPersonalizadas((rows || []).filter(row => row.activa !== false).map(row => row.nombre)))
+      .catch(() => setCategoriasPersonalizadas([]));
+  }, []);
+
+  const crearCategoria = async () => {
+    const nombre = nuevaCategoria.trim();
+    if (!nombre) return;
+    if ([...CATEGORIAS_BASE, ...categoriasPersonalizadas].some(c => c.toLocaleLowerCase("es") === nombre.toLocaleLowerCase("es"))) {
+      toast.error("Esa categoría ya existe");
+      return;
+    }
+    setGuardandoCategoria(true);
+    try {
+      await base44.entities.FinancialCategory.create({ nombre, activa: true, orden: 100 });
+      setCategoriasPersonalizadas(prev => [...prev, nombre].sort((a,b) => a.localeCompare(b, "es")));
+      setFormData(prev => ({ ...prev, categoria: nombre }));
+      setNuevaCategoria("");
+      toast.success("Categoría creada y disponible para ingresos y gastos");
+    } catch (error) {
+      toast.error("No se pudo crear la categoría");
+    } finally {
+      setGuardandoCategoria(false);
+    }
+  };
   const [formData, setFormData] = useState({
     concepto: "",
     cantidad: "",
@@ -73,7 +84,7 @@ export default function TransactionForm({
   const [extracting, setExtracting] = useState(false);
   const [extractedData, setExtractedData] = useState(null);
 
-  const categorias = tipo === "Ingreso" ? CATEGORIAS_INGRESO : CATEGORIAS_GASTO;
+  const categorias = [...new Set([...CATEGORIAS_BASE, ...categoriasPersonalizadas])].sort((a,b) => a.localeCompare(b, "es"));
   const partidasFiltradas = partidas.filter(p =>
     tipo === "Ingreso" ? p.categoria === "Ingresos" : p.categoria !== "Ingresos"
   );
@@ -127,7 +138,7 @@ export default function TransactionForm({
   const extractDataFromInvoice = async (fileUrl) => {
     setExtracting(true);
     try {
-      const allCategorias = [...CATEGORIAS_INGRESO, ...CATEGORIAS_GASTO];
+      const allCategorias = [...new Set([...CATEGORIAS_BASE, ...categoriasPersonalizadas])];
       const partidasNombres = partidas.map(p => p.nombre).join(", ");
 
       // Detectar temporada actual
@@ -230,7 +241,7 @@ export default function TransactionForm({
     }
 
     // Validar categoría
-    const categoriasValidas = nuevoTipo === "Ingreso" ? CATEGORIAS_INGRESO : CATEGORIAS_GASTO;
+    const categoriasValidas = [...new Set([...CATEGORIAS_BASE, ...categoriasPersonalizadas])];
     const categoriaValida = categoriasValidas.find(c => 
       c.toLowerCase() === extractedData.categoria_sugerida?.toLowerCase()
     ) || "";
@@ -379,6 +390,19 @@ export default function TransactionForm({
                   ))}
                 </SelectContent>
               </Select>
+              <div className="mt-2 flex gap-2">
+                <Input
+                  value={nuevaCategoria}
+                  onChange={(e) => setNuevaCategoria(e.target.value)}
+                  placeholder="Crear nueva categoría..."
+                  className="h-9"
+                  maxLength={60}
+                />
+                <Button type="button" variant="outline" className="h-9 shrink-0" disabled={!nuevaCategoria.trim() || guardandoCategoria} onClick={crearCategoria}>
+                  {guardandoCategoria ? "Creando..." : "Crear"}
+                </Button>
+              </div>
+              <p className="mt-1 text-xs text-slate-500">Las categorías creadas estarán disponibles tanto para ingresos como para gastos.</p>
             </div>
 
             {/* Partida presupuestaria */}
