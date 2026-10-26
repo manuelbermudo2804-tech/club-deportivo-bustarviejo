@@ -7,6 +7,20 @@ import { toast } from "sonner";
 import { base44 } from "@/api/base44Client";
 import AutoMatchEngine from "../financial/AutoMatchEngine";
 
+async function refreshSessionStats(sessionId) {
+  if (!sessionId) return;
+  const movements = await base44.entities.BankMovement.filter({ reconciliation_session_id: sessionId });
+  const skipped = movements.filter((movement) => String(movement.notas_reconciliacion || "").includes("Omitido manualmente")).length;
+  const reconciled = movements.filter((movement) => movement.reconciliado).length;
+  const pending = movements.filter((movement) => !movement.reconciliado && !String(movement.notas_reconciliacion || "").includes("Omitido manualmente")).length;
+  await base44.entities.ReconciliationSession.update(sessionId, {
+    movimientos_totales: movements.length,
+    movimientos_reconciliados: reconciled,
+    movimientos_pendientes: pending,
+    movimientos_omitidos: skipped
+  });
+}
+
 export default function BankReconciliation({ payments, players, onReconcile }) {
   const queryClient = useQueryClient();
   const { data: sessions = [] } = useQuery({
@@ -41,6 +55,7 @@ export default function BankReconciliation({ payments, players, onReconcile }) {
         fecha_reconciliacion: new Date().toISOString(),
         fecha_pago: movement.fecha
       });
+      if (movement.reconciliation_session_id) await refreshSessionStats(movement.reconciliation_session_id);
 
     },
     onSuccess: () => {
@@ -61,9 +76,11 @@ export default function BankReconciliation({ payments, players, onReconcile }) {
         notas_reconciliacion: "Omitido manualmente - no corresponde a ningún pago",
         revisado_por: currentUser.email
       });
+      if (movement.reconciliation_session_id) await refreshSessionStats(movement.reconciliation_session_id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bankMovements'] });
+      queryClient.invalidateQueries({ queryKey: ['reconciliationSessions'] });
       toast.success("Movimiento omitido");
     },
   });
