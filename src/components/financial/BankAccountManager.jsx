@@ -108,6 +108,7 @@ export default function BankAccountManager({ activeSeason }) {
       {selectedAccount && (
         <BankStatementImporter 
           activeSeason={activeSeason}
+          account={selectedAccount}
           accountId={selectedAccount.numero_cuenta || selectedAccount.id}
         />
       )}
@@ -140,8 +141,8 @@ export default function BankAccountManager({ activeSeason }) {
                       <Badge className="mt-1 bg-green-600 text-xs">✓ Conciliado</Badge>
                     )}
                   </div>
-                  <p className={`font-bold ${mov.tipo === "Ingreso" ? 'text-green-600' : 'text-red-600'}`}>
-                    {mov.tipo === "Ingreso" ? '+' : '-'}{Math.abs(mov.importe || 0).toFixed(2)}€
+                  <p className={`font-bold ${String(mov.tipo || "").toLowerCase() === "ingreso" ? 'text-green-600' : 'text-red-600'}`}>
+                    {String(mov.tipo || "").toLowerCase() === "ingreso" ? '+' : '−'}{Math.abs(mov.importe || 0).toFixed(2)}€
                   </p>
                 </div>
               ))}
