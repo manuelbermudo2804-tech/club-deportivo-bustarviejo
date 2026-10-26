@@ -1707,7 +1707,7 @@ export default function TreasurerFinancialPanel() {
                   <Target className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-slate-900 text-lg">📋 Presupuesto 2026-2027</h3>
+                  <h3 className="font-bold text-slate-900 text-lg">📋 Presupuesto {activeSeason?.temporada || "de la temporada activa"}</h3>
                   <p className="text-sm text-slate-600">Simulador interactivo con gráficos — editable y exportable a PDF</p>
                 </div>
               </div>
@@ -1717,6 +1717,16 @@ export default function TreasurerFinancialPanel() {
                   Abrir Planificador
                 </Button>
               </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="border-slate-200 bg-slate-50">
+            <CardContent className="flex items-start gap-3 p-4">
+              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-indigo-600" />
+              <div>
+                <h3 className="font-semibold text-slate-900">¿Para qué sirve este apartado?</h3>
+                <p className="mt-1 text-sm text-slate-600">El presupuesto es el plan económico de la temporada: cuánto esperamos ingresar y gastar. El sistema compara esas previsiones con las operaciones financieras registradas y muestra desviaciones. No es el saldo del banco; el dinero disponible se consulta en Resumen o Bancario.</p>
+              </div>
             </CardContent>
           </Card>
 
