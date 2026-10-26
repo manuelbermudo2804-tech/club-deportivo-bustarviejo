@@ -151,7 +151,7 @@ export default function BankReconciliationWizard({ open, onClose, temporada }) {
             <div className="border-2 border-dashed border-slate-300 rounded-xl p-12 text-center">
               <input
                 type="file"
-                accept=".csv,.xlsx,.xls"
+                accept=".csv,.xlsx,.xls,.pdf,.txt"
                 onChange={handleFileUpload}
                 className="hidden"
                 id="bank-upload"
@@ -171,7 +171,7 @@ export default function BankReconciliationWizard({ open, onClose, temporada }) {
                       Arrastra o haz clic para subir extracto bancario
                     </p>
                     <p className="text-sm text-slate-500">
-                      Formatos: CSV, Excel (.xlsx, .xls)
+                      Formatos: CSV, Excel (.xlsx, .xls), PDF y TXT
                     </p>
                   </div>
                 )}
