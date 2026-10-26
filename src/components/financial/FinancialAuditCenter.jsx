@@ -36,8 +36,11 @@ export default function FinancialAuditCenter({ activeSeason }) {
     const norm = (v) => String(v || "").replace(/[^\d]/g, "");
     const txSeason = transactions.filter(t => !t.temporada || norm(t.temporada) === norm(season)).filter(t => t.estado !== "Anulado");
     const bankSeason = movements.filter(m => {
+      const movementDate = String(m.fecha || "");
+      if (activeSeason?.fecha_inicio && movementDate < activeSeason.fecha_inicio) return false;
+      if (activeSeason?.fecha_fin && movementDate > activeSeason.fecha_fin) return false;
       const session = sessions.find(s => s.id === m.reconciliation_session_id);
-      return !session || !session.fecha_inicio || !session.fecha_fin || (String(m.fecha || "") >= session.fecha_inicio && String(m.fecha || "") <= session.fecha_fin);
+      return !session || !session.fecha_inicio || !session.fecha_fin || (movementDate >= session.fecha_inicio && movementDate <= session.fecha_fin);
     });
     const stripePayouts = txSeason.filter(t => /stripe/i.test(String(t.concepto || "")) && t.tipo === "Ingreso" && t.estado === "Cobrado");
     const unlinkedBank = bankSeason.filter(m => m.reconciliado === true && !m.financial_transaction_id && !m.payment_id);
