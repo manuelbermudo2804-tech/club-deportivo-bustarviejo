@@ -64,18 +64,20 @@ export default function SeasonBudgetDashboard({ activeSeason }) {
       const key = categoria.toLocaleLowerCase("es") + "||" + partida.toLocaleLowerCase("es");
       if (!partidas.has(key)) partidas.set(key, { nombre: categoria, partida, types: new Set(["Transacción"]), sources: new Set(["Transacciones financieras"]) });
     });
+    // Las transferencias de liquidación de Stripe al banco son movimientos de tesorería, no un segundo ingreso.
+    const isStripeSettlement = (t) => t.tipo === "Ingreso" && /stripe/i.test(String(t.concepto || ""));
     const rows = [...partidas.entries()].map(([key, p]) => {
       const related = tx.filter(t => {
         const categoria = String(t.categoria || "").trim() || "Categoría sin informar";
         const partida = String(t.partida_nombre || "").trim() || "Partida sin informar";
         return categoria.toLocaleLowerCase("es") + "||" + partida.toLocaleLowerCase("es") === key;
       });
-      const income = related.filter(t => t.tipo === "Ingreso" && t.estado === "Cobrado").reduce((s,t)=>s+Number(t.cantidad||0),0);
+      const income = related.filter(t => t.tipo === "Ingreso" && t.estado === "Cobrado" && !isStripeSettlement(t)).reduce((s,t)=>s+Number(t.cantidad||0),0);
       const expense = related.filter(t => t.tipo === "Gasto" && t.estado === "Pagado").reduce((s,t)=>s+Number(t.cantidad||0),0);
       const pending = related.filter(t => t.estado === "Pendiente").reduce((s,t)=>s+Number(t.cantidad||0),0);
       return { ...p, count: related.length, income, expense, pending, planned: 0, budgetCategory: "" };
     }).sort((a,b) => a.nombre.localeCompare(b.nombre, "es") || a.partida.localeCompare(b.partida, "es"));
-    const actualIncome = tx.filter(t => t.tipo === "Ingreso" && t.estado === "Cobrado").reduce((s,t)=>s+Number(t.cantidad||0),0);
+    const actualIncome = tx.filter(t => t.tipo === "Ingreso" && t.estado === "Cobrado" && !isStripeSettlement(t)).reduce((s,t)=>s+Number(t.cantidad||0),0);
     const actualExpenses = tx.filter(t => t.tipo === "Gasto" && t.estado === "Pagado").reduce((s,t)=>s+Number(t.cantidad||0),0);
     const pendingTx = tx.filter(t => t.estado === "Pendiente").reduce((s,t)=>s+Number(t.cantidad||0),0);
     const paidPlayerFees = pay.filter(p=>p.estado==="Pagado").reduce((s,p)=>s+Number(p.cantidad||0),0);
