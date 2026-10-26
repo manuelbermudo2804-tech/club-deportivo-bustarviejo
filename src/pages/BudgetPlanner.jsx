@@ -31,6 +31,9 @@ const budgetCategory = (type, name) => {
 export default function BudgetPlanner() {
   const [transactions, setTransactions] = useState([]);
   const [bankMovements, setBankMovements] = useState([]);
+  const [playerPayments, setPlayerPayments] = useState([]);
+  const [porraPayments, setPorraPayments] = useState([]);
+  const [collaborationPayments, setCollaborationPayments] = useState([]);
   const [savedBudget, setSavedBudget] = useState(null);
   const [draftLines, setDraftLines] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -42,15 +45,21 @@ export default function BudgetPlanner() {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const [txs, movements, budgets] = await Promise.all([
+      const [txs, movements, budgets, payments, porra, collaborations] = await Promise.all([
         base44.entities.FinancialTransaction.filter({ fecha: { $gte: CURRENT_START, $lte: CURRENT_END } }, "fecha", 500, 0),
         base44.entities.BankMovement.filter({ fecha: { $gte: CURRENT_START, $lte: CURRENT_END } }, "fecha", 500, 0),
-        base44.entities.Budget.filter({ temporada: TARGET_SEASON }, "-updated_date", 20, 0)
+        base44.entities.Budget.filter({ temporada: TARGET_SEASON }, "-updated_date", 20, 0),
+        base44.entities.Payment.filter({ temporada: "2026-2027" }, "created_date", 1000, 0),
+        base44.entities.PorraParticipante.filter({}, "-created_date", 1000, 0),
+        base44.entities.CollaborationPayment.filter({}, "-created_date", 1000, 0)
       ]);
       const validTxs = (txs || []).filter(t => !t.is_sample && t.estado !== "Anulado");
       const validMovements = (movements || []).filter(m => !m.is_sample);
       setTransactions(validTxs);
       setBankMovements(validMovements);
+      setPlayerPayments((payments || []).filter(p => !p.is_sample && !p.is_deleted && p.estado !== "Anulado"));
+      setPorraPayments((porra || []).filter(p => !p.is_sample));
+      setCollaborationPayments((collaborations || []).filter(p => !p.is_sample));
       const currentBudget = (budgets || []).find(b => b.nombre === "Presupuesto construido desde movimientos") || (budgets || [])[0] || null;
       setSavedBudget(currentBudget);
       const currentActuals = buildActualGroups(validTxs);
@@ -81,6 +90,25 @@ export default function BudgetPlanner() {
   useEffect(() => { loadData(); }, [loadData]);
 
   const currentTransactions = useMemo(() => transactions.filter(t => isCurrentSeasonDate(t.fecha)), [transactions]);
+  const operatingTransactions = useMemo(() => currentTransactions.filter(t => !(t.tipo === "Ingreso" && /stripe/i.test([t.concepto, t.proveedor_cliente, t.referencia_origen].join(" ")))), [currentTransactions]);
+  const duesSummary = useMemo(() => {
+    const paid = playerPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + number(p.cantidad), 0);
+    const pending = playerPayments.filter(p => ["Pendiente", "En revisión"].includes(p.estado)).reduce((sum, p) => sum + number(p.cantidad), 0);
+    const byCategory = new Map();
+    playerPayments.forEach(p => {
+      const name = clean(p.categoria_actividad) || "Actividad sin especificar";
+      const row = byCategory.get(name) || { name, paid: 0, pending: 0, total: 0, count: 0 };
+      row.total += number(p.cantidad); row.count += 1;
+      if (p.estado === "Pagado") row.paid += number(p.cantidad);
+      if (["Pendiente", "En revisión"].includes(p.estado)) row.pending += number(p.cantidad);
+      byCategory.set(name, row);
+    });
+    return { paid, pending, scheduled: paid + pending, byCategory: [...byCategory.values()].sort((a,b) => b.total-a.total) };
+  }, [playerPayments]);
+  const otherIncomeSources = useMemo(() => ({
+    porraPaid: porraPayments.filter(p => ["pagado", "paid"].includes(String(p.estado_pago || "").toLowerCase()) && !p.es_prueba).reduce((sum,p) => sum + number(p.cantidad_pagada),0),
+    collaborationsPaid: collaborationPayments.filter(p => ["pagado", "paid"].includes(String(p.estado_pago || "").toLowerCase())).reduce((sum,p) => sum + number(p.importe),0)
+  }), [porraPayments, collaborationPayments]);
   const currentBankMovements = useMemo(() => bankMovements.filter(m => isCurrentSeasonDate(m.fecha)), [bankMovements]);
   const currentBankLinkedIds = useMemo(() => new Set(currentBankMovements.map(m => m.id)), [currentBankMovements]);
   const categorizedCurrent = useMemo(() => currentTransactions.filter(t => clean(t.partida_nombre) || clean(t.categoria)), [currentTransactions]);
