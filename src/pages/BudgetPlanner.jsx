@@ -225,6 +225,12 @@ export default function BudgetPlanner() {
           <InfoCard icon={needsReview.length ? <AlertTriangle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />} label="Pendientes de clasificar" value={String(needsReview.length)} note={unmatchedBankMovements.length + " movimientos bancarios todavía sin transacción vinculada."} />
         </div>
 
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          <InfoCard icon={<Wallet className="h-5 w-5" />} label="Cuotas de jugadores · pagadas en la app" value={money(duesSummary.paid)} note={money(duesSummary.pending) + " pendientes o en revisión. Fuente: registros de cuotas 2026/2027; no se suman otra vez al resultado real."} />
+          <InfoCard icon={<TrendingUp className="h-5 w-5" />} label="Cuotas registradas · total previsto" value={money(duesSummary.scheduled)} note={duesSummary.byCategory.length + " categorías/actividades detectadas. El detalle por actividad está en Partidas reales."} />
+          <InfoCard icon={<CheckCircle2 className="h-5 w-5" />} label="Otros cobros identificados" value={money(otherIncomeSources.porraPaid + otherIncomeSources.collaborationsPaid)} note={money(otherIncomeSources.porraPaid) + " porra y " + money(otherIncomeSources.collaborationsPaid) + " colaboraciones, según sus registros. No se suman de nuevo al resultado real."} />
+        </div>
+
         <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950">
           <div className="flex items-start gap-3"><CircleHelp className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" /><div><strong>Importante para que el presupuesto sea fiable:</strong> las cifras reales se calculan solo desde FinancialTransaction. Los movimientos bancarios sirven para comprobar cobertura y conciliación, pero no se vuelven a sumar, porque muchos ya están representados en las transacciones. La temporada completa se irá completando a medida que importes los siguientes extractos y termines de clasificar los movimientos.</div></div>
         </div>
