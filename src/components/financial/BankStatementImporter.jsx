@@ -301,7 +301,8 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         fecha_fin: periodEnd,
         cuenta_bancaria: accountId,
         archivo_nombre: fileName,
-        movimientos_duplicados: 0
+        movimientos_duplicados: 0,
+        movimientos_omitidos: 0
       });
 
       const incomingCounts = new Map();
@@ -480,6 +481,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         movimientos_reconciliados: reconciledCount,
         movimientos_pendientes: Math.max(0, importedCount - reconciledCount),
         movimientos_duplicados: duplicateCount,
+        movimientos_omitidos: 0,
         completada: true,
         ...(parsedOpening !== null ? { saldo_inicial_extracto: parsedOpening } : {}),
         ...(parsedClosing !== null ? { saldo_final_extracto: parsedClosing } : {}),
