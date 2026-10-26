@@ -38,7 +38,7 @@ import { toast } from "sonner";
 
 const MONTHS = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
 
-export default function AIFinancialForecasting({ open, onClose }) {
+export default function AIFinancialForecasting({ open, onClose, budgetPlan = null }) {
   const [activeTab, setActiveTab] = useState("forecast");
   const [loading, setLoading] = useState(false);
   const [forecastData, setForecastData] = useState(null);
@@ -347,6 +347,11 @@ SITUACIÓN ACTUAL:
 PARÁMETROS DEL ESCENARIO:
 ${JSON.stringify(scenario)}
 
+PRESUPUESTO PROPUESTO 2027/2028 DEL SIMULADOR (si existe):
+${budgetPlan ? JSON.stringify(budgetPlan) : "No hay una propuesta del simulador cargada. Analiza solo el escenario general y advierte esta limitación."}
+
+Si hay presupuesto propuesto, evalúa específicamente si es viable: resultado previsto, partidas que más presionan el saldo, supuestos que parecen optimistas, sensibilidad a una caída de ingresos y a un aumento de gastos. No inventes cifras ni presentes hipótesis como datos confirmados.
+
 Calcula el impacto financiero detallado, considerando:
 1. Impacto directo en ingresos/gastos
 2. Efectos secundarios (ej: subir cuotas puede causar bajas)
@@ -428,12 +433,17 @@ SITUACIÓN ACTUAL:
 - Pagos pendientes: ${currentSummary.pendingPayments}€
 - Balance mensual medio: ${currentSummary.avgMonthlyBalance.toFixed(0)}€
 
-PRESUPUESTO:
+PRESUPUESTO REGISTRADO:
 ${budgets[0] ? JSON.stringify({
   partidas: budgets[0].partidas,
   ejecutado_ingresos: budgets[0].total_ejecutado_ingresos,
   ejecutado_gastos: budgets[0].total_ejecutado_gastos
 }) : "Sin presupuesto"}
+
+PROPUESTA EDITABLE DEL SIMULADOR 2027/2028:
+${budgetPlan ? JSON.stringify(budgetPlan) : "No cargada. No la supongas."}
+
+Distingue claramente datos históricos, presupuesto guardado y propuesta editable. Valora si la propuesta puede funcionar, qué partidas deberían subirse o bajarse, y qué riesgos requieren evidencia antes de aprobar. No inventes datos ni des por confirmados ingresos pendientes.
 
 Proporciona:
 1. Análisis DAFO financiero
