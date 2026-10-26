@@ -1559,8 +1559,6 @@ export default function TreasurerFinancialPanel() {
             getImportePorMes={getImportePorMes}
           />
 
-          {/* Distribución de Ingresos (Gráfico Pastel) */}
-          <IncomeDistributionPie stats={stats} />
 
           {/* Registro Stripe */}
           <StripePaymentsPanel />
