@@ -1,0 +1,21 @@
+{
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string",
+      "description": "Nombre de la categor\u00eda financiera personalizada"
+    },
+    "activa": {
+      "type": "boolean",
+      "default": true
+    },
+    "orden": {
+      "type": "number",
+      "default": 100
+    }
+  },
+  "required": [
+    "nombre"
+  ],
+  "name": "FinancialCategory"
+}

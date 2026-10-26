@@ -33,29 +33,6 @@
     },
     "categoria": {
       "type": "string",
-      "enum": [
-        "Cuotas Socios",
-        "Inscripciones",
-        "Subvenciones",
-        "Patrocinios",
-        "Venta Equipaci\u00f3n",
-        "Eventos",
-        "Loter\u00eda",
-        "Otros Ingresos",
-        "Material Deportivo",
-        "Equipaci\u00f3n",
-        "Arbitrajes",
-        "Desplazamientos",
-        "Instalaciones",
-        "Mantenimiento",
-        "Seguros",
-        "Federaci\u00f3n",
-        "Personal",
-        "Suministros",
-        "Marketing",
-        "Eventos y Celebraciones",
-        "Otros Gastos"
-      ],
       "description": "Categor\u00eda del movimiento"
     },
     "subcategoria": {
