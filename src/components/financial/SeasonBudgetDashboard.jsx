@@ -55,28 +55,26 @@ export default function SeasonBudgetDashboard({ activeSeason }) {
     const pay = payments.filter(p => inSeason(p) && p.is_deleted !== true && p.estado !== "Anulado" && p.estado !== "Cancelado");
     const playersById = new Map(players.map(player => [player.id, player]));
     const budget = budgets.find(b => seasonMatches(b.temporada, season));
+    // Cada movimiento se agrupa una sola vez por la combinación literal de categoría y partida.
+    // No se duplican importes sumando por separado categoría, partida y subcategoría.
     const partidas = new Map();
-    const add = (name, type, source) => {
-      const label = String(name || "").trim();
-      if (!label) return;
-      const key = label.toLocaleLowerCase("es");
-      if (!partidas.has(key)) partidas.set(key, { nombre: label, types: new Set(), sources: new Set() });
-      if (type) partidas.get(key).types.add(type);
-      if (source) partidas.get(key).sources.add(source);
-    };
-    tx.forEach(t => { add(t.partida_nombre, t.tipo, "Transacciones · partida"); add(t.categoria, t.tipo, "Transacciones · categoría"); add(t.subcategoria, t.tipo, "Transacciones · subcategoría"); });
-    rules.forEach(r => { add(r.partida_nombre, r.tipo_transaccion, "Reglas de conciliación"); add(r.categoria_destino, r.tipo_transaccion, "Reglas de conciliación · categoría"); });
-    customCategories.filter(c => c.activa !== false).forEach(c => add(c.nombre, "", "Categorías financieras"));
-    (budget?.partidas || []).forEach(p => add(p.nombre, p.categoria === "Ingresos" ? "Ingreso" : "Gasto", "Presupuesto guardado"));
-    const rows = [...partidas.values()].map(p => {
-      const match = (t) => [t.partida_nombre, t.categoria, t.subcategoria].some(v => String(v || "").trim().toLocaleLowerCase("es") === p.nombre.toLocaleLowerCase("es"));
-      const related = tx.filter(match);
-      const income = related.filter(t => t.tipo === "Ingreso" && ["Cobrado", "Pagado"].includes(t.estado)).reduce((s,t)=>s+Number(t.cantidad||0),0);
-      const expense = related.filter(t => t.tipo === "Gasto" && ["Pagado", "Cobrado"].includes(t.estado)).reduce((s,t)=>s+Number(t.cantidad||0),0);
+    tx.forEach(t => {
+      const categoria = String(t.categoria || "").trim() || "Categoría sin informar";
+      const partida = String(t.partida_nombre || "").trim() || "Partida sin informar";
+      const key = categoria.toLocaleLowerCase("es") + "||" + partida.toLocaleLowerCase("es");
+      if (!partidas.has(key)) partidas.set(key, { nombre: categoria, partida, types: new Set(["Transacción"]), sources: new Set(["Transacciones financieras"]) });
+    });
+    const rows = [...partidas.entries()].map(([key, p]) => {
+      const related = tx.filter(t => {
+        const categoria = String(t.categoria || "").trim() || "Categoría sin informar";
+        const partida = String(t.partida_nombre || "").trim() || "Partida sin informar";
+        return categoria.toLocaleLowerCase("es") + "||" + partida.toLocaleLowerCase("es") === key;
+      });
+      const income = related.filter(t => t.tipo === "Ingreso" && t.estado === "Cobrado").reduce((s,t)=>s+Number(t.cantidad||0),0);
+      const expense = related.filter(t => t.tipo === "Gasto" && t.estado === "Pagado").reduce((s,t)=>s+Number(t.cantidad||0),0);
       const pending = related.filter(t => t.estado === "Pendiente").reduce((s,t)=>s+Number(t.cantidad||0),0);
-      const budgetLine = (budget?.partidas || []).find(x => String(x.nombre||"").trim().toLocaleLowerCase("es") === p.nombre.toLocaleLowerCase("es"));
-      return { ...p, count: related.length, income, expense, pending, planned: Number(budgetLine?.presupuestado || 0), budgetCategory: budgetLine?.categoria || "" };
-    }).sort((a,b) => a.nombre.localeCompare(b.nombre, "es"));
+      return { ...p, count: related.length, income, expense, pending, planned: 0, budgetCategory: "" };
+    }).sort((a,b) => a.nombre.localeCompare(b.nombre, "es") || a.partida.localeCompare(b.partida, "es"));
     const actualIncome = tx.filter(t => t.tipo === "Ingreso" && t.estado === "Cobrado").reduce((s,t)=>s+Number(t.cantidad||0),0);
     const actualExpenses = tx.filter(t => t.tipo === "Gasto" && t.estado === "Pagado").reduce((s,t)=>s+Number(t.cantidad||0),0);
     const pendingTx = tx.filter(t => t.estado === "Pendiente").reduce((s,t)=>s+Number(t.cantidad||0),0);
