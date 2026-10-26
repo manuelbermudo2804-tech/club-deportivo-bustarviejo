@@ -51,6 +51,11 @@
       "default": 0,
       "description": "Movimientos detectados y omitidos por duplicidad"
     },
+    "movimientos_omitidos": {
+      "type": "number",
+      "default": 0,
+      "description": "Movimientos revisados manualmente y marcados como no conciliables"
+    },
     "saldo_inicial_extracto": {
       "type": "number",
       "description": "Saldo inicial declarado en el extracto"
