@@ -71,6 +71,31 @@ export default function TransactionList({
         revisar_clasificacion: false,
         notas: [transaction.notas, "Categoría revisada manualmente."].filter(Boolean).join("\\n")
       });
+
+      // Aprender de la clasificación manual para proponerla en futuros extractos.
+      const pattern = String(transaction.concepto || "").trim();
+      if (pattern.length >= 4) {
+        const rules = await base44.entities.ReconciliationRule.list("-veces_aplicada").catch(() => []);
+        const normalize = (value) => String(value || "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+        const existingRule = rules.find((rule) =>
+          rule.tipo_transaccion === transaction.tipo &&
+          normalize(rule.patron_concepto) === normalize(pattern)
+        );
+        const ruleData = {
+          patron_concepto: pattern,
+          categoria_destino: category,
+          tipo_transaccion: transaction.tipo,
+          confianza_minima: 85,
+          activa: true,
+          veces_aplicada: Number(existingRule?.veces_aplicada || 0)
+        };
+        if (existingRule) {
+          await base44.entities.ReconciliationRule.update(existingRule.id, ruleData);
+        } else {
+          await base44.entities.ReconciliationRule.create(ruleData);
+        }
+      }
+
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["transactions"] }),
         queryClient.invalidateQueries({ queryKey: ["financialTransactions"] }),
