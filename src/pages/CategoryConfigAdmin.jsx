@@ -14,6 +14,7 @@ import { Edit2, Trash2, Plus, AlertTriangle, CheckCircle2, Lock, Loader2, Smartp
 import { toast } from "sonner";
 import PlazasCategoriaPanel from "@/components/categories/PlazasCategoriaPanel";
 import PrimerPagoCell from "@/components/categories/PrimerPagoCell";
+import RenewalPrepagoCell from "@/components/categories/RenewalPrepagoCell";
 import PruebasPagoAdelantadoPanel from "@/components/categories/PruebasPagoAdelantadoPanel";
 import UsuariosPruebaPagoAdelantadoPanel from "@/components/categories/UsuariosPruebaPagoAdelantadoPanel";
 
@@ -469,7 +470,7 @@ export default function CategoryConfigAdmin() {
                       )}
                     </td>
                     <td className="px-2 py-3 text-center">
-                      <PrimerPagoCell cat={cat} onUpdate={(data) => updateCategoryMutation.mutate({ id: cat.id, data })} />
+                      <div className="flex flex-col gap-1 items-center"><PrimerPagoCell cat={cat} onUpdate={(data) => updateCategoryMutation.mutate({ id: cat.id, data })} /><RenewalPrepagoCell cat={cat} onUpdate={(data) => updateCategoryMutation.mutate({ id: cat.id, data })} /></div>
                     </td>
                     <td className="px-2 py-3 text-center">
                       <button
@@ -591,7 +592,7 @@ export default function CategoryConfigAdmin() {
                         )}
                       </td>
                       <td className="px-2 py-3 text-center">
-                        <PrimerPagoCell cat={cat} onUpdate={(data) => updateCategoryMutation.mutate({ id: cat.id, data })} />
+                        <div className="flex flex-col gap-1 items-center"><PrimerPagoCell cat={cat} onUpdate={(data) => updateCategoryMutation.mutate({ id: cat.id, data })} /><RenewalPrepagoCell cat={cat} onUpdate={(data) => updateCategoryMutation.mutate({ id: cat.id, data })} /></div>
                       </td>
                       <td className="px-2 py-3 text-center">
                         <button
