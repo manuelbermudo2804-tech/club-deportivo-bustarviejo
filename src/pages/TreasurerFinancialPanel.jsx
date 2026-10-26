@@ -11,7 +11,7 @@ import {
   CreditCard, ShoppingBag, Users, TrendingUp, TrendingDown, 
   Download, Euro, Clover, Building2, DollarSign, FileText,
   Calendar, CheckCircle2, Clock, AlertCircle, HelpCircle, BarChart3, Sparkles, Plus,
-  PieChart, Target, Award, Heart, Settings, RefreshCw, ExternalLink
+  PieChart, Target, Award, Heart, Settings, RefreshCw, ExternalLink, AlertTriangle
 } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
