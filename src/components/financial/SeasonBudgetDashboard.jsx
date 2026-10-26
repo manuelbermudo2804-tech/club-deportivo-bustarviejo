@@ -65,7 +65,7 @@ export default function SeasonBudgetDashboard({ activeSeason }) {
       if (!partidas.has(key)) partidas.set(key, { nombre: categoria, partida, types: new Set(["Transacción"]), sources: new Set(["Transacciones financieras"]) });
     });
     // Las transferencias de liquidación de Stripe al banco son movimientos de tesorería, no un segundo ingreso.
-    const isStripeSettlement = (t) => t.tipo === "Ingreso" && /stripe/i.test(String(t.concepto || ""));
+    const isStripeSettlement = (t) => t.tipo === "Ingreso" && /transferencia.*stripe|stripe.*transferencia/i.test(String(t.concepto || ""));
     const rows = [...partidas.entries()].map(([key, p]) => {
       const related = tx.filter(t => {
         const categoria = String(t.categoria || "").trim() || "Categoría sin informar";
