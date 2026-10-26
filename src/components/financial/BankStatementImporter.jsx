@@ -219,8 +219,8 @@ export default function BankStatementImporter({ activeSeason, accountId, account
           properties: {
             fecha_inicio: { type: "string", description: "Fecha inicial del período del extracto, en formato YYYY-MM-DD si aparece" },
             fecha_fin: { type: "string", description: "Fecha final del período del extracto, en formato YYYY-MM-DD si aparece" },
-            saldo_inicial: { type: "number", description: "Saldo inicial del extracto en euros, si aparece" },
-            saldo_final: { type: "number", description: "Saldo final del extracto en euros, si aparece" },
+            saldo_inicial: { type: "number", description: "Saldo de la cuenta inmediatamente antes del primer movimiento del período. No uses el saldo que aparece después del primer movimiento." },
+            saldo_final: { type: "number", description: "Saldo final de cierre del extracto si aparece claramente en el resumen. No uses el saldo consolidado si difiere del saldo real/disponible." },
             movimientos: {
               type: "array",
               items: {
@@ -229,6 +229,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
                   fecha: { type: "string" },
                   concepto: { type: "string" },
                   cantidad: { type: "number" },
+                  saldo_despues: { type: "number", description: "Saldo de la cuenta inmediatamente después de este movimiento, si aparece en el extracto" },
                   tipo: { type: "string", description: "Ingreso/abono o gasto/cargo; conserva el signo del importe si el archivo lo incluye" }
                 },
                 required: ["fecha", "concepto", "cantidad"]
@@ -243,17 +244,35 @@ export default function BankStatementImporter({ activeSeason, accountId, account
       if (result?.status !== "success" || !Array.isArray(output.movimientos) || output.movimientos.length === 0) {
         throw new Error("No se han podido extraer movimientos válidos. Prueba con el extracto CSV o Excel del banco.");
       }
-      const valid = output.movimientos.map(normalizeMovement).filter(Boolean);
+      const valid = output.movimientos.map(normalizeMovement).filter(Boolean).sort((a, b) => a.fecha.localeCompare(b.fecha));
       if (!valid.length) throw new Error("El archivo se ha leído, pero no contiene movimientos con fecha, concepto e importe válidos.");
       setMovements(output.movimientos);
       const minDate = valid[0].fecha;
       const maxDate = valid[valid.length - 1].fecha;
+      const firstWithBalance = valid.find((movement) => movement.saldo_despues !== null);
+      const lastWithBalance = [...valid].reverse().find((movement) => movement.saldo_despues !== null);
+      const inferredOpening = firstWithBalance
+        ? Number((firstWithBalance.saldo_despues - firstWithBalance.signedAmount).toFixed(2))
+        : null;
+      const extractedOpening = money(output.saldo_inicial);
+      const extractedOpeningLooksLikeFirstRowBalance = extractedOpening !== null && firstWithBalance &&
+        Math.abs(extractedOpening - firstWithBalance.saldo_despues) < 0.02 &&
+        inferredOpening !== null && Math.abs(inferredOpening - extractedOpening) >= 0.02;
+      const resolvedOpening = extractedOpeningLooksLikeFirstRowBalance ? inferredOpening : extractedOpening ?? inferredOpening;
+      const extractedClosing = money(output.saldo_final);
+      const resolvedClosing = lastWithBalance?.saldo_despues ?? extractedClosing;
       setPeriodStart(normalizeDate(output.fecha_inicio) || suggestedStart || minDate);
       setPeriodEnd(normalizeDate(output.fecha_fin) || maxDate);
-      setOpeningBalance(output.saldo_inicial !== undefined && output.saldo_inicial !== null ? String(output.saldo_inicial) : "");
-      setClosingBalance(output.saldo_final !== undefined && output.saldo_final !== null ? String(output.saldo_final) : "");
-      if (!output.fecha_inicio || !output.fecha_fin) {
-        setExtractionWarning("El archivo no ha proporcionado claramente el período completo. Revisa las fechas propuestas antes de importar.");
+      setOpeningBalance(resolvedOpening !== null ? String(resolvedOpening.toFixed(2)) : "");
+      setClosingBalance(resolvedClosing !== null ? String(resolvedClosing.toFixed(2)) : "");
+      const balanceHeaderDiffers = extractedClosing !== null && lastWithBalance &&
+        Math.abs(extractedClosing - lastWithBalance.saldo_despues) >= 0.02;
+      const periodMissing = !output.fecha_inicio || !output.fecha_fin;
+      if (periodMissing || balanceHeaderDiffers) {
+        setExtractionWarning([
+          periodMissing ? "El archivo no ha proporcionado claramente el período completo. Revisa las fechas propuestas." : "",
+          balanceHeaderDiffers ? "El saldo final del encabezado no coincide con el saldo tras el último movimiento. Se propone el saldo de la última fila; compruébalo antes de importar." : ""
+        ].filter(Boolean).join(" "));
       }
       toast.success(`${valid.length} movimientos válidos extraídos`);
     } catch (error) {
@@ -403,6 +422,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
           concepto: mov.concepto,
           importe: mov.importe,
           tipo: mov.tipo,
+          ...(mov.saldo_despues !== null ? { saldo_despues: mov.saldo_despues } : {}),
           reconciliado: !!matchingPayment || !!matchingTransaction || !!createdTransaction,
           payment_id: matchingPayment?.id || undefined,
           financial_transaction_id: linkedTransaction?.id || undefined,
