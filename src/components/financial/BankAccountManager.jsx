@@ -87,10 +87,10 @@ export default function BankAccountManager({ activeSeason }) {
 
           <div className="space-y-3">
             {activeAccounts.map(account => (
-              <div key={account.id} className="border rounded-lg p-4 hover:bg-slate-50 cursor-pointer" onClick={() => setSelectedAccount(account)}>
+              <div key={account.id} className={`border rounded-lg p-4 cursor-pointer transition-colors ${selectedAccount?.id === account.id ? "border-blue-500 bg-blue-50 ring-2 ring-blue-100" : "hover:bg-slate-50"}`} onClick={() => setSelectedAccount(account)}>
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="font-bold text-slate-900">{account.nombre}</h4>
+                    <h4 className="font-bold text-slate-900">{account.nombre}{selectedAccount?.id === account.id ? " ✓ Seleccionada" : ""}</h4>
                     <p className="text-sm text-slate-600">{account.banco}</p>
                     <Badge variant="outline" className="mt-1">{account.tipo}</Badge>
                   </div>
