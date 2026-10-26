@@ -250,8 +250,6 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         });
         importedCount++;
         netNew += mov.signedAmount;
-        existingCounts.set(key, (existingCounts.get(key) || 0) + 1);
-
         if (matchingPayment) {
           usedPaymentIds.add(matchingPayment.id);
           await base44.entities.Payment.update(matchingPayment.id, {
@@ -262,7 +260,8 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         }
       }
 
-      const accountRecord = await base44.entities.BankAccount.get(account.id);
+      const accountRecords = await base44.entities.BankAccount.list();
+      const accountRecord = accountRecords.find((item) => item.id === account.id) || account;
       const parsedClosing = closingBalance.trim() === "" ? null : Number(closingBalance);
       const parsedOpening = openingBalance.trim() === "" ? null : Number(openingBalance);
       if (parsedClosing !== null && !Number.isFinite(parsedClosing)) throw new Error("El saldo final del extracto no es válido.");
@@ -272,7 +271,12 @@ export default function BankStatementImporter({ activeSeason, accountId, account
       if (parsedClosing !== null) {
         saldoCalculado = parsedClosing;
       } else if (accountSessions.length === 0) {
-        saldoCalculado = (Number(accountRecord?.saldo_inicial ?? account?.saldo_inicial) || 0) + netNew;
+        const legacyNet = existing.reduce((sum, item) => {
+          const amount = Math.abs(Number(item.importe) || 0);
+          const kind = String(item.tipo || "").toLowerCase() === "gasto" || Number(item.importe) < 0 ? -1 : 1;
+          return sum + amount * kind;
+        }, 0);
+        saldoCalculado = (Number(accountRecord?.saldo_inicial ?? account?.saldo_inicial) || 0) + legacyNet + netNew;
       } else {
         saldoCalculado = (Number(accountRecord?.saldo_actual ?? account?.saldo_actual) || 0) + netNew;
       }
@@ -299,10 +303,10 @@ export default function BankStatementImporter({ activeSeason, accountId, account
         cuenta_bancaria: accountId,
         archivo_nombre: fileName,
         movimientos_duplicados: duplicateCount,
-        saldo_inicial_extracto: parsedOpening,
-        saldo_final_extracto: parsedClosing,
-        saldo_calculado_extracto: reconciliationExpected,
-        diferencia_saldos: discrepancy,
+        ...(parsedOpening !== null ? { saldo_inicial_extracto: parsedOpening } : {}),
+        ...(parsedClosing !== null ? { saldo_final_extracto: parsedClosing } : {}),
+        ...(reconciliationExpected !== null ? { saldo_calculado_extracto: reconciliationExpected } : {}),
+        ...(discrepancy !== null ? { diferencia_saldos: discrepancy } : {}),
         importe_neto_importado: Number(netNew.toFixed(2))
       });
 
