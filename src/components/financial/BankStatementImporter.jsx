@@ -11,13 +11,15 @@ import { toast } from "sonner";
 function money(value) {
   if (value === null || value === undefined || value === "") return null;
   if (typeof value === "number") return Number.isFinite(value) ? value : null;
-  let raw = String(value).trim().replace(/[€\\s]/g, "");
-  if (raw.includes(",") && raw.includes(".")) {
-    raw = raw.lastIndexOf(",") > raw.lastIndexOf(".")
-      ? raw.replace(/\\./g, "").replace(",", ".")
-      : raw.replace(/,/g, "");
-  } else if (raw.includes(",")) {
-    raw = /,\\d{2}$/.test(raw) ? raw.replace(/\\./g, "").replace(",", ".") : raw.replace(/,/g, "");
+  let raw = String(value).trim().replaceAll("€", "").replaceAll(" ", "").replaceAll(String.fromCharCode(160), "");
+  const comma = raw.lastIndexOf(",");
+  const dot = raw.lastIndexOf(".");
+  if (comma >= 0 && dot >= 0) {
+    raw = comma > dot ? raw.split(".").join("").replace(",", ".") : raw.split(",").join("");
+  } else if (comma >= 0) {
+    raw = raw.length - comma - 1 === 2
+      ? raw.split(".").join("").replace(",", ".")
+      : raw.split(",").join("");
   }
   const parsed = Number(raw);
   return Number.isFinite(parsed) ? parsed : null;
