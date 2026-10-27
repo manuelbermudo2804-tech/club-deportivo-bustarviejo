@@ -590,9 +590,15 @@ export default function Players() {
       nombre: player.nombre || "Sin nombre",
       categoria: player.deporte || "Sin categoría",
       direccion: player.direccion || "",
+      municipio: player.municipio || "",
+      nombreTutor1: player.nombre_tutor_legal || player.nombre_tutor || "",
       telefono: player.telefono || "",
       email: player.email_padre || "",
-      tutor2: player.email_tutor_2 || ""
+      nombreTutor2: player.nombre_tutor_2 || "",
+      telefonoTutor2: player.telefono_tutor_2 || "",
+      emailTutor2: player.email_tutor_2 || "",
+      emailJugador: player.email_jugador || "",
+      telefonoJugador: player.telefono_jugador || ""
     }));
     if (!rows.length) {
       toast.error("No hay jugadores en el filtro actual para exportar");
@@ -606,6 +612,7 @@ export default function Players() {
     const contentWidth = pageWidth - margin * 2;
     let y = 18;
     const withAddress = rows.filter(row => row.direccion.trim()).length;
+    const withMunicipality = rows.filter(row => row.municipio.trim()).length;
 
     const drawHeader = (continued = false) => {
       doc.setFillColor(27, 39, 51);
@@ -634,17 +641,26 @@ export default function Players() {
     doc.roundedRect(margin, y, contentWidth, 15, 2, 2, "F");
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
-    doc.text(`Jugadores: ${rows.length}    Con dirección: ${withAddress}    Sin dirección: ${rows.length - withAddress}`, margin + 4, y + 6);
+    doc.text(`Jugadores: ${rows.length}    Con dirección: ${withAddress}    Sin dirección: ${rows.length - withAddress}    Con municipio: ${withMunicipality}`, margin + 4, y + 6);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.text("Listado generado con los filtros actuales de la pestaña Jugadores.", margin + 4, y + 11);
     y += 21;
 
     rows.forEach((row, index) => {
-      const address = row.direccion.trim() || "DIRECCIÓN NO REGISTRADA";
-      const addressLines = doc.splitTextToSize(address, contentWidth - 8);
-      const contactLines = [row.telefono && `Tel.: ${row.telefono}`, row.email && `Email: ${row.email}`, row.tutor2 && `Tutor 2: ${row.tutor2}`].filter(Boolean);
-      const contactText = contactLines.length ? contactLines.join("   ·   ") : "Sin datos de contacto";
+      const address = [row.direccion.trim(), row.municipio.trim()].filter(Boolean).join(", ") || "DIRECCIÓN Y LOCALIDAD NO REGISTRADAS";
+      const addressLines = doc.splitTextToSize(`Dirección: ${address}`, contentWidth - 8);
+      const contactLines = [
+        row.nombreTutor1 && `Tutor/a 1: ${row.nombreTutor1}`,
+        row.telefono && `Teléfono tutor/a 1: ${row.telefono}`,
+        row.email && `Email tutor/a 1: ${row.email}`,
+        row.nombreTutor2 && `Tutor/a 2: ${row.nombreTutor2}`,
+        row.telefonoTutor2 && `Teléfono tutor/a 2: ${row.telefonoTutor2}`,
+        row.emailTutor2 && `Email tutor/a 2: ${row.emailTutor2}`,
+        row.telefonoJugador && `Teléfono jugador: ${row.telefonoJugador}`,
+        row.emailJugador && `Email jugador: ${row.emailJugador}`
+      ].filter(Boolean);
+      const contactText = contactLines.length ? contactLines.join("   ·   ") : "Sin datos de contacto registrados";
       const contactWrapped = doc.splitTextToSize(contactText, contentWidth - 8);
       const blockHeight = 15 + addressLines.length * 4 + contactWrapped.length * 3.5;
       if (y + blockHeight > pageHeight - 17) {
@@ -665,7 +681,7 @@ export default function Players() {
       doc.text(row.categoria, pageWidth - margin - 4, y + 3, { align: "right" });
       y += 8;
       doc.setTextColor(35, 39, 42);
-      doc.setFont("helvetica", row.direccion.trim() ? "normal" : "bold");
+      doc.setFont("helvetica", row.direccion.trim() || row.municipio.trim() ? "normal" : "bold");
       doc.setFontSize(9);
       doc.text(addressLines, margin + 4, y);
       y += addressLines.length * 4 + 1;
