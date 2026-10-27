@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -54,6 +54,7 @@ function dueInMonth(item, month) {
 }
 
 export default function CashPositionForecast({ compact = false, activeSeason }) {
+  const [showCalculationDetails, setShowCalculationDetails] = useState(false);
   const { data: accounts = [], isLoading: accountsLoading, error: accountsError } = useQuery({
     queryKey: ["cashForecastBankAccounts"],
     queryFn: () => base44.entities.BankAccount.list(),
@@ -153,55 +154,29 @@ export default function CashPositionForecast({ compact = false, activeSeason }) 
   if (accountsError) return <Card><CardContent className="p-6 text-red-600">No se pudieron cargar las cuentas bancarias. Revisa los permisos de tesorería.</CardContent></Card>;
 
   if (compact) return (
-    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-      <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Dinero disponible en bancos</p><p className="mt-2 text-2xl font-bold">{euro(cashNow)}</p><p className="mt-1 text-xs text-slate-500">Según los últimos saldos registrados</p></CardContent></Card>
-      <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Pendiente de cobrar</p><p className="mt-2 text-2xl font-bold text-green-700">{euro(pendingPaymentsTotal + pendingFinancialIncomeTotal)}</p><p className="mt-1 text-xs text-slate-500">Cuotas y otros ingresos pendientes de cobrar</p></CardContent></Card>
-      <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Pendiente de pagar</p><p className="mt-2 text-2xl font-bold text-red-700">{euro((forecast[0]?.recurring || 0) + (forecast[0]?.outstanding || 0))}</p><p className="mt-1 text-xs text-slate-500">Gastos pendientes y compromisos no duplicados</p></CardContent></Card>
-      <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Previsión a 12 meses</p><p className="mt-2 text-2xl font-bold">{euro(last?.closing)}</p><p className="mt-1 text-xs text-slate-500">Con los datos registrados actualmente</p></CardContent></Card>
-      <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Mínimo proyectado</p><p className={`mt-2 text-2xl font-bold ${minBalance < 0 ? "text-red-700" : "text-slate-900"}`}>{euro(minBalance)}</p><Badge variant={minBalance < 0 ? "destructive" : "secondary"} className="mt-2">{minBalance < 0 ? "Riesgo de saldo negativo" : "Previsión preliminar"}</Badge></CardContent></Card>
-      <Card className="border-slate-200 bg-white">
-        <CardContent className="p-4 sm:p-5">
-          <details>
-            <summary className="cursor-pointer list-none font-semibold text-slate-800">
-              <span className="mr-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-orange-700">i</span>
-              ¿De dónde sale cada cifra?
-              <span className="ml-2 text-sm font-normal text-slate-500">Pulsa para ver el cálculo</span>
-            </summary>
-            <div className="mt-4 grid gap-3 border-t pt-4 text-sm text-slate-700 md:grid-cols-2">
-              <div className="rounded-lg bg-slate-50 p-3">
-                <p className="font-semibold">Dinero disponible en bancos: {euro(cashNow)}</p>
-                <p className="mt-1">Suma el campo «saldo actual» de las cuentas bancarias activas registradas en Bancario. No se calcula sumando los movimientos del extracto. Si el saldo guardado está desactualizado o no conciliado, puede no coincidir con el saldo real.</p>
-              </div>
-              <div className="rounded-lg bg-slate-50 p-3">
-                <p className="font-semibold">Pendiente de cobrar: {euro(pendingPaymentsTotal + pendingFinancialIncomeTotal)}</p>
-                <p className="mt-1">Suma cuotas/pagos que no están marcados como «Pagado» o «Anulado» y otros ingresos financieros con estado «Pendiente». Se excluyen pagos eliminados y se intenta evitar duplicidades por importe y nombre.</p>
-                <p className="mt-2 text-xs text-slate-500">Cuotas y pagos: {euro(pendingPaymentsTotal)} · Otros ingresos pendientes: {euro(pendingFinancialIncomeTotal)}.</p>
-              </div>
-              <div className="rounded-lg bg-slate-50 p-3">
-                <p className="font-semibold">Pendiente de pagar: {euro((forecast[0]?.recurring || 0) + (forecast[0]?.outstanding || 0))}</p>
-                <p className="mt-1">Suma los gastos financieros pendientes asignados al mes actual y los compromisos recurrentes activos que vencen este mes. Si una transacción coincide con un compromiso, intenta no descontarlo dos veces.</p>
-                <p className="mt-2 text-xs text-slate-500">Compromisos no duplicados: {euro(forecast[0]?.recurring || 0)} · Gastos pendientes registrados: {euro(forecast[0]?.outstanding || 0)}.</p>
-              </div>
-              <div className="rounded-lg bg-slate-50 p-3">
-                <p className="font-semibold">Previsión a 12 meses: {euro(last?.closing)}</p>
-                <p className="mt-1">Parte del saldo bancario registrado y proyecta mes a mes los gastos pendientes, compromisos recurrentes e ingresos pendientes asignados a cada mes. No incorpora ingresos futuros aún no registrados ni gastos que no se hayan introducido.</p>
-              </div>
-              <div className="rounded-lg bg-slate-50 p-3 md:col-span-2">
-                <p className="font-semibold">Mínimo proyectado: {euro(minBalance)}</p>
-                <p className="mt-1">Es el saldo de cierre más bajo entre los 12 meses proyectados. Ayuda a detectar el momento de menor liquidez; no es el saldo actual ni el resultado anual del club.</p>
-              </div>
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-950 md:col-span-2">
-                <p className="font-semibold">Importante: previsión preliminar</p>
-                <p className="mt-1">La fiabilidad depende de que los saldos bancarios estén actualizados, los pagos correctamente clasificados y los compromisos recurrentes completos. Las cuotas vencidas que siguen pendientes se asignan al mes actual. Las coincidencias para evitar duplicados dependen de que los importes y nombres/conceptos estén identificados de forma reconocible.</p>
-              </div>
-            </div>
-          </details>
-        </CardContent>
-      </Card>
-      <Card className="border-slate-200 bg-white"><CardContent className="p-4 sm:p-5"><details><summary className="cursor-pointer list-none font-semibold text-slate-800"><span className="mr-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-orange-700">i</span>¿De dónde sale cada cifra? <span className="ml-2 text-sm font-normal text-slate-500">Pulsa para ver el cálculo</span></summary><div className="mt-4 grid gap-3 border-t pt-4 text-sm text-slate-700 md:grid-cols-2"><div className="rounded-lg bg-slate-50 p-3"><p className="font-semibold">Dinero disponible en bancos: {euro(cashNow)}</p><p className="mt-1">Suma el «saldo actual» de las cuentas bancarias activas registradas en Bancario. No se calcula sumando movimientos del extracto. Si el saldo guardado está desactualizado o no conciliado, puede no coincidir con el saldo real.</p></div><div className="rounded-lg bg-slate-50 p-3"><p className="font-semibold">Pendiente de cobrar: {euro(pendingPaymentsTotal + pendingFinancialIncomeTotal)}</p><p className="mt-1">Suma cuotas/pagos que no están marcados como «Pagado» o «Anulado» y otros ingresos financieros con estado «Pendiente». Se excluyen pagos eliminados y se intenta evitar duplicidades por importe y nombre.</p><p className="mt-2 text-xs text-slate-500">Cuotas y pagos: {euro(pendingPaymentsTotal)} · Otros ingresos pendientes: {euro(pendingFinancialIncomeTotal)}.</p></div><div className="rounded-lg bg-slate-50 p-3"><p className="font-semibold">Pendiente de pagar: {euro((forecast[0]?.recurring || 0) + (forecast[0]?.outstanding || 0))}</p><p className="mt-1">Suma gastos financieros pendientes asignados al mes actual y compromisos recurrentes activos que vencen este mes. Si una transacción coincide con un compromiso, intenta no descontarlo dos veces.</p><p className="mt-2 text-xs text-slate-500">Compromisos no duplicados: {euro(forecast[0]?.recurring || 0)} · Gastos pendientes registrados: {euro(forecast[0]?.outstanding || 0)}.</p></div><div className="rounded-lg bg-slate-50 p-3"><p className="font-semibold">Previsión a 12 meses: {euro(last?.closing)}</p><p className="mt-1">Parte del saldo bancario registrado y proyecta mes a mes los gastos pendientes, compromisos recurrentes e ingresos pendientes asignados a cada mes. No incorpora ingresos futuros aún no registrados ni gastos que no se hayan introducido.</p></div><div className="rounded-lg bg-slate-50 p-3 md:col-span-2"><p className="font-semibold">Mínimo proyectado: {euro(minBalance)}</p><p className="mt-1">Es el saldo de cierre más bajo entre los 12 meses proyectados. Ayuda a detectar el momento de menor liquidez; no es el saldo actual ni el resultado anual del club.</p></div><div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-950 md:col-span-2"><p className="font-semibold">Importante: previsión preliminar</p><p className="mt-1">La fiabilidad depende de que los saldos bancarios estén actualizados, los pagos correctamente clasificados y los compromisos recurrentes completos. Las cuotas vencidas que siguen pendientes se asignan al mes actual. Las coincidencias para evitar duplicados dependen de que importes y nombres/conceptos estén identificados de forma reconocible.</p></div></div></details></CardContent></Card>
+    <div className="space-y-4">
+      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+        <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Dinero disponible en bancos</p><p className="mt-2 text-2xl font-bold">{euro(cashNow)}</p><p className="mt-1 text-xs text-slate-500">Saldo actual guardado en cuentas activas</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Pendiente de cobrar</p><p className="mt-2 text-2xl font-bold text-green-700">{euro(pendingPaymentsTotal + pendingFinancialIncomeTotal)}</p><p className="mt-1 text-xs text-slate-500">Cuotas pendientes + ingresos financieros pendientes</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Pendiente de pagar</p><p className="mt-2 text-2xl font-bold text-red-700">{euro((forecast[0]?.recurring || 0) + (forecast[0]?.outstanding || 0))}</p><p className="mt-1 text-xs text-slate-500">Gastos pendientes + compromisos recurrentes del mes</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Previsión a 12 meses</p><p className="mt-2 text-2xl font-bold">{euro(last?.closing)}</p><p className="mt-1 text-xs text-slate-500">Saldo estimado al final del periodo</p></CardContent></Card>
+        <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Mínimo proyectado</p><p className={`mt-2 text-2xl font-bold ${minBalance < 0 ? "text-red-700" : "text-slate-900"}`}>{euro(minBalance)}</p><Badge variant={minBalance < 0 ? "destructive" : "secondary"} className="mt-2">{minBalance < 0 ? "Riesgo de saldo negativo" : "Previsión preliminar"}</Badge></CardContent></Card>
+      </div>
+      <Card className="border-slate-200 bg-white"><CardContent className="p-4 sm:p-5">
+        <button type="button" aria-expanded={showCalculationDetails} onClick={() => setShowCalculationDetails(v => !v)} className="flex w-full items-center justify-between gap-3 rounded-lg text-left font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-orange-400">
+          <span><span className="mr-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-orange-700">i</span>¿De dónde sale cada cifra?</span><span className="text-sm font-normal text-orange-700">{showCalculationDetails ? "Ocultar explicación −" : "Ver explicación +"}</span>
+        </button>
+        {showCalculationDetails && <div className="mt-4 grid gap-3 border-t pt-4 text-sm text-slate-700 md:grid-cols-2">
+          <div className="rounded-lg bg-slate-50 p-3"><p className="font-semibold">1. Dinero disponible en bancos = {euro(cashNow)}</p><p className="mt-1">Cálculo: suma de «saldo_actual» de cada cuenta bancaria con «activa» distinta de false. No suma los movimientos del extracto. Hay que comprobar en Bancario que cada saldo guardado sea el saldo real actualizado.</p></div>
+          <div className="rounded-lg bg-slate-50 p-3"><p className="font-semibold">2. Pendiente de cobrar = {euro(pendingPaymentsTotal + pendingFinancialIncomeTotal)}</p><p className="mt-1">Cálculo: {euro(pendingPaymentsTotal)} en registros de Payment no eliminados, con importe positivo y estado distinto de «Pagado» y «Anulado», más {euro(pendingFinancialIncomeTotal)} en FinancialTransaction con tipo «Ingreso», estado «Pendiente» e importe positivo. Los pagos se filtran por temporada activa cuando la tienen. Se intenta excluir un pago si hay un ingreso pendiente del mismo importe y el nombre aparece en el concepto o cliente/proveedor; esta coincidencia automática no es infalible.</p></div>
+          <div className="rounded-lg bg-slate-50 p-3"><p className="font-semibold">3. Pendiente de pagar = {euro((forecast[0]?.recurring || 0) + (forecast[0]?.outstanding || 0))}</p><p className="mt-1">Cálculo del mes actual: {euro(forecast[0]?.outstanding || 0)} en gastos financieros con estado «Pendiente» y fecha efectiva en este mes, más {euro(forecast[0]?.recurring || 0)} de compromisos recurrentes activos que vencen este mes. Se omite un compromiso si una transacción del mismo mes parece coincidir por concepto o proveedor.</p></div>
+          <div className="rounded-lg bg-slate-50 p-3"><p className="font-semibold">4. Previsión a 12 meses = {euro(last?.closing)}</p><p className="mt-1">El cálculo arranca de {euro(cashNow)}. Para cada uno de los próximos 12 meses resta compromisos recurrentes no duplicados y gastos pendientes, y suma ingresos financieros pendientes y cuotas pendientes asignadas a ese mes. No incorpora cuotas futuras aún no registradas, ingresos probables ni gastos no introducidos. La previsión usa fechas/estados y reglas de coincidencia; no equivale a un presupuesto anual.</p></div>
+          <div className="rounded-lg bg-slate-50 p-3 md:col-span-2"><p className="font-semibold">5. Mínimo proyectado = {euro(minBalance)}</p><p className="mt-1">Es el menor de los 12 saldos finales mensuales calculados por la previsión anterior. Indica el punto más bajo estimado de liquidez, no el saldo actual.</p></div>
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-950 md:col-span-2"><p className="font-semibold">Ojo: estas cifras no están verificadas por sí solas.</p><p className="mt-1">Dependen de los saldos guardados, de los estados/fechas de cada registro y de que los compromisos recurrentes estén completos. Las cuotas vencidas pendientes se desplazan al mes actual. Las coincidencias automáticas pueden fallar; antes de tomar decisiones, hay que contrastar los detalles con el banco y los registros del club.</p></div>
+        </div>}
+      </CardContent></Card>
     </div>
   );
-
   return <div className="space-y-5">
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <Card><CardContent className="p-5"><div className="flex items-center gap-2 text-sm text-slate-500"><Wallet className="h-4 w-4"/>Saldo bancario registrado</div><p className="mt-2 text-2xl font-bold">{euro(cashNow)}</p><p className="mt-1 text-xs text-slate-500">{activeAccounts.length} cuenta(s) activa(s)</p></CardContent></Card>
