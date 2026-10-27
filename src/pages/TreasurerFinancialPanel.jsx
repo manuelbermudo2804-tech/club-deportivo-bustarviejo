@@ -367,7 +367,7 @@ export default function TreasurerFinancialPanel() {
   // Cálculos financieros - Memoizados para mejor rendimiento
   const stats = useMemo(() => {
     if (!activeSeason) return {
-      cuotasPagadas: 0, cuotasPendientes: 0, cuotasPendientesCount: 0, cuotasEnRevision: 0,
+      cuotasPagadas: 0, cuotasPendientes: 0, cuotasPendientesCount: 0, cuotasVencidas: 0, cuotasVencidasCount: 0, cuotasEnRevision: 0,
       ropaTotal: 0, ropaPagada: 0, ropaPendiente: 0,
       loteriaTotal: 0, loteriaPagada: 0, loteriaPendiente: 0,
       sociosTotal: 0, sociosPagados: 0, sociosPendientes: 0,
@@ -386,11 +386,29 @@ export default function TreasurerFinancialPanel() {
     const pendingQuotaPayments = currentSeasonPayments.filter(p => p.estado === "Pendiente");
     const totalPendiente = pendingQuotaPayments.reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0);
     const pendingQuotaCount = pendingQuotaPayments.length;
+    // Una cuota se considera vencida cuando su mes de pago ya ha pasado dentro de la temporada.
+    // Calendario de referencia de la temporada: junio, septiembre, diciembre, marzo y otros meses indicados en Payment.mes.
+    const monthNumbers = { enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6, julio: 7, agosto: 8, septiembre: 9, setiembre: 9, octubre: 10, noviembre: 11, diciembre: 12 };
+    const now = new Date();
+    const currentMonthNumber = now.getMonth() + 1;
+    const currentYear = now.getFullYear();
+    const seasonStartYear = Number(String(activeSeason.temporada).match(/20\d{2}/)?.[0]) || currentYear;
+    const seasonMonthIndex = (monthNumber) => monthNumber >= 6 ? { year: seasonStartYear, month: monthNumber } : { year: seasonStartYear + 1, month: monthNumber };
+    const pendingOverduePayments = pendingQuotaPayments.filter(payment => {
+      const monthName = String(payment.mes || "").trim().toLocaleLowerCase("es-ES");
+      const monthNumber = monthNumbers[monthName];
+      if (!monthNumber) return false; // Sin mes de vencimiento no se puede afirmar que esté vencida.
+      const due = seasonMonthIndex(monthNumber);
+      return due.year < currentYear || (due.year === currentYear && due.month < currentMonthNumber);
+    });
+    const overdueAmount = pendingOverduePayments.reduce((sum, payment) => sum + (Number(payment.cantidad) || 0), 0);
 
     return {
       cuotasPagadas: currentSeasonPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + (p.cantidad || 0), 0),
       cuotasPendientes: totalPendiente,
       cuotasPendientesCount: pendingQuotaCount,
+      cuotasVencidas: overdueAmount,
+      cuotasVencidasCount: pendingOverduePayments.length,
       cuotasEnRevision: currentSeasonPayments.filter(p => p.estado === "En revisión").reduce((sum, p) => sum + (p.cantidad || 0), 0),
       
       ropaTotal: 0,
@@ -749,7 +767,7 @@ export default function TreasurerFinancialPanel() {
           <SolidarityFundWidget activeSeason={activeSeason} payments={payments} />
 
           {/* Resumen Global - Rediseñado */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 sm:gap-4">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5 sm:gap-4">
             {/* Total Ingresos */}
             <Card className="border-none shadow-xl bg-gradient-to-br from-green-600 to-emerald-700 text-white overflow-hidden relative">
               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
@@ -788,6 +806,24 @@ export default function TreasurerFinancialPanel() {
                   <p className="text-xs text-orange-100">
                     {`${stats.cuotasPendientesCount || 0} cuotas pendientes registradas · ${stats.cuotasPendientes.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}`}
                   </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Cuotas vencidas */}
+            <Card className="border-none shadow-xl bg-gradient-to-br from-rose-700 to-red-900 text-white overflow-hidden relative">
+              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+              <CardContent className="p-6 relative z-10">
+                <div className="flex items-center justify-between mb-3">
+                  <Clock className="w-8 h-8 text-white/80" />
+                  <AlertCircle className="w-5 h-5 text-white/60" />
+                </div>
+                <p className="text-sm text-rose-100 mb-1 flex items-center gap-2">Cuotas vencidas
+                  <HelpCircle className="w-4 h-4 text-white/80" title="Suma únicamente las cuotas que siguen pendientes y cuyo mes de vencimiento ya ha pasado. Las cuotas sin mes identificable no se clasifican como vencidas." />
+                </p>
+                <p className="text-4xl font-bold">{stats.cuotasVencidas.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€</p>
+                <div className="mt-3 pt-3 border-t border-white/20">
+                  <p className="text-xs text-rose-100">{stats.cuotasVencidasCount || 0} cuotas pendientes con vencimiento pasado</p>
                 </div>
               </CardContent>
             </Card>
