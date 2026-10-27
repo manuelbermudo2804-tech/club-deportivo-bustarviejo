@@ -12,6 +12,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
+import { jsPDF } from "jspdf";
 
 import PlayerCard from "../components/players/PlayerCard";
 import PlayerForm from "../components/players/PlayerForm";
@@ -586,31 +587,103 @@ export default function Players() {
 
   const handleExportAddresses = () => {
     const rows = filteredPlayers.map(player => ({
-      "Jugador": player.nombre || "",
-      "Categoría": player.deporte || "",
-      "Dirección": player.direccion || "",
-      "Teléfono de contacto": player.telefono || "",
-      "Email de contacto": player.email_padre || "",
-      "Tutor 2": player.email_tutor_2 || ""
+      nombre: player.nombre || "Sin nombre",
+      categoria: player.deporte || "Sin categoría",
+      direccion: player.direccion || "",
+      telefono: player.telefono || "",
+      email: player.email_padre || "",
+      tutor2: player.email_tutor_2 || ""
     }));
     if (!rows.length) {
       toast.error("No hay jugadores en el filtro actual para exportar");
       return;
     }
-    const headers = Object.keys(rows[0]);
-    const escapeCsv = value => `"${String(value ?? "").replace(/"/g, '""')}"`;
-    const csvContent = [headers.map(escapeCsv).join(","), ...rows.map(row => headers.map(header => escapeCsv(row[header])).join(","))].join("\r\n");
-    const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `direcciones_jugadores_${categoryFilter !== "all" ? categoryFilter.replace(/\s+/g, "_") : "todos"}_${new Date().toISOString().split("T")[0]}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    const withAddress = rows.filter(row => row["Dirección"].trim()).length;
-    toast.success(`Exportadas ${rows.length} fichas; ${withAddress} tienen dirección registrada.`);
+
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 14;
+    const contentWidth = pageWidth - margin * 2;
+    let y = 18;
+    const withAddress = rows.filter(row => row.direccion.trim()).length;
+
+    const drawHeader = (continued = false) => {
+      doc.setFillColor(27, 39, 51);
+      doc.roundedRect(margin, 10, contentWidth, 24, 3, 3, "F");
+      doc.setTextColor(255, 255, 255);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(15);
+      doc.text(continued ? "DIRECTORIO DE DIRECCIONES · CONTINUACIÓN" : "DIRECTORIO DE DIRECCIONES", margin + 5, 19);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.text(`C.D. Bustarviejo · ${new Date().toLocaleDateString("es-ES")} · ${categoryFilter === "all" ? "Todas las categorías" : categoryFilter}`, margin + 5, 26);
+      doc.setTextColor(35, 35, 35);
+      y = 42;
+    };
+    const drawFooter = (page, total) => {
+      doc.setDrawColor(220, 224, 229);
+      doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(100, 110, 120);
+      doc.text(`Documento de gestión interna · ${page}/${total}`, pageWidth - margin, pageHeight - 7, { align: "right" });
+    };
+
+    drawHeader();
+    doc.setFillColor(245, 247, 250);
+    doc.roundedRect(margin, y, contentWidth, 15, 2, 2, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.text(`Jugadores: ${rows.length}    Con dirección: ${withAddress}    Sin dirección: ${rows.length - withAddress}`, margin + 4, y + 6);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.text("Listado generado con los filtros actuales de la pestaña Jugadores.", margin + 4, y + 11);
+    y += 21;
+
+    rows.forEach((row, index) => {
+      const address = row.direccion.trim() || "DIRECCIÓN NO REGISTRADA";
+      const addressLines = doc.splitTextToSize(address, contentWidth - 8);
+      const contactLines = [row.telefono && `Tel.: ${row.telefono}`, row.email && `Email: ${row.email}`, row.tutor2 && `Tutor 2: ${row.tutor2}`].filter(Boolean);
+      const contactText = contactLines.length ? contactLines.join("   ·   ") : "Sin datos de contacto";
+      const contactWrapped = doc.splitTextToSize(contactText, contentWidth - 8);
+      const blockHeight = 15 + addressLines.length * 4 + contactWrapped.length * 3.5;
+      if (y + blockHeight > pageHeight - 17) {
+        doc.addPage();
+        drawHeader(true);
+      }
+      if (index % 2 === 0) {
+        doc.setFillColor(248, 249, 251);
+        doc.roundedRect(margin, y - 2, contentWidth, blockHeight, 2, 2, "F");
+      }
+      doc.setTextColor(230, 100, 35);
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text(`${index + 1}. ${row.nombre}`, margin + 4, y + 3);
+      doc.setTextColor(100, 110, 120);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.text(row.categoria, pageWidth - margin - 4, y + 3, { align: "right" });
+      y += 8;
+      doc.setTextColor(35, 39, 42);
+      doc.setFont("helvetica", row.direccion.trim() ? "normal" : "bold");
+      doc.setFontSize(9);
+      doc.text(addressLines, margin + 4, y);
+      y += addressLines.length * 4 + 1;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7.5);
+      doc.setTextColor(90, 100, 110);
+      doc.text(contactWrapped, margin + 4, y);
+      y += contactWrapped.length * 3.5 + 5;
+    });
+
+    const totalPages = doc.getNumberOfPages();
+    for (let page = 1; page <= totalPages; page++) {
+      doc.setPage(page);
+      drawFooter(page, totalPages);
+    }
+    const tag = categoryFilter !== "all" ? categoryFilter.replace(/\s+/g, "_") : "todos";
+    doc.save(`direcciones_jugadores_${tag}_${new Date().toISOString().split("T")[0]}.pdf`);
+    toast.success(`PDF generado: ${rows.length} jugadores; ${withAddress} con dirección registrada.`);
   };
 
   const handleExportPlayers = () => {
@@ -839,10 +912,10 @@ export default function Players() {
               onClick={handleExportAddresses}
               variant="outline"
               className="h-auto min-h-11 w-full min-w-0 justify-start whitespace-normal rounded-xl border-orange-200 bg-orange-50/70 px-3 py-2 text-left text-sm leading-snug text-orange-800 hover:border-orange-300 hover:bg-orange-100 sm:justify-center sm:text-center 2xl:w-auto"
-              title="Descarga un CSV con el jugador, su dirección y los datos básicos de contacto del filtro actual."
+              title="Descarga un PDF con el jugador, su dirección y los datos básicos de contacto del filtro actual."
             >
               <Download className="mr-2 h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
-              <span>Extraer direcciones ({filteredPlayers.length})</span>
+              <span>Extraer direcciones PDF ({filteredPlayers.length})</span>
             </Button>
           )}
           {isAdmin && filteredPlayers.length > 0 && (
