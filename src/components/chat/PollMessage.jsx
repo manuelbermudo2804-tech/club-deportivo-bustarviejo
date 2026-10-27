@@ -70,7 +70,7 @@ export default function PollMessage({ encuesta, messageId, userEmail, userName, 
                   </span>
                 </div>
                 
-                {hasVoted && (
+                {(hasVoted || isCreator) && (
                   <div className="flex items-center gap-2">
                     <span className={`text-sm font-bold ${isMyVote ? 'text-green-700' : 'text-slate-600'}`}>
                       {percentage}%
