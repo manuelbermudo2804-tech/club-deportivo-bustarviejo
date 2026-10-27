@@ -777,13 +777,13 @@ export default function TreasurerFinancialPanel() {
                   <Clock className="w-8 h-8 text-white/80" />
                   <AlertCircle className="w-5 h-5 text-white/60" />
                 </div>
-                <p className="text-sm text-orange-100 mb-1 flex items-center gap-2">Pendiente de Cobro
+                <p className="text-sm text-orange-100 mb-1 flex items-center gap-2">Cuotas pendientes de pago
                   <HelpCircle
                     className="w-4 h-4 text-white/80"
-                    title="Importe y número de cuotas salen exactamente de los mismos registros Payment de la temporada activa con estado Pendiente. No se estiman mensualidades futuras ni se reconstruyen cuotas que no estén registradas."
+                    title="Importe y número salen exactamente de los mismos registros Payment de la temporada activa con estado Pendiente. No se estiman mensualidades futuras ni se reconstruyen cuotas que no estén registradas."
                   />
                 </p>
-                <p className="text-4xl font-bold">{totalPendiente.toFixed(2)}€</p>
+                <p className="text-4xl font-bold">{stats.cuotasPendientes.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€</p>
                 <div className="mt-3 pt-3 border-t border-white/20">
                   <p className="text-xs text-orange-100">
                     {`${stats.cuotasPendientesCount || 0} cuotas pendientes registradas · ${stats.cuotasPendientes.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}`}
