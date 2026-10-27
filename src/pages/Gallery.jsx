@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Search, Calendar, Image as ImageIcon } from "lucide-react";
+import { Plus, Search, Calendar, Image as ImageIcon, Globe, Loader2, CheckSquare, Square } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -24,6 +24,9 @@ export default function Gallery() {
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState("parent"); // admin, coach, parent, player
   const [myCategories, setMyCategories] = useState([]);
+  const [publishSelectedIds, setPublishSelectedIds] = useState([]);
+  const [publishingToWeb, setPublishingToWeb] = useState(false);
+  const [publishResult, setPublishResult] = useState(null);
   
   const queryClient = useQueryClient();
 
@@ -134,6 +137,37 @@ export default function Gallery() {
       queryClient.invalidateQueries({ queryKey: ['photoGallery'] });
     },
   });
+
+  const handlePublishToWebsite = async () => {
+    if (userRole !== "admin") return;
+    if (publishSelectedIds.length === 0) {
+      setPublishResult({ type: "error", message: "Selecciona al menos un álbum para publicar." });
+      return;
+    }
+    setPublishingToWeb(true);
+    setPublishResult(null);
+    try {
+      const response = await base44.functions.invoke("publishGalleryToWebsite", { albumIds: publishSelectedIds });
+      const result = response?.data || response;
+      if (result?.error || result?.success === false) {
+        setPublishResult({ type: "error", message: result.error || "No se ha podido publicar." });
+      } else {
+        setPublishResult({ type: "success", message: result.message || `Publicación iniciada: ${result.publishedAlbums || 0} álbum(es), ${result.publishedPhotos || 0} foto(s).` });
+        setPublishSelectedIds([]);
+        queryClient.invalidateQueries({ queryKey: ["photoGallery"] });
+      }
+    } catch (error) {
+      setPublishResult({ type: "error", message: error?.response?.data?.error || error?.message || "No se ha podido conectar con el servicio de publicación." });
+    } finally {
+      setPublishingToWeb(false);
+    }
+  };
+
+  const togglePublishAlbum = (albumId) => {
+    setPublishSelectedIds(current => current.includes(albumId)
+      ? current.filter(id => id !== albumId)
+      : [...current, albumId]);
+  };
 
   const handleSubmit = async (albumData) => {
     if (editingAlbum) {
@@ -261,6 +295,51 @@ export default function Gallery() {
             </div>
           </Card>
         </div>
+      )}
+
+      {/* Publicación de la galería pública: solo administradores */}
+      {userRole === "admin" && (
+        <Card className="overflow-hidden rounded-2xl border border-orange-200 bg-white shadow-sm">
+          <div className="flex flex-col gap-3 border-b border-orange-100 bg-orange-50 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
+            <div className="flex items-start gap-3">
+              <div className="rounded-xl bg-orange-600 p-2 text-white"><Globe className="h-5 w-5" /></div>
+              <div>
+                <h2 className="text-lg font-extrabold text-slate-900">Publicar fotos en la web pública</h2>
+                <p className="mt-1 text-sm text-slate-600">Selecciona los álbumes de la app que quieres incorporar a www.cdbustarviejo.com. Solo tú puedes utilizar esta herramienta.</p>
+              </div>
+            </div>
+            <Button onClick={handlePublishToWebsite} disabled={publishingToWeb || publishSelectedIds.length === 0} className="shrink-0 rounded-xl bg-orange-600 font-bold text-white hover:bg-orange-700">
+              {publishingToWeb ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Publicando…</> : <><Globe className="mr-2 h-4 w-4" />Publicar seleccionados ({publishSelectedIds.length})</>}
+            </Button>
+          </div>
+          <div className="space-y-3 p-4 sm:p-5">
+            {publishResult && (
+              <div role="status" className={`rounded-xl border p-3 text-sm ${publishResult.type === "success" ? "border-green-200 bg-green-50 text-green-800" : "border-red-200 bg-red-50 text-red-800"}`}>
+                {publishResult.message}
+              </div>
+            )}
+            {albums.filter(a => Array.isArray(a.fotos) && a.fotos.some(f => typeof f?.url === "string" && f.url.startsWith("https://"))).length === 0 ? (
+              <p className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">Todavía no hay álbumes con fotos disponibles para publicar.</p>
+            ) : (
+              <div className="grid gap-2 md:grid-cols-2">
+                {albums.filter(a => Array.isArray(a.fotos) && a.fotos.some(f => typeof f?.url === "string" && f.url.startsWith("https://"))).map(album => {
+                  const selected = publishSelectedIds.includes(album.id);
+                  return (
+                    <button key={album.id} type="button" onClick={() => togglePublishAlbum(album.id)} className={`flex min-w-0 items-center gap-3 rounded-xl border p-3 text-left transition-colors ${selected ? "border-orange-500 bg-orange-50 ring-1 ring-orange-200" : "border-slate-200 bg-white hover:border-orange-300"}`}>
+                      {selected ? <CheckSquare className="h-5 w-5 shrink-0 text-orange-600" /> : <Square className="h-5 w-5 shrink-0 text-slate-400" />}
+                      {album.fotos?.[0]?.url && <img src={album.fotos[0].url} alt="" className="h-12 w-12 shrink-0 rounded-lg object-cover" loading="lazy" />}
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate font-bold text-slate-900">{album.titulo}</span>
+                        <span className="mt-1 block truncate text-xs text-slate-500">{album.categoria} · {album.fotos?.length || 0} foto(s) · {album.fecha_evento || ""}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <p className="text-xs leading-relaxed text-slate-500">La publicación requiere que esté configurado el acceso seguro de la app a GitHub. Si falta esa configuración, se mostrará un aviso y no se cambiará la web.</p>
+          </div>
+        </Card>
       )}
 
       {/* Form for Admin */}
