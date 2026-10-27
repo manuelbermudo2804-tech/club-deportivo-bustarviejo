@@ -77,7 +77,8 @@ Deno.serve(async (req) => {
         addedPhotos++;
         return '<a href="' + esc(url) + '" class="glightbox" data-photo-url="' + esc(url) + '"><img src="' + esc(url) + '" alt="' + esc(album.titulo + ' — foto ' + (i + 1)) + '" loading="lazy"></a>';
       }).join('\n');
-      newSections.push('<div class="galeria-seccion" data-album-id="' + esc(album.id) + '" data-category="' + esc(album.categoria) + '">\n<h2 id="' + esc(sectionId) + '">' + esc(album.titulo) + '</h2>\n<p>' + esc(album.descripcion || '') + '</p>\n<div class="galeria-grid">\n' + links + '\n</div>\n</div>');
+      const cleanTitle = String(album.titulo || '').replace(/^\s*📸?\s*Chat Entrenador\s*[-–—:]\s*/i, '').trim() || String(album.categoria || 'Galería');
+      newSections.push('<div class="galeria-seccion" data-album-id="' + esc(album.id) + '" data-category="' + esc(album.categoria) + '">\n<h2 id="' + esc(sectionId) + '">' + esc(cleanTitle) + '</h2>\n<p>' + esc(album.descripcion || '') + '</p>\n<div class="galeria-grid">\n' + links + '\n</div>\n</div>');
       publishedIds.push(String(album.id));
     }
     if (!newSections.length) return Response.json({ error: 'Los álbumes seleccionados ya están publicados o no contienen enlaces de fotos HTTPS nuevos.', already_published: true });
