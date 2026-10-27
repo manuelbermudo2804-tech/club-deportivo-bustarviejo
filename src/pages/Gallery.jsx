@@ -360,13 +360,34 @@ export default function Gallery() {
         )}
       </AnimatePresence>
 
-      {/* Carpeta abierta: volver a equipos */}
+      {/* Navegación persistente entre galerías: no hace falta volver arriba */}
       {categoryFilter !== "all" && (
-        <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-          <Button variant="outline" size="sm" onClick={() => setCategoryFilter("all")}>
-            <ArrowLeft className="w-4 h-4 mr-1" /> Equipos
-          </Button>
-          <h2 className="text-lg font-bold text-slate-900">{folderLabel(categoryFilter)}</h2>
+        <div className="sticky top-2 z-30 -mx-1 rounded-2xl border border-slate-200/90 bg-white/95 p-3 shadow-lg backdrop-blur-md sm:mx-0">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-orange-600">Cambiando de galería</p>
+              <h2 className="truncate text-base font-extrabold text-slate-900">{folderLabel(categoryFilter)}</h2>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setCategoryFilter("all")} className="shrink-0 rounded-xl border-orange-200 text-orange-700 hover:bg-orange-50">
+              <ArrowLeft className="mr-1 h-4 w-4" /> Todos los equipos
+            </Button>
+          </div>
+          <nav aria-label="Cambiar de galería" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+            {folders.map((folder) => (
+              <button
+                key={folder}
+                type="button"
+                onClick={() => setCategoryFilter(folder)}
+                aria-current={sameCat(folder, categoryFilter) ? "page" : undefined}
+                className={`shrink-0 rounded-full border px-3 py-2 text-sm font-semibold transition-colors ${sameCat(folder, categoryFilter) ? "border-orange-600 bg-orange-600 text-white shadow-sm" : "border-slate-200 bg-white text-slate-700 hover:border-orange-300 hover:bg-orange-50"}`}
+              >
+                {folderLabel(folder)}
+                <span className={`ml-1.5 text-xs ${sameCat(folder, categoryFilter) ? "text-orange-100" : "text-slate-400"}`}>
+                  {visibleAlbums.filter(album => sameCat(album.categoria, folder)).length}
+                </span>
+              </button>
+            ))}
+          </nav>
         </div>
       )}
 
