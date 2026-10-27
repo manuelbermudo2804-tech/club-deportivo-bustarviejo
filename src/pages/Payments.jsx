@@ -388,7 +388,46 @@ export default function Payments() {
     }
     
     await updatePaymentMutation.mutateAsync({ id: payment.id, paymentData: updatedData });
-    
+
+    // Retirar automáticamente los avisos cuando todas las cuotas registradas de la temporada
+    // estén pagadas. No se desactiva el aviso si queda alguna cuota pendiente o en revisión.
+    if (newStatus === "Pagado" && payment.jugador_id && payment.temporada) {
+      try {
+        const [playerPayments, player] = await Promise.all([
+          base44.entities.Payment.filter({
+            jugador_id: payment.jugador_id,
+            is_deleted: { $ne: true }
+          }),
+          base44.entities.Player.get(payment.jugador_id)
+        ]);
+
+        const normalizeSeason = (value) => String(value || "").replace(/-/g, "/").trim();
+        const seasonPayments = (playerPayments || [])
+          .filter((p) =>
+            normalizeSeason(p.temporada) === normalizeSeason(payment.temporada) &&
+            p.estado !== "Anulado"
+          )
+          .map((p) => p.id === payment.id ? { ...p, estado: newStatus } : p);
+
+        if (
+          player &&
+          seasonPayments.length > 0 &&
+          seasonPayments.every((p) => p.estado === "Pagado") &&
+          (player.aviso_impago_activo === true || player.bloqueo_convocatoria_activo === true)
+        ) {
+          await base44.entities.Player.update(player.id, {
+            aviso_impago_activo: false,
+            bloqueo_convocatoria_activo: false
+          });
+          queryClient.invalidateQueries({ queryKey: ["players"] });
+          queryClient.invalidateQueries({ queryKey: ["myPlayers"] });
+          toast.success("Avisos de impago retirados: todas las cuotas registradas están pagadas.");
+        }
+      } catch (noticeError) {
+        console.error("[Payments] No se pudieron actualizar los avisos de impago:", noticeError);
+      }
+    }
+
     // Sincronizar CustomPaymentPlan si es un pago de Plan Especial
     if (payment.tipo_pago === "Plan Especial") {
       try {
