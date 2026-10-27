@@ -584,6 +584,35 @@ export default function Players() {
     toast.success(`✅ ${cards.length} contactos descargados. Ábrelo en el móvil para importarlos.`);
   };
 
+  const handleExportAddresses = () => {
+    const rows = filteredPlayers.map(player => ({
+      "Jugador": player.nombre || "",
+      "Categoría": player.deporte || "",
+      "Dirección": player.direccion || "",
+      "Teléfono de contacto": player.telefono || "",
+      "Email de contacto": player.email_padre || "",
+      "Tutor 2": player.email_tutor_2 || ""
+    }));
+    if (!rows.length) {
+      toast.error("No hay jugadores en el filtro actual para exportar");
+      return;
+    }
+    const headers = Object.keys(rows[0]);
+    const escapeCsv = value => `"${String(value ?? "").replace(/"/g, '""')}"`;
+    const csvContent = [headers.map(escapeCsv).join(","), ...rows.map(row => headers.map(header => escapeCsv(row[header])).join(","))].join("\r\n");
+    const blob = new Blob(["\ufeff" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `direcciones_jugadores_${categoryFilter !== "all" ? categoryFilter.replace(/\s+/g, "_") : "todos"}_${new Date().toISOString().split("T")[0]}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    const withAddress = rows.filter(row => row["Dirección"].trim()).length;
+    toast.success(`Exportadas ${rows.length} fichas; ${withAddress} tienen dirección registrada.`);
+  };
+
   const handleExportPlayers = () => {
     const dataToExport = filteredPlayers.map(player => ({
       "Nombre": player.nombre,
@@ -803,6 +832,17 @@ export default function Players() {
             >
               <Contact className="mr-2 h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
               <span>Descargar contactos</span>
+            </Button>
+          )}
+          {isAdmin && filteredPlayers.length > 0 && (
+            <Button
+              onClick={handleExportAddresses}
+              variant="outline"
+              className="h-auto min-h-11 w-full min-w-0 justify-start whitespace-normal rounded-xl border-orange-200 bg-orange-50/70 px-3 py-2 text-left text-sm leading-snug text-orange-800 hover:border-orange-300 hover:bg-orange-100 sm:justify-center sm:text-center 2xl:w-auto"
+              title="Descarga un CSV con el jugador, su dirección y los datos básicos de contacto del filtro actual."
+            >
+              <Download className="mr-2 h-4 w-4 shrink-0 sm:h-5 sm:w-5" />
+              <span>Extraer direcciones ({filteredPlayers.length})</span>
             </Button>
           )}
           {isAdmin && filteredPlayers.length > 0 && (
