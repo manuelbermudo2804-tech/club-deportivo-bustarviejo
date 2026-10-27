@@ -159,6 +159,45 @@ export default function CashPositionForecast({ compact = false, activeSeason }) 
       <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Pendiente de pagar</p><p className="mt-2 text-2xl font-bold text-red-700">{euro((forecast[0]?.recurring || 0) + (forecast[0]?.outstanding || 0))}</p><p className="mt-1 text-xs text-slate-500">Gastos pendientes y compromisos no duplicados</p></CardContent></Card>
       <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Previsión a 12 meses</p><p className="mt-2 text-2xl font-bold">{euro(last?.closing)}</p><p className="mt-1 text-xs text-slate-500">Con los datos registrados actualmente</p></CardContent></Card>
       <Card><CardContent className="p-4"><p className="text-sm text-slate-500">Mínimo proyectado</p><p className={`mt-2 text-2xl font-bold ${minBalance < 0 ? "text-red-700" : "text-slate-900"}`}>{euro(minBalance)}</p><Badge variant={minBalance < 0 ? "destructive" : "secondary"} className="mt-2">{minBalance < 0 ? "Riesgo de saldo negativo" : "Previsión preliminar"}</Badge></CardContent></Card>
+      <Card className="border-slate-200 bg-white">
+        <CardContent className="p-4 sm:p-5">
+          <details>
+            <summary className="cursor-pointer list-none font-semibold text-slate-800">
+              <span className="mr-2 inline-flex h-7 w-7 items-center justify-center rounded-full bg-orange-100 text-orange-700">i</span>
+              ¿De dónde sale cada cifra?
+              <span className="ml-2 text-sm font-normal text-slate-500">Pulsa para ver el cálculo</span>
+            </summary>
+            <div className="mt-4 grid gap-3 border-t pt-4 text-sm text-slate-700 md:grid-cols-2">
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="font-semibold">Dinero disponible en bancos: {euro(cashNow)}</p>
+                <p className="mt-1">Suma el campo «saldo actual» de las cuentas bancarias activas registradas en Bancario. No se calcula sumando los movimientos del extracto. Si el saldo guardado está desactualizado o no conciliado, puede no coincidir con el saldo real.</p>
+              </div>
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="font-semibold">Pendiente de cobrar: {euro(pendingPaymentsTotal + pendingFinancialIncomeTotal)}</p>
+                <p className="mt-1">Suma cuotas/pagos que no están marcados como «Pagado» o «Anulado» y otros ingresos financieros con estado «Pendiente». Se excluyen pagos eliminados y se intenta evitar duplicidades por importe y nombre.</p>
+                <p className="mt-2 text-xs text-slate-500">Cuotas y pagos: {euro(pendingPaymentsTotal)} · Otros ingresos pendientes: {euro(pendingFinancialIncomeTotal)}.</p>
+              </div>
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="font-semibold">Pendiente de pagar: {euro((forecast[0]?.recurring || 0) + (forecast[0]?.outstanding || 0))}</p>
+                <p className="mt-1">Suma los gastos financieros pendientes asignados al mes actual y los compromisos recurrentes activos que vencen este mes. Si una transacción coincide con un compromiso, intenta no descontarlo dos veces.</p>
+                <p className="mt-2 text-xs text-slate-500">Compromisos no duplicados: {euro(forecast[0]?.recurring || 0)} · Gastos pendientes registrados: {euro(forecast[0]?.outstanding || 0)}.</p>
+              </div>
+              <div className="rounded-lg bg-slate-50 p-3">
+                <p className="font-semibold">Previsión a 12 meses: {euro(last?.closing)}</p>
+                <p className="mt-1">Parte del saldo bancario registrado y proyecta mes a mes los gastos pendientes, compromisos recurrentes e ingresos pendientes asignados a cada mes. No incorpora ingresos futuros aún no registrados ni gastos que no se hayan introducido.</p>
+              </div>
+              <div className="rounded-lg bg-slate-50 p-3 md:col-span-2">
+                <p className="font-semibold">Mínimo proyectado: {euro(minBalance)}</p>
+                <p className="mt-1">Es el saldo de cierre más bajo entre los 12 meses proyectados. Ayuda a detectar el momento de menor liquidez; no es el saldo actual ni el resultado anual del club.</p>
+              </div>
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-amber-950 md:col-span-2">
+                <p className="font-semibold">Importante: previsión preliminar</p>
+                <p className="mt-1">La fiabilidad depende de que los saldos bancarios estén actualizados, los pagos correctamente clasificados y los compromisos recurrentes completos. Las cuotas vencidas que siguen pendientes se asignan al mes actual. Las coincidencias para evitar duplicados dependen de que los importes y nombres/conceptos estén identificados de forma reconocible.</p>
+              </div>
+            </div>
+          </details>
+        </CardContent>
+      </Card>
     </div>
   );
 
