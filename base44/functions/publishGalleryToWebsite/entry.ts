@@ -50,7 +50,7 @@ Deno.serve(async (req) => {
     });
     if (!getFile.ok) return Response.json({ error: 'GitHub no ha permitido leer la galería (' + getFile.status + '). Comprueba el token y sus permisos.' }, { status: 502 });
     const fileData = await getFile.json();
-    const html = atob(fileData.content.replace(/\s/g,''));
+    const html = decodeURIComponent(escape(atob(fileData.content.replace(/\s/g,''))));
     const start = html.indexOf(MARKER_START);
     const end = html.indexOf(MARKER_END);
     const already = start >= 0 && end > start ? html.slice(start, end + MARKER_END.length) : '';
@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
         addedPhotos++;
         return '<a href="' + esc(url) + '" class="glightbox" data-photo-url="' + esc(url) + '"><img src="' + esc(url) + '" alt="' + esc(album.titulo + ' — foto ' + (i + 1)) + '" loading="lazy"></a>';
       }).join('\n');
-      newSections.push('<div class="galeria-seccion" data-album-id="' + esc(album.id) + '">\n<h2 id="' + esc(sectionId) + '">' + esc(album.categoria) + ' — ' + esc(album.titulo) + '</h2>\n<p>' + esc(album.descripcion || '') + '</p>\n<div class="galeria-grid">\n' + links + '\n</div>\n</div>');
+      newSections.push('<div class="galeria-seccion" data-album-id="' + esc(album.id) + '" data-category="' + esc(album.categoria) + '">\n<h2 id="' + esc(sectionId) + '">' + esc(album.titulo) + '</h2>\n<p>' + esc(album.descripcion || '') + '</p>\n<div class="galeria-grid">\n' + links + '\n</div>\n</div>');
       publishedIds.push(String(album.id));
     }
     if (!newSections.length) return Response.json({ error: 'Los álbumes seleccionados ya están publicados o no contienen enlaces de fotos HTTPS nuevos.', already_published: true });
