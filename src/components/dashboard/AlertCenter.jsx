@@ -35,6 +35,8 @@ import useJuntaActiva from "@/hooks/useJuntaActiva";
 import { RESPUESTAS, faltaTexto } from "@/lib/juntaUtils";
 import HoyEntrenamientoLine from "./HoyEntrenamientoLine";
 
+const BLACK_RIBBON_URL = "https://media.base44.com/images/public/6992c6be619d2da592897991/6e4de80a5_lazo-negro.png";
+
 // CRÍTICO: Este componente NO debe mostrar alertas de CHATS
 // Solo: convocatorias, pagos, firmas, eventos, encuestas, etc.
 // Los chats se gestionan en badges del menú + burbujas de dashboard
@@ -89,6 +91,11 @@ export default function AlertCenter({
   // Solo mantenemos state local para dismissed alerts y queries ligeras con staleTime alto
   const meUser = null; // Ya no hacemos query propia
   const { junta: juntaActiva, miRespuesta: juntaResp } = useJuntaActiva(userEmail ? { email: userEmail } : null);
+  const [campaignExpanded, setCampaignExpanded] = useState(false);
+  const { data: campaignItems = [] } = useQuery({ queryKey: ["campanasActivasBanner"], queryFn: () => base44.entities.CampanaClub.list("-fecha_inicio", 200), staleTime: 0, refetchInterval: 30000, refetchOnWindowFocus: true });
+  const todayForCampaign = new Date();
+  const campaignDate = `${todayForCampaign.getFullYear()}-${String(todayForCampaign.getMonth()+1).padStart(2,"0")}-${String(todayForCampaign.getDate()).padStart(2,"0")}`;
+  const activeCampaign = campaignItems.filter(c => ["aprobada","publicada"].includes(c.estado) && c.mostrar_inicio !== false && c.fecha_inicio <= campaignDate && c.fecha_fin >= campaignDate).sort((a,b) => (a.categoria === "duelo" || a.color === "negro" ? -1 : 0) - (b.categoria === "duelo" || b.color === "negro" ? -1 : 0))[0];
   
   const [dismissedAlerts, setDismissedAlerts] = useState(() => {
     try {
