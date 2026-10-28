@@ -925,6 +925,34 @@ input.cat-radio { display: none; }
   .score-num { font-size: 1.4rem; }
   table { font-size: 0.72rem; min-width: 520px; }
 }
+
+/* TABLET Y PORTÁTILES COMPACTOS · CABECERA COHERENTE CON LA WEB */
+@media (min-width: 769px) and (max-width: 1280px) {
+  .header-contenido { flex-wrap: wrap; }
+  .menu-toggle { display: block !important; margin-left: auto; }
+  .menu {
+    order: 3;
+    width: 100%;
+    display: none !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 10px 0 14px;
+    margin-top: 10px;
+    background: #fff;
+    border-top: 1px solid #eaeaea;
+  }
+  .menu-check:checked ~ .menu { display: flex !important; }
+  .menu a {
+    width: 100%;
+    padding: 12px 10px;
+    text-align: center;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: .9rem;
+  }
+  .menu a:last-child { border-bottom: none; }
+  .menu .btn-menu { width: min(100%, 280px); margin: 6px auto; }
+}
 </style>
 </head>
 <body>
@@ -1247,6 +1275,34 @@ body {
   .cd-number { font-size: 2rem; }
   .cd-box { min-width: 70px; padding: 14px 16px; }
   .offseason-escudo { width: 100px; height: 100px; }
+}
+
+/* TABLET Y PORTÁTILES COMPACTOS · CABECERA COHERENTE CON LA WEB */
+@media (min-width: 769px) and (max-width: 1280px) {
+  .header-contenido { flex-wrap: wrap; }
+  .menu-toggle { display: block !important; margin-left: auto; }
+  .menu {
+    order: 3;
+    width: 100%;
+    display: none !important;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 10px 0 14px;
+    margin-top: 10px;
+    background: #fff;
+    border-top: 1px solid #eaeaea;
+  }
+  .menu-check:checked ~ .menu { display: flex !important; }
+  .menu a {
+    width: 100%;
+    padding: 12px 10px;
+    text-align: center;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: .9rem;
+  }
+  .menu a:last-child { border-bottom: none; }
+  .menu .btn-menu { width: min(100%, 280px); margin: 6px auto; }
 }
 </style>
 </head>
