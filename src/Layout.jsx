@@ -672,9 +672,10 @@ export default function Layout({ children, currentPageName }) {
 
 
         <FestiveTheme />
-        <CampanaActivaBanner />
         <ActiveBanner position="top" user={user} />
         {user && !isMinor && user.tipo_panel !== 'jugador_menor' && !user.es_menor && <JuntaAppBar user={user} isAdmin={isAdmin} />}
+        {/* Campaña solidaria en el hueco entre la barra superior y el contenido de cada panel */}
+        <CampanaActivaBanner />
 
           <PullToRefresh>
             <ErrorBoundary label="la página actual" onReset={() => window.location.reload()}>
