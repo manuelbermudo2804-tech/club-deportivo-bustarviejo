@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import NotificationCenter from "../NotificationCenter";
 import ThemeToggle from "../ThemeToggle";
 import LanguageSelector from "../LanguageSelector";
+import CampanaActivaBanner from "../campanas/CampanaActivaBanner";
 
 const GlobalSearch = React.lazy(() => import("../GlobalSearch"));
 import CollapsibleNavList from "./CollapsibleNavList";
@@ -40,7 +41,8 @@ export default function DesktopSidebar({
             </div>
           )}
           <div className="flex items-center gap-1">
-            {enginesReady && (<Suspense fallback={null}><NotificationCenter /></Suspense>)}
+            <CampanaActivaBanner />
+            {enginesReady && (<Suspense fallback={null}><NotificationCenter /></Suspense>) }
             <ThemeToggle />
             <Suspense fallback={null}><LanguageSelector currentLang={currentLang} onLanguageChange={onLanguageChange} /></Suspense>
           </div>
