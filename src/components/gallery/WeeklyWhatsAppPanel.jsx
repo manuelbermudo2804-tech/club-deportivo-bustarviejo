@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,6 +17,17 @@ const parseMatchDate = (p) => p.fecha_iso || (p.fecha ? (() => {
   const m = String(p.fecha).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   return m ? `${m[3]}-${m[2]}-${m[1]}` : "";
 })() : "");
+const formatDate = (iso) => {
+  if (!iso) return "Fecha por confirmar";
+  const [y,m,d] = iso.split("-");
+  return `${d}/${m}/${y}`;
+};
+const addDaysISO = (iso, amount) => {
+  const [y,m,d] = iso.split("-").map(Number);
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + amount);
+  return dateISO(date);
+};
 
 export default function WeeklyWhatsAppPanel({ albums = [] }) {
   const [phone, setPhone] = useState(() => {
@@ -24,38 +35,51 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
   });
   const [mode, setMode] = useState("schedule");
   const [selectedPhotos, setSelectedPhotos] = useState([]);
+  const [selectedMatchIds, setSelectedMatchIds] = useState([]);
   const [copied, setCopied] = useState(false);
+  const todayISO = dateISO(new Date());
+  const defaultStart = addDaysISO(todayISO, 1);
+  const [periodStart, setPeriodStart] = useState(defaultStart);
+  const [periodEnd, setPeriodEnd] = useState(addDaysISO(defaultStart, 6));
   const today = new Date();
   const day = today.getDay();
-  // Ventana móvil de siete días: permite preparar el borrador el martes
-  // y revisar el miércoles todos los partidos desde el jueves.
-  const scheduleStart = new Date(today);
-  scheduleStart.setDate(today.getDate() + 1);
-  const scheduleEnd = new Date(scheduleStart);
-  scheduleEnd.setDate(scheduleStart.getDate() + 6);
-  const scheduleStartISO = dateISO(scheduleStart);
-  const scheduleEndISO = dateISO(scheduleEnd);
 
   const { data: matches = [], isLoading: loadingMatches } = useQuery({
     queryKey: ["weeklyWhatsAppUpcoming"],
-    queryFn: () => base44.entities.ProximoPartido.list("fecha_iso", 300),
+    queryFn: () => base44.entities.ProximoPartido.list("fecha_iso", 500),
   });
   const { data: results = [], isLoading: loadingResults } = useQuery({
     queryKey: ["weeklyWhatsAppResults"],
     queryFn: () => base44.entities.Resultado.filter({ estado: "finalizado" }, "-fecha_actualizacion", 300),
   });
 
-  const upcoming = useMemo(() => matches.filter(p => {
-    const d = parseMatchDate(p);
-    return p.jugado !== true && d && d >= scheduleStartISO && d <= scheduleEndISO;
-  }).sort((a,b) => parseMatchDate(a).localeCompare(parseMatchDate(b))), [matches, scheduleStartISO, scheduleEndISO]);
+  // Descubrimiento: mantenemos a la vista todos los encuentros futuros registrados.
+  const allFuture = useMemo(() => matches
+    .map(p => ({ ...p, _date: parseMatchDate(p) }))
+    .filter(p => p.jugado !== true && p._date && p._date >= todayISO)
+    .sort((a,b) => a._date.localeCompare(b._date) || String(a.hora || "").localeCompare(String(b.hora || ""))),
+  [matches, todayISO]);
+
+  const inPeriod = useMemo(() => allFuture.filter(p =>
+    periodStart && periodEnd && periodStart <= periodEnd && p._date >= periodStart && p._date <= periodEnd
+  ), [allFuture, periodStart, periodEnd]);
+
+  // Al cambiar el periodo, se marcan inicialmente todos los partidos que caen en él.
+  useEffect(() => {
+    setSelectedMatchIds(inPeriod.map(p => p.id).filter(Boolean));
+  }, [periodStart, periodEnd, matches]);
+
+  const selectedMatches = useMemo(() => inPeriod.filter(p => selectedMatchIds.includes(p.id)), [inPeriod, selectedMatchIds]);
 
   const recentResults = useMemo(() => {
-    const start = new Date(today); start.setDate(today.getDate() - (day === 0 ? 6 : day === 1 ? 7 : day + 6));
+    const start = new Date(today);
+    start.setDate(today.getDate() - (day === 0 ? 6 : day === 1 ? 7 : day + 6));
     const end = new Date(today); end.setDate(today.getDate() - 1);
     const startISO = dateISO(start), endISO = dateISO(end);
     return results.filter(r => {
-      const d = r.fecha_partido || "";
+      const raw = r.fecha_partido || "";
+      const m = String(raw).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      const d = m ? `${m[3]}-${m[2]}-${m[1]}` : raw;
       return d && d >= startISO && d <= endISO;
     }).sort((a,b) => (a.categoria || "").localeCompare(b.categoria || ""));
   }, [results, today.getFullYear(), today.getMonth(), today.getDate(), day]);
@@ -68,21 +92,22 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
       category: album.categoria || "",
       date: album.fecha_evento || "",
     })).filter(f => typeof f.url === "string" && f.url.startsWith("https://"))
-  ).filter(f => f.date >= scheduleStartISO && f.date <= scheduleEndISO || f.date >= dateISO(new Date(today.getFullYear(), today.getMonth(), today.getDate()-7)) && f.date <= dateISO(today)), [albums, scheduleStartISO, scheduleEndISO, today.getFullYear(), today.getMonth(), today.getDate()]);
+  ).filter(f => (f.date >= periodStart && f.date <= periodEnd) || (f.date >= addDaysISO(todayISO, -7) && f.date <= todayISO)),
+  [albums, periodStart, periodEnd, todayISO]);
 
   const scheduleText = useMemo(() => {
-    const lines = ["🟠⚫ *C.D. BUSTARVIEJO | PRÓXIMOS PARTIDOS* ⚽", ""];
-    if (!upcoming.length) lines.push("No hay partidos registrados para los próximos siete días. Comprueba si falta cargar algún encuentro o si hay aplazados pendientes de nueva fecha.");
-    else upcoming.forEach(p => {
+    const lines = [`🟠⚫ *C.D. BUSTARVIEJO | PARTIDOS DEL ${formatDate(periodStart)} AL ${formatDate(periodEnd)}* ⚽`, ""];
+    if (!selectedMatches.length) lines.push("No hay partidos seleccionados para este periodo. Revisa las fechas o marca los encuentros que quieras anunciar.");
+    else selectedMatches.forEach(p => {
       lines.push(`⚽ *${p.categoria || "Equipo"}*`);
       lines.push(`${p.local || ""} - ${p.visitante || ""}`.trim());
-      lines.push(`📅 ${parseMatchDate(p)} · 🕒 ${p.hora || "Hora por confirmar"}`);
+      lines.push(`📅 ${formatDate(p._date)} · 🕒 ${p.hora || "Hora por confirmar"}`);
       if (p.campo) lines.push(`📍 ${p.campo}`);
       lines.push("");
     });
     lines.push("¡Mucha suerte a todos nuestros equipos! 💪", "🟠 ¡Vamos, Bustarviejo! ⚫");
     return lines.join("\n");
-  }, [upcoming]);
+  }, [selectedMatches, periodStart, periodEnd]);
 
   const resultsText = useMemo(() => {
     const lines = ["🟠⚫ *C.D. BUSTARVIEJO | RESULTADOS DE LA JORNADA* ⚽", ""];
@@ -122,11 +147,12 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
     } catch { toast.error("No se ha podido copiar el mensaje en este dispositivo."); }
   };
   const togglePhoto = (id) => setSelectedPhotos(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const toggleMatch = (id) => setSelectedMatchIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
   return <Card className="overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm">
     <CardHeader className="bg-emerald-50 border-b border-emerald-100">
-      <CardTitle className="flex items-center gap-2 text-lg font-extrabold text-slate-900"><MessageCircle className="h-5 w-5 text-emerald-700"/> Comunicaciones semanales por WhatsApp</CardTitle>
-      <p className="text-sm text-slate-600">Dos mensajes preparados desde la app. Revisa el contenido y confirma el envío en WhatsApp.</p>
+      <CardTitle className="flex items-center gap-2 text-lg font-extrabold text-slate-900"><MessageCircle className="h-5 w-5 text-emerald-700"/> Comunicaciones por WhatsApp</CardTitle>
+      <p className="text-sm text-slate-600">Prepara el mensaje, revisa los partidos y confirma el envío en WhatsApp.</p>
     </CardHeader>
     <CardContent className="space-y-5 p-4 sm:p-5">
       <div className="space-y-2">
@@ -135,12 +161,31 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
         <p className="text-xs text-slate-500">Se guarda en este navegador. Escribe el prefijo 34 para España, sin necesidad de poner el signo +.</p>
       </div>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <Button variant={mode === "schedule" ? "default" : "outline"} onClick={() => setMode("schedule")} className={mode === "schedule" ? "bg-orange-600 hover:bg-orange-700" : ""}><CalendarDays className="mr-2 h-4 w-4"/> Horarios · Próximos 7 días</Button>
+        <Button variant={mode === "schedule" ? "default" : "outline"} onClick={() => setMode("schedule")} className={mode === "schedule" ? "bg-orange-600 hover:bg-orange-700" : ""}><CalendarDays className="mr-2 h-4 w-4"/> Calendario y horarios</Button>
         <Button variant={mode === "results" ? "default" : "outline"} onClick={() => setMode("results")} className={mode === "results" ? "bg-orange-600 hover:bg-orange-700" : ""}>🏆 Lunes · Resultados y fotos</Button>
       </div>
-      {mode === "schedule" ? <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-        <div className="mb-2 flex items-center justify-between gap-2"><Badge>{loadingMatches ? "Cargando partidos…" : `${upcoming.length} partidos encontrados`}</Badge><span className="text-xs text-slate-500">{scheduleStartISO} — {scheduleEndISO}</span></div>
-        <p className="text-sm text-slate-600">Se muestran los partidos registrados para los próximos siete días, incluidos los de entre semana. Antes de enviar, comprueba aplazamientos, cancelaciones y cambios de fecha u hora: la app solo puede detectar lo que esté actualizado en el calendario.</p>
+      {mode === "schedule" ? <div className="space-y-3">
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+          <p className="mb-2 text-sm font-semibold text-slate-800">1. Elige el periodo que quieres anunciar</p>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div><label htmlFor="wa-period-start" className="mb-1 block text-xs font-medium text-slate-600">Desde</label><Input id="wa-period-start" type="date" value={periodStart} onChange={e => setPeriodStart(e.target.value)}/></div>
+            <div><label htmlFor="wa-period-end" className="mb-1 block text-xs font-medium text-slate-600">Hasta</label><Input id="wa-period-end" type="date" min={periodStart} value={periodEnd} onChange={e => setPeriodEnd(e.target.value)}/></div>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => {setPeriodStart(defaultStart);setPeriodEnd(addDaysISO(defaultStart,6));}}>Próximos 7 días</Button><Button size="sm" variant="outline" onClick={() => {setPeriodStart(todayISO);setPeriodEnd(addDaysISO(todayISO,13));}}>Próximas 2 semanas</Button></div>
+        </div>
+        <div className="rounded-xl border border-slate-200 p-3">
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-800">2. Marca los partidos que quieras incluir</p><Badge>{loadingMatches ? "Cargando calendario…" : `${allFuture.length} partidos futuros · ${inPeriod.length} en el periodo`}</Badge></div>
+          <p className="mb-3 text-sm text-slate-600">La app consulta todos los partidos futuros registrados, no solo los del fin de semana. Al cambiar el periodo, se marcan inicialmente todos los encuentros de esas fechas; puedes desmarcar los que no quieras anunciar.</p>
+          {periodStart > periodEnd && <p className="mb-3 rounded-lg bg-amber-50 p-2 text-sm text-amber-800">La fecha de inicio debe ser anterior o igual a la fecha final.</p>}
+          {inPeriod.length === 0 && periodStart <= periodEnd && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No hay partidos futuros registrados en este periodo. Comprueba el calendario y si los encuentros aplazados tienen ya una nueva fecha asignada.</p>}
+          <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
+            {inPeriod.map(p => <label key={p.id || `${p.categoria}-${p._date}-${p.local}-${p.visitante}`} className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-3 hover:bg-slate-50">
+              <input type="checkbox" className="mt-1 h-4 w-4 accent-orange-600" checked={selectedMatchIds.includes(p.id)} onChange={() => toggleMatch(p.id)} disabled={!p.id}/>
+              <span className="min-w-0 flex-1"><span className="block font-semibold text-slate-800">{p.categoria || "Equipo"} · {formatDate(p._date)}</span><span className="block text-sm text-slate-700">{p.local || "Local por confirmar"} — {p.visitante || "Visitante por confirmar"}</span><span className="block text-xs text-slate-500">{p.hora || "Hora por confirmar"}{p.campo ? ` · ${p.campo}` : ""}</span></span>
+            </label>)}
+          </div>
+        </div>
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3"><p className="text-sm font-semibold text-emerald-900">Calendario futuro: {allFuture.length} partidos pendientes</p><p className="mt-1 text-sm text-emerald-800">Próximos encuentros detectados por fecha:</p><div className="mt-2 space-y-1">{allFuture.slice(0, 12).map(p => <p key={p.id || `${p.categoria}-${p._date}`} className="text-xs text-emerald-900">{formatDate(p._date)} · {p.categoria || "Equipo"} · {p.hora || "Hora por confirmar"}</p>)}{allFuture.length > 12 && <p className="text-xs text-emerald-800">Y {allFuture.length - 12} partidos más. Usa el selector de fechas para encontrarlos.</p>}</div><p className="mt-2 text-xs text-emerald-800">Los aplazamientos solo aparecerán con la nueva fecha si esta se ha actualizado en el calendario. Los registros sin fecha no pueden ordenarse como partidos futuros.</p></div>
       </div> : <div className="space-y-3">
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3"><Badge>{loadingResults ? "Cargando resultados…" : `${recentResults.length} resultados encontrados`}</Badge><p className="mt-2 text-sm text-slate-600">Selecciona únicamente las fotos de la jornada actual. Las fotos no seleccionadas no se incluirán.</p></div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
