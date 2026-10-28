@@ -17,23 +17,23 @@ export default function FestiveBanner({ clave, tema, mensaje, prueba }) {
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.08)_1px,transparent_0)] [background-size:22px_22px]" />
         <FestiveDecor clave={clave} />
 
-        <div className="relative flex items-center gap-4 lg:gap-8 px-5 py-6 lg:px-10 lg:py-9">
+        <div className={`relative flex items-center gap-3 lg:gap-6 px-5 py-4 lg:px-10 lg:py-7 ${clave === "halloween" ? "py-4 lg:py-7" : ""}`}>
           <div className="flex-1 min-w-0">
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 backdrop-blur text-[10px] lg:text-xs font-bold uppercase tracking-[0.2em] text-white/90 ring-1 ring-white/20">
               <span className="w-1.5 h-1.5 rounded-full bg-white festive-twinkle" />
               CD Bustarviejo · {tema.badge}
             </span>
-            <h2 className={`mt-3 text-3xl lg:text-5xl font-black tracking-tight bg-gradient-to-r ${tema.tituloGradiente} bg-clip-text text-transparent drop-shadow`}>
+            <h2 className={`mt-2 text-2xl lg:text-4xl font-black tracking-tight bg-gradient-to-r ${tema.tituloGradiente} bg-clip-text text-transparent drop-shadow`}>
               {tema.titulo}
             </h2>
-            <p className="mt-2 text-sm lg:text-lg text-white/85 max-w-2xl leading-relaxed">{mensaje}</p>
+            <p className="mt-1.5 text-sm lg:text-base text-white/85 max-w-2xl leading-snug">{mensaje}</p>
             {prueba && <span className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/20 px-2.5 py-1 text-[10px] font-semibold tracking-wide text-white/80">👁 Vista previa · solo este dispositivo</span>}
           </div>
 
-          <div className="relative shrink-0 hidden sm:flex items-center justify-center w-28 h-28 lg:w-40 lg:h-40">
+          <div className="relative shrink-0 hidden sm:flex items-center justify-center w-24 h-24 lg:w-32 lg:h-32">
             <div className="absolute inset-0 rounded-full bg-white/10 ring-1 ring-white/20 festive-pulse-ring" />
             <div className="absolute inset-4 rounded-full bg-white/5 ring-1 ring-white/10" />
-            <span className="festive-float text-6xl lg:text-8xl drop-shadow-[0_10px_25px_rgba(0,0,0,0.45)]">{tema.emoji}</span>
+            <span className="festive-float text-5xl lg:text-7xl drop-shadow-[0_10px_25px_rgba(0,0,0,0.45)]">{tema.emoji}</span>
           </div>
         </div>
 
