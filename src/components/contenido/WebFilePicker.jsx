@@ -8,8 +8,8 @@ export default function WebFilePicker({ file, onPick, pesoMb }) {
 
   if (file) {
     return (
-      <div className="flex items-center gap-3 rounded-2xl border-2 border-green-200 bg-green-50 p-4">
-        <ImagePlus className="w-6 h-6 text-green-700 shrink-0" />
+      <div className="flex items-center gap-3 rounded-2xl border-2 border-orange-200 bg-orange-50 p-4">
+        <ImagePlus className="w-6 h-6 text-orange-700 shrink-0" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-slate-900">{file.name}</p>
           <p className="text-xs text-slate-600">{pesoMb.toFixed(1)} MB</p>
@@ -43,7 +43,7 @@ export default function WebFilePicker({ file, onPick, pesoMb }) {
       <button
         type="button"
         onClick={() => galeriaRef.current?.click()}
-        className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-green-300 bg-green-50 px-3 py-6 text-green-800 active:scale-[0.98]"
+        className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-orange-300 bg-orange-50 px-3 py-6 text-orange-800 active:scale-[0.98]"
       >
         <ImagePlus className="w-7 h-7" />
         <span className="text-sm font-bold">Elegir del móvil</span>
