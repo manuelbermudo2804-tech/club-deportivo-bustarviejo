@@ -19,7 +19,7 @@ const leerBase64 = (file) => new Promise((resolve, reject) => {
   reader.readAsDataURL(file);
 });
 
-export default function ContenidoWebForm({ onDone }) {
+export default function ContenidoWebForm({ onDone, variant = "app" }) {
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
   const [equipo, setEquipo] = useState("");
@@ -66,7 +66,7 @@ export default function ContenidoWebForm({ onDone }) {
       <div>
         <Label className="text-base font-bold text-slate-900">1 · Elige la foto o el vídeo</Label>
         <div className="mt-2">
-          <WebFilePicker file={file} pesoMb={pesoMb} onPick={(f) => { setFile(f); setError(""); }} />
+          <WebFilePicker file={file} pesoMb={pesoMb} variant={variant} onPick={(f) => { setFile(f); setError(""); }} />
         </div>
         <p className="text-xs text-slate-500 mt-2">Un archivo cada vez · máximo {MAX_MB} MB</p>
         {demasiadoGrande && (
