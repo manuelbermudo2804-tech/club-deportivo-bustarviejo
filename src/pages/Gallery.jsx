@@ -10,6 +10,7 @@ import { AnimatePresence } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import GalleryForm from "../components/gallery/GalleryForm";
+import WeeklyWhatsAppPanel from "../components/gallery/WeeklyWhatsAppPanel";
 import GalleryAlbum from "../components/gallery/GalleryAlbum";
 import ContactCard from "../components/ContactCard";
 import TeamFolders, { folderLabel, sameCat, normalizeFolders } from "../components/gallery/TeamFolders";
@@ -341,6 +342,9 @@ export default function Gallery() {
           </div>
         </Card>
       )}
+
+      {/* Comunicaciones semanales: herramienta exclusiva de administración */}
+      {userRole === "admin" && <WeeklyWhatsAppPanel albums={albums} />}
 
       {/* Form for Admin */}
       <AnimatePresence>
