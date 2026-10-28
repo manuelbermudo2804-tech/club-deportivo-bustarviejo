@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import blackRibbonUrl from "@/assets/lazo-negro.png";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const EMPTY = { titulo:"", categoria:"salud", simbolo:"🎗️", mensaje:"", detalle:"", color:"rosa", fecha_inicio:new Date().toISOString().slice(0,10), fecha_fin:new Date().toISOString().slice(0,10), estado:"borrador", mostrar_inicio:true, notas_internas:"" };
 const CATEGORIAS = { salud:"Salud y sensibilización", inclusion:"Inclusión y diversidad", solidaridad:"Solidaridad", duelo:"Duelo y homenaje", convivencia:"Convivencia y respeto", otro:"Otra campaña" };
 const COLORES = { rosa:"from-pink-100 to-rose-50 border-pink-200 text-rose-900", amarillo:"from-amber-100 to-yellow-50 border-amber-200 text-amber-950", azul:"from-sky-100 to-blue-50 border-sky-200 text-blue-950", verde:"from-emerald-100 to-green-50 border-emerald-200 text-emerald-950", morado:"from-violet-100 to-purple-50 border-violet-200 text-violet-950", negro:"from-slate-200 to-slate-50 border-slate-300 text-slate-900", naranja:"from-orange-100 to-amber-50 border-orange-200 text-orange-950", rojo:"from-red-100 to-rose-50 border-red-200 text-red-950", neutro:"from-slate-100 to-white border-slate-200 text-slate-800" };
 const ESTADOS = { borrador:"Borrador", pendiente_aprobacion:"Pendiente de aprobación", aprobada:"Aprobada · programada", publicada:"Publicada", archivada:"Archivada" };
-const BlackRibbon = () => <svg viewBox="0 0 40 40" className="h-10 w-10 shrink-0" aria-label="Lazo negro de duelo" role="img"><path d="M10 4 C2 10 4 21 12 25 L20 30 L28 25 C36 21 38 10 30 4 C25 1 21 4 20 10 C19 4 15 1 10 4 Z" fill="#111827" stroke="#000" strokeWidth="1.5"/><path d="M14 24 L9 38 L19 33 L21 29 Z M26 24 L31 38 L21 33 L19 29 Z" fill="#111827" stroke="#000" strokeWidth="1"/></svg>;
+const BlackRibbon = () => <img src={blackRibbonUrl} alt="Crespón negro de duelo" className="h-10 w-10 shrink-0 object-contain" />;
 const CALENDARIO_BASE = [
  {clave:"cancer",titulo:"Día Mundial contra el Cáncer",mes:2,dia:4,categoria:"salud",simbolo:"🎗️",color:"naranja",mensaje:"Hoy nos unimos a las personas que conviven con el cáncer, a sus familias y a quienes las acompañan. Desde el C.D. Bustarviejo enviamos todo nuestro apoyo.",detalle:"La prevención, la investigación y el acompañamiento importan. Juntos somos más fuertes."},
  {clave:"mujer",titulo:"Día Internacional de la Mujer",mes:3,dia:8,categoria:"convivencia",simbolo:"💜",color:"morado",mensaje:"El deporte también es igualdad, respeto y oportunidades para todas. Seguimos trabajando para que cada niña y mujer tenga su lugar en el deporte.",detalle:"C.D. Bustarviejo · Igualdad dentro y fuera del campo."},
