@@ -41,7 +41,7 @@ import ChatCountsBridge from "./components/chat/ChatCountsBridge";
 import { SeasonProvider } from "./components/season/SeasonProvider";
 import ActiveBanner from "./components/announcements/ActiveBanner";
 import FestiveTheme from "./components/festivo/FestiveTheme";
-import CampanaActivaBanner from "./components/campanas/CampanaActivaBanner";
+
 import JuntaAppBar from "./components/junta/JuntaAppBar";
 import AutoPushSubscriber from "./components/notifications/AutoPushSubscriber";
 import ChatQueueFlusher from "./components/chat/ChatQueueFlusher";
@@ -674,8 +674,7 @@ export default function Layout({ children, currentPageName }) {
         <FestiveTheme />
         <ActiveBanner position="top" user={user} />
         {user && !isMinor && user.tipo_panel !== 'jugador_menor' && !user.es_menor && <JuntaAppBar user={user} isAdmin={isAdmin} />}
-        {/* Campaña solidaria en el hueco entre la barra superior y el contenido de cada panel */}
-        <CampanaActivaBanner />
+        {/* Las campañas se muestran como icono en la barra superior, sin banner independiente. */}
 
           <PullToRefresh>
             <ErrorBoundary label="la página actual" onReset={() => window.location.reload()}>
