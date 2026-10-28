@@ -205,9 +205,9 @@ Deno.serve(async (req) => {
         const allCampaigns = await base44PublicCampaigns.asServiceRole.entities.CampanaClub.list('-fecha_inicio', 100);
         const todayLocal = new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
         campanasSolidarias = allCampaigns
-          .filter(c => ['aprobada', 'publicada'].includes(c.estado) && c.mostrar_inicio !== false && c.fecha_inicio <= todayLocal && c.fecha_fin >= todayLocal)
-          .sort((a, b) => ((a.categoria === 'duelo' || a.color === 'negro') ? -1 : 0) - ((b.categoria === 'duelo' || b.color === 'negro') ? -1 : 0))
-          .map(c => ({ titulo: c.titulo, categoria: c.categoria, simbolo: c.simbolo, mensaje: c.mensaje, detalle: c.detalle, color: c.color, fecha_inicio: c.fecha_inicio, fecha_fin: c.fecha_fin }));
+          .filter(c => ['aprobada', 'publicada'].includes(c.estado))
+          .sort((a, b) => (b.fecha_inicio || '').localeCompare(a.fecha_inicio || ''))
+          .map(c => ({ titulo: c.titulo, categoria: c.categoria, simbolo: c.simbolo, mensaje: c.mensaje, detalle: c.detalle, color: c.color, fecha_inicio: c.fecha_inicio, fecha_fin: c.fecha_fin, mostrar_inicio: c.mostrar_inicio !== false }));
       } catch (e) { console.error('Error loading public solidarity campaigns:', e); }
       return Response.json({ ...data, campanas_solidarias: campanasSolidarias, jornadas_cache: jornadasCache, cross_table_cache: crossTableCache }, { headers: corsHeaders });
     }
