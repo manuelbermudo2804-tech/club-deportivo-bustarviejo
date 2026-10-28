@@ -976,7 +976,7 @@ input.cat-radio { display: none; }
       <a class="btn-menu" aria-current="page" style="background:#f57c00;color:#000 !important;">⚽ Ver partidos</a>
       <a class="btn-menu" href="https://alta-socio.vercel.app/jugadores.html" target="_blank" rel="noopener">Quiero jugar</a>
       <a href="${WEB}area-interna.html">Área interna</a>
-      <a class="btn-menu" href="https://alta-socio.vercel.app/alta-socio.html?ref=9TB4YE" target="_blank">Hazte socio</a>
+      <a class="btn-menu" href="https://alta-socio.vercel.app/alta-socio.html?ref=9TB4YE" target="_blank" rel="noopener">Hazte socio</a>
     </nav>
   </div>
 </header>
@@ -1327,7 +1327,7 @@ body {
       <a class="btn-menu" aria-current="page" style="background:#f57c00;color:#000 !important;">⚽ Ver partidos</a>
       <a class="btn-menu" href="https://alta-socio.vercel.app/jugadores.html" target="_blank" rel="noopener">Quiero jugar</a>
       <a href="${WEB}area-interna.html">Área interna</a>
-      <a class="btn-menu" href="https://alta-socio.vercel.app/alta-socio.html?ref=9TB4YE" target="_blank">Hazte socio</a>
+      <a class="btn-menu" href="https://alta-socio.vercel.app/alta-socio.html?ref=9TB4YE" target="_blank" rel="noopener">Hazte socio</a>
     </nav>
   </div>
 </header>
