@@ -67,7 +67,7 @@ export default function GalleryAlbum({ album, onEdit, onDelete, isAdmin, onQuick
           }
         }
         if (!url) { fallidas.push(file.name); continue; }
-        fotos = [...fotos, { url, descripcion: "", jugadores_etiquetados: [] }];
+        fotos = [...fotos, { url, descripcion: "", jugadores_etiquetados: [], uploaded_at: new Date().toISOString() }];
         if (onQuickUpload) await onQuickUpload(album.id, fotos);
         ok++;
         if (files.length > 1) toast.info(`📤 ${ok}/${files.length} guardada(s)`, { duration: 1500 });
