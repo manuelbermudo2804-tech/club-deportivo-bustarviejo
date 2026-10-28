@@ -727,7 +727,7 @@ const alerts = [];
     }
   };
 
-  if (visibleAlerts.length === 0) {
+  if (visibleAlerts.length === 0 && !activeCampaign) {
     // Sin tareas: mostrar el entrenamiento de hoy (si lo hay) + "Todo al día"
     return (
       <Card className={darkMode ? "border-slate-700 bg-slate-800/90 text-white shadow-lg overflow-hidden" : "border-orange-200 shadow-lg overflow-hidden"}>
