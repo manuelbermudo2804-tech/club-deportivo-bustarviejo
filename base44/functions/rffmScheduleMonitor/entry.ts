@@ -156,9 +156,10 @@ async function findNextMatch(url, cookies, lastKnownJornada) {
   const firstHtml = await safeFetch(buildJornadaUrl(p, startFrom));
   const total = detectTotalJornadas(firstHtml);
 
-  // Collect ALL upcoming Bustarviejo matches (handles weeks with 2+ matches: aplazados, intersemanales, etc.)
+  // Keep each workflow run within the backend execution budget. Scan a short rolling window;
+  // subsequent runs continue from the earliest unplayed jornada, so coverage advances safely.
   const upcomingMatches = [];
-  const maxScan = Math.min(total, startFrom + 8);
+  const maxScan = Math.min(total, startFrom + 1);
   for (let j = startFrom; j <= maxScan; j++) {
     const html = j === startFrom ? firstHtml : await safeFetch(buildJornadaUrl(p, j));
     const matches = parseJornadaMatches(html);
@@ -169,9 +170,8 @@ async function findNextMatch(url, cookies, lastKnownJornada) {
       !m.visitante?.toUpperCase().includes('DESCANSA')
     );
     if (bust) upcomingMatches.push({ jornada: j, match: bust });
-    // Never stop after the first two matches: postponed fixtures can be several jornadas ahead.
-    // Use a deliberate pause to reduce load on the RFFM site and avoid rushed/partial reads.
-    if (j < maxScan) await new Promise(r => setTimeout(r, 2000));
+    // Brief pause only: the monitor runs every two hours and must finish before runtime timeout.
+    if (j < maxScan) await new Promise(r => setTimeout(r, 400));
   }
 
   // Backwards-compat: return primary "next match" plus the full list
@@ -603,7 +603,7 @@ Deno.serve(async (req) => {
     // Run SEQUENTIALLY with pauses between categories to avoid RFFM rate limiting
     for (let i = 0; i < activeConfigs.length; i++) {
       if (i > 0) {
-        const pauseMs = 3000;
+        const pauseMs = 500;
         console.log(`[rffmScheduleMonitor] Pausing ${pauseMs/1000}s before category ${i+1}/${activeConfigs.length}...`);
         await new Promise(r => setTimeout(r, pauseMs));
       }
