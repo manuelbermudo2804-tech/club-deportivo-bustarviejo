@@ -20,6 +20,7 @@ export const PAGES = {
     "CalendarAndSchedules": lazy(() => import('./pages/CalendarAndSchedules')),
     "CategoryConfigAdmin": lazy(() => import('./pages/CategoryConfigAdmin')),
     "CategoryManagement": lazy(() => import('./pages/CategoryManagement')),
+    "CampanasSolidarias": lazy(() => import('./pages/CampanasSolidarias')),
     "CentroCompeticion": lazy(() => import('./pages/CentroCompeticion')),
     "CentroCompeticionTecnico": lazy(() => import('./pages/CentroCompeticionTecnico')),
     "ChatAnalyticsDashboard": lazy(() => import('./pages/ChatAnalyticsDashboard')),
