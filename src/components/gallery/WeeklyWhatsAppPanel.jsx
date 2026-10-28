@@ -9,6 +9,7 @@ import { MessageCircle, CalendarDays, Copy, Check, ExternalLink, Image as ImageI
 import { toast } from "sonner";
 
 const PHONE_KEY = "cdb_weekly_whatsapp_phone";
+const COMMUNICATED_MATCHES_KEY = "cdb_weekly_whatsapp_communicated_matches";
 const dateISO = (d) => {
   const x = new Date(d);
   return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`;
@@ -36,6 +37,9 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
   const [mode, setMode] = useState("schedule");
   const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [selectedMatchIds, setSelectedMatchIds] = useState([]);
+  const [communicatedMatches, setCommunicatedMatches] = useState(() => {
+    try { return JSON.parse(localStorage.getItem(COMMUNICATED_MATCHES_KEY) || "[]"); } catch { return []; }
+  });
   const [copied, setCopied] = useState(false);
   const todayISO = dateISO(new Date());
   const defaultStart = addDaysISO(todayISO, 1);
@@ -71,20 +75,41 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
 
   const selectedMatches = useMemo(() => inPeriod.filter(p => selectedMatchIds.includes(p.id)), [inPeriod, selectedMatchIds]);
 
-  const recentResults = useMemo(() => {
-    const start = new Date(today);
-    start.setDate(today.getDate() - (day === 0 ? 6 : day === 1 ? 7 : day + 6));
-    const end = new Date(today); end.setDate(today.getDate() - 1);
-    const startISO = dateISO(start), endISO = dateISO(end);
-    return results.filter(r => {
-      const raw = r.fecha_partido || "";
-      const m = String(raw).match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      const d = m ? `${m[3]}-${m[2]}-${m[1]}` : raw;
-      return d && d >= startISO && d <= endISO;
-    }).sort((a,b) => (a.categoria || "").localeCompare(b.categoria || ""));
-  }, [results, today.getFullYear(), today.getMonth(), today.getDate(), day]);
+  const pastCommunicatedMatches = useMemo(
+    () => communicatedMatches.filter(p => p.fecha_iso && p.fecha_iso < todayISO),
+    [communicatedMatches, todayISO]
+  );
 
-  const photoOptions = useMemo(() => albums.flatMap(album =>
+  const recentResults = useMemo(() => {
+    const toISO = (raw) => {
+      const m = String(raw || "").match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
+      return m ? `${m[3]}-${m[2]}-${m[1]}` : String(raw || "");
+    };
+    if (!pastCommunicatedMatches.length) return [];
+    return results.filter(r => r.estado === "finalizado" && pastCommunicatedMatches.some(p =>
+      (r.categoria || "").trim().toLowerCase() === (p.categoria || "").trim().toLowerCase() &&
+      toISO(r.fecha_partido) === p.fecha_iso &&
+      (r.local || "").trim().toLowerCase() === (p.local || "").trim().toLowerCase() &&
+      (r.visitante || "").trim().toLowerCase() === (p.visitante || "").trim().toLowerCase()
+    )).sort((a,b) => (a.categoria || "").localeCompare(b.categoria || ""));
+  }, [results, pastCommunicatedMatches]);
+
+  const photoOptions = useMemo(() => {
+    if (!pastCommunicatedMatches.length) return [];
+    return albums.flatMap(album => (Array.isArray(album.fotos) ? album.fotos : []).map((foto, i) => ({
+      id: `${album.id || album.titulo}-${i}`,
+      url: foto?.url,
+      title: album.titulo || "Álbum",
+      category: album.categoria || "",
+      date: album.fecha_evento || "",
+    })).filter(f => typeof f.url === "string" && f.url.startsWith("https://")))
+      .filter(f => pastCommunicatedMatches.some(p =>
+        p.fecha_iso === f.date &&
+        (!f.category || f.category.trim().toLowerCase() === (p.categoria || "").trim().toLowerCase())
+      ));
+  }, [albums, pastCommunicatedMatches]);
+
+(() => albums.flatMap(album =>
     (Array.isArray(album.fotos) ? album.fotos : []).map((foto, i) => ({
       id: `${album.id || album.titulo}-${i}`,
       url: foto?.url,
@@ -110,8 +135,9 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
   }, [selectedMatches, periodStart, periodEnd]);
 
   const resultsText = useMemo(() => {
-    const lines = ["🟠⚫ *C.D. BUSTARVIEJO | RESULTADOS DE LA JORNADA* ⚽", ""];
-    if (!recentResults.length) lines.push("Todavía no hay resultados finales registrados de la jornada.");
+    const lines = ["🟠⚫ *C.D. BUSTARVIEJO | RESULTADOS DE LOS PARTIDOS COMUNICADOS* ⚽", ""];
+    if (!pastCommunicatedMatches.length) lines.push("No hay partidos anteriores marcados como comunicados. En Horarios, selecciona los encuentros y pulsa «Marcar como comunicados» después de enviarlos por WhatsApp.");
+    else if (!recentResults.length) lines.push("Todavía no hay resultados finales registrados para los partidos que marcaste como comunicados.");
     else recentResults.forEach(r => {
       lines.push(`⚽ *${r.categoria || "Equipo"}*`);
       lines.push(`${r.local || r.equipo_local || "Bustarviejo"} ${r.goles_local ?? "—"} - ${r.goles_visitante ?? "—"} ${r.visitante || r.rival || ""}`);
@@ -127,7 +153,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
     }
     lines.push("¡Enhorabuena a todos por el esfuerzo! 🧡🖤");
     return lines.join("\n");
-  }, [recentResults, photoOptions, selectedPhotos]);
+  }, [recentResults, photoOptions, selectedPhotos, pastCommunicatedMatches]);
 
   const message = mode === "schedule" ? scheduleText : resultsText;
   const savePhone = (value) => {
@@ -138,6 +164,15 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
     const normalized = phone.replace(/\D/g, "");
     if (!normalized) { toast.error("Introduce el número de teléfono con prefijo de país (por ejemplo, 34XXXXXXXXX)."); return; }
     window.open(`https://wa.me/${normalized}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+  };
+  const markSelectedAsCommunicated = () => {
+    if (!selectedMatches.length) { toast.error("Selecciona al menos un partido."); return; }
+    const existing = communicatedMatches.filter(old => !selectedMatches.some(p => p.id === old.id));
+    const marked = selectedMatches.map(p => ({ id: p.id, categoria: p.categoria || "", local: p.local || "", visitante: p.visitante || "", fecha_iso: p._date, hora: p.hora || "", campo: p.campo || "", marked_at: new Date().toISOString() }));
+    const next = [...existing, ...marked].sort((a,b) => a.fecha_iso.localeCompare(b.fecha_iso));
+    setCommunicatedMatches(next);
+    try { localStorage.setItem(COMMUNICATED_MATCHES_KEY, JSON.stringify(next)); } catch {}
+    toast.success(`${marked.length} partido(s) marcados como comunicados`);
   };
   const copyMessage = async () => {
     try {
@@ -175,7 +210,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
         </div>
         <div className="rounded-xl border border-slate-200 p-3">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-800">2. Marca los partidos que quieras incluir</p><Badge>{loadingMatches ? "Cargando calendario…" : `${allFuture.length} partidos futuros · ${inPeriod.length} en el periodo`}</Badge></div>
-          <p className="mb-3 text-sm text-slate-600">La app consulta todos los partidos futuros registrados, no solo los del fin de semana. Al cambiar el periodo, se marcan inicialmente todos los encuentros de esas fechas; puedes desmarcar los que no quieras anunciar.</p>
+          <p className="mb-3 text-sm text-slate-600">La app consulta todos los partidos futuros. Selecciona los que vas a anunciar; después de enviarlos en WhatsApp, pulsa «Marcar selección como comunicada» para que el mensaje del lunes solo tenga en cuenta estos encuentros.</p>
           {periodStart > periodEnd && <p className="mb-3 rounded-lg bg-amber-50 p-2 text-sm text-amber-800">La fecha de inicio debe ser anterior o igual a la fecha final.</p>}
           {inPeriod.length === 0 && periodStart <= periodEnd && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No hay partidos futuros registrados en este periodo. Comprueba el calendario y si los encuentros aplazados tienen ya una nueva fecha asignada.</p>}
           <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
@@ -185,9 +220,10 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
             </label>)}
           </div>
         </div>
+        <div className="flex flex-wrap gap-2"><Button onClick={markSelectedAsCommunicated} variant="outline" className="border-orange-300 text-orange-800 hover:bg-orange-50">✓ Marcar selección como comunicada</Button><Badge>{communicatedMatches.length} partidos marcados como comunicados</Badge></div>
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3"><p className="text-sm font-semibold text-emerald-900">Calendario futuro: {allFuture.length} partidos pendientes</p><p className="mt-1 text-sm text-emerald-800">Próximos encuentros detectados por fecha:</p><div className="mt-2 space-y-1">{allFuture.slice(0, 12).map(p => <p key={p.id || `${p.categoria}-${p._date}`} className="text-xs text-emerald-900">{formatDate(p._date)} · {p.categoria || "Equipo"} · {p.hora || "Hora por confirmar"}</p>)}{allFuture.length > 12 && <p className="text-xs text-emerald-800">Y {allFuture.length - 12} partidos más. Usa el selector de fechas para encontrarlos.</p>}</div><p className="mt-2 text-xs text-emerald-800">Los aplazamientos solo aparecerán con la nueva fecha si esta se ha actualizado en el calendario. Los registros sin fecha no pueden ordenarse como partidos futuros.</p></div>
       </div> : <div className="space-y-3">
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3"><Badge>{loadingResults ? "Cargando resultados…" : `${recentResults.length} resultados encontrados`}</Badge><p className="mt-2 text-sm text-slate-600">Selecciona únicamente las fotos de la jornada actual. Las fotos no seleccionadas no se incluirán.</p></div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3"><Badge>{loadingResults ? "Cargando resultados…" : `${recentResults.length} resultados de partidos comunicados`}</Badge><p className="mt-2 text-sm text-slate-600">Solo se muestran resultados y fotos que coinciden con partidos marcados como comunicados. Las fotos deben tener la misma fecha y categoría en el álbum.</p><p className="mt-1 text-xs text-slate-500">{pastCommunicatedMatches.length} partidos comunicados anteriores guardados en este navegador.</p></div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {photoOptions.map(f => <button type="button" key={f.id} onClick={() => togglePhoto(f.id)} className={`overflow-hidden rounded-xl border text-left ${selectedPhotos.includes(f.id) ? "border-emerald-600 ring-2 ring-emerald-200" : "border-slate-200"}`}>
             <img src={f.url} alt={f.title} className="h-28 w-full object-cover" loading="lazy"/>
@@ -195,7 +231,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
             <span className="block px-2 pb-2 text-[11px] text-slate-500">{f.category} · {f.date}</span>
           </button>)}
         </div>
-        {photoOptions.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800"><ImageIcon className="mr-1 inline h-4 w-4"/>No hay fotos fechadas en el periodo reciente. Puedes abrir la galería, subir el álbum de esta jornada y volver aquí.</p>}
+        {photoOptions.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800"><ImageIcon className="mr-1 inline h-4 w-4"/>{pastCommunicatedMatches.length ? "No hay fotos que coincidan exactamente con la fecha y categoría de los partidos comunicados. Comprueba que los álbumes tengan fecha y categoría correctas." : "No hay partidos anteriores marcados como comunicados. Primero marca los partidos anunciados desde el apartado de horarios."}</p>}
       </div>}
       <div className="space-y-2">
         <label className="text-sm font-semibold text-slate-800">Vista previa del mensaje</label>
