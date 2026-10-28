@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import { Crown } from "lucide-react";
 
+const HALLOWEEN_IMAGE = "https://www.cdbustarviejo.com/img/cdb-halloween-mobile.jpg";
+const HALLOWEEN_SESSION_KEY = "cd_bustarviejo_halloween_welcome_v1";
+
 /**
  * Splash de 2 segundos al abrir la app que muestra el logo del Patrocinador Principal.
  *
@@ -18,18 +21,34 @@ const DURATION_MS = 5000;
 export default function SponsorSplash() {
   const [sponsor, setSponsor] = useState(null);
   const [visible, setVisible] = useState(false);
+  const [halloween, setHalloween] = useState(false);
 
   useEffect(() => {
-    // Si ya se mostró en esta sesión, salir
-    try {
-      if (sessionStorage.getItem(SESSION_KEY) === "1") return;
-    } catch {}
-
     let mounted = true;
     let hideTimer = null;
 
     (async () => {
       try {
+        // Halloween se controla desde Temporadas y categorías → Decoración festiva.
+        // Tiene prioridad sobre la bienvenida del patrocinador, sin registrar una impresión de GVC.
+        const temas = await base44.entities.TemaFestivo.list("-updated_date", 1);
+        const temaActivo = temas?.[0]?.tema;
+        if (!mounted) return;
+
+        if (temaActivo === "halloween") {
+          try {
+            if (sessionStorage.getItem(HALLOWEEN_SESSION_KEY) === "1") return;
+            sessionStorage.setItem(HALLOWEEN_SESSION_KEY, "1");
+          } catch {}
+          setHalloween(true);
+          setVisible(true);
+          hideTimer = setTimeout(() => { if (mounted) setVisible(false); }, DURATION_MS);
+          return;
+        }
+
+        // Si ya se mostró el patrocinador en esta sesión, salir.
+        try { if (sessionStorage.getItem(SESSION_KEY) === "1") return; } catch {}
+
         const all = await base44.entities.Sponsor.list();
         const principal = all.find(
           (s) => s.activo === true && s.nivel_patrocinio === "Principal"
@@ -67,7 +86,7 @@ export default function SponsorSplash() {
     };
   }, []);
 
-  if (!sponsor) return null;
+  if (!sponsor && !halloween) return null;
 
   return (
     <AnimatePresence>
@@ -77,8 +96,17 @@ export default function SponsorSplash() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.4 }}
-          className="fixed inset-0 z-[10000] flex items-center justify-center bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900"
+          className={`fixed inset-0 z-[10000] flex items-center justify-center overflow-hidden ${halloween ? "bg-black" : "bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900"}`}
         >
+          {halloween ? (
+            <div className="absolute inset-0 h-full w-full">
+              <img src={HALLOWEEN_IMAGE} alt="Halloween del C.D. Bustarviejo" className="h-full w-full object-cover object-center" />
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/35 to-transparent px-5 pb-[max(2rem,env(safe-area-inset-bottom))] pt-24 text-center">
+                <p className="mx-auto max-w-md text-balance text-lg font-black leading-tight text-white drop-shadow-lg sm:text-2xl">🎃 ¡EL C.D. BUSTARVIEJO TE DESEA UN HALLOWEEN DE MIEDO!</p>
+              </div>
+            </div>
+          ) : (
+          <>
           {/* Glow decorativo */}
           <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-amber-400/20 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl pointer-events-none" />
@@ -126,6 +154,8 @@ export default function SponsorSplash() {
               </p>
             )}
           </motion.div>
+          </>
+          )}
         </motion.div>
       )}
     </AnimatePresence>
