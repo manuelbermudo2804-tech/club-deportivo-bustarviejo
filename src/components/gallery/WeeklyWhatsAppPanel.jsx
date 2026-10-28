@@ -27,15 +27,14 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
   const [copied, setCopied] = useState(false);
   const today = new Date();
   const day = today.getDay();
-  const daysToWednesday = (3 - day + 7) % 7;
-  const nextWednesday = new Date(today);
-  nextWednesday.setDate(today.getDate() + (daysToWednesday === 0 ? 0 : daysToWednesday));
-  const nextWeekendStart = new Date(nextWednesday);
-  nextWeekendStart.setDate(nextWednesday.getDate() + 2);
-  const nextWeekendEnd = new Date(nextWednesday);
-  nextWeekendEnd.setDate(nextWednesday.getDate() + 4);
-  const weekendStartISO = dateISO(nextWeekendStart);
-  const weekendEndISO = dateISO(nextWeekendEnd);
+  // Ventana móvil de siete días: permite preparar el borrador el martes
+  // y revisar el miércoles todos los partidos desde el jueves.
+  const scheduleStart = new Date(today);
+  scheduleStart.setDate(today.getDate() + 1);
+  const scheduleEnd = new Date(scheduleStart);
+  scheduleEnd.setDate(scheduleStart.getDate() + 6);
+  const scheduleStartISO = dateISO(scheduleStart);
+  const scheduleEndISO = dateISO(scheduleEnd);
 
   const { data: matches = [], isLoading: loadingMatches } = useQuery({
     queryKey: ["weeklyWhatsAppUpcoming"],
@@ -48,8 +47,8 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
 
   const upcoming = useMemo(() => matches.filter(p => {
     const d = parseMatchDate(p);
-    return p.jugado !== true && d && d >= weekendStartISO && d <= weekendEndISO;
-  }).sort((a,b) => parseMatchDate(a).localeCompare(parseMatchDate(b))), [matches, weekendStartISO, weekendEndISO]);
+    return p.jugado !== true && d && d >= scheduleStartISO && d <= scheduleEndISO;
+  }).sort((a,b) => parseMatchDate(a).localeCompare(parseMatchDate(b))), [matches, scheduleStartISO, scheduleEndISO]);
 
   const recentResults = useMemo(() => {
     const start = new Date(today); start.setDate(today.getDate() - (day === 0 ? 6 : day === 1 ? 7 : day + 6));
@@ -69,11 +68,11 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
       category: album.categoria || "",
       date: album.fecha_evento || "",
     })).filter(f => typeof f.url === "string" && f.url.startsWith("https://"))
-  ).filter(f => f.date >= weekendStartISO && f.date <= weekendEndISO || f.date >= dateISO(new Date(today.getFullYear(), today.getMonth(), today.getDate()-7)) && f.date <= dateISO(today)), [albums, weekendStartISO, weekendEndISO, today.getFullYear(), today.getMonth(), today.getDate()]);
+  ).filter(f => f.date >= scheduleStartISO && f.date <= scheduleEndISO || f.date >= dateISO(new Date(today.getFullYear(), today.getMonth(), today.getDate()-7)) && f.date <= dateISO(today)), [albums, scheduleStartISO, scheduleEndISO, today.getFullYear(), today.getMonth(), today.getDate()]);
 
   const scheduleText = useMemo(() => {
-    const lines = ["🟠⚫ *C.D. BUSTARVIEJO | HORARIOS DEL FIN DE SEMANA* ⚽", ""];
-    if (!upcoming.length) lines.push("Todavía no hay horarios registrados para este fin de semana.");
+    const lines = ["🟠⚫ *C.D. BUSTARVIEJO | PRÓXIMOS PARTIDOS* ⚽", ""];
+    if (!upcoming.length) lines.push("No hay partidos registrados para los próximos siete días. Comprueba si falta cargar algún encuentro o si hay aplazados pendientes de nueva fecha.");
     else upcoming.forEach(p => {
       lines.push(`⚽ *${p.categoria || "Equipo"}*`);
       lines.push(`${p.local || ""} - ${p.visitante || ""}`.trim());
@@ -136,12 +135,12 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
         <p className="text-xs text-slate-500">Se guarda en este navegador. Escribe el prefijo 34 para España, sin necesidad de poner el signo +.</p>
       </div>
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <Button variant={mode === "schedule" ? "default" : "outline"} onClick={() => setMode("schedule")} className={mode === "schedule" ? "bg-orange-600 hover:bg-orange-700" : ""}><CalendarDays className="mr-2 h-4 w-4"/> Miércoles · Horarios</Button>
+        <Button variant={mode === "schedule" ? "default" : "outline"} onClick={() => setMode("schedule")} className={mode === "schedule" ? "bg-orange-600 hover:bg-orange-700" : ""}><CalendarDays className="mr-2 h-4 w-4"/> Horarios · Próximos 7 días</Button>
         <Button variant={mode === "results" ? "default" : "outline"} onClick={() => setMode("results")} className={mode === "results" ? "bg-orange-600 hover:bg-orange-700" : ""}>🏆 Lunes · Resultados y fotos</Button>
       </div>
       {mode === "schedule" ? <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-        <div className="mb-2 flex items-center justify-between gap-2"><Badge>{loadingMatches ? "Cargando partidos…" : `${upcoming.length} partidos encontrados`}</Badge><span className="text-xs text-slate-500">{weekendStartISO} — {weekendEndISO}</span></div>
-        <p className="text-sm text-slate-600">Se incluyen los partidos registrados entre viernes y domingo. Si falta un horario, se indicará como pendiente de confirmar.</p>
+        <div className="mb-2 flex items-center justify-between gap-2"><Badge>{loadingMatches ? "Cargando partidos…" : `${upcoming.length} partidos encontrados`}</Badge><span className="text-xs text-slate-500">{scheduleStartISO} — {scheduleEndISO}</span></div>
+        <p className="text-sm text-slate-600">Se muestran los partidos registrados para los próximos siete días, incluidos los de entre semana. Antes de enviar, comprueba aplazamientos, cancelaciones y cambios de fecha u hora: la app solo puede detectar lo que esté actualizado en el calendario.</p>
       </div> : <div className="space-y-3">
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3"><Badge>{loadingResults ? "Cargando resultados…" : `${recentResults.length} resultados encontrados`}</Badge><p className="mt-2 text-sm text-slate-600">Selecciona únicamente las fotos de la jornada actual. Las fotos no seleccionadas no se incluirán.</p></div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
