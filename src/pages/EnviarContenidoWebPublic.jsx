@@ -49,7 +49,7 @@ export default function EnviarContenidoWeb() {
               </Button>
             </div>
           ) : (
-            <ContenidoWebForm onDone={() => setEnviado(true)} />
+            <ContenidoWebForm variant="web" onDone={() => setEnviado(true)} />
           )}
         </div>
 
