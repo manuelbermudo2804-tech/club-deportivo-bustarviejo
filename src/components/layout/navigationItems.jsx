@@ -94,6 +94,7 @@ export function buildAdminNavigation(ctx) {
 
     { title: "─ CONTENIDO ─", section: true },
     { title: "📥 Centro de Contenido", url: createPageUrl("CentroContenido"), icon: Inbox },
+    { title: "🎗️ Campañas solidarias", url: createPageUrl("CampanasSolidarias"), icon: HeartPulse },
     { title: "📱 Centro Difusión Social", url: createPageUrl("SocialHub"), icon: Share2 },
     { title: "📸 Enviar fotos y vídeos", url: createPageUrl("SubirContenido"), icon: Camera },
     { title: "🖼️ Galería", url: createPageUrl("Gallery"), icon: Image },
