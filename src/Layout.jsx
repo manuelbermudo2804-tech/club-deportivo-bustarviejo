@@ -41,6 +41,7 @@ import ChatCountsBridge from "./components/chat/ChatCountsBridge";
 import { SeasonProvider } from "./components/season/SeasonProvider";
 import ActiveBanner from "./components/announcements/ActiveBanner";
 import FestiveTheme from "./components/festivo/FestiveTheme";
+import CampanaActivaBanner from "./components/campanas/CampanaActivaBanner";
 import JuntaAppBar from "./components/junta/JuntaAppBar";
 import AutoPushSubscriber from "./components/notifications/AutoPushSubscriber";
 import ChatQueueFlusher from "./components/chat/ChatQueueFlusher";
@@ -671,6 +672,7 @@ export default function Layout({ children, currentPageName }) {
 
 
         <FestiveTheme />
+        <CampanaActivaBanner />
         <ActiveBanner position="top" user={user} />
         {user && !isMinor && user.tipo_panel !== 'jugador_menor' && !user.es_menor && <JuntaAppBar user={user} isAdmin={isAdmin} />}
 
