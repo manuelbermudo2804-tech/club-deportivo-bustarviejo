@@ -17,7 +17,7 @@ const HALLOWEEN_SESSION_KEY = "cd_bustarviejo_halloween_welcome_v1";
  */
 const SESSION_KEY = "sponsor_splash_shown_v1";
 const DURATION_MS = 5000;
-const HALLOWEEN_DURATION_MS = 10000;
+const HALLOWEEN_DURATION_MS = 15000;
 
 export default function SponsorSplash() {
   const [sponsor, setSponsor] = useState(null);
