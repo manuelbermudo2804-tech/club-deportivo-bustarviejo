@@ -3,7 +3,7 @@ import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ContenidoWebForm from "@/components/contenido/ContenidoWebForm";
 
-const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
+const CLUB_LOGO_URL = "https://www.cdbustarviejo.com/img/escudo.png";
 
 export default function EnviarContenidoWeb() {
   const [enviado, setEnviado] = useState(false);
@@ -13,7 +13,7 @@ export default function EnviarContenidoWeb() {
       <header className="bg-white border-b-2 border-[#f57c00] shadow-sm">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <a href="https://www.cdbustarviejo.com/" className="flex items-center gap-3 font-extrabold text-[#222] no-underline" aria-label="Volver a la web del C.D. Bustarviejo">
-            <img src={CLUB_LOGO_URL} alt="" className="h-11 w-11 rounded-full border border-slate-200 object-cover" />
+            <img src={CLUB_LOGO_URL} alt="" className="h-11 w-11 object-contain" />
             <span className="text-base sm:text-lg">C.D. Bustarviejo</span>
           </a>
           <nav aria-label="Navegación principal" className="flex flex-wrap items-center justify-center gap-2 text-sm font-bold sm:gap-3">
@@ -25,7 +25,7 @@ export default function EnviarContenidoWeb() {
       </header>
 
       <div className="border-b-4 border-[#f57c00] bg-gradient-to-br from-[#171717] via-[#292929] to-[#3b260f] px-4 pb-14 pt-8 text-center text-white">
-        <img src={CLUB_LOGO_URL} alt="Escudo del C.D. Bustarviejo" className="mx-auto h-20 w-20 rounded-full border-4 border-white/80 object-cover shadow-lg" />
+        <img src={CLUB_LOGO_URL} alt="Escudo del C.D. Bustarviejo" className="mx-auto h-20 w-20 object-contain drop-shadow-lg" />
         <h1 className="mt-4 text-2xl font-extrabold leading-tight sm:text-3xl">Manda tus fotos y vídeos</h1>
         <p className="mx-auto mt-2 max-w-md text-sm text-white/90 sm:text-base">
           Club Deportivo Bustarviejo · Si has grabado algo bueno en un partido o entrenamiento, mándalo y podrá salir en nuestras redes.
