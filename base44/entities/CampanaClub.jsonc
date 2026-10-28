@@ -1,0 +1,110 @@
+{
+  "name": "CampanaClub",
+  "type": "object",
+  "description": "Campa\u00f1as solidarias y de sensibilizaci\u00f3n preparadas por el club y aprobadas antes de publicarse",
+  "properties": {
+    "titulo": {
+      "type": "string"
+    },
+    "categoria": {
+      "type": "string",
+      "enum": [
+        "salud",
+        "inclusion",
+        "solidaridad",
+        "duelo",
+        "convivencia",
+        "otro"
+      ],
+      "default": "salud"
+    },
+    "simbolo": {
+      "type": "string",
+      "default": "\ud83c\udf97\ufe0f"
+    },
+    "mensaje": {
+      "type": "string"
+    },
+    "detalle": {
+      "type": "string"
+    },
+    "color": {
+      "type": "string",
+      "enum": [
+        "rosa",
+        "amarillo",
+        "azul",
+        "verde",
+        "morado",
+        "negro",
+        "naranja",
+        "rojo",
+        "neutro"
+      ],
+      "default": "rosa"
+    },
+    "fecha_inicio": {
+      "type": "string",
+      "format": "date"
+    },
+    "fecha_fin": {
+      "type": "string",
+      "format": "date"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "borrador",
+        "pendiente_aprobacion",
+        "aprobada",
+        "publicada",
+        "archivada"
+      ],
+      "default": "borrador"
+    },
+    "mostrar_inicio": {
+      "type": "boolean",
+      "default": true
+    },
+    "aprobado_por": {
+      "type": "string"
+    },
+    "fecha_aprobacion": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "creado_por": {
+      "type": "string"
+    },
+    "notas_internas": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "titulo",
+    "categoria",
+    "simbolo",
+    "mensaje",
+    "fecha_inicio",
+    "fecha_fin",
+    "estado"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
