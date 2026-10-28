@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import blackRibbonUrl from "@/assets/lazo-negro.png";
+const blackRibbonUrl = "https://media.base44.com/images/public/6992c6be619d2da592897991/6e4de80a5_lazo-negro.png";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const EMPTY = { titulo:"", categoria:"salud", simbolo:"🎗️", mensaje:"", detalle:"", color:"rosa", fecha_inicio:new Date().toISOString().slice(0,10), fecha_fin:new Date().toISOString().slice(0,10), estado:"borrador", mostrar_inicio:true, notas_internas:"" };
