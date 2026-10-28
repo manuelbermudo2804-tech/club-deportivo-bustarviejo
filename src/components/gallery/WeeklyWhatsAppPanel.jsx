@@ -94,24 +94,24 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
     )).sort((a,b) => (a.categoria || "").localeCompare(b.categoria || ""));
   }, [results, pastCommunicatedMatches]);
 
-  // El mensaje semanal usa las fotos de los álbumes de los últimos 7 días,
-  // agrupadas por fecha del partido/evento y equipo (categoría), sin vincularlas
-  // a la lista de partidos comunicados.
+  // Selecciona las fotos subidas individualmente en los últimos 7 días.
+  // Las fotos antiguas sin uploaded_at usan fecha_evento como compatibilidad.
   const photoOptions = useMemo(() => {
-    const cutoff = addDaysISO(todayISO, -6);
-    return [...albums]
-      .filter(album => {
-        const date = String(album.fecha_evento || "").slice(0, 10);
-        return date && date >= cutoff && date <= todayISO;
-      })
-      .sort((a, b) => String(b.fecha_evento || "").localeCompare(String(a.fecha_evento || "")) || String(a.categoria || "").localeCompare(String(b.categoria || "")))
-      .flatMap(album => (Array.isArray(album.fotos) ? album.fotos : []).map((foto, i) => ({
+    const cutoff = Date.parse(`${todayISO}T00:00:00`) - 6 * 24 * 60 * 60 * 1000;
+    const endOfToday = Date.parse(`${todayISO}T23:59:59.999`);
+    return albums.flatMap(album => (Array.isArray(album.fotos) ? album.fotos : []).map((foto, i) => {
+      const uploadedAt = foto?.uploaded_at || foto?.fecha_subida || foto?.created_at || null;
+      const timestamp = uploadedAt ? Date.parse(uploadedAt) : Date.parse(`${String(album.fecha_evento || "").slice(0, 10)}T12:00:00`);
+      return {
         id: `${album.id || album.titulo}-${i}`,
         url: foto?.url,
         title: album.titulo || "Álbum",
         category: album.categoria || "Equipo sin categoría",
-        date: album.fecha_evento || "",
-      })).filter(f => typeof f.url === "string" && f.url.startsWith("https://")));
+        date: uploadedAt ? new Date(uploadedAt).toLocaleDateString("es-ES") : (album.fecha_evento || "Fecha antigua del álbum"),
+        uploadedAt: Number.isFinite(timestamp) ? timestamp : 0,
+      };
+    }).filter(f => typeof f.url === "string" && f.url.startsWith("https://") && f.uploadedAt >= cutoff && f.uploadedAt <= endOfToday))
+    .sort((a, b) => b.uploadedAt - a.uploadedAt || a.category.localeCompare(b.category));
   }, [albums, todayISO]);
 
   const scheduleText = useMemo(() => {
@@ -217,7 +217,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
         <div className="flex flex-wrap gap-2"><Button onClick={markSelectedAsCommunicated} variant="outline" className="border-orange-300 text-orange-800 hover:bg-orange-50">✓ Marcar selección como comunicada</Button><Badge>{communicatedMatches.length} partidos marcados como comunicados</Badge></div>
 
       </div> : <div className="space-y-3">
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3"><Badge>{loadingResults ? "Cargando resultados…" : `${recentResults.length} resultados de partidos comunicados`}</Badge><p className="mt-2 text-sm text-slate-600">Los resultados corresponden a los partidos marcados como comunicados. Las fotos se muestran por fecha y equipo, usando los álbumes de los últimos 7 días.</p><p className="mt-1 text-xs text-slate-500">{pastCommunicatedMatches.length} partidos comunicados anteriores guardados en este navegador.</p></div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3"><Badge>{loadingResults ? "Cargando resultados…" : `${recentResults.length} resultados de partidos comunicados`}</Badge><p className="mt-2 text-sm text-slate-600">Los resultados corresponden a los partidos marcados como comunicados. Las fotos se filtran por la fecha de subida de cada imagen y se agrupan visualmente por equipo.</p><p className="mt-1 text-xs text-slate-500">{pastCommunicatedMatches.length} partidos comunicados anteriores guardados en este navegador.</p></div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {photoOptions.map(f => <button type="button" key={f.id} onClick={() => togglePhoto(f.id)} className={`overflow-hidden rounded-xl border text-left ${selectedPhotos.includes(f.id) ? "border-emerald-600 ring-2 ring-emerald-200" : "border-slate-200"}`}>
             <img src={f.url} alt={f.title} className="h-28 w-full object-cover" loading="lazy"/>
@@ -225,7 +225,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
             <span className="block px-2 pb-2 text-[11px] text-slate-500">{f.category} · {f.date}</span>
           </button>)}
         </div>
-        {photoOptions.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800"><ImageIcon className="mr-1 inline h-4 w-4"/>{"No hay fotos en álbumes de los últimos 7 días. Comprueba la fecha del álbum y su equipo."}</p>}
+        {photoOptions.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800"><ImageIcon className="mr-1 inline h-4 w-4"/>{"No hay fotos subidas en los últimos 7 días."}</p>}
       </div>}
       <div className="space-y-2">
         <label className="text-sm font-semibold text-slate-800">Vista previa del mensaje</label>
