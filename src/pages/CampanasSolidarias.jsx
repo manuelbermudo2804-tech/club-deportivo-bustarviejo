@@ -52,7 +52,7 @@ export default function CampanasSolidarias() {
  const visibles = useMemo(()=>campaigns.filter(c => filter==="todas" ? true : filter==="activas" ? !["archivada","publicada"].includes(c.estado) : c.estado===filter),[campaigns,filter]);
  const refresh=async()=>{await Promise.all([qc.invalidateQueries({queryKey:["campanasClub"]}),qc.invalidateQueries({queryKey:["campanasActivasBanner"]})]);};
  const installCalendar=async()=>{
-  const normalizeTitle=value=>(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().toLocaleLowerCase("es");
+  const normalizeTitle=value=>(value||"").trim().toLocaleLowerCase("es");
   const existingKeys=new Set(campaigns.map(c=>c.clave_calendario).filter(Boolean));
   const existingTitles=new Set(campaigns.map(c=>normalizeTitle(c.titulo)));
   const missing=CALENDARIO_BASE.filter(t=>!existingKeys.has(t.clave)&&!existingTitles.has(normalizeTitle(t.titulo)));
@@ -80,7 +80,7 @@ export default function CampanasSolidarias() {
   if(editing.fecha_fin<editing.fecha_inicio){toast.error("La fecha final no puede ser anterior a la inicial.");return;}
   setSaving(true);
   try{
-   const normalizedTitle=value=>(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().toLocaleLowerCase("es");
+   const normalizedTitle=value=>(value||"").trim().toLocaleLowerCase("es");
    const duplicate=campaigns.find(c=>c.id!==editing.id&&normalizedTitle(c.titulo)===normalizedTitle(editing.titulo)&&c.fecha_inicio===editing.fecha_inicio&&c.fecha_fin===editing.fecha_fin&&c.estado!=="archivada");
    if(duplicate){toast.error("Ya existe una campaña con el mismo título y las mismas fechas. Edita la existente para evitar duplicados.");return;}
    const me=await base44.auth.me();
