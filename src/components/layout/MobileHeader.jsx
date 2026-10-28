@@ -2,6 +2,7 @@ import React, { Suspense } from "react";
 import { Menu, X, Smartphone } from "lucide-react";
 import MobileBackButton from "../mobile/MobileBackButton";
 import ThemeToggle from "../ThemeToggle";
+import CampanaActivaBanner from "../campanas/CampanaActivaBanner";
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg?t=${Date.now()}`;
 
@@ -76,6 +77,7 @@ export default function MobileHeader({
               </div>
             )}
 
+            <CampanaActivaBanner />
             {enginesReady && (<Suspense fallback={null}><NotificationCenter /></Suspense>)}
             <ThemeToggle />
             <button
