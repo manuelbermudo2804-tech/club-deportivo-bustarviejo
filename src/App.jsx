@@ -95,6 +95,7 @@ const EntrenadorPracticas = lazy(() => import('@/pages/EntrenadorPracticas'));
 const MinorCoachCallups = lazy(() => import('@/pages/MinorCoachCallups'));
 const MinorCoachAttendance = lazy(() => import('@/pages/MinorCoachAttendance'));
 const EnviarContenidoWeb = lazy(() => import('@/pages/EnviarContenidoWeb'));
+const EnviarContenidoWebPublic = lazy(() => import('@/pages/EnviarContenidoWebPublic'));
 const AgendaClub = lazy(() => import('@/pages/AgendaClub'));
 const ExpedienteSubvencion = lazy(() => import('@/pages/ExpedienteSubvencion'));
 const JuntaSocios = lazy(() => import('@/pages/JuntaSocios'));
@@ -126,7 +127,7 @@ const AppRouter = () => {
   
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').replace(/^\/+/, '/').toLowerCase();
-  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/eurocopa2028', '/eurocopa2028crear', '/eurocopa2028miporra', '/eurocopa2028ranking', '/eurocopa2028exito', '/propuestagvcgaesco', '/privacidad', '/colabora', '/altasocio', '/loteria', '/instalarapp', '/enviarfotos'];
+  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/eurocopa2028', '/eurocopa2028crear', '/eurocopa2028miporra', '/eurocopa2028ranking', '/eurocopa2028exito', '/propuestagvcgaesco', '/privacidad', '/colabora', '/altasocio', '/loteria', '/instalarapp', '/enviarfotosweb'];
   // Constructor de páginas: cualquier URL que empiece por /l/ es pública
   const isLandingPath = cleanPath.startsWith('/l/');
   // Página pública propia de torneo: cualquier URL que empiece por /torneo/
@@ -201,8 +202,8 @@ const AppRouter = () => {
         <Route path="/loteria" element={<LoteriaNavidad />} />
         <Route path="/InstalarApp" element={<InstalarApp />} />
         <Route path="/instalarapp" element={<InstalarApp />} />
-        <Route path="/EnviarFotos" element={<EnviarContenidoWeb />} />
-        <Route path="/enviarfotos" element={<EnviarContenidoWeb />} />
+        <Route path="/EnviarFotosWeb" element={<EnviarContenidoWebPublic />} />
+        <Route path="/enviarfotosweb" element={<EnviarContenidoWebPublic />} />
       </Routes>
     );
   }
@@ -317,6 +318,8 @@ const AuthenticatedApp = () => {
       <Route path="/DirectorioContactos" element={<LayoutWrapper currentPageName="DirectorioContactos"><DirectorioContactos /></LayoutWrapper>} />
       <Route path="/CentroContenido" element={<LayoutWrapper currentPageName="CentroContenido"><CentroContenido /></LayoutWrapper>} />
       <Route path="/SubirContenido" element={<LayoutWrapper currentPageName="SubirContenido"><SubirContenido /></LayoutWrapper>} />
+      <Route path="/EnviarFotos" element={<LayoutWrapper currentPageName="EnviarFotos"><EnviarContenidoWeb /></LayoutWrapper>} />
+      <Route path="/enviarfotos" element={<LayoutWrapper currentPageName="EnviarFotos"><EnviarContenidoWeb /></LayoutWrapper>} />
       <Route path="/EntrenadorPracticas" element={<LayoutWrapper currentPageName="EntrenadorPracticas"><EntrenadorPracticas /></LayoutWrapper>} />
       <Route path="/MinorCoachCallups" element={<LayoutWrapper currentPageName="MinorCoachCallups"><MinorCoachCallups /></LayoutWrapper>} />
       <Route path="/MinorCoachAttendance" element={<LayoutWrapper currentPageName="MinorCoachAttendance"><MinorCoachAttendance /></LayoutWrapper>} />
