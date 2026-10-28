@@ -46,7 +46,7 @@ export default function GalleryForm({ album, onSubmit, onCancel, isSubmitting, u
         } catch {}
         // Si no se pudo optimizar (formato raro, foto reenviada...), se sube la original
         if (!url) url = (await base44.integrations.Core.UploadFile({ file })).file_url;
-        uploaded.push({ url, descripcion: "", jugadores_etiquetados: [] });
+        uploaded.push({ url, descripcion: "", jugadores_etiquetados: [], uploaded_at: new Date().toISOString() });
       } catch (err) {
         if (err?.userMessage) {
           toast.error(err.userMessage, { duration: 10000 });
