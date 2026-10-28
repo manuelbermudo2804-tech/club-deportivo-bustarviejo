@@ -52,8 +52,10 @@ export default function CampanasSolidarias() {
  const visibles = useMemo(()=>campaigns.filter(c => filter==="todas" ? true : filter==="activas" ? !["archivada","publicada"].includes(c.estado) : c.estado===filter),[campaigns,filter]);
  const refresh=async()=>{await Promise.all([qc.invalidateQueries({queryKey:["campanasClub"]}),qc.invalidateQueries({queryKey:["campanasActivasBanner"]})]);};
  const installCalendar=async()=>{
-  const existing=new Set(campaigns.map(c=>c.clave_calendario).filter(Boolean));
-  const missing=CALENDARIO_BASE.filter(t=>!existing.has(t.clave));
+  const normalizeTitle=value=>(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().toLocaleLowerCase("es");
+  const existingKeys=new Set(campaigns.map(c=>c.clave_calendario).filter(Boolean));
+  const existingTitles=new Set(campaigns.map(c=>normalizeTitle(c.titulo)));
+  const missing=CALENDARIO_BASE.filter(t=>!existingKeys.has(t.clave)&&!existingTitles.has(normalizeTitle(t.titulo)));
   if(!missing.length){toast.info("El calendario base ya está cargado.");return;}
   if(!window.confirm(`Se van a preparar ${missing.length} campañas con fechas, símbolos y textos. Quedarán como borradores: no se publicará nada sin aprobación. ¿Continuar?`))return;
   setInstalling(true);
@@ -78,6 +80,9 @@ export default function CampanasSolidarias() {
   if(editing.fecha_fin<editing.fecha_inicio){toast.error("La fecha final no puede ser anterior a la inicial.");return;}
   setSaving(true);
   try{
+   const normalizedTitle=value=>(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").trim().toLocaleLowerCase("es");
+   const duplicate=campaigns.find(c=>c.id!==editing.id&&normalizedTitle(c.titulo)===normalizedTitle(editing.titulo)&&c.fecha_inicio===editing.fecha_inicio&&c.fecha_fin===editing.fecha_fin&&c.estado!=="archivada");
+   if(duplicate){toast.error("Ya existe una campaña con el mismo título y las mismas fechas. Edita la existente para evitar duplicados.");return;}
    const me=await base44.auth.me();
    const payload={...editing,titulo:editing.titulo.trim(),mensaje:editing.mensaje.trim(),creado_por:editing.creado_por||me.email};
    if(editing.id) await base44.entities.CampanaClub.update(editing.id,payload);
