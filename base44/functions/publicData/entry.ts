@@ -221,8 +221,8 @@ Deno.serve(async (req) => {
 });
 
 function generarHTML(data, jornadasCache, crossTableCache) {
-  const ESCUDO = 'https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/img/escudo.png';
-  const WEB = 'https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/';
+  const ESCUDO = 'https://www.cdbustarviejo.com/img/escudo.png';
+  const WEB = 'https://www.cdbustarviejo.com/';
 
   // Temporada automática
   const now = new Date();
@@ -631,10 +631,10 @@ function generarHTML(data, jornadasCache, crossTableCache) {
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'Montserrat', Arial, sans-serif; color: #1a1a2e; background: #fafafa; padding-top: 80px; }
+body { font-family: 'Montserrat', Arial, sans-serif; color: #222; background: #fff; padding-top: 80px; }
 
 /* ═══ HEADER ═══ */
-.header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: #fff; border-bottom: 1px solid #eaeaea; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+.header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: #fff; border-bottom: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .header-contenido { max-width: 1200px; margin: auto; padding: 14px 22px; display: flex; justify-content: space-between; align-items: center; }
 .logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.1rem; text-decoration: none; color: #222; }
 .logo img { width: 44px; }
@@ -945,7 +945,8 @@ input.cat-radio { display: none; }
       <a href="${WEB}tienda.html">Tienda</a>
       <a href="${WEB}comunicados.html">Comunicados</a>
       <a href="${WEB}galeria.html">Galería</a>
-      <a class="btn-menu" style="background:#0f172a;color:#fff !important;">Competición</a>
+      <a class="btn-menu" aria-current="page" style="background:#f57c00;color:#000 !important;">⚽ Ver partidos</a>
+      <a class="btn-menu" href="https://alta-socio.vercel.app/jugadores.html" target="_blank" rel="noopener">Quiero jugar</a>
       <a href="${WEB}area-interna.html">Área interna</a>
       <a class="btn-menu" href="https://alta-socio.vercel.app/alta-socio.html?ref=9TB4YE" target="_blank">Hazte socio</a>
     </nav>
@@ -1064,8 +1065,8 @@ ${cruzadaCats.map((c, i) => `<input type="radio" name="cruzada-cat" id="ccat-${i
 }
 
 function generarHTMLOffseason() {
-  const ESCUDO = 'https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/img/escudo.png';
-  const WEB = 'https://manuelbermudo2804-tech.github.io/cdBustarviejo-web/';
+  const ESCUDO = 'https://www.cdbustarviejo.com/img/escudo.png';
+  const WEB = 'https://www.cdbustarviejo.com/';
 
   // Calcular próximo 1 de septiembre
   const now = new Date();
@@ -1090,7 +1091,7 @@ body {
 }
 
 /* HEADER */
-.header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: #fff; border-bottom: 1px solid #eaeaea; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.header { position: fixed; top: 0; left: 0; width: 100%; z-index: 1000; background: #fff; border-bottom: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
 .header-contenido { max-width: 1200px; margin: auto; padding: 14px 22px; display: flex; justify-content: space-between; align-items: center; }
 .logo { display: flex; align-items: center; gap: 12px; font-weight: 700; font-size: 1.1rem; text-decoration: none; color: #222; }
 .logo img { width: 44px; }
@@ -1267,7 +1268,8 @@ body {
       <a href="${WEB}tienda.html">Tienda</a>
       <a href="${WEB}comunicados.html">Comunicados</a>
       <a href="${WEB}galeria.html">Galería</a>
-      <a class="btn-menu" style="background:#333;color:#fff !important;">Competición</a>
+      <a class="btn-menu" aria-current="page" style="background:#f57c00;color:#000 !important;">⚽ Ver partidos</a>
+      <a class="btn-menu" href="https://alta-socio.vercel.app/jugadores.html" target="_blank" rel="noopener">Quiero jugar</a>
       <a href="${WEB}area-interna.html">Área interna</a>
       <a class="btn-menu" href="https://alta-socio.vercel.app/alta-socio.html?ref=9TB4YE" target="_blank">Hazte socio</a>
     </nav>
