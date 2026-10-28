@@ -82,7 +82,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
 
   const recentResults = useMemo(() => {
     const toISO = (raw) => {
-      const m = String(raw || "").match(/^(\\d{2})\\/(\\d{2})\\/(\\d{4})$/);
+      const m = String(raw || "").match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
       return m ? `${m[3]}-${m[2]}-${m[1]}` : String(raw || "");
     };
     if (!pastCommunicatedMatches.length) return [];
