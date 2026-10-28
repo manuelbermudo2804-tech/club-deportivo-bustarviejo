@@ -765,6 +765,14 @@ const alerts = [];
           </div>
         )}
         <div className="space-y-2">
+          {activeCampaign && <div className={"rounded-lg border " + (activeCampaign.color === "negro" || activeCampaign.categoria === "duelo" ? "border-slate-300 bg-slate-50" : "border-orange-200 bg-orange-50/70")}>
+            <button type="button" onClick={() => setCampaignExpanded(v => !v)} aria-expanded={campaignExpanded} className="flex w-full items-center gap-3 rounded-lg p-2 text-left transition-colors">
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-white shadow-sm">{activeCampaign.categoria === "duelo" || activeCampaign.color === "negro" ? <img src={BLACK_RIBBON_URL} alt="Crespón negro de duelo" className="h-8 w-8 object-contain" /> : <span className="text-xl" aria-hidden="true">{activeCampaign.simbolo || "🎗️"}</span>}</div>
+              <div className="min-w-0 flex-1"><p className={"text-sm font-semibold " + (darkMode ? "text-white" : "text-slate-900")}>{activeCampaign.titulo}</p><p className={"text-xs " + (darkMode ? "text-slate-400" : "text-slate-600")}>{campaignExpanded ? "Ocultar mensaje" : "Campaña solidaria · Toca para leer"}</p></div>
+              <ChevronRight className={"h-5 w-5 flex-shrink-0 transition-transform " + (campaignExpanded ? "rotate-90 " : "") + (darkMode ? "text-slate-500" : "text-slate-400")} />
+            </button>
+            {campaignExpanded && <div className="border-t px-3 pb-3 pt-2 text-sm"><p className="whitespace-pre-line">{activeCampaign.mensaje}</p>{activeCampaign.detalle && <p className="mt-1 whitespace-pre-line text-xs opacity-80">{activeCampaign.detalle}</p>}</div>}
+          </div>}
           {visibleAlerts.map((alert) => (
             <Link
                            key={alert._key}
