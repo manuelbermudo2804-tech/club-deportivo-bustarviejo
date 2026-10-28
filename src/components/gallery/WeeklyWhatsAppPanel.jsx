@@ -94,31 +94,31 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
     )).sort((a,b) => (a.categoria || "").localeCompare(b.categoria || ""));
   }, [results, pastCommunicatedMatches]);
 
+  // Las fotos del mensaje del lunes son las últimas incorporadas a la Galería,
+  // sin exigir que coincidan con fecha/categoría de un partido comunicado.
+  // PhotoGallery no guarda fecha individual por fotografía, así que usamos la
+  // fecha de actualización/creación del álbum y el orden de las fotos dentro de él.
   const photoOptions = useMemo(() => {
-    if (!pastCommunicatedMatches.length) return [];
-    return albums.flatMap(album => (Array.isArray(album.fotos) ? album.fotos : []).map((foto, i) => ({
-      id: `${album.id || album.titulo}-${i}`,
-      url: foto?.url,
-      title: album.titulo || "Álbum",
-      category: album.categoria || "",
-      date: album.fecha_evento || "",
-    })).filter(f => typeof f.url === "string" && f.url.startsWith("https://")))
-      .filter(f => pastCommunicatedMatches.some(p =>
-        p.fecha_iso === f.date &&
-        (!f.category || f.category.trim().toLowerCase() === (p.categoria || "").trim().toLowerCase())
-      ));
-  }, [albums, pastCommunicatedMatches]);
-
-(() => albums.flatMap(album =>
-    (Array.isArray(album.fotos) ? album.fotos : []).map((foto, i) => ({
-      id: `${album.id || album.titulo}-${i}`,
-      url: foto?.url,
-      title: album.titulo || "Álbum",
-      category: album.categoria || "",
-      date: album.fecha_evento || "",
-    })).filter(f => typeof f.url === "string" && f.url.startsWith("https://"))
-  ).filter(f => (f.date >= periodStart && f.date <= periodEnd) || (f.date >= addDaysISO(todayISO, -7) && f.date <= todayISO)),
-  [albums, periodStart, periodEnd, todayISO]);
+    const albumTime = (album) => {
+      const raw = album.updated_date || album.updated_at || album.created_date || album.created_at || album.fecha_evento || "";
+      const time = Date.parse(raw);
+      return Number.isFinite(time) ? time : 0;
+    };
+    return [...albums]
+      .sort((a, b) => albumTime(b) - albumTime(a))
+      .flatMap(album => {
+        const photos = Array.isArray(album.fotos) ? [...album.fotos].reverse() : [];
+        return photos.map((foto, i) => ({
+          id: `${album.id || album.titulo}-${i}`,
+          url: foto?.url,
+          title: album.titulo || "Álbum",
+          category: album.categoria || "",
+          date: album.fecha_evento || "",
+          addedAt: albumTime(album),
+        })).filter(f => typeof f.url === "string" && f.url.startsWith("https://"));
+      })
+      .slice(0, 40);
+  }, [albums]);
 
   const scheduleText = useMemo(() => {
     const lines = [`🟠⚫ *C.D. BUSTARVIEJO | PARTIDOS DEL ${formatDate(periodStart)} AL ${formatDate(periodEnd)}* ⚽`, ""];
@@ -223,7 +223,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
         <div className="flex flex-wrap gap-2"><Button onClick={markSelectedAsCommunicated} variant="outline" className="border-orange-300 text-orange-800 hover:bg-orange-50">✓ Marcar selección como comunicada</Button><Badge>{communicatedMatches.length} partidos marcados como comunicados</Badge></div>
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3"><p className="text-sm font-semibold text-emerald-900">Calendario futuro: {allFuture.length} partidos pendientes</p><p className="mt-1 text-sm text-emerald-800">Próximos encuentros detectados por fecha:</p><div className="mt-2 space-y-1">{allFuture.slice(0, 12).map(p => <p key={p.id || `${p.categoria}-${p._date}`} className="text-xs text-emerald-900">{formatDate(p._date)} · {p.categoria || "Equipo"} · {p.hora || "Hora por confirmar"}</p>)}{allFuture.length > 12 && <p className="text-xs text-emerald-800">Y {allFuture.length - 12} partidos más. Usa el selector de fechas para encontrarlos.</p>}</div><p className="mt-2 text-xs text-emerald-800">Los aplazamientos solo aparecerán con la nueva fecha si esta se ha actualizado en el calendario. Los registros sin fecha no pueden ordenarse como partidos futuros.</p></div>
       </div> : <div className="space-y-3">
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3"><Badge>{loadingResults ? "Cargando resultados…" : `${recentResults.length} resultados de partidos comunicados`}</Badge><p className="mt-2 text-sm text-slate-600">Solo se muestran resultados y fotos que coinciden con partidos marcados como comunicados. Las fotos deben tener la misma fecha y categoría en el álbum.</p><p className="mt-1 text-xs text-slate-500">{pastCommunicatedMatches.length} partidos comunicados anteriores guardados en este navegador.</p></div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3"><Badge>{loadingResults ? "Cargando resultados…" : `${recentResults.length} resultados de partidos comunicados`}</Badge><p className="mt-2 text-sm text-slate-600">Los resultados corresponden a los partidos marcados como comunicados. Las fotos son las últimas incorporadas a la Galería.</p><p className="mt-1 text-xs text-slate-500">{pastCommunicatedMatches.length} partidos comunicados anteriores guardados en este navegador.</p></div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {photoOptions.map(f => <button type="button" key={f.id} onClick={() => togglePhoto(f.id)} className={`overflow-hidden rounded-xl border text-left ${selectedPhotos.includes(f.id) ? "border-emerald-600 ring-2 ring-emerald-200" : "border-slate-200"}`}>
             <img src={f.url} alt={f.title} className="h-28 w-full object-cover" loading="lazy"/>
@@ -231,7 +231,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
             <span className="block px-2 pb-2 text-[11px] text-slate-500">{f.category} · {f.date}</span>
           </button>)}
         </div>
-        {photoOptions.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800"><ImageIcon className="mr-1 inline h-4 w-4"/>{pastCommunicatedMatches.length ? "No hay fotos que coincidan exactamente con la fecha y categoría de los partidos comunicados. Comprueba que los álbumes tengan fecha y categoría correctas." : "No hay partidos anteriores marcados como comunicados. Primero marca los partidos anunciados desde el apartado de horarios."}</p>}
+        {photoOptions.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800"><ImageIcon className="mr-1 inline h-4 w-4"/>{"Todavía no hay fotos con una URL válida en la Galería."}</p>}
       </div>}
       <div className="space-y-2">
         <label className="text-sm font-semibold text-slate-800">Vista previa del mensaje</label>
