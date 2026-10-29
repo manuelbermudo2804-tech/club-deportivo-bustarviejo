@@ -37,8 +37,13 @@ Deno.serve(async (req) => {
     // Obtener jugadores de la categoría para filtrar emails
     let targetEmails = [];
 
-    if (categoria === 'Todos') {
-      // Enviar a TODOS los suscriptores activos
+    if (announcement.destinatarios_modo === 'individual') {
+      // Un anuncio individual solo puede notificarse a los emails guardados en el anuncio.
+      targetEmails = Array.isArray(announcement.destinatarios_emails)
+        ? announcement.destinatarios_emails.filter(Boolean)
+        : [];
+    } else if (categoria === 'Todos') {
+      // Anuncios grupales dirigidos a todos los suscriptores activos.
       const allSubs = await base44.asServiceRole.entities.PushSubscription.filter({ activa: true });
       targetEmails = [...new Set(allSubs.map(s => s.usuario_email))];
     } else {

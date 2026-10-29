@@ -240,7 +240,13 @@ Deno.serve(async (req) => {
       const prioridad = data.prioridad || 'Normal';
       const destinatarios = data.destinatarios_tipo || 'Todos';
       const targetEmails = [];
-      if (data.destinatarios_emails && data.destinatarios_emails.length > 0) {
+      if (data.destinatarios_modo === 'individual') {
+        // Seguridad: un anuncio individual nunca puede caer en el envío por categoría.
+        targetEmails.push(...(Array.isArray(data.destinatarios_emails) ? data.destinatarios_emails : []));
+        if (targetEmails.length === 0) {
+          return Response.json({ skipped: 'individual announcement without recipients' });
+        }
+      } else if (data.destinatarios_emails && data.destinatarios_emails.length > 0) {
         targetEmails.push(...data.destinatarios_emails);
       } else {
         const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true });

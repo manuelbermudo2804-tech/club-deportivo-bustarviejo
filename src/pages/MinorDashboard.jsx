@@ -29,6 +29,7 @@ import MinorPanelTabs from "@/components/minor/MinorPanelTabs";
 import useMinorPanel from "@/hooks/useMinorPanel";
 import MinorCoachPanel from "@/components/minor/MinorCoachPanel";
 import MainSponsorBanner from "@/components/sponsors/MainSponsorBanner";
+import { announcementTargetsUser } from "@/components/utils/announcementRecipientFilter";
 
 
 const CLUB_LOGO_URL = `https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg`;
@@ -364,10 +365,10 @@ export default function MinorDashboard() {
     queryKey: ["minorAnnouncements"],
     queryFn: async () => {
       const all = await base44.entities.Announcement.filter({ publicado: true });
-      return all.filter((a) => {
-        if (a.destinatarios_tipo === "Todos") return true;
-        return a.destinatarios_tipo === playerCategory;
-      }).slice(0, 3);
+      const playerCategories = playerCategory ? [playerCategory] : [];
+      return all
+        .filter((a) => announcementTargetsUser(a, user, playerCategories))
+        .slice(0, 3);
     },
     enabled: !!user,
   });

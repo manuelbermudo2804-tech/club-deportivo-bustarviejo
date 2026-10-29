@@ -18,7 +18,11 @@ Deno.serve(async (req) => {
 
     const email = String(user.email).trim().toLowerCase();
     const targeted = Array.isArray(announcement.destinatarios_emails) ? announcement.destinatarios_emails : [];
-    if (targeted.length && !targeted.some(e => String(e).trim().toLowerCase() === email)) {
+    const isIndividual = announcement.destinatarios_modo === 'individual';
+    if (isIndividual && !targeted.some(e => String(e).trim().toLowerCase() === email)) {
+      return Response.json({ error: 'No eres destinatario de este anuncio' }, { status: 403 });
+    }
+    if (!isIndividual && targeted.length && !targeted.some(e => String(e).trim().toLowerCase() === email)) {
       return Response.json({ error: 'No eres destinatario de este anuncio' }, { status: 403 });
     }
 
