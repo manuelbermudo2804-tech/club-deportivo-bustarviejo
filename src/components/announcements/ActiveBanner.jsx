@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import { playerBelongsToUser } from "@/components/utils/playerBelongsToUser";
+import { playerAllCategories } from "@/components/utils/playerCategoryFilter";
 import { Button } from "@/components/ui/button";
 import { X, ArrowRight } from "lucide-react";
 
@@ -116,6 +118,13 @@ function BannerCard({ a, onDismiss }) {
 
 export default function ActiveBanner({ user, position = "top" }) {
   const { data = [] } = useActiveBanners(user);
+  const { data: players = [] } = useQuery({
+    queryKey: ["banner-recipient-players", user?.email],
+    queryFn: () => base44.entities.Player.list(),
+    enabled: !!user?.email,
+    staleTime: 60_000,
+  });
+  const userCategories = [...new Set(players.filter(p => playerBelongsToUser(p, user?.email)).flatMap(p => playerAllCategories(p)))];
   const [dismissedIds, setDismissedIds] = useState(() => {
     const set = new Set();
     try {
@@ -132,9 +141,9 @@ export default function ActiveBanner({ user, position = "top" }) {
     .filter((a) => !isExpired(a))
     .filter((a) => {
       const list = Array.isArray(a.destinatarios_emails) ? a.destinatarios_emails.map((e) => (e || "").toLowerCase().trim()) : [];
-      if (list.length === 0) return true;
-      if (!email) return false;
-      return list.includes(email);
+      if (list.length > 0) return !!email && list.includes(email);
+      if (a.destinatarios_tipo === "Todos" || !a.destinatarios_tipo) return true;
+      return userCategories.includes(a.destinatarios_tipo);
     })
     .filter((a) => (position === "top" ? a.banner_posicion !== "bottom" : a.banner_posicion === "bottom"))
     .filter((a) => !dismissedIds.has(a.id));
