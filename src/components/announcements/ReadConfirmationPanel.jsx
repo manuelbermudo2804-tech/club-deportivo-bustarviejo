@@ -20,11 +20,13 @@ export default function ReadConfirmationPanel({ announcement }) {
   });
 
   // Construir el universo de familias destinatarias (por email)
-  const targeted = Array.isArray(announcement.destinatarios_emails) ? announcement.destinatarios_emails : [];
+  const targetedRaw = announcement.destinatarios_emails;
+  const targeted = (Array.isArray(targetedRaw) ? targetedRaw : String(targetedRaw || "").split(","))
+    .map((email) => String(email || "").trim().toLowerCase()).filter(Boolean);
 
   const familiesMap = {};
   const scope = targeted.length > 0
-    ? players.filter((p) => targeted.includes(p.email_padre) || targeted.includes(p.email_tutor_2) || targeted.includes(p.email_jugador))
+    ? players.filter((p) => [p.email_padre, p.email_tutor_2, p.email_jugador].some((email) => targeted.includes(String(email || "").trim().toLowerCase())))
     : (announcement.destinatarios_tipo === "Todos"
       ? players
       : players.filter((p) => playerInCategory(p, announcement.destinatarios_tipo)));
@@ -34,7 +36,7 @@ export default function ReadConfirmationPanel({ announcement }) {
     if (!email) return;
     if (!familiesMap[email]) {
       familiesMap[email] = {
-        email,
+        email: String(email).trim().toLowerCase(),
         telefono: p.telefono || "",
         nombre: p.nombre_tutor_legal || p.nombre || "Familia",
         categoria: p.categoria_principal || p.deporte || "",

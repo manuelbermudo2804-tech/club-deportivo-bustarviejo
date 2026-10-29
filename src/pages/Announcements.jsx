@@ -233,7 +233,7 @@ export default function Announcements() {
       const fechaExpiracion = announcement.fecha_expiracion ? new Date(announcement.fecha_expiracion).toLocaleDateString("es-ES", { day: "numeric", month: "long", year: "numeric" }) : "";
       const body = `
         <div style="font-family:Arial,Helvetica,sans-serif;color:#1f2937;font-size:15px;line-height:1.6;max-width:680px;margin:0 auto;">
-          <p>Estimadas familias:</p>
+          <p>Hola,</p>
           <div style="margin:20px 0;">${contenidoHtml}</div>
           <hr style="border:0;border-top:1px solid #e5e7eb;margin:24px 0;" />
           <p style="margin:4px 0;"><strong>Información del anuncio</strong></p>
@@ -265,9 +265,10 @@ export default function Announcements() {
         await new Promise(resolve => setTimeout(resolve, 300));
       }
 
-      await base44.entities.Announcement.update(announcement.id, {
-        email_enviado: true
-      });
+      // No marcar como enviado si todos los envíos han fallado; permite reintentar.
+      if (successCount > 0 && errorCount === 0) {
+        await base44.entities.Announcement.update(announcement.id, { email_enviado: true });
+      }
 
       if (successCount > 0) {
         toast.success(`✅ Emails enviados correctamente a ${successCount} destinatarios${errorCount > 0 ? ` (${errorCount} fallidos)` : ""}`);

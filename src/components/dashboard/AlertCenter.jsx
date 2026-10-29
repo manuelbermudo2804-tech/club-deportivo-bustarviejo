@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { announcementTargetsUser } from "@/components/utils/announcementRecipientFilter";
 import { createPageUrl } from "@/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -170,8 +171,7 @@ const alerts = [];
     }
     const alreadyRead = announcement.leido_por?.some(l => l.email === userEmail);
     if (alreadyRead) return false;
-    if (announcement.destinatarios_tipo === "Todos") return true;
-    return userSports.includes(announcement.destinatarios_tipo);
+    return announcementTargetsUser(announcement, { email: userEmail }, userSports);
   });
 
   // Anuncios no leídos (para todos excepto admin) - MÁXIMO 1 alerta consolidada
