@@ -159,28 +159,27 @@ export default function Announcements() {
     try {
       let recipients = [];
 
-      // Si hay usuarios específicos marcados, SOLO se envía a ellos (ignora categoría).
+      // Los destinatarios individuales se añaden al grupo seleccionado.
       const targetedEmails = Array.isArray(data.destinatarios_emails)
         ? data.destinatarios_emails
         : (data.destinatarios_emails || "").split(",").map(s => s.trim()).filter(Boolean);
+      recipients.push(...targetedEmails);
 
-      if (targetedEmails.length > 0) {
-        recipients = targetedEmails;
-      } else if (data.destinatarios_tipo === "Todos") {
-        players.forEach(p => {
+      // Añadir siempre las familias del grupo elegido, aunque también haya personas individuales.
+      if (data.destinatarios_tipo === "Todos") {
+        (players || []).forEach(p => {
           if (p.email_padre) recipients.push(p.email_padre);
           if (p.email_tutor_2) recipients.push(p.email_tutor_2);
         });
       } else {
-        players.filter(p => playerInCategory(p, data.destinatarios_tipo)).forEach(p => {
+        (players || []).filter(p => playerInCategory(p, data.destinatarios_tipo)).forEach(p => {
           if (p.email_padre) recipients.push(p.email_padre);
           if (p.email_tutor_2) recipients.push(p.email_tutor_2);
         });
       }
 
       // Añadir entrenadores/coordinadores asignados a la categoría seleccionada.
-      // Si se han marcado destinatarios individuales, NO ampliar la lista.
-      if (targetedEmails.length === 0) {
+      if (true) {
         try {
           const staffUsers = await base44.entities.User.list();
           const targetCategory = String(data.destinatarios_tipo || "").trim().toLowerCase();

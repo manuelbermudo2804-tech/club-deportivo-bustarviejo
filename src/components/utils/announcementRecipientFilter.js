@@ -7,8 +7,8 @@ export function announcementTargetsUser(announcement, user, playerCategories = [
   const raw = announcement.destinatarios_emails;
   const targetedEmails = (Array.isArray(raw) ? raw : String(raw || "").split(","))
     .map(normalizeEmail).filter(Boolean);
-  // Los destinatarios individuales prevalecen sobre cualquier categoría.
-  if (targetedEmails.length) return targetedEmails.includes(normalizeEmail(user.email));
+  // Los usuarios específicos se SUMAN al grupo seleccionado; no lo sustituyen.
+  const emailMatches = targetedEmails.includes(normalizeEmail(user.email));
   const targetCategory = normalizeCategory(announcement.destinatarios_tipo);
   if (!targetCategory || targetCategory === "todos") return true;
   const categories = [
@@ -16,5 +16,5 @@ export function announcementTargetsUser(announcement, user, playerCategories = [
     ...(Array.isArray(user.categorias_entrena) ? user.categorias_entrena : []),
     ...(Array.isArray(user.categorias_coordina) ? user.categorias_coordina : []),
   ].map(normalizeCategory).filter(Boolean);
-  return categories.includes(targetCategory);
+  return emailMatches || categories.includes(targetCategory);
 }

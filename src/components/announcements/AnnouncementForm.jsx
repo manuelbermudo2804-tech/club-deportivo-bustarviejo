@@ -238,7 +238,7 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                       <div className="text-xs text-slate-500 px-1 py-2">No hay usuarios para mostrar</div>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500">Si seleccionas usuarios concretos, el anuncio se enviará solo a esas personas y no al grupo completo.</p>
+                  <p className="text-xs text-slate-500">Las personas seleccionadas se añadirán al grupo elegido; si eliges “Todos los grupos”, recibirán el anuncio todos los grupos y también estas personas.</p>
                 </div>
               </div>
 
