@@ -344,7 +344,14 @@ export default function NotificationCenter() {
   const now = new Date();
   const recentAnnouncements = announcements.filter(a => {
     if (!a.publicado) return false;
-    if (a.destinatarios_tipo !== "Todos" && !myGroupSports.includes(a.destinatarios_tipo)) return false;
+    const targetedEmails = Array.isArray(a.destinatarios_emails)
+      ? a.destinatarios_emails.map(e => String(e || "").toLowerCase().trim()).filter(Boolean)
+      : String(a.destinatarios_emails || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+    if (targetedEmails.length > 0) {
+      if (!targetedEmails.includes(String(user?.email || "").toLowerCase())) return false;
+    } else if (a.destinatarios_tipo !== "Todos" && !myGroupSports.includes(a.destinatarios_tipo)) {
+      return false;
+    }
     
     // Si tiene fecha de expiración, respetarla
     if (a.fecha_expiracion) {
