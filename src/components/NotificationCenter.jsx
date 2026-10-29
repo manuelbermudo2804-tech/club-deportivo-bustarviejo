@@ -16,6 +16,7 @@ import { toast } from "sonner";
 import { useUnifiedNotifications } from "./notifications/useUnifiedNotifications";
 import { playerBelongsToUser } from "@/components/utils/playerBelongsToUser";
 import { playerAllCategories } from "@/components/utils/playerCategoryFilter";
+import { announcementTargetsUser } from "@/components/utils/announcementRecipientFilter";
 
 export default function NotificationCenter() {
   const [user, setUser] = useState(null);
@@ -344,14 +345,7 @@ export default function NotificationCenter() {
   const now = new Date();
   const recentAnnouncements = announcements.filter(a => {
     if (!a.publicado) return false;
-    const targetedEmails = Array.isArray(a.destinatarios_emails)
-      ? a.destinatarios_emails.map(e => String(e || "").toLowerCase().trim()).filter(Boolean)
-      : String(a.destinatarios_emails || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
-    if (targetedEmails.length > 0) {
-      if (!targetedEmails.includes(String(user?.email || "").toLowerCase())) return false;
-    } else if (a.destinatarios_tipo !== "Todos" && !myGroupSports.includes(a.destinatarios_tipo)) {
-      return false;
-    }
+    if (!announcementTargetsUser(a, user, myGroupSports)) return false;
     
     // Si tiene fecha de expiración, respetarla
     if (a.fecha_expiracion) {
