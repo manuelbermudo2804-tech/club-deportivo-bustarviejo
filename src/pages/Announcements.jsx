@@ -159,6 +159,11 @@ export default function Announcements() {
     try {
       let recipients = [];
 
+      // No depender del estado React Query `players`: al publicar, puede seguir vacío
+      // porque la consulta solo se activa cuando termina de cargar el rol. Recuperar
+      // siempre la lista actual antes de resolver el grupo destinatario.
+      const allPlayersForRecipients = await base44.entities.Player.list();
+
       // Los destinatarios individuales se añaden al grupo seleccionado.
       const targetedEmails = Array.isArray(data.destinatarios_emails)
         ? data.destinatarios_emails
@@ -167,12 +172,12 @@ export default function Announcements() {
 
       // Añadir siempre las familias del grupo elegido, aunque también haya personas individuales.
       if (data.destinatarios_tipo === "Todos") {
-        (players || []).forEach(p => {
+        (allPlayersForRecipients || []).forEach(p => {
           if (p.email_padre) recipients.push(p.email_padre);
           if (p.email_tutor_2) recipients.push(p.email_tutor_2);
         });
       } else {
-        (players || []).filter(p => playerInCategory(p, data.destinatarios_tipo)).forEach(p => {
+        (allPlayersForRecipients || []).filter(p => playerInCategory(p, data.destinatarios_tipo)).forEach(p => {
           if (p.email_padre) recipients.push(p.email_padre);
           if (p.email_tutor_2) recipients.push(p.email_tutor_2);
         });
@@ -280,16 +285,20 @@ export default function Announcements() {
 
   const sendAnnouncementToSystemChat = async (announcement, data) => {
     try {
-      // Si hay usuarios específicos marcados, SOLO se publica a sus familias (ignora categoría).
-      const targetedEmails = Array.isArray(data.destinatarios_emails)
+      // Los destinatarios individuales se añaden al grupo, nunca lo sustituyen.
+      const targetedEmails = (Array.isArray(data.destinatarios_emails)
         ? data.destinatarios_emails
-        : (data.destinatarios_emails || "").split(",").map(s => s.trim()).filter(Boolean);
-
-      const scopePlayers = targetedEmails.length > 0
-        ? players.filter(p => targetedEmails.includes(p.email_padre) || targetedEmails.includes(p.email_tutor_2) || targetedEmails.includes(p.email_jugador))
-        : (data.destinatarios_tipo === "Todos"
-          ? players
-          : players.filter(p => playerInCategory(p, data.destinatarios_tipo)));
+        : (data.destinatarios_emails || "").split(",").map(s => s.trim()).filter(Boolean))
+        .map(email => String(email || "").trim().toLowerCase());
+      const allPlayersForChat = await base44.entities.Player.list();
+      const categoryPlayers = data.destinatarios_tipo === "Todos"
+        ? allPlayersForChat
+        : allPlayersForChat.filter(p => playerInCategory(p, data.destinatarios_tipo));
+      const individualPlayers = allPlayersForChat.filter(p =>
+        [p.email_padre, p.email_tutor_2, p.email_jugador, p.acceso_menor_email]
+          .some(email => targetedEmails.includes(String(email || "").trim().toLowerCase()))
+      );
+      const scopePlayers = [...new Map([...categoryPlayers, ...individualPlayers].map(p => [p.id, p])).values()];
       const familiesMap = {};
       scopePlayers.forEach(p => {
         // Incluir email_padre, email_tutor_2 y email_jugador (si no hay padre) — coherencia con email
