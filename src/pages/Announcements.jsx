@@ -74,8 +74,10 @@ export default function Announcements() {
           if (!announcement.publicado) continue;
           
           // Comprobar segmentación por email específico
-          const targetedEmails = Array.isArray(announcement.destinatarios_emails) ? announcement.destinatarios_emails : [];
-          if (targetedEmails.length > 0 && !targetedEmails.includes(currentUser.email)) continue;
+          const targetedEmails = Array.isArray(announcement.destinatarios_emails)
+            ? announcement.destinatarios_emails.map(e => String(e || "").toLowerCase().trim()).filter(Boolean)
+            : String(announcement.destinatarios_emails || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
+          if (targetedEmails.length > 0 && !targetedEmails.includes(String(currentUser.email || "").toLowerCase())) continue;
           
           const isRelevant = announcement.destinatarios_tipo === "Todos" || sports.includes(announcement.destinatarios_tipo);
           if (!isRelevant) continue;
