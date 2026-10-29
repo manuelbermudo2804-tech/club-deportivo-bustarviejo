@@ -1,17 +1,19 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Phone, Search, Users, Clock, Loader2, Award, ShieldCheck, Contact } from "lucide-react";
+import { User, Mail, Phone, Search, Users, Clock, Award, ShieldCheck, Contact, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import FichaEntrenadorDialog from "@/components/coach/FichaEntrenadorDialog";
 
 export default function CoachProfiles() {
   const [searchTerm, setSearchTerm] = useState("");
   const [editando, setEditando] = useState(null);
+  const queryClient = useQueryClient();
   const { data: me } = useQuery({ queryKey: ['me'], queryFn: () => base44.auth.me() });
   const isAdmin = me?.role === 'admin';
 
@@ -43,6 +45,35 @@ export default function CoachProfiles() {
     coach.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     coach.categorias_entrena?.some(cat => cat.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // Quitar a alguien del listado sin borrar su cuenta ni su ficha de jugador.
+  const quitarEntrenador = useMutation({
+    mutationFn: async (coach) => {
+      if (coach.es_practicas) {
+        const playerId = String(coach.id).replace(/^practicas-/, "");
+        const player = await base44.entities.Player.get(playerId);
+        const practicas = { ...(player.entrenador_practicas || {}), activo: false };
+        ["ver_horarios", "ver_convocatorias", "ver_nombres_convocatoria", "crear_convocatorias",
+          "asistencia", "evaluaciones", "chat_staff", "ejercicios", "pizarra", "competicion"]
+          .forEach((key) => { practicas[key] = false; });
+        return base44.entities.Player.update(playerId, { entrenador_practicas: practicas });
+      }
+      return base44.entities.User.update(coach.id, { es_entrenador: false, categorias_entrena: [] });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coaches"] });
+      queryClient.invalidateQueries({ queryKey: ["practicasCandidatos"] });
+      toast.success("Entrenador retirado del listado. Su cuenta y sus datos se conservan.");
+    },
+    onError: () => toast.error("No se ha podido retirar al entrenador. No se han borrado sus datos."),
+  });
+
+  const confirmarQuitar = (coach) => {
+    const tipo = coach.es_practicas ? "desactivar el rol de entrenador en prácticas de" : "retirar del listado de entrenadores a";
+    if (window.confirm(`¿Quieres ${tipo} ${coach.full_name}?\n\nNo se borrará su cuenta ni su ficha de jugador; solo se quitará su condición de entrenador.`)) {
+      quitarEntrenador.mutate(coach);
+    }
+  };
 
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-5 px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
@@ -125,6 +156,17 @@ export default function CoachProfiles() {
                       <p>DNI: {coach.dni_entrenador || <span className="text-red-600">pendiente</span>}</p>
                       <Button size="sm" variant="outline" className="mt-2 h-9 rounded-lg border-slate-200" onClick={() => setEditando(coach)}>✏️ Editar ficha</Button>
                     </div>
+                  )}
+                  {isAdmin && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={quitarEntrenador.isPending}
+                      className="mt-3 h-9 rounded-lg border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800"
+                      onClick={() => confirmarQuitar(coach)}
+                    >
+                      <Trash2 className="mr-1.5 h-4 w-4" /> Quitar entrenador
+                    </Button>
                   )}
                 </div>
 
