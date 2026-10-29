@@ -179,8 +179,7 @@ export default function Announcements() {
       }
 
       // Añadir entrenadores/coordinadores asignados a la categoría seleccionada.
-      if (true) {
-        try {
+      try {
           const staffUsers = await base44.entities.User.list();
           const targetCategory = String(data.destinatarios_tipo || "").trim().toLowerCase();
           staffUsers.forEach(staff => {
@@ -194,9 +193,8 @@ export default function Announcements() {
               recipients.push(staff.email);
             }
           });
-        } catch (staffError) {
-          console.error("No se pudieron recuperar entrenadores para el email del anuncio:", staffError);
-        }
+      } catch (staffError) {
+        console.error("No se pudieron recuperar entrenadores para el email del anuncio:", staffError);
       }
 
       recipients = [...new Set(recipients.map(email => String(email || "").trim().toLowerCase()))].filter(Boolean);
