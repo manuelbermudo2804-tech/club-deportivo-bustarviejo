@@ -25,27 +25,44 @@ export default function ReadConfirmationPanel({ announcement }) {
     .map((email) => String(email || "").trim().toLowerCase()).filter(Boolean);
 
   const familiesMap = {};
-  const scope = targeted.length > 0
-    ? players.filter((p) => [p.email_padre, p.email_tutor_2, p.email_jugador].some((email) => targeted.includes(String(email || "").trim().toLowerCase())))
-    : (announcement.destinatarios_tipo === "Todos"
-      ? players
-      : players.filter((p) => playerInCategory(p, announcement.destinatarios_tipo)));
+  const confirmedEmails = new Set((announcement.confirmado_por || []).map((c) => String(c?.email || "").trim().toLowerCase()));
 
-  scope.forEach((p) => {
-    const email = p.email_padre || p.email_jugador;
-    if (!email) return;
-    if (!familiesMap[email]) {
+  if (announcement.destinatarios_modo === "individual") {
+    // En anuncios privados, el universo son los emails destinatarios guardados,
+    // no la lista reconstruida por email_padre: el destinatario puede ser el tutor 2
+    // o un usuario sin ficha de jugador, y aun así debe constar su confirmación.
+    targeted.forEach((email) => {
+      const player = players.find((p) => [p.email_padre, p.email_tutor_2, p.email_jugador, p.acceso_menor_email]
+        .some((value) => String(value || "").trim().toLowerCase() === email));
       familiesMap[email] = {
-        email: String(email).trim().toLowerCase(),
-        telefono: p.telefono || "",
-        nombre: p.nombre_tutor_legal || p.nombre || "Familia",
-        categoria: p.categoria_principal || p.deporte || "",
+        email,
+        telefono: player?.telefono || "",
+        nombre: player?.nombre_tutor_legal || player?.nombre || email,
+        categoria: player?.categoria_principal || player?.deporte || "",
       };
-    }
-  });
-  const families = Object.values(familiesMap);
+    });
+  } else {
+    const scope = targeted.length > 0
+      ? players.filter((p) => [p.email_padre, p.email_tutor_2, p.email_jugador].some((email) => targeted.includes(String(email || "").trim().toLowerCase())))
+      : (announcement.destinatarios_tipo === "Todos"
+        ? players
+        : players.filter((p) => playerInCategory(p, announcement.destinatarios_tipo)));
 
-  const confirmedEmails = new Set((announcement.confirmado_por || []).map((c) => c.email));
+    scope.forEach((p) => {
+      const email = p.email_padre || p.email_jugador;
+      if (!email) return;
+      const normalizedEmail = String(email).trim().toLowerCase();
+      if (!familiesMap[normalizedEmail]) {
+        familiesMap[normalizedEmail] = {
+          email: normalizedEmail,
+          telefono: p.telefono || "",
+          nombre: p.nombre_tutor_legal || p.nombre || "Familia",
+          categoria: p.categoria_principal || p.deporte || "",
+        };
+      }
+    });
+  }
+  const families = Object.values(familiesMap);
   const confirmedCount = families.filter((f) => confirmedEmails.has(f.email)).length;
   const total = families.length;
   const pct = total > 0 ? Math.round((confirmedCount / total) * 100) : 0;
