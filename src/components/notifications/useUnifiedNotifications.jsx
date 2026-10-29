@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { base44 } from '@/api/base44Client';
 import { globalThrottler, retryWithBackoff } from "../utils/requestThrottler";
+import { announcementTargetsUser } from "../utils/announcementRecipientFilter";
 
 /**
  * Hook unificado para TODAS las notificaciones y badges
@@ -545,8 +546,7 @@ export function useUnifiedNotifications(user, options = {}) {
       }
       const alreadyRead = ann.leido_por?.some(l => l.email === user.email);
       if (alreadyRead) return false;
-      if (ann.destinatarios_tipo === "Todos") return true;
-      return myCategories.includes(ann.destinatarios_tipo);
+      return announcementTargetsUser(ann, user, myCategories);
     }).length;
 
     // ADMIN

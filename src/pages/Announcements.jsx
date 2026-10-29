@@ -14,6 +14,7 @@ import EmptyState from "../components/common/EmptyState";
 import TemplateManager from "../components/announcements/TemplateManager";
 import { playerInCategory, playerAllCategories } from "../components/utils/playerCategoryFilter";
 import { playerBelongsToUser } from "../components/utils/playerBelongsToUser";
+import { announcementTargetsUser } from "../components/utils/announcementRecipientFilter";
 
 export default function Announcements() {
   const [showForm, setShowForm] = useState(false);
@@ -429,30 +430,15 @@ export default function Announcements() {
   };
 
   // Filter announcements based on user role and expiration
-  const visibleAnnouncements = (isAdmin || isCoach)
-    ? announcements 
+  const visibleAnnouncements = isAdmin
+    ? announcements
     : announcements.filter(announcement => {
-        // Parents only see published
         if (!announcement.publicado) return false;
-        
         const now = new Date();
-        
-        // Verificar caducidad según tipo
         if (announcement.tipo_caducidad === "horas" && announcement.fecha_caducidad_calculada) {
           if (now > new Date(announcement.fecha_caducidad_calculada)) return false;
-        } else if (announcement.fecha_expiracion) {
-          if (now > new Date(announcement.fecha_expiracion)) return false;
-        }
-        
-        // Si hay segmentación por email específico, solo verlo quien esté en la lista
-        const targetedEmails = Array.isArray(announcement.destinatarios_emails) ? announcement.destinatarios_emails : [];
-        if (targetedEmails.length > 0) {
-          return targetedEmails.includes(user?.email);
-        }
-        
-        // Check if announcement is relevant to user
-        if (announcement.destinatarios_tipo === "Todos") return true;
-        return userSports.includes(announcement.destinatarios_tipo);
+        } else if (announcement.fecha_expiracion && now > new Date(announcement.fecha_expiracion)) return false;
+        return announcementTargetsUser(announcement, user, userSports);
       });
 
   // Apply priority filter

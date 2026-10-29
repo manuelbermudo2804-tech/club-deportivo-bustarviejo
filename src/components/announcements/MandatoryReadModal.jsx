@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Loader2, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { playerAllCategories } from "../utils/playerCategoryFilter";
+import { announcementTargetsUser } from "../utils/announcementRecipientFilter";
 
 // Modal bloqueante de acuse de recibo obligatorio (Estrategia A).
 // Se muestra al abrir la app si el usuario tiene anuncios marcados como
@@ -30,7 +31,8 @@ export default function MandatoryReadModal({ user }) {
         // Categorías del usuario (para segmentación por grupo)
         const byTutor2 = await base44.entities.Player.filter({ email_tutor_2: user.email }).catch(() => []);
         const byJugador = await base44.entities.Player.filter({ email_jugador: user.email }).catch(() => []);
-        const myPlayers = [...allPlayers, ...byTutor2, ...byJugador];
+        const byMinor = await base44.entities.Player.filter({ acceso_menor_email: user.email }).catch(() => []);
+        const myPlayers = [...allPlayers, ...byTutor2, ...byJugador, ...byMinor];
         const sports = [...new Set(myPlayers.flatMap((p) => playerAllCategories(p)))];
 
         const now = new Date();
@@ -45,13 +47,8 @@ export default function MandatoryReadModal({ user }) {
             if (now > new Date(a.fecha_expiracion)) return false;
           }
 
-          // Segmentación por email específico
-          const targeted = Array.isArray(a.destinatarios_emails) ? a.destinatarios_emails : [];
-          if (targeted.length > 0) return targeted.includes(user.email);
-
-          // Segmentación por grupo
-          if (a.destinatarios_tipo === "Todos") return true;
-          return sports.includes(a.destinatarios_tipo);
+          // Misma regla de destinatarios que anuncios, banners y alertas.
+          return announcementTargetsUser(a, user, sports);
         });
 
         if (!cancelled) {

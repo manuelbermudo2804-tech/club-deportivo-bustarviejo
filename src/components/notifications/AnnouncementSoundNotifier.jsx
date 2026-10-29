@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { base44 } from '@/api/base44Client';
 import { playerBelongsToUser } from '@/components/utils/playerBelongsToUser';
 import { playerAllCategories } from '@/components/utils/playerCategoryFilter';
+import { announcementTargetsUser } from '@/components/utils/announcementRecipientFilter';
 import { useSoundNotifications } from './useSoundNotifications';
 import useLiveRefetch from '@/hooks/useLiveRefetch';
 
@@ -31,12 +32,7 @@ export default function AnnouncementSoundNotifier({ user }) {
       const isUrgent = announcement.prioridad === 'Urgente' || announcement.prioridad === 'Importante';
       const isRecent = new Date(announcement.created_date) > new Date(Date.now() - 24 * 60 * 60 * 1000);
       const isUnread = !announcement.leido_por?.some(l => l.email === user?.email);
-      const targetedEmails = Array.isArray(announcement.destinatarios_emails)
-        ? announcement.destinatarios_emails.map(e => String(e || '').toLowerCase().trim()).filter(Boolean)
-        : String(announcement.destinatarios_emails || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
-      const recipientMatch = targetedEmails.length
-        ? targetedEmails.includes(email)
-        : (!announcement.destinatarios_tipo || announcement.destinatarios_tipo === 'Todos' || categories.includes(announcement.destinatarios_tipo));
+      const recipientMatch = announcementTargetsUser(announcement, user, categories);
       return isUrgent && isRecent && isUnread && announcement.publicado && recipientMatch;
     }
   });

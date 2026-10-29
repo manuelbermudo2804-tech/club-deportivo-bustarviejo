@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { playerBelongsToUser } from "@/components/utils/playerBelongsToUser";
 import { playerAllCategories } from "@/components/utils/playerCategoryFilter";
+import { announcementTargetsUser } from "@/components/utils/announcementRecipientFilter";
 import { Button } from "@/components/ui/button";
 import { X, ArrowRight } from "lucide-react";
 
@@ -139,12 +140,7 @@ export default function ActiveBanner({ user, position = "top" }) {
   const filtered = (data || [])
     .filter((a) => a?.publicado !== false && a?.mostrar_como_banner === true && a?.banner_activo === true)
     .filter((a) => !isExpired(a))
-    .filter((a) => {
-      const list = Array.isArray(a.destinatarios_emails) ? a.destinatarios_emails.map((e) => (e || "").toLowerCase().trim()) : [];
-      if (list.length > 0) return !!email && list.includes(email);
-      if (a.destinatarios_tipo === "Todos" || !a.destinatarios_tipo) return true;
-      return userCategories.includes(a.destinatarios_tipo);
-    })
+    .filter((a) => announcementTargetsUser(a, user, userCategories))
     .filter((a) => (position === "top" ? a.banner_posicion !== "bottom" : a.banner_posicion === "bottom"))
     .filter((a) => !dismissedIds.has(a.id));
 
