@@ -181,23 +181,34 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                 </Select>
               </div>
 
-              {/* Destinatarios */}
-              <div className="space-y-2 md:col-span-2">
-                <Label>¿A quién va dirigido el anuncio? *</Label>
-                <Select
-                  value={currentAnnouncement.destinatarios_modo || "grupo"}
-                  onValueChange={(value) => setCurrentAnnouncement({
-                    ...currentAnnouncement,
-                    destinatarios_modo: value,
-                    destinatarios_emails: value === "individual" ? [] : currentAnnouncement.destinatarios_emails
-                  })}
-                >
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="grupo">📣 Un grupo o categoría</SelectItem>
-                    <SelectItem value="individual">🔒 Una persona o familia concreta</SelectItem>
-                  </SelectContent>
-                </Select>
+              {/* Destinatarios: dos rutas visuales claramente diferenciadas */}
+              <div className="space-y-3 md:col-span-2 rounded-2xl border border-slate-200 bg-slate-50/70 p-4 sm:p-5">
+                <div>
+                  <Label className="text-base font-semibold text-slate-900">¿Quién debe recibir este comunicado? *</Label>
+                  <p className="mt-1 text-sm text-slate-600">Elige primero el tipo de envío. Así podrás comprobar el destinatario antes de publicar.</p>
+                </div>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <button type="button" onClick={() => setCurrentAnnouncement({ ...currentAnnouncement, destinatarios_modo: "grupo", destinatarios_emails: [] })}
+                    aria-pressed={(currentAnnouncement.destinatarios_modo || "grupo") === "grupo"}
+                    className={`rounded-xl border-2 p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 ${ (currentAnnouncement.destinatarios_modo || "grupo") === "grupo" ? "border-orange-500 bg-orange-50 shadow-sm" : "border-slate-200 bg-white hover:border-orange-300"}`}>
+                    <span className="flex items-center gap-2 font-semibold text-slate-900"><span className="text-xl">📣</span> Comunicado a un grupo</span>
+                    <span className="mt-1 block text-sm leading-relaxed text-slate-600">Para una categoría, varios usuarios o todo el club.</span>
+                    {(currentAnnouncement.destinatarios_modo || "grupo") === "grupo" && <span className="mt-2 block text-xs font-bold uppercase tracking-wide text-orange-700">✓ Envío a grupo seleccionado</span>}
+                  </button>
+                  <button type="button" onClick={() => setCurrentAnnouncement({ ...currentAnnouncement, destinatarios_modo: "individual", destinatarios_emails: [] })}
+                    aria-pressed={currentAnnouncement.destinatarios_modo === "individual"}
+                    className={`rounded-xl border-2 p-4 text-left transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 ${currentAnnouncement.destinatarios_modo === "individual" ? "border-emerald-600 bg-emerald-50 shadow-sm" : "border-slate-200 bg-white hover:border-emerald-300"}`}>
+                    <span className="flex items-center gap-2 font-semibold text-slate-900"><span className="text-xl">🔒</span> Comunicado individual</span>
+                    <span className="mt-1 block text-sm leading-relaxed text-slate-600">Solo para una persona o familia concreta. No crea un chat.</span>
+                    {currentAnnouncement.destinatarios_modo === "individual" && <span className="mt-2 block text-xs font-bold uppercase tracking-wide text-emerald-700">✓ Envío individual seleccionado</span>}
+                  </button>
+                </div>
+                {currentAnnouncement.destinatarios_modo === "individual" && (
+                  <Alert className="border-emerald-200 bg-emerald-50 text-emerald-900">
+                    <AlertCircle className="h-4 w-4 text-emerald-700" />
+                    <AlertDescription className="text-sm"><strong>Envío privado:</strong> el comunicado se dirigirá exclusivamente a la persona o familia seleccionada. Revisa el destinatario antes de publicar.</AlertDescription>
+                  </Alert>
+                )}
                 {currentAnnouncement.destinatarios_modo !== "individual" && (<>
                 <Label>Grupo destinatario *</Label>
                 <Select
@@ -271,7 +282,14 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                       : "Las personas seleccionadas se añadirán al grupo elegido; si eliges “Todos los grupos”, recibirán el anuncio todos los grupos y también estas personas."}
                   </p>
                   {currentAnnouncement.destinatarios_modo === "individual" && (!Array.isArray(currentAnnouncement.destinatarios_emails) || currentAnnouncement.destinatarios_emails.length !== 1) && (
-                    <p className="text-sm font-medium text-red-600">Selecciona una única persona o familia para continuar.</p>
+                    <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800">Selecciona una única persona o familia. El comunicado no se podrá publicar sin destinatario.</p>
+                  )}
+                  {currentAnnouncement.destinatarios_modo === "individual" && Array.isArray(currentAnnouncement.destinatarios_emails) && currentAnnouncement.destinatarios_emails.length === 1 && (
+                    <div className="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-3 text-sm text-emerald-900">
+                      <p className="font-semibold">🔒 Destinatario seleccionado</p>
+                      {(() => { const recipient = users.find(u => String(u.email || "").toLowerCase() === String(currentAnnouncement.destinatarios_emails[0] || "").toLowerCase()); return <p className="mt-1 break-words">{recipient?.full_name || currentAnnouncement.destinatarios_emails[0]} <span className="text-emerald-800">({currentAnnouncement.destinatarios_emails[0]})</span></p>; })()}
+                      <p className="mt-1 text-xs text-emerald-800">Solo se enviará a este destinatario y, cuando corresponda, a los contactos familiares vinculados.</p>
+                    </div>
                   )}
                 </div>
               </div>
