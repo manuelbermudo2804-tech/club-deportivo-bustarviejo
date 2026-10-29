@@ -181,6 +181,15 @@
     "push_enviada": {
       "type": "boolean",
       "default": false
+    },
+    "destinatarios_modo": {
+      "type": "string",
+      "enum": [
+        "grupo",
+        "individual"
+      ],
+      "default": "grupo",
+      "description": "Define si el anuncio se dirige a un grupo/categor\u00eda o a una persona/familia concreta."
     }
   },
   "required": [
