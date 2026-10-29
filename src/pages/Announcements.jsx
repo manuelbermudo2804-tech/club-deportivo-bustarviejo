@@ -98,8 +98,29 @@ export default function Announcements() {
   const createAnnouncementMutation = useMutation({
       mutationFn: async (announcementData) => {
           const { enviar_chat, ...rest } = announcementData || {};
+          // En un anuncio individual, ampliar el contacto seleccionado a los emails
+          // de los tutores vinculados al mismo jugador/familia, cuando existan.
+          let normalizedData = { ...rest };
+          if (normalizedData.destinatarios_modo === "individual") {
+            const selectedEmails = (Array.isArray(normalizedData.destinatarios_emails)
+              ? normalizedData.destinatarios_emails
+              : String(normalizedData.destinatarios_emails || "").split(","))
+              .map(email => String(email || "").trim().toLowerCase()).filter(Boolean);
+            const allPlayers = await base44.entities.Player.list();
+            const familyEmails = new Set(selectedEmails);
+            (allPlayers || []).forEach(player => {
+              const contacts = [player.email_padre, player.email_tutor_2, player.email_jugador, player.acceso_menor_email]
+                .map(email => String(email || "").trim().toLowerCase()).filter(Boolean);
+              if (contacts.some(email => selectedEmails.includes(email))) {
+                [player.email_padre, player.email_tutor_2].filter(Boolean).forEach(email => familyEmails.add(String(email).trim().toLowerCase()));
+                if (!player.email_padre && player.email_jugador) familyEmails.add(String(player.email_jugador).trim().toLowerCase());
+              }
+            });
+            normalizedData.destinatarios_emails = [...familyEmails];
+          }
+
           // Calcular fecha de caducidad si es por horas
-          let dataToSave = { ...rest };
+          let dataToSave = { ...normalizedData };
           if (rest.tipo_caducidad === "horas" && rest.duracion_horas) {
             const publicacionDate = new Date(rest.fecha_publicacion);
             const caducidadDate = new Date(publicacionDate.getTime() + (rest.duracion_horas * 60 * 60 * 1000));
@@ -164,19 +185,19 @@ export default function Announcements() {
       // siempre la lista actual antes de resolver el grupo destinatario.
       const allPlayersForRecipients = await base44.entities.Player.list();
 
-      // Los destinatarios individuales se añaden al grupo seleccionado.
+      // En modo individual, enviar únicamente a los contactos seleccionados/vinculados.
       const targetedEmails = Array.isArray(data.destinatarios_emails)
         ? data.destinatarios_emails
         : (data.destinatarios_emails || "").split(",").map(s => s.trim()).filter(Boolean);
       recipients.push(...targetedEmails);
 
-      // Añadir siempre las familias del grupo elegido, aunque también haya personas individuales.
-      if (data.destinatarios_tipo === "Todos") {
+      // En modo individual no se añaden categorías ni personal del grupo.
+      if (data.destinatarios_modo !== "individual" && data.destinatarios_tipo === "Todos") {
         (allPlayersForRecipients || []).forEach(p => {
           if (p.email_padre) recipients.push(p.email_padre);
           if (p.email_tutor_2) recipients.push(p.email_tutor_2);
         });
-      } else {
+      } else if (data.destinatarios_modo !== "individual") {
         (allPlayersForRecipients || []).filter(p => playerInCategory(p, data.destinatarios_tipo)).forEach(p => {
           if (p.email_padre) recipients.push(p.email_padre);
           if (p.email_tutor_2) recipients.push(p.email_tutor_2);
@@ -185,6 +206,7 @@ export default function Announcements() {
 
       // Añadir entrenadores/coordinadores asignados a la categoría seleccionada.
       try {
+          if (data.destinatarios_modo !== "individual") {
           const staffUsers = await base44.entities.User.list();
           const targetCategory = String(data.destinatarios_tipo || "").trim().toLowerCase();
           staffUsers.forEach(staff => {
@@ -198,6 +220,7 @@ export default function Announcements() {
               recipients.push(staff.email);
             }
           });
+          }
       } catch (staffError) {
         console.error("No se pudieron recuperar entrenadores para el email del anuncio:", staffError);
       }
@@ -285,15 +308,17 @@ export default function Announcements() {
 
   const sendAnnouncementToSystemChat = async (announcement, data) => {
     try {
-      // Los destinatarios individuales se añaden al grupo, nunca lo sustituyen.
+      // En modo individual, el grupo/categoría no debe añadir destinatarios extra.
       const targetedEmails = (Array.isArray(data.destinatarios_emails)
         ? data.destinatarios_emails
         : (data.destinatarios_emails || "").split(",").map(s => s.trim()).filter(Boolean))
         .map(email => String(email || "").trim().toLowerCase());
       const allPlayersForChat = await base44.entities.Player.list();
-      const categoryPlayers = data.destinatarios_tipo === "Todos"
-        ? allPlayersForChat
-        : allPlayersForChat.filter(p => playerInCategory(p, data.destinatarios_tipo));
+      const categoryPlayers = data.destinatarios_modo === "individual"
+        ? []
+        : (data.destinatarios_tipo === "Todos"
+          ? allPlayersForChat
+          : allPlayersForChat.filter(p => playerInCategory(p, data.destinatarios_tipo)));
       const individualPlayers = allPlayersForChat.filter(p =>
         [p.email_padre, p.email_tutor_2, p.email_jugador, p.acceso_menor_email]
           .some(email => targetedEmails.includes(String(email || "").trim().toLowerCase()))

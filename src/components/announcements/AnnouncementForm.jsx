@@ -19,6 +19,7 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
     contenido: "",
     prioridad: "Normal",
     destinatarios_tipo: "Todos",
+    destinatarios_modo: "grupo",
     publicado: true,
     destacado: false,
     tipo_caducidad: "horas",
@@ -111,7 +112,11 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
     const emails = Array.isArray(currentAnnouncement.destinatarios_emails)
       ? currentAnnouncement.destinatarios_emails
       : (currentAnnouncement.destinatarios_emails || "").split(",").map((x) => x.trim()).filter(Boolean);
-    const payload = { ...currentAnnouncement, contenido: contenidoActual, destinatarios_emails: emails };
+    if (currentAnnouncement.destinatarios_modo === "individual" && emails.length !== 1) {
+      alert("Selecciona una única persona o familia para el anuncio privado.");
+      return;
+    }
+    const payload = { ...currentAnnouncement, destinatarios_modo: currentAnnouncement.destinatarios_modo || "grupo", contenido: contenidoActual, destinatarios_emails: emails };
     onSubmit(payload);
   };
 
@@ -177,8 +182,24 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
               </div>
 
               {/* Destinatarios */}
-              <div className="space-y-2">
-                <Label>Destinatarios *</Label>
+              <div className="space-y-2 md:col-span-2">
+                <Label>¿A quién va dirigido el anuncio? *</Label>
+                <Select
+                  value={currentAnnouncement.destinatarios_modo || "grupo"}
+                  onValueChange={(value) => setCurrentAnnouncement({
+                    ...currentAnnouncement,
+                    destinatarios_modo: value,
+                    destinatarios_emails: value === "individual" ? [] : currentAnnouncement.destinatarios_emails
+                  })}
+                >
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="grupo">📣 Un grupo o categoría</SelectItem>
+                    <SelectItem value="individual">🔒 Una persona o familia concreta</SelectItem>
+                  </SelectContent>
+                </Select>
+                {currentAnnouncement.destinatarios_modo !== "individual" && (<>
+                <Label>Grupo destinatario *</Label>
                 <Select
                   value={currentAnnouncement.destinatarios_tipo}
                   onValueChange={(value) => setCurrentAnnouncement({ ...currentAnnouncement, destinatarios_tipo: value })}
@@ -193,8 +214,9 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                     ))}
                   </SelectContent>
                 </Select>
+                </>)}
                 <div className="space-y-1">
-                  <Label className="text-sm">Usuarios específicos (opcional)</Label>
+                  <Label className="text-sm">{currentAnnouncement.destinatarios_modo === "individual" ? "Selecciona una única persona/familia" : "Usuarios específicos (opcional)"}</Label>
                   <Input
                     placeholder="Buscar por nombre o email"
                     value={userSearch}
@@ -221,12 +243,17 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                         return (
                           <label key={u.id} className="flex items-center gap-2 p-1 rounded hover:bg-slate-50 cursor-pointer">
                             <input
-                              type="checkbox"
+                              type={currentAnnouncement.destinatarios_modo === "individual" ? "radio" : "checkbox"}
+                              name={currentAnnouncement.destinatarios_modo === "individual" ? "announcement-individual-recipient" : undefined}
                               checked={checked}
                               onChange={(e) => {
-                                const next = new Set(selected);
-                                if (e.target.checked) next.add(email); else next.delete(email);
-                                setCurrentAnnouncement({ ...currentAnnouncement, destinatarios_emails: Array.from(next) });
+                                if (currentAnnouncement.destinatarios_modo === "individual") {
+                                  setCurrentAnnouncement({ ...currentAnnouncement, destinatarios_emails: e.target.checked ? [email] : [] });
+                                } else {
+                                  const next = new Set(selected);
+                                  if (e.target.checked) next.add(email); else next.delete(email);
+                                  setCurrentAnnouncement({ ...currentAnnouncement, destinatarios_emails: Array.from(next) });
+                                }
                               }}
                             />
                             <span className="text-sm text-slate-800 truncate max-w-[40%]">{name}</span>
@@ -238,7 +265,14 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                       <div className="text-xs text-slate-500 px-1 py-2">No hay usuarios para mostrar</div>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500">Las personas seleccionadas se añadirán al grupo elegido; si eliges “Todos los grupos”, recibirán el anuncio todos los grupos y también estas personas.</p>
+                  <p className="text-xs text-slate-500">
+                    {currentAnnouncement.destinatarios_modo === "individual"
+                      ? "Solo recibirá el anuncio la cuenta seleccionada. Si está vinculada a una familia con dos tutores, se incluirán los contactos familiares vinculados."
+                      : "Las personas seleccionadas se añadirán al grupo elegido; si eliges “Todos los grupos”, recibirán el anuncio todos los grupos y también estas personas."}
+                  </p>
+                  {currentAnnouncement.destinatarios_modo === "individual" && (!Array.isArray(currentAnnouncement.destinatarios_emails) || currentAnnouncement.destinatarios_emails.length !== 1) && (
+                    <p className="text-sm font-medium text-red-600">Selecciona una única persona o familia para continuar.</p>
+                  )}
                 </div>
               </div>
 
