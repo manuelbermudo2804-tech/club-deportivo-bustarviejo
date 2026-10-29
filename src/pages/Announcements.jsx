@@ -59,58 +59,9 @@ export default function Announcements() {
     };
     checkUser();
     
-    // Marcar todos los anuncios visibles como leídos INMEDIATAMENTE
-    const markAnnouncementsAsRead = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        if (currentUser.role === "admin") return;
-        
-        const allAnnouncements = await base44.entities.Announcement.list();
-        const allPlayers = await base44.entities.Player.list();
-        const myPlayers = allPlayers.filter(p => playerBelongsToUser(p, currentUser.email));
-        const sports = [...new Set(myPlayers.flatMap(p => playerAllCategories(p)))];
-        
-        let marked = 0;
-        for (const announcement of allAnnouncements) {
-          if (!announcement.publicado) continue;
-          
-          // Comprobar segmentación por email específico
-          const targetedEmails = Array.isArray(announcement.destinatarios_emails)
-            ? announcement.destinatarios_emails.map(e => String(e || "").toLowerCase().trim()).filter(Boolean)
-            : String(announcement.destinatarios_emails || "").split(",").map(e => e.trim().toLowerCase()).filter(Boolean);
-          if (targetedEmails.length > 0 && !targetedEmails.includes(String(currentUser.email || "").toLowerCase())) continue;
-          
-          const isRelevant = announcement.destinatarios_tipo === "Todos" || sports.includes(announcement.destinatarios_tipo);
-          if (!isRelevant) continue;
-          
-          const alreadyRead = announcement.leido_por?.some(l => l.email === currentUser.email);
-          if (alreadyRead) continue;
-          
-          const leidoPor = announcement.leido_por || [];
-          leidoPor.push({
-            email: currentUser.email,
-            nombre: currentUser.full_name,
-            fecha: new Date().toISOString()
-          });
-          
-          await base44.entities.Announcement.update(announcement.id, {
-            leido_por: leidoPor
-          });
-          marked++;
-        }
-        
-        if (marked > 0) {
-          console.log(`✅ Marcados ${marked} anuncios como leídos`);
-          queryClient.invalidateQueries({ queryKey: ['announcements'] });
-          queryClient.invalidateQueries({ queryKey: ['announcementsAlerts'] });
-        }
-      } catch (error) {
-        console.error("Error marking announcements as read:", error);
-      }
-    };
-    
-    // Ejecutar INMEDIATAMENTE
-    const timeout = setTimeout(markAnnouncementsAsRead, 500);
+    // No marcar automáticamente anuncios como leídos al entrar en la página.
+    // El acuse solo debe guardarse cuando el usuario lo marca explícitamente.
+    const timeout = null;
     
     // Scroll al anuncio si viene desde AlertCenter
     const urlParams = new URLSearchParams(window.location.search);
@@ -128,7 +79,7 @@ export default function Announcements() {
       }, 500);
     }
     
-    return () => clearTimeout(timeout);
+    return () => { if (timeout) clearTimeout(timeout); };
   }, [queryClient]);
 
   const { data: announcements, isLoading } = useQuery({
@@ -227,7 +178,29 @@ export default function Announcements() {
         });
       }
 
-      recipients = [...new Set(recipients)].filter(Boolean);
+      // Añadir entrenadores/coordinadores asignados a la categoría seleccionada.
+      // Si se han marcado destinatarios individuales, NO ampliar la lista.
+      if (targetedEmails.length === 0) {
+        try {
+          const staffUsers = await base44.entities.User.list();
+          const targetCategory = String(data.destinatarios_tipo || "").trim().toLowerCase();
+          staffUsers.forEach(staff => {
+            const isStaff = staff.es_entrenador === true || staff.es_coordinador === true;
+            if (!isStaff || !staff.email) return;
+            const staffCategories = [
+              ...(Array.isArray(staff.categorias_entrena) ? staff.categorias_entrena : []),
+              ...(Array.isArray(staff.categorias_coordina) ? staff.categorias_coordina : []),
+            ].map(c => String(c || "").trim().toLowerCase());
+            if (data.destinatarios_tipo === "Todos" || staffCategories.includes(targetCategory)) {
+              recipients.push(staff.email);
+            }
+          });
+        } catch (staffError) {
+          console.error("No se pudieron recuperar entrenadores para el email del anuncio:", staffError);
+        }
+      }
+
+      recipients = [...new Set(recipients.map(email => String(email || "").trim().toLowerCase()))].filter(Boolean);
 
       if (recipients.length === 0) {
         toast.warning("No hay destinatarios con email para este anuncio");
