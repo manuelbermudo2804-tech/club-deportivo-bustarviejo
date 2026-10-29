@@ -14,6 +14,8 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
 import { useUnifiedNotifications } from "./notifications/useUnifiedNotifications";
+import { playerBelongsToUser } from "@/components/utils/playerBelongsToUser";
+import { playerAllCategories } from "@/components/utils/playerCategoryFilter";
 
 export default function NotificationCenter() {
   const [user, setUser] = useState(null);
@@ -287,11 +289,8 @@ export default function NotificationCenter() {
     },
   });
 
-  const myPlayers = user ? players.filter(p => 
-    p.email_padre === user.email || p.email_tutor_2 === user.email || p.email_jugador === user.email
-  ) : [];
-
-  const myGroupSports = [...new Set(myPlayers.map(p => p.deporte))];
+  const myPlayers = user ? players.filter(p => playerBelongsToUser(p, user.email)) : [];
+  const myGroupSports = [...new Set(myPlayers.flatMap(p => playerAllCategories(p)))];
 
   // Messages - last 30 days for history, 7 days for badge
   const unreadMessages = messages.filter(m => {
