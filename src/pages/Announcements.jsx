@@ -129,11 +129,11 @@ export default function Announcements() {
 
           const announcement = await base44.entities.Announcement.create(dataToSave);
 
-          if (rest.enviar_email && !rest.email_enviado) {
-            await sendAnnouncementEmails(announcement, rest);
+          if (normalizedData.enviar_email && !normalizedData.email_enviado) {
+            await sendAnnouncementEmails(announcement, normalizedData);
           }
           if (enviar_chat) {
-            await sendAnnouncementToSystemChat(announcement, rest);
+            await sendAnnouncementToSystemChat(announcement, normalizedData);
           }
 
           return announcement;
