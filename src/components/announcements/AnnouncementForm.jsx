@@ -78,6 +78,26 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
     staleTime: 300000,
     refetchOnWindowFocus: false,
   });
+  const { data: players = [], isLoading: playersLoading } = useQuery({
+    queryKey: ['announcementRecipientPlayers'],
+    queryFn: () => base44.entities.Player.list(),
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
+  });
+  const normalizeEmail = (value) => String(value || "").trim().toLowerCase();
+  const getAssociatedPlayers = (email) => {
+    const normalizedEmail = normalizeEmail(email);
+    if (!normalizedEmail) return [];
+    return (players || []).filter((player) =>
+      [player.email_padre, player.email_tutor_2].some(
+        (linkedEmail) => normalizeEmail(linkedEmail) === normalizedEmail
+      )
+    );
+  };
+  const formatPlayerAssociation = (player) => {
+    const category = player.categoria_principal || player.deporte || player.categoria;
+    return category ? `${player.nombre || "Jugador/a"} · ${category}` : (player.nombre || "Jugador/a");
+  };
 
   // Categorías reales desde CategoryConfig (no hardcodeadas) para que las categorías
   // nuevas aparezcan automáticamente como destinatarios.
@@ -252,8 +272,9 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                           : (currentAnnouncement.destinatarios_emails || '').split(',').map(s=>s.trim()).filter(Boolean);
                         const checked = selected.includes(email);
                         return (
-                          <label key={u.id} className="flex items-center gap-2 p-1 rounded hover:bg-slate-50 cursor-pointer">
+                          <label key={u.id} className="flex items-start gap-2 p-2 rounded-lg hover:bg-slate-50 cursor-pointer">
                             <input
+                              className="mt-1 shrink-0"
                               type={currentAnnouncement.destinatarios_modo === "individual" ? "radio" : "checkbox"}
                               name={currentAnnouncement.destinatarios_modo === "individual" ? "announcement-individual-recipient" : undefined}
                               checked={checked}
@@ -267,8 +288,24 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                                 }
                               }}
                             />
-                            <span className="text-sm text-slate-800 truncate max-w-[40%]">{name}</span>
-                            <span className="ml-auto text-xs text-slate-500 truncate">{email}</span>
+                            <span className="min-w-0 flex-1">
+                              <span className="block text-sm font-medium text-slate-800 break-words">{name}</span>
+                              <span className="block text-xs text-slate-500 break-all">{email}</span>
+                              {currentAnnouncement.destinatarios_modo === "individual" && (
+                                <span className="mt-1 block text-xs">
+                                  {playersLoading ? (
+                                    <span className="text-slate-400">Comprobando jugadores asociados…</span>
+                                  ) : (() => {
+                                    const associatedPlayers = getAssociatedPlayers(email);
+                                    return associatedPlayers.length ? (
+                                      <span className="text-emerald-700">⚽ {associatedPlayers.map(formatPlayerAssociation).join(" · ")}</span>
+                                    ) : (
+                                      <span className="text-amber-700">⚠️ No consta ningún jugador vinculado a este email</span>
+                                    );
+                                  })()}
+                                </span>
+                              )}
+                            </span>
                           </label>
                         );
                       })}
@@ -287,8 +324,29 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                   {currentAnnouncement.destinatarios_modo === "individual" && Array.isArray(currentAnnouncement.destinatarios_emails) && currentAnnouncement.destinatarios_emails.length === 1 && (
                     <div className="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-3 text-sm text-emerald-900">
                       <p className="font-semibold">🔒 Destinatario seleccionado</p>
-                      {(() => { const recipient = users.find(u => String(u.email || "").toLowerCase() === String(currentAnnouncement.destinatarios_emails[0] || "").toLowerCase()); return <p className="mt-1 break-words">{recipient?.full_name || currentAnnouncement.destinatarios_emails[0]} <span className="text-emerald-800">({currentAnnouncement.destinatarios_emails[0]})</span></p>; })()}
-                      <p className="mt-1 text-xs text-emerald-800">Solo se enviará a este destinatario y, cuando corresponda, a los contactos familiares vinculados.</p>
+                      {(() => {
+                        const recipientEmail = currentAnnouncement.destinatarios_emails[0];
+                        const recipient = users.find(u => normalizeEmail(u.email) === normalizeEmail(recipientEmail));
+                        const associatedPlayers = getAssociatedPlayers(recipientEmail);
+                        return (
+                          <>
+                            <p className="mt-1 break-words">{recipient?.full_name || recipientEmail} <span className="text-emerald-800">({recipientEmail})</span></p>
+                            <div className="mt-2 rounded-lg border border-emerald-200 bg-white/80 p-2">
+                              <p className="text-xs font-semibold text-emerald-900">⚽ Jugador/es asociado/s</p>
+                              {playersLoading ? (
+                                <p className="mt-1 text-xs text-slate-500">Comprobando jugadores asociados…</p>
+                              ) : associatedPlayers.length ? (
+                                <ul className="mt-1 space-y-1 text-sm text-emerald-900">
+                                  {associatedPlayers.map((player) => <li key={player.id || player.nombre}>• {formatPlayerAssociation(player)}</li>)}
+                                </ul>
+                              ) : (
+                                <p className="mt-1 text-xs font-medium text-amber-700">⚠️ No consta ningún jugador vinculado a este email. Comprueba la ficha antes de publicar.</p>
+                              )}
+                            </div>
+                          </>
+                        );
+                      })()}
+                      <p className="mt-2 text-xs text-emerald-800">Solo se enviará a este destinatario y, cuando corresponda, a los contactos familiares vinculados.</p>
                     </div>
                   )}
                 </div>
