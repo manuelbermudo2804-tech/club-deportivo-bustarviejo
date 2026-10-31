@@ -153,7 +153,6 @@ ${mensaje}`,
   };
 
   const cambiarCanales = (nuevos) => {
-    const seleccionaX = nuevos.includes("x") && !canales.includes("x");
     setCanales(nuevos);
     // La adaptación se dispara automáticamente al cambiar el texto, con una pausa breve.
     if (!nuevos.includes("x")) {
