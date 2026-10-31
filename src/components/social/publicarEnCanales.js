@@ -52,8 +52,22 @@ export async function publicarEnCanales({ canales, texto, imageUrl, titulo }) {
 
   if (canales.includes("x")) {
     try {
-      const { data } = await base44.functions.invoke("publishToX", { text: texto });
-      if (data?.success) resultados.push({ canal: "x", ok: true, postId: data.post_id, url: data.url });
+      // X recibe una versión adaptada al formato breve de la plataforma.
+      const adapted = await base44.integrations.Core.InvokeLLM({
+        prompt: `Adapta el siguiente mensaje del Club Deportivo Bustarviejo para publicarlo en X.
+Devuelve SOLO el texto final, con un máximo absoluto de 270 caracteres (incluidos espacios y emojis).
+Conserva los datos y hechos importantes, no inventes información, mantén un tono natural y atractivo.
+Puedes quitar saltos de línea y hashtags innecesarios. No añadas explicaciones ni comillas.
+
+MENSAJE ORIGINAL:
+${texto}`
+      });
+      const textoX = (typeof adapted === "string" ? adapted : "").trim();
+      if (!textoX) throw new Error("No se pudo generar la versión breve para X.");
+      if (textoX.length > 280) throw new Error(`El texto adaptado para X sigue teniendo ${textoX.length} caracteres. No se ha publicado.`);
+
+      const { data } = await base44.functions.invoke("publishToX", { text: textoX });
+      if (data?.success) resultados.push({ canal: "x", ok: true, postId: data.post_id, url: data.url, textoPublicado: textoX });
       else resultados.push({ canal: "x", ok: false, error: data?.error || "Error al publicar en X" });
     } catch (e) {
       const apiError = e?.response?.data?.error || e?.response?.data?.detail || e?.response?.data?.message;
