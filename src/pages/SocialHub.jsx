@@ -379,7 +379,7 @@ ${mensaje}`
                           Volver a adaptar desde el mensaje original
                         </button>
                       </div>
-                    )
+                    )}
 
                     <button
                       onClick={publishNow}
