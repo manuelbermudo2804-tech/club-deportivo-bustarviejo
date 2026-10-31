@@ -50,21 +50,8 @@ export async function publicarEnCanales({ canales, texto, textoX, imageUrl, titu
     } catch (e) { resultados.push({ canal: "facebook", ok: false, error: e?.message || "Facebook no está conectado" }); }
   }
 
-  if (canales.includes("x")) {
-    try {
-      const versionX = (typeof textoX === "string" ? textoX : "").trim();
-      if (!versionX) throw new Error("Falta la versión adaptada para X. Selecciona X y espera a que la IA prepare el texto.");
-      if (versionX.length > 280) throw new Error(`La versión para X tiene ${versionX.length} caracteres; el máximo es 280.`);
-      const { data } = await base44.functions.invoke("publishToX", { text: versionX });
-      if (data?.success) resultados.push({ canal: "x", ok: true, postId: data.post_id, url: data.url, textoPublicado: versionX });
-      else resultados.push({ canal: "x", ok: false, error: data?.error || "Error al publicar en X" });
-    } catch (e) {
-      const apiError = e?.response?.data?.error || e?.response?.data?.detail || e?.response?.data?.message;
-      const status = e?.response?.status;
-      const message = apiError || (status ? `X devolvió un error HTTP ${status}` : e?.message) || "No se pudo publicar en X";
-      resultados.push({ canal: "x", ok: false, error: message });
-    }
-  }
+  // X se gestiona de forma manual desde el botón "Abrir X" del editor.
+  // No llamar a publishToX: la API puede consumir créditos de integración.
 
   if (canales.includes("linkedin")) {
     try {
