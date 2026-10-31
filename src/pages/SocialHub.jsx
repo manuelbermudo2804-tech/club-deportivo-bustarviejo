@@ -206,12 +206,17 @@ ${mensaje}`,
       toast.error("Espera a que se adapte el mensaje para X y comprueba que no supere 280 caracteres.");
       return;
     }
+    const canalesAutomaticos = canales.filter(canal => canal !== "x");
+    if (!canalesAutomaticos.length) {
+      toast.info("X no se publica automáticamente. Usa el botón «Abrir X para publicar».");
+      return;
+    }
     setPublishing(true);
     try {
       const user = await base44.auth.me();
       const titulo = typeConfig?.title || selectedType;
       const { resultados, telegramMessageId } = await publicarEnCanales({
-        canales, texto: text, textoX, imageUrl, titulo,
+        canales: canalesAutomaticos, texto: text, textoX, imageUrl, titulo,
       });
 
       setPublishResults(resultados);
@@ -468,14 +473,37 @@ ${mensaje}`,
                             className="w-full rounded-lg border border-slate-200 p-2 text-sm text-slate-800 focus:border-orange-400 focus:outline-none"
                           />
                         )}
-                        <button
-                          type="button"
-                          onClick={() => adaptarParaX(text)}
-                          disabled={adaptandoX || !text.trim()}
-                          className="text-xs font-semibold text-orange-700 underline disabled:opacity-50"
-                        >
-                          Volver a adaptar desde el mensaje original
-                        </button>
+                        <div className="flex flex-wrap items-center gap-4">
+                          <button
+                            type="button"
+                            onClick={() => adaptarParaX(text)}
+                            disabled={adaptandoX || !text.trim()}
+                            className="text-xs font-semibold text-orange-700 underline disabled:opacity-50"
+                          >
+                            Volver a adaptar desde el mensaje original
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const version = textoX.trim();
+                              if (!version) {
+                                toast.error("Espera a que la IA prepare el texto para X.");
+                                return;
+                              }
+                              if (version.length > 280) {
+                                toast.error("El texto supera los 280 caracteres.");
+                                return;
+                              }
+                              window.open(`https://x.com/intent/post?text=${encodeURIComponent(version)}`, "_blank", "noopener,noreferrer");
+                            }}
+                            disabled={adaptandoX || !textoX.trim() || textoX.length > 280}
+                            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white shadow-sm hover:bg-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <Send className="h-4 w-4" />
+                            Abrir X para publicar
+                          </button>
+                        </div>
+                        <p className="text-xs text-slate-500">Se abrirá X con el texto preparado. Revisa el borrador y pulsa «Publicar» en X. No se consume el conector de publicación automática de Base44.</p>
                       </div>
                     )}
 
