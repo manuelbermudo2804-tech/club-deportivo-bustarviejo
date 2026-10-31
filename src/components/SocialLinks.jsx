@@ -1,5 +1,12 @@
 import React from "react";
-import { Facebook, Instagram, Globe, AtSign } from "lucide-react";
+import { Facebook, Instagram, Globe } from "lucide-react";
+
+// Icono de la red social X
+const XIcon = ({ className }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <path d="M18.901 1.153h3.308l-7.227 8.26L23.483 22.5h-6.345l-4.97-9.19L4.484 22.5H1.174l7.73-8.835L.516 1.153h6.506l4.492 8.39zm-1.16 19.134h1.833L6.337 3.253H4.37z"/>
+  </svg>
+);
 
 // Logo oficial de Telegram (avión de papel circular)
 const TelegramIcon = ({ className }) => (
@@ -13,7 +20,7 @@ export default function SocialLinks() {
     { name: "Web", url: "https://www.cdbustarviejo.com", icon: Globe, color: "text-orange-600 hover:text-orange-700" },
     { name: "Facebook", url: "https://es-es.facebook.com/ilustrisimo.deportivobustarviejo", icon: Facebook, color: "text-blue-600 hover:text-blue-700" },
     { name: "Instagram", url: "https://www.instagram.com/cdbustarviejo", icon: Instagram, color: "text-pink-600 hover:text-pink-700" },
-    { name: "X", url: "https://x.com/CDBustarviejo", icon: AtSign, color: "text-slate-900 hover:text-slate-700" },
+    { name: "X", url: "https://x.com/CDBustarviejo", icon: XIcon, color: "text-slate-900 hover:text-slate-700" },
     { name: "Telegram", url: "https://t.me/cdbustarviejo", icon: TelegramIcon, color: "text-sky-500 hover:text-sky-600" }
   ];
 
