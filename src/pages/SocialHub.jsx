@@ -167,7 +167,11 @@ ${mensaje}`,
   useEffect(() => {
     if (!canales.includes("x") || !text.trim() || view !== "editor") return;
     const timer = setTimeout(() => adaptarParaX(text), 800);
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+      // Evita que una respuesta antigua sobrescriba la adaptación del texto más reciente.
+      adaptacionXRef.current += 1;
+    };
   }, [text, canales, view]);
 
   const generateText = async (datosToUse, typeToUse) => {
