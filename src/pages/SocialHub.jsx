@@ -235,7 +235,8 @@ ${mensaje}`,
         if (canales.includes('whatsapp')) {
           setTimeout(() => { window.open("https://wa.me/", "_blank"); }, 600);
         }
-        if (!fallos.length) goBackToMenu();
+        // Mantener el editor abierto para que el usuario pueda ver el resultado real de cada canal.
+        // No volver automáticamente al menú, porque ocultaría la confirmación de publicación.
       }
     } catch (e) {
       toast.error("Error: " + (e?.message || ""));
