@@ -1,4 +1,4 @@
-import { Send, MessageCircle, Instagram, Bell, Facebook, Linkedin } from "lucide-react";
+import { Send, MessageCircle, Instagram, Bell, Facebook, Linkedin, AtSign } from "lucide-react";
 
 // Canales de difusión disponibles en el Centro de Difusión Social
 export const CANALES = [
@@ -53,6 +53,16 @@ export const CANALES = [
     color: "text-blue-500",
     automatico: true,
     requiereConexion: true,
+  },
+  {
+    id: "x",
+    label: "X",
+    desc: "Publica un post de texto (máximo 280 caracteres)",
+    icon: AtSign,
+    color: "text-slate-900",
+    automatico: true,
+    requiereConexion: true,
+    maxCaracteres: 280,
   },
 ];
 
