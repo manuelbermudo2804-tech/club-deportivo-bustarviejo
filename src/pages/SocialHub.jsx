@@ -155,9 +155,21 @@ ${mensaje}`,
   const cambiarCanales = (nuevos) => {
     const seleccionaX = nuevos.includes("x") && !canales.includes("x");
     setCanales(nuevos);
-    if (seleccionaX) adaptarParaX(text);
-    if (!nuevos.includes("x")) setTextoX("");
+    if (seleccionaX && text.trim()) adaptarParaX(text);
+    if (!nuevos.includes("x")) {
+      adaptacionXRef.current += 1;
+      setAdaptandoX(false);
+      setTextoX("");
+    }
   };
+
+  // Adaptar para X cuando el usuario termina de modificar el texto,
+  // no en cada pulsación del teclado.
+  useEffect(() => {
+    if (!canales.includes("x") || !text.trim() || view !== "editor") return;
+    const timer = setTimeout(() => adaptarParaX(text), 800);
+    return () => clearTimeout(timer);
+  }, [text, canales, view]);
 
   const generateText = async (datosToUse, typeToUse) => {
     const finalDatos = datosToUse || datos;
@@ -390,7 +402,6 @@ ${mensaje}`,
                       editing={editing}
                       onChange={(value) => {
                         setText(value);
-                        if (canales.includes("x")) adaptarParaX(value);
                       }}
                       onStartEdit={() => setEditing(true)}
                       onStopEdit={() => setEditing(false)}
