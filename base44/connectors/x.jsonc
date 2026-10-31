@@ -1,0 +1,13 @@
+{
+  "type": "x",
+  "scopes": [
+    "tweet.read",
+    "tweet.write",
+    "users.read",
+    "bookmark.read",
+    "bookmark.write",
+    "like.read",
+    "media.write",
+    "offline.access"
+  ]
+}
