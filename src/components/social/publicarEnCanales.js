@@ -79,7 +79,7 @@ export async function publicarEnCanales({ canales, texto, imageUrl, titulo }) {
     }
   }
 
-  if (canales.includes("linkedin")) {
+  if (canales.includes("x")) {\n    try {\n      const { data } = await base44.functions.invoke("publishToX", { text: texto });\n      if (data?.success) {\n        resultados.push({ canal: "x", ok: true, postId: data.post_id, url: data.url });\n      } else {\n        resultados.push({ canal: "x", ok: false, error: data?.error || "Error al publicar en X" });\n      }\n    } catch (e) {\n      resultados.push({ canal: "x", ok: false, error: e?.message || "No se pudo publicar en X" });\n    }\n  }\n\n  if (canales.includes("linkedin")) {
     try {
       const { data } = await base44.functions.invoke("publishToLinkedIn", {
         message: texto,
