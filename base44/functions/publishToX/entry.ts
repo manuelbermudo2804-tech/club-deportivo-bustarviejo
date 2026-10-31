@@ -28,45 +28,28 @@ Deno.serve(async (req) => {
       }, { status: 400 });
     }
 
-    let accessToken: string;
-    try {
-      const connection = await base44.asServiceRole.connectors.getConnection('x');
-      accessToken = connection.accessToken;
-    } catch (connectionError) {
-      console.error('publishToX: no se pudo recuperar la conexión de X:', connectionError);
-      const detail = connectionError instanceof Error ? connectionError.message : String(connectionError || '');
-      return Response.json({
-        success: false,
-        needs_connection: true,
-        error: detail
-          ? `Base44 no pudo recuperar la autorización de X: ${detail}`
-          : 'Base44 no pudo recuperar la autorización de X. La conexión aparece activa, pero el servidor no puede acceder a ella.',
-      }, { status: 400 });
-    }
-
-    const response = await fetch('https://api.x.com/2/tweets', {
+    // Los conectores compartidos de Base44 no exponen tokens OAuth sin procesar.
+    // La llamada debe pasar por el proxy de conectores de Base44.
+    const result = await base44.asServiceRole.connectors.call('x', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ text }),
+      path: '/2/tweets',
+      body: { text },
     });
 
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok || !payload?.data?.id) {
-      const detail = payload?.detail
-        || payload?.title
-        || payload?.errors?.[0]?.message
-        || 'X no ha aceptado la publicación.';
-      return Response.json({ success: false, error: detail, status: response.status }, { status: 400 });
+    const payload = result?.data ?? result;
+    const postId = payload?.data?.id ?? payload?.id;
+    if (!postId) {
+      console.error('publishToX: respuesta inesperada del conector X:', payload);
+      const detail = payload?.detail || payload?.title || payload?.errors?.[0]?.message
+        || payload?.error || 'X no ha confirmado la publicación.';
+      return Response.json({ success: false, error: detail }, { status: 400 });
     }
 
     return Response.json({
       success: true,
-      post_id: payload.data.id,
-      text: payload.data.text || text,
-      url: `https://x.com/i/web/status/${payload.data.id}`,
+      post_id: postId,
+      text: payload?.data?.text || payload?.text || text,
+      url: `https://x.com/i/web/status/${postId}`,
     });
   } catch (error) {
     console.error('publishToX error:', error);
