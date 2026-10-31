@@ -70,6 +70,7 @@ export default function SocialHub() {
   const [canales, setCanales] = useState(["telegram"]);
   const [textoX, setTextoX] = useState("");
   const [adaptandoX, setAdaptandoX] = useState(false);
+  const adaptacionXRef = useRef(0);
 
   const { data: history = [] } = useQuery({
     queryKey: ["socialPosts"],
@@ -116,27 +117,35 @@ export default function SocialHub() {
   };
 
   const adaptarParaX = async (mensaje) => {
-    if (!mensaje?.trim()) { setTextoX(""); return; }
+    const requestId = ++adaptacionXRef.current;
+    if (!mensaje?.trim()) { setTextoX(""); setAdaptandoX(false); return; }
     setAdaptandoX(true);
     try {
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Adapta el mensaje del Club Deportivo Bustarviejo para X.
-Devuelve SOLO el texto final y no superes 270 caracteres, contando espacios y emojis.
+Devuelve el texto final en el campo "texto", con un máximo de 270 caracteres contando espacios y emojis.
 Conserva los hechos importantes, no inventes datos y mantén un tono natural.
 No añadas explicaciones ni comillas.
 
 MENSAJE:
-${mensaje}`
+${mensaje}`,
+        response_json_schema: {
+          type: "object",
+          properties: { texto: { type: "string" } },
+          required: ["texto"]
+        }
       });
-      const breve = (typeof result === "string" ? result : "").trim();
+      if (requestId !== adaptacionXRef.current) return;
+      const breve = (typeof result === "string" ? result : result?.texto || result?.text || "").trim();
       if (!breve) throw new Error("La IA no ha devuelto un texto.");
       if (breve.length > 280) throw new Error(`La versión para X tiene ${breve.length} caracteres; debe tener 280 o menos.`);
       setTextoX(breve);
     } catch (e) {
+      if (requestId !== adaptacionXRef.current) return;
       setTextoX("");
       toast.error("No se pudo adaptar el mensaje para X: " + (e?.message || "Error"));
     } finally {
-      setAdaptandoX(false);
+      if (requestId === adaptacionXRef.current) setAdaptandoX(false);
     }
   };
 
@@ -158,7 +167,11 @@ ${mensaje}`
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: buildPrompt(typeLabel, finalDatos, tono),
       });
-      if (typeof result === "string") setText(result.trim());
+      const generatedText = (typeof result === "string" ? result : result?.text || result?.mensaje || "").trim();
+      if (generatedText) {
+        setText(generatedText);
+        if (canales.includes("x")) adaptarParaX(generatedText);
+      }
     } catch (e) {
       toast.error("Error al generar el mensaje");
       console.error(e);
