@@ -8,7 +8,7 @@ export const CANALES = [
   { id: "instagram", label: "Instagram", desc: "Publica la foto en el feed (necesita imagen)", icon: Instagram, color: "text-pink-400", automatico: true, requiereConexion: true, requiereImagen: true },
   { id: "facebook", label: "Facebook", desc: "Publica en la página del club", icon: Facebook, color: "text-blue-400", automatico: true, requiereConexion: true },
   { id: "linkedin", label: "LinkedIn", desc: "Publica en la página del club (patrocinadores, empresas)", icon: Linkedin, color: "text-blue-500", automatico: true, requiereConexion: true },
-  { id: "x", label: "X", desc: "Publica un post de texto (máximo 280 caracteres)", icon: AtSign, color: "text-slate-900", automatico: true, requiereConexion: true, maxCaracteres: 280 },
+  { id: "x", label: "X", desc: "Prepara el texto y ábrelo en X para publicarlo manualmente", icon: AtSign, color: "text-slate-900", automatico: false, requiereConexion: false, maxCaracteres: 280 },
 ];
 
 export const getCanalById = (id) => CANALES.find((c) => c.id === id);
