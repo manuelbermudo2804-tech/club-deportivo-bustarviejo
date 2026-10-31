@@ -1,4 +1,4 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.43';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.57';
 
 /**
  * Publica un post de texto en X mediante el conector OAuth de Base44.
