@@ -4,6 +4,12 @@ export default function MessagePreview({ text, imageUrl, editing, onChange, onSt
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
       <div className="ml-auto max-w-[95%] overflow-hidden rounded-xl border border-slate-200 bg-slate-50 shadow-sm">
+        <div className="flex items-center justify-between gap-3 border-b border-slate-200 bg-white px-3 py-2">
+          <span className="text-xs font-semibold text-slate-600">Vista previa del mensaje</span>
+          <button type="button" onClick={editing ? onStopEdit : onStartEdit} className="rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-bold text-orange-700 hover:bg-orange-50">
+            {editing ? "Terminar edición" : "Editar texto"}
+          </button>
+        </div>
         {imageUrl && (
           <img
             src={imageUrl}
@@ -30,7 +36,7 @@ export default function MessagePreview({ text, imageUrl, editing, onChange, onSt
             </div>
           )}
           {!editing && (
-            <p className="mt-2 text-right text-[10px] text-slate-500">Toca para editar</p>
+            <p className="mt-2 text-right text-[10px] text-slate-500">También puedes pulsar directamente sobre el mensaje.</p>
           )}
         </div>
       </div>
