@@ -62,6 +62,9 @@ export default function SocialHub() {
   const [tono, setTono] = useState("cercano");
   const [editing, setEditing] = useState(false);
   const [showDatos, setShowDatos] = useState(false);
+  const [showMoreTypes, setShowMoreTypes] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [showImageTools, setShowImageTools] = useState(false);
 
   const [imageUrl, setImageUrl] = useState(null);
 
@@ -86,7 +89,7 @@ export default function SocialHub() {
 
   const resetEditor = () => {
     setText(""); setDatos(""); setTono("cercano"); setEditing(false);
-    setImageUrl(null); setShowDatos(false);
+    setImageUrl(null); setShowDatos(false); setShowAdvanced(false); setShowImageTools(false);
   };
 
   const selectType = async (type) => {
