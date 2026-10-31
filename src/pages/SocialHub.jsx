@@ -155,7 +155,7 @@ ${mensaje}`,
   const cambiarCanales = (nuevos) => {
     const seleccionaX = nuevos.includes("x") && !canales.includes("x");
     setCanales(nuevos);
-    if (seleccionaX && text.trim()) adaptarParaX(text);
+    // La adaptación se dispara automáticamente al cambiar el texto, con una pausa breve.
     if (!nuevos.includes("x")) {
       adaptacionXRef.current += 1;
       setAdaptandoX(false);
@@ -185,7 +185,7 @@ ${mensaje}`,
       const generatedText = (typeof result === "string" ? result : result?.text || result?.mensaje || "").trim();
       if (generatedText) {
         setText(generatedText);
-        if (canales.includes("x")) adaptarParaX(generatedText);
+        // La adaptación para X se gestiona mediante el efecto con pausa breve.
       }
     } catch (e) {
       toast.error("Error al generar el mensaje");
@@ -396,6 +396,9 @@ ${mensaje}`,
 
                 {text && (
                   <div className="space-y-3 animate-fade-in">
+                    <div>
+                      <p className="mb-2 text-sm font-bold text-slate-900">1. Revisa el texto</p>
+                      <p className="mb-3 text-xs text-slate-600">Pulsa sobre el mensaje para editarlo. No se publica nada hasta que tú lo confirmes.</p>
                     <MessagePreview
                       text={text}
                       imageUrl={imageUrl}
@@ -406,6 +409,7 @@ ${mensaje}`,
                       onStartEdit={() => setEditing(true)}
                       onStopEdit={() => setEditing(false)}
                     />
+                    </div>
 
                     <button
                       onClick={() => generateText(datos, selectedType)}
@@ -418,7 +422,11 @@ ${mensaje}`,
 
                     {(showImageTools || imageUrl) && <ImageGenerator value={imageUrl} onChange={setImageUrl} />}
 
-                    <CanalSelector value={canales} onChange={cambiarCanales} />
+                    <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                      <p className="mb-1 text-sm font-bold text-slate-900">2. Elige dónde publicarlo</p>
+                      <p className="mb-3 text-xs text-slate-600">Selecciona uno o varios canales. Si eliges X, prepararemos una versión breve automáticamente.</p>
+                      <CanalSelector value={canales} onChange={cambiarCanales} />
+                    </div>
 
                     {canales.includes("x") && (
                       <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
