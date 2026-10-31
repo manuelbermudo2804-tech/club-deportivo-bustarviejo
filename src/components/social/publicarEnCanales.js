@@ -55,7 +55,12 @@ export async function publicarEnCanales({ canales, texto, imageUrl, titulo }) {
       const { data } = await base44.functions.invoke("publishToX", { text: texto });
       if (data?.success) resultados.push({ canal: "x", ok: true, postId: data.post_id, url: data.url });
       else resultados.push({ canal: "x", ok: false, error: data?.error || "Error al publicar en X" });
-    } catch (e) { resultados.push({ canal: "x", ok: false, error: e?.message || "No se pudo publicar en X" }); }
+    } catch (e) {
+      const apiError = e?.response?.data?.error || e?.response?.data?.detail || e?.response?.data?.message;
+      const status = e?.response?.status;
+      const message = apiError || (status ? `X devolvió un error HTTP ${status}` : e?.message) || "No se pudo publicar en X";
+      resultados.push({ canal: "x", ok: false, error: message });
+    }
   }
 
   if (canales.includes("linkedin")) {
