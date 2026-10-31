@@ -1,5 +1,5 @@
 import React from "react";
-import { Facebook, Instagram, Globe } from "lucide-react";
+import { Facebook, Instagram, Globe, AtSign } from "lucide-react";
 
 // Logo oficial de Telegram (avión de papel circular)
 const TelegramIcon = ({ className }) => (
@@ -13,6 +13,7 @@ export default function SocialLinks() {
     { name: "Web", url: "https://www.cdbustarviejo.com", icon: Globe, color: "text-orange-600 hover:text-orange-700" },
     { name: "Facebook", url: "https://es-es.facebook.com/ilustrisimo.deportivobustarviejo", icon: Facebook, color: "text-blue-600 hover:text-blue-700" },
     { name: "Instagram", url: "https://www.instagram.com/cdbustarviejo", icon: Instagram, color: "text-pink-600 hover:text-pink-700" },
+    { name: "X", url: "https://x.com/CDBustarviejo", icon: AtSign, color: "text-slate-900 hover:text-slate-700" },
     { name: "Telegram", url: "https://t.me/cdbustarviejo", icon: TelegramIcon, color: "text-sky-500 hover:text-sky-600" }
   ];
 
