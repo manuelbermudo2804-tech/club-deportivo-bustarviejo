@@ -30,19 +30,19 @@ Deno.serve(async (req) => {
 
     // Los conectores compartidos de Base44 no exponen tokens OAuth sin procesar.
     // La llamada debe pasar por el proxy de conectores de Base44.
-    const result = await base44.asServiceRole.connectors.call('x', {
+    const result = await base44.asServiceRole.connectors.callApi('x', {
       method: 'POST',
       path: '/2/tweets',
       body: { text },
     });
 
-    const payload = result?.data ?? result;
+    const payload = result?.data;
     const postId = payload?.data?.id ?? payload?.id;
-    if (!postId) {
-      console.error('publishToX: respuesta inesperada del conector X:', payload);
+    if (!result?.success || !postId) {
+      console.error('publishToX: X rechazó la publicación:', result?.status, payload);
       const detail = payload?.detail || payload?.title || payload?.errors?.[0]?.message
         || payload?.error || 'X no ha confirmado la publicación.';
-      return Response.json({ success: false, error: detail }, { status: 400 });
+      return Response.json({ success: false, error: detail, status: result?.status }, { status: 400 });
     }
 
     return Response.json({
