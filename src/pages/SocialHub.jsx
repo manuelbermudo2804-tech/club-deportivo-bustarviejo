@@ -73,6 +73,7 @@ export default function SocialHub() {
   const [canales, setCanales] = useState(["telegram"]);
   const [textoX, setTextoX] = useState("");
   const [adaptandoX, setAdaptandoX] = useState(false);
+  const [publishResults, setPublishResults] = useState([]);
   const adaptacionXRef = useRef(0);
 
   const { data: history = [] } = useQuery({
@@ -198,6 +199,7 @@ ${mensaje}`,
   };
 
   const publishNow = async () => {
+    setPublishResults([]);
     if (!text.trim()) { toast.error("No hay texto para publicar"); return; }
     if (!canales.length) { toast.error("Elige al menos un canal"); return; }
     if (canales.includes("x") && (adaptandoX || !textoX.trim() || textoX.length > 280)) {
@@ -212,6 +214,7 @@ ${mensaje}`,
         canales, texto: text, textoX, imageUrl, titulo,
       });
 
+      setPublishResults(resultados);
       const ok = resultados.filter(r => r.ok).map(r => getCanalById(r.canal)?.label);
       const fallos = resultados.filter(r => !r.ok);
       if (ok.length) toast.success(`Publicado en: ${ok.join(', ')}`);
@@ -394,6 +397,19 @@ ${mensaje}`,
                   </div>
                     )}
                     <ToneSelector value={tono} onChange={(v) => { setTono(v); generateText(datos, selectedType); }} />
+                  </div>
+                )}
+
+                {publishResults.length > 0 && (
+                  <div role="status" aria-live="polite" className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <p className="font-bold text-slate-900">Resultado del intento de publicación</p>
+                    {publishResults.map((result, index) => (
+                      <div key={`${result.canal}-${index}`} className={`rounded-xl p-3 text-sm ${result.ok ? "bg-emerald-50 text-emerald-900" : "bg-red-50 text-red-900"}`}>
+                        <p className="font-bold">{result.ok ? "✓ " : "✕ "}{getCanalById(result.canal)?.label || result.canal}: {result.ok ? "publicación confirmada" : "no publicado"}</p>
+                        {!result.ok && <p className="mt-1 break-words">{result.error || "La plataforma no devolvió detalles del error."}</p>}
+                        {result.ok && result.url && <a className="mt-1 inline-block underline" href={result.url} target="_blank" rel="noreferrer">Ver publicación en X</a>}
+                      </div>
+                    ))}
                   </div>
                 )}
 
