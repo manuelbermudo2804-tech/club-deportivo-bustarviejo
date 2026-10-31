@@ -68,6 +68,8 @@ export default function SocialHub() {
   const [publishing, setPublishing] = useState(false);
   const [search, setSearch] = useState("");
   const [canales, setCanales] = useState(["telegram"]);
+  const [textoX, setTextoX] = useState("");
+  const [adaptandoX, setAdaptandoX] = useState(false);
 
   const { data: history = [] } = useQuery({
     queryKey: ["socialPosts"],
@@ -110,6 +112,39 @@ export default function SocialHub() {
     setView('menu');
     setSelectedType(null);
     resetEditor();
+    setTextoX("");
+  };
+
+  const adaptarParaX = async (mensaje) => {
+    if (!mensaje?.trim()) { setTextoX(""); return; }
+    setAdaptandoX(true);
+    try {
+      const result = await base44.integrations.Core.InvokeLLM({
+        prompt: `Adapta el mensaje del Club Deportivo Bustarviejo para X.
+Devuelve SOLO el texto final y no superes 270 caracteres, contando espacios y emojis.
+Conserva los hechos importantes, no inventes datos y mantén un tono natural.
+No añadas explicaciones ni comillas.
+
+MENSAJE:
+${mensaje}`
+      });
+      const breve = (typeof result === "string" ? result : "").trim();
+      if (!breve) throw new Error("La IA no ha devuelto un texto.");
+      if (breve.length > 280) throw new Error(`La versión para X tiene ${breve.length} caracteres; debe tener 280 o menos.`);
+      setTextoX(breve);
+    } catch (e) {
+      setTextoX("");
+      toast.error("No se pudo adaptar el mensaje para X: " + (e?.message || "Error"));
+    } finally {
+      setAdaptandoX(false);
+    }
+  };
+
+  const cambiarCanales = (nuevos) => {
+    const seleccionaX = nuevos.includes("x") && !canales.includes("x");
+    setCanales(nuevos);
+    if (seleccionaX) adaptarParaX(text);
+    if (!nuevos.includes("x")) setTextoX("");
   };
 
   const generateText = async (datosToUse, typeToUse) => {
@@ -134,12 +169,16 @@ export default function SocialHub() {
   const publishNow = async () => {
     if (!text.trim()) { toast.error("No hay texto para publicar"); return; }
     if (!canales.length) { toast.error("Elige al menos un canal"); return; }
+    if (canales.includes("x") && (adaptandoX || !textoX.trim() || textoX.length > 280)) {
+      toast.error("Espera a que se adapte el mensaje para X y comprueba que no supere 280 caracteres.");
+      return;
+    }
     setPublishing(true);
     try {
       const user = await base44.auth.me();
       const titulo = typeConfig?.title || selectedType;
       const { resultados, telegramMessageId } = await publicarEnCanales({
-        canales, texto: text, imageUrl, titulo,
+        canales, texto: text, textoX, imageUrl, titulo,
       });
 
       const ok = resultados.filter(r => r.ok).map(r => getCanalById(r.canal)?.label);
@@ -290,7 +329,10 @@ export default function SocialHub() {
                       text={text}
                       imageUrl={imageUrl}
                       editing={editing}
-                      onChange={setText}
+                      onChange={(value) => {
+                        setText(value);
+                        if (canales.includes("x")) adaptarParaX(value);
+                      }}
                       onStartEdit={() => setEditing(true)}
                       onStopEdit={() => setEditing(false)}
                     />
@@ -306,7 +348,38 @@ export default function SocialHub() {
 
                     <ImageGenerator value={imageUrl} onChange={setImageUrl} />
 
-                    <CanalSelector value={canales} onChange={setCanales} />
+                    <CanalSelector value={canales} onChange={cambiarCanales} />
+
+                    {canales.includes("x") && (
+                      <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className="text-sm font-bold text-slate-800">Versión para X</p>
+                          <span className={`text-xs font-semibold ${textoX.length > 280 ? "text-red-600" : "text-slate-500"}`}>
+                            {textoX.length}/280 caracteres
+                          </span>
+                        </div>
+                        {adaptandoX ? (
+                          <p className="text-sm text-slate-500">✨ Adaptando el mensaje para X...</p>
+                        ) : (
+                          <textarea
+                            value={textoX}
+                            onChange={(e) => setTextoX(e.target.value)}
+                            maxLength={280}
+                            rows={4}
+                            placeholder="La versión breve para X aparecerá aquí."
+                            className="w-full rounded-lg border border-slate-200 p-2 text-sm text-slate-800 focus:border-orange-400 focus:outline-none"
+                          />
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => adaptarParaX(text)}
+                          disabled={adaptandoX || !text.trim()}
+                          className="text-xs font-semibold text-orange-700 underline disabled:opacity-50"
+                        >
+                          Volver a adaptar desde el mensaje original
+                        </button>
+                      </div>
+                    )
 
                     <button
                       onClick={publishNow}
