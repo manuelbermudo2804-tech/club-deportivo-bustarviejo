@@ -269,10 +269,36 @@ ${mensaje}`,
 
         {view === 'menu' && (
           <div className="space-y-5">
-            <SocialOpportunitiesBanner onSelect={selectOpportunity} />
-            <p className="text-slate-700 text-sm font-semibold text-center">¿Qué quieres publicar?</p>
-            <ContentTypeSearch value={search} onChange={setSearch} />
-            <ContentTypeGrid onSelect={selectType} search={search} />
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6">
+              <h2 className="text-lg font-black text-slate-900">¿Qué quieres publicar?</h2>
+              <p className="mt-1 text-sm text-slate-600">Elige una opción. La IA preparará un borrador para que solo tengas que revisarlo.</p>
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                {[
+                  { id: "partidos_finde", emoji: "⚽", title: "Partidos y horarios", desc: "Próximos partidos del club" },
+                  { id: "resultados", emoji: "🏆", title: "Resultados", desc: "Marcadores y resumen de jornada" },
+                  { id: "anuncio", emoji: "📣", title: "Aviso a las familias", desc: "Información importante del club" },
+                  { id: "evento", emoji: "🎉", title: "Evento o campaña", desc: "Actividades, torneos y novedades" },
+                ].map(item => (
+                  <button key={item.id} onClick={() => selectType(item.id)} className="flex items-center gap-3 rounded-xl border border-slate-200 p-4 text-left transition hover:border-orange-400 hover:bg-orange-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-400">
+                    <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-2xl">{item.emoji}</span>
+                    <span><span className="block font-bold text-slate-900">{item.title}</span><span className="mt-1 block text-xs text-slate-600">{item.desc}</span></span>
+                  </button>
+                ))}
+                <button onClick={() => selectType("personalizado")} className="flex items-center gap-3 rounded-xl border border-dashed border-slate-300 p-4 text-left transition hover:border-orange-400 hover:bg-orange-50">
+                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-2xl">✍️</span>
+                  <span><span className="block font-bold text-slate-900">Escribir otra publicación</span><span className="mt-1 block text-xs text-slate-600">Para cualquier otro mensaje</span></span>
+                </button>
+              </div>
+              <button type="button" onClick={() => setShowMoreTypes(v => !v)} className="mt-4 text-sm font-semibold text-orange-700 underline underline-offset-4">
+                {showMoreTypes ? "Ocultar otros tipos" : "Ver todos los tipos de publicación"}
+              </button>
+              {showMoreTypes && (
+                <div className="mt-4 space-y-3 border-t border-slate-100 pt-4">
+                  <ContentTypeSearch value={search} onChange={setSearch} />
+                  <ContentTypeGrid onSelect={selectType} search={search} />
+                </div>
+              )}
+            </div>
 
             {history.length > 0 && (
               <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
