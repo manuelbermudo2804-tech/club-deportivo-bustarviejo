@@ -32,11 +32,15 @@ Deno.serve(async (req) => {
     try {
       const connection = await base44.asServiceRole.connectors.getConnection('x');
       accessToken = connection.accessToken;
-    } catch {
+    } catch (connectionError) {
+      console.error('publishToX: no se pudo recuperar la conexión de X:', connectionError);
+      const detail = connectionError instanceof Error ? connectionError.message : String(connectionError || '');
       return Response.json({
         success: false,
         needs_connection: true,
-        error: 'El conector de X no está autorizado. Revisa la conexión de X en Base44.',
+        error: detail
+          ? `Base44 no pudo recuperar la autorización de X: ${detail}`
+          : 'Base44 no pudo recuperar la autorización de X. La conexión aparece activa, pero el servidor no puede acceder a ella.',
       }, { status: 400 });
     }
 
