@@ -332,19 +332,35 @@ ${mensaje}`,
               </div>
             ) : (
               <>
-                <div className="flex items-center justify-between">
-                  <span className="rounded-full border border-orange-200 bg-orange-50 px-3 py-1 text-xs font-bold text-orange-800">
-                    {typeConfig?.title}
-                  </span>
-                  <button
-                    onClick={() => setShowDatos(s => !s)}
-                    className="text-xs font-semibold text-slate-600 underline-offset-4 hover:text-orange-700 hover:underline"
-                  >
-                    {showDatos ? "Ocultar datos" : "Ver/editar datos"}
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-bold uppercase tracking-wide text-orange-700">Borrador de publicación</p>
+                      <h2 className="mt-1 text-lg font-black text-slate-900">{typeConfig?.title || "Publicación"}</h2>
+                      <p className="mt-1 text-sm text-slate-600">Revisa el texto. Puedes editarlo directamente y después elegir dónde publicarlo.</p>
+                    </div>
+                    <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Revisión manual</span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={() => setShowAdvanced(v => !v)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-orange-300 hover:bg-orange-50">
+                    {showAdvanced ? "Ocultar opciones avanzadas" : "Opciones avanzadas"}
+                  </button>
+                  <button type="button" onClick={() => setShowImageTools(v => !v)} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:border-orange-300 hover:bg-orange-50">
+                    {showImageTools ? "Ocultar imagen" : imageUrl ? "Cambiar imagen" : "Añadir imagen"}
                   </button>
                 </div>
 
-                {showDatos && (
+                {showAdvanced && (
+                  <div className="space-y-3 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-sm font-bold text-slate-900">Ajustes del mensaje</p>
+                      <button onClick={() => setShowDatos(s => !s)} className="text-xs font-semibold text-orange-700 underline underline-offset-4">
+                        {showDatos ? "Ocultar datos de origen" : "Ver/editar datos de origen"}
+                      </button>
+                    </div>
+                    {showDatos && (
                   <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
                     <p className="mb-2 text-xs font-bold text-slate-700">📝 Datos usados por la IA</p>
                     <textarea
