@@ -377,9 +377,10 @@ ${mensaje}`,
                       Regenerar con estos datos
                     </button>
                   </div>
+                    )}
+                    <ToneSelector value={tono} onChange={(v) => { setTono(v); generateText(datos, selectedType); }} />
+                  </div>
                 )}
-
-                <ToneSelector value={tono} onChange={(v) => { setTono(v); generateText(datos, selectedType); }} />
 
                 {text && (
                   <div className="space-y-3 animate-fade-in">
@@ -404,7 +405,7 @@ ${mensaje}`,
                       Regenerar mensaje
                     </button>
 
-                    <ImageGenerator value={imageUrl} onChange={setImageUrl} />
+                    {(showImageTools || imageUrl) && <ImageGenerator value={imageUrl} onChange={setImageUrl} />}
 
                     <CanalSelector value={canales} onChange={cambiarCanales} />
 
