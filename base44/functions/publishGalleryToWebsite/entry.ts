@@ -101,10 +101,18 @@ Deno.serve(async (req) => {
         .replace(/^chat\s+entrenador\s*[-–—:]\s*/i, '')
         .trim() || String(album.categoria || 'Galería');
 
-      // Se crea una sección de novedades con el mismo álbum, únicamente con
-      // las URLs aún no publicadas. Así no se duplican las fotos anteriores.
-      const title = publishedAlbumSet.has(String(album.id)) ? cleanTitle + ' · Fotos nuevas' : cleanTitle;
-      newSections.push('<div class="galeria-seccion" data-album-id="' + esc(album.id) + '" data-category="' + esc(album.categoria) + '">\n<h2 id="' + esc(sectionId) + '">' + esc(title) + '</h2>\n<p>' + esc(album.descripcion || '') + '</p>\n<div class="galeria-grid">\n' + links + '\n</div>\n</div>');
+      // Si el álbum ya está publicado, añadir las fotos nuevas a su cuadrícula
+      // original. No crear una sección nueva para cada tanda de fotos.
+      if (publishedAlbumSet.has(String(album.id))) {
+        const merged = appendPhotosToPublishedAlbum(existingHtml, album.id, links);
+        if (merged !== null) {
+          existingHtml = merged;
+          publishedIds.push(String(album.id));
+          continue;
+        }
+      }
+
+      newSections.push('<div class="galeria-seccion" data-album-id="' + esc(album.id) + '" data-category="' + esc(album.categoria) + '">\n<h2 id="' + esc(sectionId) + '">' + esc(cleanTitle) + '</h2>\n<p>' + esc(album.descripcion || '') + '</p>\n<div class="galeria-grid">\n' + links + '\n</div>\n</div>');
       publishedIds.push(String(album.id));
       publishedAlbumSet.add(String(album.id));
     }
