@@ -42,7 +42,7 @@ function deriveUrls(baseUrl) {
   }
 }
 
-function CategoryUrlRow({ cat, config, onSaved }) {
+function CategoryUrlRow({ cat, config, competition = "Liga", onSaved }) {
   const [baseUrl, setBaseUrl] = useState("");
   const [urls, setUrls] = useState({ clasificacion: "", resultados: "", goleadores: "" });
   const [testing, setTesting] = useState(null); // null | 'clasificacion' | 'resultados' | 'goleadores'
@@ -80,6 +80,7 @@ function CategoryUrlRow({ cat, config, onSaved }) {
     try {
       const data = {
         categoria: cat,
+        competicion: competition,
         rfef_url: urls.clasificacion,
         rfef_results_url: urls.resultados,
         rfef_scorers_url: urls.goleadores,
@@ -133,7 +134,7 @@ function CategoryUrlRow({ cat, config, onSaved }) {
         className="w-full flex items-center justify-between p-3 hover:bg-slate-50 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <span className="font-semibold text-sm">{cat}</span>
+          <span className="font-semibold text-sm">{cat} · {competition}</span>
           {hasUrls ? (
             <Badge className="bg-green-100 text-green-700 text-xs">
               <CheckCircle2 className="w-3 h-3 mr-1" /> Configurada
@@ -257,12 +258,12 @@ export default function RffmUrlManager({ open, onOpenChange }) {
   const configMap = React.useMemo(() => {
     const map = {};
     for (const c of configs) {
-      if (c.categoria) map[c.categoria] = c;
+      if (c.categoria) map[`${c.categoria}::${c.competicion || "Liga"}`] = c;
     }
     return map;
   }, [configs]);
 
-  const configuredCount = categories.filter(c => configMap[c]?.rfef_url).length;
+  const configuredCount = categories.filter(c => configMap[`${c}::Liga`]?.rfef_url).length + (configMap["Fútbol Aficionado::Copa Aficionado"]?.rfef_url ? 1 : 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -308,22 +309,35 @@ export default function RffmUrlManager({ open, onOpenChange }) {
 
           <div className="flex items-center justify-between">
             <Badge variant="outline" className="text-xs">
-              {configuredCount}/{categories.length} categorías configuradas
+              {configuredCount}/{categories.length + 1} competiciones configuradas
             </Badge>
           </div>
 
           <div className="space-y-2">
             {categories.map(cat => (
               <CategoryUrlRow
-                key={cat}
+                key={`${cat}-liga`}
                 cat={cat}
-                config={configMap[cat]}
+                competition="Liga"
+                config={configMap[`${cat}::Liga`]}
                 onSaved={() => {
                   refetchConfigs();
                   queryClient.invalidateQueries({ queryKey: ["standings-config"] });
                 }}
               />
             ))}
+            {categories.includes("Fútbol Aficionado") && (
+              <CategoryUrlRow
+                key="futbol-aficionado-copa"
+                cat="Fútbol Aficionado"
+                competition="Copa Aficionado"
+                config={configMap["Fútbol Aficionado::Copa Aficionado"]}
+                onSaved={() => {
+                  refetchConfigs();
+                  queryClient.invalidateQueries({ queryKey: ["standings-config"] });
+                }}
+              />
+            )}
 
             {categories.length === 0 && (
               <p className="text-center text-slate-500 py-6 text-sm">
