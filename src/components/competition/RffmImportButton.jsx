@@ -30,7 +30,7 @@ function buildIntranetUrl(publicUrl) {
  * @param {string} category - current category name
  * @param {function} onDataReady - callback with the imported data formatted for the review table
  */
-export default function RffmImportButton({ type, config, category, onDataReady }) {
+export default function RffmImportButton({ type, config, category, competition = "Liga", onDataReady }) {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState("");
 
@@ -79,6 +79,7 @@ export default function RffmImportButton({ type, config, category, onDataReady }
         const formatted = {
           temporada,
           categoria: category,
+          competicion: category === "Fútbol Aficionado" ? competition : "Liga",
           jornada: jornadaEstimate,
           standings: standings.map((s) => ({
             posicion: s.posicion,
@@ -121,6 +122,7 @@ export default function RffmImportButton({ type, config, category, onDataReady }
         const formatted = {
           temporada,
           categoria: category,
+          competicion: category === "Fútbol Aficionado" ? competition : "Liga",
           jornada: latestPlayed.jornada,
           matches: latestPlayed.matches.map((m) => ({
             local: m.local,
@@ -155,6 +157,7 @@ export default function RffmImportButton({ type, config, category, onDataReady }
         const formatted = {
           temporada,
           categoria: category,
+          competicion: category === "Fútbol Aficionado" ? competition : "Liga",
           players: scorers.map((s) => ({
             jugador_nombre: s.jugador,
             equipo: s.equipo,

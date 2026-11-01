@@ -708,7 +708,7 @@ export default function CentroCompeticion() {
             {adminTab === 'resultados' && (
               <>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <RffmImportButton type="results" config={config} category={category} onDataReady={(d) => setResultsDraft(d)} />
+                  <RffmImportButton type="results" config={config} category={category} competition={competition} onDataReady={(d) => setResultsDraft(d)} />
                   <Button
                    variant="outline"
                    size="sm"
@@ -767,7 +767,7 @@ export default function CentroCompeticion() {
 
             {adminTab === 'goleadores' && (
               <>
-                <RffmImportButton type="scorers" config={config} category={category} onDataReady={(d) => setScorersDraft(d)} />
+                <RffmImportButton type="scorers" config={config} category={category} competition={competition} onDataReady={(d) => setScorersDraft(d)} />
                 <div className="flex gap-2">
                   <Button variant="destructive" size="sm" onClick={async () => {
                     if (!confirm(`¿Borrar TODOS los goleadores de "${category}"? Esta acción no se puede deshacer.`)) return;
