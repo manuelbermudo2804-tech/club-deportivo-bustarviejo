@@ -53,7 +53,9 @@ export default function NextMatchFromDB({ category, standings }) {
       <div className="flex items-center gap-2 mb-3 flex-wrap">
         <Trophy className="w-5 h-5 text-green-400" />
         <h3 className="font-bold text-lg">⚽ Próximo Partido</h3>
-        {match.jornada && <Badge className="bg-green-600 text-white">Jornada {match.jornada}</Badge>}
+        {String(match.competicion || "").toLowerCase().includes("copa")
+          ? <Badge className="bg-amber-400 text-slate-950 font-bold">🏆 COPA</Badge>
+          : match.jornada && <Badge className="bg-green-600 text-white">Jornada {match.jornada}</Badge>}
         {extraMatches.length > 0 && (
           <Badge className="bg-orange-500 text-white">+{extraMatches.length} esta semana</Badge>
         )}
@@ -145,6 +147,7 @@ export default function NextMatchFromDB({ category, standings }) {
                 <div key={idx} className="flex items-center justify-between bg-white/5 rounded-lg px-2.5 py-1.5 text-xs">
                   <div className="flex items-center gap-2 min-w-0">
                     <span className="text-green-400 flex-shrink-0">{mIsLocal ? '🏠' : '✈️'}</span>
+                    {String(m.competicion || "").toLowerCase().includes("copa") && <span className="rounded bg-amber-400 px-1.5 py-0.5 text-[10px] font-bold text-slate-950 flex-shrink-0">🏆 COPA</span>}
                     <span className="text-slate-200 truncate">{mRival}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-300 flex-shrink-0">
