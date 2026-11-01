@@ -58,6 +58,7 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
             .map((m, i) => ({
               id: `${c.id}-${j.jornada}-${i}`,
               categoria: c.categoria,
+              competicion: c.competicion || 'Liga',
               jornada: j.jornada,
               local: m.local,
               visitante: m.visitante,
@@ -127,7 +128,10 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
           kind: "convocatoria",
           date: c.fecha_partido,
           hora: c.hora_partido,
-          titulo: c.titulo,
+          titulo: (c.competicion || '').toLowerCase().includes('copa')
+            ? (String(c.titulo || '').toLowerCase().includes('copa') ? c.titulo : `🏆 Partido de Copa · ${c.titulo || c.rival || 'Aficionado'}`)
+            : c.titulo,
+          competicion: c.competicion || 'Liga',
           categoria: c.categoria,
           ubicacion: c.ubicacion,
           mapsUrl: c.enlace_ubicacion || mapsUrlFor(c.ubicacion),
@@ -144,11 +148,11 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
 
     // 3) Partidos de liga que aún no tienen convocatoria creada
     const yaHayConvocatoria = new Set(
-      convocatorias.map((c) => `${normCat(c.categoria)}|${c.date}`)
+      convocatorias.map((c) => `${normCat(c.categoria)}|${c.date}|${c.competicion || 'Liga'}`)
     );
     const partidosLiga = partidos
       .filter((m) => enRango(m.fecha_iso) && esMia(m.categoria))
-      .filter((m) => !yaHayConvocatoria.has(`${normCat(m.categoria)}|${m.fecha_iso}`))
+      .filter((m) => !yaHayConvocatoria.has(`${normCat(m.categoria)}|${m.fecha_iso}|${m.competicion || 'Liga'}`))
       .map((m) => {
         const esLocal = norm(m.local).includes("bustarviejo");
         const rival = esLocal ? m.visitante : m.local;
@@ -157,7 +161,10 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
           kind: "partido",
           date: m.fecha_iso,
           hora: m.hora,
-          titulo: `Jornada ${m.jornada || "?"} · ${rival || "Rival por confirmar"}`,
+          titulo: (m.competicion || '').toLowerCase().includes('copa')
+            ? `🏆 Partido de Copa · ${rival || 'Rival por confirmar'}`
+            : `Jornada ${m.jornada || "?"} · ${rival || "Rival por confirmar"}`,
+          competicion: m.competicion || 'Liga',
           categoria: m.categoria,
           ubicacion: m.campo,
           mapsUrl: mapsUrlFor(m.campo),
@@ -170,7 +177,7 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
     // 3b) Resto del calendario de liga (todas las jornadas pendientes)
     const yaHayPartido = new Set([
       ...yaHayConvocatoria,
-      ...partidosLiga.map((p) => `${normCat(p.categoria)}|${p.date}`),
+      ...partidosLiga.map((p) => `${normCat(p.categoria)}|${p.date}|${p.competicion || 'Liga'}`),
     ]);
     const toISO = (s) => {
       const m = (s || "").match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
@@ -180,7 +187,7 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
       .filter((r) => norm(r.local).includes("bustarviejo") || norm(r.visitante).includes("bustarviejo"))
       .map((r) => ({ ...r, iso: toISO(r.fecha_partido) }))
       .filter((r) => enRango(r.iso) && esMia(r.categoria))
-      .filter((r) => !yaHayPartido.has(`${normCat(r.categoria)}|${r.iso}`))
+      .filter((r) => !yaHayPartido.has(`${normCat(r.categoria)}|${r.iso}|${r.competicion || 'Liga'}`))
       .map((r) => {
         const esLocal = norm(r.local).includes("bustarviejo");
         const rival = esLocal ? r.visitante : r.local;
@@ -189,7 +196,10 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
           kind: "partido",
           date: r.iso,
           hora: r.hora_partido,
-          titulo: `Jornada ${r.jornada || "?"} · ${rival || "Rival por confirmar"}`,
+          titulo: (r.competicion || '').toLowerCase().includes('copa')
+            ? `🏆 Partido de Copa · ${rival || 'Rival por confirmar'}`
+            : `Jornada ${r.jornada || "?"} · ${rival || "Rival por confirmar"}`,
+          competicion: r.competicion || 'Liga',
           categoria: r.categoria,
           ubicacion: r.campo,
           mapsUrl: mapsUrlFor(r.campo),
