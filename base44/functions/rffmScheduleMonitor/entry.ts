@@ -328,9 +328,10 @@ Deno.serve(async (req) => {
     const lowestUnplayed = {};
     for (const p of allProximos) {
       if (!p.jornada) continue;
-      const current = lastJornadaByCategory[p.categoria] || 0;
-      if (p.jornada > current) lastJornadaByCategory[p.categoria] = p.jornada;
-      if (!p.jugado && (!lowestUnplayed[p.categoria] || p.jornada < lowestUnplayed[p.categoria])) lowestUnplayed[p.categoria] = p.jornada;
+      const key = `${p.categoria}::${p.competicion || "Liga"}`;
+      const current = lastJornadaByCategory[key] || 0;
+      if (p.jornada > current) lastJornadaByCategory[key] = p.jornada;
+      if (!p.jugado && (!lowestUnplayed[key] || p.jornada < lowestUnplayed[key])) lowestUnplayed[key] = p.jornada;
     }
     for (const cat of Object.keys(lowestUnplayed)) lastJornadaByCategory[cat] = lowestUnplayed[cat];
 
