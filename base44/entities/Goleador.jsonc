@@ -34,6 +34,10 @@
       "type": "string",
       "format": "date-time",
       "description": "\u00daltima actualizaci\u00f3n"
+    },
+    "competicion": {
+      "type": "string",
+      "description": "Identificador de competici\u00f3n dentro de la categor\u00eda (por ejemplo Liga o Copa Aficionado). Vac\u00edo equivale a Liga para compatibilidad."
     }
   },
   "required": [
