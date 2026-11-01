@@ -266,9 +266,9 @@ Deno.serve(async (req) => {
     const allConfigs = (await base44.asServiceRole.entities.StandingsConfig.list())
       .filter((c) => c.rfef_url || c.rfef_results_url);
     const caches = await base44.asServiceRole.entities.CompetitionCache.filter({ tipo: 'jornadas' });
-    const lastSync = (cat) => caches.find((c) => c.categoria === cat)?.ultima_sync || '';
+    const lastSync = (cfg) => caches.find((c) => c.categoria === cfg.categoria && (c.competicion || 'Liga') === (cfg.competicion || 'Liga'))?.ultima_sync || '';
     const configs = allConfigs
-      .sort((a, b) => lastSync(a.categoria).localeCompare(lastSync(b.categoria)))
+      .sort((a, b) => lastSync(a).localeCompare(lastSync(b)))
       .slice(0, 1);
     if (!configs || configs.length === 0) {
       return Response.json({ error: 'No StandingsConfig found' }, { status: 400 });
@@ -281,11 +281,12 @@ Deno.serve(async (req) => {
 
     for (const config of configs) {
       const cat = config.categoria;
+      const competition = config.competicion || 'Liga';
       const rfefUrl = config.rfef_url || config.rfef_results_url;
       if (!rfefUrl) { results.push({ cat, status: 'skipped', reason: 'no URL' }); continue; }
 
       const p = extractParams(rfefUrl);
-      console.log(`[SYNC] Processing ${cat}...`);
+      console.log(`[SYNC] Processing ${cat} · ${competition}...`);
 
       // 1) Fetch all jornadas
       let jornadasData = null;
@@ -333,12 +334,12 @@ Deno.serve(async (req) => {
       await new Promise(r => setTimeout(r, 2000));
 
       // 3) Save to CompetitionCache (upsert by categoria + tipo)
-      const existing = await base44.asServiceRole.entities.CompetitionCache.filter({ categoria: cat });
+      const existing = await base44.asServiceRole.entities.CompetitionCache.filter({ categoria: cat, competicion: competition });
       const existingMap = {};
       for (const e of existing) existingMap[e.tipo] = e;
 
       if (jornadasData) {
-        const payload = { categoria: cat, tipo: 'jornadas', datos: jornadasData, ultima_sync: new Date().toISOString() };
+        const payload = { categoria: cat, competicion: competition, tipo: 'jornadas', datos: jornadasData, ultima_sync: new Date().toISOString() };
         if (existingMap['jornadas']) {
           await base44.asServiceRole.entities.CompetitionCache.update(existingMap['jornadas'].id, payload);
         } else {
@@ -348,7 +349,7 @@ Deno.serve(async (req) => {
       }
 
       if (crossData) {
-        const payload = { categoria: cat, tipo: 'tabla_cruzada', datos: crossData, ultima_sync: new Date().toISOString() };
+        const payload = { categoria: cat, competicion: competition, tipo: 'tabla_cruzada', datos: crossData, ultima_sync: new Date().toISOString() };
         if (existingMap['tabla_cruzada']) {
           await base44.asServiceRole.entities.CompetitionCache.update(existingMap['tabla_cruzada'].id, payload);
         } else {
