@@ -241,7 +241,7 @@ async function syncCategory(config, cookies, base44, temporada) {
   const cat = config.categoria;
   const competition = config.competicion || "Liga";
   const t0 = Date.now();
-  const result = { cat, standings: null, results: null, scorers: null, errors: [], cookies };
+  const result = { cat, competicion: competition, standings: null, results: null, scorers: null, errors: [], cookies };
 
   // Helper: fetch page with session-expiry detection and auto-relogin
   async function safeFetch(url) {
