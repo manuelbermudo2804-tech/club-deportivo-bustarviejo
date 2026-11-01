@@ -54,6 +54,10 @@
       "type": "string",
       "format": "date-time",
       "description": "Fecha de \u00faltima actualizaci\u00f3n"
+    },
+    "competicion": {
+      "type": "string",
+      "description": "Competici\u00f3n asociada (Liga o Copa Aficionado). Vac\u00edo equivale a Liga."
     }
   },
   "required": [
