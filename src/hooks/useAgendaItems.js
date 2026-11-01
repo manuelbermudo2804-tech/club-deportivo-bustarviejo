@@ -232,7 +232,35 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
         notas: e.descripcion,
       }));
 
-    return [...entrenamientos, ...convocatorias, ...partidosLiga, ...calendarioLiga, ...eventosClub].sort((a, b) => {
+    // Deduplicación final entre todas las fuentes. Priorizamos convocatoria,
+    // después ProximoPartido y por último el calendario federativo.
+    const normalizarRival = (item) => {
+      const bruto = item.rival || item.titulo || "";
+      return norm(bruto
+        .replace(/^🏆\s*/u, "")
+        .replace(/^partido de copa\s*[·:-]?\s*/i, "")
+        .replace(/^jornada\s*\S*\s*[·:-]?\s*/i, "")
+        .replace(/^partido\s*(de liga)?\s*[·:-]?\s*/i, "")
+      ).replace(/\s+/g, " ").trim();
+    };
+    const prioridad = { convocatoria: 0, partido: 1, evento: 2, entrenamiento: 3 };
+    const todos = [...entrenamientos, ...convocatorias, ...partidosLiga, ...calendarioLiga, ...eventosClub]
+      .sort((a, b) => (prioridad[a.kind] ?? 9) - (prioridad[b.kind] ?? 9));
+    const vistos = new Set();
+    const sinDuplicados = todos.filter((item) => {
+      if (!["convocatoria", "partido"].includes(item.kind)) return true;
+      const rival = normalizarRival(item);
+      const key = [
+        normCat(item.categoria),
+        item.date,
+        String(item.competicion || "Liga").toLowerCase().trim(),
+        rival,
+      ].join("|");
+      if (!rival || vistos.has(key)) return !vistos.has(key) && true;
+      vistos.add(key);
+      return true;
+    });
+    return sinDuplicados.sort((a, b) => {
       if (a.date !== b.date) return a.date.localeCompare(b.date);
       return (a.hora || "99:99").localeCompare(b.hora || "99:99");
     });
