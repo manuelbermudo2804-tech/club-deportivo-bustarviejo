@@ -65,47 +65,6 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
 
   const selectedMatches = useMemo(() => inPeriod.filter(p => selectedMatchIds.includes(p.id)), [inPeriod, selectedMatchIds]);
 
-  // Detecta los resultados recientes directamente desde la base de datos.
-  // No depende de que el partido se marcara previamente como comunicado en este navegador.
-  const recentResults = useMemo(() => {
-    const toISO = (raw) => {
-      const value = String(raw || "").trim();
-      const m = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      if (m) return `${m[3]}-${m[2]}-${m[1]}`;
-      return /^\d{4}-\d{2}-\d{2}/.test(value) ? value.slice(0, 10) : "";
-    };
-    const cutoff = addDaysISO(todayISO, -6);
-    return results
-      .filter(r => {
-        if (r.estado !== "finalizado") return false;
-        const matchDate = toISO(r.fecha_partido);
-        const updatedDate = toISO(r.fecha_actualizacion || r.updated_date);
-        const effectiveDate = matchDate || updatedDate;
-        return effectiveDate && effectiveDate >= cutoff && effectiveDate <= todayISO;
-      })
-      .sort((a,b) => toISO(b.fecha_partido).localeCompare(toISO(a.fecha_partido)) || (a.categoria || "").localeCompare(b.categoria || ""));
-  }, [results, todayISO]);
-
-  // Selecciona las fotos subidas individualmente en los últimos 7 días.
-  // Las fotos antiguas sin uploaded_at usan fecha_evento como compatibilidad.
-  const photoOptions = useMemo(() => {
-    const cutoff = Date.parse(`${todayISO}T00:00:00`) - 6 * 24 * 60 * 60 * 1000;
-    const endOfToday = Date.parse(`${todayISO}T23:59:59.999`);
-    return albums.flatMap(album => (Array.isArray(album.fotos) ? album.fotos : []).map((foto, i) => {
-      const uploadedAt = foto?.uploaded_at || foto?.fecha_subida || foto?.created_at || null;
-      const timestamp = uploadedAt ? Date.parse(uploadedAt) : Date.parse(`${String(album.fecha_evento || "").slice(0, 10)}T12:00:00`);
-      return {
-        id: `${album.id || album.titulo}-${i}`,
-        url: foto?.url,
-        title: album.titulo || "Álbum",
-        category: album.categoria || "Equipo sin categoría",
-        date: uploadedAt ? new Date(uploadedAt).toLocaleDateString("es-ES") : (album.fecha_evento || "Fecha antigua del álbum"),
-        uploadedAt: Number.isFinite(timestamp) ? timestamp : 0,
-      };
-    }).filter(f => typeof f.url === "string" && f.url.startsWith("https://") && f.uploadedAt >= cutoff && f.uploadedAt <= endOfToday))
-    .sort((a, b) => b.uploadedAt - a.uploadedAt || a.category.localeCompare(b.category));
-  }, [albums, todayISO]);
-
   const scheduleText = useMemo(() => {
     const lines = [`🟠⚫ *C.D. BUSTARVIEJO | PARTIDOS DEL ${formatDate(periodStart)} AL ${formatDate(periodEnd)}* ⚽`, ""];
     if (!selectedMatches.length) lines.push("No hay partidos seleccionados para este periodo. Revisa las fechas o marca los encuentros que quieras anunciar.");
@@ -120,26 +79,6 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
     return lines.join("\n");
   }, [selectedMatches, periodStart, periodEnd]);
 
-  const resultsText = useMemo(() => {
-    const lines = ["🟠⚫ *C.D. BUSTARVIEJO | RESULTADOS DE LOS PARTIDOS COMUNICADOS* ⚽", ""];
-    if (!recentResults.length) lines.push("No hay resultados finalizados registrados en los últimos siete días. Comprueba que los resultados estén guardados como «finalizado» y tengan fecha de partido.");
-    else recentResults.forEach(r => {
-      lines.push(`⚽ *${r.categoria || "Equipo"}*`);
-      lines.push(`${r.local || r.equipo_local || "Bustarviejo"} ${r.goles_local ?? "—"} - ${r.goles_visitante ?? "—"} ${r.visitante || r.rival || ""}`);
-      lines.push("");
-    });
-    const chosen = photoOptions.filter(f => selectedPhotos.includes(f.id));
-    if (chosen.length) {
-      lines.push("📸 *ÚLTIMAS FOTOS POR FECHA Y EQUIPO*");
-      chosen.forEach(f => lines.push(`• ${f.title}${f.category ? " ("+f.category+")" : ""}: ${f.url}`));
-      lines.push("");
-    } else {
-      lines.push("📸 Las fotos de los equipos se añadirán al seleccionar las imágenes de esta jornada.", "");
-    }
-    lines.push("¡Enhorabuena a todos por el esfuerzo! 🧡🖤");
-    return lines.join("\n");
-  }, [recentResults, photoOptions, selectedPhotos]);
-
   const message = scheduleText;
   const savePhone = (value) => {
     setPhone(value);
@@ -149,15 +88,6 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
     const normalized = phone.replace(/\D/g, "");
     if (!normalized) { toast.error("Introduce el número de teléfono con prefijo de país (por ejemplo, 34XXXXXXXXX)."); return; }
     window.open(`https://wa.me/${normalized}?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
-  };
-  const markSelectedAsCommunicated = () => {
-    if (!selectedMatches.length) { toast.error("Selecciona al menos un partido."); return; }
-    const existing = communicatedMatches.filter(old => !selectedMatches.some(p => p.id === old.id));
-    const marked = selectedMatches.map(p => ({ id: p.id, categoria: p.categoria || "", local: p.local || "", visitante: p.visitante || "", fecha_iso: p._date, hora: p.hora || "", campo: p.campo || "", marked_at: new Date().toISOString() }));
-    const next = [...existing, ...marked].sort((a,b) => a.fecha_iso.localeCompare(b.fecha_iso));
-    setCommunicatedMatches(next);
-    try { localStorage.setItem(COMMUNICATED_MATCHES_KEY, JSON.stringify(next)); } catch {}
-    toast.success(`${marked.length} partido(s) marcados como comunicados`);
   };
   const copyMessage = async () => {
     try {
@@ -201,18 +131,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
             </label>)}
           </div>
         </div>
-        <div className="flex flex-wrap gap-2"><Button onClick={markSelectedAsCommunicated} variant="outline" className="border-orange-300 text-orange-800 hover:bg-orange-50">✓ Marcar selección como comunicada</Button><Badge>{communicatedMatches.length} partidos marcados como comunicados</Badge></div>
-
       </div>
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
-          {photoOptions.map(f => <button type="button" key={f.id} onClick={() => togglePhoto(f.id)} className={`overflow-hidden rounded-xl border text-left ${selectedPhotos.includes(f.id) ? "border-emerald-600 ring-2 ring-emerald-200" : "border-slate-200"}`}>
-            <img src={f.url} alt={f.title} className="h-28 w-full object-cover" loading="lazy"/>
-            <span className="block p-2 text-xs font-medium text-slate-700">{selectedPhotos.includes(f.id) ? "✓ " : ""}{f.title}</span>
-            <span className="block px-2 pb-2 text-[11px] text-slate-500">{f.category} · {f.date}</span>
-          </button>)}
-        </div>
-        {photoOptions.length === 0 && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800"><ImageIcon className="mr-1 inline h-4 w-4"/>{"No hay fotos subidas en los últimos 7 días."}</p>}
-      </div>}
       <div className="space-y-2">
         <label className="text-sm font-semibold text-slate-800">Vista previa del mensaje</label>
         <textarea readOnly value={message} rows={12} className="w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm leading-relaxed text-slate-800"/>
@@ -220,7 +139,6 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
           <Button onClick={openWhatsApp} className="bg-emerald-600 font-bold text-white hover:bg-emerald-700"><ExternalLink className="mr-2 h-4 w-4"/>Abrir WhatsApp con el mensaje</Button>
           <Button variant="outline" onClick={copyMessage}>{copied ? <Check className="mr-2 h-4 w-4"/> : <Copy className="mr-2 h-4 w-4"/>}{copied ? "Copiado" : "Copiar mensaje"}</Button>
         </div>
-        <p className="text-xs text-slate-500">WhatsApp no permite adjuntar fotos mediante un enlace de texto. El mensaje incluye enlaces a las fotos seleccionadas; para enviarlas como archivos adjuntos tendrás que añadirlas dentro de WhatsApp antes de pulsar enviar.</p>
       </div>
     </CardContent>
   </Card>;
