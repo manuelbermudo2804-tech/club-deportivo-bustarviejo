@@ -75,6 +75,8 @@ export default function CentroCompeticion() {
   const defaultView = getUrlParam('vista', 'clasificacion');
 
   const [category, setCategory] = React.useState(defaultCat);
+  const [competition, setCompetition] = React.useState(getUrlParam('competicion', 'Liga'));
+  const isAficonado = category === 'Fútbol Aficionado';
   const [view, setView] = React.useState(defaultView); // 'clasificacion' | 'resultados' | 'goleadores' | 'cruces' | 'jornadas'
   const [search, setSearch] = React.useState('');
   const [fav, setFav] = React.useState(() => storedFav === defaultCat);
@@ -102,10 +104,10 @@ export default function CentroCompeticion() {
   const [scorersDraft, setScorersDraft] = React.useState(null);
   const [savingScorers, setSavingScorers] = React.useState(false);
   const { data: config } = useQuery({
-    queryKey: ['standings-config', category],
+    queryKey: ['standings-config', category, competition],
     queryFn: async () => {
       const list = await base44.entities.StandingsConfig.filter({ categoria: category });
-      return list?.[0] || null;
+      return list?.find(c => (c.competicion || 'Liga') === (category === 'Fútbol Aficionado' ? competition : 'Liga')) || null;
     },
     staleTime: 10 * 60_000,
     gcTime: 60 * 60_000,
@@ -139,9 +141,10 @@ export default function CentroCompeticion() {
             const params = new URLSearchParams(window.location.search);
             params.set('cat', category);
             params.set('vista', view);
+            if (category === 'Fútbol Aficionado') params.set('competicion', competition); else params.delete('competicion');
             const newUrl = `${window.location.pathname}?${params.toString()}`;
             window.history.replaceState({}, '', newUrl);
-          }, [category, view]);
+          }, [category, view, competition]);
 
           // Prefetch desactivado - se carga bajo demanda al cambiar de vista
           // Esto reduce uso de memoria en dispositivos con poca RAM
@@ -215,9 +218,10 @@ export default function CentroCompeticion() {
   };
 
   const { data: standingsPack, isLoading: loadingStandings } = useQuery({
-    queryKey: ['centro-standings', category],
+    queryKey: ['centro-standings', category, competition],
     queryFn: async () => {
-      const recs = await base44.entities.Clasificacion.filter({ categoria: category }, '-updated_date', 200);
+      const allRecs = await base44.entities.Clasificacion.filter({ categoria: category }, '-updated_date', 500);
+      const recs = (allRecs || []).filter(r => (r.competicion || 'Liga') === (category === 'Fútbol Aficionado' ? competition : 'Liga'));
       if (!recs || recs.length === 0) return null;
       const latest = recs[0];
       const temporada = latest.temporada;
@@ -282,7 +286,8 @@ export default function CentroCompeticion() {
       const { temporada, categoria, jornada, standings } = payload;
 
       // 1) Borrar solo registros de la MISMA jornada (permite acumular historial de jornadas para el gráfico de evolución)
-      const prev = await base44.entities.Clasificacion.filter({ categoria, temporada, jornada }, '-updated_date', 400);
+      const prevAll = await base44.entities.Clasificacion.filter({ categoria, temporada, jornada }, '-updated_date', 400);
+      const prev = (prevAll || []).filter(r => (r.competicion || 'Liga') === (category === 'Fútbol Aficionado' ? competition : 'Liga'));
       for (const rec of prev) { try { await base44.entities.Clasificacion.delete(rec.id); } catch {} }
 
       // 2) Insertar todo de nuevo ya normalizado (vacíos -> 0)
@@ -291,6 +296,7 @@ export default function CentroCompeticion() {
         categoria,
         temporada,
         jornada,
+        competicion: category === 'Fútbol Aficionado' ? competition : 'Liga',
         nombre_equipo: String(row.nombre_equipo || '').trim(),
         posicion: toNum(row.posicion),
         puntos: toNum(row.puntos),
@@ -322,14 +328,16 @@ export default function CentroCompeticion() {
       const { temporada, categoria, jornada, matches } = payload;
 
       // Determinar jornada objetivo: siempre sobrescribir la ÚLTIMA existente para esta temporada/categoría
-      const existingAll = await base44.entities.Resultado.filter({ categoria, temporada }, '-jornada', 1000);
+      const existingAllRaw = await base44.entities.Resultado.filter({ categoria, temporada }, '-jornada', 1000);
+      const existingAll = (existingAllRaw || []).filter(r => (r.competicion || 'Liga') === (category === 'Fútbol Aficionado' ? competition : 'Liga'));
       const jornadasNums = existingAll
         .map(r => Number(r.jornada))
         .filter(n => Number.isFinite(n));
       const targetJornada = jornadasNums.length ? Math.max(...jornadasNums) : (Number(jornada) || 1);
 
       // 1) Borrar todos los resultados previos de la jornada objetivo para evitar duplicados
-      const prev = await base44.entities.Resultado.filter({ categoria, temporada, jornada: targetJornada }, '-updated_date', 400);
+      const prevAll = await base44.entities.Resultado.filter({ categoria, temporada, jornada: targetJornada }, '-updated_date', 400);
+      const prev = (prevAll || []).filter(r => (r.competicion || 'Liga') === (category === 'Fútbol Aficionado' ? competition : 'Liga'));
       for (const rec of prev) { try { await base44.entities.Resultado.delete(rec.id); } catch {} }
 
       // 2) Insertar todo normalizado (partidos pendientes sin marcador)
@@ -368,7 +376,8 @@ export default function CentroCompeticion() {
       const { temporada, categoria, players } = payload;
 
       // 1) Borrar todos los registros previos de esa categoría + temporada (evita duplicados)
-      const prev = await base44.entities.Goleador.filter({ categoria, temporada }, '-updated_date', 5000);
+      const prevAll = await base44.entities.Goleador.filter({ categoria, temporada }, '-updated_date', 5000);
+      const prev = (prevAll || []).filter(r => (r.competicion || 'Liga') === (category === 'Fútbol Aficionado' ? competition : 'Liga'));
       for (const rec of prev) { try { await base44.entities.Goleador.delete(rec.id); } catch {} }
 
       // 2) Normalizar y deduplicar por slug (jugador + equipo). Guardar el mayor nº de goles
@@ -417,12 +426,12 @@ export default function CentroCompeticion() {
   const saveConfigUrls = async (updates) => {
     // Refrescar por categoría para evitar actualizar registros de otras categorías
     const currentList = await base44.entities.StandingsConfig.filter({ categoria: category });
-    const currentCfg = currentList?.[0];
+    const currentCfg = (currentList || []).find(c => (c.competicion || 'Liga') === (category === 'Fútbol Aficionado' ? competition : 'Liga'));
 
     if (currentCfg) {
       await base44.entities.StandingsConfig.update(currentCfg.id, { ...updates });
     } else {
-      await base44.entities.StandingsConfig.create({ categoria: category, ...updates });
+      await base44.entities.StandingsConfig.create({ categoria: category, competicion: category === 'Fútbol Aficionado' ? competition : 'Liga', ...updates });
     }
 
     queryClient.invalidateQueries({ queryKey: ['standings-config', category] });
@@ -550,7 +559,7 @@ export default function CentroCompeticion() {
                 </Button>
               </div>
             </div>
-            <div className="text-sm text-slate-600">Categoría activa: <Badge variant="outline">{category}</Badge></div>
+            <div className="flex flex-wrap items-center gap-2 text-sm text-slate-600">Categoría activa: <Badge variant="outline">{category}</Badge>{category === 'Fútbol Aficionado' && <><span>Competición:</span><div className="flex gap-1"><Button size="sm" variant={competition === 'Liga' ? 'default' : 'outline'} onClick={() => setCompetition('Liga')} className={competition === 'Liga' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Liga</Button><Button size="sm" variant={competition === 'Copa Aficionado' ? 'default' : 'outline'} onClick={() => setCompetition('Copa Aficionado')} className={competition === 'Copa Aficionado' ? 'bg-orange-600 hover:bg-orange-700' : ''}>Copa Aficionado</Button></div></>}</div>
 
             {/* 📌 RECORDATORIO INICIO DE TEMPORADA */}
             <details className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-300 overflow-hidden">
