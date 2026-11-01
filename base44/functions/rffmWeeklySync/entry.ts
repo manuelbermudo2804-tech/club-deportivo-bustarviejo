@@ -239,6 +239,7 @@ async function batchCreate(entity, records, label = '') {
 
 async function syncCategory(config, cookies, base44, temporada) {
   const cat = config.categoria;
+  const competition = config.competicion || "Liga";
   const t0 = Date.now();
   const result = { cat, standings: null, results: null, scorers: null, errors: [], cookies };
 
@@ -271,11 +272,11 @@ async function syncCategory(config, cookies, base44, temporada) {
         }
       }
       if (standings.length) {
-        const old = await retryOnRateLimit(() => base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada }));
+        const old = await retryOnRateLimit(() => base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada, competicion: competition }));
         if (old.length) await batchDelete(base44.asServiceRole.entities.Clasificacion, old);
         const jornada = standings[0]?.pj || 0;
         const records = standings.map(s => ({
-          temporada, categoria: cat, jornada, posicion: s.posicion, nombre_equipo: s.equipo,
+          temporada, categoria: cat, competicion: competition, jornada, posicion: s.posicion, nombre_equipo: s.equipo,
           puntos: s.puntos, partidos_jugados: s.pj, ganados: s.pg, empatados: s.pe, perdidos: s.pp,
           goles_favor: s.gf, goles_contra: s.gc, fecha_actualizacion: new Date().toISOString(),
         }));
@@ -294,7 +295,7 @@ async function syncCategory(config, cookies, base44, temporada) {
       // Los resultados se leen del calendario de liga ya sincronizado (el mismo que
       // se ve en la app), así no dependen de un enlace aparte ni de otro lector.
       let latestJ = null, latestM = null;
-      const cache = await retryOnRateLimit(() => base44.asServiceRole.entities.CompetitionCache.filter({ categoria: cat, tipo: 'jornadas' }));
+      const cache = await retryOnRateLimit(() => base44.asServiceRole.entities.CompetitionCache.filter({ categoria: cat, competicion: competition, tipo: 'jornadas' }));
       const datos = cache[0]?.datos;
       const jornadas = Array.isArray(datos) ? datos : (datos?.jornadas || []);
       for (const jd of jornadas) {
@@ -302,7 +303,7 @@ async function syncCategory(config, cookies, base44, temporada) {
         if (ms.some(m => m.jugado) && (!latestJ || jd.jornada > latestJ)) { latestJ = jd.jornada; latestM = ms; }
       }
       if (latestJ && latestM) {
-        const existing = await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.filter({ categoria: cat, temporada, jornada: latestJ }));
+        const existing = await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.filter({ categoria: cat, competicion: competition, temporada, jornada: latestJ }));
         
         // Normalize team name for matching
         const norm = (s) => (s || '').trim().toUpperCase().replace(/\s+/g, ' ');
@@ -332,7 +333,7 @@ async function syncCategory(config, cookies, base44, temporada) {
         } else {
           // No existing records for this jornada — create new ones
           const records = latestM.filter(m => m.jugado).map(m => ({
-            temporada, categoria: cat, jornada: latestJ, local: m.local, visitante: m.visitante,
+            temporada, categoria: cat, competicion: competition, jornada: latestJ, local: m.local, visitante: m.visitante,
             goles_local: m.goles_local, goles_visitante: m.goles_visitante,
             estado: 'finalizado', fecha_actualizacion: new Date().toISOString(),
             ...(m.fecha ? { fecha_partido: m.fecha } : {}),
@@ -417,10 +418,10 @@ async function syncCategory(config, cookies, base44, temporada) {
         const scorers = parseScorers(html);
         console.log(`[SCORERS] ${cat}: ${scorers.length} scorers (attempt ${scorerAttempts})`);
         if (scorers.length) {
-          const old = await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada }));
+          const old = await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.filter({ categoria: cat, competicion: competition, temporada }));
           if (old.length) await batchDelete(base44.asServiceRole.entities.Goleador, old);
           const records = scorers.map((s, i) => ({
-            temporada, categoria: cat, jugador_nombre: s.jugador, equipo: s.equipo,
+            temporada, categoria: cat, competicion: competition, jugador_nombre: s.jugador, equipo: s.equipo,
             goles: s.goles, posicion: i + 1, fecha_actualizacion: new Date().toISOString(),
           }));
           await batchCreate(base44.asServiceRole.entities.Goleador, records, `Sc ${cat}`);
@@ -508,7 +509,7 @@ Deno.serve(async (req) => {
 
       if (r.results && !r.results.skipped) {
         try {
-          const recs = await base44.asServiceRole.entities.Resultado.filter({ categoria: r.cat, temporada, jornada: r.results.jornada });
+          const recs = await base44.asServiceRole.entities.Resultado.filter({ categoria: r.cat, competicion: r.competicion || 'Liga', temporada, jornada: r.results.jornada });
           const bust = recs.find(m => m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO'));
           if (bust) {
             const isLocal = bust.local?.toUpperCase().includes('BUSTARVIEJO');
