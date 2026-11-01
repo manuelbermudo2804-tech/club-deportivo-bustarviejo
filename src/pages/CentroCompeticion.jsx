@@ -350,6 +350,7 @@ export default function CentroCompeticion() {
             categoria,
             temporada,
             jornada: targetJornada,
+            competicion: category === 'Fútbol Aficionado' ? competition : 'Liga',
             local: String(m.local || '').trim(),
             visitante: String(m.visitante || '').trim(),
             goles_local: hasBothScores ? Number(m.goles_local) : undefined,
@@ -400,6 +401,7 @@ export default function CentroCompeticion() {
           dedupMap.set(slug, {
             categoria,
             temporada,
+            competicion: category === 'Fútbol Aficionado' ? competition : 'Liga',
             jugador_nombre: jugador,
             equipo: equipo,
             goles,
@@ -516,7 +518,8 @@ export default function CentroCompeticion() {
         </div>
         {/* View Toggle integrado en el header */}
         {!isAdmin && (
-          <div className="mt-4">
+          <div className="mt-4 space-y-2">
+            {category === 'Fútbol Aficionado' && <div className="flex items-center gap-2 text-sm text-white"><span className="text-orange-200">Competición:</span><Button size="sm" variant={competition === 'Liga' ? 'default' : 'outline'} onClick={() => setCompetition('Liga')} className={competition === 'Liga' ? 'bg-orange-600 hover:bg-orange-700' : 'border-slate-500 text-slate-200'}>Liga</Button><Button size="sm" variant={competition === 'Copa Aficionado' ? 'default' : 'outline'} onClick={() => setCompetition('Copa Aficionado')} className={competition === 'Copa Aficionado' ? 'bg-orange-600 hover:bg-orange-700' : 'border-slate-500 text-slate-200'}>Copa Aficionado</Button></div>}
             <ViewToggle />
           </div>
         )}
