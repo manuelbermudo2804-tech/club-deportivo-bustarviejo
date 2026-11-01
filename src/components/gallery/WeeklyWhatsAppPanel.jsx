@@ -5,11 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, CalendarDays, Copy, Check, ExternalLink, Image as ImageIcon } from "lucide-react";
+import { MessageCircle, CalendarDays, Copy, Check, ExternalLink } from "lucide-react";
 import { toast } from "sonner";
 
 const PHONE_KEY = "cdb_weekly_whatsapp_phone";
-const COMMUNICATED_MATCHES_KEY = "cdb_weekly_whatsapp_communicated_matches";
 const dateISO = (d) => {
   const x = new Date(d);
   return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,"0")}-${String(x.getDate()).padStart(2,"0")}`;
@@ -34,12 +33,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
   const [phone, setPhone] = useState(() => {
     try { return localStorage.getItem(PHONE_KEY) || ""; } catch { return ""; }
   });
-  const [mode, setMode] = useState("schedule");
-  const [selectedPhotos, setSelectedPhotos] = useState([]);
   const [selectedMatchIds, setSelectedMatchIds] = useState([]);
-  const [communicatedMatches, setCommunicatedMatches] = useState(() => {
-    try { return JSON.parse(localStorage.getItem(COMMUNICATED_MATCHES_KEY) || "[]"); } catch { return []; }
-  });
   const [copied, setCopied] = useState(false);
   const todayISO = dateISO(new Date());
   const defaultStart = addDaysISO(todayISO, 1);
@@ -51,10 +45,6 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
   const { data: matches = [], isLoading: loadingMatches } = useQuery({
     queryKey: ["weeklyWhatsAppUpcoming"],
     queryFn: () => base44.entities.ProximoPartido.list("fecha_iso", 500),
-  });
-  const { data: results = [], isLoading: loadingResults } = useQuery({
-    queryKey: ["weeklyWhatsAppResults"],
-    queryFn: () => base44.entities.Resultado.filter({ estado: "finalizado" }, "-fecha_actualizacion", 300),
   });
 
   // Descubrimiento: mantenemos a la vista todos los encuentros futuros registrados.
@@ -150,7 +140,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
     return lines.join("\n");
   }, [recentResults, photoOptions, selectedPhotos]);
 
-  const message = mode === "schedule" ? scheduleText : resultsText;
+  const message = scheduleText;
   const savePhone = (value) => {
     setPhone(value);
     try { localStorage.setItem(PHONE_KEY, value); } catch {}
@@ -176,7 +166,6 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
       toast.success("Mensaje copiado");
     } catch { toast.error("No se ha podido copiar el mensaje en este dispositivo."); }
   };
-  const togglePhoto = (id) => setSelectedPhotos(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
   const toggleMatch = (id) => setSelectedMatchIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
 
   return <Card className="overflow-hidden rounded-2xl border border-emerald-200 bg-white shadow-sm">
@@ -190,11 +179,8 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
         <Input id="weekly-wa-phone" value={phone} onChange={e => savePhone(e.target.value)} placeholder="34XXXXXXXXX" inputMode="tel" className="max-w-md"/>
         <p className="text-xs text-slate-500">Se guarda en este navegador. Escribe el prefijo 34 para España, sin necesidad de poner el signo +.</p>
       </div>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-        <Button variant={mode === "schedule" ? "default" : "outline"} onClick={() => setMode("schedule")} className={mode === "schedule" ? "bg-orange-600 hover:bg-orange-700" : ""}><CalendarDays className="mr-2 h-4 w-4"/> Calendario y horarios</Button>
-        <Button variant={mode === "results" ? "default" : "outline"} onClick={() => setMode("results")} className={mode === "results" ? "bg-orange-600 hover:bg-orange-700" : ""}>🏆 Lunes · Resultados y fotos</Button>
-      </div>
-      {mode === "schedule" ? <div className="space-y-3">
+      <div className="flex items-center gap-2 rounded-xl border border-orange-200 bg-orange-50 p-3 text-sm font-semibold text-orange-900"><CalendarDays className="h-5 w-5"/> Calendario y horarios</div>
+      <div className="space-y-3">
         <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
           <p className="mb-2 text-sm font-semibold text-slate-800">1. Elige el periodo que quieres anunciar</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -217,8 +203,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
         </div>
         <div className="flex flex-wrap gap-2"><Button onClick={markSelectedAsCommunicated} variant="outline" className="border-orange-300 text-orange-800 hover:bg-orange-50">✓ Marcar selección como comunicada</Button><Badge>{communicatedMatches.length} partidos marcados como comunicados</Badge></div>
 
-      </div> : <div className="space-y-3">
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3"><Badge>{loadingResults ? "Cargando resultados…" : `${recentResults.length} resultados de los últimos 7 días`}</Badge><p className="mt-2 text-sm text-slate-600">Los resultados finalizados se detectan automáticamente por la fecha del partido, sin depender de lo que se marcó como comunicado en este navegador. Las fotos se filtran por su fecha de subida y se agrupan visualmente por equipo.</p></div>
+      </div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {photoOptions.map(f => <button type="button" key={f.id} onClick={() => togglePhoto(f.id)} className={`overflow-hidden rounded-xl border text-left ${selectedPhotos.includes(f.id) ? "border-emerald-600 ring-2 ring-emerald-200" : "border-slate-200"}`}>
             <img src={f.url} alt={f.title} className="h-28 w-full object-cover" loading="lazy"/>
