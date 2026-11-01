@@ -64,24 +64,28 @@ Deno.serve(async (req) => {
     let addedPhotos = 0;
 
     for (const album of chosen) {
-      if (publishedAlbumSet.has(String(album.id))) continue;
+      // No descartamos el álbum por estar publicado: puede haberse actualizado
+      // con fotos nuevas después de la publicación anterior.
       const photos = album.fotos.map(f => safeUrl(f?.url)).filter(Boolean).filter(url => !publishedUrlSet.has(url));
-      if (!photos.length) {
-        // Don't mark an empty album published; it may have duplicate images from another album.
-        continue;
-      }
+      if (!photos.length) continue;
+
       const catSlug = slug(album.categoria);
       const sectionId = 'app-' + catSlug + '-' + slug(album.titulo) + '-' + slug(album.id).slice(-24);
       const links = photos.map((url, i) => {
         publishedUrlSet.add(url);
         addedPhotos++;
-        return '<a href="' + esc(url) + '" class="glightbox" data-photo-url="' + esc(url) + '"><img src="' + esc(url) + '" alt="' + esc(album.titulo + ' — foto ' + (i + 1)) + '" loading="lazy"></a>';
+        return '<a href="' + esc(url) + '" class="glightbox" data-photo-url="' + esc(url) + '"><img src="' + esc(url) + '" alt="' + esc(album.titulo + ' — foto nueva ' + (i + 1)) + '" loading="lazy"></a>';
       }).join('\n');
       const cleanTitle = String(album.titulo || '').replace(/^\s*📸?\s*Chat Entrenador\s*[-–—:]\s*/i, '').trim() || String(album.categoria || 'Galería');
-      newSections.push('<div class="galeria-seccion" data-album-id="' + esc(album.id) + '" data-category="' + esc(album.categoria) + '">\n<h2 id="' + esc(sectionId) + '">' + esc(cleanTitle) + '</h2>\n<p>' + esc(album.descripcion || '') + '</p>\n<div class="galeria-grid">\n' + links + '\n</div>\n</div>');
+
+      // Se crea una sección de novedades con el mismo álbum, únicamente con
+      // las URLs aún no publicadas. Así no se duplican las fotos anteriores.
+      const title = publishedAlbumSet.has(String(album.id)) ? cleanTitle + ' · Fotos nuevas' : cleanTitle;
+      newSections.push('<div class="galeria-seccion" data-album-id="' + esc(album.id) + '" data-category="' + esc(album.categoria) + '">\n<h2 id="' + esc(sectionId) + '">' + esc(title) + '</h2>\n<p>' + esc(album.descripcion || '') + '</p>\n<div class="galeria-grid">\n' + links + '\n</div>\n</div>');
       publishedIds.push(String(album.id));
+      publishedAlbumSet.add(String(album.id));
     }
-    if (!newSections.length) return Response.json({ error: 'Los álbumes seleccionados ya están publicados o no contienen enlaces de fotos HTTPS nuevos.', already_published: true });
+    if (!newSections.length) return Response.json({ error: 'No se han encontrado fotos nuevas con enlaces HTTPS en los álbumes seleccionados. Puede que ya estén publicadas o que las fotos no tengan una URL válida.', already_published: true });
 
     const block = MARKER_START + '\n' + existingHtml + (existingHtml ? '\n' : '') + newSections.join('\n\n') + '\n' + MARKER_END;
     let updatedHtml;
