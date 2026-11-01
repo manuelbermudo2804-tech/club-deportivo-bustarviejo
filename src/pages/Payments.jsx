@@ -622,7 +622,7 @@ export default function Payments() {
       payment.mes?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesPlayer = playerFilter === "all" || payment.jugador_id === playerFilter;
     const matchesTemporada = matchTemporada(payment.temporada, temporadaFilter);
-    const matchesEstado = estadoFilter === "all" || payment.estado === estadoFilter;
+    const matchesEstado = estadoFilter === "sin_pagos" ? false : (estadoFilter === "all" || payment.estado === estadoFilter);
     
     // Filtro de categoría
     let matchesCategoria = true;
@@ -1127,6 +1127,7 @@ export default function Payments() {
                         <SelectItem value="En revisión">En revisión</SelectItem>
                         <SelectItem value="Pagado">Pagado</SelectItem>
                         <SelectItem value="Vencido">Vencido (cuotas vencidas)</SelectItem>
+                        <SelectItem value="sin_pagos">🔴 No ha abonado nada</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1138,6 +1139,7 @@ export default function Payments() {
                         setTemporadaFilter(activeSeasonStr || "all");
                         setCategoriaFilter("all");
                         setEstadoFilter("all");
+                        setPlayerFilter("all");
                         setShowOverdueOnly(false);
                         setSearchTerm("");
                       }}
@@ -1215,13 +1217,17 @@ export default function Payments() {
                 const hasActivePlan = customPlans.some(p => p.jugador_id === player.id && p.estado === "Activo" && matchTemporada(p.temporada, temporadaFilter));
 
                 // Si hay filtro de temporada específico y el jugador NO tiene pagos en esa temporada NI plan especial, no mostrarlo
-                if (temporadaFilter !== "all" && playerPayments.length === 0 && !hasActivePlan) {
+                if (estadoFilter !== "sin_pagos" && temporadaFilter !== "all" && playerPayments.length === 0 && !hasActivePlan) {
                   return false;
                 }
 
                  // Filtro por estado - verificar si el jugador tiene pagos del estado buscado
                  let matchesEstado = true;
                  if (estadoFilter !== "all") {
+                   if (estadoFilter === "sin_pagos") {
+                     // Sin pagos significa que no existe ningún abono confirmado en la temporada filtrada.
+                     // Los pagos en revisión no cuentan como abonados.
+                     matchesEstado = !playerPayments.some(p => p.estado === "Pagado");
                    // Si filtramos por "Pendiente", verificar si le falta algún pago
                    if (estadoFilter === "Vencido") {
                      const esUnico = playerPayments.some(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
