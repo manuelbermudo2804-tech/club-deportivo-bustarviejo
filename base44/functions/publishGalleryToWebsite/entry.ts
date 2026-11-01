@@ -19,6 +19,25 @@ function safeUrl(value='') {
 function slug(value='') {
   return String(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'') || 'album';
 }
+function appendPhotosToPublishedAlbum(sourceHtml, albumId, linksHtml) {
+  const marker = 'data-album-id="' + esc(albumId) + '"';
+  const albumAt = sourceHtml.indexOf(marker);
+  if (albumAt < 0) return null;
+  const gridOpen = '<div class="galeria-grid">';
+  const gridAt = sourceHtml.indexOf(gridOpen, albumAt);
+  if (gridAt < 0) return null;
+  const contentAt = gridAt + gridOpen.length;
+  let depth = 1;
+  const tags = /<\/?div\b[^>]*>/gi;
+  tags.lastIndex = contentAt;
+  let match;
+  while ((match = tags.exec(sourceHtml))) {
+    if (/^<div\b/i.test(match[0])) depth++;
+    else depth--;
+    if (depth === 0) return sourceHtml.slice(0, match.index) + '\n' + linksHtml + '\n' + sourceHtml.slice(match.index);
+  }
+  return null;
+}
 
 Deno.serve(async (req) => {
   try {
