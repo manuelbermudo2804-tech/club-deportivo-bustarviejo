@@ -75,24 +75,26 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
 
   const selectedMatches = useMemo(() => inPeriod.filter(p => selectedMatchIds.includes(p.id)), [inPeriod, selectedMatchIds]);
 
-  const pastCommunicatedMatches = useMemo(
-    () => communicatedMatches.filter(p => p.fecha_iso && p.fecha_iso < todayISO),
-    [communicatedMatches, todayISO]
-  );
-
+  // Detecta los resultados recientes directamente desde la base de datos.
+  // No depende de que el partido se marcara previamente como comunicado en este navegador.
   const recentResults = useMemo(() => {
     const toISO = (raw) => {
-      const m = String(raw || "").match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-      return m ? `${m[3]}-${m[2]}-${m[1]}` : String(raw || "");
+      const value = String(raw || "").trim();
+      const m = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+      if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+      return /^\d{4}-\d{2}-\d{2}/.test(value) ? value.slice(0, 10) : "";
     };
-    if (!pastCommunicatedMatches.length) return [];
-    return results.filter(r => r.estado === "finalizado" && pastCommunicatedMatches.some(p =>
-      (r.categoria || "").trim().toLowerCase() === (p.categoria || "").trim().toLowerCase() &&
-      toISO(r.fecha_partido) === p.fecha_iso &&
-      (r.local || "").trim().toLowerCase() === (p.local || "").trim().toLowerCase() &&
-      (r.visitante || "").trim().toLowerCase() === (p.visitante || "").trim().toLowerCase()
-    )).sort((a,b) => (a.categoria || "").localeCompare(b.categoria || ""));
-  }, [results, pastCommunicatedMatches]);
+    const cutoff = addDaysISO(todayISO, -6);
+    return results
+      .filter(r => {
+        if (r.estado !== "finalizado") return false;
+        const matchDate = toISO(r.fecha_partido);
+        const updatedDate = toISO(r.fecha_actualizacion || r.updated_date);
+        const effectiveDate = matchDate || updatedDate;
+        return effectiveDate && effectiveDate >= cutoff && effectiveDate <= todayISO;
+      })
+      .sort((a,b) => toISO(b.fecha_partido).localeCompare(toISO(a.fecha_partido)) || (a.categoria || "").localeCompare(b.categoria || ""));
+  }, [results, todayISO]);
 
   // Selecciona las fotos subidas individualmente en los últimos 7 días.
   // Las fotos antiguas sin uploaded_at usan fecha_evento como compatibilidad.
@@ -130,8 +132,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
 
   const resultsText = useMemo(() => {
     const lines = ["🟠⚫ *C.D. BUSTARVIEJO | RESULTADOS DE LOS PARTIDOS COMUNICADOS* ⚽", ""];
-    if (!pastCommunicatedMatches.length) lines.push("No hay partidos anteriores marcados como comunicados. En Horarios, selecciona los encuentros y pulsa «Marcar como comunicados» después de enviarlos por WhatsApp.");
-    else if (!recentResults.length) lines.push("Todavía no hay resultados finales registrados para los partidos que marcaste como comunicados.");
+    if (!recentResults.length) lines.push("No hay resultados finalizados registrados en los últimos siete días. Comprueba que los resultados estén guardados como «finalizado» y tengan fecha de partido.");
     else recentResults.forEach(r => {
       lines.push(`⚽ *${r.categoria || "Equipo"}*`);
       lines.push(`${r.local || r.equipo_local || "Bustarviejo"} ${r.goles_local ?? "—"} - ${r.goles_visitante ?? "—"} ${r.visitante || r.rival || ""}`);
@@ -147,7 +148,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
     }
     lines.push("¡Enhorabuena a todos por el esfuerzo! 🧡🖤");
     return lines.join("\n");
-  }, [recentResults, photoOptions, selectedPhotos, pastCommunicatedMatches]);
+  }, [recentResults, photoOptions, selectedPhotos]);
 
   const message = mode === "schedule" ? scheduleText : resultsText;
   const savePhone = (value) => {
@@ -217,7 +218,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
         <div className="flex flex-wrap gap-2"><Button onClick={markSelectedAsCommunicated} variant="outline" className="border-orange-300 text-orange-800 hover:bg-orange-50">✓ Marcar selección como comunicada</Button><Badge>{communicatedMatches.length} partidos marcados como comunicados</Badge></div>
 
       </div> : <div className="space-y-3">
-        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3"><Badge>{loadingResults ? "Cargando resultados…" : `${recentResults.length} resultados de partidos comunicados`}</Badge><p className="mt-2 text-sm text-slate-600">Los resultados corresponden a los partidos marcados como comunicados. Las fotos se filtran por la fecha de subida de cada imagen y se agrupan visualmente por equipo.</p><p className="mt-1 text-xs text-slate-500">{pastCommunicatedMatches.length} partidos comunicados anteriores guardados en este navegador.</p></div>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-3"><Badge>{loadingResults ? "Cargando resultados…" : `${recentResults.length} resultados de los últimos 7 días`}</Badge><p className="mt-2 text-sm text-slate-600">Los resultados finalizados se detectan automáticamente por la fecha del partido, sin depender de lo que se marcó como comunicado en este navegador. Las fotos se filtran por su fecha de subida y se agrupan visualmente por equipo.</p></div>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
           {photoOptions.map(f => <button type="button" key={f.id} onClick={() => togglePhoto(f.id)} className={`overflow-hidden rounded-xl border text-left ${selectedPhotos.includes(f.id) ? "border-emerald-600 ring-2 ring-emerald-200" : "border-slate-200"}`}>
             <img src={f.url} alt={f.title} className="h-28 w-full object-cover" loading="lazy"/>
