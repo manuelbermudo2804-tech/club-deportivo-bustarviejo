@@ -11,7 +11,10 @@ export const KIND_STYLES = {
 };
 
 export default function AgendaItemCard({ item }) {
-  const style = KIND_STYLES[item.kind] || KIND_STYLES.evento;
+  const esCopa = String(item.competicion || "").toLowerCase().includes("copa") || String(item.titulo || "").toLowerCase().includes("partido de copa");
+  const style = item.kind === "partido" && esCopa
+    ? { ...KIND_STYLES.partido, label: "Partido de Copa" }
+    : KIND_STYLES[item.kind] || KIND_STYLES.evento;
 
   return (
     <div className={`relative bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden ${item.cancelado ? "opacity-60" : ""}`}>
