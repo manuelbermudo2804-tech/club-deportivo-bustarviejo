@@ -6,11 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Trophy } from "lucide-react";
 
-export default function ScorersList({ categoryFullName, isAdmin, onDelete }) {
+export default function ScorersList({ categoryFullName, isAdmin, onDelete, competition = "Liga" }) {
   const queryClient = useQueryClient();
   const { data: scorers = [], isLoading } = useQuery({
-    queryKey: ['goleadores', categoryFullName],
-    queryFn: () => base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 200),
+    queryKey: ['goleadores', categoryFullName, competition],
+    queryFn: async () => {
+      const rows = await base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 1000);
+      return rows.filter((r) => (r.competicion || 'Liga') === (categoryFullName === 'Fútbol Aficionado' ? competition : 'Liga'));
+    },
     staleTime: 30_000,
     gcTime: 10 * 60_000,
     refetchOnWindowFocus: false,

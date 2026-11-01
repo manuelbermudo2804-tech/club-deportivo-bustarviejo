@@ -854,11 +854,11 @@ export default function CentroCompeticion() {
         )}
 
         {view === 'resultados' && (
-          <ResultsList categoryFullName={category} isAdmin={isAdmin} />
+          <ResultsList categoryFullName={category} isAdmin={isAdmin} competition={competition} />
         )}
 
         {view === 'goleadores' && (
-          <ScorersList categoryFullName={category} isAdmin={isAdmin} />
+          <ScorersList categoryFullName={category} isAdmin={isAdmin} competition={competition} />
         )}
 
         {view === 'cruces' && (

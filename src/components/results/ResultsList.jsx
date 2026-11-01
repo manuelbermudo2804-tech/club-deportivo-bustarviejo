@@ -7,13 +7,16 @@ import { Button } from "@/components/ui/button";
 import { Trash2, ChevronDown, ChevronUp, FileText } from "lucide-react";
 import MatchReportModal from "./MatchReportModal";
 
-export default function ResultsList({ categoryFullName, isAdmin, onDelete }) {
+export default function ResultsList({ categoryFullName, isAdmin, onDelete, competition = "Liga" }) {
   const [showAll, setShowAll] = React.useState(false);
   const [selectedMatch, setSelectedMatch] = React.useState(null);
   const queryClient = useQueryClient();
   const { data: results = [], isLoading } = useQuery({
-    queryKey: ['resultados', categoryFullName],
-    queryFn: () => base44.entities.Resultado.filter({ categoria: categoryFullName }, '-jornada', 200),
+    queryKey: ['resultados', categoryFullName, competition],
+    queryFn: async () => {
+      const rows = await base44.entities.Resultado.filter({ categoria: categoryFullName }, '-jornada', 500);
+      return rows.filter((r) => (r.competicion || 'Liga') === (categoryFullName === 'Fútbol Aficionado' ? competition : 'Liga'));
+    },
     staleTime: 30_000,
     gcTime: 10 * 60_000,
     refetchOnWindowFocus: false,
