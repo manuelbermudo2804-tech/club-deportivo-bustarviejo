@@ -1228,8 +1228,7 @@ export default function Payments() {
                      // Sin pagos significa que no existe ningún abono confirmado en la temporada filtrada.
                      // Los pagos en revisión no cuentan como abonados.
                      matchesEstado = !playerPayments.some(p => p.estado === "Pagado");
-                   // Si filtramos por "Pendiente", verificar si le falta algún pago
-                   if (estadoFilter === "Vencido") {
+                   } else if (estadoFilter === "Vencido") {
                      const esUnico = playerPayments.some(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
                      const esPlan = playerPayments.some(p => p.tipo_pago === "Plan Especial" || p.tipo_pago === "Plan Mensual");
                      const realVencido = playerPayments.some(p => p.estado === "Pendiente" && calculateDaysOverdue(p.mes) > 0);
