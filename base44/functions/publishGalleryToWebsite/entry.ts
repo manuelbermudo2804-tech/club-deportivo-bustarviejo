@@ -76,7 +76,11 @@ Deno.serve(async (req) => {
         addedPhotos++;
         return '<a href="' + esc(url) + '" class="glightbox" data-photo-url="' + esc(url) + '"><img src="' + esc(url) + '" alt="' + esc(album.titulo + ' — foto nueva ' + (i + 1)) + '" loading="lazy"></a>';
       }).join('\n');
-      const cleanTitle = String(album.titulo || '').replace(/^\s*📸?\s*Chat Entrenador\s*[-–—:]\s*/i, '').trim() || String(album.categoria || 'Galería');
+      const cleanTitle = String(album.titulo || '')
+        .replace(/^\s*📸?\s*/u, '')
+        .replace(/^fotos?\s+compartidas?\s+desde\s+el\s+chat\s+del\s+entrenador\s*[-–—:]?\s*/i, '')
+        .replace(/^chat\s+entrenador\s*[-–—:]\s*/i, '')
+        .trim() || String(album.categoria || 'Galería');
 
       // Se crea una sección de novedades con el mismo álbum, únicamente con
       // las URLs aún no publicadas. Así no se duplican las fotos anteriores.
