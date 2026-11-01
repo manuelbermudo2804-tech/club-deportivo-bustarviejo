@@ -116,7 +116,7 @@ Deno.serve(async (req) => {
       publishedIds.push(String(album.id));
       publishedAlbumSet.add(String(album.id));
     }
-    if (!newSections.length) return Response.json({ error: 'No se han encontrado fotos nuevas con enlaces HTTPS en los álbumes seleccionados. Puede que ya estén publicadas o que las fotos no tengan una URL válida.', already_published: true });
+    if (!newSections.length && addedPhotos === 0) return Response.json({ error: 'No se han encontrado fotos nuevas con enlaces HTTPS en los álbumes seleccionados. Puede que ya estén publicadas o que las fotos no tengan una URL válida.', already_published: true });
 
     const block = MARKER_START + '\n' + existingHtml + (existingHtml ? '\n' : '') + newSections.join('\n\n') + '\n' + MARKER_END;
     let updatedHtml;
