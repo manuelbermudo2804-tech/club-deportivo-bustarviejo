@@ -338,8 +338,11 @@ Deno.serve(async (req) => {
     let currentCookies = cookies;
     const processCategory = async (config) => {
       try {
+        const competition = config.competicion || "Liga";
+        const competitionKey = `${config.categoria}::${competition}`;
+        const competitionLabel = competition === "Liga" ? "" : ` · ${competition}`;
         const url = config.rfef_results_url || config.rfef_url;
-        const lastKnown = lastJornadaByCategory[config.categoria] || 1;
+        const lastKnown = lastJornadaByCategory[competitionKey] || lastJornadaByCategory[config.categoria] || 1;
         
         const result = await findNextMatch(url, currentCookies, lastKnown);
         const match = result?.match;
@@ -368,11 +371,13 @@ Deno.serve(async (req) => {
           // or the title/jornada text is stale. Never guess if multiple convocatorias match.
           const candidates = allCallups.filter(c =>
             c.categoria === config.categoria &&
+            (c.competicion || "Liga") === competition &&
             !c.cerrada && c.estado_convocatoria !== 'cancelada' &&
             normTeam(c.rival) === normTeam(umRival)
           );
           const systemJornadaCandidates = allCallups.filter(c =>
             c.categoria === config.categoria &&
+            (c.competicion || "Liga") === competition &&
             !c.cerrada && c.estado_convocatoria !== 'cancelada' &&
             c.entrenador_email === 'sistema@cdbustarviejo.es' &&
             (c.titulo?.includes(`Jornada ${umJornada}`) ||
@@ -399,7 +404,7 @@ Deno.serve(async (req) => {
             patch.enlace_ubicacion = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(umMatch.campo)}`;
             parts.push('campo actualizado');
           }
-          const correctTitle = `Jornada ${umJornada} vs ${umRival}`;
+          const correctTitle = `Jornada ${umJornada}${competitionLabel} vs ${umRival}`;
           if (target.titulo !== correctTitle) patch.titulo = correctTitle;
           if (target.rival !== umRival) patch.rival = umRival;
           const correctHomeAway = umLocal ? 'Local' : 'Visitante';
@@ -450,10 +455,11 @@ Deno.serve(async (req) => {
             }
           }
           const existingProximo = allProximos.find(p =>
-            p.categoria === config.categoria && p.jornada === umJornada
+            p.categoria === config.categoria && (p.competicion || "Liga") === competition && p.jornada === umJornada
           );
           const proximoData = {
             categoria: config.categoria,
+            competicion: competition,
             jornada: umJornada,
             local: umMatch.local || '',
             visitante: umMatch.visitante || '',
@@ -481,7 +487,7 @@ Deno.serve(async (req) => {
         // ONLY match convocatorias created by the system OR that match this specific jornada+rival
         // Never touch manually-created callups (amistosos, torneos, etc.)
         const callup = openCallups.find(c => 
-          c.categoria === config.categoria && (
+          c.categoria === config.categoria && (c.competicion || "Liga") === competition && (
             // Borradores del sistema: SOLO el de esta misma jornada (antes cogía cualquiera y mezclaba jornadas)
             (c.entrenador_email === 'sistema@cdbustarviejo.es' &&
               (c.titulo?.includes(`Jornada ${jornada} `) || c.descripcion?.includes(`(Jornada ${jornada})`))) ||
@@ -491,7 +497,7 @@ Deno.serve(async (req) => {
 
         // Also check if a convocatoria already exists for this specific jornada+category (even if closed/past)
         const existingForJornada = allCallups.find(c => 
-          c.categoria === config.categoria && 
+          c.categoria === config.categoria && (c.competicion || "Liga") === competition &&
           c.titulo?.includes(`Jornada ${jornada}`)
         );
 
@@ -518,8 +524,9 @@ Deno.serve(async (req) => {
           }));
 
           await base44.asServiceRole.entities.Convocatoria.create({
-            titulo: `Jornada ${jornada} vs ${rival}`,
+            titulo: `Jornada ${jornada}${competitionLabel} vs ${rival}`,
             categoria: config.categoria,
+            competicion: competition,
             tipo: 'Partido',
             rival,
             fecha_partido: matchDate,
@@ -532,10 +539,11 @@ Deno.serve(async (req) => {
             entrenador_nombre: 'Sistema automático',
             publicada: false,
             notificaciones_enviadas: false,
-            descripcion: `Borrador creado automáticamente desde RFFM (Jornada ${jornada}). Revisa y publica cuando esté lista.`,
+            descripcion: `Borrador creado automáticamente desde RFFM${competitionLabel} (Jornada ${jornada}). Revisa y publica cuando esté lista.`,
+            competicion: competition,
           });
 
-          created.push({ categoria: config.categoria, rival, jornada, fecha: matchDate });
+          created.push({ categoria: config.categoria, competicion: competition, rival, jornada, fecha: matchDate });
           return null;
         }
 
