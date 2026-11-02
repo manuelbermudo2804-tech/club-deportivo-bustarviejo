@@ -7,7 +7,7 @@ const loadImageAsDataUrl = async (url) => {
   try {
     // Nunca permitir que una imagen externa bloquee indefinidamente la creación del recibo.
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 7000);
+    const timeout = setTimeout(() => controller.abort(), 2500);
     let buf;
     let contentType = 'image/png';
     try {
@@ -231,8 +231,14 @@ Deno.serve(async (req) => {
       // Usar SIEMPRE la temporada activa de configuración (ej: 2026/2027), no la del campo del pago
       const temporadaActiva = activeConfig?.temporada || payment.temporada || 'S/T';
       const prefijo = String(temporadaActiva).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const yaAsignados = await base44.asServiceRole.entities.Payment.count({ numero_recibo: { $regex: `^${prefijo}-` } });
-      const correlativo = String(yaAsignados + 1).padStart(4, '0');
+      // Evitar consultas count con regex: no todos los filtros del SDK admiten $regex.
+      // Leer los números existentes y calcular el máximo en memoria.
+      const pagosTemporada = await base44.asServiceRole.entities.Payment.filter({ temporada: temporadaActiva });
+      const maxCorrelativo = (pagosTemporada || []).reduce((max, p) => {
+        const match = String(p.numero_recibo || '').match(/-(\\d+)$/);
+        return match ? Math.max(max, Number(match[1])) : max;
+      }, 0);
+      const correlativo = String(maxCorrelativo + 1).padStart(4, '0');
       numeroRecibo = `${temporadaActiva}-${correlativo}`;
       // Persistir el número en el pago para que sea estable
       await base44.asServiceRole.entities.Payment.update(paymentId, { numero_recibo: numeroRecibo });
