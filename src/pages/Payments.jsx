@@ -25,7 +25,8 @@ import DeudaAnteriorRevisionPanel from "@/components/payments/DeudaAnteriorRevis
 import CustomPaymentPlansList from "../components/payments/CustomPaymentPlansList";
 import CustomPaymentPlanForm from "../components/payments/CustomPaymentPlanForm";
 import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImportePorMes } from "../components/payments/paymentAmounts";
-import { sendPaymentReceipt, createPlayerPaymentReceiptData, generatePaymentReceiptPDF } from "../components/receipts/PaymentReceiptPDF";
+import { sendPaymentReceipt, createPlayerPaymentReceiptData } from "../components/receipts/PaymentReceiptPDF";
+import { generateReciboPDF } from "../components/recibos/reciboPdfGenerator";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import FeeAdjustmentDialog from "../components/payments/FeeAdjustmentDialog";
 import FraccionarCuotaDialog from "../components/payments/FraccionarCuotaDialog";
@@ -1673,16 +1674,32 @@ export default function Payments() {
                                          <Button
                                            variant="ghost"
                                            size="sm"
-                                           onClick={() => {
+                                           onClick={async () => {
                                              if (payment.recibo_url) { window.open(payment.recibo_url, '_blank'); return; }
                                              try {
                                                const receiptData = createPlayerPaymentReceiptData(payment, player, { temporada: payment.temporada });
-                                               const doc = generatePaymentReceiptPDF(receiptData);
-                                               const safeName = String(player?.nombre || payment.jugador_nombre || 'Jugador')
-                                                 .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                                                 .replace(/[^a-zA-Z0-9_-]+/g, '_');
-                                               doc.save(`Recibo_${safeName}_${receiptData.numeroRecibo}.pdf`);
-                                               toast.success('Recibo PDF descargado correctamente.');
+                                               let branding = { logoUrl: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" };
+                                               try {
+                                                 const assets = await base44.entities.BrandingAssets.list();
+                                                 const shared = assets?.[0];
+                                                 if (shared?.logo_url) branding.logoUrl = shared.logo_url;
+                                                 if (shared?.sello_url) branding.selloUrl = shared.sello_url;
+                                                 if (shared?.firma_url) branding.firmaUrl = shared.firma_url;
+                                               } catch (brandingError) {
+                                                 console.warn('[Payments] No se pudieron cargar firma/sello compartidos:', brandingError);
+                                               }
+                                               const amount = Number(receiptData.importe || 0);
+                                               await generateReciboPDF({
+                                                 numero: receiptData.numeroRecibo,
+                                                 fecha: String(receiptData.fechaPago || new Date().toISOString()).slice(0, 10),
+                                                 recibiDe: receiptData.nombre || payment.jugador_nombre || player?.nombre || 'Jugador',
+                                                 cantidad: amount.toFixed(2).replace('.', ','),
+                                                 concepto: `Cuota deportiva de ${receiptData.jugadorNombre || payment.jugador_nombre || player?.nombre || 'jugador'} · ${receiptData.mes || payment.mes || 'Cuota'}`,
+                                                 temporada: receiptData.temporada || payment.temporada || '',
+                                                 lugar: 'Bustarviejo',
+                                                 ...branding,
+                                               });
+                                               toast.success('Recibo oficial descargado correctamente.');
                                              } catch (e) {
                                                console.error('[Payments] Error generando PDF local:', e);
                                                toast.error(`No se ha podido generar el PDF: ${e?.message || 'error desconocido'}`);
