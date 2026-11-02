@@ -6,7 +6,8 @@ import { Upload, FileText, Loader2, CheckCircle2, Clock, AlertCircle, Download }
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { generatePaymentReceiptPDF, createPlayerPaymentReceiptData } from "@/components/receipts/PaymentReceiptPDF";
+import { createPlayerPaymentReceiptData } from "@/components/receipts/PaymentReceiptPDF";
+import { generateReciboPDF } from "@/components/recibos/reciboPdfGenerator";
 
 const statusConfig = {
   "Pagado": { emoji: "🟢", bg: "bg-green-50 border-green-200", icon: CheckCircle2, color: "text-green-700", badgeCls: "bg-green-100 text-green-800" },
@@ -43,15 +44,34 @@ export default function PaymentCard({
     if (payment.isVirtual || generatingReceipt || receiptUrl) return;
     setGeneratingReceipt(true);
     try {
-      // Generar y descargar el PDF en el navegador: evita el servicio de subida
-      // de Base44 que se queda bloqueado después de crear el documento.
+      // Usar exactamente el mismo diseño de recibo que el generador de patrocinios,
+      // incluyendo logo, firma y sello compartidos del club.
       const receiptData = createPlayerPaymentReceiptData(payment, player, { temporada: payment.temporada });
-      const doc = generatePaymentReceiptPDF(receiptData);
-      const safeName = String(player?.nombre || payment.jugador_nombre || 'Jugador')
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-zA-Z0-9_-]+/g, '_');
-      doc.save(`Recibo_${safeName}_${receiptData.numeroRecibo}.pdf`);
-      toast.success('Recibo PDF descargado correctamente.');
+      let branding = {};
+      try {
+        const assets = await base44.entities.BrandingAssets.list();
+        const shared = assets?.[0];
+        branding = {
+          logoUrl: shared?.logo_url || undefined,
+          selloUrl: shared?.sello_url || undefined,
+          firmaUrl: shared?.firma_url || undefined,
+        };
+      } catch (brandingError) {
+        console.warn('[PaymentCard] No se pudieron cargar firma/sello compartidos:', brandingError);
+      }
+      const amount = Number(receiptData.importe || 0);
+      const amountText = amount.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      await generateReciboPDF({
+        numero: receiptData.numeroRecibo,
+        fecha: String(receiptData.fechaPago || new Date().toISOString()).slice(0, 10),
+        recibiDe: receiptData.nombre || payment.jugador_nombre || player?.nombre || 'Jugador',
+        cantidad: amountText,
+        concepto: `Cuota deportiva de ${receiptData.jugadorNombre || payment.jugador_nombre || player?.nombre || 'jugador'} · ${receiptData.mes || payment.mes || 'Cuota'}`,
+        temporada: receiptData.temporada || payment.temporada || '',
+        lugar: 'Bustarviejo',
+        ...branding,
+      });
+      toast.success('Recibo oficial descargado correctamente.');
     } catch (error) {
       console.error('[PaymentCard] Error generando recibo:', error);
       toast.error(`No se ha podido generar el PDF: ${error?.message || 'error desconocido'}`);
