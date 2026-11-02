@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -39,19 +39,22 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
   const defaultStart = addDaysISO(todayISO, 1);
   const [periodStart, setPeriodStart] = useState(defaultStart);
   const [periodEnd, setPeriodEnd] = useState(addDaysISO(defaultStart, 6));
-  const today = new Date();
-  const day = today.getDay();
+  const queryClient = useQueryClient();
 
   const { data: matches = [], isLoading: loadingMatches, isFetching: refreshingMatches, refetch: refetchMatches } = useQuery({
     queryKey: ["weeklyWhatsAppUpcoming"],
     queryFn: () => base44.entities.ProximoPartido.list("fecha_iso", 500),
   });
 
-  const refreshSchedule = async () => {
+  const refreshSchedule = async (event) => {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    toast("Consultando de nuevo el calendario…");
     try {
+      await queryClient.invalidateQueries({ queryKey: ["weeklyWhatsAppUpcoming"], exact: true, refetchType: "none" });
       const result = await refetchMatches();
       if (result.error) throw result.error;
-      toast.success("Horarios actualizados desde la app");
+      toast.success(`Horarios actualizados: ${result.data?.length ?? 0} registros consultados`);
     } catch (error) {
       console.error("Error actualizando horarios para WhatsApp:", error);
       toast.error("No se han podido actualizar los horarios. Inténtalo de nuevo.");
@@ -131,7 +134,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
           <div className="mt-3 flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => {setPeriodStart(defaultStart);setPeriodEnd(addDaysISO(defaultStart,6));}}>Próximos 7 días</Button><Button size="sm" variant="outline" onClick={() => {setPeriodStart(todayISO);setPeriodEnd(addDaysISO(todayISO,13));}}>Próximas 2 semanas</Button></div>
         </div>
         <div className="rounded-xl border border-slate-200 p-3">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-800">2. Marca los partidos que quieras incluir</p><div className="flex flex-wrap items-center gap-2"><Badge>{loadingMatches ? "Cargando calendario…" : `${allFuture.length} partidos futuros · ${inPeriod.length} en el periodo`}</Badge><Button type="button" size="sm" variant="outline" onClick={refreshSchedule} disabled={refreshingMatches} className="gap-1.5"><RefreshCw className={`h-3.5 w-3.5 ${refreshingMatches ? "animate-spin" : ""}`}/>{refreshingMatches ? "Actualizando…" : "Actualizar horarios"}</Button></div></div>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-800">2. Marca los partidos que quieras incluir</p><div className="flex flex-wrap items-center gap-2"><Badge>{loadingMatches ? "Cargando calendario…" : `${allFuture.length} partidos futuros · ${inPeriod.length} en el periodo`}</Badge><Button type="button" size="sm" variant="outline" onClick={refreshSchedule} disabled={loadingMatches} className="relative z-10 pointer-events-auto cursor-pointer gap-1.5 border-orange-300 bg-white hover:bg-orange-50 active:scale-[0.98]"><RefreshCw className={`h-3.5 w-3.5 ${refreshingMatches ? "animate-spin" : ""}`}/>{refreshingMatches ? "Actualizando…" : "Actualizar horarios"}</Button></div></div>
           <p className="mb-3 text-sm text-slate-600">La app consulta todos los partidos futuros. Selecciona los que vas a anunciar; después de enviarlos en WhatsApp, pulsa «Marcar selección como comunicada» para que el mensaje del lunes solo tenga en cuenta estos encuentros.</p>
           {periodStart > periodEnd && <p className="mb-3 rounded-lg bg-amber-50 p-2 text-sm text-amber-800">La fecha de inicio debe ser anterior o igual a la fecha final.</p>}
           {inPeriod.length === 0 && periodStart <= periodEnd && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No hay partidos futuros registrados en este periodo. Comprueba el calendario y si los encuentros aplazados tienen ya una nueva fecha asignada.</p>}
