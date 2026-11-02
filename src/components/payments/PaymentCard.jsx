@@ -47,20 +47,18 @@ export default function PaymentCard({
       // Usar exactamente el mismo diseño de recibo que el generador de patrocinios,
       // incluyendo logo, firma y sello compartidos del club.
       const receiptData = createPlayerPaymentReceiptData(payment, player, { temporada: payment.temporada });
-      let branding = {};
+      let branding = { logoUrl: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" };
       try {
         const assets = await base44.entities.BrandingAssets.list();
         const shared = assets?.[0];
-        branding = {
-          logoUrl: shared?.logo_url || undefined,
-          selloUrl: shared?.sello_url || undefined,
-          firmaUrl: shared?.firma_url || undefined,
-        };
+        if (shared?.logo_url) branding.logoUrl = shared.logo_url;
+        if (shared?.sello_url) branding.selloUrl = shared.sello_url;
+        if (shared?.firma_url) branding.firmaUrl = shared.firma_url;
       } catch (brandingError) {
         console.warn('[PaymentCard] No se pudieron cargar firma/sello compartidos:', brandingError);
       }
       const amount = Number(receiptData.importe || 0);
-      const amountText = amount.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      const amountText = amount.toFixed(2).replace('.', ',');
       await generateReciboPDF({
         numero: receiptData.numeroRecibo,
         fecha: String(receiptData.fechaPago || new Date().toISOString()).slice(0, 10),
