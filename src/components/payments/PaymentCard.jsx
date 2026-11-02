@@ -78,11 +78,12 @@ export default function PaymentCard({
             setReceiptUrl(url);
             return url;
           }
-          return new Promise(() => {});
+          // Una respuesta sin URL debe finalizar como error; nunca dejar la promesa pendiente.
+          const detail = res?.data?.error || res?.data?.message || 'El servidor no devolvió la URL del recibo.';
+          throw new Error(detail);
         })
         .catch((error) => {
           console.error('[PaymentCard] Error generando recibo:', error);
-          // No ocultar el fallo: la interfaz debe mostrar el error real al usuario.
           throw error;
         });
 
@@ -90,7 +91,7 @@ export default function PaymentCard({
         waitForSavedReceipt,
         generation,
         new Promise((resolve) => {
-          timeoutId = setTimeout(() => resolve(null), 60000);
+          timeoutId = setTimeout(() => resolve(null), 45000);
         }),
       ]);
 
