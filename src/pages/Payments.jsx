@@ -561,7 +561,7 @@ export default function Payments() {
   };
 
   // Cobro en efectivo: marca como pagado sin justificante y deja la anotación
-  const handleCashPayment = async ({ fecha, nota }) => {
+  const handleCashPayment = async ({ fecha, nota, reciboFile }) => {
     if (!efectivoData) return;
     setSavingEfectivo(true);
     try {
@@ -579,6 +579,17 @@ export default function Payments() {
           estado: "Pendiente",
           metodo_pago: "Efectivo",
         });
+      }
+
+      // Si se adjunta un recibo ya emitido, subirlo y asociarlo al pago antes de confirmarlo.
+      // La función de recibos reutilizará esta URL y no creará un PDF duplicado.
+      if (reciboFile) {
+        const upload = await base44.integrations.Core.UploadFile({ file: reciboFile });
+        const uploadedUrl = upload?.file_url || upload?.url;
+        if (!uploadedUrl || !String(uploadedUrl).startsWith('http')) {
+          throw new Error('No se pudo guardar el archivo adjunto. El pago no se ha confirmado todavía.');
+        }
+        real = { ...real, recibo_url: uploadedUrl, recibo_adjuntado_manualmente: true };
       }
 
       const anotacion = `Cobrado en EFECTIVO el ${new Date(fecha).toLocaleDateString('es-ES')}${nota ? ` — ${nota}` : ''}`;
