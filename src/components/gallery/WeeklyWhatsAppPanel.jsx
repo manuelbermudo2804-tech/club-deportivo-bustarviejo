@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { MessageCircle, CalendarDays, Copy, Check, ExternalLink } from "lucide-react";
+import { MessageCircle, CalendarDays, Copy, Check, ExternalLink, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 
 const PHONE_KEY = "cdb_weekly_whatsapp_phone";
@@ -42,10 +42,21 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
   const today = new Date();
   const day = today.getDay();
 
-  const { data: matches = [], isLoading: loadingMatches } = useQuery({
+  const { data: matches = [], isLoading: loadingMatches, isFetching: refreshingMatches, refetch: refetchMatches } = useQuery({
     queryKey: ["weeklyWhatsAppUpcoming"],
     queryFn: () => base44.entities.ProximoPartido.list("fecha_iso", 500),
   });
+
+  const refreshSchedule = async () => {
+    try {
+      const result = await refetchMatches();
+      if (result.error) throw result.error;
+      toast.success("Horarios actualizados desde la app");
+    } catch (error) {
+      console.error("Error actualizando horarios para WhatsApp:", error);
+      toast.error("No se han podido actualizar los horarios. Inténtalo de nuevo.");
+    }
+  };
 
   // Descubrimiento: mantenemos a la vista todos los encuentros futuros registrados.
   const allFuture = useMemo(() => matches
@@ -120,7 +131,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
           <div className="mt-3 flex flex-wrap gap-2"><Button size="sm" variant="outline" onClick={() => {setPeriodStart(defaultStart);setPeriodEnd(addDaysISO(defaultStart,6));}}>Próximos 7 días</Button><Button size="sm" variant="outline" onClick={() => {setPeriodStart(todayISO);setPeriodEnd(addDaysISO(todayISO,13));}}>Próximas 2 semanas</Button></div>
         </div>
         <div className="rounded-xl border border-slate-200 p-3">
-          <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-800">2. Marca los partidos que quieras incluir</p><Badge>{loadingMatches ? "Cargando calendario…" : `${allFuture.length} partidos futuros · ${inPeriod.length} en el periodo`}</Badge></div>
+          <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-800">2. Marca los partidos que quieras incluir</p><div className="flex flex-wrap items-center gap-2"><Badge>{loadingMatches ? "Cargando calendario…" : `${allFuture.length} partidos futuros · ${inPeriod.length} en el periodo`}</Badge><Button type="button" size="sm" variant="outline" onClick={refreshSchedule} disabled={refreshingMatches} className="gap-1.5"><RefreshCw className={`h-3.5 w-3.5 ${refreshingMatches ? "animate-spin" : ""}`}/>{refreshingMatches ? "Actualizando…" : "Actualizar horarios"}</Button></div></div>
           <p className="mb-3 text-sm text-slate-600">La app consulta todos los partidos futuros. Selecciona los que vas a anunciar; después de enviarlos en WhatsApp, pulsa «Marcar selección como comunicada» para que el mensaje del lunes solo tenga en cuenta estos encuentros.</p>
           {periodStart > periodEnd && <p className="mb-3 rounded-lg bg-amber-50 p-2 text-sm text-amber-800">La fecha de inicio debe ser anterior o igual a la fecha final.</p>}
           {inPeriod.length === 0 && periodStart <= periodEnd && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No hay partidos futuros registrados en este periodo. Comprueba el calendario y si los encuentros aplazados tienen ya una nueva fecha asignada.</p>}
