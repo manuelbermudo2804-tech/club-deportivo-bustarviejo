@@ -1,351 +1,119 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import { jsPDF } from 'npm:jspdf@2.5.2';
 
-// Carga una imagen remota como dataURL para incrustarla en el PDF
-const loadImageAsDataUrl = async (url) => {
-  if (!url) return null;
-  try {
-    // Nunca permitir que una imagen externa bloquee indefinidamente la creación del recibo.
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 2500);
-    let buf;
-    let contentType = 'image/png';
-    try {
-      const res = await fetch(url, { signal: controller.signal });
-      if (!res.ok) throw new Error(`HTTP ${res.status} al cargar imagen`);
-      contentType = res.headers.get('content-type') || 'image/png';
-      buf = await res.arrayBuffer();
-    } finally {
-      clearTimeout(timeout);
-    }
-    const bytes = new Uint8Array(buf);
-    let binary = '';
-    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-    const base64 = btoa(binary);
-    return `data:${contentType};base64,${base64}`;
-  } catch (e) {
-    console.warn('No se pudo cargar imagen (se continuará sin ella):', url, e);
-    return null;
-  }
-};
-
-const numeroALetras = (num) => {
-  const n = parseFloat(String(num).replace(',', '.'));
-  if (isNaN(n)) return '';
-  const entero = Math.floor(n);
-  const decimal = Math.round((n - entero) * 100);
-  const unidades = ['', 'uno', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve', 'diez', 'once', 'doce', 'trece', 'catorce', 'quince', 'dieciséis', 'diecisiete', 'dieciocho', 'diecinueve', 'veinte'];
-  const decenas = ['', '', 'veinte', 'treinta', 'cuarenta', 'cincuenta', 'sesenta', 'setenta', 'ochenta', 'noventa'];
-  const centenas = ['', 'ciento', 'doscientos', 'trescientos', 'cuatrocientos', 'quinientos', 'seiscientos', 'setecientos', 'ochocientos', 'novecientos'];
-  const conv = (num) => {
-    if (num === 0) return 'cero';
-    if (num === 100) return 'cien';
-    if (num <= 20) return unidades[num];
-    if (num < 100) { const d = Math.floor(num / 10), u = num % 10; if (num < 30) return 'veinti' + unidades[u]; return decenas[d] + (u ? ' y ' + unidades[u] : ''); }
-    if (num < 1000) { const c = Math.floor(num / 100), r = num % 100; return centenas[c] + (r ? ' ' + conv(r) : ''); }
-    if (num < 1000000) { const m = Math.floor(num / 1000), r = num % 1000; return (m === 1 ? 'mil' : conv(m) + ' mil') + (r ? ' ' + conv(r) : ''); }
-    return String(num);
-  };
-  let r = conv(entero) + ' euros';
-  if (decimal > 0) r += ' con ' + conv(decimal) + ' céntimos';
-  return r.charAt(0).toUpperCase() + r.slice(1);
-};
-
-const MESES_ES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
-const formatFechaLarga = (fechaStr) => {
-  try {
-    const d = new Date(fechaStr);
-    return `${d.getDate()} de ${MESES_ES[d.getMonth()]} de ${d.getFullYear()}`;
-  } catch {
-    return '';
-  }
-};
-
-// Construye el recibo "bonito" (marco, marca de agua, sello y firma) reutilizando el diseño de patrocinio
-const buildReciboPDF = async ({ numero, fecha, recibiDe, cantidad, concepto, temporada, lugar, logoUrl, selloUrl, firmaUrl }) => {
-  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
-  const pageW = 210;
-  const pageH = 297;
-  const marginX = 20;
-
-  // Marco decorativo
-  doc.setDrawColor(251, 146, 60);
-  doc.setLineWidth(0.3);
-  doc.rect(12, 12, pageW - 24, pageH - 24);
-  doc.setDrawColor(234, 88, 12);
-  doc.setLineWidth(1.2);
-  doc.rect(15, 15, pageW - 30, pageH - 30);
-  doc.setDrawColor(194, 65, 12);
-  doc.setLineWidth(1.5);
-  const cs = 8;
-  doc.line(15, 15 + cs, 15, 15); doc.line(15, 15, 15 + cs, 15);
-  doc.line(pageW - 15 - cs, 15, pageW - 15, 15); doc.line(pageW - 15, 15, pageW - 15, 15 + cs);
-  doc.line(15, pageH - 15 - cs, 15, pageH - 15); doc.line(15, pageH - 15, 15 + cs, pageH - 15);
-  doc.line(pageW - 15 - cs, pageH - 15, pageW - 15, pageH - 15); doc.line(pageW - 15, pageH - 15 - cs, pageW - 15, pageH - 15);
-
-  // Header (logo del club, sin marca de agua pesada para no agotar CPU)
-  const logoData = await loadImageAsDataUrl(logoUrl);
-  if (logoData) { try { doc.addImage(logoData, 'JPEG', marginX + 5, 22, 22, 22, undefined, 'FAST'); } catch { try { doc.addImage(logoData, 'PNG', marginX + 5, 22, 22, 22, undefined, 'FAST'); } catch {} } }
-  doc.setFont('times', 'bold'); doc.setFontSize(20); doc.setTextColor(15, 23, 42);
-  doc.text('CD BUSTARVIEJO', marginX + 32, 30);
-  doc.setFont('times', 'italic'); doc.setFontSize(9); doc.setTextColor(100, 116, 139);
-  doc.text('Club Deportivo · Bustarviejo · Madrid', marginX + 32, 36);
-
-  // Caja Nº recibo
-  doc.setFillColor(255, 247, 237); doc.setDrawColor(234, 88, 12); doc.setLineWidth(0.5);
-  doc.roundedRect(pageW - marginX - 38, 22, 33, 22, 2, 2, 'FD');
-  doc.setFont('times', 'normal'); doc.setFontSize(7); doc.setTextColor(100, 116, 139);
-  doc.text('RECIBO Nº', pageW - marginX - 21.5, 28, { align: 'center' });
-  doc.setFont('times', 'bold'); doc.setFontSize(10); doc.setTextColor(234, 88, 12);
-  doc.text(String(numero || '—'), pageW - marginX - 21.5, 34, { align: 'center' });
-  const fechaFmt = formatFechaLarga(fecha) || '____ de __________ de ______';
-  doc.setFont('times', 'italic'); doc.setFontSize(6.5); doc.setTextColor(100, 116, 139);
-  doc.text(fechaFmt, pageW - marginX - 21.5, 41.5, { align: 'center' });
-
-  // Separador
-  doc.setDrawColor(234, 88, 12); doc.setLineWidth(0.6);
-  doc.line(marginX, 55, pageW / 2 - 4, 55); doc.line(pageW / 2 + 4, 55, pageW - marginX, 55);
-  doc.setFillColor(234, 88, 12); doc.circle(pageW / 2, 55, 1.2, 'F');
-
-  // Título
-  doc.setFont('times', 'bold'); doc.setFontSize(32); doc.setTextColor(30, 41, 59);
-  doc.text('R E C I B Í', pageW / 2, 75, { align: 'center' });
-  doc.setDrawColor(234, 88, 12); doc.setLineWidth(0.8);
-  doc.line(pageW / 2 - 12, 79, pageW / 2 + 12, 79);
-
-  let y = 100;
-  const miniLabel = (label, yPos) => { doc.setFont('times', 'normal'); doc.setFontSize(8); doc.setTextColor(148, 163, 184); doc.text(label.toUpperCase(), marginX, yPos); };
-  const dottedLine = (yPos) => { doc.setLineDashPattern([0.5, 1], 0); doc.setDrawColor(148, 163, 184); doc.setLineWidth(0.2); doc.line(marginX, yPos, pageW - marginX, yPos); doc.setLineDashPattern([], 0); };
-
-  // Recibí de
-  miniLabel('Recibí de', y); y += 6;
-  doc.setFont('times', 'bold'); doc.setFontSize(13); doc.setTextColor(15, 23, 42);
-  doc.text(String(recibiDe || ''), marginX, y);
-  dottedLine(y + 1.5); y += 12;
-
-  // Cantidad
-  miniLabel('La cantidad de', y); y += 7;
-  doc.setFont('times', 'bold'); doc.setFontSize(28); doc.setTextColor(194, 65, 12);
-  doc.text(cantidad ? `${cantidad} €` : '________ €', marginX, y);
-  y += 2; dottedLine(y); y += 5;
-  if (cantidad) { doc.setFont('times', 'italic'); doc.setFontSize(10); doc.setTextColor(100, 116, 139); doc.text(`(${numeroALetras(cantidad)})`, marginX, y); y += 10; } else { y += 5; }
-
-  // Concepto
-  miniLabel('En concepto de', y); y += 6;
-  doc.setFont('times', 'bold'); doc.setFontSize(12); doc.setTextColor(15, 23, 42);
-  const conceptoCompleto = (concepto || '') + (temporada ? `  ·  Temporada ${temporada}` : '');
-  const conceptoLines = doc.splitTextToSize(conceptoCompleto, pageW - marginX * 2);
-  doc.text(conceptoLines, marginX, y);
-  y += conceptoLines.length * 6 + 1; dottedLine(y);
-
-  // Lugar y fecha
-  y += 25;
-  doc.setFont('times', 'italic'); doc.setFontSize(11); doc.setTextColor(71, 85, 105);
-  doc.text('En ', marginX, y);
-  doc.setFont('times', 'bold'); doc.setTextColor(15, 23, 42); doc.text(lugar || 'Bustarviejo', marginX + 8, y);
-  const lugarW = doc.getTextWidth(lugar || 'Bustarviejo');
-  doc.setFont('times', 'italic'); doc.setTextColor(71, 85, 105); doc.text(', a ', marginX + 8 + lugarW, y);
-  doc.setFont('times', 'bold'); doc.setTextColor(15, 23, 42); doc.text(fechaFmt + '.', marginX + 8 + lugarW + 6, y);
-
-  // Firma y sello
-  y += 35;
-  if (firmaUrl) {
-    const firmaData = await loadImageAsDataUrl(firmaUrl);
-    if (firmaData) { try { doc.addImage(firmaData, 'PNG', marginX + 12, y - 22, 55, 22, undefined, 'FAST'); } catch { try { doc.addImage(firmaData, 'JPEG', marginX + 12, y - 22, 55, 22, undefined, 'FAST'); } catch {} } }
-  }
-  doc.setDrawColor(30, 41, 59); doc.setLineWidth(0.5); doc.line(marginX, y, marginX + 80, y);
-  doc.setFont('times', 'bold'); doc.setFontSize(8); doc.setTextColor(194, 65, 12);
-  doc.text('EL PRESIDENTE', marginX + 40, y + 4.5, { align: 'center' });
-  doc.setFont('times', 'bold'); doc.setFontSize(11); doc.setTextColor(15, 23, 42);
-  doc.text('Manuel Bermudo Santacruz', marginX + 40, y + 10, { align: 'center' });
-  doc.setFont('times', 'italic'); doc.setFontSize(8); doc.setTextColor(100, 116, 139);
-  doc.text('DNI: 51404895X', marginX + 40, y + 15, { align: 'center' });
-  if (selloUrl) {
-    const selloData = await loadImageAsDataUrl(selloUrl);
-    if (selloData) { try { doc.addImage(selloData, 'PNG', pageW - marginX - 50, y - 30, 48, 48, undefined, 'FAST'); } catch { try { doc.addImage(selloData, 'JPEG', pageW - marginX - 50, y - 30, 48, 48, undefined, 'FAST'); } catch {} } }
-  }
-
-  // Pie
-  doc.setFont('times', 'italic'); doc.setFontSize(7); doc.setTextColor(148, 163, 184);
-  doc.text('CD Bustarviejo · cdbustarviejo@gmail.com · Bustarviejo, Madrid', pageW / 2, pageH - 22, { align: 'center' });
-
-  return doc;
-};
-
+// Generador deliberadamente simple: no depende de imágenes remotas ni de correo.
 Deno.serve(async (req) => {
+  const startedAt = Date.now();
   try {
+    if (req.method !== 'POST') {
+      return Response.json({ error: 'Método no permitido' }, { status: 405 });
+    }
+
     const base44 = createClientFromRequest(req);
-    
-    // No verificar usuario - esto se llama automáticamente cuando se marca como Pagado
-    const { paymentId } = await req.json();
-    
-    if (!paymentId) {
-      return Response.json({ error: 'Payment ID is required' }, { status: 400 });
+    const body = await req.json().catch(() => ({}));
+    const paymentId = body?.paymentId;
+    if (!paymentId || typeof paymentId !== 'string') {
+      return Response.json({ error: 'Falta el identificador del pago.' }, { status: 400 });
     }
 
-    console.log('📄 [generatePaymentReceipt] Iniciando para paymentId:', paymentId);
-    
-    // Obtener el pago directamente
+    console.log('[receipt-v2] inicio', paymentId);
     const payment = await base44.asServiceRole.entities.Payment.get(paymentId);
-    if (!payment) {
-      console.error('❌ [generatePaymentReceipt] Pago no encontrado:', paymentId);
-      return Response.json({ error: 'Payment not found' }, { status: 404 });
-    }
-    console.log('✅ [generatePaymentReceipt] Pago encontrado:', payment.jugador_nombre);
+    if (!payment) return Response.json({ error: 'No se encuentra el pago.' }, { status: 404 });
 
-    // Si ya tiene recibo, devolverlo al instante: no se regenera, no se reenvía email
-    // y no se toca el pago (evita que aparezca como "recién marcado por el club").
-    if (payment.recibo_url) {
+    // Si ya existe un recibo adjunto o generado, reutilizarlo.
+    if (payment.recibo_url && /^https?:\/\//i.test(payment.recibo_url)) {
       return Response.json({ success: true, recibo_url: payment.recibo_url, reused: true });
     }
 
-    // Obtener el jugador
     const player = await base44.asServiceRole.entities.Player.get(payment.jugador_id);
-    if (!player) {
-      console.error('❌ [generatePaymentReceipt] Jugador no encontrado:', payment.jugador_id);
-      return Response.json({ error: 'Player not found' }, { status: 404 });
-    }
-    console.log('✅ [generatePaymentReceipt] Jugador encontrado:', player.nombre);
+    if (!player) return Response.json({ error: 'No se encuentra el jugador asociado al pago.' }, { status: 404 });
 
-    // Obtener la configuración de la temporada
-    const configs = await base44.asServiceRole.entities.SeasonConfig.list();
-    const activeConfig = configs.find(c => c.activa === true);
-    console.log('✅ [generatePaymentReceipt] Config encontrada:', activeConfig?.temporada);
-
-    // Obtener logo, sello y firma del club (compartidos en BrandingAssets)
-    const CLUB_LOGO_DEFAULT = 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg';
-    let branding = {};
-    try {
-      const brandingItems = await base44.asServiceRole.entities.BrandingAssets.list();
-      branding = brandingItems?.[0] || {};
-    } catch (e) { console.warn('No se pudo cargar BrandingAssets:', e); }
-
-    // Concepto legible de la cuota
-    const conceptoRecibo = `Cuota ${payment.mes} · ${player.nombre} (${player.deporte || 'Deportiva'})`;
-    const recibiDe = player.nombre_tutor_legal || (player.email_padre ? `Tutor/a de ${player.nombre}` : player.nombre);
-
-    // Número de recibo limpio y correlativo por temporada (ej: 2025/2026-0001)
-    // Si el pago ya tiene un número asignado, reutilizarlo (para no cambiarlo al regenerar)
-    let numeroRecibo = payment.numero_recibo;
-    if (!numeroRecibo) {
-      // Usar SIEMPRE la temporada activa de configuración (ej: 2026/2027), no la del campo del pago
-      const temporadaActiva = activeConfig?.temporada || payment.temporada || 'S/T';
-      const prefijo = String(temporadaActiva).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      // Evitar consultas count con regex: no todos los filtros del SDK admiten $regex.
-      // Leer los números existentes y calcular el máximo en memoria.
-      const pagosTemporada = await base44.asServiceRole.entities.Payment.filter({ temporada: temporadaActiva });
-      const maxCorrelativo = (pagosTemporada || []).reduce((max, p) => {
-        const match = String(p.numero_recibo || '').match(/-(\\d+)$/);
-        return match ? Math.max(max, Number(match[1])) : max;
-      }, 0);
-      const correlativo = String(maxCorrelativo + 1).padStart(4, '0');
-      numeroRecibo = `${temporadaActiva}-${correlativo}`;
-      // Persistir el número en el pago para que sea estable
-      await base44.asServiceRole.entities.Payment.update(paymentId, { numero_recibo: numeroRecibo });
+    // Referencia determinista: no necesita consultas de recuento ni genera carreras.
+    const numero = payment.numero_recibo || `CB-${String(payment.id).slice(-8).toUpperCase()}`;
+    const fechaOrigen = payment.fecha_pago || payment.updated_date || payment.created_date || new Date().toISOString();
+    const fecha = new Date(fechaOrigen);
+    const fechaTexto = Number.isNaN(fecha.getTime()) ? 'Fecha no disponible' : fecha.toLocaleDateString('es-ES', { timeZone: 'Europe/Madrid' });
+    const cantidad = Number(payment.cantidad || 0);
+    if (!Number.isFinite(cantidad) || cantidad < 0) {
+      return Response.json({ error: 'El importe del pago no es válido.' }, { status: 422 });
     }
 
-    // Generar el recibo profesional (marco, marca de agua, sello y firma del presidente)
-    const doc = await buildReciboPDF({
-      numero: numeroRecibo,
-      fecha: payment.fecha_pago || payment.created_date,
-      recibiDe,
-      cantidad: Number(payment.cantidad).toFixed(2),
-      concepto: conceptoRecibo,
-      temporada: activeConfig?.temporada || payment.temporada,
-      lugar: 'Bustarviejo',
-      logoUrl: branding.logo_url || CLUB_LOGO_DEFAULT,
-      selloUrl: branding.sello_url || '',
-      firmaUrl: branding.firma_url || '',
-    });
-
-    console.log('📝 [generatePaymentReceipt] PDF generado, subiendo a almacenamiento...');
-    
-    // Convertir a ArrayBuffer y envolver en File (UploadFile requiere un archivo con nombre)
-    const pdfArrayBuffer = doc.output('arraybuffer');
-    const safeName = `Recibo_${player.nombre.replace(/\s+/g, '_')}_${payment.mes}.pdf`;
-    const pdfFile = new File([pdfArrayBuffer], safeName, { type: 'application/pdf' });
-    
-    // Subir el PDF
-    const uploadResponse = await base44.asServiceRole.integrations.Core.UploadFile({
-      file: pdfFile
-    });
-    
-    const reciboUrl = uploadResponse?.file_url || uploadResponse?.url;
-    if (typeof reciboUrl !== 'string' || !reciboUrl.startsWith('http')) {
-      console.error('[generatePaymentReceipt] UploadFile no devolvió una URL válida:', uploadResponse);
-      throw new Error('El PDF se ha creado, pero el almacenamiento no ha devuelto una URL válida. Revisa la respuesta de UploadFile.');
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+    doc.setDrawColor(234, 88, 12);
+    doc.setLineWidth(1);
+    doc.roundedRect(12, 12, 186, 273, 3, 3);
+    doc.setTextColor(30, 41, 59);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text('CD BUSTARVIEJO', 105,  thirty(), { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(11);
+    doc.text('Club Deportivo · Bustarviejo · Madrid', 105,  forty(), { align: 'center' });
+    doc.setDrawColor(234, 88, 12);
+    doc.line(30, 48, 180, 48);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(25);
+    doc.text('RECIBO DE PAGO', 105, 65, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(12);
+    const lines = [
+      ['N.º de recibo', numero],
+      ['Fecha de pago', fechaTexto],
+      ['Recibido de', player.nombre_tutor_legal || player.nombre || payment.jugador_nombre || 'No indicado'],
+      ['Jugador/a', player.nombre || payment.jugador_nombre || 'No indicado'],
+      ['Concepto', `Cuota ${payment.mes || 'no especificada'} · Temporada ${payment.temporada || 'no especificada'}`],
+      ['Método de pago', payment.metodo_pago || payment.tipo_pago || 'No especificado'],
+    ];
+    let y = 90;
+    for (const [label, value] of lines) {
+      doc.setFont('helvetica', 'bold');
+      doc.text(`${label}:`, 28, y);
+      doc.setFont('helvetica', 'normal');
+      const wrapped = doc.splitTextToSize(String(value), 112);
+      doc.text(wrapped, 72, y);
+      y += Math.max(12, wrapped.length * 6 + 3);
     }
-    console.log('✅ [generatePaymentReceipt] PDF subido:', reciboUrl);
+    doc.setFillColor(255, 247, 237);
+    doc.setDrawColor(234, 88, 12);
+    doc.roundedRect(28, y + 4, 154, 25, 2, 2, 'FD');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(15);
+    doc.setTextColor(194, 65, 12);
+    doc.text(`IMPORTE: ${cantidad.toFixed(2)} €`, 105, y + 20, { align: 'center' });
+    doc.setTextColor(100, 116, 139);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    doc.text('Documento generado por el sistema de gestión del CD Bustarviejo.', 105, 270, { align: 'center' });
 
-    // Actualizar el pago con la URL del recibo
+    const pdfBytes = doc.output('arraybuffer');
+    const safePlayer = String(player.nombre || 'Jugador').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 60);
+    const safeMonth = String(payment.mes || 'Pago').replace(/[^a-zA-Z0-9_-]+/g, '_').slice(0, 30);
+    const pdfFile = new File([pdfBytes], `Recibo_${safePlayer}_${safeMonth}.pdf`, { type: 'application/pdf' });
+
+    console.log('[receipt-v2] pdf listo; subiendo', paymentId);
+    const upload = await base44.asServiceRole.integrations.Core.UploadFile({ file: pdfFile });
+    const url = upload?.file_url || upload?.url;
+    if (typeof url !== 'string' || !/^https?:\/\//i.test(url)) {
+      console.error('[receipt-v2] respuesta de almacenamiento sin URL válida', JSON.stringify(upload || {}));
+      throw new Error('El almacenamiento no devolvió una URL válida para el PDF.');
+    }
+
+    // Guardar URL y número en un único update; el pago no cambia de estado.
     await base44.asServiceRole.entities.Payment.update(paymentId, {
-      recibo_url: reciboUrl
+      recibo_url: url,
+      numero_recibo: numero
     });
-    console.log('✅ [generatePaymentReceipt] Pago actualizado con recibo_url');
-    
-    // Devolver el recibo en cuanto está guardado. El envío de emails no debe
-    // bloquear la generación ni dejar el botón esperando indefinidamente.
-    console.log('✅ [generatePaymentReceipt] Recibo guardado; devolviendo URL:', reciboUrl);
 
-    // Enviar los correos en segundo plano, sin bloquear la respuesta de generación.
-    // Un fallo de email no invalida el PDF ya generado y guardado.
-    void (async () => {
-      try {
-        const pdfBase64 = doc.output('datauristring').split(',')[1];
-        const emailBody = `
-          <h2>Recibo de Pago - CD Bustarviejo</h2>
-          <p>Estimados padres/tutores,</p>
-          <p>En el archivo adjunto encontrará el recibo correspondiente al pago de <strong>${player.nombre}</strong>.</p>
-          <hr>
-          <p><strong>Temporada:</strong> ${payment.temporada}</p>
-          <p><strong>Mes:</strong> ${payment.mes}</p>
-          <p><strong>Tipo de Pago:</strong> ${payment.tipo_pago}</p>
-          <p><strong>Importe:</strong> ${payment.cantidad}€</p>
-          <p><strong>Estado:</strong> ✅ Pagado</p>
-          <hr>
-          <p style="font-size: 14px; color: #16a34a; font-weight: bold;">📎 El recibo está adjunto a este correo en formato PDF</p>
-          <br>
-          <p style="font-size: 12px; color: #666;">Este es un correo automático del sistema de gestión de CD Bustarviejo</p>
-          <p style="font-size: 12px; color: #666;">Email: cdbustarviejo@gmail.com</p>
-        `;
-        const emailWithAttachment = {
-          subject: `Recibo de Pago - ${player.nombre} - ${payment.mes}`,
-          html: emailBody,
-          attachments: [{
-            filename: `Recibo_${player.nombre.replace(/\s+/g, '_')}_${payment.mes}.pdf`,
-            content: pdfBase64,
-            encoding: 'base64',
-            type: 'application/pdf'
-          }]
-        };
-
-        for (const email of [player.email_padre, player.email_tutor_2].filter(Boolean)) {
-          try {
-            console.log('[generatePaymentReceipt] Enviando recibo por email a:', email);
-            await Promise.race([
-              base44.asServiceRole.functions.invoke('sendEmail', { ...emailWithAttachment, to: email }),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout enviando email')), 5000))
-            ]);
-            console.log('[generatePaymentReceipt] Email enviado a:', email);
-          } catch (emailError) {
-            console.error('[generatePaymentReceipt] Fallo al enviar email a', email, emailError);
-          }
-        }
-      } catch (emailError) {
-        console.error('[generatePaymentReceipt] No se pudo preparar el email; el recibo ya está guardado:', emailError);
-      }
-    })();
-
-    return Response.json({
-      success: true,
-      recibo_url: reciboUrl,
-      message: 'Recibo generado y guardado correctamente'
-    });
-    
+    console.log('[receipt-v2] éxito', paymentId, Date.now() - startedAt, 'ms');
+    return Response.json({ success: true, recibo_url: url, numero_recibo: numero });
   } catch (error) {
-    console.error('❌ [generatePaymentReceipt] ERROR:', error);
-    return Response.json({ 
-      error: error.message || 'Error generating receipt' 
+    console.error('[receipt-v2] error', error?.stack || error);
+    return Response.json({
+      success: false,
+      error: error?.message || 'No se pudo generar el recibo.'
     }, { status: 500 });
   }
 });
+
+function thirty() { return 30; }
+function forty() { return 38; }
