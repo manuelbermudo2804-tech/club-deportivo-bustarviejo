@@ -7,7 +7,7 @@ const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/objec
  * por lo que el mismo pago conserva siempre el mismo número.
  */
 export const generateReceiptNumber = (paymentId, temporada = '') => {
-  const shortId = String(paymentId || '').replace(/[^a-zA-Z0-9]/g, '').slice(-8).toUpperCase();
+  const shortId = String(paymentId || '').replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
   const season = String(temporada || '').trim().replace(/[^a-zA-Z0-9/-]/g, '').replace(/\s+/g, '');
   if (!shortId) throw new Error('No se puede numerar el recibo sin el identificador del pago.');
   return `${season ? season + '-' : 'REC-'}${shortId}`;
