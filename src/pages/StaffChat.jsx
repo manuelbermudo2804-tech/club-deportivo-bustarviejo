@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, X, FileText, Download, MessageCircle, Users, Search, Folder, Check, CheckCheck, Smile, Pin, Reply, Edit, Trash2, ChevronLeft } from "lucide-react";
+import { Send, X, FileText, Download, MessageCircle, Users, Search, Folder, Check, CheckCheck, Smile, Pin, Reply, Edit, Trash2, ChevronLeft, Forward, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { format, isSameDay } from "date-fns";
 import { es } from "date-fns/locale";
@@ -34,6 +34,7 @@ import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
 import { useImageUpload } from "../components/utils/useImageUpload";
 import { mentionCandidates } from "@/lib/chatMentions";
 import useMentionNames from "@/hooks/useMentionNames";
+import { toGroupId } from "@/lib/chatGroupId";
 
 const QUICK_REPLIES = [
   "✅ Perfecto, gracias",
@@ -72,6 +73,9 @@ export default function StaffChat() {
   const [filterPerson, setFilterPerson] = useState("all");
   const [filterDate, setFilterDate] = useState("all");
   const [showImagePreview, setShowImagePreview] = useState(null);
+  const [forwardingMessage, setForwardingMessage] = useState(null);
+  const [forwardCategory, setForwardCategory] = useState("");
+  const [forwardCategories, setForwardCategories] = useState([]);
   const [showReactions, setShowReactions] = useState(null);
   const [isScrolledToBottom, setIsScrolledToBottom] = useState(true);
   const [newMessageCount, setNewMessageCount] = useState(0);
@@ -293,6 +297,74 @@ export default function StaffChat() {
   }, [conversation?.id, user?.email]);
 
   const allSharedFiles = messages.flatMap(m => m.adjuntos || m.archivos_adjuntos || []);
+
+  const openForwardDialog = async (message) => {
+    if (user?.role !== "admin") return;
+    setForwardingMessage(message);
+    setForwardCategory("");
+    try {
+      const configs = await base44.entities.CategoryConfig.filter({ activa: true });
+      const categories = [...new Set((configs || [])
+        .filter(c => c.nombre && (!c.deporte || c.deporte === "Fútbol") && c.es_actividad_complementaria !== true)
+        .map(c => c.nombre))].sort((a, b) => a.localeCompare(b, "es"));
+      const configured = categories.length ? categories : [...new Set((user?.categorias_entrena || []))];
+      setForwardCategories(configured);
+      const text = [message?.mensaje, ...(message?.adjuntos || []).map(a => a.nombre || "")].join(" ");
+      const match = configured.find(cat => {
+        const short = cat.replace(/^Fútbol\s*/i, "").replace(/\s*\([^)]*\)/g, "");
+        return short.length > 2 && text.toLowerCase().includes(short.toLowerCase());
+      });
+      if (match) setForwardCategory(match);
+    } catch (error) {
+      setForwardCategories(user?.categorias_entrena || []);
+    }
+  };
+
+  const forwardToTeamChat = async () => {
+    if (!forwardingMessage || !forwardCategory) {
+      toast.error("Selecciona el chat de destino");
+      return;
+    }
+    try {
+      const attachments = forwardingMessage.adjuntos || forwardingMessage.archivos_adjuntos || [];
+      const payload = {
+        client_id: `forward-${forwardingMessage.id}-${Date.now()}`,
+        grupo_id: toGroupId(forwardCategory),
+        deporte: forwardCategory,
+        tipo: "admin_a_grupo",
+        remitente_email: user.email,
+        remitente_nombre: user.full_name || "Administrador",
+        mensaje: forwardingMessage.mensaje || (attachments.length ? "📸 Foto compartida desde Staff" : "Mensaje reenviado desde Staff"),
+        archivos_adjuntos: attachments,
+        prioridad: "Normal",
+        leido_por: [{ email: user.email, nombre: user.full_name || "Administrador", fecha: new Date().toISOString() }],
+        reacciones: [],
+        mensaje_citado: {
+          autor_nombre: forwardingMessage.autor_nombre || "Staff",
+          mensaje: forwardingMessage.mensaje || "Contenido compartido desde Staff"
+        }
+      };
+      await base44.entities.ChatMessage.create(payload);
+      toast.success(`Enviado al chat: ${forwardCategory}`);
+      setForwardingMessage(null);
+    } catch (error) {
+      console.error("Error reenviando mensaje a chat de equipo:", error);
+      toast.error("No se pudo enviar al chat del equipo");
+    }
+  };
+
+  const forwardToWhatsApp = () => {
+    if (!forwardingMessage) return;
+    const attachments = forwardingMessage.adjuntos || forwardingMessage.archivos_adjuntos || [];
+    const text = [
+      forwardingMessage.mensaje || "",
+      ...attachments.map(file => file.url).filter(Boolean)
+    ].filter(Boolean).join("\\n\\n");
+    const url = `https://wa.me/?text=${encodeURIComponent(text || "Contenido compartido desde el chat Staff")}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+    toast.info(attachments.length ? "WhatsApp se abrirá con el texto y los enlaces de los archivos; revisa y envía el mensaje." : "Revisa el texto en WhatsApp y pulsa enviar.");
+    setForwardingMessage(null);
+  };
 
   const handleFileUpload = async (e) => {
     const files = Array.from(e.target.files);
@@ -896,7 +968,8 @@ export default function StaffChat() {
                               onReply={(m) => setReplyingTo(m)}
                               onEdit={(m) => setEditDialogMsg(m)}
                               onDelete={(m) => deleteMessageMutation.mutate(m.id)}
-                              onForward={(m) => {}}
+                              canForward={user?.role === "admin"}
+                              onForward={openForwardDialog}
                             />
                           </div>
                         </div>
@@ -1083,6 +1156,51 @@ export default function StaffChat() {
                 Enviar Encuesta
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reenviar desde Staff: solo administradores */}
+      <Dialog open={!!forwardingMessage} onOpenChange={(open) => !open && setForwardingMessage(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>📤 Reenviar desde Staff</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="rounded-lg border bg-slate-50 p-3">
+              <p className="text-xs font-semibold text-slate-500 mb-1">
+                {forwardingMessage?.autor_nombre || "Mensaje de Staff"}
+              </p>
+              <p className="text-sm whitespace-pre-wrap break-words line-clamp-4">
+                {forwardingMessage?.mensaje || "📎 Archivo adjunto"}
+              </p>
+              {(forwardingMessage?.adjuntos || forwardingMessage?.archivos_adjuntos || []).length > 0 && (
+                <p className="mt-2 text-xs text-slate-500">
+                  📎 {(forwardingMessage?.adjuntos || forwardingMessage?.archivos_adjuntos || []).length} archivo(s) adjunto(s)
+                </p>
+              )}
+            </div>
+            <p className="text-sm font-medium">¿Dónde quieres enviarlo?</p>
+            <div className="space-y-2">
+              <label className="block text-sm text-slate-600">Chat de equipo</label>
+              <select
+                value={forwardCategory}
+                onChange={(e) => setForwardCategory(e.target.value)}
+                className="w-full rounded-md border border-slate-300 bg-white p-2.5 text-sm"
+              >
+                <option value="">Seleccionar equipo…</option>
+                {forwardCategories.map(cat => <option key={cat} value={cat}>{cat}</option>)}
+              </select>
+              <Button onClick={forwardToTeamChat} disabled={!forwardCategory} className="w-full bg-orange-600 hover:bg-orange-700">
+                <MessageCircle className="mr-2 h-4 w-4" /> Reenviar al chat de la app
+              </Button>
+              <Button onClick={forwardToWhatsApp} variant="outline" className="w-full">
+                <ExternalLink className="mr-2 h-4 w-4" /> Compartir por WhatsApp
+              </Button>
+            </div>
+            <p className="text-xs text-slate-500">
+              Si detectamos el nombre de un equipo en el texto, lo seleccionamos como sugerencia. Comprueba el destino antes de enviar.
+            </p>
           </div>
         </DialogContent>
       </Dialog>
