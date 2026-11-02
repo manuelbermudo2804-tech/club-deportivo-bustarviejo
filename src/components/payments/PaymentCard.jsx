@@ -6,6 +6,7 @@ import { Upload, FileText, Loader2, CheckCircle2, Clock, AlertCircle, Download }
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { generatePaymentReceiptPDF, createPlayerPaymentReceiptData } from "@/components/receipts/PaymentReceiptPDF";
 
 const statusConfig = {
   "Pagado": { emoji: "🟢", bg: "bg-green-50 border-green-200", icon: CheckCircle2, color: "text-green-700", badgeCls: "bg-green-100 text-green-800" },
@@ -42,20 +43,18 @@ export default function PaymentCard({
     if (payment.isVirtual || generatingReceipt || receiptUrl) return;
     setGeneratingReceipt(true);
     try {
-      const response = await base44.functions.invoke('generatePaymentReceipt', { paymentId: payment.id });
-      const data = response?.data ?? response;
-      const url = data?.recibo_url;
-      if (!data?.success || !url) {
-        throw new Error(data?.error || data?.message || 'El servidor no devolvió la URL del recibo.');
-      }
-      setReceiptUrl(url);
-      toast.success('Recibo generado. Ya puedes descargarlo.');
+      // Generar y descargar el PDF en el navegador: evita el servicio de subida
+      // de Base44 que se queda bloqueado después de crear el documento.
+      const receiptData = createPlayerPaymentReceiptData(payment, player, { temporada: payment.temporada });
+      const doc = generatePaymentReceiptPDF(receiptData);
+      const safeName = String(player?.nombre || payment.jugador_nombre || 'Jugador')
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9_-]+/g, '_');
+      doc.save(`Recibo_${safeName}_${receiptData.numeroRecibo}.pdf`);
+      toast.success('Recibo PDF descargado correctamente.');
     } catch (error) {
       console.error('[PaymentCard] Error generando recibo:', error);
-      const detail = error?.response?.data?.error || error?.data?.error || error?.message;
-      toast.error(detail
-        ? `No se ha podido generar el recibo: ${detail}`
-        : 'No se ha podido generar el recibo. Inténtalo de nuevo.');
+      toast.error(`No se ha podido generar el PDF: ${error?.message || 'error desconocido'}`);
     } finally {
       setGeneratingReceipt(false);
     }
