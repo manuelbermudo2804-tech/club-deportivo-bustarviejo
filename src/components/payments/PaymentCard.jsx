@@ -41,75 +41,22 @@ export default function PaymentCard({
   const handleGenerateReceipt = async () => {
     if (payment.isVirtual || generatingReceipt || receiptUrl) return;
     setGeneratingReceipt(true);
-
-    let pollTimer;
-    let timeoutId;
-
     try {
-      // La URL se guarda en el pago antes de que termine el envío de emails.
-      // Esperamos a que esté guardada y actualizamos el botón sin abrir pestañas.
-      const waitForSavedReceipt = new Promise((resolve) => {
-        const startedAt = Date.now();
-        const poll = async () => {
-          try {
-            const latestPayment = await base44.entities.Payment.get(payment.id);
-            if (latestPayment?.recibo_url) {
-              setReceiptUrl(latestPayment.recibo_url);
-              resolve(latestPayment.recibo_url);
-              return;
-            }
-          } catch (error) {
-            console.warn('[PaymentCard] No se pudo consultar el recibo todavía:', error);
-          }
-
-          if (Date.now() - startedAt >= 60000) {
-            resolve(null);
-            return;
-          }
-          pollTimer = setTimeout(poll, 2000);
-        };
-        poll();
-      });
-
-      const generation = base44.functions.invoke('generatePaymentReceipt', { paymentId: payment.id })
-        .then((res) => {
-          const url = res?.data?.recibo_url;
-          if (url) {
-            setReceiptUrl(url);
-            return url;
-          }
-          // Una respuesta sin URL debe finalizar como error; nunca dejar la promesa pendiente.
-          const detail = res?.data?.error || res?.data?.message || 'El servidor no devolvió la URL del recibo.';
-          throw new Error(detail);
-        })
-        .catch((error) => {
-          console.error('[PaymentCard] Error generando recibo:', error);
-          throw error;
-        });
-
-      const url = await Promise.race([
-        waitForSavedReceipt,
-        generation,
-        new Promise((resolve) => {
-          timeoutId = setTimeout(() => resolve(null), 45000);
-        }),
-      ]);
-
-      if (url) {
-        setReceiptUrl(url);
-        toast.success('Recibo generado. Ya puedes descargarlo.');
-      } else {
-        toast.error('No se ha podido generar el recibo. Inténtalo de nuevo en unos segundos.');
+      const response = await base44.functions.invoke('generatePaymentReceipt', { paymentId: payment.id });
+      const data = response?.data ?? response;
+      const url = data?.recibo_url;
+      if (!data?.success || !url) {
+        throw new Error(data?.error || data?.message || 'El servidor no devolvió la URL del recibo.');
       }
+      setReceiptUrl(url);
+      toast.success('Recibo generado. Ya puedes descargarlo.');
     } catch (error) {
       console.error('[PaymentCard] Error generando recibo:', error);
       const detail = error?.response?.data?.error || error?.data?.error || error?.message;
       toast.error(detail
         ? `No se ha podido generar el recibo: ${detail}`
-        : 'No se ha podido generar el recibo. Revisa la consola para ver el error.');
+        : 'No se ha podido generar el recibo. Inténtalo de nuevo.');
     } finally {
-      clearTimeout(pollTimer);
-      clearTimeout(timeoutId);
       setGeneratingReceipt(false);
     }
   };
