@@ -9,6 +9,7 @@ import { Loader2, Banknote } from "lucide-react";
 export default function CobroEfectivoDialog({ open, onOpenChange, payment, playerName, onConfirm, isSubmitting }) {
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [nota, setNota] = useState("");
+  const [reciboFile, setReciboFile] = useState(null);
 
   if (!payment) return null;
 
@@ -40,11 +41,21 @@ export default function CobroEfectivoDialog({ open, onOpenChange, payment, playe
               placeholder="Ej: Entregado por la madre en el entrenamiento, recibido por Juan"
             />
           </div>
-          <p className="text-xs text-slate-500">
-            Se marcará como pagado sin justificante, se generará el recibo y quedará registrado como efectivo.
-          </p>
+          <div>
+            <Label htmlFor="ef-recibo">Adjuntar recibo (opcional)</Label>
+            <Input
+              id="ef-recibo"
+              type="file"
+              accept="application/pdf,image/*"
+              onChange={(e) => setReciboFile(e.target.files?.[0] || null)}
+              className="mt-1"
+            />
+            <p className="text-xs text-slate-500 mt-1">
+              Puedes adjuntar un PDF o una foto del recibo. Si no adjuntas nada, se generará automáticamente.
+            </p>
+          </div>
           <Button
-            onClick={() => onConfirm({ fecha, nota: nota.trim() })}
+            onClick={() => onConfirm({ fecha, nota: nota.trim(), reciboFile })
             disabled={isSubmitting}
             className="w-full bg-green-600 hover:bg-green-700 font-bold"
           >
