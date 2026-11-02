@@ -1,6 +1,6 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { Copy, Edit, Trash2, Reply } from "lucide-react";
+import { Copy, Edit, Trash2, Reply, Forward } from "lucide-react";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -15,6 +15,8 @@ export default function ChatMessageActions({
   onEdit,
   onDelete,
   onReply,
+  onForward,
+  canForward = false,
 }) {
   const handleCopy = async () => {
     const text = message?.mensaje || "";
@@ -42,6 +44,12 @@ export default function ChatMessageActions({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
+        {canForward && onForward && !message?.eliminado && (
+          <DropdownMenuItem onClick={() => onForward(message)}>
+            <Forward className="w-4 h-4 mr-2" />
+            Reenviar
+          </DropdownMenuItem>
+        )}
         {onReply && !message?.eliminado && (
           <DropdownMenuItem onClick={() => onReply(message)}>
             <Reply className="w-4 h-4 mr-2" />
