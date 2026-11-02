@@ -353,16 +353,35 @@ export default function StaffChat() {
     }
   };
 
-  const forwardToWhatsApp = () => {
+  const forwardToWhatsApp = async () => {
     if (!forwardingMessage) return;
     const attachments = forwardingMessage.adjuntos || forwardingMessage.archivos_adjuntos || [];
     const text = [
       forwardingMessage.mensaje || "",
       ...attachments.map(file => file.url).filter(Boolean)
-    ].filter(Boolean).join("\\n\\n");
+    ].filter(Boolean).join("\n\n");
+
+    // En navegadores compatibles, compartir la imagen como archivo real.
+    try {
+      const image = attachments.find(file => file.tipo?.startsWith("image/") && file.url);
+      if (image && navigator.share) {
+        const response = await fetch(image.url);
+        const blob = await response.blob();
+        const file = new File([blob], image.nombre || "foto-club.jpg", { type: blob.type || image.tipo || "image/jpeg" });
+        if (!navigator.canShare || navigator.canShare({ files: [file] })) {
+          await navigator.share({ title: "C.D. Bustarviejo", text: forwardingMessage.mensaje || "", files: [file] });
+          setForwardingMessage(null);
+          return;
+        }
+      }
+    } catch (error) {
+      if (error?.name === "AbortError") return;
+      // Si el navegador no permite compartir el archivo, se ofrece el enlace como alternativa.
+    }
+
     const url = `https://wa.me/?text=${encodeURIComponent(text || "Contenido compartido desde el chat Staff")}`;
     window.open(url, "_blank", "noopener,noreferrer");
-    toast.info(attachments.length ? "WhatsApp se abrirá con el texto y los enlaces de los archivos; revisa y envía el mensaje." : "Revisa el texto en WhatsApp y pulsa enviar.");
+    toast.info(attachments.length ? "WhatsApp se abrirá con el texto y los enlaces de los archivos. Si necesitas enviar la foto como imagen, adjúntala en WhatsApp." : "Revisa el texto en WhatsApp y pulsa enviar.");
     setForwardingMessage(null);
   };
 
