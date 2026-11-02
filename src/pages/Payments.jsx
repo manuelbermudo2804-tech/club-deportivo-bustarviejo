@@ -534,28 +534,10 @@ export default function Payments() {
           }
         }
         
-        console.log('📧 [Payments] Generando y enviando recibo PDF:', { jugador: payment.jugador_nombre, padre: player?.email_padre, tutor2: player?.email_tutor_2 });
-        
-        // Generar datos del recibo
-        const receiptData = createPlayerPaymentReceiptData(payment, player, activeSeasonConfig);
-        
-        // Enviar recibo al padre principal
-        if (player?.email_padre) {
-          console.log('📤 [Payments] Enviando recibo PDF a padre:', player.email_padre);
-          await sendPaymentReceipt(receiptData, player.email_padre, base44);
-          console.log('✅ [Payments] Recibo PDF enviado a padre');
-          toast.success(`📧 Recibo enviado a ${player.email_padre}`);
-        }
-        
-        // Enviar recibo al segundo tutor
-        if (player?.email_tutor_2) {
-          console.log('📤 [Payments] Enviando recibo PDF a tutor 2:', player.email_tutor_2);
-          await sendPaymentReceipt(receiptData, player.email_tutor_2, base44);
-          console.log('✅ [Payments] Recibo PDF enviado a tutor 2');
-        }
+        // El servidor generatePaymentReceipt es la única fuente de recibos y correos.
+        // Evitamos generar un segundo PDF diferente y duplicar el envío a la familia.
       } catch (error) {
-        console.error("Error sending receipt PDF:", error);
-        toast.error("Error al enviar recibo: " + error.message);
+        console.error("Error en tareas posteriores al pago:", error);
       }
     }
   };
