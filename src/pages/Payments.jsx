@@ -25,7 +25,7 @@ import DeudaAnteriorRevisionPanel from "@/components/payments/DeudaAnteriorRevis
 import CustomPaymentPlansList from "../components/payments/CustomPaymentPlansList";
 import CustomPaymentPlanForm from "../components/payments/CustomPaymentPlanForm";
 import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImportePorMes } from "../components/payments/paymentAmounts";
-import { sendPaymentReceipt, createPlayerPaymentReceiptData } from "../components/receipts/PaymentReceiptPDF";
+import { sendPaymentReceipt, createPlayerPaymentReceiptData, generatePaymentReceiptPDF } from "../components/receipts/PaymentReceiptPDF";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import FeeAdjustmentDialog from "../components/payments/FeeAdjustmentDialog";
 import FraccionarCuotaDialog from "../components/payments/FraccionarCuotaDialog";
@@ -455,24 +455,8 @@ export default function Payments() {
       } catch (e) { console.log('Error sincronizando CustomPaymentPlan:', e); }
     }
     
-    // Generar recibo PDF cuando se marca como Pagado
-    if (newStatus === "Pagado") {
-      try {
-        console.log('📄 [Payments] Generando recibo PDF para pago:', payment.id);
-        const receiptResponse = await base44.functions.invoke('generatePaymentReceipt', {
-          paymentId: payment.id
-        });
-        
-        if (receiptResponse.data?.success) {
-          console.log('✅ [Payments] Recibo PDF generado:', receiptResponse.data.recibo_url);
-          await queryClient.invalidateQueries({ queryKey: ['myPayments'] });
-          toast.success("💾 Recibo generado y disponible");
-        }
-      } catch (receiptError) {
-        console.error("Error generating receipt:", receiptError);
-        toast.error("Error al generar recibo (el pago se confirmó correctamente)");
-      }
-    }
+    // El recibo se genera al pulsar «Generar recibo», directamente en el navegador.
+    // No bloquear la confirmación del pago intentando subir el PDF al almacenamiento.
     
     // AUTO-CREAR SOCIO cuando se marca pago como Pagado
     if (newStatus === "Pagado") {
@@ -1689,21 +1673,19 @@ export default function Payments() {
                                          <Button
                                            variant="ghost"
                                            size="sm"
-                                           onClick={async () => {
+                                           onClick={() => {
                                              if (payment.recibo_url) { window.open(payment.recibo_url, '_blank'); return; }
-                                             toast.loading('Generando recibo…', { id: `recibo-${payment.id}` });
                                              try {
-                                               const res = await base44.functions.invoke('generatePaymentReceipt', { paymentId: payment.id });
-                                               const url = res?.data?.recibo_url;
-                                               if (url) {
-                                                 await queryClient.invalidateQueries({ queryKey: ['myPayments'] });
-                                                 window.open(url, '_blank');
-                                                 toast.success('Recibo generado', { id: `recibo-${payment.id}` });
-                                               } else {
-                                                 toast.error('No se pudo generar el recibo', { id: `recibo-${payment.id}` });
-                                               }
+                                               const receiptData = createPlayerPaymentReceiptData(payment, player, { temporada: payment.temporada });
+                                               const doc = generatePaymentReceiptPDF(receiptData);
+                                               const safeName = String(player?.nombre || payment.jugador_nombre || 'Jugador')
+                                                 .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                                                 .replace(/[^a-zA-Z0-9_-]+/g, '_');
+                                               doc.save(`Recibo_${safeName}_${receiptData.numeroRecibo}.pdf`);
+                                               toast.success('Recibo PDF descargado correctamente.');
                                              } catch (e) {
-                                               toast.error('Error al generar el recibo', { id: `recibo-${payment.id}` });
+                                               console.error('[Payments] Error generando PDF local:', e);
+                                               toast.error(`No se ha podido generar el PDF: ${e?.message || 'error desconocido'}`);
                                              }
                                            }}
                                            className="text-green-600 hover:text-green-700 p-1 h-6"
