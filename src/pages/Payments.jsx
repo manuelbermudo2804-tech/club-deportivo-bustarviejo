@@ -25,7 +25,7 @@ import DeudaAnteriorRevisionPanel from "@/components/payments/DeudaAnteriorRevis
 import CustomPaymentPlansList from "../components/payments/CustomPaymentPlansList";
 import CustomPaymentPlanForm from "../components/payments/CustomPaymentPlanForm";
 import { getCuotasPorCategoriaSync, getImportePorCategoriaYMesSync as getImportePorMes } from "../components/payments/paymentAmounts";
-import { sendPaymentReceipt, createPlayerPaymentReceiptData } from "../components/receipts/PaymentReceiptPDF";
+import { sendPaymentReceipt, createPlayerPaymentReceiptData, ensurePaymentReceiptNumber } from "../components/receipts/PaymentReceiptPDF";
 import { generateReciboPDF } from "../components/recibos/reciboPdfGenerator";
 import { useActiveSeason } from "../components/season/SeasonProvider";
 import FeeAdjustmentDialog from "../components/payments/FeeAdjustmentDialog";
@@ -1677,7 +1677,8 @@ export default function Payments() {
                                            onClick={async () => {
                                              if (payment.recibo_url) { window.open(payment.recibo_url, '_blank'); return; }
                                              try {
-                                               const receiptData = createPlayerPaymentReceiptData(payment, player, { temporada: payment.temporada });
+                                               const numeroRecibo = await ensurePaymentReceiptNumber(payment, base44);
+                                               const receiptData = { ...createPlayerPaymentReceiptData(payment, player, { temporada: payment.temporada }), numeroRecibo };
                                                let branding = { logoUrl: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" };
                                                try {
                                                  const assets = await base44.entities.BrandingAssets.list();
