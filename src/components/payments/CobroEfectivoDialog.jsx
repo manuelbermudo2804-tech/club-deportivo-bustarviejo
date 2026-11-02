@@ -55,7 +55,7 @@ export default function CobroEfectivoDialog({ open, onOpenChange, payment, playe
             </p>
           </div>
           <Button
-            onClick={() => onConfirm({ fecha, nota: nota.trim(), reciboFile })
+            onClick={() => onConfirm({ fecha, nota: nota.trim(), reciboFile })}
             disabled={isSubmitting}
             className="w-full bg-green-600 hover:bg-green-700 font-bold"
           >
