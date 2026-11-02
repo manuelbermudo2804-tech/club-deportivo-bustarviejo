@@ -3,13 +3,24 @@ import { jsPDF } from "jspdf";
 const CLUB_LOGO_URL = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
 /**
- * Genera un número de recibo único basado en el ID del pago y la fecha
+ * Identificador permanente del recibo. No depende de la fecha de descarga,
+ * por lo que el mismo pago conserva siempre el mismo número.
  */
-export const generateReceiptNumber = (paymentId, date = new Date()) => {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const shortId = paymentId?.slice(-6).toUpperCase() || Math.random().toString(36).slice(-6).toUpperCase();
-  return `REC-${year}${month}-${shortId}`;
+export const generateReceiptNumber = (paymentId, temporada = '') => {
+  const shortId = String(paymentId || '').replace(/[^a-zA-Z0-9]/g, '').slice(-8).toUpperCase();
+  const season = String(temporada || '').trim().replace(/[^a-zA-Z0-9/-]/g, '').replace(/\s+/g, '');
+  if (!shortId) throw new Error('No se puede numerar el recibo sin el identificador del pago.');
+  return `${season ? season + '-' : 'REC-'}${shortId}`;
+};
+
+/** Devuelve el número ya guardado o asigna uno y lo persiste en el pago. */
+export const ensurePaymentReceiptNumber = async (payment, base44) => {
+  if (payment?.numero_recibo) return payment.numero_recibo;
+  if (!payment?.id) throw new Error('El pago no tiene identificador; no se puede asignar número de recibo.');
+  const numero = generateReceiptNumber(payment.id, payment.temporada);
+  await base44.entities.Payment.update(payment.id, { numero_recibo: numero });
+  payment.numero_recibo = numero;
+  return numero;
 };
 
 /**
@@ -248,7 +259,7 @@ export const createPlayerPaymentReceiptData = (payment, player, seasonConfig) =>
     temporada: payment.temporada,
     fechaPago: payment.fecha_pago || new Date().toISOString(),
     metodoPago: payment.metodo_pago || 'Transferencia',
-    numeroRecibo: generateReceiptNumber(payment.id),
+    numeroRecibo: payment.numero_recibo || generateReceiptNumber(payment.id, payment.temporada),
     jugadorNombre: payment.jugador_nombre,
     categoria: player?.deporte || '',
     mes: payment.mes
@@ -268,7 +279,7 @@ export const createMemberPaymentReceiptData = (member, seasonConfig) => {
     temporada: member.temporada || seasonConfig?.temporada,
     fechaPago: member.fecha_pago || new Date().toISOString(),
     metodoPago: member.metodo_pago || 'Transferencia',
-    numeroRecibo: generateReceiptNumber(member.id),
+    numeroRecibo: member.numero_recibo || generateReceiptNumber(member.id, member.temporada || seasonConfig?.temporada),
     tipoInscripcion: member.tipo_inscripcion
   };
 };
