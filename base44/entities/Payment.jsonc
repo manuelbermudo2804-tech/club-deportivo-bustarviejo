@@ -97,7 +97,12 @@
     },
     "recibo_url": {
       "type": "string",
-      "description": "URL del recibo PDF generado autom\u00e1ticamente"
+      "description": "URL del recibo PDF generado o archivo de recibo adjuntado manualmente"
+    },
+    "recibo_adjuntado_manualmente": {
+      "type": "boolean",
+      "default": false,
+      "description": "Indica que el recibo fue adjuntado manualmente por administraci\u00f3n"
     },
     "numero_recibo": {
       "type": "string",
