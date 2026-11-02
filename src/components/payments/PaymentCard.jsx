@@ -6,7 +6,7 @@ import { Upload, FileText, Loader2, CheckCircle2, Clock, AlertCircle, Download }
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
-import { createPlayerPaymentReceiptData } from "@/components/receipts/PaymentReceiptPDF";
+import { createPlayerPaymentReceiptData, ensurePaymentReceiptNumber } from "@/components/receipts/PaymentReceiptPDF";
 import { generateReciboPDF } from "@/components/recibos/reciboPdfGenerator";
 
 const statusConfig = {
@@ -46,7 +46,8 @@ export default function PaymentCard({
     try {
       // Usar exactamente el mismo diseño de recibo que el generador de patrocinios,
       // incluyendo logo, firma y sello compartidos del club.
-      const receiptData = createPlayerPaymentReceiptData(payment, player, { temporada: payment.temporada });
+      const numeroRecibo = await ensurePaymentReceiptNumber(payment, base44);
+      const receiptData = { ...createPlayerPaymentReceiptData(payment, player, { temporada: payment.temporada }), numeroRecibo };
       let branding = { logoUrl: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" };
       try {
         const assets = await base44.entities.BrandingAssets.list();
