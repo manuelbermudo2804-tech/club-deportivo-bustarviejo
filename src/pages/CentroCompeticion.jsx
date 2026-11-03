@@ -296,7 +296,7 @@ export default function CentroCompeticion() {
       const uniqueStandings = new Map();
       (standings || []).forEach((row) => {
         const name = String(row.nombre_equipo || '').trim();
-        const key = name.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+        const key = name.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
         if (!key) return;
         const completeness = ['puntos', 'partidos_jugados', 'ganados', 'empatados', 'perdidos', 'goles_favor', 'goles_contra']
           .reduce((score, field) => score + (row[field] !== undefined && row[field] !== null && row[field] !== '' ? 1 : 0), 0);
