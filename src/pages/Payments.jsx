@@ -690,7 +690,7 @@ export default function Payments() {
       "",
       "_Listado generado desde la aplicación del club._"
     ];
-    const message = lines.join("\\n");
+    const message = lines.join("\n");
     if (message.length > 7000) return toast.error("El listado es demasiado largo para WhatsApp. Descarga el PDF para obtenerlo completo.");
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   };
