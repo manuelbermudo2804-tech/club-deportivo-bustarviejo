@@ -266,7 +266,11 @@ Deno.serve(async (req) => {
     const allConfigs = (await base44.asServiceRole.entities.StandingsConfig.list())
       .filter((c) => c.rfef_url || c.rfef_results_url);
     const caches = await base44.asServiceRole.entities.CompetitionCache.filter({ tipo: 'jornadas' });
-    const lastSync = (cfg) => caches.find((c) => c.categoria === cfg.categoria && (c.competicion || 'Liga') === (cfg.competicion || 'Liga'))?.ultima_sync || '';
+    const lastSync = (cfg) => caches
+      .filter((c) => c.categoria === cfg.categoria && (c.competicion || 'Liga') === (cfg.competicion || 'Liga'))
+      .map((c) => c.ultima_sync || '')
+      .sort()
+      .at(-1) || '';
     const configs = allConfigs
       .sort((a, b) => lastSync(a).localeCompare(lastSync(b)))
       .slice(0, 1);
