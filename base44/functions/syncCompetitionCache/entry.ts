@@ -337,28 +337,32 @@ Deno.serve(async (req) => {
 
       await new Promise(r => setTimeout(r, 2000));
 
-      // 3) Save to CompetitionCache (upsert by categoria + tipo)
-      const existing = await base44.asServiceRole.entities.CompetitionCache.filter({ categoria: cat, competicion: competition });
-      const existingMap = {};
-      for (const e of existing) existingMap[e.tipo] = e;
-
-      if (jornadasData) {
-        const payload = { categoria: cat, competicion: competition, tipo: 'jornadas', datos: jornadasData, ultima_sync: new Date().toISOString() };
-        if (existingMap['jornadas']) {
-          await base44.asServiceRole.entities.CompetitionCache.update(existingMap['jornadas'].id, payload);
+      // 3) Guardar cada tipo por separado y actualizar siempre el registro más reciente.
+      // Así no se confunden jornadas con tabla cruzada ni se reutilizan copias antiguas.
+      const saveCache = async (tipo, datos) => {
+        const matches = await base44.asServiceRole.entities.CompetitionCache.filter({
+          categoria: cat,
+          competicion: competition,
+          tipo,
+        });
+        const existing = [...matches].sort(
+          (a, b) => new Date(b.ultima_sync || 0) - new Date(a.ultima_sync || 0)
+        )[0];
+        const payload = { categoria: cat, competicion: competition, tipo, datos, ultima_sync: new Date().toISOString() };
+        if (existing) {
+          await base44.asServiceRole.entities.CompetitionCache.update(existing.id, payload);
         } else {
           await base44.asServiceRole.entities.CompetitionCache.create(payload);
         }
+      };
+
+      if (jornadasData) {
+        await saveCache('jornadas', jornadasData);
         results.push({ cat, tipo: 'jornadas', status: 'ok', jornadas: jornadasData.total_jornadas });
       }
 
       if (crossData) {
-        const payload = { categoria: cat, competicion: competition, tipo: 'tabla_cruzada', datos: crossData, ultima_sync: new Date().toISOString() };
-        if (existingMap['tabla_cruzada']) {
-          await base44.asServiceRole.entities.CompetitionCache.update(existingMap['tabla_cruzada'].id, payload);
-        } else {
-          await base44.asServiceRole.entities.CompetitionCache.create(payload);
-        }
+        await saveCache('tabla_cruzada', crossData);
         results.push({ cat, tipo: 'tabla_cruzada', status: 'ok', teams: crossData.teams.length });
       }
     }
