@@ -51,7 +51,18 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
     queryKey: ["agenda-calendario-liga"],
     queryFn: async () => {
       const caches = await base44.entities.CompetitionCache.filter({ tipo: "jornadas" });
-      return caches.flatMap((c) =>
+
+      // Puede haber copias históricas de una misma competición. Nunca mezclar
+      // calendarios de fechas distintas: conservar solo el registro más reciente.
+      const latestByCompetition = new Map();
+      [...caches]
+        .sort((a, b) => new Date(b.ultima_sync || 0) - new Date(a.ultima_sync || 0))
+        .forEach((cache) => {
+          const key = `${normCat(cache.categoria)}|${norm(cache.competicion || "Liga")}`;
+          if (!latestByCompetition.has(key)) latestByCompetition.set(key, cache);
+        });
+
+      return [...latestByCompetition.values()].flatMap((c) =>
         (c.datos?.jornadas || []).flatMap((j) =>
           (j.matches || [])
             .filter((m) => !m.jugado && !/descansa/i.test(`${m.local} ${m.visitante}`))
