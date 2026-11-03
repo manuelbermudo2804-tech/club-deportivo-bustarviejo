@@ -11,10 +11,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet, AlertTriangle, Calendar, Filter, RefreshCw, Settings2, ShieldAlert } from "lucide-react";
+import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet, AlertTriangle, Calendar, Filter, RefreshCw, Settings2, ShieldAlert, Download, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { AnimatePresence } from "framer-motion";
+import { jsPDF } from "jspdf";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 
 import ContactCard from "../components/ContactCard";
@@ -629,6 +630,126 @@ export default function Payments() {
     ? players.find(p => p.id === playerFilter)
     : null;
 
+  // Mantener exactamente los criterios de filtrado de la lista visible.
+  const filteredPlayers = React.useMemo(() => (players || []).filter(player => {
+    if (!player.activo) return false;
+    const matchesSearch = searchTerm === "" || player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategoria = categoriaFilter === "all" || player.deporte === categoriaFilter;
+    const playerPayments = (payments || []).filter(p => p.jugador_id === player.id && matchTemporada(p.temporada, temporadaFilter));
+    const hasActivePlan = customPlans.some(p => p.jugador_id === player.id && p.estado === "Activo" && matchTemporada(p.temporada, temporadaFilter));
+    if (estadoFilter !== "sin_pagos" && temporadaFilter !== "all" && playerPayments.length === 0 && !hasActivePlan) return false;
+    let matchesEstado = true;
+    if (estadoFilter !== "all") {
+      if (estadoFilter === "sin_pagos") {
+        matchesEstado = !playerPayments.some(p => p.estado === "Pagado");
+      } else if (estadoFilter === "Vencido") {
+        const esUnico = playerPayments.some(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
+        const esPlan = playerPayments.some(p => p.tipo_pago === "Plan Especial" || p.tipo_pago === "Plan Mensual");
+        const realVencido = playerPayments.some(p => p.estado === "Pendiente" && calculateDaysOverdue(p.mes) > 0);
+        const meses = esUnico ? ["Junio"] : ["Junio", "Septiembre", "Diciembre"];
+        const virtualVencido = temporadaFilter !== "all" && !esPlan && meses.some(mes =>
+          !playerPayments.some(p => p.mes === mes) && calculateDaysOverdue(mes) > 0
+        );
+        matchesEstado = realVencido || virtualVencido;
+      } else if (estadoFilter === "Pendiente") {
+        const hasPagoUnico = playerPayments.some(p =>
+          (p.tipo_pago === "Único" || p.tipo_pago === "único") &&
+          (p.estado === "Pagado" || p.estado === "En revisión")
+        );
+        if (hasPagoUnico) matchesEstado = false;
+        else {
+          const mesesPagadosORevision = playerPayments.filter(p => p.estado === "Pagado" || p.estado === "En revisión").map(p => p.mes);
+          const allMonths = ["Junio", "Septiembre", "Diciembre"];
+          matchesEstado = allMonths.some(mes => !mesesPagadosORevision.includes(mes));
+        }
+      } else {
+        matchesEstado = playerPayments.some(p => p.estado === estadoFilter);
+      }
+    }
+    return matchesSearch && matchesCategoria && matchesEstado;
+  }), [players, payments, customPlans, searchTerm, categoriaFilter, estadoFilter, temporadaFilter]);
+
+  const getReportFilterLabel = () => ({ sin_pagos: "No ha abonado nada", all: "Todos los estados" }[estadoFilter] || estadoFilter);
+
+  const handleShareFilteredPayments = () => {
+    if (!isAdmin) return;
+    if (!filteredPlayers.length) return toast.error("No hay jugadores en el filtro actual");
+    const categoryLabel = categoriaFilter === "all" ? "Todas" : categoriaFilter;
+    const seasonLabel = temporadaFilter === "all" ? "Todas" : String(temporadaFilter || "—").replace("-", "/");
+    const lines = [
+      "📋 *C.D. BUSTARVIEJO – LISTADO DE PAGOS*",
+      `Filtro: ${getReportFilterLabel()}`,
+      `Temporada: ${seasonLabel} | Categoría: ${categoryLabel}`,
+      `Jugadores: ${filteredPlayers.length}`,
+      "",
+      ...filteredPlayers.map((player, index) => {
+        const seasonPayments = payments.filter(p => p.jugador_id === player.id && matchTemporada(p.temporada, temporadaFilter));
+        const amount = seasonPayments.filter(p => p.estado === "Pendiente").reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0);
+        return `${index + 1}. ${player.nombre} (${player.deporte || "Sin categoría"})${amount > 0 ? ` — Pendiente registrado: ${amount.toFixed(2)} €` : ""}`;
+      }),
+      "",
+      "_Listado generado desde la aplicación del club._"
+    ];
+    const message = lines.join("\\n");
+    if (message.length > 7000) return toast.error("El listado es demasiado largo para WhatsApp. Descarga el PDF para obtenerlo completo.");
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
+  };
+
+  const handleExportFilteredPaymentsPDF = () => {
+    if (!isAdmin) return;
+    if (!filteredPlayers.length) return toast.error("No hay jugadores en el filtro actual");
+    try {
+      const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 12;
+      const categoryLabel = categoriaFilter === "all" ? "Todas" : categoriaFilter;
+      const seasonLabel = temporadaFilter === "all" ? "Todas" : String(temporadaFilter || "—").replace("-", "/");
+      const rows = filteredPlayers.map(player => {
+        const seasonPayments = payments.filter(p => p.jugador_id === player.id && matchTemporada(p.temporada, temporadaFilter));
+        const pending = seasonPayments.filter(p => p.estado === "Pendiente");
+        const review = seasonPayments.filter(p => p.estado === "En revisión");
+        const paid = seasonPayments.filter(p => p.estado === "Pagado");
+        return {
+          name: player.nombre || "—", category: player.deporte || "—",
+          details: [pending.length ? `${pending.length} pendiente(s)` : "", review.length ? `${review.length} en revisión` : "", paid.length ? `${paid.length} pagado(s)` : ""].filter(Boolean).join(" · ") || "Sin pagos registrados",
+          amount: pending.reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0)
+        };
+      });
+      doc.setFont("helvetica", "bold"); doc.setFontSize(17); doc.text("C.D. BUSTARVIEJO", margin, 15);
+      doc.setFontSize(12); doc.text("Listado de pagos por jugador", margin, 22);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+      doc.text(`Generado: ${new Date().toLocaleString("es-ES")}`, pageWidth - margin, 15, { align: "right" });
+      doc.text(`Temporada: ${seasonLabel} | Categoría: ${categoryLabel} | Estado: ${getReportFilterLabel()}`, margin, 29);
+      doc.text(`Búsqueda: ${searchTerm || "Sin búsqueda"} | Jugadores: ${rows.length}`, margin, 35);
+      let y = 44;
+      const columns = [{ title: "Jugador", x: margin, width: 85 }, { title: "Categoría", x: 100, width: 42 }, { title: "Detalle de pagos", x: 146, width: 90 }, { title: "Pendiente registrado (€)", x: 240, width: 45 }];
+      const drawHeader = () => {
+        doc.setFillColor(245, 247, 250); doc.rect(margin, y - 5, pageWidth - margin * 2, 9, "F");
+        doc.setFont("helvetica", "bold"); doc.setFontSize(8); columns.forEach(col => doc.text(col.title, col.x, y)); y += 7;
+      };
+      drawHeader(); doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+      rows.forEach(row => {
+        const nameLines = doc.splitTextToSize(row.name, columns[0].width);
+        const detailLines = doc.splitTextToSize(row.details, columns[2].width);
+        const rowHeight = Math.max(nameLines.length, detailLines.length, 1) * 4 + 3;
+        if (y + rowHeight > pageHeight - 13) { doc.addPage(); y = 15; drawHeader(); doc.setFont("helvetica", "normal"); doc.setFontSize(8); }
+        doc.text(nameLines, columns[0].x, y); doc.text(row.category, columns[1].x, y); doc.text(detailLines, columns[2].x, y);
+        doc.text(row.amount.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), columns[3].x + columns[3].width, y, { align: "right" });
+        doc.setDrawColor(225, 229, 235); doc.line(margin, y + rowHeight - 2, pageWidth - margin, y + rowHeight - 2); y += rowHeight;
+      });
+      const totalPending = rows.reduce((sum, row) => sum + row.amount, 0);
+      if (y + 10 > pageHeight - 10) { doc.addPage(); y = 18; }
+      doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+      doc.text(`Total pendiente registrado: ${totalPending.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`, margin, y + 4);
+      doc.save(`CD_Bustarviejo_pagos_${new Date().toISOString().slice(0, 10)}.pdf`);
+      toast.success(`PDF descargado: ${rows.length} jugadores`);
+    } catch (error) {
+      console.error("[Payments] Error generando listado PDF:", error);
+      toast.error(`No se ha podido generar el PDF: ${error?.message || "error desconocido"}`);
+    }
+  };
+
   const statusEmojis = {
     "Pagado": "🟢",
     "En revisión": "🟠",
@@ -1152,18 +1273,17 @@ export default function Payments() {
           {/* Payments by Player */}
           <Card className="border-none shadow-lg bg-white">
             <CardHeader className="border-b border-slate-100">
-              <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <CardTitle className="text-xl">
-                  Pagos por Jugador
-                </CardTitle>
-                <div className="relative w-full md:w-64">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <Input
-                    placeholder="Buscar jugador..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10"
-                  />
+              <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center gap-4">
+                <CardTitle className="text-xl">Pagos por Jugador</CardTitle>
+                <div className="flex flex-col sm:flex-row flex-wrap gap-2 w-full xl:w-auto">
+                  <div className="relative w-full sm:w-64">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Input placeholder="Buscar jugador..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10" />
+                  </div>
+                  {isAdmin && <>
+                    <Button type="button" variant="outline" onClick={handleExportFilteredPaymentsPDF} className="border-orange-300 text-orange-700 hover:bg-orange-50"><Download className="w-4 h-4 mr-2" /> PDF</Button>
+                    <Button type="button" variant="outline" onClick={handleShareFilteredPayments} className="border-green-300 text-green-700 hover:bg-green-50"><MessageCircle className="w-4 h-4 mr-2" /> WhatsApp</Button>
+                  </>}
                 </div>
               </div>
             </CardHeader>
@@ -1179,70 +1299,8 @@ export default function Payments() {
                   <p className="text-slate-500">No hay jugadores registrados</p>
                 </div>
               ) : (() => {
-                // Filtrar jugadores por búsqueda Y filtros avanzados
-                const playersToShow = (players || []).filter(player => {
-                // CRÍTICO: Solo mostrar jugadores ACTIVOS (no mostrar jugadores de temporadas anteriores pendientes de renovación)
-                if (!player.activo) return false;
-
-                // Filtro de búsqueda
-                const matchesSearch = searchTerm === "" || player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
-
-                // Filtro de categoría
-                const matchesCategoria = categoriaFilter === "all" || player.deporte === categoriaFilter;
-
-                // IMPORTANTE: Si hay filtro de temporada, solo mostrar jugadores que tengan pagos en esa temporada O plan especial
-                const playerPayments = (payments || []).filter(p => p.jugador_id === player.id && matchTemporada(p.temporada, temporadaFilter));
-                const hasActivePlan = customPlans.some(p => p.jugador_id === player.id && p.estado === "Activo" && matchTemporada(p.temporada, temporadaFilter));
-
-                // Si hay filtro de temporada específico y el jugador NO tiene pagos en esa temporada NI plan especial, no mostrarlo
-                if (estadoFilter !== "sin_pagos" && temporadaFilter !== "all" && playerPayments.length === 0 && !hasActivePlan) {
-                  return false;
-                }
-
-                 // Filtro por estado - verificar si el jugador tiene pagos del estado buscado
-                 let matchesEstado = true;
-                 if (estadoFilter !== "all") {
-                   if (estadoFilter === "sin_pagos") {
-                     // Sin pagos significa que no existe ningún abono confirmado en la temporada filtrada.
-                     // Los pagos en revisión no cuentan como abonados.
-                     matchesEstado = !playerPayments.some(p => p.estado === "Pagado");
-                   } else if (estadoFilter === "Vencido") {
-                     const esUnico = playerPayments.some(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
-                     const esPlan = playerPayments.some(p => p.tipo_pago === "Plan Especial" || p.tipo_pago === "Plan Mensual");
-                     const realVencido = playerPayments.some(p => p.estado === "Pendiente" && calculateDaysOverdue(p.mes) > 0);
-                     const meses = esUnico ? ["Junio"] : ["Junio", "Septiembre", "Diciembre"];
-                     const virtualVencido = temporadaFilter !== "all" && !esPlan && meses.some(mes =>
-                       !playerPayments.some(p => p.mes === mes) && calculateDaysOverdue(mes) > 0
-                     );
-                     matchesEstado = realVencido || virtualVencido;
-                   } else if (estadoFilter === "Pendiente") {
-                     const hasPagoUnico = playerPayments.some(p => 
-                       (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-                       (p.estado === "Pagado" || p.estado === "En revisión")
-                     );
-                     
-                     if (hasPagoUnico) {
-                       matchesEstado = false; // No mostrar si ya pagó todo con pago único
-                     } else {
-                       // Contar meses que YA están pagados o en revisión
-                       const mesesPagadosORevision = playerPayments
-                         .filter(p => p.estado === "Pagado" || p.estado === "En revisión")
-                         .map(p => p.mes);
-                       
-                       // Verificar si hay meses sin pagar (considerando los 3 meses: Junio, Sep, Dic)
-                       const allMonths = ["Junio", "Septiembre", "Diciembre"];
-                       const mesesSinPagar = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
-                       
-                       matchesEstado = mesesSinPagar.length > 0; // Mostrar si le falta al menos 1 pago
-                     }
-                   } else {
-                     // Para otros estados, mostrar si tiene al menos un pago con ese estado
-                     matchesEstado = playerPayments.some(p => p.estado === estadoFilter);
-                   }
-                 }
-
-                 return matchesSearch && matchesCategoria && matchesEstado;
-                });
+                // La lista filtrada se calcula en un único punto y se reutiliza en pantalla y exportaciones.
+                const playersToShow = filteredPlayers;
 
                 if (playersToShow.length === 0) {
                  return (
