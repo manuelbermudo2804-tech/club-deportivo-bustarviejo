@@ -292,12 +292,24 @@ export default function CentroCompeticion() {
 
       // 2) Insertar todo de nuevo ya normalizado (vacíos -> 0)
       const toNum = (v) => (v === undefined || v === '' ? 0 : Number(v));
-      const payloadRows = (standings || []).map((row) => ({
+      // Eliminar equipos repetidos antes de guardar (por ejemplo, filas duplicadas del OCR).
+      const uniqueStandings = new Map();
+      (standings || []).forEach((row) => {
+        const name = String(row.nombre_equipo || '').trim();
+        const key = name.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+        if (!key) return;
+        const completeness = ['puntos', 'partidos_jugados', 'ganados', 'empatados', 'perdidos', 'goles_favor', 'goles_contra']
+          .reduce((score, field) => score + (row[field] !== undefined && row[field] !== null && row[field] !== '' ? 1 : 0), 0);
+        const previous = uniqueStandings.get(key);
+        if (!previous || completeness > previous.completeness) uniqueStandings.set(key, { row: { ...row, nombre_equipo: name }, completeness });
+      });
+
+      const payloadRows = [...uniqueStandings.values()].map(({ row }) => ({
         categoria,
         temporada,
         jornada,
         competicion: category === 'Fútbol Aficionado' ? competition : 'Liga',
-        nombre_equipo: String(row.nombre_equipo || '').trim(),
+        nombre_equipo: row.nombre_equipo,
         posicion: toNum(row.posicion),
         puntos: toNum(row.puntos),
         partidos_jugados: toNum(row.partidos_jugados),
