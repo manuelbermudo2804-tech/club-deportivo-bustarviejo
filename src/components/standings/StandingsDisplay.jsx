@@ -30,7 +30,21 @@ export default function StandingsDisplay({ data, onClose, fullPage = false }) {
     );
   }
   
-  const sortedData = [...data.data].sort((a, b) => (a.posicion || 0) - (b.posicion || 0));
+  // Algunas importaciones RFFM/OCR pueden repetir filas. Normalizamos el nombre
+  // para evitar duplicados por mayúsculas, tildes o espacios, conservando la fila
+  // con más información estadística.
+  const uniqueRows = new Map();
+  (data.data || []).forEach((row) => {
+    const key = String(row.nombre_equipo || "").normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    if (!key) return;
+    const completeness = ["puntos", "partidos_jugados", "ganados", "empatados", "perdidos", "goles_favor", "goles_contra"]
+      .reduce((score, field) => score + (row[field] !== undefined && row[field] !== null && row[field] !== "" ? 1 : 0), 0);
+    const previous = uniqueRows.get(key);
+    if (!previous || completeness > previous.completeness) uniqueRows.set(key, { row, completeness });
+  });
+  const sortedData = [...uniqueRows.values()]
+    .map(item => item.row)
+    .sort((a, b) => (a.posicion || 0) - (b.posicion || 0));
 
   const content = (
     <>
