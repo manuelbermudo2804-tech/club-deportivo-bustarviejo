@@ -7,10 +7,13 @@ import { sameSeason } from "@/lib/sameSeason";
 /** Importe efectivamente cobrado. Compatible con pagos antiguos sin importe_cobrado. */
 export function getPaymentCollected(payment) {
   if (!payment) return 0;
+  const total = Math.max(0, Number(payment.cantidad) || 0);
+  // El estado Pagado mantiene compatibilidad con todos los registros históricos.
+  if (payment.estado === "Pagado") return total;
   if (payment.importe_cobrado !== undefined && payment.importe_cobrado !== null) {
-    return Math.max(0, Math.min(Number(payment.cantidad) || 0, Number(payment.importe_cobrado) || 0));
+    return Math.max(0, Math.min(total, Number(payment.importe_cobrado) || 0));
   }
-  return payment.estado === "Pagado" ? Math.max(0, Number(payment.cantidad) || 0) : 0;
+  return 0;
 }
 
 /** Saldo pendiente de una cuota, sin alterar el importe original. */
