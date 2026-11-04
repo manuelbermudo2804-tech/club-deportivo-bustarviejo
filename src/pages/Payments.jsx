@@ -528,14 +528,12 @@ export default function Payments() {
     }
   };
 
-  // Cobro en efectivo: marca como pagado sin justificante y deja la anotación
-  const handleCashPayment = async ({ fecha, nota, reciboFile }) => {
+  // Registra cada entrega en efectivo como un movimiento independiente y acumula el importe cobrado.
+  const handleCashPayment = async ({ fecha, nota, reciboFile, importe }) => {
     if (!efectivoData) return;
     setSavingEfectivo(true);
     try {
       let real = efectivoData.payment;
-
-      // Si era una cuota virtual (aún no existe en BD), crearla primero
       if (real.isVirtual) {
         real = await base44.entities.Payment.create({
           jugador_id: real.jugador_id,
@@ -546,33 +544,64 @@ export default function Payments() {
           cantidad: real.cantidad,
           estado: "Pendiente",
           metodo_pago: "Efectivo",
+          importe_cobrado: 0,
+          movimientos_cobro: [],
         });
       }
 
-      // Si se adjunta un recibo ya emitido, subirlo y asociarlo al pago antes de confirmarlo.
-      // La función de recibos reutilizará esta URL y no creará un PDF duplicado.
-      if (reciboFile) {
-        const upload = await base44.integrations.Core.UploadFile({ file: reciboFile });
-        const uploadedUrl = upload?.file_url || upload?.url;
-        if (!uploadedUrl || !String(uploadedUrl).startsWith('http')) {
-          throw new Error('No se pudo guardar el archivo adjunto. El pago no se ha confirmado todavía.');
-        }
-        real = { ...real, recibo_url: uploadedUrl, recibo_adjuntado_manualmente: true };
+      const total = Math.round((Number(real.cantidad) || 0) * 100) / 100;
+      const previouslyCollected = real.importe_cobrado !== undefined && real.importe_cobrado !== null
+        ? Number(real.importe_cobrado) || 0
+        : real.estado === "Pagado" ? total : 0;
+      const amount = Math.round(Number(importe) * 100) / 100;
+      const remaining = Math.max(0, Math.round((total - previouslyCollected) * 100) / 100);
+      if (!Number.isFinite(amount) || amount <= 0 || amount > remaining + 0.001) {
+        throw new Error("El importe debe ser positivo y no puede superar el saldo pendiente.");
       }
 
-      const anotacion = `Cobrado en EFECTIVO el ${new Date(fecha).toLocaleDateString('es-ES')}${nota ? ` — ${nota}` : ''}`;
-      const notas = [real.notas, anotacion].filter(Boolean).join(' | ');
+      let uploadedUrl = null;
+      if (reciboFile) {
+        const upload = await base44.integrations.Core.UploadFile({ file: reciboFile });
+        uploadedUrl = upload?.file_url || upload?.url;
+        if (!uploadedUrl || !String(uploadedUrl).startsWith("http")) {
+          throw new Error("No se pudo guardar el archivo adjunto. El cobro no se ha confirmado.");
+        }
+      }
 
-      await handleStatusChange(
-        { ...real, metodo_pago: "Efectivo", notas, fecha_pago: fecha },
-        "Pagado"
-      );
+      const currentUser = await base44.auth.me();
+      const movement = {
+        importe: amount,
+        fecha,
+        metodo_pago: "Efectivo",
+        anotacion: nota || "",
+        registrado_por: currentUser?.email || "",
+        registrado_el: new Date().toISOString(),
+      };
+      const newCollected = Math.round((previouslyCollected + amount) * 100) / 100;
+      const isFullyPaid = newCollected >= total - 0.001;
+      const newNotes = [`Cobro en EFECTIVO ${amount.toFixed(2)}€ el ${new Date(fecha).toLocaleDateString("es-ES")}${nota ? ` — ${nota}` : ""}`];
+      const updated = {
+        ...real,
+        metodo_pago: "Efectivo",
+        importe_cobrado: Math.min(total, newCollected),
+        movimientos_cobro: [...(Array.isArray(real.movimientos_cobro) ? real.movimientos_cobro : []), movement],
+        notas: [real.notas, ...newNotes].filter(Boolean).join(" | "),
+        ...(uploadedUrl ? { recibo_url: uploadedUrl, recibo_adjuntado_manualmente: true } : {}),
+      };
+
+      if (isFullyPaid) {
+        await handleStatusChange({ ...updated, fecha_pago: fecha }, "Pagado");
+      } else {
+        await base44.entities.Payment.update(real.id, { ...updated, estado: "Pendiente" });
+        queryClient.invalidateQueries({ queryKey: ["myPayments"] });
+        queryClient.invalidateQueries({ queryKey: ["payments"] });
+        toast.success(`Abono de ${amount.toFixed(2)}€ registrado. Quedan ${(total - newCollected).toFixed(2)}€ pendientes.`);
+      }
 
       setEfectivoData(null);
-      toast.success("Cobro en efectivo registrado 💵");
     } catch (error) {
       console.error("Error registrando cobro en efectivo:", error);
-      toast.error("Error al registrar el cobro en efectivo");
+      toast.error(error?.message || "Error al registrar el cobro en efectivo");
     } finally {
       setSavingEfectivo(false);
     }
