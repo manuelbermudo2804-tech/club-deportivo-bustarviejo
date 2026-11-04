@@ -30,6 +30,7 @@ import { CheckmarkAnimation } from "../components/animations/SuccessAnimation";
 import { usePageTutorial } from "../components/tutorials/useTutorial";
 
 import { CUOTAS_FALLBACK, CATEGORY_NAME_MAPPING, getCuotasFromConfig, getImportePorMesFromConfig } from '../lib/cuotasConfig';
+import { getPaymentOutstanding } from '@/components/payments/paymentHelpers';
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 // Número de orden de una cuota de plan especial ("Cuota 2" → 2).
@@ -1227,8 +1228,8 @@ export default function ParentPayments() {
             const successUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=success`;
             const cancelUrl = `${window.location.origin}${createPageUrl('ParentPayments')}?stripe=canceled`;
             const response = await base44.functions.invoke('stripeCheckout', {
-              amount: Number(payment.cantidad),
-              name: `Cuota ${payment.mes} - ${player.nombre} (${payment.temporada})`,
+              amount: getPaymentOutstanding(payment),
+              name: `Saldo pendiente cuota ${payment.mes} - ${player.nombre} (${payment.temporada})`,
               currency: 'eur',
               successUrl,
               cancelUrl,
