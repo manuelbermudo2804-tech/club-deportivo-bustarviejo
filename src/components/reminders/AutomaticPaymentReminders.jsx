@@ -56,10 +56,10 @@ export default function AutomaticPaymentReminders({ user }) {
           } else if (currentDay === 8) {
             mesRecordatorio = "Septiembre";
             tipoRecordatorio = "7_dias_antes";
+          } else if (currentDay === 17) {
+            mesRecordatorio = "Septiembre";
+            tipoRecordatorio = "2_dias_despues";
           }
-        } else if (currentMonth === 9 && currentDay === 17) {
-          mesRecordatorio = "Septiembre";
-          tipoRecordatorio = "2_dias_despues";
         } else if (currentMonth === 12) {
           if (currentDay === 1) {
             mesRecordatorio = "Diciembre";
