@@ -201,23 +201,11 @@ export default function PaymentCard({
             </Button>
           )}
 
-          {/* Recibo: primero se genera y, cuando existe, se ofrece la descarga */}
-          {payment.estado === "Pagado" && !payment.isVirtual && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={receiptUrl ? handleDownloadReceipt : handleGenerateReceipt}
-              disabled={generatingReceipt}
-              className="h-8 text-xs border-green-300 text-green-700 hover:bg-green-50"
-            >
-              {generatingReceipt ? (
-                <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
-              ) : receiptUrl ? (
-                <Download className="w-3.5 h-3.5 mr-1" />
-              ) : (
-                <FileText className="w-3.5 h-3.5 mr-1" />
-              )}
-              {generatingReceipt ? 'Generando recibo…' : receiptUrl ? 'Descargar archivo' : 'Generar recibo'}
+          {/* El recibo adjunto está disponible incluso si la cuota solo está abonada parcialmente. */}
+          {!payment.isVirtual && (receiptUrl || (payment.estado === "Pagado" && outstandingAmount <= 0)) && (
+            <Button size="sm" variant="outline" onClick={receiptUrl ? handleDownloadReceipt : handleGenerateReceipt} disabled={generatingReceipt} className="h-8 text-xs border-green-300 text-green-700 hover:bg-green-50">
+              {generatingReceipt ? <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" /> : receiptUrl ? <Download className="w-3.5 h-3.5 mr-1" /> : <FileText className="w-3.5 h-3.5 mr-1" />}
+              {generatingReceipt ? 'Generando recibo…' : receiptUrl ? 'Ver recibo' : 'Generar recibo'}
             </Button>
           )}
         </div>
