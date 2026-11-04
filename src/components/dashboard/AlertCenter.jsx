@@ -635,31 +635,29 @@ const alerts = [];
 
   // Alertas para padres (incluye tesoreros con hijos)
   if (isParent && !isAdmin && !isCoach) {
-    // CONSOLIDAR PAGOS: Si hay vencidos, mostrar solo esos (incluyen a los pendientes)
-    // Si NO hay vencidos, mostrar pendientes normales
-    // Los pagos en revisión se muestran aparte siempre
-    
+    // Mostrar por separado las cuotas vencidas y las que aún están dentro de plazo.
+    // Cada contador representa cuotas, no movimientos/abonos parciales.
     if (overduePayments > 0) {
-      // Si hay vencidos, NO mostrar "pendientes" porque se duplicaría
       alerts.push({
         id: "overdue",
         icon: AlertTriangle,
-        title: "⚠️ Pagos Vencidos",
-        description: `${overduePayments} pago${overduePayments > 1 ? 's' : ''} vencido${overduePayments > 1 ? 's' : ''} - fecha límite superada`,
+        title: "⚠️ Cuotas Vencidas",
+        description: `${overduePayments} cuota${overduePayments > 1 ? 's' : ''} con fecha límite superada`,
         url: createPageUrl("ParentPayments"),
         color: "bg-red-600",
         priority: 1
       });
-    } else if (pendingPayments > 0) {
-      // Solo mostrar pendientes si NO hay vencidos
+    }
+
+    if (pendingPayments > 0) {
       alerts.push({
         id: "payments-pending",
         icon: CreditCard,
-        title: "💳 Pagos Pendientes",
-        description: `${pendingPayments} pago${pendingPayments > 1 ? 's' : ''} por realizar`,
+        title: "💳 Cuotas Pendientes",
+        description: `${pendingPayments} cuota${pendingPayments > 1 ? 's' : ''} pendiente${pendingPayments > 1 ? 's' : ''} dentro de plazo`,
         url: createPageUrl("ParentPayments"),
         color: "bg-yellow-500",
-        priority: 3
+        priority: 2
       });
     }
     
