@@ -3,6 +3,7 @@ import { sameSeason } from "@/lib/sameSeason";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ComposedChart, Line, Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area } from "recharts";
 import { TrendingUp, Calendar } from "lucide-react";
+import { getPaymentCollected } from "@/components/payments/paymentHelpers";
 
 export default function CashFlowAnalysis({ payments, transactions, clothingOrders, lotteryOrders, clubMembers, sponsors, activeSeason }) {
   const monthlyData = useMemo(() => {
@@ -12,9 +13,9 @@ export default function CashFlowAnalysis({ payments, transactions, clothingOrder
       // Ingresos
       const cuotas = payments.filter(p => 
         p.mes === mes && 
-        p.estado === "Pagado" && 
+        getPaymentCollected(p) > 0 && 
         sameSeason(p.temporada, activeSeason?.temporada)
-      ).reduce((sum, p) => sum + (p.cantidad || 0), 0);
+      ).reduce((sum, p) => sum + getPaymentCollected(p), 0);
 
       const ropa = clothingOrders.filter(o => {
         if (!o.fecha_pago || o.temporada !== activeSeason?.temporada) return false;
