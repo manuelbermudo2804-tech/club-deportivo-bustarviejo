@@ -543,10 +543,18 @@ export default function Payments() {
     console.log("[Payments] Iniciando registro de efectivo", { paymentId: efectivoData.payment?.id, importe, user: user?.email });
     setSavingEfectivo(true);
     let paymentSaved = false;
+    let stage = "preparando el cobro";
+    const withTimeout = (promise, label, ms = 25000) => Promise.race([
+      promise,
+      new Promise((_, reject) => setTimeout(() => reject(new Error(`Tiempo de espera agotado en: ${label}`)), ms))
+    ]);
     try {
       let real = efectivoData.payment;
+      console.log("[Payments][Cash] Etapa:", stage);
       if (real.isVirtual) {
-        real = await base44.entities.Payment.create({
+        stage = "creando la cuota pendiente";
+        console.log("[Payments][Cash] Etapa:", stage);
+        real = await withTimeout(base44.entities.Payment.create({
           jugador_id: real.jugador_id,
           jugador_nombre: real.jugador_nombre,
           tipo_pago: real.tipo_pago,
@@ -557,7 +565,7 @@ export default function Payments() {
           metodo_pago: "Efectivo",
           importe_cobrado: 0,
           movimientos_cobro: [],
-        });
+        }), stage);
       }
 
       const total = Math.round((Number(real.cantidad) || 0) * 100) / 100;
@@ -572,7 +580,9 @@ export default function Payments() {
 
       let uploadedUrl = null;
       if (reciboFile) {
-        const upload = await base44.integrations.Core.UploadFile({ file: reciboFile });
+        stage = "subiendo el recibo adjunto";
+        console.log("[Payments][Cash] Etapa:", stage);
+        const upload = await withTimeout(base44.integrations.Core.UploadFile({ file: reciboFile }), stage, 45000);
         uploadedUrl = upload?.file_url || upload?.url;
         if (!uploadedUrl || !String(uploadedUrl).startsWith("http")) {
           throw new Error("No se pudo guardar el recibo. El cobro no se ha registrado.");
@@ -602,8 +612,12 @@ export default function Payments() {
         ...(isFullyPaid ? { estado: "Pagado", fecha_pago: fecha } : { estado: "Pendiente" }),
       };
 
-      await base44.entities.Payment.update(real.id, updatedFields);
-      const savedPayment = await base44.entities.Payment.get(real.id);
+      stage = "guardando los datos de la cuota";
+      console.log("[Payments][Cash] Etapa:", stage, { paymentId: real.id });
+      await withTimeout(base44.entities.Payment.update(real.id, updatedFields), stage);
+      stage = "verificando que la cuota se haya guardado";
+      console.log("[Payments][Cash] Etapa:", stage);
+      const savedPayment = await withTimeout(base44.entities.Payment.get(real.id), stage);
       const savedCollected = Number(savedPayment?.importe_cobrado);
       const savedMovements = Array.isArray(savedPayment?.movimientos_cobro) ? savedPayment.movimientos_cobro : [];
       if (!savedPayment || Math.abs(savedCollected - newCollected) > 0.001 || !savedMovements.some(item => item.id === movementId)) {
@@ -612,9 +626,13 @@ export default function Payments() {
       paymentSaved = true;
 
       const ledgerReference = `payment-cash:${real.id}:${movementId}`;
-      const existingLedgerRows = await base44.entities.FinancialTransaction.filter({ referencia_origen: ledgerReference });
+      stage = "comprobando si ya existe el asiento de tesorería";
+      console.log("[Payments][Cash] Etapa:", stage);
+      const existingLedgerRows = await withTimeout(base44.entities.FinancialTransaction.filter({ referencia_origen: ledgerReference }), stage);
       if (!existingLedgerRows?.length) {
-        await base44.entities.FinancialTransaction.create({
+        stage = "creando el movimiento en tesorería";
+        console.log("[Payments][Cash] Etapa:", stage);
+        await withTimeout(base44.entities.FinancialTransaction.create({
           tipo: "Ingreso",
           concepto: `Cuota deportiva · ${real.jugador_nombre} · ${real.mes}`,
           cantidad: amount,
@@ -631,12 +649,14 @@ export default function Payments() {
           documento_url: uploadedUrl || "",
           tipo_documento: uploadedUrl ? "Recibo" : undefined,
           subtipo_documento: "Cuota deportiva",
-        });
+        }), stage);
       }
 
       if (isFullyPaid) {
         // Reutiliza el flujo normal de confirmación: avisos, plan especial y alta de socio.
-        await handleStatusChange(savedPayment, "Pagado");
+        stage = "actualizando el estado de la cuota";
+        console.log("[Payments][Cash] Etapa:", stage);
+        await withTimeout(handleStatusChange(savedPayment, "Pagado"), stage, 45000);
       }
 
       await Promise.all([
@@ -651,12 +671,13 @@ export default function Payments() {
         : `Abono de ${amount.toFixed(2)}€ guardado. Restan ${(total - newCollected).toFixed(2)}€.`);
       setEfectivoData(null);
     } catch (error) {
-      console.error("Error registrando cobro en efectivo:", error);
+      console.error("Error registrando cobro en efectivo:", { stage, error });
+      console.error("[Payments][Cash] Fallo en etapa:", stage);
       if (paymentSaved) {
         toast.error(`El abono de ${Number(importe).toFixed(2)}€ sí quedó guardado en la cuota, pero falló el asiento de tesorería: ${error?.message || "error desconocido"}. Avísame antes de repetirlo.`);
         setEfectivoData(null);
       } else {
-        toast.error(error?.message || "No se pudo guardar el cobro. No se ha confirmado ningún abono.");
+        toast.error(`Fallo al ${stage}: ${error?.message || "No se pudo confirmar el cobro."} Comprueba la cuota antes de repetirlo.`);
       }
     } finally {
       setSavingEfectivo(false);
