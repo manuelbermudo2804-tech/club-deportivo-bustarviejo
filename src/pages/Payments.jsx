@@ -32,6 +32,7 @@ import { useActiveSeason } from "../components/season/SeasonProvider";
 import FeeAdjustmentDialog from "../components/payments/FeeAdjustmentDialog";
 import FraccionarCuotaDialog from "../components/payments/FraccionarCuotaDialog";
 import CobroEfectivoDialog from "../components/payments/CobroEfectivoDialog";
+import { getPaymentCollected, getPaymentOutstanding } from "../components/payments/paymentHelpers";
 
 const getCurrentSeason = () => {
   const now = new Date();
@@ -1706,7 +1707,7 @@ export default function Payments() {
                                           payment.estado === "En revisión" ? "bg-orange-100 text-orange-700 text-[10px] lg:text-xs" :
                                           "bg-red-100 text-red-700 text-[10px] lg:text-xs"
                                         }>
-                                          {statusEmojis[payment.estado]}
+                                          {getPaymentCollected(payment) > 0 && getPaymentOutstanding(payment) > 0 ? "🟡 Parcial" : statusEmojis[payment.estado]}
                                         </Badge>
                                         <div className="min-w-0 flex-1">
                                           <p className="text-xs lg:text-sm font-medium text-slate-900">
@@ -1718,7 +1719,7 @@ export default function Payments() {
                                             )}
                                           </p>
                                           <p className="text-[10px] lg:text-xs text-slate-600">
-                                            {payment.cantidad}€{payment.categoria_actividad ? ` · ${payment.categoria_actividad}` : ([...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))].length === 1 ? ` · ${player.categoria_principal || player.deporte || player.categorias?.[0]}` : " · Actividad pendiente de asignar")}
+                                            {payment.cantidad}€{getPaymentCollected(payment) > 0 && getPaymentOutstanding(payment) > 0 ? ` · Cobrado ${getPaymentCollected(payment).toFixed(2)}€ · Resta ${getPaymentOutstanding(payment).toFixed(2)}€` : ""}{payment.categoria_actividad ? ` · ${payment.categoria_actividad}` : ([...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))].length === 1 ? ` · ${player.categoria_principal || player.deporte || player.categorias?.[0]}` : " · Actividad pendiente de asignar")}
                                           </p>
                                           {!payment.categoria_actividad && [...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))].length > 1 && (
                                             <div className="mt-2 max-w-[230px]">
