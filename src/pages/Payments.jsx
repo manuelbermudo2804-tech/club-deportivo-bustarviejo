@@ -1766,6 +1766,27 @@ export default function Payments() {
                                        ) : payment.estado === "Pendiente" && (
                                          <span className="text-red-600 text-xs lg:text-sm">❌</span>
                                        )}
+                                       {isAdmin && !payment.isVirtual && (
+                                         <label className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-700 hover:bg-slate-50 cursor-pointer" title="Adjuntar o sustituir recibo">
+                                           <Upload className="mr-1 h-3 w-3" /> {payment.recibo_url ? "Cambiar recibo" : "Adjuntar recibo"}
+                                           <input type="file" accept="application/pdf,image/*" className="hidden" onChange={async (event) => {
+                                             const file = event.target.files?.[0];
+                                             event.target.value = "";
+                                             if (!file) return;
+                                             try {
+                                               const upload = await base44.integrations.Core.UploadFile({ file });
+                                               const url = upload?.file_url || upload?.url;
+                                               if (!url || !String(url).startsWith("http")) throw new Error("No se pudo guardar el archivo.");
+                                               await base44.entities.Payment.update(payment.id, { recibo_url: url, recibo_adjuntado_manualmente: true });
+                                               queryClient.invalidateQueries({ queryKey: ["myPayments"] });
+                                               toast.success("Recibo adjuntado. Ya está disponible para la familia.");
+                                             } catch (error) {
+                                               console.error("Error adjuntando recibo:", error);
+                                               toast.error(error?.message || "No se pudo adjuntar el recibo.");
+                                             }
+                                           }} />
+                                         </label>
+                                       )}
                                        {payment.estado === "Pagado" && !payment.isVirtual && (
                                          <Button
                                            variant="ghost"
