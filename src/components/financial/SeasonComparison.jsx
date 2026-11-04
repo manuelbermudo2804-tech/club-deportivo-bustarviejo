@@ -7,6 +7,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line } from "recharts";
 import { TrendingUp, TrendingDown, Award, Users } from "lucide-react";
+import { getPaymentCollected } from "@/components/payments/paymentHelpers";
 
 export default function SeasonComparison({ open, onClose, currentSeason, allSeasons }) {
   const { data: allPayments = [] } = useQuery({
@@ -47,7 +48,7 @@ export default function SeasonComparison({ open, onClose, currentSeason, allSeas
       const seasonLottery = allLottery.filter(o => o.temporada === season.temporada);
       const seasonMembers = allMembers.filter(m => m.temporada === season.temporada);
 
-      const ingresoCuotas = seasonPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + (p.cantidad || 0), 0);
+      const ingresoCuotas = seasonPayments.reduce((sum, p) => sum + getPaymentCollected(p), 0);
       const ingresoRopa = seasonClothing.filter(o => o.pagado === true).reduce((sum, o) => sum + (o.precio_final || 0), 0);
       const ingresoLoteria = seasonLottery.filter(o => o.pagado === true).reduce((sum, o) => sum + (o.total || 0), 0);
       const ingresoSocios = seasonMembers.filter(m => m.estado_pago === "Pagado").reduce((sum, m) => sum + (m.cuota_pagada || 0), 0);
