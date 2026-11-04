@@ -25,7 +25,7 @@ function shortName(name) {
     .replace(/^RECREATIVO\s*/i, "REC. ")
     .replace(/^ATLETICO\s*/i, "ATL. ")
     .replace(/\s*C\.F\.\s*/gi, " ")
-    .replace(/\s*\"([A-Z])\"\s*/gi, " $1")
+    .replace(/\s*"([A-Z])"\s*/gi, " $1")
     .trim()
     .substring(0, 20);
 }
