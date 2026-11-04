@@ -577,6 +577,7 @@ export default function Payments() {
         anotacion: nota || "",
         registrado_por: currentUser?.email || "",
         registrado_el: new Date().toISOString(),
+        recibo_url: uploadedUrl || "",
       };
       const newCollected = Math.round((previouslyCollected + amount) * 100) / 100;
       const isFullyPaid = newCollected >= total - 0.001;
