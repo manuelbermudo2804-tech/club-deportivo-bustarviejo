@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Banknote } from "lucide-react";
 
-export default function CobroEfectivoDialog({ open, onOpenChange, payment, playerName, onConfirm, isSubmitting }) {
+export default function CobroEfectivoDialog({ open, onOpenChange, payment, playerName, onConfirm, isSubmitting, errorMessage }) {
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [nota, setNota] = useState("");
   const [importe, setImporte] = useState("");
@@ -38,6 +38,11 @@ export default function CobroEfectivoDialog({ open, onOpenChange, payment, playe
         </DialogHeader>
 
         <div className="space-y-3 mt-2">
+          {errorMessage && (
+            <div role="alert" className="rounded-md border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800 whitespace-normal break-words">
+              <strong>No se ha podido registrar el cobro:</strong> {errorMessage}
+            </div>
+          )}
           <div>
             <Label htmlFor="ef-importe">Importe recibido (€)</Label>
             <Input id="ef-importe" type="number" min="0.01" max={pendiente} step="0.01" value={importe} onChange={(e) => setImporte(e.target.value)} />
