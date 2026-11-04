@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { BarChart as ReBarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { Users, TrendingUp, BarChart } from "lucide-react";
-import { isPaymentOverdue } from "@/components/payments/paymentHelpers";
+import { isPaymentOverdue, getPaymentCollected, getPaymentOutstanding } from "@/components/payments/paymentHelpers";
 
 const COLORS = ['#3b82f6', '#f97316', '#22c55e', '#a855f7', '#ef4444', '#14b8a6', '#f59e0b', '#ec4899', '#8b5cf6'];
 
@@ -61,14 +61,13 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
         const importeEsperado = pagoUnico.cantidad || 0;
         categories[categoria].esperado += importeEsperado;
         
-        if (pagoUnico.estado === "Pagado") {
-          categories[categoria].cobrado += importeEsperado;
-        } else if (pagoUnico.estado === "En revisión") {
+        categories[categoria].cobrado += getPaymentCollected(pagoUnico);
+        if (pagoUnico.estado === "En revisión") {
           categories[categoria].enRevision += importeEsperado;
         } else if (pagoUnico.estado === "Pendiente" && isPaymentOverdue(pagoUnico)) {
-          categories[categoria].vencido += importeEsperado;
+          categories[categoria].vencido += getPaymentOutstanding(pagoUnico);
         } else {
-          categories[categoria].pendiente += importeEsperado;
+          categories[categoria].pendiente += getPaymentOutstanding(pagoUnico);
         }
       } else {
         // PAGO FRACCIONADO: calcular por cada mes
@@ -78,14 +77,13 @@ export default function CategoryBreakdown({ players, payments, activeSeason, get
 
           const pago = playerPayments.find(p => p.mes === mes);
           if (pago) {
-            if (pago.estado === "Pagado") {
-              categories[categoria].cobrado += (pago.cantidad || 0);
-            } else if (pago.estado === "En revisión") {
+            categories[categoria].cobrado += getPaymentCollected(pago);
+            if (pago.estado === "En revisión") {
               categories[categoria].enRevision += (pago.cantidad || 0);
             } else if (pago.estado === "Pendiente" && isPaymentOverdue(pago)) {
-              categories[categoria].vencido += importe;
+              categories[categoria].vencido += getPaymentOutstanding(pago);
             } else {
-              categories[categoria].pendiente += importe;
+              categories[categoria].pendiente += getPaymentOutstanding(pago);
             }
           } else {
             categories[categoria].pendiente += importe;
