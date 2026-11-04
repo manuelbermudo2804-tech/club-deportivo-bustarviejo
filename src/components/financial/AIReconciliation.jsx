@@ -490,7 +490,7 @@ Para cada transacción, sugiere:
   const extractPattern = (concept) => {
     // Eliminar números, fechas y caracteres especiales para crear patrón
     return concept
-      .replace(/\d{2}[\/-]\d{2}[\/-]\d{2,4}/g, '')
+      .replace(/\d{2}[/\-]\d{2}[/\-]\d{2,4}/g, '')
       .replace(/\d+/g, '')
       .replace(/[^\w\s]/g, '')
       .trim()
