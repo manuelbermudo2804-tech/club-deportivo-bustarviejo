@@ -123,9 +123,9 @@ export default function ParentPayments() {
     },
     enabled: !!user?.email && players.length > 0,
     retry: 1,
-    staleTime: 300000,
+    staleTime: 0,
     gcTime: 300000,
-    refetchOnWindowFocus: false,
+    refetchOnWindowFocus: true,
     refetchOnMount: true,
   });
 
