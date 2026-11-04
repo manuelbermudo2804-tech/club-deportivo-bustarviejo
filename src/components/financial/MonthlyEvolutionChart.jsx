@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { TrendingUp, Calendar } from "lucide-react";
+import { getPaymentCollected } from "@/components/payments/paymentHelpers";
 
 export default function MonthlyEvolutionChart({ payments, clothingOrders, lotteryOrders, clubMembers, sponsors, activeSeason }) {
   const monthlyData = useMemo(() => {
@@ -24,7 +25,7 @@ export default function MonthlyEvolutionChart({ payments, clothingOrders, lotter
       { key: 'may', label: 'May', fullName: 'Mayo' }
     ];
 
-    const currentSeasonPayments = payments.filter(p => sameSeason(p.temporada, activeSeason.temporada) && p.is_deleted !== true && p.estado === "Pagado");
+    const currentSeasonPayments = payments.filter(p => sameSeason(p.temporada, activeSeason.temporada) && p.is_deleted !== true && getPaymentCollected(p) > 0);
     const currentSeasonClothing = clothingOrders.filter(o => o.temporada === activeSeason.temporada && o.pagado === true);
     const currentSeasonLottery = lotteryOrders.filter(o => o.temporada === activeSeason.temporada && o.pagado === true);
     const currentSeasonMembers = clubMembers.filter(m => m.temporada === activeSeason.temporada && m.estado_pago === "Pagado");
@@ -34,7 +35,7 @@ export default function MonthlyEvolutionChart({ payments, clothingOrders, lotter
       // Pagos de cuotas por mes
       const cuotasMes = currentSeasonPayments
         .filter(p => p.mes === month.fullName || (p.fecha_pago && new Date(p.fecha_pago).getMonth() === months.findIndex(m => m.key === month.key)))
-        .reduce((sum, p) => sum + (p.cantidad || 0), 0);
+        .reduce((sum, p) => sum + getPaymentCollected(p), 0);
 
       // Ropa por mes (fecha_pago)
       const ropaMes = currentSeasonClothing
