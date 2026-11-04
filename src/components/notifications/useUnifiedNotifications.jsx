@@ -515,7 +515,7 @@ export function useUnifiedNotifications(user, options = {}) {
       // Calcular año de inicio de temporada desde el campo temporada del pago
       const getStartYear = (temp) => {
         if (!temp || typeof temp !== 'string') return nowDate.getFullYear();
-        const match = temp.match(/(\d{4})[\/-]/);
+        const match = temp.match(/(\d{4})[/\-]/);
         return match ? parseInt(match[1], 10) : nowDate.getFullYear();
       };
       const startYear = getStartYear(p.temporada);
