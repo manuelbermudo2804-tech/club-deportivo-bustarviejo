@@ -49,7 +49,17 @@
     },
     "cantidad": {
       "type": "number",
-      "description": "Cantidad pagada en euros"
+      "description": "Importe total de la cuota en euros"
+    },
+    "importe_cobrado": {
+      "type": "number",
+      "default": 0,
+      "description": "Importe acumulado realmente cobrado de esta cuota"
+    },
+    "movimientos_cobro": {
+      "type": "array",
+      "default": [],
+      "description": "Historial de cobros parciales con importe, fecha, m\u00e9todo, anotaci\u00f3n y usuario"
     },
     "estado": {
       "type": "string",
