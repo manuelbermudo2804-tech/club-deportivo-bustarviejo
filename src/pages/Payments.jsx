@@ -589,7 +589,9 @@ export default function Payments() {
         }
       }
 
-      const currentUser = await base44.auth.me();
+      stage = "validando el usuario que registra el cobro";
+      console.log("[Payments][Cash] Etapa:", stage);
+      const currentUser = await withTimeout(base44.auth.me(), stage);
       const movementId = `cash-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const movement = {
         id: movementId,
@@ -659,13 +661,15 @@ export default function Payments() {
         await withTimeout(handleStatusChange(savedPayment, "Pagado"), stage, 45000);
       }
 
-      await Promise.all([
+      stage = "actualizando los listados de pagos y tesorería";
+      console.log("[Payments][Cash] Etapa:", stage);
+      await withTimeout(Promise.all([
         queryClient.invalidateQueries({ queryKey: ["myPayments"] }),
         queryClient.invalidateQueries({ queryKey: ["payments"] }),
         queryClient.invalidateQueries({ queryKey: ["transactions"] }),
         queryClient.invalidateQueries({ queryKey: ["financialTransactions"] }),
         queryClient.invalidateQueries({ queryKey: ["cashForecastFinancialTransactions"] }),
-      ]);
+      ]), stage, 45000);
       toast.success(isFullyPaid
         ? `Cuota saldada: ${newCollected.toFixed(2)}€ cobrados.`
         : `Abono de ${amount.toFixed(2)}€ guardado. Restan ${(total - newCollected).toFixed(2)}€.`);
