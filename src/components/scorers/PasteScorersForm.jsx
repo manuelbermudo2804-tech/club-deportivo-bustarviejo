@@ -12,7 +12,7 @@ function parseScorersText(raw) {
   const players = [];
 
   for (const l of lines) {
-    if (/^\d{4}[-\/]\d{4}$/.test(l)) { temporada = l.replace('-', '/'); break; }
+    if (/^\d{4}[-/]\d{4}$/.test(l)) { temporada = l.replace('-', '/'); break; }
   }
 
   if (!temporada) {
