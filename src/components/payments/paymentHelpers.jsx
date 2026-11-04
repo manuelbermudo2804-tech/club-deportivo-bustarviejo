@@ -32,7 +32,7 @@ export function isPaymentOverdue(payment) {
   // Helper: obtener año de inicio de la temporada ("2024/2025" o "2024-2025")
   const getSeasonStartYear = (temporada) => {
     if (!temporada || typeof temporada !== 'string') return now.getFullYear();
-    const match = temporada.match(/(\d{4})[\/-]/);
+    const match = temporada.match(/(\d{4})[/\-]/);
     return match ? parseInt(match[1], 10) : now.getFullYear();
   };
 
