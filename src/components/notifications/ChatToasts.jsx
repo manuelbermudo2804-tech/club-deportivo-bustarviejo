@@ -58,10 +58,11 @@ export default function ChatToasts() {
         return isOn('parentsystemmessages');
       case 'private':
         return isOn('parentsystemmessages');
-      default:
+      default: {
         if (!url) return false;
         const targetPath = url.split('?')[0].toLowerCase();
         return (location?.pathname || '').toLowerCase().includes(targetPath);
+      }
     }
   };
 
