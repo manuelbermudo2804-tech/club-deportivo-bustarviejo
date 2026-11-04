@@ -252,7 +252,38 @@ export default function Players() {
   const updatePlayerMutation = useMutation({
     mutationFn: async ({ id, playerData, originalPlayer }) => {
       const updatedPlayer = await base44.entities.Player.update(id, playerData);
-      
+
+      // Mantener sincronizada la categoría que se muestra en los recibos/cuotas
+      // de la temporada activa. Solo cambia la etiqueta de actividad; nunca importes,
+      // estados, cobros parciales ni justificantes.
+      const oldCategory = originalPlayer?.deporte;
+      const newCategory = playerData?.deporte;
+      if (oldCategory && newCategory && oldCategory !== newCategory) {
+        try {
+          let season = activeSeason;
+          if (!season?.temporada) {
+            const seasons = await base44.entities.SeasonConfig.list();
+            season = seasons.find(config => config.activa === true);
+          }
+          if (season?.temporada) {
+            const seasonPayments = await base44.entities.Payment.filter({
+              jugador_id: id,
+              temporada: season.temporada
+            });
+            const currentPayments = (seasonPayments || []).filter(payment =>
+              !payment.is_deleted && payment.categoria_actividad !== newCategory
+            );
+            await Promise.all(currentPayments.map(payment =>
+              base44.entities.Payment.update(payment.id, {
+                categoria_actividad: newCategory
+              })
+            ));
+          }
+        } catch (categorySyncError) {
+          console.error("No se pudo sincronizar la categoría en las cuotas:", categorySyncError);
+        }
+      }
+
       // Detectar si se añadieron NUEVOS enlaces de firma (no existían antes O cambiaron)
       const newEnlaceJugador = playerData.enlace_firma_jugador && 
         playerData.enlace_firma_jugador !== originalPlayer?.enlace_firma_jugador;
