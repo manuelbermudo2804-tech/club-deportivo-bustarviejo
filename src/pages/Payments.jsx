@@ -531,7 +531,16 @@ export default function Payments() {
 
   // Registra el cobro en la cuota y crea su asiento de tesorería, con referencia idempotente.
   const handleCashPayment = async ({ fecha, nota, reciboFile, importe }) => {
-    if (!efectivoData || !isAdmin) return;
+    if (!efectivoData) {
+      toast.error("No hay ninguna cuota seleccionada. Cierra el formulario y vuelve a abrirlo.");
+      return;
+    }
+    if (!isAdmin) {
+      toast.error("Tu usuario no tiene permisos para registrar cobros en efectivo. Comprueba el rol de tesorería.");
+      console.error("[Payments] Cobro bloqueado: isAdmin=false", { userRole: user?.role, email: user?.email, es_tesorero: user?.es_tesorero });
+      return;
+    }
+    console.log("[Payments] Iniciando registro de efectivo", { paymentId: efectivoData.payment?.id, importe, user: user?.email });
     setSavingEfectivo(true);
     let paymentSaved = false;
     try {
