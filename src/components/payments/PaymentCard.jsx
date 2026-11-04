@@ -138,6 +138,17 @@ export default function PaymentCard({
               {payment.cantidad?.toFixed(2)}€
             </p>
 
+            {Array.isArray(payment.movimientos_cobro) && payment.movimientos_cobro.length > 0 && (
+              <div className="mt-2 space-y-1 text-xs text-slate-600">
+                {payment.movimientos_cobro.map((movement, index) => (
+                  <div key={index} className="flex flex-wrap items-center gap-2">
+                    <span>Abono: {Number(movement.importe || 0).toFixed(2)}€{movement.fecha ? " · " + new Date(movement.fecha + "T00:00:00").toLocaleDateString("es-ES") : ""}</span>
+                    {movement.recibo_url && <a href={movement.recibo_url} target="_blank" rel="noopener noreferrer" className="font-semibold text-green-700 underline">Ver recibo</a>}
+                  </div>
+                ))}
+              </div>
+            )}
+
             {collectedAmount > 0 && outstandingAmount > 0 && (
               <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs">
                 <p className="font-semibold text-amber-800">Pago parcial</p>
