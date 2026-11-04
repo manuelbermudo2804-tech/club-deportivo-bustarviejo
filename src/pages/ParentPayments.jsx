@@ -1282,7 +1282,7 @@ export default function ParentPayments() {
         {/* Barra flotante del carrito */}
         <PaymentsCartBar
           selectedCount={cartSelected.length}
-          total={cartSelected.reduce((s, it) => s + Number(it.payment.cantidad || 0), 0)}
+          total={cartSelected.reduce((s, it) => s + getPaymentOutstanding(it.payment), 0)}
           onPayCard={() => { setSummaryMode('card'); setShowSummary(true); }}
           onTransfer={() => { setSummaryMode('transfer'); setShowSummary(true); }}
         />
@@ -1291,7 +1291,7 @@ export default function ParentPayments() {
           open={showSummary}
           onClose={() => setShowSummary(false)}
           items={cartSelected}
-          total={cartSelected.reduce((s, it) => s + Number(it.payment.cantidad || 0), 0)}
+          total={cartSelected.reduce((s, it) => s + getPaymentOutstanding(it.payment), 0)}
           mode={summaryMode}
           onPayCard={async () => { 
             await handlePayCartWithCard();
@@ -1308,7 +1308,7 @@ export default function ParentPayments() {
         open={showTransferDialog}
         onClose={() => setShowTransferDialog(false)}
         concept={transferConcept}
-        total={cartSelected.reduce((s, it) => s + Number(it.payment.cantidad || 0), 0)}
+        total={cartSelected.reduce((s, it) => s + getPaymentOutstanding(it.payment), 0)}
         onConfirm={handleConfirmTransfer}
         />
 
