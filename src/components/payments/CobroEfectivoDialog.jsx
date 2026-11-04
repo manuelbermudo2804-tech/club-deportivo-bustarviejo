@@ -71,7 +71,17 @@ export default function CobroEfectivoDialog({ open, onOpenChange, payment, playe
             </p>
           </div>
           <Button
-            onClick={() => onConfirm({ fecha, nota: nota.trim(), reciboFile, importe: Number(importe) })}
+            type="button"
+            onClick={() => {
+              if (typeof onConfirm !== "function") {
+                console.error("[CobroEfectivoDialog] onConfirm no está conectado");
+                return;
+              }
+              console.log("[CobroEfectivoDialog] Pulsado Registrar efectivo", { paymentId: payment?.id, importe: Number(importe) });
+              Promise.resolve(onConfirm({ fecha, nota: nota.trim(), reciboFile, importe: Number(importe) })).catch((error) => {
+                console.error("[CobroEfectivoDialog] Error no controlado al registrar:", error);
+              });
+            }}
             disabled={isSubmitting || !Number.isFinite(Number(importe)) || Number(importe) <= 0 || Number(importe) > pendiente + 0.001}
             className="w-full bg-green-600 hover:bg-green-700 font-bold"
           >
