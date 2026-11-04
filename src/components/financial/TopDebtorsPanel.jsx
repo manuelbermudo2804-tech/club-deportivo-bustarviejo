@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, TrendingDown, Mail } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { getPaymentOutstanding } from "@/components/payments/paymentHelpers";
 
 export default function TopDebtorsPanel({ players, payments, activeSeason, getImportePorMes, customPlans = [] }) {
   if (!activeSeason) return null;
@@ -44,21 +45,21 @@ export default function TopDebtorsPanel({ players, payments, activeSeason, getIm
       
       if (hasPagoUnico) {
         const pagoUnico = playerPayments.find(p => p.tipo_pago === "Único" || p.tipo_pago === "único");
-        if (pagoUnico && pagoUnico.estado === "Pendiente") {
-          deudaTotal = pagoUnico.cantidad || 0;
-          cuotasPendientes = 1;
+        if (pagoUnico && pagoUnico.estado !== "Pagado" && pagoUnico.estado !== "Anulado") {
+          deudaTotal = getPaymentOutstanding(pagoUnico);
+          cuotasPendientes = deudaTotal > 0 ? 1 : 0;
         }
       } else {
-        const mesesPagadosORevision = playerPayments
-          .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
-          .map(p => p.mes);
-        
         const allMonths = ["Junio", "Septiembre", "Diciembre"];
-        const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
-        
-        cuotasPendientes = mesesFaltantes.length;
-        mesesFaltantes.forEach(mes => {
-          deudaTotal += getImportePorMes(player.deporte, mes);
+        allMonths.forEach(mes => {
+          const payment = playerPayments.find(p => p.mes === mes);
+          if (payment) {
+            const outstanding = payment.estado === "En revisión" ? 0 : getPaymentOutstanding(payment);
+            if (outstanding > 0) { deudaTotal += outstanding; cuotasPendientes += 1; }
+          } else {
+            deudaTotal += getImportePorMes(player.deporte, mes);
+            cuotasPendientes += 1;
+          }
         });
       }
     }
