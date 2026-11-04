@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts";
 import { TrendingUp, TrendingDown, DollarSign } from "lucide-react";
+import { getPaymentCollected } from "@/components/payments/paymentHelpers";
 
 export default function CategoryProfitability({ payments, transactions, players, activeSeason }) {
   const categoryData = useMemo(() => {
@@ -24,10 +25,10 @@ export default function CategoryProfitability({ payments, transactions, players,
 
       const playerPayments = payments.filter(p => 
         p.jugador_id === player.id && 
-        p.estado === "Pagado" &&
+        getPaymentCollected(p) > 0 &&
         sameSeason(p.temporada, activeSeason?.temporada)
       );
-      categories[cat].ingresos += playerPayments.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+      categories[cat].ingresos += playerPayments.reduce((sum, p) => sum + getPaymentCollected(p), 0);
     });
 
     // Calcular gastos por categoría (si hay transacciones con categoría deportiva)
