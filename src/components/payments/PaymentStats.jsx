@@ -1,15 +1,15 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle2, Clock, AlertTriangle, TrendingUp } from "lucide-react";
+import { getPaymentCollected, getPaymentOutstanding } from "@/components/payments/paymentHelpers";
 
 export default function PaymentStats({ payments }) {
   const totalPaid = payments
-    .filter(p => p.estado === "Pagado")
-    .reduce((sum, p) => sum + (p.cantidad || 0), 0);
+    .reduce((sum, p) => sum + getPaymentCollected(p), 0);
 
   const totalPending = payments
     .filter(p => p.estado === "Pendiente")
-    .reduce((sum, p) => sum + (p.cantidad || 0), 0);
+    .reduce((sum, p) => sum + getPaymentOutstanding(p), 0);
 
   const totalInReview = payments
     .filter(p => p.estado === "En revisión")
