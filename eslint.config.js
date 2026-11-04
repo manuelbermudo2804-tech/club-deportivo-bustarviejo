@@ -31,6 +31,8 @@ export default [
     },
     rules: {
       "no-unused-vars": "off",
+      // Los catch vacíos se usan de forma intencionada en fallbacks no críticos.
+      "no-empty": ["error", { allowEmptyCatch: true }],
       "react/prop-types": "off",
       "react/react-in-jsx-scope": "off",
       "react/no-unknown-property": [
