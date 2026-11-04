@@ -76,19 +76,19 @@ export default function PaymentsDashboard() {
     {
       mes: 'Junio',
       pagado: payments.filter(p => p.mes === "Junio").reduce((sum, p) => sum + getPaymentCollected(p), 0),
-      pendiente: payments.filter(p => p.mes === "Junio" && p.estado === "Pendiente").reduce((sum, p) => sum + p.cantidad, 0),
+      pendiente: payments.filter(p => p.mes === "Junio" && p.estado === "Pendiente").reduce((sum, p) => sum + getPaymentOutstanding(p), 0),
       revision: payments.filter(p => p.mes === "Junio" && p.estado === "En revisión").reduce((sum, p) => sum + p.cantidad, 0)
     },
     {
       mes: 'Septiembre',
       pagado: payments.filter(p => p.mes === "Septiembre").reduce((sum, p) => sum + getPaymentCollected(p), 0),
-      pendiente: payments.filter(p => p.mes === "Septiembre" && p.estado === "Pendiente").reduce((sum, p) => sum + p.cantidad, 0),
+      pendiente: payments.filter(p => p.mes === "Septiembre" && p.estado === "Pendiente").reduce((sum, p) => sum + getPaymentOutstanding(p), 0),
       revision: payments.filter(p => p.mes === "Septiembre" && p.estado === "En revisión").reduce((sum, p) => sum + p.cantidad, 0)
     },
     {
       mes: 'Diciembre',
       pagado: payments.filter(p => p.mes === "Diciembre").reduce((sum, p) => sum + getPaymentCollected(p), 0),
-      pendiente: payments.filter(p => p.mes === "Diciembre" && p.estado === "Pendiente").reduce((sum, p) => sum + p.cantidad, 0),
+      pendiente: payments.filter(p => p.mes === "Diciembre" && p.estado === "Pendiente").reduce((sum, p) => sum + getPaymentOutstanding(p), 0),
       revision: payments.filter(p => p.mes === "Diciembre" && p.estado === "En revisión").reduce((sum, p) => sum + p.cantidad, 0)
     }
   ];
