@@ -116,6 +116,7 @@ export default function Payments() {
   const [fraccionarData, setFraccionarData] = useState(null);
   const [efectivoData, setEfectivoData] = useState(null);
   const [savingEfectivo, setSavingEfectivo] = useState(false);
+  const [cashPaymentError, setCashPaymentError] = useState("");
 
   const formRef = useRef(null);
   const queryClient = useQueryClient();
@@ -541,6 +542,7 @@ export default function Payments() {
       return;
     }
     console.log("[Payments] Iniciando registro de efectivo", { paymentId: efectivoData.payment?.id, importe, user: user?.email });
+    setCashPaymentError("");
     setSavingEfectivo(true);
     let paymentSaved = false;
     let stage = "preparando el cobro";
@@ -681,7 +683,9 @@ export default function Payments() {
         toast.error(`El abono de ${Number(importe).toFixed(2)}€ sí quedó guardado en la cuota, pero falló el asiento de tesorería: ${error?.message || "error desconocido"}. Avísame antes de repetirlo.`);
         setEfectivoData(null);
       } else {
-        toast.error(`Fallo al ${stage}: ${error?.message || "No se pudo confirmar el cobro."} Comprueba la cuota antes de repetirlo.`);
+        const visibleError = `Fallo al ${stage}: ${error?.message || "No se pudo confirmar el cobro."} Comprueba la cuota antes de repetirlo.`;
+        setCashPaymentError(visibleError);
+        toast.error(visibleError);
       }
     } finally {
       setSavingEfectivo(false);
@@ -2182,11 +2186,12 @@ export default function Payments() {
       {/* Dialog cobro en efectivo */}
       <CobroEfectivoDialog
         open={!!efectivoData}
-        onOpenChange={(open) => { if (!open && !savingEfectivo) setEfectivoData(null); }}
+        onOpenChange={(open) => { if (!open && !savingEfectivo) { setEfectivoData(null); setCashPaymentError(""); } }}
         payment={efectivoData?.payment}
         playerName={efectivoData?.playerName}
         onConfirm={handleCashPayment}
         isSubmitting={savingEfectivo}
+        errorMessage={cashPaymentError}
       />
 
       <ContactCard />
