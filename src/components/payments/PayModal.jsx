@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { CreditCard, Banknote, Shield, Gift, Loader2 } from "lucide-react";
 import CopyButton from "./CopyButton";
 import { useActiveSeason } from "@/components/season/SeasonProvider";
+import { getPaymentOutstanding, getPaymentCollected } from "@/components/payments/paymentHelpers";
 
 const DEFAULT_CLUB_IBAN = "ES0500496802102110011001";
 const DEFAULT_CLUB_BANK = "Banco Santander";
@@ -15,6 +16,9 @@ export default function PayModal({ open, onClose, player, payment, soloTarjeta =
   const { seasonConfig } = useActiveSeason();
   if (!payment || !player) return null;
   const isPlanMensual = payment.tipo_pago === "Plan Mensual";
+  const collectedAmount = getPaymentCollected(payment);
+  const outstandingAmount = getPaymentOutstanding(payment);
+  const amountToPay = payment.estado === "Pagado" ? 0 : outstandingAmount;
   const sinTransferencia = isPlanMensual || soloTarjeta;
   const clubIban = (seasonConfig?.club_iban?.trim() || DEFAULT_CLUB_IBAN).replace(/\s+/g, '');
   const clubBank = seasonConfig?.club_bank?.trim() || DEFAULT_CLUB_BANK;
@@ -23,7 +27,8 @@ export default function PayModal({ open, onClose, player, payment, soloTarjeta =
       <DialogContent className="w-[92vw] max-w-md p-0 overflow-hidden rounded-2xl max-h-[85vh] sm:mt-8">
         <div className={`text-white p-4 ${isPlanMensual ? 'bg-gradient-to-r from-emerald-600 to-emerald-700' : 'bg-gradient-to-r from-orange-600 to-orange-700'}`}>
           <h3 className="text-lg font-bold">{isPlanMensual ? 'Activar Plan Mensual' : 'Pagar cuota'}</h3>
-          <p className="text-sm opacity-90">{player.nombre} • {payment.mes} • {Number(payment.cantidad).toFixed(2)}€</p>
+          <p className="text-sm opacity-90">{player.nombre} • {payment.mes} • {amountToPay.toFixed(2)}€ pendientes</p>
+          {collectedAmount > 0 && <p className="text-xs opacity-90 mt-1">Total: {Number(payment.cantidad).toFixed(2)}€ · Ya abonado: {collectedAmount.toFixed(2)}€</p>}
           {isPlanMensual && payment.plan_mensual_mensualidad > 0 && (
             <p className="text-xs opacity-80 mt-1">+ {payment.plan_mensual_meses}x {payment.plan_mensual_mensualidad}€/mes automático</p>
           )}
@@ -63,13 +68,13 @@ export default function PayModal({ open, onClose, player, payment, soloTarjeta =
                 <div className="flex items-center gap-2 text-slate-600 text-xs">
                   <Shield className="w-4 h-4"/> Pagos protegidos por Stripe.
                 </div>
-                <Button className={`w-full ${isPlanMensual ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-orange-600 hover:bg-orange-700'}`} onClick={() => { setOpeningStripe(true); isPlanMensual ? onPaySubscription?.() : onPayCard?.(); }} disabled={openingStripe}>
+                <Button className={`w-full ${isPlanMensual ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-orange-600 hover:bg-orange-700'}`} onClick={() => { setOpeningStripe(true); isPlanMensual ? onPaySubscription?.() : onPayCard?.(); }} disabled={openingStripe || (!isPlanMensual && amountToPay <= 0)}>
                   {openingStripe ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin"/> Abriendo Stripe...</>
                   ) : isPlanMensual ? (
                     <><CreditCard className="w-4 h-4 mr-2"/> Activar Plan Mensual ({Number(payment.cantidad).toFixed(2)}€ + mensualidades)</>
                   ) : (
-                    <><CreditCard className="w-4 h-4 mr-2"/> Pagar {Number(payment.cantidad).toFixed(2)}€ con tarjeta</>
+                    <><CreditCard className="w-4 h-4 mr-2"/> Pagar {amountToPay.toFixed(2)}€ con tarjeta</>
                   )}
                 </Button>
               </div>
