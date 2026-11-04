@@ -59,6 +59,37 @@
     "movimientos_cobro": {
       "type": "array",
       "default": [],
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "importe": {
+            "type": "number"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date"
+          },
+          "metodo_pago": {
+            "type": "string"
+          },
+          "anotacion": {
+            "type": "string"
+          },
+          "registrado_por": {
+            "type": "string"
+          },
+          "registrado_el": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "recibo_url": {
+            "type": "string"
+          }
+        }
+      },
       "description": "Historial de cobros parciales con importe, fecha, m\u00e9todo, anotaci\u00f3n y usuario"
     },
     "estado": {
