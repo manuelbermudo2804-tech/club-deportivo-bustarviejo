@@ -49,6 +49,7 @@ import FinancialRatios from "../components/financial/FinancialRatios.jsx";
 import SeasonalityAnalysis from "../components/financial/SeasonalityAnalysis.jsx";
 import RecurringCommitmentsManager from "../components/financial/RecurringCommitmentsManager.jsx";
 import CashPositionForecast from "../components/financial/CashPositionForecast.jsx";
+import { getPaymentCollected, getPaymentOutstanding } from "@/components/payments/paymentHelpers";
 import { Input } from "@/components/ui/input";
 
 export default function TreasurerFinancialPanel() {
@@ -384,7 +385,7 @@ export default function TreasurerFinancialPanel() {
     // FUENTE ÚNICA PARA CUOTAS PENDIENTES: pagos reales de la temporada en estado Pendiente.
     // El importe y el número de cuotas se obtienen del mismo conjunto de registros.
     const pendingQuotaPayments = currentSeasonPayments.filter(p => p.estado === "Pendiente");
-    const totalPendiente = pendingQuotaPayments.reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0);
+    const totalPendiente = pendingQuotaPayments.reduce((sum, p) => sum + getPaymentOutstanding(p), 0);
     const pendingQuotaCount = pendingQuotaPayments.length;
     // Una cuota se considera vencida cuando su mes de pago ya ha pasado dentro de la temporada.
     // Calendario de referencia de la temporada: junio, septiembre, diciembre, marzo y otros meses indicados en Payment.mes.
@@ -401,10 +402,10 @@ export default function TreasurerFinancialPanel() {
       const due = seasonMonthIndex(monthNumber);
       return due.year < currentYear || (due.year === currentYear && due.month < currentMonthNumber);
     });
-    const overdueAmount = pendingOverduePayments.reduce((sum, payment) => sum + (Number(payment.cantidad) || 0), 0);
+    const overdueAmount = pendingOverduePayments.reduce((sum, payment) => sum + getPaymentOutstanding(payment), 0);
 
     return {
-      cuotasPagadas: currentSeasonPayments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + (p.cantidad || 0), 0),
+      cuotasPagadas: currentSeasonPayments.reduce((sum, p) => sum + getPaymentCollected(p), 0),
       cuotasPendientes: totalPendiente,
       cuotasPendientesCount: pendingQuotaCount,
       cuotasVencidas: overdueAmount,
