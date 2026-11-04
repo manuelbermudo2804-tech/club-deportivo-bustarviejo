@@ -1704,6 +1704,7 @@ export default function Payments() {
                                       <div className="flex min-w-0 flex-1 items-start gap-2 sm:items-center">
                                         <Badge className={
                                           payment.estado === "Pagado" ? "bg-green-100 text-green-700 text-[10px] lg:text-xs" :
+                                          getPaymentCollected(payment) > 0 && getPaymentOutstanding(payment) > 0 ? "bg-amber-100 text-amber-800 text-[10px] lg:text-xs" :
                                           payment.estado === "En revisión" ? "bg-orange-100 text-orange-700 text-[10px] lg:text-xs" :
                                           "bg-red-100 text-red-700 text-[10px] lg:text-xs"
                                         }>
@@ -1721,6 +1722,13 @@ export default function Payments() {
                                           <p className="text-[10px] lg:text-xs text-slate-600">
                                             {payment.cantidad}€{getPaymentCollected(payment) > 0 && getPaymentOutstanding(payment) > 0 ? ` · Cobrado ${getPaymentCollected(payment).toFixed(2)}€ · Resta ${getPaymentOutstanding(payment).toFixed(2)}€` : ""}{payment.categoria_actividad ? ` · ${payment.categoria_actividad}` : ([...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))].length === 1 ? ` · ${player.categoria_principal || player.deporte || player.categorias?.[0]}` : " · Actividad pendiente de asignar")}
                                           </p>
+                                          {Array.isArray(payment.movimientos_cobro) && payment.movimientos_cobro.length > 0 && (
+                                            <div className="mt-1 space-y-0.5 text-[10px] text-slate-500">
+                                              {payment.movimientos_cobro.map((movement, index) => (
+                                                <p key={`${payment.id}-cash-${index}`}>💵 {Number(movement.importe || 0).toFixed(2)}€ · {movement.fecha ? new Date(movement.fecha + "T00:00:00").toLocaleDateString("es-ES") : "Sin fecha"}{movement.anotacion ? ` · ${movement.anotacion}` : ""}</p>
+                                              ))}
+                                            </div>
+                                          )}
                                           {!payment.categoria_actividad && [...new Set([player.categoria_principal, player.deporte, ...(Array.isArray(player.categorias) ? player.categorias : [])].filter(Boolean))].length > 1 && (
                                             <div className="mt-2 max-w-[230px]">
                                               <Select
