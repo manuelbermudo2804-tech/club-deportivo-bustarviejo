@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,18 @@ import { Loader2, Banknote } from "lucide-react";
 export default function CobroEfectivoDialog({ open, onOpenChange, payment, playerName, onConfirm, isSubmitting }) {
   const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
   const [nota, setNota] = useState("");
+  const [importe, setImporte] = useState("");
   const [reciboFile, setReciboFile] = useState(null);
+  const cobrado = Number(payment?.importe_cobrado ?? (payment?.estado === "Pagado" ? payment?.cantidad : 0)) || 0;
+  const pendiente = Math.max(0, Number(payment?.cantidad || 0) - cobrado);
+  useEffect(() => {
+    if (open && payment) {
+      setImporte(pendiente.toFixed(2));
+      setNota("");
+      setReciboFile(null);
+      setFecha(new Date().toISOString().split("T")[0]);
+    }
+  }, [open, payment?.id]);
 
   if (!payment) return null;
 
@@ -22,11 +33,16 @@ export default function CobroEfectivoDialog({ open, onOpenChange, payment, playe
             Cobro en efectivo
           </DialogTitle>
           <DialogDescription>
-            {playerName} · {payment.mes} · <strong>{payment.cantidad}€</strong>
+            {playerName} · {payment.mes} · Total {Number(payment.cantidad).toFixed(2)}€ · Pendiente {pendiente.toFixed(2)}€
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3 mt-2">
+          <div>
+            <Label htmlFor="ef-importe">Importe recibido (€)</Label>
+            <Input id="ef-importe" type="number" min="0.01" max={pendiente} step="0.01" value={importe} onChange={(e) => setImporte(e.target.value)} />
+            <p className="mt-1 text-xs text-slate-500">Ya cobrado: {cobrado.toFixed(2)}€ · Quedará pendiente: {Math.max(0, pendiente - (Number(importe) || 0)).toFixed(2)}€</p>
+          </div>
           <div>
             <Label htmlFor="ef-fecha">Fecha del cobro</Label>
             <Input id="ef-fecha" type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} />
@@ -55,14 +71,14 @@ export default function CobroEfectivoDialog({ open, onOpenChange, payment, playe
             </p>
           </div>
           <Button
-            onClick={() => onConfirm({ fecha, nota: nota.trim(), reciboFile })}
-            disabled={isSubmitting}
+            onClick={() => onConfirm({ fecha, nota: nota.trim(), reciboFile, importe: Number(importe) })}
+            disabled={isSubmitting || !Number.isFinite(Number(importe)) || Number(importe) <= 0 || Number(importe) > pendiente + 0.001}
             className="w-full bg-green-600 hover:bg-green-700 font-bold"
           >
             {isSubmitting ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Guardando...</>
             ) : (
-              <>Confirmar cobro en efectivo</>
+              <>Registrar {Number(importe || 0).toFixed(2)}€ en efectivo</>
             )}
           </Button>
         </div>
