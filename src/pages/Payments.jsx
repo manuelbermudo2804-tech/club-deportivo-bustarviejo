@@ -1726,7 +1726,23 @@ export default function Payments() {
                                           {Array.isArray(payment.movimientos_cobro) && payment.movimientos_cobro.length > 0 && (
                                             <div className="mt-1 space-y-0.5 text-[10px] text-slate-500">
                                               {payment.movimientos_cobro.map((movement, index) => (
-                                                <p key={`${payment.id}-cash-${index}`}>💵 {Number(movement.importe || 0).toFixed(2)}€ · {movement.fecha ? new Date(movement.fecha + "T00:00:00").toLocaleDateString("es-ES") : "Sin fecha"}{movement.anotacion ? ` · ${movement.anotacion}` : ""}</p>
+                                                <div key={`${payment.id}-cash-${index}`} className="flex flex-wrap items-center gap-2">
+                                                  <span>💵 {Number(movement.importe || 0).toFixed(2)}€ · {movement.fecha ? new Date(movement.fecha + "T00:00:00").toLocaleDateString("es-ES") : "Sin fecha"}{movement.anotacion ? ` · ${movement.anotacion}` : ""}</span>
+                                                  {movement.recibo_url && <a href={movement.recibo_url} target="_blank" rel="noopener noreferrer" className="text-green-700 font-semibold underline">Ver recibo</a>}
+                                                  {isAdmin && <label className="cursor-pointer text-orange-700 underline">{movement.recibo_url ? "Cambiar recibo" : "Adjuntar recibo"}<input type="file" accept="application/pdf,image/*" className="hidden" onChange={async (event) => {
+                                                    const file = event.target.files?.[0]; event.target.value = ""; if (!file) return;
+                                                    try {
+                                                      const upload = await base44.integrations.Core.UploadFile({ file });
+                                                      const url = upload?.file_url || upload?.url;
+                                                      if (!url || !String(url).startsWith("http")) throw new Error("No se pudo guardar el archivo.");
+                                                      const movements = [...(payment.movimientos_cobro || [])];
+                                                      movements[index] = { ...movements[index], recibo_url: url };
+                                                      await base44.entities.Payment.update(payment.id, { movimientos_cobro: movements, recibo_url: payment.recibo_url || url, recibo_adjuntado_manualmente: true });
+                                                      queryClient.invalidateQueries({ queryKey: ["myPayments"] });
+                                                      toast.success("Recibo del abono adjuntado y disponible para la familia.");
+                                                    } catch (error) { console.error(error); toast.error(error?.message || "No se pudo adjuntar el recibo."); }
+                                                  }} /></label>}
+                                                </div>
                                               ))}
                                             </div>
                                           )}
