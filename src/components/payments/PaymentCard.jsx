@@ -146,7 +146,7 @@ export default function PaymentCard({
               </div>
             )}
 
-            {/* Aportación solidaria incluida (si la hay) */
+            {/* Aportación solidaria incluida (si la hay) */}
             {Number(payment.aportacion_solidaria) > 0 && (
               <p className="text-xs text-green-700 font-semibold mt-1 inline-flex items-center gap-1 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
                 💚 Incluye {Number(payment.aportacion_solidaria).toFixed(2)}€ al Fondo Solidario de Becas
