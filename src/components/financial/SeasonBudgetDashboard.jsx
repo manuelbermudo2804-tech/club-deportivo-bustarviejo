@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { getPaymentCollected, getPaymentOutstanding } from "@/components/payments/paymentHelpers";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,8 +81,8 @@ export default function SeasonBudgetDashboard({ activeSeason }) {
     const actualIncome = tx.filter(t => t.tipo === "Ingreso" && t.estado === "Cobrado" && !isStripeSettlement(t)).reduce((s,t)=>s+Number(t.cantidad||0),0);
     const actualExpenses = tx.filter(t => t.tipo === "Gasto" && t.estado === "Pagado").reduce((s,t)=>s+Number(t.cantidad||0),0);
     const pendingTx = tx.filter(t => t.estado === "Pendiente").reduce((s,t)=>s+Number(t.cantidad||0),0);
-    const paidPlayerFees = pay.filter(p=>p.estado==="Pagado").reduce((s,p)=>s+Number(p.cantidad||0),0);
-    const pendingPlayerFees = pay.filter(p=>p.estado==="Pendiente"||p.estado==="En revisión").reduce((s,p)=>s+Number(p.cantidad||0),0);
+    const paidPlayerFees = pay.reduce((s,p)=>s+getPaymentCollected(p),0);
+    const pendingPlayerFees = pay.filter(p=>p.estado==="Pendiente"||p.estado==="En revisión").reduce((s,p)=>s+(p.estado==="En revisión" ? Number(p.cantidad||0) : getPaymentOutstanding(p)),0);
     // Solo contar como revisión lo que está marcado expresamente; no convertir automáticamente
     // todas las transacciones sin partida detallada en incidencias.
     const unclassified = tx.filter(t => t.revisar_clasificacion === true);
@@ -90,8 +91,8 @@ export default function SeasonBudgetDashboard({ activeSeason }) {
       const category = String(payment.categoria_actividad || payment.categoria_equipo || payment.equipo_nombre || player?.deporte || "Categoría no informada").trim();
       if (!acc[category]) acc[category] = { count: 0, paid: 0, pending: 0 };
       acc[category].count += 1;
-      if (payment.estado === "Pagado") acc[category].paid += Number(payment.cantidad || 0);
-      if (payment.estado === "Pendiente" || payment.estado === "En revisión") acc[category].pending += Number(payment.cantidad || 0);
+      acc[category].paid += getPaymentCollected(payment);
+      if (payment.estado === "Pendiente" || payment.estado === "En revisión") acc[category].pending += payment.estado === "En revisión" ? Number(payment.cantidad || 0) : getPaymentOutstanding(payment);
       return acc;
     }, {});
     return { season, tx, pay, rows, actualIncome, actualExpenses, pendingTx, paidPlayerFees, pendingPlayerFees, unclassified, sportsSummary, budget };
