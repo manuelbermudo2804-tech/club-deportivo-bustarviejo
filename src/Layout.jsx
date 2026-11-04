@@ -375,7 +375,6 @@ export default function Layout({ children, currentPageName }) {
     try { window.opener = null; } catch {}
     try { window.open('', '_self'); } catch {}
     try { window.top.close(); } catch {}
-    try { forceCloseWindow(); } catch {}
 
     // Último recurso: limpiar la página y sugerir cierre manual, e intentar about:blank
     setTimeout(() => {
