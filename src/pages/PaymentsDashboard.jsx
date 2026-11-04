@@ -6,6 +6,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, PieChart, Pie, Cell, LineChart, Line } from "recharts";
 import { TrendingUp, TrendingDown, DollarSign, Users, Calendar, AlertCircle, CheckCircle2, Clock } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { getPaymentCollected, getPaymentOutstanding } from "@/components/payments/paymentHelpers";
 
 const COLORS = {
   pagado: '#16a34a',
@@ -56,8 +57,8 @@ export default function PaymentsDashboard() {
   }
 
   // Calculate stats
-  const totalPaid = payments.filter(p => p.estado === "Pagado").reduce((sum, p) => sum + (p.cantidad || 0), 0);
-  const totalPending = payments.filter(p => p.estado === "Pendiente").reduce((sum, p) => sum + (p.cantidad || 0), 0);
+  const totalPaid = payments.reduce((sum, p) => sum + getPaymentCollected(p), 0);
+  const totalPending = payments.filter(p => p.estado === "Pendiente").reduce((sum, p) => sum + getPaymentOutstanding(p), 0);
   const totalInReview = payments.filter(p => p.estado === "En revisión").reduce((sum, p) => sum + (p.cantidad || 0), 0);
   const totalExpected = totalPaid + totalPending + totalInReview;
 
@@ -74,19 +75,19 @@ export default function PaymentsDashboard() {
   const monthlyData = [
     {
       mes: 'Junio',
-      pagado: payments.filter(p => p.mes === "Junio" && p.estado === "Pagado").reduce((sum, p) => sum + p.cantidad, 0),
+      pagado: payments.filter(p => p.mes === "Junio").reduce((sum, p) => sum + getPaymentCollected(p), 0),
       pendiente: payments.filter(p => p.mes === "Junio" && p.estado === "Pendiente").reduce((sum, p) => sum + p.cantidad, 0),
       revision: payments.filter(p => p.mes === "Junio" && p.estado === "En revisión").reduce((sum, p) => sum + p.cantidad, 0)
     },
     {
       mes: 'Septiembre',
-      pagado: payments.filter(p => p.mes === "Septiembre" && p.estado === "Pagado").reduce((sum, p) => sum + p.cantidad, 0),
+      pagado: payments.filter(p => p.mes === "Septiembre").reduce((sum, p) => sum + getPaymentCollected(p), 0),
       pendiente: payments.filter(p => p.mes === "Septiembre" && p.estado === "Pendiente").reduce((sum, p) => sum + p.cantidad, 0),
       revision: payments.filter(p => p.mes === "Septiembre" && p.estado === "En revisión").reduce((sum, p) => sum + p.cantidad, 0)
     },
     {
       mes: 'Diciembre',
-      pagado: payments.filter(p => p.mes === "Diciembre" && p.estado === "Pagado").reduce((sum, p) => sum + p.cantidad, 0),
+      pagado: payments.filter(p => p.mes === "Diciembre").reduce((sum, p) => sum + getPaymentCollected(p), 0),
       pendiente: payments.filter(p => p.mes === "Diciembre" && p.estado === "Pendiente").reduce((sum, p) => sum + p.cantidad, 0),
       revision: payments.filter(p => p.mes === "Diciembre" && p.estado === "En revisión").reduce((sum, p) => sum + p.cantidad, 0)
     }
@@ -114,8 +115,8 @@ export default function PaymentsDashboard() {
       if (!categoryStats[player.deporte]) {
         categoryStats[player.deporte] = { paid: 0, pending: 0, total: 0 };
       }
-      if (p.estado === "Pagado") categoryStats[player.deporte].paid += p.cantidad;
-      if (p.estado === "Pendiente") categoryStats[player.deporte].pending += p.cantidad;
+      categoryStats[player.deporte].paid += getPaymentCollected(p);
+      if (p.estado === "Pendiente") categoryStats[player.deporte].pending += getPaymentOutstanding(p);
       categoryStats[player.deporte].total += p.cantidad;
     }
   });
