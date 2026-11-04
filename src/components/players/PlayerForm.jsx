@@ -231,36 +231,51 @@ export default function PlayerForm({ player, onSubmit, onCancel, isSubmitting, i
     // Si es mayor de edad, NO aplica descuento
     if (isMayorDeEdad) return { hasDiscount: false, amount: 0, reason: "mayor_edad" };
     
-    if (!currentUser || !allPlayers.length) return { hasDiscount: false, amount: 0 };
-    
-    // Buscar otros jugadores de la misma familia (mismo email padre) que sean MENORES de 18
+    const familyEmails = [currentPlayer.email_padre, currentPlayer.email_tutor_2]
+      .filter(Boolean).map(email => String(email).trim().toLowerCase());
+
+    // En ediciones administrativas los datos del usuario actual no son los de la familia.
+    // Si aún no tenemos la lista de jugadores, conservamos el descuento ya guardado.
+    if (familyEmails.length === 0 || !allPlayers.length) {
+      return {
+        hasDiscount: currentPlayer.tiene_descuento_hermano === true,
+        amount: Number(currentPlayer.descuento_aplicado) || 0
+      };
+    }
+
+    // Buscar hermanos activos por cualquiera de los dos tutores.
     const familyPlayers = allPlayers.filter(p => {
-      if (p.id === player?.id) return false;
-      if (p.email_padre !== currentUser.email && p.email_padre !== currentPlayer.email_padre) return false;
-      if (!p.activo) return false;
-      // Excluir mayores de 18 del cálculo de hermanos
+      if (p.id === player?.id || !p.activo) return false;
+      const emails = [p.email_padre, p.email_tutor_2]
+        .filter(Boolean).map(email => String(email).trim().toLowerCase());
+      if (!emails.some(email => familyEmails.includes(email))) return false;
       const age = calculateAge(p.fecha_nacimiento);
-      if (age !== null && age >= 18) return false;
+      if (age === null || age >= 18) return false;
       return true;
     });
 
-    if (familyPlayers.length === 0) return { hasDiscount: false, amount: 0 };
+    const family = [
+      ...familyPlayers,
+      { ...currentPlayer, id: player?.id || "__current__" }
+    ].filter(p => {
+      const age = calculateAge(p.fecha_nacimiento);
+      return !!p.fecha_nacimiento && age !== null && age < 18;
+    });
 
-    // Si hay hermanos menores, este jugador puede tener descuento si NO es el mayor
-    const allBirthDates = [...familyPlayers.map(p => p.fecha_nacimiento), currentPlayer.fecha_nacimiento].filter(Boolean);
-    
-    if (allBirthDates.length <= 1) return { hasDiscount: false, amount: 0 };
+    if (family.length <= 1) return { hasDiscount: false, amount: 0 };
 
-    // Ordenar por fecha de nacimiento (el mayor primero - fecha más antigua)
-    const sortedDates = allBirthDates.sort((a, b) => new Date(a) - new Date(b));
-    
-    // Si este jugador NO es el mayor (no tiene la fecha más antigua), aplica descuento
-    if (currentPlayer.fecha_nacimiento && currentPlayer.fecha_nacimiento !== sortedDates[0]) {
-      return { hasDiscount: true, amount: 25 };
-    }
+    // El mayor (fecha más antigua) paga íntegro; en empate, prevalece quien se inscribió antes.
+    family.sort((a, b) => {
+      const dateDiff = new Date(a.fecha_nacimiento) - new Date(b.fecha_nacimiento);
+      if (dateDiff !== 0) return dateDiff;
+      return new Date(a.created_date || 0) - new Date(b.created_date || 0);
+    });
 
-    return { hasDiscount: false, amount: 0 };
-  }, [currentUser, allPlayers, currentPlayer.fecha_nacimiento, currentPlayer.email_padre, player?.id, isMayorDeEdad]);
+    const currentIsOldest = family[0].id === (player?.id || "__current__");
+    return currentIsOldest
+      ? { hasDiscount: false, amount: 0 }
+      : { hasDiscount: true, amount: 25 };
+  }, [allPlayers, currentPlayer.fecha_nacimiento, currentPlayer.email_padre, currentPlayer.email_tutor_2, currentPlayer.tiene_descuento_hermano, currentPlayer.descuento_aplicado, player?.id, isMayorDeEdad]);
 
   // Actualizar estado de mayor de edad y descuento cuando cambia
   useEffect(() => {
