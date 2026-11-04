@@ -75,7 +75,7 @@ export default function EditorGrupos({ participante, partidos, equipos, isBlocke
         }
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [participante.predicciones_grupos]);
 
   return (

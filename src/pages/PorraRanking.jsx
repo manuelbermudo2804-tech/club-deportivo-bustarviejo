@@ -69,7 +69,7 @@ export default function PorraRanking() {
       clearInterval(intervalRef.current);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [codigoLigaUrl]);
 
   const cargar = async (esInicial = false) => {

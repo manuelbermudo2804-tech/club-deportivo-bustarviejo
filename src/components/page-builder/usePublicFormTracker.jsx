@@ -79,7 +79,7 @@ export default function usePublicFormTracker({ landingSlug, landingId, getValues
       screen: `${window.screen?.width || 0}x${window.screen?.height || 0}`,
       language: navigator?.language || "",
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [landingSlug]);
 
   // ---- Abandono de formulario (cierre/ocultación de pestaña con datos rellenos) ----
@@ -104,7 +104,7 @@ export default function usePublicFormTracker({ landingSlug, landingId, getValues
       document.removeEventListener("visibilitychange", onVis);
       window.removeEventListener("pagehide", handleHide);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [landingSlug, landingId]);
 
   // ---- Snapshot del formulario en localStorage para rescate ----

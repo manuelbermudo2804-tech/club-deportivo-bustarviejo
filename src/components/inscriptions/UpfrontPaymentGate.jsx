@@ -147,7 +147,7 @@ export default function UpfrontPaymentGate({
     return () => {
       cancelado = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [categoria, fechaNacimiento, esAdulto, returnPrepagoId, reintento]);
 
   const elegirAportacion = async (importe) => {

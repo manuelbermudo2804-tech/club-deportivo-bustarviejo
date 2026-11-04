@@ -38,7 +38,7 @@ export default function EditorMejoresTerceros({ participante, equipos, isBlocked
     if (filtrados.length !== seleccionados.length) {
       onToggleTercero(filtrados);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [candidatos.map(c => c.codigo).join(',')]);
 
   const toggle = (codigo) => {

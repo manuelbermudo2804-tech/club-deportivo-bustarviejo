@@ -83,7 +83,7 @@ export default function PorraAdminPartidos({ partidos = [], equipos = [], todosL
 
   useEffect(() => {
     setElimiLocal(elimiFromProps);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [elimiSignature]);
 
   const grupos = partidos.filter(p => p.fase === 'grupos');

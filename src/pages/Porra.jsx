@@ -33,7 +33,7 @@ export default function Porra() {
   useEffect(() => {
     document.title = "Porra Mundial 2026 — by CD Bustarviejo";
     cargarDatos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   const cargarDatos = async () => {

@@ -144,7 +144,7 @@ export default function PlayerFormWizardPrepago({ player, onSubmit, onCancel, is
         setPrepago(saved.prepago);
       }
     } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
   const [fieldErrors, setFieldErrors] = useState({});
   const wizardStartRef = useRef(Date.now());

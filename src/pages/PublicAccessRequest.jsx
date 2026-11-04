@@ -149,7 +149,7 @@ export default function PublicAccessRequest() {
       screen: `${window.screen?.width || 0}x${window.screen?.height || 0}`,
       language: navigator.language || "",
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, []);
 
   // Registrar "empezó a escribir" la primera vez que toque cualquier campo

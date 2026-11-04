@@ -77,7 +77,7 @@ export default function PublicForm({ landingId, landingSlug, formulario, brandin
     if (success || waitlistSuccess) return;
     const t = setTimeout(() => { saveDraft(); savePreRegistro(false); }, 800);
     return () => clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [values]);
 
   const color = branding?.color_principal || "#ea580c";

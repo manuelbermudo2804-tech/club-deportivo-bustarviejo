@@ -42,7 +42,7 @@ export default function PublicTorneo() {
 
   useEffect(() => {
     cargarDatos();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [slug]);
 
   if (loading) {

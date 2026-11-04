@@ -78,7 +78,7 @@ export default function PorraAdminAvisoBracket({ participantes, onRefresh }) {
       setEnviadosPorraIds(idsMigrados);
       localStorage.removeItem(STORAGE_KEY_OLD);
     } catch {}
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+     
   }, [participantes.length]);
 
   // Normaliza teléfono: solo dígitos, añade +34 si es número español de 9 dígitos
