@@ -514,7 +514,7 @@ export default function ParentPayments() {
           jugador_nombre: sel.player.nombre,
           mes: p.mes,
           temporada: p.temporada,
-          cantidad: p.cantidad
+          cantidad: getPaymentOutstanding(p)
         });
       } else {
         items.push({
@@ -523,7 +523,7 @@ export default function ParentPayments() {
           jugador_nombre: sel.player.nombre,
           mes: p.mes,
           temporada: p.temporada,
-          cantidad: p.cantidad
+          cantidad: getPaymentOutstanding(p)
         });
       }
     }
