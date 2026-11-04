@@ -626,21 +626,8 @@ export default function Payments() {
       }
 
       if (isFullyPaid) {
-        // Ejecuta los efectos secundarios existentes (plan especial, avisos y socio) sin volver a escribir el pago.
-        if (real.tipo_pago === "Plan Especial") {
-          try {
-            const plans = real.plan_especial_id
-              ? await base44.entities.CustomPaymentPlan.filter({ id: real.plan_especial_id })
-              : await base44.entities.CustomPaymentPlan.filter({ jugador_id: real.jugador_id, temporada: real.temporada });
-            const plan = plans?.[0];
-            if (plan?.cuotas) {
-              const cuotaNum = /^Cuota \\d/.test(real.mes || "") ? parseInt(real.mes.replace("Cuota ", "")) : 1;
-              const cuotas = plan.cuotas.map(c => c.numero === cuotaNum ? { ...c, pagada: true, fecha_pago: fecha } : c);
-              await base44.entities.CustomPaymentPlan.update(plan.id, { cuotas, estado: cuotas.every(c => c.pagada) ? "Completado" : "Activo" });
-              queryClient.invalidateQueries({ queryKey: ["customPaymentPlans"] });
-            }
-          } catch (e) { console.error("Error actualizando plan especial tras cobro:", e); }
-        }
+        // Reutiliza el flujo normal de confirmación: avisos, plan especial y alta de socio.
+        await handleStatusChange(savedPayment, "Pagado");
       }
 
       await Promise.all([
