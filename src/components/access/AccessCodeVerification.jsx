@@ -85,7 +85,7 @@ export default function AccessCodeVerification({ user, onSuccess }) {
   };
 
   return (
-    <div className="flex items-center justify-center p-4 sm:p-6" style={{ minHeight: '100vh', minHeight: '-webkit-fill-available', minHeight: '100dvh', background: 'linear-gradient(to bottom right, #0f172a, #1e293b, #14532d)' }}>
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6" style={{ minHeight: '100dvh', background: 'linear-gradient(to bottom right, #0f172a, #1e293b, #14532d)' }}>
       <Card className="max-w-md w-full border-none shadow-2xl">
         <CardContent className="p-6 sm:p-8 text-center space-y-5">
           <div className="flex justify-center">
