@@ -135,14 +135,19 @@ export default function PaymentCard({
 
             {/* Línea 2: Cantidad grande */}
             <p className="text-2xl font-extrabold text-slate-900 mt-1">
-              {payment.cantidad?.toFixed(2)}€
+              {Number(payment.cantidad || 0).toFixed(2)}€ <span className="text-xs font-medium text-slate-500">importe total</span>
             </p>
+            {collectedAmount > 0 && outstandingAmount > 0 && (
+              <p className="mt-1 text-sm font-bold text-orange-700">
+                Pendiente de pagar: {outstandingAmount.toFixed(2)}€
+              </p>
+            )}
 
             {Array.isArray(payment.movimientos_cobro) && payment.movimientos_cobro.length > 0 && (
               <div className="mt-2 space-y-1 text-xs text-slate-600">
                 {payment.movimientos_cobro.map((movement, index) => (
                   <div key={index} className="flex flex-wrap items-center gap-2">
-                    <span>Abono: {Number(movement.importe || 0).toFixed(2)}€{movement.fecha ? " · " + new Date(movement.fecha + "T00:00:00").toLocaleDateString("es-ES") : ""}</span>
+                    <span>Abono: {Number(movement.importe || 0).toFixed(2)}€{movement.fecha ? " · " + new Date(movement.fecha + "T00:00:00").toLocaleDateString("es-ES") : ""}{movement.metodo_pago ? " · " + movement.metodo_pago : ""}{movement.anotacion ? " · " + movement.anotacion : ""}</span>
                     {movement.recibo_url && <a href={movement.recibo_url} target="_blank" rel="noopener noreferrer" className="font-semibold text-green-700 underline">Ver recibo</a>}
                   </div>
                 ))}
