@@ -4,6 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, TrendingDown, Wallet, CalendarRange } from "lucide-react";
+import { getPaymentOutstanding } from "@/components/payments/paymentHelpers";
 
 const euro = (value) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR" }).format(Number(value) || 0);
 const PERIOD_MONTHS = { mensual: 1, bimestral: 2, trimestral: 3, semestral: 6, anual: 12 };
@@ -85,7 +86,7 @@ export default function CashPositionForecast({ compact = false, activeSeason }) 
     if (!isPendingPayment(payment)) return false;
     return true;
   });
-  const pendingPaymentsTotal = pendingPayments.reduce((sum, payment) => sum + (Number(payment.cantidad) || 0), 0);
+  const pendingPaymentsTotal = pendingPayments.reduce((sum, payment) => sum + getPaymentOutstanding(payment), 0);
   const pendingFinancialIncomeTotal = 0; // Excluido: no sumar ingresos manuales no validados.
 
   const activeAccounts = accounts.filter(a => a.activa !== false);
@@ -116,7 +117,7 @@ export default function CashPositionForecast({ compact = false, activeSeason }) 
       const outstanding = pendingExpenseTransactions.filter(t => !monthRecurringCommitments.some(c => matchesCommitment(c, t))).reduce((sum, t) => sum + Number(t.cantidad || 0), 0);
       const pendingPaymentIncome = pendingPayments
         .filter((payment) => paymentMonthKey(payment, activeSeason) === monthKey(month))
-        .reduce((sum, payment) => sum + (Number(payment.cantidad) || 0), 0);
+        .reduce((sum, payment) => sum + getPaymentOutstanding(payment), 0);
       const pendingIncome = pendingPaymentIncome;
       // No se suman ingresos recurrentes estimados: solo ingresos pendientes registrados.
       const totalOut = recurring + outstanding;
