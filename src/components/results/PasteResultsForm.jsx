@@ -18,7 +18,7 @@ function isNoiseLine(s) {
   const t = s.trim();
   if (!t) return true;
   // Date like 18/02/2026
-  if (/^\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4}$/.test(t)) return true;
+  if (/^\d{1,2}[/\-]\d{1,2}[/\-]\d{2,4}$/.test(t)) return true;
   // Time like 18:00h or 10:00h
   if (/^\d{1,2}:\d{2}h?$/i.test(t)) return true;
   // "Lugar:" lines
@@ -28,7 +28,7 @@ function isNoiseLine(s) {
   // Section headers at the end
   if (/^(resultados|calendario|clasificaci[oó]n|goleadores)$/i.test(t)) return true;
   // Temporada line
-  if (/^temporada\s+\d{4}[-\/]\d{4}/i.test(t)) return true;
+  if (/^temporada\s+\d{4}[-/]\d{4}/i.test(t)) return true;
   // Competition name line (PRIMERA BENJAMÍN etc)
   if (/grupo\s+\d+/i.test(t)) return true;
   // Jornada header with date in parentheses
@@ -36,7 +36,7 @@ function isNoiseLine(s) {
   // Pure numbers
   if (/^\d+$/.test(t)) return true;
   // Season format
-  if (/^\d{4}[-\/]\d{4}$/.test(t)) return true;
+  if (/^\d{4}[-/]\d{4}$/.test(t)) return true;
   return false;
 }
 
@@ -58,8 +58,8 @@ function parseResultsText(raw) {
 
   // Extract metadata
   for (const l of lines) {
-    if (/^\d{4}[-\/]\d{4}$/.test(l)) { temporada = l.replace('-', '/'); continue; }
-    const tmMatch = l.match(/temporada\s+(\d{4}[-\/]\d{4})/i);
+    if (/^\d{4}[-/]\d{4}$/.test(l)) { temporada = l.replace('-', '/'); continue; }
+    const tmMatch = l.match(/temporada\s+(\d{4}[-/]\d{4})/i);
     if (tmMatch) { temporada = tmMatch[1].replace('-', '/'); continue; }
     const jm = l.match(/jornada\s*(\d+)/i);
     if (jm) { jornada = parseInt(jm[1], 10); continue; }
