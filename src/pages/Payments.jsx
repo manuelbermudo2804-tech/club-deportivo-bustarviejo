@@ -529,10 +529,11 @@ export default function Payments() {
     }
   };
 
-  // Registra cada entrega en efectivo como un movimiento independiente y acumula el importe cobrado.
+  // Registra el cobro en la cuota y crea su asiento de tesorería, con referencia idempotente.
   const handleCashPayment = async ({ fecha, nota, reciboFile, importe }) => {
-    if (!efectivoData) return;
+    if (!efectivoData || !isAdmin) return;
     setSavingEfectivo(true);
+    let paymentSaved = false;
     try {
       let real = efectivoData.payment;
       if (real.isVirtual) {
@@ -565,12 +566,14 @@ export default function Payments() {
         const upload = await base44.integrations.Core.UploadFile({ file: reciboFile });
         uploadedUrl = upload?.file_url || upload?.url;
         if (!uploadedUrl || !String(uploadedUrl).startsWith("http")) {
-          throw new Error("No se pudo guardar el archivo adjunto. El cobro no se ha confirmado.");
+          throw new Error("No se pudo guardar el recibo. El cobro no se ha registrado.");
         }
       }
 
       const currentUser = await base44.auth.me();
+      const movementId = `cash-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
       const movement = {
+        id: movementId,
         importe: amount,
         fecha,
         metodo_pago: "Efectivo",
@@ -581,29 +584,84 @@ export default function Payments() {
       };
       const newCollected = Math.round((previouslyCollected + amount) * 100) / 100;
       const isFullyPaid = newCollected >= total - 0.001;
-      const newNotes = [`Cobro en EFECTIVO ${amount.toFixed(2)}€ el ${new Date(fecha).toLocaleDateString("es-ES")}${nota ? ` — ${nota}` : ""}`];
-      const updated = {
-        ...real,
+      const updatedFields = {
         metodo_pago: "Efectivo",
         importe_cobrado: Math.min(total, newCollected),
         movimientos_cobro: [...(Array.isArray(real.movimientos_cobro) ? real.movimientos_cobro : []), movement],
-        notas: [real.notas, ...newNotes].filter(Boolean).join(" | "),
+        notas: [real.notas, `Cobro en EFECTIVO ${amount.toFixed(2)}€ el ${new Date(fecha).toLocaleDateString("es-ES")}${nota ? ` — ${nota}` : ""}`].filter(Boolean).join(" | "),
         ...(uploadedUrl ? { recibo_url: uploadedUrl, recibo_adjuntado_manualmente: true } : {}),
+        ...(isFullyPaid ? { estado: "Pagado", fecha_pago: fecha } : { estado: "Pendiente" }),
       };
 
-      if (isFullyPaid) {
-        await handleStatusChange({ ...updated, fecha_pago: fecha }, "Pagado");
-      } else {
-        await base44.entities.Payment.update(real.id, { ...updated, estado: "Pendiente" });
-        queryClient.invalidateQueries({ queryKey: ["myPayments"] });
-        queryClient.invalidateQueries({ queryKey: ["payments"] });
-        toast.success(`Abono de ${amount.toFixed(2)}€ registrado. Quedan ${(total - newCollected).toFixed(2)}€ pendientes.`);
+      await base44.entities.Payment.update(real.id, updatedFields);
+      const savedPayment = await base44.entities.Payment.get(real.id);
+      const savedCollected = Number(savedPayment?.importe_cobrado);
+      const savedMovements = Array.isArray(savedPayment?.movimientos_cobro) ? savedPayment.movimientos_cobro : [];
+      if (!savedPayment || Math.abs(savedCollected - newCollected) > 0.001 || !savedMovements.some(item => item.id === movementId)) {
+        throw new Error("La plataforma no ha confirmado que el abono se haya guardado. No vuelvas a registrarlo; actualiza la pantalla y comprueba el historial.");
+      }
+      paymentSaved = true;
+
+      const ledgerReference = `payment-cash:${real.id}:${movementId}`;
+      const existingLedgerRows = await base44.entities.FinancialTransaction.filter({ referencia_origen: ledgerReference });
+      if (!existingLedgerRows?.length) {
+        await base44.entities.FinancialTransaction.create({
+          tipo: "Ingreso",
+          concepto: `Cuota deportiva · ${real.jugador_nombre} · ${real.mes}`,
+          cantidad: amount,
+          fecha,
+          categoria: "Cuotas deportivas",
+          subcategoria: "Cobro en efectivo",
+          proveedor_cliente: real.jugador_nombre,
+          metodo_pago: "Efectivo",
+          estado: "Cobrado",
+          temporada: real.temporada,
+          automatico: true,
+          referencia_origen: ledgerReference,
+          notas: nota || `Abono parcial de la cuota ${real.mes}`,
+          documento_url: uploadedUrl || "",
+          tipo_documento: uploadedUrl ? "Recibo" : undefined,
+          subtipo_documento: "Cuota deportiva",
+        });
       }
 
+      if (isFullyPaid) {
+        // Ejecuta los efectos secundarios existentes (plan especial, avisos y socio) sin volver a escribir el pago.
+        if (real.tipo_pago === "Plan Especial") {
+          try {
+            const plans = real.plan_especial_id
+              ? await base44.entities.CustomPaymentPlan.filter({ id: real.plan_especial_id })
+              : await base44.entities.CustomPaymentPlan.filter({ jugador_id: real.jugador_id, temporada: real.temporada });
+            const plan = plans?.[0];
+            if (plan?.cuotas) {
+              const cuotaNum = /^Cuota \\d/.test(real.mes || "") ? parseInt(real.mes.replace("Cuota ", "")) : 1;
+              const cuotas = plan.cuotas.map(c => c.numero === cuotaNum ? { ...c, pagada: true, fecha_pago: fecha } : c);
+              await base44.entities.CustomPaymentPlan.update(plan.id, { cuotas, estado: cuotas.every(c => c.pagada) ? "Completado" : "Activo" });
+              queryClient.invalidateQueries({ queryKey: ["customPaymentPlans"] });
+            }
+          } catch (e) { console.error("Error actualizando plan especial tras cobro:", e); }
+        }
+      }
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["myPayments"] }),
+        queryClient.invalidateQueries({ queryKey: ["payments"] }),
+        queryClient.invalidateQueries({ queryKey: ["transactions"] }),
+        queryClient.invalidateQueries({ queryKey: ["financialTransactions"] }),
+        queryClient.invalidateQueries({ queryKey: ["cashForecastFinancialTransactions"] }),
+      ]);
+      toast.success(isFullyPaid
+        ? `Cuota saldada: ${newCollected.toFixed(2)}€ cobrados.`
+        : `Abono de ${amount.toFixed(2)}€ guardado. Restan ${(total - newCollected).toFixed(2)}€.`);
       setEfectivoData(null);
     } catch (error) {
       console.error("Error registrando cobro en efectivo:", error);
-      toast.error(error?.message || "Error al registrar el cobro en efectivo");
+      if (paymentSaved) {
+        toast.error(`El abono de ${Number(importe).toFixed(2)}€ sí quedó guardado en la cuota, pero falló el asiento de tesorería: ${error?.message || "error desconocido"}. Avísame antes de repetirlo.`);
+        setEfectivoData(null);
+      } else {
+        toast.error(error?.message || "No se pudo guardar el cobro. No se ha confirmado ningún abono.");
+      }
     } finally {
       setSavingEfectivo(false);
     }
