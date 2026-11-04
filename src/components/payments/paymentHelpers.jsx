@@ -4,6 +4,20 @@ import { sameSeason } from "@/lib/sameSeason";
  * USAR EN TODOS LOS DASHBOARDS para consistencia
  */
 
+/** Importe efectivamente cobrado. Compatible con pagos antiguos sin importe_cobrado. */
+export function getPaymentCollected(payment) {
+  if (!payment) return 0;
+  if (payment.importe_cobrado !== undefined && payment.importe_cobrado !== null) {
+    return Math.max(0, Math.min(Number(payment.cantidad) || 0, Number(payment.importe_cobrado) || 0));
+  }
+  return payment.estado === "Pagado" ? Math.max(0, Number(payment.cantidad) || 0) : 0;
+}
+
+/** Saldo pendiente de una cuota, sin alterar el importe original. */
+export function getPaymentOutstanding(payment) {
+  return Math.max(0, Number(payment?.cantidad || 0) - getPaymentCollected(payment));
+}
+
 /**
  * Calcula si un pago está vencido basándose en su mes y estado
  */
