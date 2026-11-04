@@ -8,6 +8,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { createPlayerPaymentReceiptData, ensurePaymentReceiptNumber } from "@/components/receipts/PaymentReceiptPDF";
 import { generateReciboPDF } from "@/components/recibos/reciboPdfGenerator";
+import { getPaymentCollected, getPaymentOutstanding } from "@/components/payments/paymentHelpers";
 
 const statusConfig = {
   "Pagado": { emoji: "🟢", bg: "bg-green-50 border-green-200", icon: CheckCircle2, color: "text-green-700", badgeCls: "bg-green-100 text-green-800" },
@@ -32,6 +33,8 @@ export default function PaymentCard({
   const StatusIcon = cfg.icon;
   const playerActivities = [...new Set([player?.categoria_principal, player?.deporte, ...(Array.isArray(player?.categorias) ? player.categorias : [])].filter(Boolean))];
   const paymentActivity = payment.categoria_actividad || (playerActivities.length === 1 ? playerActivities[0] : null);
+  const collectedAmount = getPaymentCollected(payment);
+  const outstandingAmount = getPaymentOutstanding(payment);
 
   const [generatingReceipt, setGeneratingReceipt] = useState(false);
   const [receiptUrl, setReceiptUrl] = useState(payment.recibo_url || null);
@@ -135,7 +138,15 @@ export default function PaymentCard({
               {payment.cantidad?.toFixed(2)}€
             </p>
 
-            {/* Aportación solidaria incluida (si la hay) */}
+            {collectedAmount > 0 && outstandingAmount > 0 && (
+              <div className="mt-2 rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs">
+                <p className="font-semibold text-amber-800">Pago parcial</p>
+                <p className="text-slate-700">Cobrado: {collectedAmount.toFixed(2)}€ · Pendiente: {outstandingAmount.toFixed(2)}€</p>
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-amber-100"><div className="h-full rounded-full bg-amber-500" style={{ width: `${Math.min(100, collectedAmount / Math.max(1, Number(payment.cantidad)) * 100)}%` }} /></div>
+              </div>
+            )}
+
+            {/* Aportación solidaria incluida (si la hay) */
             {Number(payment.aportacion_solidaria) > 0 && (
               <p className="text-xs text-green-700 font-semibold mt-1 inline-flex items-center gap-1 bg-green-50 px-2 py-0.5 rounded-full border border-green-200">
                 💚 Incluye {Number(payment.aportacion_solidaria).toFixed(2)}€ al Fondo Solidario de Becas
