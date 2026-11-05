@@ -3,7 +3,7 @@ import { toast } from "sonner";
 
 // Comparte un PDF por WhatsApp mediante un enlace privado temporal.
 // En modo preferWhatsAppLink se prioriza abrir WhatsApp con el mensaje preparado en cualquier dispositivo.
-export async function compartirPdfWhatsApp({ blob, filename, mensaje, telefono, preferWhatsAppLink = false }) {
+export async function compartirPdfWhatsApp({ blob, filename, mensaje, telefono, preferWhatsAppLink = false, waWindow = null }) {
   const file = new File([blob], filename, { type: "application/pdf" });
 
   if (!preferWhatsAppLink && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -24,7 +24,11 @@ export async function compartirPdfWhatsApp({ blob, filename, mensaje, telefono, 
   const waUrl = tel
     ? `https://wa.me/${tel.startsWith("34") ? tel : "34" + tel}?text=${encodeURIComponent(texto)}`
     : `https://wa.me/?text=${encodeURIComponent(texto)}`;
-  window.open(waUrl, "_blank");
-  toast.success("WhatsApp abierto con el mensaje y el enlace seguro al PDF");
+  if (waWindow && !waWindow.closed) {
+    waWindow.location.href = waUrl;
+  } else {
+    throw new Error("La ventana de WhatsApp ya no está disponible");
+  }
+  toast.success("WhatsApp preparado con el mensaje y el enlace seguro al PDF");
   return true;
 }
