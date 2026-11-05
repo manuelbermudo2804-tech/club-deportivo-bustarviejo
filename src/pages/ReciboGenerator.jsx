@@ -9,9 +9,8 @@ import { Upload, Download, FileText, Trash2, Image as ImageIcon, MessageCircle }
 import { toast } from "sonner";
 import useNumeracion from "@/hooks/useNumeracion";
 import NumeroDocumentoInput from "@/components/facturas/NumeroDocumentoInput";
-import { compartirPdfWhatsApp } from "@/lib/compartirPdfWhatsApp";
 import ReciboPreview from "@/components/recibos/ReciboPreview";
-import { generateReciboPDF, generateReciboBlob } from "@/components/recibos/reciboPdfGenerator";
+import { generateReciboPDF } from "@/components/recibos/reciboPdfGenerator";
 
 const CLUB_LOGO_DEFAULT = "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg";
 
@@ -116,30 +115,21 @@ export default function ReciboGenerator() {
       toast.error("Rellena al menos 'Recibí de' y 'Cantidad'");
       return;
     }
-    // Abrimos la pestaña mientras aún existe el gesto directo del usuario.
-    // Si se espera a terminar la generación/subida del PDF, el navegador bloquea el popup.
-    const waWindow = window.open("about:blank", "_blank");
+    // WhatsApp solo se abre; el PDF se adjunta manualmente desde la conversación.
+    const mensaje = incluirAgradecimiento
+      ? `Hola ${form.recibiDe || ""}:\n\nDesde el Club Deportivo Bustarviejo queremos agradecerte sinceramente tu apoyo y confianza. Tu colaboración es fundamental para que nuestros jugadores y jugadoras puedan seguir disfrutando del deporte y creciendo como equipo.\n\nTe enviamos el recibo Nº ${form.numero || "—"}, por importe de ${form.cantidad || "—"} €, correspondiente a ${form.concepto}${form.temporada ? ` (temporada ${form.temporada})` : ""}.\n\n¡Muchas gracias por formar parte de la familia del C.D. Bustarviejo! 🧡🖤\n\nUn cordial saludo,\nClub Deportivo Bustarviejo`
+      : "";
+    const telefono = telefonoWA.replace(/\D/g, "");
+    const numero = telefono ? (telefono.startsWith("34") ? telefono : `34${telefono}`) : "";
+    const baseUrl = numero ? `https://wa.me/${numero}` : "https://wa.me/";
+    const waUrl = mensaje ? `${baseUrl}?text=${encodeURIComponent(mensaje)}` : baseUrl;
+    const waWindow = window.open(waUrl, "_blank");
     if (!waWindow) {
-      toast.error("El navegador ha bloqueado la ventana de WhatsApp. Permite las ventanas emergentes para esta aplicación y vuelve a intentarlo.");
+      toast.error("El navegador ha bloqueado WhatsApp. Permite las ventanas emergentes y vuelve a intentarlo.");
       return;
     }
-    waWindow.document.title = "Preparando WhatsApp…";
-    waWindow.document.body.innerHTML = "<p style='font-family:Arial,sans-serif;padding:24px'>Preparando el recibo y WhatsApp…</p>";
-    setSharingWA(true);
-    try {
-      const { blob, filename } = await generateReciboBlob({ ...form, logoUrl, selloUrl, firmaUrl });
-      const mensaje = incluirAgradecimiento
-        ? `Hola ${form.recibiDe}:\n\nDesde el Club Deportivo Bustarviejo queremos agradecerte sinceramente tu apoyo y confianza. Tu colaboración es fundamental para que nuestros jugadores y jugadoras puedan seguir disfrutando del deporte y creciendo como equipo.\n\nTe enviamos el recibo Nº ${form.numero || "—"}, por importe de ${form.cantidad} €, correspondiente a ${form.concepto}${form.temporada ? ` (temporada ${form.temporada})` : ""}.\n\n¡Muchas gracias por formar parte de la familia del C.D. Bustarviejo! 🧡🖤\n\nUn cordial saludo,\nClub Deportivo Bustarviejo`
-        : "";
-
-      if (await compartirPdfWhatsApp({ blob, filename, mensaje, telefono: telefonoWA, preferWhatsAppLink: true, waWindow })) await confirmar(form.numero);
-    } catch (e) {
-      console.error(e);
-      // No cerramos la pestaña: así el usuario no pierde el contexto si falla la subida del PDF.
-      toast.error(e?.message || "No se pudo preparar el recibo para WhatsApp. Comprueba la conexión y vuelve a intentarlo.");
-    } finally {
-      setSharingWA(false);
-    }
+    try { await confirmar(form.numero); }
+    catch (e) { console.warn("No se pudo confirmar la numeración del recibo:", e); }
   };
 
   const resetSello = () => {
@@ -289,7 +279,7 @@ export default function ReciboGenerator() {
                   Incluir mensaje de agradecimiento
                 </label>
                 <p className="text-[11px] text-slate-400">
-                  Si lo desmarcas, WhatsApp llevará únicamente el enlace seguro al recibo PDF, sin texto de agradecimiento. Si dejas el teléfono vacío, podrás elegir el contacto.
+                  WhatsApp se abrirá con o sin el texto de agradecimiento. El PDF lo adjuntarás manualmente desde WhatsApp. Si dejas el teléfono vacío, podrás elegir el contacto.
                 </p>
               </CardContent>
             </Card>
@@ -298,8 +288,8 @@ export default function ReciboGenerator() {
               <Button onClick={handleDownload} className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12 text-base font-bold">
                 <Download className="w-5 h-5 mr-2" /> Descargar PDF
               </Button>
-              <Button onClick={handleShareWhatsApp} disabled={sharingWA} className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-bold">
-                <MessageCircle className="w-5 h-5 mr-2" /> {sharingWA ? "Preparando..." : "Enviar por WhatsApp"}
+              <Button onClick={handleShareWhatsApp} className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-bold">
+                <MessageCircle className="w-5 h-5 mr-2" /> Abrir WhatsApp
               </Button>
             </div>
           </div>
