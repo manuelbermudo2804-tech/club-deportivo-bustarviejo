@@ -115,15 +115,25 @@ export default function ReciboGenerator() {
       toast.error("Rellena al menos 'Recibí de' y 'Cantidad'");
       return;
     }
+    // Abrimos la pestaña mientras aún existe el gesto directo del usuario.
+    // Si se espera a terminar la generación/subida del PDF, el navegador bloquea el popup.
+    const waWindow = window.open("about:blank", "_blank");
+    if (!waWindow) {
+      toast.error("El navegador ha bloqueado la ventana de WhatsApp. Permite las ventanas emergentes para esta aplicación y vuelve a intentarlo.");
+      return;
+    }
+    waWindow.document.title = "Preparando WhatsApp…";
+    waWindow.document.body.innerHTML = "<p style='font-family:Arial,sans-serif;padding:24px'>Preparando el recibo y WhatsApp…</p>";
     setSharingWA(true);
     try {
       const { blob, filename } = await generateReciboBlob({ ...form, logoUrl, selloUrl, firmaUrl });
       const mensaje = `Hola ${form.recibiDe}:\n\nDesde el Club Deportivo Bustarviejo queremos agradecerte sinceramente tu apoyo y confianza. Tu colaboración es fundamental para que nuestros jugadores y jugadoras puedan seguir disfrutando del deporte y creciendo como equipo.\n\nTe enviamos el recibo Nº ${form.numero || "—"}, por importe de ${form.cantidad} €, correspondiente a ${form.concepto}${form.temporada ? ` (temporada ${form.temporada})` : ""}.\n\n¡Muchas gracias por formar parte de la familia del C.D. Bustarviejo! 🧡🖤\n\nUn cordial saludo,\nClub Deportivo Bustarviejo`;
 
-      if (await compartirPdfWhatsApp({ blob, filename, mensaje, telefono: telefonoWA, preferWhatsAppLink: true })) await confirmar(form.numero);
+      if (await compartirPdfWhatsApp({ blob, filename, mensaje, telefono: telefonoWA, preferWhatsAppLink: true, waWindow })) await confirmar(form.numero);
     } catch (e) {
       console.error(e);
-      toast.error("Error al compartir el recibo");
+      if (waWindow && !waWindow.closed) waWindow.close();
+      toast.error("No se pudo preparar el recibo para WhatsApp. Comprueba la conexión y vuelve a intentarlo.");
     } finally {
       setSharingWA(false);
     }
