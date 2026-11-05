@@ -118,8 +118,6 @@ export default function ReciboGenerator() {
     setSharingWA(true);
     try {
       const { blob, filename } = await generateReciboBlob({ ...form, logoUrl, selloUrl, firmaUrl });
-      const file = new File([blob], filename, { type: "application/pdf" });
-
       const mensaje = `Hola ${form.recibiDe}:\n\nDesde el Club Deportivo Bustarviejo queremos agradecerte sinceramente tu apoyo y confianza. Tu colaboración es fundamental para que nuestros jugadores y jugadoras puedan seguir disfrutando del deporte y creciendo como equipo.\n\nTe enviamos el recibo Nº ${form.numero || "—"}, por importe de ${form.cantidad} €, correspondiente a ${form.concepto}${form.temporada ? ` (temporada ${form.temporada})` : ""}.\n\n¡Muchas gracias por formar parte de la familia del C.D. Bustarviejo! 🧡🖤\n\nUn cordial saludo,\nClub Deportivo Bustarviejo`;
 
       if (await compartirPdfWhatsApp({ blob, filename, mensaje, telefono: telefonoWA, preferWhatsAppLink: true })) await confirmar(form.numero);
