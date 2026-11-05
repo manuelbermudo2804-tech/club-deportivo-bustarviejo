@@ -17,7 +17,7 @@ export default function SponsorBanner() {
           .filter(s => s.activo === true)
           .sort((a, b) => {
             const order = { "Principal": 0, "Oro": 1, "Plata": 2, "Bronce": 3, "Colaborador": 4 };
-            return (order[a.nivel_patrocinio] || 5) - (order[b.nivel_patrocinio] || 5);
+            return (order[a.nivel_patrocinio] ?? 5) - (order[b.nivel_patrocinio] ?? 5);
           });
       } catch {
         return [];
@@ -83,35 +83,35 @@ export default function SponsorBanner() {
       card: "bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 border-2 border-amber-400 shadow-md shadow-amber-200/50",
       badge: "bg-gradient-to-r from-amber-500 to-yellow-600 text-white",
       text: "text-amber-900 font-bold text-sm",
-      logoSize: "h-10",
+      logoFrame: "w-[68px] h-10",
       icon: "👑"
     },
     "Oro": {
       card: "bg-gradient-to-r from-yellow-100 via-amber-50 to-yellow-100 border-2 border-yellow-400 shadow-md shadow-yellow-200/50",
       badge: "bg-gradient-to-r from-yellow-400 to-amber-500 text-white",
       text: "text-amber-800 font-bold text-sm",
-      logoSize: "h-9",
+      logoFrame: "w-[62px] h-9",
       icon: "🥇"
     },
     "Plata": {
       card: "bg-gradient-to-r from-slate-100 via-gray-50 to-slate-100 border-2 border-slate-400 shadow-sm",
       badge: "bg-gradient-to-r from-slate-400 to-slate-500 text-white",
       text: "text-slate-700 font-semibold text-sm",
-      logoSize: "h-8",
+      logoFrame: "w-[56px] h-8",
       icon: "🥈"
     },
     "Bronce": {
       card: "bg-gradient-to-r from-orange-100 via-amber-50 to-orange-100 border-2 border-orange-400 shadow-sm",
       badge: "bg-gradient-to-r from-orange-500 to-amber-600 text-white",
       text: "text-orange-800 font-semibold text-sm",
-      logoSize: "h-8",
+      logoFrame: "w-[52px] h-7",
       icon: "🥉"
     },
     "Colaborador": {
       card: "",
       badge: "",
       text: "text-slate-600 font-medium text-xs",
-      logoSize: "h-7",
+      logoFrame: "w-[46px] h-7",
       icon: null
     }
   };
@@ -150,13 +150,16 @@ export default function SponsorBanner() {
                     <span className="text-sm leading-none flex-shrink-0">{style.icon}</span>
                   )}
                   {sponsor.logo_url ? (
-                    <img
-                      src={sponsor.logo_url}
-                      alt={sponsor.nombre}
-                      className={`${style.logoSize} w-auto object-contain flex-shrink-0`}
-                    />
+                    <div className={`${style.logoFrame} flex-shrink-0 flex items-center justify-center overflow-hidden rounded-md bg-white/90 px-1.5 py-1 ring-1 ring-slate-900/5`}>
+                      <img
+                        src={sponsor.logo_url}
+                        alt={sponsor.nombre}
+                        className="h-full w-full max-h-full max-w-full object-contain"
+                        loading="lazy"
+                      />
+                    </div>
                   ) : (
-                    <div className={`${style.logoSize} aspect-square rounded bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center flex-shrink-0`}>
+                    <div className={`${style.logoFrame} rounded-md bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center flex-shrink-0`}>
                       <Building2 className="w-4 h-4 text-white" />
                     </div>
                   )}
