@@ -63,6 +63,7 @@ export default function ReciboGenerator() {
     lugar: "Bustarviejo",
   });
   const [telefonoWA, setTelefonoWA] = useState("");
+  const [incluirAgradecimiento, setIncluirAgradecimiento] = useState(true);
   const { sugerido, confirmar } = useNumeracion("recibo");
   const [sharingWA, setSharingWA] = useState(false);
 
@@ -127,13 +128,15 @@ export default function ReciboGenerator() {
     setSharingWA(true);
     try {
       const { blob, filename } = await generateReciboBlob({ ...form, logoUrl, selloUrl, firmaUrl });
-      const mensaje = `Hola ${form.recibiDe}:\n\nDesde el Club Deportivo Bustarviejo queremos agradecerte sinceramente tu apoyo y confianza. Tu colaboración es fundamental para que nuestros jugadores y jugadoras puedan seguir disfrutando del deporte y creciendo como equipo.\n\nTe enviamos el recibo Nº ${form.numero || "—"}, por importe de ${form.cantidad} €, correspondiente a ${form.concepto}${form.temporada ? ` (temporada ${form.temporada})` : ""}.\n\n¡Muchas gracias por formar parte de la familia del C.D. Bustarviejo! 🧡🖤\n\nUn cordial saludo,\nClub Deportivo Bustarviejo`;
+      const mensaje = incluirAgradecimiento
+        ? `Hola ${form.recibiDe}:\n\nDesde el Club Deportivo Bustarviejo queremos agradecerte sinceramente tu apoyo y confianza. Tu colaboración es fundamental para que nuestros jugadores y jugadoras puedan seguir disfrutando del deporte y creciendo como equipo.\n\nTe enviamos el recibo Nº ${form.numero || "—"}, por importe de ${form.cantidad} €, correspondiente a ${form.concepto}${form.temporada ? ` (temporada ${form.temporada})` : ""}.\n\n¡Muchas gracias por formar parte de la familia del C.D. Bustarviejo! 🧡🖤\n\nUn cordial saludo,\nClub Deportivo Bustarviejo`
+        : "";
 
       if (await compartirPdfWhatsApp({ blob, filename, mensaje, telefono: telefonoWA, preferWhatsAppLink: true, waWindow })) await confirmar(form.numero);
     } catch (e) {
       console.error(e);
-      if (waWindow && !waWindow.closed) waWindow.close();
-      toast.error("No se pudo preparar el recibo para WhatsApp. Comprueba la conexión y vuelve a intentarlo.");
+      // No cerramos la pestaña: así el usuario no pierde el contexto si falla la subida del PDF.
+      toast.error(e?.message || "No se pudo preparar el recibo para WhatsApp. Comprueba la conexión y vuelve a intentarlo.");
     } finally {
       setSharingWA(false);
     }
@@ -281,8 +284,12 @@ export default function ReciboGenerator() {
                   onChange={(e) => setTelefonoWA(e.target.value)}
                   placeholder="600 123 456 (sin prefijo si es España)"
                 />
+                <label className="flex items-center gap-2 text-sm mt-3 cursor-pointer">
+                  <input type="checkbox" checked={incluirAgradecimiento} onChange={(e) => setIncluirAgradecimiento(e.target.checked)} className="h-4 w-4 accent-green-600" />
+                  Incluir mensaje de agradecimiento
+                </label>
                 <p className="text-[11px] text-slate-400">
-                  Al pulsar el botón se abrirá WhatsApp con el agradecimiento preparado y un enlace seguro para consultar el recibo PDF. Si dejas el teléfono vacío, podrás elegir el contacto en WhatsApp.
+                  Si lo desmarcas, WhatsApp llevará únicamente el enlace seguro al recibo PDF, sin texto de agradecimiento. Si dejas el teléfono vacío, podrás elegir el contacto.
                 </p>
               </CardContent>
             </Card>
