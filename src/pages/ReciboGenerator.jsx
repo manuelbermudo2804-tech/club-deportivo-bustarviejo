@@ -64,7 +64,6 @@ export default function ReciboGenerator() {
   const [telefonoWA, setTelefonoWA] = useState("");
   const [incluirAgradecimiento, setIncluirAgradecimiento] = useState(true);
   const { sugerido, confirmar } = useNumeracion("recibo");
-  const [sharingWA, setSharingWA] = useState(false);
 
   const logoInputRef = useRef(null);
   const selloInputRef = useRef(null);
@@ -110,11 +109,7 @@ export default function ReciboGenerator() {
     }
   };
 
-  const handleShareWhatsApp = async () => {
-    if (!form.recibiDe || !form.cantidad) {
-      toast.error("Rellena al menos 'Recibí de' y 'Cantidad'");
-      return;
-    }
+  const handleShareWhatsApp = () => {
     // WhatsApp solo se abre; el PDF se adjunta manualmente desde la conversación.
     const mensaje = incluirAgradecimiento
       ? `Hola ${form.recibiDe || ""}:\n\nDesde el Club Deportivo Bustarviejo queremos agradecerte sinceramente tu apoyo y confianza. Tu colaboración es fundamental para que nuestros jugadores y jugadoras puedan seguir disfrutando del deporte y creciendo como equipo.\n\nTe enviamos el recibo Nº ${form.numero || "—"}, por importe de ${form.cantidad || "—"} €, correspondiente a ${form.concepto}${form.temporada ? ` (temporada ${form.temporada})` : ""}.\n\n¡Muchas gracias por formar parte de la familia del C.D. Bustarviejo! 🧡🖤\n\nUn cordial saludo,\nClub Deportivo Bustarviejo`
@@ -128,8 +123,6 @@ export default function ReciboGenerator() {
       toast.error("El navegador ha bloqueado WhatsApp. Permite las ventanas emergentes y vuelve a intentarlo.");
       return;
     }
-    try { await confirmar(form.numero); }
-    catch (e) { console.warn("No se pudo confirmar la numeración del recibo:", e); }
   };
 
   const resetSello = () => {
