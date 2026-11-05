@@ -120,9 +120,9 @@ export default function ReciboGenerator() {
       const { blob, filename } = await generateReciboBlob({ ...form, logoUrl, selloUrl, firmaUrl });
       const file = new File([blob], filename, { type: "application/pdf" });
 
-      const mensaje = `Hola ${form.recibiDe}, te adjunto el recibo Nº ${form.numero || "—"} por importe de ${form.cantidad}€ en concepto de ${form.concepto}${form.temporada ? ` (Temporada ${form.temporada})` : ""}. ¡Muchas gracias por tu colaboración con el CD Bustarviejo! 🧡`;
+      const mensaje = `Hola ${form.recibiDe}:\n\nDesde el Club Deportivo Bustarviejo queremos agradecerte sinceramente tu apoyo y confianza. Tu colaboración es fundamental para que nuestros jugadores y jugadoras puedan seguir disfrutando del deporte y creciendo como equipo.\n\nTe enviamos el recibo Nº ${form.numero || "—"}, por importe de ${form.cantidad} €, correspondiente a ${form.concepto}${form.temporada ? ` (temporada ${form.temporada})` : ""}.\n\n¡Muchas gracias por formar parte de la familia del C.D. Bustarviejo! 🧡🖤\n\nUn cordial saludo,\nClub Deportivo Bustarviejo`;
 
-      if (await compartirPdfWhatsApp({ blob, filename, mensaje, telefono: telefonoWA })) await confirmar(form.numero);
+      if (await compartirPdfWhatsApp({ blob, filename, mensaje, telefono: telefonoWA, preferWhatsAppLink: true })) await confirmar(form.numero);
     } catch (e) {
       console.error(e);
       toast.error("Error al compartir el recibo");
@@ -274,7 +274,7 @@ export default function ReciboGenerator() {
                   placeholder="600 123 456 (sin prefijo si es España)"
                 />
                 <p className="text-[11px] text-slate-400">
-                  Si lo dejas vacío, podrás elegir el contacto al compartir. En móvil se adjunta el PDF directamente; en ordenador se descarga y se abre WhatsApp Web.
+                  Al pulsar el botón se abrirá WhatsApp con el agradecimiento preparado y un enlace seguro para consultar el recibo PDF. Si dejas el teléfono vacío, podrás elegir el contacto en WhatsApp.
                 </p>
               </CardContent>
             </Card>
