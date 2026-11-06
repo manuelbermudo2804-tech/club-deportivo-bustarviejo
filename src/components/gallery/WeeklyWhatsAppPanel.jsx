@@ -113,7 +113,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
   // Al cambiar el periodo, se marcan inicialmente todos los partidos que caen en él.
   useEffect(() => {
     setSelectedMatchIds(inPeriod.map(p => p.id).filter(Boolean));
-  }, [periodStart, periodEnd, matches]);
+  }, [periodStart, periodEnd, allFuture]);
 
   const selectedMatches = useMemo(() => inPeriod.filter(p => selectedMatchIds.includes(p.id)), [inPeriod, selectedMatchIds]);
 
@@ -179,7 +179,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
           <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
             {inPeriod.map(p => <label key={p.id || `${p.categoria}-${p._date}-${p.local}-${p.visitante}`} className="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-3 hover:bg-slate-50">
               <input type="checkbox" className="mt-1 h-4 w-4 accent-orange-600" checked={selectedMatchIds.includes(p.id)} onChange={() => toggleMatch(p.id)} disabled={!p.id}/>
-              <span className="min-w-0 flex-1"><span className="block font-semibold text-slate-800">{p.categoria || "Equipo"} · {formatDate(p._date)}</span><span className="block text-sm text-slate-700">{p.local || "Local por confirmar"} — {p.visitante || "Visitante por confirmar"}</span><span className="block text-xs text-slate-500">{p.hora || "Hora por confirmar"}{p.campo ? ` · ${p.campo}` : ""}</span></span>
+              <span className="min-w-0 flex-1"><span className="block font-semibold text-slate-800">{p.categoria || "Equipo"}{p.competicion && p.competicion !== "Liga" ? ` · ${p.competicion}` : ""} · {formatDate(p._date)}</span><span className="block text-sm text-slate-700">{p.local || "Local por confirmar"} — {p.visitante || "Visitante por confirmar"}</span><span className="block text-xs text-slate-500">{p.hora || "Hora por confirmar"}{p.campo ? ` · ${p.campo}` : ""}</span></span>
             </label>)}
           </div>
         </div>
