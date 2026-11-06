@@ -41,9 +41,11 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
   const [periodEnd, setPeriodEnd] = useState(addDaysISO(defaultStart, 6));
   const queryClient = useQueryClient();
 
-  const { data: matches = [], isLoading: loadingMatches, isFetching: refreshingMatches, refetch: refetchMatches } = useQuery({
-    queryKey: ["weeklyWhatsAppUpcoming"],
-    queryFn: () => base44.entities.ProximoPartido.list("fecha_iso", 500),
+  const { data: scheduleCaches = [], isLoading: loadingMatches, isFetching: refreshingMatches, refetch: refetchMatches } = useQuery({
+    queryKey: ["weeklyWhatsAppCompetitionCache"],
+    queryFn: () => base44.entities.CompetitionCache.filter({ tipo: "jornadas" }, "-updated_date", 100),
+    staleTime: 60 * 1000,
+    refetchOnWindowFocus: true,
   });
 
   const refreshSchedule = async (event) => {
@@ -51,22 +53,58 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
     event?.stopPropagation?.();
     toast("Consultando de nuevo el calendario…");
     try {
-      await queryClient.invalidateQueries({ queryKey: ["weeklyWhatsAppUpcoming"], exact: true, refetchType: "none" });
+      await queryClient.invalidateQueries({ queryKey: ["weeklyWhatsAppCompetitionCache"], exact: true, refetchType: "none" });
       const result = await refetchMatches();
       if (result.error) throw result.error;
-      toast.success(`Horarios actualizados: ${result.data?.length ?? 0} registros consultados`);
+      toast.success(`Calendarios recargados: ${result.data?.length ?? 0} calendarios federativos consultados`);
     } catch (error) {
       console.error("Error actualizando horarios para WhatsApp:", error);
       toast.error("No se han podido actualizar los horarios. Inténtalo de nuevo.");
     }
   };
 
-  // Descubrimiento: mantenemos a la vista todos los encuentros futuros registrados.
-  const allFuture = useMemo(() => matches
-    .map(p => ({ ...p, _date: parseMatchDate(p) }))
-    .filter(p => p.jugado !== true && p._date && p._date >= todayISO)
-    .sort((a,b) => a._date.localeCompare(b._date) || String(a.hora || "").localeCompare(String(b.hora || ""))),
-  [matches, todayISO]);
+  // Fuente de horarios: calendarios federativos sincronizados (CompetitionCache).
+  // Elegimos el último caché de cada categoría/competición para evitar registros duplicados
+  // y no depender de ProximoPartido, que puede quedarse con horas antiguas o vacías.
+  const allFuture = useMemo(() => {
+    const latestByCompetition = new Map();
+    for (const cache of scheduleCaches) {
+      const key = `${cache.categoria || ""}::${cache.competicion || "Liga"}`;
+      const stamp = cache.ultima_sync || cache.updated_date || cache.created_date || "";
+      const previous = latestByCompetition.get(key);
+      const previousStamp = previous?.ultima_sync || previous?.updated_date || previous?.created_date || "";
+      if (!previous || String(stamp) >= String(previousStamp)) latestByCompetition.set(key, cache);
+    }
+
+    const seen = new Set();
+    const upcoming = [];
+    for (const cache of latestByCompetition.values()) {
+      const jornadas = Array.isArray(cache.datos) ? cache.datos : (cache.datos?.jornadas || []);
+      for (const jornada of jornadas) {
+        for (const match of (jornada.matches || [])) {
+          const teams = `${match.local || ""} ${match.visitante || ""}`;
+          if (!/BUSTARVIEJO/i.test(teams) || /DESCANSA/i.test(teams) || match.jugado === true) continue;
+          const iso = parseMatchDate(match);
+          if (!iso || iso < todayISO) continue;
+
+          const competition = cache.competicion || "Liga";
+          const id = [cache.categoria, competition, jornada.jornada, iso, match.local, match.visitante].join("::");
+          if (seen.has(id)) continue;
+          seen.add(id);
+          upcoming.push({
+            ...match,
+            id,
+            categoria: cache.categoria || "Equipo",
+            competicion: competition,
+            jornada: jornada.jornada,
+            fecha_iso: iso,
+            _date: iso,
+          });
+        }
+      }
+    }
+    return upcoming.sort((a,b) => a._date.localeCompare(b._date) || String(a.hora || "").localeCompare(String(b.hora || "")));
+  }, [scheduleCaches, todayISO]);
 
   const inPeriod = useMemo(() => allFuture.filter(p =>
     periodStart && periodEnd && periodStart <= periodEnd && p._date >= periodStart && p._date <= periodEnd
@@ -83,7 +121,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
     const lines = [`🟠⚫ *C.D. BUSTARVIEJO | PARTIDOS DEL ${formatDate(periodStart)} AL ${formatDate(periodEnd)}* ⚽`, ""];
     if (!selectedMatches.length) lines.push("No hay partidos seleccionados para este periodo. Revisa las fechas o marca los encuentros que quieras anunciar.");
     else selectedMatches.forEach(p => {
-      lines.push(`⚽ *${p.categoria || "Equipo"}*`);
+      lines.push(`⚽ *${p.categoria || "Equipo"}*${p.competicion && p.competicion !== "Liga" ? ` · ${p.competicion}` : ""}`);
       lines.push(`${p.local || ""} - ${p.visitante || ""}`.trim());
       lines.push(`📅 ${formatDate(p._date)} · 🕒 ${p.hora || "Hora por confirmar"}`);
       if (p.campo) lines.push(`📍 ${p.campo}`);
@@ -135,7 +173,7 @@ export default function WeeklyWhatsAppPanel({ albums = [] }) {
         </div>
         <div className="rounded-xl border border-slate-200 p-3">
           <div className="mb-2 flex flex-wrap items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-800">2. Marca los partidos que quieras incluir</p><div className="flex flex-wrap items-center gap-2"><Badge>{loadingMatches ? "Cargando calendario…" : `${allFuture.length} partidos futuros · ${inPeriod.length} en el periodo`}</Badge><Button type="button" size="sm" variant="outline" onClick={refreshSchedule} disabled={false} className="relative z-10 pointer-events-auto cursor-pointer gap-1.5 border-orange-300 bg-white hover:bg-orange-50 active:scale-[0.98]"><RefreshCw className={`h-3.5 w-3.5 ${refreshingMatches ? "animate-spin" : ""}`}/>{refreshingMatches ? "Actualizando…" : "Actualizar horarios"}</Button></div></div>
-          <p className="mb-3 text-sm text-slate-600">La app consulta todos los partidos futuros. Selecciona los que vas a anunciar; después de enviarlos en WhatsApp, pulsa «Marcar selección como comunicada» para que el mensaje del lunes solo tenga en cuenta estos encuentros.</p>
+          <p className="mb-3 text-sm text-slate-600">Los horarios se leen del último calendario federativo sincronizado de cada categoría y competición. Selecciona los que vas a anunciar; las horas pendientes de confirmar aparecerán como «Hora por confirmar».</p>
           {periodStart > periodEnd && <p className="mb-3 rounded-lg bg-amber-50 p-2 text-sm text-amber-800">La fecha de inicio debe ser anterior o igual a la fecha final.</p>}
           {inPeriod.length === 0 && periodStart <= periodEnd && <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">No hay partidos futuros registrados en este periodo. Comprueba el calendario y si los encuentros aplazados tienen ya una nueva fecha asignada.</p>}
           <div className="max-h-96 space-y-2 overflow-y-auto pr-1">
