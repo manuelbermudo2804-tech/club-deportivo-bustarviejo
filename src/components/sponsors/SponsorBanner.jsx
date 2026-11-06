@@ -13,12 +13,14 @@ export default function SponsorBanner() {
     queryFn: async () => {
       try {
         const all = await base44.entities.Sponsor.list();
-        return all
-          .filter(s => s.activo === true)
-          .sort((a, b) => {
-            const order = { "Principal": 0, "Oro": 1, "Plata": 2, "Bronce": 3, "Colaborador": 4 };
-            return (order[a.nivel_patrocinio] ?? 5) - (order[b.nivel_patrocinio] ?? 5);
-          });
+        // Mezclar los patrocinadores en cada carga para repartir la visibilidad.
+        // El nivel de patrocinio sigue reflejándose en el diseño de cada tarjeta.
+        const activos = all.filter(s => s.activo === true);
+        for (let i = activos.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [activos[i], activos[j]] = [activos[j], activos[i]];
+        }
+        return activos;
       } catch {
         return [];
       }
