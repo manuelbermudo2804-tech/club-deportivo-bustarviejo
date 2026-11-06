@@ -259,8 +259,8 @@ const alerts = [];
       alerts.push({
         id: "callups",
         icon: ClipboardCheck,
-        title: "Convocatorias pendientes",
-        description: `${pendingCallups} convocatoria${pendingCallups > 1 ? 's' : ''} por confirmar`,
+        title: "Convocatorias pendientes de respuesta",
+        description: `${pendingCallups} convocatoria${pendingCallups > 1 ? 's' : ''} pendiente${pendingCallups > 1 ? 's' : ''} . Responde si asistirás o no.`,
         url: createPageUrl("ParentCallups"),
         color: "bg-red-500",
         priority: 2,
