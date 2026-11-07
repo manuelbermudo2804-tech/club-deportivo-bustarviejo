@@ -84,8 +84,21 @@ export default function StandingsWidget({ userEmail, categoria, compact = false 
     
     if (!latest) return null;
 
+    // Deduplicar equipos de la última jornada y conservar la importación más reciente.
+    const normalizeTeam = (s) => String(s || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const latestByTeam = new Map();
+    for (const row of latest.data) {
+      const key = normalizeTeam(row.nombre_equipo);
+      if (!key) continue;
+      const current = latestByTeam.get(key);
+      const stamp = new Date(row.fecha_actualizacion || row.updated_date || row.created_date || 0).getTime();
+      const currentStamp = current ? new Date(current.fecha_actualizacion || current.updated_date || current.created_date || 0).getTime() : -1;
+      if (!current || stamp >= currentStamp) latestByTeam.set(key, row);
+    }
+    const latestTeams = [...latestByTeam.values()];
+
     // Buscar CD Bustarviejo en la clasificación
-    const bustarTeam = latest.data.find(team => 
+    const bustarTeam = latestTeams.find(team => 
       team.nombre_equipo.toLowerCase().includes('bustarviejo') || 
       team.nombre_equipo.toLowerCase().includes('bustar')
     );
@@ -112,7 +125,7 @@ export default function StandingsWidget({ userEmail, categoria, compact = false 
 
     let nextRival = null;
     if (nextMatch && nextMatch.rival) {
-      const rivalTeam = latest.data.find(t => 
+      const rivalTeam = latestTeams.find(t => 
         t.nombre_equipo.toLowerCase().includes(nextMatch.rival.toLowerCase())
       );
       if (rivalTeam) {
@@ -130,7 +143,7 @@ export default function StandingsWidget({ userEmail, categoria, compact = false 
     return { 
       ...bustarTeam, 
       jornada: latest.jornada, 
-      totalTeams: latest.data.length,
+      totalTeams: latestTeams.length,
       evolution,
       nextRival
     };
