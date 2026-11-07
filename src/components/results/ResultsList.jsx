@@ -18,7 +18,7 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete, compe
       const selected = rows.filter((r) => (r.competicion || 'Liga') === (categoryFullName === 'Fútbol Aficionado' ? competition : 'Liga'));
       // El importador puede dejar una versión antigua del mismo partido. Mostrar
       // una sola fila por temporada, jornada y equipos, conservando la más reciente.
-      const normalizeTeam = (s) => String(s || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
+      const normalizeTeam = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
       const unique = new Map();
       for (const row of selected) {
         const key = [row.temporada, row.jornada, normalizeTeam(row.local), normalizeTeam(row.visitante)].join('|');
