@@ -232,7 +232,7 @@ export default function CentroCompeticion() {
       // Si quedaron importaciones antiguas sin campo competicion, conservar solo la
       // versión más reciente de cada equipo dentro de la última jornada.
       const byTeam = new Map();
-      const normTeam = (s) => String(s || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      const normTeam = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
       for (const row of jornadaRows) {
         const key = normTeam(row.nombre_equipo);
         if (!key) continue;
