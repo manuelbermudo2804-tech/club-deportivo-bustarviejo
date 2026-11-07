@@ -14,7 +14,7 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete, compe
       const rows = await base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 2000);
       const selected = rows.filter((r) => (r.competicion || 'Liga') === (categoryFullName === 'Fútbol Aficionado' ? competition : 'Liga'));
       // Conservar una sola versión por jugador/equipo/temporada.
-      const normalize = (s) => String(s || '').trim().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/\\s+/g, ' ').toUpperCase();
+      const normalize = (s) => String(s || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').toUpperCase();
       const unique = new Map();
       for (const row of selected) {
         const key = [row.temporada, normalize(row.jugador_nombre), normalize(row.equipo)].join('|');
