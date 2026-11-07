@@ -73,20 +73,63 @@ Deno.serve(async (req) => {
       cacheTimestamp = now;
     }
 
-    // Merge resultados y deduplicar por id
+    // Normalizadores y selector de versión más reciente para evitar que las
+    // importaciones repetidas se reflejen como filas duplicadas en la web pública.
+    const norm = (s) => String(s || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
+    const stamp = (r) => new Date(r.fecha_actualizacion || r.updated_date || r.created_date || 0).getTime();
+
+    // Resultados: una fila por partido real, temporada, competición y jornada.
     const resultadosMap = new Map();
-    for (const r of [...resultadosLocal, ...resultadosVisitante]) resultadosMap.set(r.id, r);
+    for (const r of [...resultadosLocal, ...resultadosVisitante]) {
+      const key = [r.temporada, r.competicion || 'Liga', r.categoria, r.jornada, norm(r.local), norm(r.visitante)].join('|');
+      const current = resultadosMap.get(key);
+      if (!current || stamp(r) >= stamp(current)) resultadosMap.set(key, r);
+    }
     const resultados = Array.from(resultadosMap.values());
 
+    // Goleadores: una fila por jugador/equipo/temporada/competición.
     const goleadoresMap = new Map();
-    for (const g of goleadoresGlobal) goleadoresMap.set(g.id, g);
-    for (const g of goleadoresBustarviejo) goleadoresMap.set(g.id, g);
+    for (const g of [...goleadoresGlobal, ...goleadoresBustarviejo]) {
+      const key = [g.temporada, g.competicion || 'Liga', g.categoria, norm(g.jugador_nombre), norm(g.equipo)].join('|');
+      const current = goleadoresMap.get(key);
+      if (!current || stamp(g) >= stamp(current)) goleadoresMap.set(key, g);
+    }
     const goleadores = Array.from(goleadoresMap.values());
 
-    const clasificacionesPorCategoria = {};
+    // Clasificaciones: elegir la última jornada de cada categoría/competición/temporada
+    // y la versión más reciente de cada equipo dentro de esa jornada.
+    const snapshots = new Map();
     for (const c of clasificaciones) {
-      if (!clasificacionesPorCategoria[c.categoria]) clasificacionesPorCategoria[c.categoria] = [];
-      clasificacionesPorCategoria[c.categoria].push({
+      const comp = c.competicion || 'Liga';
+      const key = [c.categoria, comp, c.temporada].join('|');
+      const current = snapshots.get(key);
+      if (!current || Number(c.jornada || 0) > Number(current.jornada || 0) ||
+          (Number(c.jornada || 0) === Number(current.jornada || 0) && stamp(c) > stamp(current))) {
+        snapshots.set(key, c);
+      }
+    }
+    const snapshotKeys = new Set([...snapshots.keys()]);
+    const latestByGroup = new Map();
+    for (const c of clasificaciones) {
+      const comp = c.competicion || 'Liga';
+      const groupKey = [c.categoria, comp, c.temporada].join('|');
+      if (!snapshotKeys.has(groupKey)) continue;
+      const maxJornada = snapshots.get(groupKey)?.jornada || 0;
+      if (Number(c.jornada || 0) !== Number(maxJornada)) continue;
+      const displayKey = c.competicion && c.competicion !== 'Liga'
+        ? `${c.categoria} (${c.competicion})`
+        : c.categoria;
+      const key = [displayKey, norm(c.nombre_equipo)].join('|');
+      const current = latestByGroup.get(key);
+      if (!current || stamp(c) >= stamp(current)) latestByGroup.set(key, c);
+    }
+    const clasificacionesPorCategoria = {};
+    for (const c of latestByGroup.values()) {
+      const displayKey = c.competicion && c.competicion !== 'Liga'
+        ? `${c.categoria} (${c.competicion})`
+        : c.categoria;
+      if (!clasificacionesPorCategoria[displayKey]) clasificacionesPorCategoria[displayKey] = [];
+      clasificacionesPorCategoria[displayKey].push({
         posicion: c.posicion, equipo: c.nombre_equipo, puntos: c.puntos,
         pj: c.partidos_jugados || 0, pg: c.ganados || 0, pe: c.empatados || 0,
         pp: c.perdidos || 0, gf: c.goles_favor || 0, gc: c.goles_contra || 0,
@@ -99,16 +142,22 @@ Deno.serve(async (req) => {
     const goleadoresPorCategoria = {};
     for (const g of goleadores) {
       if (!g.equipo || !g.equipo.toLowerCase().includes('bustarviejo')) continue;
-      if (!goleadoresPorCategoria[g.categoria]) goleadoresPorCategoria[g.categoria] = [];
-      goleadoresPorCategoria[g.categoria].push({
+      const displayKey = g.competicion && g.competicion !== 'Liga'
+        ? `${g.categoria} (${g.competicion})`
+        : g.categoria;
+      if (!goleadoresPorCategoria[displayKey]) goleadoresPorCategoria[displayKey] = [];
+      goleadoresPorCategoria[displayKey].push({
         posicion: g.posicion, jugador: g.jugador_nombre, equipo: g.equipo, goles: g.goles,
       });
-    }
+    } 
 
     const resultadosPorCategoria = {};
     for (const r of resultados) {
-      if (!resultadosPorCategoria[r.categoria]) resultadosPorCategoria[r.categoria] = [];
-      resultadosPorCategoria[r.categoria].push({
+      const displayKey = r.competicion && r.competicion !== 'Liga'
+        ? `${r.categoria} (${r.competicion})`
+        : r.categoria;
+      if (!resultadosPorCategoria[displayKey]) resultadosPorCategoria[displayKey] = [];
+      resultadosPorCategoria[displayKey].push({
         jornada: r.jornada, local: r.local, visitante: r.visitante,
         goles_local: r.goles_local, goles_visitante: r.goles_visitante,
       });
