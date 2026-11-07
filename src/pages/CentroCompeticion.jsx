@@ -228,8 +228,24 @@ export default function CentroCompeticion() {
       const tempRows = recs.filter(r => r.temporada === temporada);
       const jornadas = tempRows.map(r => r.jornada || 0);
       const maxJornada = jornadas.length ? Math.max(...jornadas) : null;
-      const rows = maxJornada != null ? tempRows.filter(r => (r.jornada || 0) === maxJornada) : tempRows;
-      const fecha_actualizacion = latest.updated_date || new Date().toISOString();
+      const jornadaRows = maxJornada != null ? tempRows.filter(r => (r.jornada || 0) === maxJornada) : tempRows;
+      // Si quedaron importaciones antiguas sin campo competicion, conservar solo la
+      // versión más reciente de cada equipo dentro de la última jornada.
+      const byTeam = new Map();
+      const normTeam = (s) => String(s || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      for (const row of jornadaRows) {
+        const key = normTeam(row.nombre_equipo);
+        if (!key) continue;
+        const current = byTeam.get(key);
+        const stamp = new Date(row.fecha_actualizacion || row.updated_date || row.created_date || 0).getTime();
+        const currentStamp = current ? new Date(current.fecha_actualizacion || current.updated_date || current.created_date || 0).getTime() : -1;
+        if (!current || stamp >= currentStamp) byTeam.set(key, row);
+      }
+      const rows = [...byTeam.values()].sort((a, b) => (a.posicion || 0) - (b.posicion || 0));
+      const fecha_actualizacion = rows.reduce((best, row) => {
+        const stamp = row.fecha_actualizacion || row.updated_date || '';
+        return stamp > best ? stamp : best;
+      }, latest.updated_date || new Date().toISOString());
       return { categoria: category, temporada, jornada: maxJornada ?? '-', fecha_actualizacion, data: rows };
     },
     staleTime: 5 * 60_000,
