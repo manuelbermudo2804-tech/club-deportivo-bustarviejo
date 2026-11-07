@@ -14,8 +14,20 @@ export default function ResultsList({ categoryFullName, isAdmin, onDelete, compe
   const { data: results = [], isLoading } = useQuery({
     queryKey: ['resultados', categoryFullName, competition],
     queryFn: async () => {
-      const rows = await base44.entities.Resultado.filter({ categoria: categoryFullName }, '-jornada', 500);
-      return rows.filter((r) => (r.competicion || 'Liga') === (categoryFullName === 'Fútbol Aficionado' ? competition : 'Liga'));
+      const rows = await base44.entities.Resultado.filter({ categoria: categoryFullName }, '-jornada', 1000);
+      const selected = rows.filter((r) => (r.competicion || 'Liga') === (categoryFullName === 'Fútbol Aficionado' ? competition : 'Liga'));
+      // El importador puede dejar una versión antigua del mismo partido. Mostrar
+      // una sola fila por temporada, jornada y equipos, conservando la más reciente.
+      const normalizeTeam = (s) => String(s || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
+      const unique = new Map();
+      for (const row of selected) {
+        const key = [row.temporada, row.jornada, normalizeTeam(row.local), normalizeTeam(row.visitante)].join('|');
+        const current = unique.get(key);
+        const stamp = new Date(row.fecha_actualizacion || row.updated_date || row.created_date || 0).getTime();
+        const currentStamp = current ? new Date(current.fecha_actualizacion || current.updated_date || current.created_date || 0).getTime() : -1;
+        if (!current || stamp >= currentStamp) unique.set(key, row);
+      }
+      return [...unique.values()];
     },
     staleTime: 30_000,
     gcTime: 10 * 60_000,
