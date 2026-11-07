@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
 
     // Normalizadores y selector de versión más reciente para evitar que las
     // importaciones repetidas se reflejen como filas duplicadas en la web pública.
-    const norm = (s) => String(s || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
+    const norm = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase().replace(/[^A-Z0-9]+/g, ' ').trim();
     const stamp = (r) => new Date(r.fecha_actualizacion || r.updated_date || r.created_date || 0).getTime();
 
     // Resultados: una fila por partido real, temporada, competición y jornada.
