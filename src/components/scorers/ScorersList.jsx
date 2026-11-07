@@ -11,8 +11,19 @@ export default function ScorersList({ categoryFullName, isAdmin, onDelete, compe
   const { data: scorers = [], isLoading } = useQuery({
     queryKey: ['goleadores', categoryFullName, competition],
     queryFn: async () => {
-      const rows = await base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 1000);
-      return rows.filter((r) => (r.competicion || 'Liga') === (categoryFullName === 'Fútbol Aficionado' ? competition : 'Liga'));
+      const rows = await base44.entities.Goleador.filter({ categoria: categoryFullName }, '-goles', 2000);
+      const selected = rows.filter((r) => (r.competicion || 'Liga') === (categoryFullName === 'Fútbol Aficionado' ? competition : 'Liga'));
+      // Conservar una sola versión por jugador/equipo/temporada.
+      const normalize = (s) => String(s || '').trim().normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').replace(/\\s+/g, ' ').toUpperCase();
+      const unique = new Map();
+      for (const row of selected) {
+        const key = [row.temporada, normalize(row.jugador_nombre), normalize(row.equipo)].join('|');
+        const current = unique.get(key);
+        const stamp = new Date(row.fecha_actualizacion || row.updated_date || row.created_date || 0).getTime();
+        const currentStamp = current ? new Date(current.fecha_actualizacion || current.updated_date || current.created_date || 0).getTime() : -1;
+        if (!current || stamp >= currentStamp) unique.set(key, row);
+      }
+      return [...unique.values()];
     },
     staleTime: 30_000,
     gcTime: 10 * 60_000,
