@@ -63,7 +63,7 @@ Deno.serve(async (req) => {
         base44.asServiceRole.entities.ProximoPartido.list('-fecha_iso', 50),
         base44.asServiceRole.entities.Resultado.filter({ local: { $regex: 'BUSTARVIEJO' }, estado: 'finalizado' }, '-jornada', 100).catch(() => []),
         base44.asServiceRole.entities.Resultado.filter({ visitante: { $regex: 'BUSTARVIEJO' }, estado: 'finalizado' }, '-jornada', 100).catch(() => []),
-        base44.asServiceRole.entities.Clasificacion.list('-puntos', 200),
+        base44.asServiceRole.entities.Clasificacion.list('-fecha_actualizacion', 500),
         base44.asServiceRole.entities.Goleador.list('-goles', 200),
         base44.asServiceRole.entities.Goleador.filter({ equipo: { $regex: 'BUSTARVIEJO' } }, '-goles', 100).catch(() => []),
       ]);
