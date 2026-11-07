@@ -85,7 +85,7 @@ export default function StandingsWidget({ userEmail, categoria, compact = false 
     if (!latest) return null;
 
     // Deduplicar equipos de la última jornada y conservar la importación más reciente.
-    const normalizeTeam = (s) => String(s || '').normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+    const normalizeTeam = (s) => String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
     const latestByTeam = new Map();
     for (const row of latest.data) {
       const key = normalizeTeam(row.nombre_equipo);
