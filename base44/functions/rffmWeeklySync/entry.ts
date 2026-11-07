@@ -272,7 +272,9 @@ async function syncCategory(config, cookies, base44, temporada) {
         }
       }
       if (standings.length) {
-        const old = await retryOnRateLimit(() => base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada, competicion: competition }));
+        // Incluir registros históricos sin campo competicion (equivalen a Liga).
+        const oldRaw = await retryOnRateLimit(() => base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada }));
+        const old = oldRaw.filter(r => (r.competicion || 'Liga') === competition);
         if (old.length) await batchDelete(base44.asServiceRole.entities.Clasificacion, old);
         const jornada = standings[0]?.pj || 0;
         const records = standings.map(s => ({
@@ -303,16 +305,35 @@ async function syncCategory(config, cookies, base44, temporada) {
         if (ms.some(m => m.jugado) && (!latestJ || jd.jornada > latestJ)) { latestJ = jd.jornada; latestM = ms; }
       }
       if (latestJ && latestM) {
-        const existing = await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.filter({ categoria: cat, competicion: competition, temporada, jornada: latestJ }));
+        // Buscar también resultados antiguos sin campo competicion (Liga por defecto).
+        const existingRaw = await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.filter({ categoria: cat, temporada, jornada: latestJ }));
+        const existing = existingRaw.filter(r => (r.competicion || 'Liga') === competition);
         
         // Normalize team name for matching
         const norm = (s) => (s || '').trim().toUpperCase().replace(/\s+/g, ' ');
         
         if (existing.length) {
+          // Eliminar duplicados históricos del mismo encuentro, conservando la fila más reciente.
+          const byMatch = new Map();
+          const duplicates = [];
+          for (const row of existing) {
+            const key = `${norm(row.local)}|${norm(row.visitante)}`;
+            const current = byMatch.get(key);
+            const rowStamp = new Date(row.fecha_actualizacion || row.updated_date || row.created_date || 0).getTime();
+            const currentStamp = current ? new Date(current.fecha_actualizacion || current.updated_date || current.created_date || 0).getTime() : -1;
+            if (!current || rowStamp >= currentStamp) {
+              if (current) duplicates.push(current);
+              byMatch.set(key, row);
+            } else {
+              duplicates.push(row);
+            }
+          }
+          if (duplicates.length) await batchDelete(base44.asServiceRole.entities.Resultado, duplicates);
+          const uniqueExisting = [...byMatch.values()];
           // UPDATE existing records (pendiente → finalizado) instead of creating duplicates
           let updated = 0;
           for (const m of latestM.filter(m2 => m2.jugado)) {
-            const match = existing.find(e => 
+            const match = uniqueExisting.find(e => 
               norm(e.local) === norm(m.local) && norm(e.visitante) === norm(m.visitante)
             );
             if (match && match.estado !== 'finalizado') {
@@ -418,7 +439,9 @@ async function syncCategory(config, cookies, base44, temporada) {
         const scorers = parseScorers(html);
         console.log(`[SCORERS] ${cat}: ${scorers.length} scorers (attempt ${scorerAttempts})`);
         if (scorers.length) {
-          const old = await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.filter({ categoria: cat, competicion: competition, temporada }));
+          // Incluir registros históricos sin campo competicion (equivalen a Liga).
+          const oldRaw = await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada }));
+          const old = oldRaw.filter(r => (r.competicion || 'Liga') === competition);
           if (old.length) await batchDelete(base44.asServiceRole.entities.Goleador, old);
           const records = scorers.map((s, i) => ({
             temporada, categoria: cat, competicion: competition, jugador_nombre: s.jugador, equipo: s.equipo,
