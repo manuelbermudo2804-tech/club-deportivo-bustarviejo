@@ -636,11 +636,19 @@ export default function ParentCallups() {
               </div>
             </div>
 
+            {confirmationData.confirmacion === "no_asistire" && (
+              <Alert className="bg-blue-50 border-blue-200">
+                <AlertDescription className="text-blue-900 text-sm">
+                  💬 Si nos cuentas brevemente el motivo, podremos saber si hay algo en lo que podamos ayudaros o alguna dificultad que podamos intentar solucionar desde el club. Es totalmente voluntario.
+                </AlertDescription>
+              </Alert>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="confirmation-comment" className="text-sm">Comentario (opcional)</Label>
               <Textarea
                 id="confirmation-comment"
-                placeholder="Ej: Llegaré 10 min tarde..."
+                placeholder={confirmationData.confirmacion === "no_asistire" ? "Si quieres, cuéntanos el motivo de la ausencia..." : "Ej: Llegaré 10 min tarde..."}
                 value={confirmationData.comentario}
                 onChange={(e) => setConfirmationData({...confirmationData, comentario: e.target.value})}
                 rows={2}
