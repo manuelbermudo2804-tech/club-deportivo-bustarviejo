@@ -238,6 +238,26 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
             </div>
           )}
 
+          {/* Comentarios enviados por las familias al responder */}
+          {jugadores.some(j => typeof j.comentario === "string" && j.comentario.trim()) && (
+            <div className="bg-blue-50 rounded-lg p-3 border border-blue-200 space-y-2">
+              <p className="text-xs font-semibold text-blue-900">💬 Observaciones de las familias:</p>
+              {jugadores
+                .filter(j => typeof j.comentario === "string" && j.comentario.trim())
+                .map((j, index) => (
+                  <div key={j.jugador_id || index} className="rounded-md bg-white/80 p-2">
+                    <div className="flex flex-wrap items-center gap-2 mb-1">
+                      <span className="text-xs font-semibold text-slate-800">{j.jugador_nombre}</span>
+                      <span className="text-[10px] text-slate-500">
+                        {j.confirmacion === "no_asistire" ? "No asistirá" : j.confirmacion === "duda" ? "En duda" : j.confirmacion === "asistire" ? "Asistirá" : "Pendiente"}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-700 whitespace-pre-wrap">{j.comentario.trim()}</p>
+                  </div>
+                ))}
+            </div>
+          )}
+
           {/* Admin Quick Confirm */}
           {isAdmin && pending > 0 && !canDelete && (
             <Button
