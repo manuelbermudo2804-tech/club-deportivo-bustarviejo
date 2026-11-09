@@ -301,8 +301,25 @@ export async function buildReciboPDF({ numero, fecha, recibiDe, cantidad, concep
 }
 
 export async function generateReciboPDF(params) {
-  const { doc, filename } = await buildReciboPDF(params);
-  doc.save(filename);
+  const { blob, filename } = await buildReciboPDF(params);
+
+  // Descarga explícita desde Blob: evita depender del mecanismo interno
+  // de jsPDF, que puede fallar en algunas pestañas/PWA tras cargar imágenes.
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
+
+  try {
+    link.click();
+  } finally {
+    link.remove();
+    // Dar tiempo al navegador para iniciar la descarga antes de liberar el Blob.
+    window.setTimeout(() => URL.revokeObjectURL(url), 60000);
+  }
+
   return filename;
 }
 
