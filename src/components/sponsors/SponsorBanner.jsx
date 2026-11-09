@@ -82,38 +82,38 @@ export default function SponsorBanner() {
   // Estilos visuales por nivel — cada nivel tiene tarjeta con fondo+borde distintivo
   const nivelStyles = {
     "Principal": {
-      card: "bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 border-2 border-amber-400 shadow-md shadow-amber-200/50",
+      card: "bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 border border-amber-400 shadow-md shadow-amber-200/50",
       badge: "bg-gradient-to-r from-amber-500 to-yellow-600 text-white",
       text: "text-amber-900 font-bold text-xs",
-      logoFrame: "w-[210px] h-[50px]",
+      logoFrame: "w-[230px] h-[54px]",
       icon: null
     },
     "Oro": {
-      card: "bg-gradient-to-r from-yellow-100 via-amber-50 to-yellow-100 border-2 border-yellow-400 shadow-md shadow-yellow-200/50",
+      card: "bg-gradient-to-r from-yellow-100 via-amber-50 to-yellow-100 border border-yellow-400 shadow-md shadow-yellow-200/50",
       badge: "bg-gradient-to-r from-yellow-400 to-amber-500 text-white",
       text: "text-amber-800 font-bold text-xs",
-      logoFrame: "w-[200px] h-[50px]",
+      logoFrame: "w-[220px] h-[54px]",
       icon: null
     },
     "Plata": {
-      card: "bg-gradient-to-r from-slate-100 via-gray-50 to-slate-100 border-2 border-slate-400 shadow-sm",
+      card: "bg-gradient-to-r from-slate-100 via-gray-50 to-slate-100 border border-slate-400 shadow-sm",
       badge: "bg-gradient-to-r from-slate-400 to-slate-500 text-white",
       text: "text-slate-700 font-semibold text-xs",
-      logoFrame: "w-[190px] h-[50px]",
+      logoFrame: "w-[210px] h-[54px]",
       icon: null
     },
     "Bronce": {
-      card: "bg-gradient-to-r from-orange-100 via-amber-50 to-orange-100 border-2 border-orange-400 shadow-sm",
+      card: "bg-gradient-to-r from-orange-100 via-amber-50 to-orange-100 border border-orange-400 shadow-sm",
       badge: "bg-gradient-to-r from-orange-500 to-amber-600 text-white",
       text: "text-orange-800 font-semibold text-xs",
-      logoFrame: "w-[180px] h-[50px]",
+      logoFrame: "w-[200px] h-[54px]",
       icon: null
     },
     "Colaborador": {
       card: "",
       badge: "",
       text: "text-slate-600 font-medium text-[10px]",
-      logoFrame: "w-[170px] h-[50px]",
+      logoFrame: "w-[190px] h-[54px]",
       icon: null
     }
   };
@@ -147,12 +147,12 @@ export default function SponsorBanner() {
               const showBadge = ["Principal", "Oro", "Plata", "Bronce"].includes(sponsor.nivel_patrocinio);
 
               const inner = (
-                <div className={`flex items-center gap-2 flex-shrink-0 ${showBadge ? `${style.card} rounded-lg px-2 py-0.5` : ''}`}>
+                <div className={`flex items-center gap-2 flex-shrink-0 ${showBadge ? `${style.card} rounded-lg px-1 py-0` : ''}`}>
                   {style.icon && (
                     <span className="text-sm leading-none flex-shrink-0">{style.icon}</span>
                   )}
                   {sponsor.logo_url ? (
-                    <div className={`${style.logoFrame} flex-shrink-0 flex items-center justify-center overflow-hidden rounded-md bg-white p-0.5 shadow-sm ring-1 ring-slate-900/10`}>
+                    <div className={`${style.logoFrame} flex-shrink-0 flex items-center justify-center overflow-hidden rounded-md bg-white p-0 shadow-sm ring-1 ring-slate-900/10`}>
                       <img
                         src={sponsor.logo_url}
                         alt={sponsor.nombre}
@@ -165,16 +165,16 @@ export default function SponsorBanner() {
                       <Building2 className="w-4 h-4 text-white" />
                     </div>
                   )}
-                  <div className="flex flex-col leading-tight">
-                    <span className={style.text}>
-                      {sponsor.nombre}
-                    </span>
-                    {showBadge && (
-                      <span className={`text-[8px] font-bold uppercase tracking-wide ${style.text} opacity-70`}>
-                        {sponsor.nivel_patrocinio}
-                      </span>
-                    )}
-                  </div>
+                  {!sponsor.logo_url && (
+                    <div className="flex flex-col leading-tight">
+                      <span className={style.text}>{sponsor.nombre}</span>
+                      {showBadge && (
+                        <span className={`text-[8px] font-bold uppercase tracking-wide ${style.text} opacity-70`}>
+                          {sponsor.nivel_patrocinio}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               );
 
