@@ -40,10 +40,11 @@ REGLAS:
 - Menciona "CD Bustarviejo" al menos una vez
 - Usa EMOJIS con criterio para hacerlo visual y atractivo (al inicio, separadores, listas)
 - Saltos de línea claros, fácil de leer
-- ${tonoId === 'corto' ? 'MÁX 200 caracteres' : tonoId === 'epico' ? 'MÁX 700 caracteres' : 'MÁX 600 caracteres'}
+- ${typeLabel === '📊 Resultados' || typeLabel === 'Resultados' || /resultados/i.test(typeLabel) ? 'En RESULTADOS, incluye TODOS los partidos que aparecen en los datos, sin omitir ninguno y sin resumir la lista. No apliques límite de caracteres; prioriza la integridad de los marcadores.' : tonoId === 'corto' ? 'MÁX 200 caracteres' : tonoId === 'epico' ? 'MÁX 700 caracteres' : 'MÁX 600 caracteres'}
 - Primera línea: emoji llamativo + título en mayúsculas (excepto tono pro)
 - NO hashtags, NO inventes datos
 - Si hay victoria → celebra; si hay derrota → anima
+- En resultados, organiza todos los marcadores por categoría y conserva cada marcador exactamente.
 - Cierra con una frase corta de cierre o llamada a la acción
 
 Devuelve SOLO el texto del mensaje, sin comillas, sin explicaciones.`;
