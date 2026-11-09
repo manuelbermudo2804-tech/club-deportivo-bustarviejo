@@ -15,6 +15,7 @@ import SponsorInterestPanel from "../components/sponsors/SponsorInterestPanel";
 import PropuestasPatrocinioPanel from "../components/sponsors/PropuestasPatrocinioPanel";
 import ColaboraLinkCard from "../components/sponsors/ColaboraLinkCard";
 import CaptacionPanel from "@/components/sponsors/captacion/CaptacionPanel";
+import SponsorLogosDownload from "@/components/sponsors/SponsorLogosDownload";
 
 export default function Sponsorships() {
   const [showForm, setShowForm] = useState(false);
@@ -274,6 +275,9 @@ export default function Sponsorships() {
       </AnimatePresence>
 
       <CaptacionPanel sponsors={sponsors} />
+
+      {/* Descarga y banco de logotipos originales */}
+      <SponsorLogosDownload />
 
       {/* Enlace de colaboración para compartir */}
       <ColaboraLinkCard />
