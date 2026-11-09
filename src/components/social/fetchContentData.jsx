@@ -26,14 +26,47 @@ export async function fetchDataForType(type) {
   }
 
   if (type === "resultados") {
+    // Mismo criterio que la publicación automática de Telegram:
+    // resultados del sábado y domingo recién pasados, solo partidos del CD Bustarviejo.
+    const now = new Date();
+    const dow = now.getDay();
+    const sun = new Date(now);
+    if (dow !== 0) sun.setDate(now.getDate() - dow);
+    const sat = new Date(sun);
+    sat.setDate(sun.getDate() - 1);
+    const satStr = sat.toISOString().split("T")[0];
+    const sunStr = sun.toISOString().split("T")[0];
+
     const [res, jug] = await Promise.all([
-      base44.entities.Resultado.filter({ estado: "finalizado" }, "-fecha_actualizacion", 30).catch(() => []),
-      base44.entities.ProximoPartido.filter({ jugado: true }, "-fecha_iso", 20).catch(() => []),
+      base44.entities.Resultado.filter({ estado: "finalizado" }, "-fecha_actualizacion", 500).catch(() => []),
+      base44.entities.ProximoPartido.filter({ jugado: true }, "-fecha_iso", 500).catch(() => []),
     ]);
-    let d = "";
-    res.forEach(r => { d += `${r.categoria} J${r.jornada||"?"}: ${r.local} ${r.goles_local??""} - ${r.goles_visitante??""} ${r.visitante}\n`; });
-    jug.slice(0,15).forEach(p => { d += `${p.categoria}: ${p.local} ${p.goles_local??""} - ${p.goles_visitante??""} ${p.visitante} (${p.fecha||""})\n`; });
-    return d || "No hay resultados recientes. Escribe los datos aquí.";
+
+    const esDelClub = partido =>
+      /bustarviejo/i.test(String(partido.local || "")) ||
+      /bustarviejo/i.test(String(partido.visitante || ""));
+
+    const resFinde = res.filter(r => {
+      const fecha = String(r.fecha_actualizacion || "").split("T")[0];
+      return fecha >= satStr && fecha <= sunStr && esDelClub(r);
+    });
+    const jugFinde = jug.filter(p => {
+      const fecha = String(p.fecha_iso || "").split("T")[0];
+      return fecha >= satStr && fecha <= sunStr && esDelClub(p);
+    });
+
+    // Unificar ambas fuentes y evitar repetir un partido cargado en las dos entidades.
+    const partidos = new Map();
+    [...resFinde, ...jugFinde].forEach(p => {
+      const key = [p.categoria, p.local, p.visitante, p.goles_local, p.goles_visitante].join("|").toLowerCase();
+      if (!partidos.has(key)) partidos.set(key, p);
+    });
+
+    const lista = [...partidos.values()];
+    if (!lista.length) return "No hay resultados de equipos del CD Bustarviejo este fin de semana.";
+    return "RESULTADOS DEL CD BUSTARVIEJO — FIN DE SEMANA\n\n" + lista.map(p =>
+      `${p.categoria || "Equipo"}${p.jornada ? ` J${p.jornada}` : ""}: ${p.local} ${p.goles_local ?? "?"} - ${p.goles_visitante ?? "?"} ${p.visitante}`
+    ).join("\n");
   }
 
   // ─── NUEVOS ───
