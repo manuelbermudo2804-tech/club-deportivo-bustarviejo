@@ -7,6 +7,7 @@ export default function SponsorBanner() {
   const scrollRef = useRef(null);
   const animRef = useRef(null);
   const speedRef = useRef(0.7);
+  const [logoRatios, setLogoRatios] = useState({});
 
   const { data: sponsors = [] } = useQuery({
     queryKey: ['activeSponsors'],
@@ -152,12 +153,26 @@ export default function SponsorBanner() {
                     <span className="text-sm leading-none flex-shrink-0">{style.icon}</span>
                   )}
                   {sponsor.logo_url ? (
-                    <div className={`${style.logoFrame} flex-shrink-0 flex items-center justify-center overflow-hidden rounded-md bg-white p-0 shadow-sm ring-1 ring-slate-900/10`}>
+                    <div
+                      className="h-[52px] flex-shrink-0 flex items-center justify-center overflow-hidden rounded-md bg-white p-0 shadow-sm ring-1 ring-slate-900/10"
+                      style={{
+                        width: `${Math.min(220, Math.max(42, (logoRatios[sponsor.id] || 1) * 52))}px`
+                      }}
+                    >
                       <img
                         src={sponsor.logo_url}
                         alt={sponsor.nombre}
                         className="h-full w-full max-h-full max-w-full object-contain"
                         loading="lazy"
+                        onLoad={(event) => {
+                          const image = event.currentTarget;
+                          if (image.naturalWidth && image.naturalHeight) {
+                            const ratio = image.naturalWidth / image.naturalHeight;
+                            setLogoRatios(current => current[sponsor.id] === ratio
+                              ? current
+                              : { ...current, [sponsor.id]: ratio });
+                          }
+                        }}
                       />
                     </div>
                   ) : (
