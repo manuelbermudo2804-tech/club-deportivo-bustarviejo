@@ -5,9 +5,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
 
 const WA_PROMPT = `Eres el community manager del CD Bustarviejo, club de fútbol base de la Sierra Norte de Madrid.
 Estilo: ENERGÉTICO, CERCANO, DE PUEBLO. Emojis con criterio. Formato perfecto para Telegram (saltos de línea claros).
-- Máximo 600 caracteres
+- Incluye TODOS los partidos de los equipos del CD Bustarviejo que aparecen en los datos, sin omitir ninguno ni resumir la lista.
+- No apliques límite de caracteres; la integridad de los marcadores es prioritaria.
 - Primera línea: emoji + título en mayúsculas (RESULTADOS)
-- Datos organizados por categoría
+- Datos organizados por categoría y conserva exactamente cada marcador.
 - Si hay victorias, CELÉBRALAS. Si hay derrotas, anima al equipo
 - NO uses hashtags
 - Menciona "CD Bustarviejo" al menos una vez
@@ -31,8 +32,8 @@ Deno.serve(async (req) => {
 
     // Recoger resultados (Resultado entity + ProximoPartido jugados)
     const [resultados, jugados] = await Promise.all([
-      base44.asServiceRole.entities.Resultado.filter({ estado: 'finalizado' }, '-fecha_actualizacion', 50).catch(() => []),
-      base44.asServiceRole.entities.ProximoPartido.filter({ jugado: true }, '-fecha_iso', 50).catch(() => []),
+      base44.asServiceRole.entities.Resultado.filter({ estado: 'finalizado' }, '-fecha_actualizacion', 500).catch(() => []),
+      base44.asServiceRole.entities.ProximoPartido.filter({ jugado: true }, '-fecha_iso', 500).catch(() => []),
     ]);
 
     // Filtrar los del finde
@@ -41,21 +42,30 @@ Deno.serve(async (req) => {
       const d = r.fecha_actualizacion.split('T')[0];
       return d >= satStr && d <= sunStr;
     });
-    const jugFinde = jugados.filter(p => p.fecha_iso >= satStr && p.fecha_iso <= sunStr);
+    const esDelClub = partido =>
+      /bustarviejo/i.test(String(partido.local || '')) ||
+      /bustarviejo/i.test(String(partido.visitante || ''));
 
-    if (resFinde.length === 0 && jugFinde.length === 0) {
+    const resultadosClub = resFinde.filter(esDelClub);
+    const jugFinde = jugados.filter(p => p.fecha_iso >= satStr && p.fecha_iso <= sunStr && esDelClub(p));
+
+    // Evitar duplicados si un mismo partido está guardado en ambas entidades.
+    const partidosUnicos = new Map();
+    [...resultadosClub, ...jugFinde].forEach(p => {
+      const key = [p.categoria, p.local, p.visitante, p.goles_local, p.goles_visitante].join('|').toLowerCase();
+      if (!partidosUnicos.has(key)) partidosUnicos.set(key, p);
+    });
+    const todosLosPartidos = [...partidosUnicos.values()];
+
+    if (todosLosPartidos.length === 0) {
       console.log('No hay resultados este finde, no se publica nada');
       return Response.json({ success: true, skipped: true, reason: 'no_results' });
     }
 
     // Construir contexto
-    let datos = '';
-    resFinde.forEach(r => {
-      datos += `${r.categoria} J${r.jornada || '?'}: ${r.local} ${r.goles_local ?? '?'} - ${r.goles_visitante ?? '?'} ${r.visitante}\n`;
-    });
-    jugFinde.forEach(p => {
-      datos += `${p.categoria}: ${p.local} ${p.goles_local ?? '?'} - ${p.goles_visitante ?? '?'} ${p.visitante}\n`;
-    });
+    const datos = todosLosPartidos.map(p =>
+      `${p.categoria || 'Equipo'}${p.jornada ? ` J${p.jornada}` : ''}: ${p.local} ${p.goles_local ?? '?'} - ${p.goles_visitante ?? '?'} ${p.visitante}`
+    ).join('\n');
 
     // Generar con IA
     const aiResult = await base44.asServiceRole.integrations.Core.InvokeLLM({
@@ -84,7 +94,7 @@ Deno.serve(async (req) => {
 
     return Response.json({
       success: true,
-      resultados: resFinde.length + jugFinde.length,
+      resultados: todosLosPartidos.length,
       telegram: tgOk
     });
   } catch (error) {
