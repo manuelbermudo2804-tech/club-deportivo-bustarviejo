@@ -145,14 +145,27 @@ export default function SponsorBanner() {
             {items.map((sponsor, idx) => {
               const style = nivelStyles[sponsor.nivel_patrocinio] || nivelStyles["Colaborador"];
               const showBadge = ["Principal", "Oro", "Plata", "Bronce"].includes(sponsor.nivel_patrocinio);
+              const sponsorsWithName = [
+                "FRUTAS FAUSTO, S.L.",
+                "Allforpets",
+                "La Mina Restaurante",
+                "LA CANDALEA HERBOLARIO",
+                "PAPELERIA FUENTENUEVA",
+                "KIKO FISIO",
+                "ALFER GESTION"
+              ];
+              const showSponsorName = sponsorsWithName.includes((sponsor.nombre || "").trim()) && !!sponsor.logo_url;
+              const logoFrameClass = showSponsorName
+                ? style.logoFrame.replace("h-[54px]", "h-[38px]")
+                : style.logoFrame;
 
               const inner = (
-                <div className={`flex items-center gap-2 flex-shrink-0 ${showBadge ? `${style.card} rounded-lg px-1 py-0` : ''}`}>
+                <div className={`flex ${showSponsorName ? "flex-col gap-0.5" : "flex-row gap-2"} items-center flex-shrink-0 ${showBadge ? `${style.card} rounded-lg px-1 py-0` : ''}`}>
                   {style.icon && (
                     <span className="text-sm leading-none flex-shrink-0">{style.icon}</span>
                   )}
                   {sponsor.logo_url ? (
-                    <div className={`${style.logoFrame} flex-shrink-0 flex items-center justify-center overflow-hidden rounded-md bg-white p-0 shadow-sm ring-1 ring-slate-900/10`}>
+                    <div className={`${logoFrameClass} flex-shrink-0 flex items-center justify-center overflow-hidden rounded-md bg-white p-0 shadow-sm ring-1 ring-slate-900/10`}>
                       <img
                         src={sponsor.logo_url}
                         alt={sponsor.nombre}
@@ -164,6 +177,11 @@ export default function SponsorBanner() {
                     <div className={`${style.logoFrame} rounded-md bg-gradient-to-r ${nivelColors[sponsor.nivel_patrocinio]} flex items-center justify-center flex-shrink-0`}>
                       <Building2 className="w-4 h-4 text-white" />
                     </div>
+                  )}
+                  {showSponsorName && (
+                    <span className="max-w-[220px] truncate text-[9px] font-bold leading-none text-slate-800">
+                      {sponsor.nombre.trim()}
+                    </span>
                   )}
                   {!sponsor.logo_url && (
                     <div className="flex flex-col leading-tight">
