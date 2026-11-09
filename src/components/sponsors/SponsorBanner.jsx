@@ -84,36 +84,36 @@ export default function SponsorBanner() {
     "Principal": {
       card: "bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 border-2 border-amber-400 shadow-md shadow-amber-200/50",
       badge: "bg-gradient-to-r from-amber-500 to-yellow-600 text-white",
-      text: "text-amber-900 font-bold text-sm",
-      logoFrame: "w-[148px] h-[50px]",
+      text: "text-amber-900 font-bold text-xs",
+      logoFrame: "w-[210px] h-[50px]",
       icon: null
     },
     "Oro": {
       card: "bg-gradient-to-r from-yellow-100 via-amber-50 to-yellow-100 border-2 border-yellow-400 shadow-md shadow-yellow-200/50",
       badge: "bg-gradient-to-r from-yellow-400 to-amber-500 text-white",
-      text: "text-amber-800 font-bold text-sm",
-      logoFrame: "w-[142px] h-[50px]",
+      text: "text-amber-800 font-bold text-xs",
+      logoFrame: "w-[200px] h-[50px]",
       icon: null
     },
     "Plata": {
       card: "bg-gradient-to-r from-slate-100 via-gray-50 to-slate-100 border-2 border-slate-400 shadow-sm",
       badge: "bg-gradient-to-r from-slate-400 to-slate-500 text-white",
-      text: "text-slate-700 font-semibold text-sm",
-      logoFrame: "w-[138px] h-[50px]",
+      text: "text-slate-700 font-semibold text-xs",
+      logoFrame: "w-[190px] h-[50px]",
       icon: null
     },
     "Bronce": {
       card: "bg-gradient-to-r from-orange-100 via-amber-50 to-orange-100 border-2 border-orange-400 shadow-sm",
       badge: "bg-gradient-to-r from-orange-500 to-amber-600 text-white",
-      text: "text-orange-800 font-semibold text-sm",
-      logoFrame: "w-[134px] h-[50px]",
+      text: "text-orange-800 font-semibold text-xs",
+      logoFrame: "w-[180px] h-[50px]",
       icon: null
     },
     "Colaborador": {
       card: "",
       badge: "",
-      text: "text-slate-600 font-medium text-xs",
-      logoFrame: "w-[130px] h-[50px]",
+      text: "text-slate-600 font-medium text-[10px]",
+      logoFrame: "w-[170px] h-[50px]",
       icon: null
     }
   };
