@@ -6,7 +6,7 @@ import { Building2 } from "lucide-react";
 export default function SponsorBanner() {
   const scrollRef = useRef(null);
   const animRef = useRef(null);
-  const speedRef = useRef(0.5);
+  const speedRef = useRef(0.7);
 
   const { data: sponsors = [] } = useQuery({
     queryKey: ['activeSponsors'],
@@ -50,7 +50,7 @@ export default function SponsorBanner() {
 
   // Pause on touch
   const handleTouchStart = () => { speedRef.current = 0; };
-  const handleTouchEnd = () => { speedRef.current = 0.5; };
+  const handleTouchEnd = () => { speedRef.current = 0.7; };
 
   // Track click on sponsor logo
   const handleSponsorClick = useCallback((sponsor) => {
@@ -138,7 +138,7 @@ export default function SponsorBanner() {
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
           onMouseEnter={() => { speedRef.current = 0; }}
-          onMouseLeave={() => { speedRef.current = 0.5; }}
+          onMouseLeave={() => { speedRef.current = 0.7; }}
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
         >
           <div className="flex items-center px-4 whitespace-nowrap">
