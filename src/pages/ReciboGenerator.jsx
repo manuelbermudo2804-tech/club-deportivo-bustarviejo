@@ -23,6 +23,7 @@ export default function ReciboGenerator() {
   const [selloUrl, setSelloUrl] = useState(() => localStorage.getItem(LS_SELLO) || "");
   const [firmaUrl, setFirmaUrl] = useState(() => localStorage.getItem(LS_FIRMA) || "");
   const [uploading, setUploading] = useState(null);
+  const [downloading, setDownloading] = useState(false);
   const [brandingId, setBrandingId] = useState(null);
 
   // Cargar sello/firma/logo compartidos desde la entidad BrandingAssets
@@ -99,13 +100,24 @@ export default function ReciboGenerator() {
   };
 
   const handleDownload = async () => {
+    if (downloading) return;
+    setDownloading(true);
     try {
-      await generateReciboPDF({ ...form, logoUrl, selloUrl, firmaUrl });
-      await confirmar(form.numero);
-      toast.success("Recibo descargado");
+      const filename = await generateReciboPDF({ ...form, logoUrl, selloUrl, firmaUrl });
+      toast.success(`PDF generado: ${filename}`);
+      // La numeración se confirma aparte: un fallo al guardar el contador
+      // no debe mostrar que la descarga del PDF ha fallado.
+      try {
+        await confirmar(form.numero);
+      } catch (numberError) {
+        console.warn("PDF descargado, pero no se pudo confirmar la numeración:", numberError);
+        toast.warning("El PDF se ha descargado, pero no se pudo actualizar el contador del recibo.");
+      }
     } catch (e) {
-      console.error(e);
-      toast.error("Error al generar el PDF");
+      console.error("[ReciboGenerator] Error descargando PDF:", e);
+      toast.error(e?.message ? `No se pudo descargar el PDF: ${e.message}` : "No se pudo descargar el PDF. Inténtalo de nuevo.");
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -278,8 +290,8 @@ export default function ReciboGenerator() {
             </Card>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Button onClick={handleDownload} className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12 text-base font-bold">
-                <Download className="w-5 h-5 mr-2" /> Descargar PDF
+              <Button onClick={handleDownload} disabled={downloading} className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12 text-base font-bold disabled:opacity-60">
+                <Download className="w-5 h-5 mr-2" /> {downloading ? "Generando PDF…" : "Descargar PDF"}
               </Button>
               <Button onClick={handleShareWhatsApp} className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-base font-bold">
                 <MessageCircle className="w-5 h-5 mr-2" /> Abrir WhatsApp
