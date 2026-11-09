@@ -678,11 +678,20 @@ const alerts = [];
   const veJunta = juntaPrueba ? userEmail?.toLowerCase() === juntaPrueba : !isAdmin;
   if (juntaActiva && juntaResp && veJunta) {
     const r = RESPUESTAS[juntaResp.respuesta];
+    const juntaMs = new Date(juntaActiva.fecha).getTime() - Date.now();
+    const juntaEn48h = juntaMs > 0 && juntaMs <= 48 * 60 * 60 * 1000;
+    const juntaEn24h = juntaMs > 0 && juntaMs <= 24 * 60 * 60 * 1000;
+    const juntaHoy = juntaMs <= 0 && juntaMs > -24 * 60 * 60 * 1000;
+    const juntaCuenta = juntaHoy ? "¡ES HOY!" : juntaEn24h ? "¡MAÑANA ES LA REUNIÓN!" : juntaEn48h ? "¡ÚLTIMAS 48 HORAS!" : faltaTexto(juntaActiva.fecha);
     alerts.push({
       id: "junta",
       icon: Users,
       title: `🗳️ ${juntaActiva.titulo || "Junta de Socios"}`,
-      description: `${faltaTexto(juntaActiva.fecha)} · Tu respuesta: ${r?.emoji || ""} ${r?.label || ""} (toca para cambiar)`,
+      description: `Tu respuesta: ${r?.emoji || ""} ${r?.label || ""} (toca para cambiar)`,
+      juntaCuenta,
+      juntaEn48h,
+      juntaEn24h,
+      juntaHoy,
       url: "#",
       color: "bg-orange-600",
       priority: 1,
@@ -777,13 +786,14 @@ const alerts = [];
                            to={alert.url}
                            onClick={(e) => { if (alert.abrirJunta) { e.preventDefault(); window.dispatchEvent(new Event("abrir-junta")); return; } handleAlertClick(alert); }}
                            onAuxClick={() => handleAlertClick(alert)}
-                           className={`flex items-center gap-3 p-2 transition-colors group rounded-lg ${darkMode ? "hover:bg-slate-700/60" : "hover:bg-slate-50"}`}
+                           className={`flex items-center gap-3 p-2 transition-colors group rounded-lg ${alert.id === "junta" && alert.juntaEn48h ? (darkMode ? "border-2 border-orange-400 bg-orange-950/30 shadow-md shadow-orange-900/20" : "border-2 border-orange-400 bg-orange-50 shadow-md shadow-orange-100") : darkMode ? "hover:bg-slate-700/60" : "hover:bg-slate-50"} ${alert.id === "junta" && alert.juntaEn24h ? (darkMode ? "ring-1 ring-orange-400/50" : "ring-1 ring-orange-200") : ""}`}
                          >
               <div className={`w-9 h-9 rounded-full ${alert.color} flex items-center justify-center flex-shrink-0`}>
                 <alert.icon className="w-5 h-5 text-white" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className={`font-semibold text-sm ${darkMode ? "text-white" : "text-slate-900"}`}>{alert.title}</p>
+                <p className={`font-semibold text-sm ${alert.id === "junta" && alert.juntaEn48h ? "text-orange-600" : darkMode ? "text-white" : "text-slate-900"}`}>{alert.title}</p>
+                {alert.id === "junta" && alert.juntaCuenta && <p className={`mt-0.5 text-sm font-black tracking-wide ${alert.juntaEn48h || alert.juntaHoy ? "text-orange-600" : darkMode ? "text-slate-300" : "text-slate-600"}`}>{alert.juntaCuenta}</p>}
                 <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{alert.description}</p>
               </div>
               <ChevronRight className={`w-5 h-5 transition-colors flex-shrink-0 ${darkMode ? "text-slate-500 group-hover:text-orange-400" : "text-slate-400 group-hover:text-orange-500"}`} />
