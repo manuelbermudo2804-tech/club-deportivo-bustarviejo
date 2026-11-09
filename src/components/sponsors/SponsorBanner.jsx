@@ -183,12 +183,12 @@ export default function SponsorBanner() {
                   {!sponsor.logo_url && (
                     <div className="flex flex-col leading-tight">
                       <span className={style.text}>{sponsor.nombre}</span>
-                      {showBadge && (
-                        <span className={`text-[8px] font-bold uppercase tracking-wide ${style.text} opacity-70`}>
-                          {sponsor.nivel_patrocinio}
-                        </span>
-                      )}
                     </div>
+                  )}
+                  {showBadge && (
+                    <span className={`${style.badge} rounded-full px-2 py-1 text-[8px] leading-none font-extrabold uppercase tracking-wider shadow-sm flex-shrink-0`}>
+                      {sponsor.nivel_patrocinio}
+                    </span>
                   )}
                 </div>
               );
