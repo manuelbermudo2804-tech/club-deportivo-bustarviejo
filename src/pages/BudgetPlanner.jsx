@@ -7,21 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, Download, Save, RefreshCw, Calculator, Wallet, TrendingUp, TrendingDown, Info } from "lucide-react";
 import { toast } from "sonner";
+import { buildBaseRows, pickBudget, sameSeason, keyFor } from "@/components/financial/budget2728/buildBaseRows";
+import BudgetReviewNotices from "@/components/financial/budget2728/BudgetReviewNotices";
 
 const TARGET_SEASON = "2027/2028";
 const BASE_SEASON = "2026/2027";
 const money = (value) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 2 }).format(Number(value) || 0);
-const normalizeSeason = (value) => String(value || "").replace(/[^\d]/g, "");
-const sameSeason = (a,b) => normalizeSeason(a) === normalizeSeason(b);
-const clean = (value) => String(value || "").trim();
-const canonicalName = (value) => {
-  const name = clean(value).toLocaleLowerCase("es").replace(/[áàä]/g,"a").replace(/[éèë]/g,"e").replace(/[íìï]/g,"i").replace(/[óòö]/g,"o").replace(/[úùü]/g,"u").replace(/ñ/g,"n");
-  if (["inscripciones jugadores", "inscripcion jugadores", "inscripciones"].includes(name)) return "inscripciones";
-  if (["loteria navidad", "loteria"].includes(name)) return "loteria";
-  if (["subvenciones ayuntamiento", "subvenciones"].includes(name)) return "subvenciones";
-  return name;
-};
-const keyFor = (category, name) => clean(category).toLocaleLowerCase("es") + "||" + canonicalName(name);
+
 
 export default function BudgetPlanner({ onScenarioChange }) {
   const queryClient = useQueryClient();
@@ -33,7 +25,7 @@ export default function BudgetPlanner({ onScenarioChange }) {
 
   const { data: transactions = [], isLoading: txLoading, refetch: refetchTx } = useQuery({
     queryKey: ["budget2728Transactions"],
-    queryFn: () => base44.entities.FinancialTransaction.list("-fecha", 500),
+    queryFn: () => base44.entities.FinancialTransaction.list("-fecha", 3000),
     staleTime: 60000,
   });
   const { data: budgets = [], isLoading: budgetsLoading, refetch: refetchBudgets } = useQuery({
@@ -48,60 +40,10 @@ export default function BudgetPlanner({ onScenarioChange }) {
   });
 
   const targetBudget = useMemo(() => budgets.find(b => sameSeason(b.temporada, TARGET_SEASON)) || null, [budgets]);
-  const baseBudget = useMemo(() => budgets.find(b => sameSeason(b.temporada, BASE_SEASON)) || null, [budgets]);
+  const baseBudget = useMemo(() => pickBudget(budgets, BASE_SEASON), [budgets]);
 
-  const baseRows = useMemo(() => {
-    const map = new Map();
-    const add = (category, name, amount, source, kind) => {
-      const safeCategory = clean(category) || (kind === "Ingreso" ? "Ingresos" : "Gastos sin clasificar");
-      const safeName = clean(name) || "Partida sin informar";
-      const key = keyFor(safeCategory, safeName);
-      if (!map.has(key)) map.set(key, { key, categoria: safeCategory, nombre: safeName, historico: 0, presupuestoBase: 0, source: new Set(), kind: kind || (safeCategory.toLocaleLowerCase("es").includes("ingres") ? "Ingreso" : "Gasto") });
-      const row = map.get(key);
-      row.source.add(source);
-      if (Number.isFinite(Number(amount))) {
-        if (source === "Presupuesto base") row.presupuestoBase += Number(amount || 0);
-        else row.historico += Number(amount || 0);
-      }
-    };
-    (baseBudget?.partidas || []).forEach(p => add(p.categoria, p.nombre, p.presupuestado, "Presupuesto base", p.categoria === "Ingresos" ? "Ingreso" : "Gasto"));
-    transactions.filter(t => sameSeason(t.temporada, BASE_SEASON) && t.estado !== "Anulado").forEach(t => {
-      const income = t.tipo === "Ingreso";
-      if (income && t.estado !== "Cobrado") return;
-      if (!income && t.estado !== "Pagado") return;
-      // Las liquidaciones de Stripe son traspasos de tesorería: no se vuelven a sumar como ingreso.
-      if (income && /transferencia.*stripe|stripe.*transferencia|transferencia.*club deportivo bustarviejo|traspaso entre cuentas|transferencia interna/i.test(String(t.concepto || ""))) return;
-      const amount = Number(t.cantidad || 0);
-      const matchingBudgetLine = (baseBudget?.partidas || []).find(p => clean(p.nombre).toLocaleLowerCase("es") === clean(t.partida_nombre).toLocaleLowerCase("es"));
-      const budgetCategory = income ? "Ingresos" : (matchingBudgetLine?.categoria || "Gastos Variables");
-      // Se conserva la categoría real del movimiento como nombre de partida; no se fuerza "Otros Ingresos/Gastos".
-      add(budgetCategory, clean(t.categoria) || clean(t.partida_nombre) || "Categoría sin informar", amount, "Transacciones cobradas/pagadas", t.tipo);
-    });
-    // If the selected base season has no records, use the latest available prior season only as a clearly-labelled fallback.
-    const hasBaseSeasonData = transactions.some(t => sameSeason(t.temporada, BASE_SEASON)) || Boolean(baseBudget);
-    if (!hasBaseSeasonData) {
-      const seasons = [...new Set(transactions.map(t => t.temporada).filter(Boolean))].sort((a,b) => normalizeSeason(b).localeCompare(normalizeSeason(a)));
-      const fallback = seasons.find(s => normalizeSeason(s) < normalizeSeason(TARGET_SEASON));
-      if (fallback) transactions.filter(t => sameSeason(t.temporada, fallback) && t.estado !== "Anulado").forEach(t => {
-        const income = t.tipo === "Ingreso";
-        if (income && t.estado !== "Cobrado") return;
-        if (!income && t.estado !== "Pagado") return;
-        if (income && /transferencia.*stripe|stripe.*transferencia|transferencia.*club deportivo bustarviejo|traspaso entre cuentas|transferencia interna/i.test(String(t.concepto || ""))) return;
-        const matchingBudgetLine = (baseBudget?.partidas || []).find(p => clean(p.nombre).toLocaleLowerCase("es") === clean(t.partida_nombre).toLocaleLowerCase("es"));
-        add(income ? "Ingresos" : (matchingBudgetLine?.categoria || "Gastos Variables"), clean(t.categoria) || clean(t.partida_nombre) || "Categoría sin informar", Number(t.cantidad || 0), "Histórico alternativo " + fallback, t.tipo);
-      });
-    }
-    return [...map.values()].map(r => ({
-      ...r,
-      // Do not mix actual income and expenses; retain historical magnitude for each budget line.
-      historico: Math.abs(r.historico),
-      source: [...r.source],
-    })).sort((a,b) => {
-      const aIncome = a.kind === "Ingreso" || a.categoria === "Ingresos";
-      const bIncome = b.kind === "Ingreso" || b.categoria === "Ingresos";
-      return Number(bIncome) - Number(aIncome) || a.categoria.localeCompare(b.categoria, "es") || a.nombre.localeCompare(b.nombre, "es");
-    });
-  }, [baseBudget, transactions]);
+  const baseInfo = useMemo(() => buildBaseRows({ baseBudget, transactions, baseSeason: BASE_SEASON, targetSeason: TARGET_SEASON }), [baseBudget, transactions]);
+  const baseRows = baseInfo.rows;
 
   useEffect(() => {
     if (!baseRows.length) return;
@@ -110,7 +52,8 @@ export default function BudgetPlanner({ onScenarioChange }) {
       baseRows.forEach(row => {
         const saved = targetBudget?.partidas?.find(p => keyFor(p.categoria, p.nombre) === row.key);
         if (saved) next[row.key] = Number(saved.presupuestado || 0);
-        else if (next[row.key] === undefined) next[row.key] = row.historico > 0 ? row.historico : (row.presupuestoBase || 0);
+        // La temporada base sigue en curso: se propone lo presupuestado, no lo llevado hasta hoy.
+        else if (next[row.key] === undefined) next[row.key] = row.presupuestoBase > 0 ? row.presupuestoBase : (row.historico || 0);
       });
       if (targetBudget?.notas && notes.startsWith("Borrador de planificación")) setNotes(targetBudget.notas);
       return next;
@@ -220,13 +163,14 @@ export default function BudgetPlanner({ onScenarioChange }) {
       <Card className="group overflow-hidden rounded-2xl border-slate-200 bg-gradient-to-br from-white to-slate-100/80 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg"><CardContent className="relative p-5"><div className="absolute right-4 top-4 rounded-xl bg-slate-200 p-2 text-slate-700"><Calculator className="h-5 w-5"/></div><p className="text-xs font-bold uppercase tracking-wider text-slate-500">Resultado de referencia</p><p className="mt-3 text-2xl font-extrabold tracking-tight text-slate-800">{money(totals.baseResult)}</p><p className="mt-2 text-xs leading-5 text-slate-500">Presupuesto base o histórico disponible.</p></CardContent></Card>
     </div>
 
+    <BudgetReviewNotices info={baseInfo} baseSeason={BASE_SEASON} />
     {bankMovements.length === 0 && <div className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"><AlertTriangle className="h-5 w-5 shrink-0"/><div><b>Falta información bancaria.</b> Aún no hay movimientos bancarios cargados para verificar el histórico. El plan se puede preparar, pero no debe considerarse cerrado.</div></div>}
     {bankMovements.length > 0 && !readyToReview && <div className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"><AlertTriangle className="h-5 w-5 shrink-0"/><div><b>Conciliación pendiente.</b> Hay movimientos bancarios sin conciliar. Las cifras históricas y el presupuesto final deben revisarse contra los extractos antes de aprobarse.</div></div>}
     <Card className="overflow-hidden rounded-2xl border-0 bg-white shadow-lg shadow-slate-900/5 ring-1 ring-slate-200/80"><CardHeader className="border-b border-slate-100 bg-gradient-to-r from-indigo-50 via-white to-orange-50 px-5 py-5 sm:px-6"><CardTitle className="flex items-center gap-3"><span className="rounded-xl bg-indigo-100 p-2 text-indigo-700"><Calculator className="h-5 w-5"/></span><span>Prueba de resistencia del presupuesto</span></CardTitle><p className="text-sm leading-6 text-slate-500">Simula una temporada menos favorable sin modificar las partidas que has introducido.</p></CardHeader><CardContent><div className="grid gap-4 md:grid-cols-3"><div><label className="mb-1 block text-sm font-medium">Caída de ingresos (%)</label><Input type="number" min="0" max="100" value={stressIncomePct} onChange={e=>setStressIncomePct(Math.max(0,Math.min(100,Number(e.target.value)||0)))}/></div><div><label className="mb-1 block text-sm font-medium">Aumento de gastos (%)</label><Input type="number" min="0" max="100" value={stressExpensePct} onChange={e=>setStressExpensePct(Math.max(0,Math.min(100,Number(e.target.value)||0)))}/></div><div className="rounded-xl bg-slate-900 p-4 text-white"><p className="text-sm text-slate-300">Resultado bajo estrés</p><p className={"mt-1 text-2xl font-bold " + (stressResult >= 0 ? "text-emerald-300" : "text-rose-300")}>{money(stressResult)}</p><p className="mt-1 text-xs text-slate-300">Con ingresos −{stressIncomePct}% y gastos +{stressExpensePct}%.</p></div></div><p className="mt-3 text-xs text-slate-500">Es una simulación matemática, no una predicción de probabilidad. Los porcentajes son modificables.</p></CardContent></Card>
 
     <Card className="overflow-hidden rounded-2xl border-0 bg-white shadow-lg shadow-slate-900/5 ring-1 ring-slate-200/80"><CardHeader className="border-b border-slate-100 bg-gradient-to-r from-orange-50 via-white to-amber-50 px-5 py-5 sm:px-6"><CardTitle className="flex items-center gap-3"><span className="rounded-xl bg-orange-100 p-2 text-orange-700"><Wallet className="h-5 w-5"/></span><span>Partidas y simulador de cambios</span></CardTitle><p className="text-sm leading-6 text-slate-500">Cambia cualquier importe y mira inmediatamente cómo cambia el resultado. La columna de variación compara con la base disponible; las cifras históricas no son una garantía de ingresos futuros.</p></CardHeader><CardContent>
       <div className="mb-5 flex flex-wrap gap-2 rounded-xl bg-slate-50 p-2"><Button className="rounded-lg" variant={filter === "all" ? "default" : "outline"} onClick={() => setFilter("all")}>Todas</Button><Button className="rounded-lg" variant={filter === "income" ? "default" : "outline"} onClick={() => setFilter("income")}>Ingresos</Button><Button className="rounded-lg" variant={filter === "expense" ? "default" : "outline"} onClick={() => setFilter("expense")}>Gastos</Button><Button className="ml-auto rounded-lg" variant="outline" onClick={async () => { await Promise.all([refetchTx(),refetchBudgets(),refetchBank()]); toast.success("Datos actualizados"); }}><RefreshCw className="mr-2 h-4 w-4"/>Actualizar</Button></div>
-      {loading ? <p className="py-8 text-center text-slate-500">Cargando histórico…</p> : <div className="overflow-x-auto rounded-xl border border-slate-200"><table className="w-full min-w-[850px] text-sm"><thead className="bg-slate-50"><tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wider text-slate-500"><th className="py-3 pr-3">Tipo / partida</th><th className="py-3 pr-3 text-right">Base (€)</th><th className="py-3 pr-3 text-right">Propuesta 27/28 (€)</th><th className="py-3 pr-3 text-right">Variación (€)</th><th className="py-3 pr-3 text-right">Variación (%)</th></tr></thead><tbody>{visibleRows.map(row => { const value = Number(draft[row.key] ?? row.actualTarget ?? 0); const base = Number(row.presupuestoBase || row.historico || 0); const delta = value-base; const income = row.categoria === "Ingresos" || row.kind === "Ingreso"; return <tr key={row.key} className="border-b border-slate-100 last:border-0 transition-colors hover:bg-orange-50/50"><td className="py-3 pr-3"><div className="font-medium">{row.nombre}</div><div className="text-xs text-slate-500">{row.categoria} · {row.source.join(" / ")}</div></td><td className="py-3 pr-3 text-right">{money(base)}</td><td className="py-3 pr-3 text-right"><Input aria-label={"Propuesta para " + row.nombre} type="number" min="0" step="0.01" value={draft[row.key] ?? row.actualTarget ?? 0} onChange={e => updateValue(row.key,e.target.value)} className="ml-auto w-36 rounded-lg border-slate-200 bg-white text-right font-semibold shadow-sm focus-visible:ring-orange-500"/></td><td className={"py-3 pr-3 text-right font-medium " + (delta > 0 ? "text-emerald-700" : delta < 0 ? "text-rose-700" : "text-slate-500")}>{formatDelta(delta)}</td><td className="py-3 pr-3 text-right">{base ? ((delta/base)*100).toLocaleString("es-ES",{maximumFractionDigits:1})+"%" : "—"}</td></tr>; })}</tbody></table></div>}
+      {loading ? <p className="py-8 text-center text-slate-500">Cargando histórico…</p> : <div className="overflow-x-auto rounded-xl border border-slate-200"><table className="w-full min-w-[850px] text-sm"><thead className="bg-slate-50"><tr className="border-b border-slate-200 text-left text-xs uppercase tracking-wider text-slate-500"><th className="py-3 pr-3">Tipo / partida</th><th className="py-3 pr-3 text-right">Base (€)</th><th className="py-3 pr-3 text-right">Llevado 26/27 (€)</th><th className="py-3 pr-3 text-right">Propuesta 27/28 (€)</th><th className="py-3 pr-3 text-right">Variación (€)</th><th className="py-3 pr-3 text-right">Variación (%)</th></tr></thead><tbody>{visibleRows.map(row => { const value = Number(draft[row.key] ?? row.actualTarget ?? 0); const base = Number(row.presupuestoBase || row.historico || 0); const delta = value-base; const income = row.categoria === "Ingresos" || row.kind === "Ingreso"; return <tr key={row.key} className="border-b border-slate-100 last:border-0 transition-colors hover:bg-orange-50/50"><td className="py-3 pr-3"><div className="font-medium">{row.nombre}</div><div className="text-xs text-slate-500">{row.categoria} · {row.source.join(" / ")}</div></td><td className="py-3 pr-3 text-right">{money(base)}</td><td className="py-3 pr-3 text-right text-slate-500">{row.presupuestoBase > 0 ? money(row.historico) : "—"}</td><td className="py-3 pr-3 text-right"><Input aria-label={"Propuesta para " + row.nombre} type="number" min="0" step="0.01" value={draft[row.key] ?? row.actualTarget ?? 0} onChange={e => updateValue(row.key,e.target.value)} className="ml-auto w-36 rounded-lg border-slate-200 bg-white text-right font-semibold shadow-sm focus-visible:ring-orange-500"/></td><td className={"py-3 pr-3 text-right font-medium " + (delta > 0 ? "text-emerald-700" : delta < 0 ? "text-rose-700" : "text-slate-500")}>{formatDelta(delta)}</td><td className="py-3 pr-3 text-right">{base ? ((delta/base)*100).toLocaleString("es-ES",{maximumFractionDigits:1})+"%" : "—"}</td></tr>; })}</tbody></table></div>}
       {!loading && !targetRows.length && <p className="py-8 text-center text-slate-500">Todavía no hay partidas históricas. Añade registros financieros o crea un presupuesto base para que el simulador use categorías reales, sin inventarlas.</p>}
       <div className="mt-5 rounded-xl border border-slate-200 bg-slate-50 p-4"><label className="mb-2 block text-sm font-bold text-slate-700">Notas y supuestos del borrador</label><textarea className="min-h-24 w-full rounded-xl border border-slate-200 bg-white p-3 text-sm shadow-sm transition focus:border-orange-300 focus:outline-none focus:ring-2 focus:ring-orange-100" value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Anota supuestos, compromisos, subvenciones pendientes, escenarios de cuotas…" /></div>
     </CardContent></Card>
