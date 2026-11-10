@@ -14,6 +14,7 @@ import RetentionAnalysis from "@/components/financial/RetentionAnalysis.jsx";
 import CashFlowAnalysis from "@/components/financial/CashFlowAnalysis.jsx";
 import FinancialRatios from "@/components/financial/FinancialRatios.jsx";
 import SeasonalityAnalysis from "@/components/financial/SeasonalityAnalysis.jsx";
+import ComparativaMensualChart from "@/components/financial/comparativa/ComparativaMensualChart";
 import IncomeDistributionPie from "@/components/financial/IncomeDistributionPie.jsx";
 import IncomeProjection from "@/components/financial/IncomeProjection.jsx";
 import FinancialAlerts from "@/components/financial/FinancialAlerts.jsx";
@@ -51,6 +52,7 @@ export default function InformesTab({ stats, activeSeason, allSeasons, payments,
             <IncomeDistributionPie stats={stats} />
             <IncomeProjection {...totals} stats={stats} />
           </div>
+          <ComparativaMensualChart activeSeason={activeSeason} payments={payments} lotteryOrders={lotteryOrders} clubMembers={clubMembers} />
           <MonthlyEvolutionChart payments={payments} clothingOrders={[]} lotteryOrders={lotteryOrders} clubMembers={clubMembers} sponsors={sponsors} activeSeason={activeSeason} />
           <EndOfSeasonForecast {...totals} stats={stats} activeSeason={activeSeason} payments={payments} />
           <FinancialGoalsTracker {...totals} activeSeason={activeSeason} />
