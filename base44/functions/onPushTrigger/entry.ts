@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     const payload = await req.json();
-    const { event, data } = payload;
+    const { event, data, old_data } = payload;
 
     if (!event || !data) return Response.json({ error: 'Missing event/data' }, { status: 400 });
 
@@ -175,7 +175,9 @@ Deno.serve(async (req) => {
       }
 
       // 2b. Check if all players responded → notify coach ONCE
-      if (data.publicada && event.type === 'update') {
+      // Publicada ahora desde borrador → tratar como nueva publicación (2c)
+      const recienPublicada = event.type === 'update' && old_data && !old_data.publicada;
+      if (data.publicada && event.type === 'update' && !recienPublicada) {
         const jugadores = data.jugadores_convocados || [];
         if (jugadores.length > 0) {
           const allResponded = jugadores.every(j => j.confirmacion && j.confirmacion !== 'pendiente');
@@ -207,18 +209,18 @@ Deno.serve(async (req) => {
       const targetEmails = [];
       for (const j of jugadores) {
         if (j.email_padre) targetEmails.push(j.email_padre);
+        if (j.email_tutor_2) targetEmails.push(j.email_tutor_2);
         if (j.email_jugador) targetEmails.push(j.email_jugador);
       }
-      if (targetEmails.length === 0) {
-        for (const j of jugadores) {
-          if (!j.jugador_id) continue;
-          try {
-            const players = await base44.asServiceRole.entities.Player.filter({ id: j.jugador_id });
-            const p = players[0];
-            if (p?.email_padre) targetEmails.push(p.email_padre);
-            if (p?.email_tutor_2) targetEmails.push(p.email_tutor_2);
-            if (p?.email_jugador) targetEmails.push(p.email_jugador);
-          } catch {}
+      // Completar con la ficha: segundo tutor y menor con acceso autorizado
+      const ids = jugadores.map(j => j.jugador_id).filter(Boolean);
+      if (ids.length > 0) {
+        const fichas = await base44.asServiceRole.entities.Player.filter({ id: { $in: ids } }, '-created_date', 500);
+        for (const p of fichas) {
+          if (p.email_padre) targetEmails.push(p.email_padre);
+          if (p.email_tutor_2) targetEmails.push(p.email_tutor_2);
+          if (p.email_jugador) targetEmails.push(p.email_jugador);
+          if (p.acceso_menor_email && p.acceso_menor_autorizado && !p.acceso_menor_revocado) targetEmails.push(p.acceso_menor_email);
         }
       }
       const filtered = [...new Set(targetEmails)].filter(e => e !== senderEmail);
