@@ -1,8 +1,8 @@
 import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
-import { Clover, ArrowUpRight } from "lucide-react";
-import { ventaCerrada, textoCierre } from "@/lib/loteriaCierre";
+import { ArrowUpRight } from "lucide-react";
+import { ventaCerrada } from "@/lib/loteriaCierre";
 import CuentaAtrasLoteria from "./CuentaAtrasLoteria";
 
 export default function LoteriaAppBanner() {
@@ -19,29 +19,24 @@ export default function LoteriaAppBanner() {
   return (
     <a
       href="/loteria"
-      className="loteria-pulse-border block relative overflow-hidden rounded-xl border border-amber-300 shadow-md transition-all hover:brightness-110 active:scale-[0.99] bg-gradient-to-r from-red-950 via-red-900 to-emerald-950"
+      className="loteria-pulse-border block overflow-hidden rounded-xl border border-amber-300 shadow-md transition-all hover:brightness-110 active:scale-[0.99] bg-gradient-to-r from-red-950 via-red-900 to-emerald-950"
     >
-      <div className="relative flex items-center gap-2 sm:gap-2.5 p-2.5 sm:p-3.5">
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-amber-300 shadow">
-          <Clover className="h-5 w-5 text-red-950" />
-        </div>
+      <div className="flex items-center gap-3 p-3 sm:gap-4 sm:p-4">
         <div className="min-w-0 flex-1">
-          <p className="mb-0.5 text-[10px] font-black uppercase tracking-wide text-amber-300 sm:mb-1 sm:text-xs">
-            {typeof restantes === "number" ? `¡Quedan solo ${restantes} décimos online!` : "¡Últimos décimos!"}
-          </p>
-          <p className="text-[13px] font-black leading-tight text-white sm:text-base">🍀 {campana.titulo || "Lotería de Navidad"}</p>
-          <p className="mt-0.5 text-[11px] font-medium leading-snug text-white/90 sm:mt-1 sm:text-sm">Casi agotada en el pueblo · Todavía disponible online</p>
-          {campana.fecha_cierre && (
-            <p className="mt-1 inline-block rounded-md bg-black/30 px-2 py-0.5 text-[12px] font-black text-amber-300 sm:text-sm">
-              <CuentaAtrasLoteria fechaCierre={campana.fecha_cierre} />
-              <span className="ml-1 font-semibold text-amber-200/80">({textoCierre(campana)})</span>
-            </p>
-          )}
-          {campana.precio_decimo && <p className="mt-0.5 text-[11px] font-semibold text-amber-200 sm:mt-1 sm:text-xs">{campana.precio_decimo}€ el décimo</p>}
-          <p className="mt-0.5 text-[10px] font-semibold leading-snug text-amber-200 sm:mt-1 sm:text-xs">🧡 2 € de cada décimo ayudan a financiar al CD Bustarviejo.</p>
+          <p className="text-sm font-black text-white sm:text-base">🍀 {campana.titulo || "Lotería de Navidad"} · {campana.numero}</p>
+          <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1">
+            {typeof restantes === "number" && (
+              <p className="text-xl font-black leading-none text-amber-300 sm:text-2xl">
+                {restantes} <span className="text-sm font-bold text-amber-200 sm:text-base">décimos quedan</span>
+              </p>
+            )}
+            {campana.fecha_cierre && (
+              <CuentaAtrasLoteria fechaCierre={campana.fecha_cierre} className="text-xl font-black leading-none text-white sm:text-2xl" />
+            )}
+          </div>
         </div>
-        <span className="flex shrink-0 items-center gap-1 rounded-lg bg-amber-300 px-2 py-1.5 text-[11px] font-black text-red-950 shadow sm:px-2.5 sm:py-2 sm:text-sm">
-          Comprar <ArrowUpRight className="h-3.5 w-3.5" />
+        <span className="flex shrink-0 items-center gap-1 rounded-lg bg-amber-300 px-3 py-2 text-sm font-black text-red-950 shadow">
+          Comprar <ArrowUpRight className="h-4 w-4" />
         </span>
       </div>
     </a>
