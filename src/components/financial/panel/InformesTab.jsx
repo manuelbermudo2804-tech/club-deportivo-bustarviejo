@@ -14,6 +14,10 @@ import RetentionAnalysis from "@/components/financial/RetentionAnalysis.jsx";
 import CashFlowAnalysis from "@/components/financial/CashFlowAnalysis.jsx";
 import FinancialRatios from "@/components/financial/FinancialRatios.jsx";
 import SeasonalityAnalysis from "@/components/financial/SeasonalityAnalysis.jsx";
+import IncomeDistributionPie from "@/components/financial/IncomeDistributionPie.jsx";
+import IncomeProjection from "@/components/financial/IncomeProjection.jsx";
+import FinancialAlerts from "@/components/financial/FinancialAlerts.jsx";
+import AutomaticMorosidadAlert from "@/components/financial/AutomaticMorosidadAlert.jsx";
 
 const OPTIONS = [
   { value: "evolucion", label: "Evolución" },
@@ -23,6 +27,7 @@ const OPTIONS = [
   { value: "flujo", label: "Flujo de caja" },
   { value: "ratios", label: "Ratios" },
   { value: "estacionalidad", label: "Estacionalidad" },
+  { value: "alertas", label: "Alertas" },
 ];
 
 export default function InformesTab({ stats, activeSeason, allSeasons, payments, players, transactions, lotteryOrders, clubMembers, sponsors, customPlans, getImportePorMes, onCompare, onPDF, onCSV }) {
@@ -42,6 +47,10 @@ export default function InformesTab({ stats, activeSeason, allSeasons, payments,
         <div className="space-y-6">
           <FinancialHealthIndicator {...totals} stats={stats} />
           <ResumenMetricas stats={stats} jugadores={players.filter((p) => p.activo === true).length} />
+          <div className="grid gap-6 xl:grid-cols-2">
+            <IncomeDistributionPie stats={stats} />
+            <IncomeProjection {...totals} stats={stats} />
+          </div>
           <MonthlyEvolutionChart payments={payments} clothingOrders={[]} lotteryOrders={lotteryOrders} clubMembers={clubMembers} sponsors={sponsors} activeSeason={activeSeason} />
           <EndOfSeasonForecast {...totals} stats={stats} activeSeason={activeSeason} payments={payments} />
           <FinancialGoalsTracker {...totals} activeSeason={activeSeason} />
@@ -58,6 +67,12 @@ export default function InformesTab({ stats, activeSeason, allSeasons, payments,
       {view === "flujo" && <CashFlowAnalysis payments={payments} transactions={transactions} clothingOrders={[]} lotteryOrders={lotteryOrders} clubMembers={clubMembers} sponsors={sponsors} activeSeason={activeSeason} />}
       {view === "ratios" && <FinancialRatios totalIngresos={stats.totalIngresos} totalPendiente={stats.totalPendiente} totalGastos={stats.gastos} stats={stats} />}
       {view === "estacionalidad" && <SeasonalityAnalysis payments={payments} activeSeason={activeSeason} />}
+      {view === "alertas" && (
+        <div className="space-y-6">
+          <AutomaticMorosidadAlert {...totals} />
+          <FinancialAlerts {...totals} stats={stats} />
+        </div>
+      )}
     </div>
   );
 }
