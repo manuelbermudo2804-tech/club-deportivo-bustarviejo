@@ -27,8 +27,8 @@ export default function VoluntariadoBanner({ user }) {
   };
 
   return (
-    <Link to={url} className="block">
-      <div className="flex items-center gap-3 rounded-xl border border-emerald-500/40 bg-emerald-600/15 px-3 py-2 hover:bg-emerald-600/25 transition-colors">
+    <div className="flex items-center gap-2 rounded-xl border border-emerald-500/40 bg-emerald-600/15 px-3 py-2 hover:bg-emerald-600/25 transition-colors">
+      <Link to={url} className="flex flex-1 min-w-0 items-center gap-3">
         <HeartHandshake className="w-5 h-5 text-emerald-400 flex-shrink-0" />
         <p className="flex-1 min-w-0 text-sm text-white truncate">
           {una
@@ -36,14 +36,14 @@ export default function VoluntariadoBanner({ user }) {
             : <>🙋 Se buscan <strong>voluntarios</strong> para {visibles.length} actividades del club</>}
         </p>
         <span className="text-xs font-bold text-emerald-300 flex-shrink-0">Ver →</span>
-        <button
-          onClick={handleDismiss}
-          aria-label="Cerrar aviso"
-          className="flex-shrink-0 w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center"
-        >
-          <X className="w-4 h-4 text-white" />
-        </button>
-      </div>
-    </Link>
+      </Link>
+      <button
+        onClick={handleDismiss}
+        aria-label="Cerrar aviso"
+        className="flex-shrink-0 w-7 h-7 rounded-lg bg-white/10 hover:bg-white/20 flex items-center justify-center"
+      >
+        <X className="w-4 h-4 text-white" />
+      </button>
+    </div>
   );
 }

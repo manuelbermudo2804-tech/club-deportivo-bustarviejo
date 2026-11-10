@@ -632,12 +632,12 @@ export default function Home() {
         {/* Móvil: botones rápidos compactos */}
         <div className="lg:hidden flex items-center gap-1.5 w-full">
           <SocialLinks />
-          <Link to={createPageUrl("Chatbot")} className="flex-shrink-0">
-            <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 h-8 px-2.5 text-xs">
+          <Button asChild size="sm" className="flex-shrink-0 bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 h-8 px-2.5 text-xs">
+            <Link to={createPageUrl("Chatbot")}>
               <Sparkles className="w-3.5 h-3.5 mr-1" />
               IA
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <div className="flex-1 min-w-0">
             <MainSponsorBadge />
           </div>
@@ -780,12 +780,12 @@ export default function Home() {
         {isAdmin && (
           <div className="hidden lg:flex items-center gap-2">
             <SocialLinks />
-            <Link to={createPageUrl("Chatbot")}>
-              <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 h-8 px-2.5 text-xs">
+            <Button asChild size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 h-8 px-2.5 text-xs">
+              <Link to={createPageUrl("Chatbot")}>
                 <Sparkles className="w-3.5 h-3.5 mr-1" />
                 Asistente IA
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             <MainSponsorBadge />
             <ShareFormButton />
           </div>

@@ -40,12 +40,12 @@ export default function EquipacionLocked() {
           </div>
 
           <div className="text-center pt-1">
-            <Link to={createPageUrl("ParentPlayers")}>
-              <Button size="lg" className="bg-orange-600 hover:bg-orange-700 gap-2 text-base px-8 shadow-lg shadow-orange-600/30">
+            <Button asChild size="lg" className="bg-orange-600 hover:bg-orange-700 gap-2 text-base px-8 shadow-lg shadow-orange-600/30">
+              <Link to={createPageUrl("ParentPlayers")}>
                 <UserPlus className="w-5 h-5" />
                 Inscribir jugador
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </CardContent>

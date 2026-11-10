@@ -201,12 +201,12 @@ export default function FamilyGuide() {
               <Download className="w-5 h-5 mr-2" />
               Descargar PDF
             </Button>
-            <Link to={createPageUrl("Home")}>
-              <Button variant="outline" className="bg-white/10 border-white text-white hover:bg-white/20">
+            <Button asChild variant="outline" className="bg-white/10 border-white text-white hover:bg-white/20">
+              <Link to={createPageUrl("Home")}>
                 <Home className="w-5 h-5 mr-2" />
                 Volver al Inicio
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

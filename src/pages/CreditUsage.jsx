@@ -129,11 +129,11 @@ export default function CreditUsage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link to={createPageUrl("Home")}>
-              <Button variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+            <Button asChild variant="ghost" size="icon" className="text-slate-400 hover:text-white">
+              <Link to={createPageUrl("Home")}>
                 <ArrowLeft className="w-5 h-5" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             <div>
               <h1 className="text-2xl font-bold text-white flex items-center gap-2">
                 <Zap className="w-6 h-6 text-yellow-400" />

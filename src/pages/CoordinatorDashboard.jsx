@@ -219,12 +219,12 @@ export default function CoordinatorDashboard() {
       <div className="mx-auto w-full max-w-[1600px] px-3 sm:px-4 lg:px-8 2xl:px-10 py-4 lg:py-6 space-y-5 lg:space-y-6">
         <div className="lg:hidden flex items-center gap-1.5 w-full">
           <SocialLinks />
-          <Link to={createPageUrl("Chatbot")} className="flex-shrink-0">
-            <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 px-2.5">
+          <Button asChild size="sm" className="flex-shrink-0 bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 px-2.5">
+            <Link to={createPageUrl("Chatbot")}>
               <Sparkles className="w-4 h-4 mr-1" />
               IA
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <div className="flex-1 min-w-0">
             <MainSponsorBadge />
           </div>

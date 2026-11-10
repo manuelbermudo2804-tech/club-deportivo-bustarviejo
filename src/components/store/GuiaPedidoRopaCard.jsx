@@ -19,12 +19,12 @@ export default function GuiaPedidoRopaCard() {
           </p>
         </div>
       </div>
-      <a href={GUIA_URL} download target="_blank" rel="noopener noreferrer" className="block mt-3">
-        <Button size="lg" className="w-full bg-blue-600 hover:bg-blue-700 gap-2">
+      <Button asChild size="lg" className="w-full mt-3 bg-blue-600 hover:bg-blue-700 gap-2">
+        <a href={GUIA_URL} download target="_blank" rel="noopener noreferrer">
           <Download className="w-5 h-5" />
           Descargar la guía (PDF)
-        </Button>
-      </a>
+        </a>
+      </Button>
     </div>
   );
 }

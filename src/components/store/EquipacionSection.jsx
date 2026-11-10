@@ -95,12 +95,12 @@ export default function EquipacionSection({ clothingUrl }) {
 
           {clothingUrl ? (
             <div className="pt-1">
-              <a href={clothingUrl} target="_blank" rel="noopener noreferrer" className="block">
-                <Button size="lg" className="w-full bg-orange-600 hover:bg-orange-700 gap-2 text-base font-semibold">
+              <Button asChild size="lg" className="w-full bg-orange-600 hover:bg-orange-700 gap-2 text-base font-semibold">
+                <a href={clothingUrl} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="w-5 h-5" />
                   Ir a la tienda de equipación
-                </Button>
-              </a>
+                </a>
+              </Button>
               <p className="text-xs text-slate-500 text-center mt-2">
                 Se abre la web del proveedor. Los pedidos y envíos los gestiona la tienda, no el club.
               </p>

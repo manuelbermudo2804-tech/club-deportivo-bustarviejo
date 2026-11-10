@@ -276,11 +276,11 @@ export default function VolunteersList() {
                       </SelectContent>
                     </Select>
                     {phone && (
-                      <a href={`https://wa.me/34${phone}`} target="_blank" rel="noreferrer" className="ml-auto">
-                        <Button size="sm" variant="outline" className="h-7 text-xs gap-1 border-green-500 text-green-700 hover:bg-green-50">
+                      <Button asChild size="sm" variant="outline" className="ml-auto h-7 text-xs gap-1 border-green-500 text-green-700 hover:bg-green-50">
+                        <a href={`https://wa.me/34${phone}`} target="_blank" rel="noreferrer">
                           <MessageCircle className="w-3 h-3" /> WhatsApp
-                        </Button>
-                      </a>
+                        </a>
+                      </Button>
                     )}
                     <Button
                       size="sm"

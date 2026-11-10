@@ -103,12 +103,12 @@ export default function RenewalStatusWidget({ players, payments, seasonConfig, d
                 </div>
               ))}
             </div>
-            <Link to={createPageUrl("ParentPlayers")} className="block">
-              <Button className="w-full bg-red-600 hover:bg-red-700 font-bold">
+            <Button asChild className="w-full bg-red-600 hover:bg-red-700 font-bold">
+              <Link to={createPageUrl("ParentPlayers")}>
                 🔄 Renovar Ahora
                 <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         )}
 
@@ -137,13 +137,13 @@ export default function RenewalStatusWidget({ players, payments, seasonConfig, d
                 </p>
               )}
             </div>
-            <Link to={createPageUrl("ParentPayments")} className="block">
-              <Button className="w-full bg-orange-600 hover:bg-orange-700 font-bold">
+            <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 font-bold">
+              <Link to={createPageUrl("ParentPayments")}>
                 <CreditCard className="w-4 h-4 mr-2" />
                 Registrar Pagos
                 <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         )}
 

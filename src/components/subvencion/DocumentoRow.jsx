@@ -49,11 +49,11 @@ export default function DocumentoRow({ def, doc, exp, onChange, onGoTab }) {
           </Button>
         )}
         {def.tipo === "link" && (
-          <Link to={def.link}>
-            <Button size="sm" variant="outline" className="text-orange-700 border-orange-200">
+          <Button asChild size="sm" variant="outline" className="text-orange-700 border-orange-200">
+            <Link to={def.link}>
               <ArrowRight className="w-3.5 h-3.5 mr-1" /> Generar en {def.linkLabel}
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         )}
         <Select value={estado} onValueChange={(v) => onChange({ estado: v })}>
           <SelectTrigger className="w-36 h-8 text-xs"><SelectValue /></SelectTrigger>

@@ -102,13 +102,13 @@ export default function RenewalSuccessScreen({
             >
               Cerrar
             </Button>
-            <Link to={createPageUrl("ParentPayments")} className="flex-1">
-              <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold">
+            <Button asChild className="flex-1 w-full bg-orange-600 hover:bg-orange-700 text-white font-bold">
+              <Link to={createPageUrl("ParentPayments")}>
                 <CreditCard className="w-4 h-4 mr-2" />
                 Ir a Pagar Ahora
                 <ArrowRight className="w-4 h-4 ml-2" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </CardContent>
       </Card>

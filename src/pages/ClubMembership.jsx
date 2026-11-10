@@ -685,9 +685,9 @@ export default function ClubMembership() {
               >
                 Registrar otro
               </Button>
-              <Link to={createPageUrl('Home')} className="w-full">
-                <Button className="w-full bg-green-600 hover:bg-green-700">Ir al inicio</Button>
-              </Link>
+              <Button asChild className="w-full bg-green-600 hover:bg-green-700">
+                <Link to={createPageUrl('Home')}>Ir al inicio</Link>
+              </Button>
             </div>
           </div>
         </div>

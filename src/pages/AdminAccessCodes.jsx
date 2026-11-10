@@ -349,11 +349,11 @@ function CodeCard({ code, onResend, onCancel, onDelete, isResending, telefono })
               const waUrl = getWhatsAppUrl(telefono, code.tipo, code.nombre_destino, code.codigo, code.email);
               if (!waUrl) return null;
               return (
-                <a href={waUrl} target="_blank" rel="noopener noreferrer" className="flex-1 lg:w-full">
-                  <Button size="sm" className="w-full rounded-lg bg-emerald-600 text-xs text-white hover:bg-emerald-700">
+                <Button asChild size="sm" className="flex-1 lg:w-full rounded-lg bg-emerald-600 text-xs text-white hover:bg-emerald-700">
+                  <a href={waUrl} target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="mr-1 h-3.5 w-3.5" /> WhatsApp
-                  </Button>
-                </a>
+                  </a>
+                </Button>
               );
             })()}
             {displayEstado === 'pendiente' && <Button size="sm" variant="outline" onClick={() => onCancel(code.id)} className="flex-1 rounded-lg border-rose-200 text-xs text-rose-600 hover:bg-rose-50 lg:w-full"><Ban className="mr-1 h-3.5 w-3.5" />Cancelar</Button>}

@@ -22,11 +22,11 @@ export default function LotteryManagement() {
             <p className="font-bold text-slate-900">Página pública</p>
             <p className="text-sm text-slate-600 break-all">{publicUrl}</p>
           </div>
-          <a href="/loteria" target="_blank" rel="noopener noreferrer">
-            <Button className="bg-orange-600 font-semibold hover:bg-orange-700">
+          <Button asChild className="bg-orange-600 font-semibold hover:bg-orange-700">
+            <a href="/loteria" target="_blank" rel="noopener noreferrer">
               <ExternalLink className="w-4 h-4 mr-2" /> Ver página
-            </Button>
-          </a>
+            </a>
+          </Button>
         </CardContent>
       </Card>
 

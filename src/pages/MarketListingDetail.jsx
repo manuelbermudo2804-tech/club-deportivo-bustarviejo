@@ -41,9 +41,9 @@ export default function MarketListingDetail() {
           <CardContent className="p-6 text-center text-slate-600">
             <p>No se encontró el anuncio.</p>
             <div className="mt-4">
-              <Link to={createPageUrl("Mercadillo")}>
-                <Button variant="outline">Volver al Mercadillo</Button>
-              </Link>
+              <Button asChild variant="outline">
+                <Link to={createPageUrl("Mercadillo")}>Volver al Mercadillo</Link>
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -64,9 +64,9 @@ export default function MarketListingDetail() {
             <p className="text-4xl">🔒</p>
             <p className="font-semibold text-slate-800">Este artículo ya está {listing.estado === 'entregado' ? 'entregado' : 'vendido'}</p>
             <p className="text-sm">Ya no está disponible, así que no se puede consultar su ficha.</p>
-            <Link to={createPageUrl("Mercadillo")}>
-              <Button variant="outline">Volver al Mercadillo</Button>
-            </Link>
+            <Button asChild variant="outline">
+              <Link to={createPageUrl("Mercadillo")}>Volver al Mercadillo</Link>
+            </Button>
           </CardContent>
         </Card>
       </div>
@@ -89,7 +89,7 @@ export default function MarketListingDetail() {
         <h1 className="text-2xl font-extrabold flex items-center gap-3">{listing.titulo}{listing.estado === 'reservado' && (<span className="text-xs px-2 py-0.5 rounded bg-yellow-100 text-yellow-700 border border-yellow-200">Reservado</span>)}{listing.estado === 'entregado' && (<span className="text-xs px-2 py-0.5 rounded bg-green-100 text-green-700 border border-green-200">Entregado</span>)}</h1>
         <div className="flex items-center gap-2">
           {!esVendidoYa && <ShareListingButton listing={listing} />}
-          <Link to={createPageUrl("Mercadillo")}><Button variant="outline">Volver</Button></Link>
+          <Button asChild variant="outline"><Link to={createPageUrl("Mercadillo")}>Volver</Link></Button>
         </div>
       </div>
 
@@ -146,17 +146,17 @@ export default function MarketListingDetail() {
             {listing.reservado_fecha && <p><span className="font-semibold">Fecha de reserva:</span> {new Date(listing.reservado_fecha).toLocaleString('es-ES')}</p>}
             <div className="flex flex-wrap gap-2 pt-2">
               {compradorWaUrl && (
-                <a href={compradorWaUrl} target="_blank" rel="noopener noreferrer">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                <Button asChild size="sm" className="bg-green-600 hover:bg-green-700">
+                  <a href={compradorWaUrl} target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="w-4 h-4 mr-1" /> WhatsApp al comprador
-                  </Button>
-                </a>
-              )}
-              <a href={`mailto:${listing.reservado_por_email || listing.comprador_final_email}?subject=${encodeURIComponent('Mercadillo CD Bustarviejo: ' + listing.titulo)}`}>
-                <Button size="sm" variant="outline">
-                  <Mail className="w-4 h-4 mr-1" /> Enviar email
+                  </a>
                 </Button>
-              </a>
+              )}
+              <Button asChild size="sm" variant="outline">
+                <a href={`mailto:${listing.reservado_por_email || listing.comprador_final_email}?subject=${encodeURIComponent('Mercadillo CD Bustarviejo: ' + listing.titulo)}`}>
+                  <Mail className="w-4 h-4 mr-1" /> Enviar email
+                </a>
+              </Button>
             </div>
             <p className="pt-1 text-xs text-slate-500">Solo tú (el vendedor) y el club veis estos datos de contacto.</p>
             {listing.estado === 'reservado' && (
@@ -173,9 +173,9 @@ export default function MarketListingDetail() {
           </CardHeader>
           <CardContent className="space-y-3 text-slate-700 text-sm">
             <p>Para ver el teléfono y el email del vendedor, primero <span className="font-semibold">reserva el artículo</span>. Así el vendedor sabe quién está interesado y nadie recibe mensajes por sorpresa.</p>
-            <Link to={createPageUrl("Mercadillo")}>
-              <Button className="bg-orange-600 hover:bg-orange-700">🛒 Ir a reservar</Button>
-            </Link>
+            <Button asChild className="bg-orange-600 hover:bg-orange-700">
+              <Link to={createPageUrl("Mercadillo")}>🛒 Ir a reservar</Link>
+            </Button>
           </CardContent>
         </Card>
       ) : (

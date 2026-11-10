@@ -1604,11 +1604,11 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
 
                     {/* WhatsApp */}
                     {member.telefono && generateWhatsAppLink(member) && (
-                      <a href={generateWhatsAppLink(member)} target="_blank" rel="noopener noreferrer">
-                        <Button variant="outline" size="icon" title="WhatsApp">
+                      <Button asChild variant="outline" size="icon" title="WhatsApp">
+                        <a href={generateWhatsAppLink(member)} target="_blank" rel="noopener noreferrer">
                           <MessageCircle className="w-4 h-4 text-green-600" />
-                        </Button>
-                      </a>
+                        </a>
+                      </Button>
                     )}
 
                     {/* Ver justificante */}
@@ -1776,11 +1776,11 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                                   )}
                                 </Button>
                                 {member.telefono && generateWhatsAppLink(member) && (
-                                  <a href={generateWhatsAppLink(member)} target="_blank" rel="noopener noreferrer">
-                                    <Button size="sm" variant="outline">
+                                  <Button asChild size="sm" variant="outline">
+                                    <a href={generateWhatsAppLink(member)} target="_blank" rel="noopener noreferrer">
                                       <MessageCircle className="w-4 h-4 text-green-600" />
-                                    </Button>
-                                  </a>
+                                    </a>
+                                  </Button>
                                 )}
                               </div>
                             </div>
@@ -1865,11 +1865,11 @@ cdbustarviejo@gmail.com`
                               <h4 className="font-semibold text-slate-900">{member.nombre_completo}</h4>
                               <div className="text-sm text-slate-600 space-y-0.5 mt-1">
                                 <p>📧 {member.email} | 📱 {member.telefono}</p>
-                                <p className="text-xs">
+                                <div className="text-xs">
                                   Última temporada: <Badge variant="outline">{member.temporada}</Badge>
                                   {member.es_socio_externo && <Badge className="ml-2 bg-cyan-100">Externo</Badge>}
                                   {member.es_socio_padre && <Badge className="ml-2 bg-purple-100">Padre</Badge>}
-                                </p>
+                                </div>
                               </div>
                             </div>
                             
@@ -1887,11 +1887,11 @@ cdbustarviejo@gmail.com`
                                 )}
                               </Button>
                               {member.telefono && generateWhatsAppLink(member) && (
-                                <a href={generateWhatsAppLink(member)} target="_blank" rel="noopener noreferrer">
-                                  <Button size="sm" variant="outline">
+                                <Button asChild size="sm" variant="outline">
+                                  <a href={generateWhatsAppLink(member)} target="_blank" rel="noopener noreferrer">
                                     <MessageCircle className="w-4 h-4 text-green-600" />
-                                  </Button>
-                                </a>
+                                  </a>
+                                </Button>
                               )}
                             </div>
                           </div>

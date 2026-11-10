@@ -22,19 +22,13 @@ export default function TelegramChannelBanner() {
   if (!visible) return null;
 
   return (
+    <div className="relative">
     <a
       href={TELEGRAM_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className="block bg-gradient-to-r from-[#229ED9] to-[#0088cc] rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99] relative overflow-hidden"
+      className="block bg-gradient-to-r from-[#229ED9] to-[#0088cc] rounded-2xl p-4 shadow-lg hover:shadow-xl transition-all hover:scale-[1.01] active:scale-[0.99] overflow-hidden"
     >
-      <button
-        onClick={handleDismiss}
-        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white"
-        aria-label="Cerrar"
-      >
-        <X className="w-4 h-4" />
-      </button>
       <div className="flex items-center gap-3 pr-8">
         <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
           <Send className="w-6 h-6 text-white" />
@@ -49,5 +43,13 @@ export default function TelegramChannelBanner() {
         </div>
       </div>
     </a>
+      <button
+        onClick={handleDismiss}
+        className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-white"
+        aria-label="Cerrar"
+      >
+        <X className="w-4 h-4" />
+      </button>
+    </div>
   );
 }

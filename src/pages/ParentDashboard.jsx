@@ -480,12 +480,12 @@ export default function ParentDashboard() {
         {/* Móvil: botones rápidos */}
         <div className="lg:hidden flex items-center gap-1.5 w-full">
           <SocialLinks />
-          <Link to={createPageUrl("Chatbot")} className="flex-shrink-0">
-            <Button size="sm" className="bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 px-2.5">
+          <Button asChild size="sm" className="flex-shrink-0 bg-gradient-to-r from-indigo-600 to-purple-700 hover:from-indigo-700 hover:to-purple-800 px-2.5">
+            <Link to={createPageUrl("Chatbot")}>
               <Sparkles className="w-4 h-4 mr-1" />
               IA
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <div className="flex-1 min-w-0">
             <MainSponsorBadge />
           </div>
@@ -524,9 +524,9 @@ export default function ParentDashboard() {
                     <p className="text-xs text-green-800">Tienes {pendingInactivePlayers.length} jugador(es) pendientes de renovar</p>
                   </div>
                 </div>
-                <Link to={createPageUrl('ParentPlayers')}>
-                  <Button className="bg-green-600 hover:bg-green-700 text-white">Renovar ahora</Button>
-                </Link>
+                <Button asChild className="bg-green-600 hover:bg-green-700 text-white">
+                  <Link to={createPageUrl('ParentPlayers')}>Renovar ahora</Link>
+                </Button>
               </div>
             </CardContent>
           </Card>

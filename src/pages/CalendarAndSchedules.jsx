@@ -795,12 +795,12 @@ export default function CalendarAndSchedules() {
                     <p className="text-base font-bold text-slate-900 sm:text-lg">Campo Municipal de Bustarviejo</p>
                   </div>
                 </div>
-                <a href={UBICACION_MAPS_URL} target="_blank" rel="noopener noreferrer">
-                  <Button className="w-full rounded-xl bg-orange-600 shadow-sm hover:bg-orange-700 sm:w-auto">
+                <Button asChild className="w-full rounded-xl bg-orange-600 shadow-sm hover:bg-orange-700 sm:w-auto">
+                  <a href={UBICACION_MAPS_URL} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="w-4 h-4 mr-2" />
                     Ver en Google Maps
-                  </Button>
-                </a>
+                  </a>
+                </Button>
               </div>
             </CardContent>
           </Card>

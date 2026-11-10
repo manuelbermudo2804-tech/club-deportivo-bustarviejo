@@ -491,9 +491,9 @@ export default function OnboardingPreview() {
           </h1>
           <p className="text-sm text-slate-600">Vista temporal para admin — así ves las pantallas que recorre un nuevo usuario</p>
         </div>
-        <Link to={createPageUrl("Home")}>
-          <Button variant="outline" size="sm"><Home className="w-4 h-4 mr-1" /> Volver</Button>
-        </Link>
+        <Button asChild variant="outline" size="sm">
+          <Link to={createPageUrl("Home")}><Home className="w-4 h-4 mr-1" /> Volver</Link>
+        </Button>
       </div>
 
       {/* Screen navigator */}

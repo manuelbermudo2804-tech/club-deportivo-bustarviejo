@@ -82,9 +82,9 @@ export default function InstalarApp() {
                 <p className="text-sm text-green-800 mt-1">
                   Rellena el formulario de solicitud y el club te enviará tu código de acceso.
                 </p>
-                <a href="/SolicitarAcceso" className="inline-block mt-3">
-                  <Button className="bg-green-600 hover:bg-green-700">Solicitar acceso</Button>
-                </a>
+                <Button asChild className="mt-3 bg-green-600 hover:bg-green-700">
+                  <a href="/SolicitarAcceso">Solicitar acceso</a>
+                </Button>
               </div>
             </div>
           </CardContent>

@@ -35,12 +35,12 @@ export default function MerchSection({ merchUrl }) {
                   </p>
                 </div>
               </div>
-              <a href={merchUrl} target="_blank" rel="noopener noreferrer" className="block">
-                <Button size="lg" className="w-full bg-orange-600 hover:bg-orange-700 gap-2 text-base font-semibold">
+              <Button asChild size="lg" className="w-full bg-orange-600 hover:bg-orange-700 gap-2 text-base font-semibold">
+                <a href={merchUrl} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="w-5 h-5" />
                   Ir a la tienda de merchandising
-                </Button>
-              </a>
+                </a>
+              </Button>
             </div>
           ) : (
             <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-center">

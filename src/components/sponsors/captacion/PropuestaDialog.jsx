@@ -70,15 +70,15 @@ export default function PropuestaDialog({ sponsor, onClose, onSent }) {
               <Textarea rows={12} value={p.email} onChange={e => setP({ ...p, email: e.target.value })} />
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" onClick={() => copiar(`${p.asunto}\n\n${p.email}`)}><Copy className="w-4 h-4 mr-1" />Copiar email</Button>
-                <a href={`mailto:${sponsor.contacto_email || ""}?subject=${encodeURIComponent(p.asunto)}&body=${encodeURIComponent(p.email)}`}>
-                  <Button size="sm"><Mail className="w-4 h-4 mr-1" />Abrir en mi correo</Button>
-                </a>
+                <Button asChild size="sm">
+                  <a href={`mailto:${sponsor.contacto_email || ""}?subject=${encodeURIComponent(p.asunto)}&body=${encodeURIComponent(p.email)}`}><Mail className="w-4 h-4 mr-1" />Abrir en mi correo</a>
+                </Button>
               </div>
               <Textarea rows={5} value={p.whatsapp} onChange={e => setP({ ...p, whatsapp: e.target.value })} />
               <div className="flex flex-wrap gap-2">
-                <a href={`https://wa.me/${tel.length === 9 ? "34" + tel : tel}?text=${encodeURIComponent(p.whatsapp)}`} target="_blank" rel="noreferrer">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700"><MessageCircle className="w-4 h-4 mr-1" />Enviar por WhatsApp</Button>
-                </a>
+                <Button asChild size="sm" className="bg-green-600 hover:bg-green-700">
+                  <a href={`https://wa.me/${tel.length === 9 ? "34" + tel : tel}?text=${encodeURIComponent(p.whatsapp)}`} target="_blank" rel="noreferrer"><MessageCircle className="w-4 h-4 mr-1" />Enviar por WhatsApp</a>
+                </Button>
                 <Button size="sm" variant="outline" onClick={() => enviada("confirmación manual")}><CheckCircle2 className="w-4 h-4 mr-1" />Confirmar que ya la he enviado</Button>
               </div>
             </>

@@ -269,11 +269,11 @@ export default function JuniorMailbox() {
       <div className="max-w-lg mx-auto p-4 space-y-4 pb-24">
         {/* Header */}
         <div className="flex items-center gap-3">
-          <Link to={createPageUrl("MinorDashboard")}>
-            <Button variant="ghost" size="icon" className="rounded-full">
+          <Button asChild variant="ghost" size="icon" className="rounded-full">
+            <Link to={createPageUrl("MinorDashboard")}>
               <ArrowLeft className="w-5 h-5" />
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <div className="flex-1">
             <h1 className="text-xl font-black text-slate-900 flex items-center gap-2">
               ✉️ Mi Buzón

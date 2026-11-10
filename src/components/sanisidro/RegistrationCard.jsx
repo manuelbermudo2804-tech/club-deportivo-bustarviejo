@@ -63,11 +63,11 @@ export default function RegistrationCard({ reg, onDelete }) {
 
         <div className="flex items-center gap-2 pt-1">
           {phone && (
-            <a href={`https://wa.me/34${phone}`} target="_blank" rel="noreferrer" className="flex-1">
-              <Button size="sm" variant="outline" className="w-full h-8 text-xs gap-1 border-green-500 text-green-700 hover:bg-green-50">
+            <Button asChild size="sm" variant="outline" className="flex-1 w-full h-8 text-xs gap-1 border-green-500 text-green-700 hover:bg-green-50">
+              <a href={`https://wa.me/34${phone}`} target="_blank" rel="noreferrer">
                 <MessageCircle className="w-3 h-3" /> WhatsApp
-              </Button>
-            </a>
+              </a>
+            </Button>
           )}
           <Button
             size="sm"

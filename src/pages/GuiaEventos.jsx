@@ -34,13 +34,13 @@ export default function GuiaEventos() {
         </CardHeader>
         <CardContent className="pt-2">
           <Step n="1" title="Crea la landing del evento (opcional pero recomendado)">
-            <p>Ve a <Badge variant="outline">Constructor de Páginas</Badge> y crea una nueva landing con el formulario de inscripción, info, precio, etc.</p>
+            <div>Ve a <Badge variant="outline">Constructor de Páginas</Badge> y crea una nueva landing con el formulario de inscripción, info, precio, etc.</div>
             <p className="text-xs text-slate-500">Te dará una URL del tipo <code className="bg-slate-100 px-1 rounded">/l/torneo-padel-2026</code>.</p>
             <p>👉 Si el evento NO necesita inscripción online (ej: un comunicado), salta este paso.</p>
           </Step>
 
           <Step n="2" title="Ve a Anuncios y crea uno nuevo">
-            <p>Menú lateral → <Badge variant="outline">Anuncios</Badge> → botón <strong>Nuevo Anuncio</strong>.</p>
+            <div>Menú lateral → <Badge variant="outline">Anuncios</Badge> → botón <strong>Nuevo Anuncio</strong>.</div>
             <ul className="list-disc pl-5 space-y-1">
               <li><strong>Título:</strong> corto y vendedor (ej: "🎾 Torneo de Pádel 2026")</li>
               <li><strong>Contenido:</strong> 2-3 líneas con lo esencial</li>

@@ -64,11 +64,11 @@ export default function CentroContenido() {
               <p className="mt-1 text-sm text-slate-300">Fotos y vídeos enviados por entrenadores, delegados y familias</p>
             </div>
           </div>
-          <Link to="/SocialHub" className="shrink-0">
-            <Button size="sm" className="w-full gap-2 rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700 sm:w-auto">
+          <Button asChild size="sm" className="shrink-0 w-full gap-2 rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700 sm:w-auto">
+            <Link to="/SocialHub">
               <Share2 className="h-4 w-4" /> Ir a publicar
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
 
