@@ -440,14 +440,20 @@ async function syncCategory(config, cookies, base44, temporada) {
         console.log(`[SCORERS] ${cat}: ${scorers.length} scorers (attempt ${scorerAttempts})`);
         if (scorers.length) {
           // Incluir registros históricos sin campo competicion (equivalen a Liga).
-          const oldRaw = await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada }));
+          const oldRaw = await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada }, '-updated_date', 5000));
           const old = oldRaw.filter(r => (r.competicion || 'Liga') === competition);
-          if (old.length) await batchDelete(base44.asServiceRole.entities.Goleador, old);
+          // Borrado y alta en bloque (uno a uno se agotaba el tiempo y quedaban listas a medias)
+          for (let i = 0; i < old.length; i += 200) {
+            const ids = old.slice(i, i + 200).map(o => o.id);
+            await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.deleteMany({ id: { $in: ids } }), `Sc del ${cat}`);
+          }
           const records = scorers.map((s, i) => ({
             temporada, categoria: cat, competicion: competition, jugador_nombre: s.jugador, equipo: s.equipo,
             goles: s.goles, posicion: i + 1, fecha_actualizacion: new Date().toISOString(),
           }));
-          await batchCreate(base44.asServiceRole.entities.Goleador, records, `Sc ${cat}`);
+          for (let i = 0; i < records.length; i += 100) {
+            await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.bulkCreate(records.slice(i, i + 100)), `Sc ${cat} ${i}`);
+          }
           result.scorers = { players: scorers.length };
         } else {
           // 0 scorers could mean bad page — retry
