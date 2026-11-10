@@ -17,9 +17,10 @@ export function getGrupoCategoria(categoria = '') {
   return 'medianos';
 }
 
-// Baloncesto es indoor: fuera del sistema
+// Baloncesto y Fútbol Sala entrenan en instalaciones cubiertas: fuera del sistema meteorológico.
 export function esIndoor(categoria = '') {
-  return categoria.toLowerCase().includes('baloncesto');
+  const c = categoria.toLowerCase();
+  return c.includes('baloncesto') || c.includes('fútbol sala') || c.includes('futbol sala');
 }
 
 export const DEFAULT_UMBRALES = {
