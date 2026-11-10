@@ -268,6 +268,8 @@ export default function Payments() {
       const paymentsToCreate = planData.cuotas.map(cuota => ({
         jugador_id: planData.jugador_id,
         jugador_nombre: planData.jugador_nombre,
+        email_padre: planPlayer?.email_padre || planData.familia_email || "",
+        email_tutor_2: planPlayer?.email_tutor_2 || "",
         categoria_actividad: planActivities.length === 1 ? planActivities[0] : planData.categoria_actividad || "",
         tipo_pago: "Plan Especial",
         mes: `Cuota ${cuota.numero}`,
