@@ -28,6 +28,8 @@ export default function LoteriaNavidad() {
       return res.data;
     },
     refetchInterval: 60000,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
   // Metadatos específicos para buscadores y para compartir esta página pública.
