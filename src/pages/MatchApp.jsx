@@ -107,44 +107,29 @@ export default function MatchApp() {
                 </div>
               </CardHeader>
               <CardContent className="space-y-2">
-                <a 
-                  href={team.links.calendario} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="block"
-                >
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 shadow-lg">
+                <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 shadow-lg">
+                  <a href={team.links.calendario} target="_blank" rel="noopener noreferrer">
                     <Calendar className="w-4 h-4 mr-2" />
                     Calendario - Resultados - Jornadas
                     <ExternalLink className="w-3 h-3 ml-auto" />
-                  </Button>
-                </a>
+                  </a>
+                </Button>
 
-                <a 
-                  href={team.links.clasificacion} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="block"
-                >
-                  <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 shadow-lg">
+                <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 shadow-lg">
+                  <a href={team.links.clasificacion} target="_blank" rel="noopener noreferrer">
                     <TrendingUp className="w-4 h-4 mr-2" />
                     Clasificación
                     <ExternalLink className="w-3 h-3 ml-auto" />
-                  </Button>
-                </a>
+                  </a>
+                </Button>
 
-                <a 
-                  href={team.links.goleadores} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="block"
-                >
-                  <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 shadow-lg">
+                <Button asChild className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 shadow-lg">
+                  <a href={team.links.goleadores} target="_blank" rel="noopener noreferrer">
                     <Target className="w-4 h-4 mr-2" />
                     Goleadores
                     <ExternalLink className="w-3 h-3 ml-auto" />
-                  </Button>
-                </a>
+                  </a>
+                </Button>
               </CardContent>
             </Card>
           ))}
@@ -155,16 +140,12 @@ export default function MatchApp() {
             <p className="text-sm text-slate-600 mb-3">
               ¿No encuentras lo que buscas? Visita la página general del club
             </p>
-            <a 
-              href="https://www.rffm.es/fichaclub/4095" 
-              target="_blank" 
-              rel="noopener noreferrer"
-            >
-              <Button variant="outline" className="font-semibold">
+            <Button asChild variant="outline" className="font-semibold">
+              <a href="https://www.rffm.es/fichaclub/4095" target="_blank" rel="noopener noreferrer">
                 Página General CD Bustarviejo
                 <ExternalLink className="w-4 h-4 ml-2" />
-              </Button>
-            </a>
+              </a>
+            </Button>
           </CardContent>
         </Card>
       </div>

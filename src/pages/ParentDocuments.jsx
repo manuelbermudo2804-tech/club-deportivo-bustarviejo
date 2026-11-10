@@ -159,17 +159,12 @@ export default function ParentDocuments() {
                 </div>
 
                 {document.archivo_url && (
-                  <a
-                    href={document.archivo_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block"
-                  >
-                    <Button className="w-full bg-orange-600 hover:bg-orange-700">
+                  <Button asChild className="w-full bg-orange-600 hover:bg-orange-700">
+                    <a href={document.archivo_url} target="_blank" rel="noopener noreferrer">
                       <Download className="w-4 h-4 mr-2" />
                       Descargar Documento
-                    </Button>
-                  </a>
+                    </a>
+                  </Button>
                 )}
 
                 {document.enlace_firma_externa && !document.archivo_url && (
