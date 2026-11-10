@@ -1,1650 +1,201 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import StripeCotejoPanel from "@/components/financial/stripe/StripeCotejoPanel";
-import { 
-  CreditCard, ShoppingBag, Users, TrendingUp, TrendingDown, 
-  Download, Euro, Clover, Building2, DollarSign, FileText,
-  Calendar, CheckCircle2, Clock, AlertCircle, HelpCircle, BarChart3, Sparkles, Plus,
-  PieChart, Target, Award, Heart, Settings, RefreshCw, ExternalLink, AlertTriangle, Calculator
-} from "lucide-react";
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart as RePieChart, Pie, Cell } from "recharts";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import jsPDF from "jspdf";
-import { format } from "date-fns";
-import { es } from "date-fns/locale";
-import { Link } from "react-router-dom";
-import { createPageUrl } from "@/utils";
+import { Home, ArrowLeftRight, Calculator, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 
-import BudgetManager from "../components/financial/BudgetManager";
-import SeasonBudgetDashboard from "../components/financial/SeasonBudgetDashboard";
-import BudgetPlanner from "./BudgetPlanner";
-import FinancialAuditCenter from "../components/financial/FinancialAuditCenter";
-import TransactionList from "../components/financial/TransactionList";
-import TransactionForm from "../components/financial/TransactionForm";
-import AIFinancialForecasting from "../components/financial/AIFinancialForecasting";
-import TopDebtorsPanel from "../components/financial/TopDebtorsPanel.jsx";
-import MonthlyEvolutionChart from "../components/financial/MonthlyEvolutionChart.jsx";
-import CategoryBreakdown from "../components/financial/CategoryBreakdown.jsx";
-import FinancialAlerts from "../components/financial/FinancialAlerts.jsx";
-import SeasonComparison from "../components/financial/SeasonComparison.jsx";
-import IncomeDistributionPie from "../components/financial/IncomeDistributionPie.jsx";
-import EndOfSeasonForecast from "../components/financial/EndOfSeasonForecast.jsx";
-import FinancialGoalsTracker from "../components/financial/FinancialGoalsTracker.jsx";
-import FinancialHealthIndicator from "../components/financial/FinancialHealthIndicator.jsx";
-import AutomaticMorosidadAlert from "../components/financial/AutomaticMorosidadAlert.jsx";
-import SolidarityFundWidget from "../components/financial/SolidarityFundWidget.jsx";
+import TransactionForm from "@/components/financial/TransactionForm";
+import AIFinancialForecasting from "@/components/financial/AIFinancialForecasting";
+import SeasonComparison from "@/components/financial/SeasonComparison.jsx";
+import HoyTab from "@/components/financial/panel/HoyTab";
+import MovimientosTab from "@/components/financial/panel/MovimientosTab";
+import PresupuestoTab from "@/components/financial/panel/PresupuestoTab";
+import InformesTab from "@/components/financial/panel/InformesTab";
+import { computeFinanceStats, makeGetImportePorMes, seasonMatches } from "@/components/financial/panel/financeStats";
+import { exportFinancePDF, exportFinanceCSV, exportTransactionsCSV } from "@/components/financial/panel/financeExports";
 
-import BankAccountManager from "../components/financial/BankAccountManager.jsx";
-import CategoryProfitability from "../components/financial/CategoryProfitability.jsx";
-import RetentionAnalysis from "../components/financial/RetentionAnalysis.jsx";
-import CashFlowAnalysis from "../components/financial/CashFlowAnalysis.jsx";
-import FinancialRatios from "../components/financial/FinancialRatios.jsx";
-import SeasonalityAnalysis from "../components/financial/SeasonalityAnalysis.jsx";
-import RecurringCommitmentsManager from "../components/financial/RecurringCommitmentsManager.jsx";
-import CashPositionForecast from "../components/financial/CashPositionForecast.jsx";
-import { getPaymentCollected, getPaymentOutstanding } from "@/components/payments/paymentHelpers";
-import { Input } from "@/components/ui/input";
+// Compatibilidad con enlaces antiguos (?tab=bancario, ?tab=presupuestos...)
+const OLD_TABS = {
+  resumen: ["hoy"], bancario: ["movimientos", "banco"], transacciones: ["movimientos", "movimientos"], stripe: ["movimientos", "stripe"],
+  presupuestos: ["presupuesto", "actual"], presupuesto2728: ["presupuesto", "siguiente"], tesoreria: ["presupuesto", "caja"], analisis: ["informes"],
+};
+const initialTab = () => {
+  const tab = new URLSearchParams(window.location.search).get("tab");
+  return OLD_TABS[tab] || (tab ? [tab] : ["hoy"]);
+};
+
+const TABS = [
+  { value: "hoy", label: "Hoy", icon: Home },
+  { value: "movimientos", label: "Movimientos", icon: ArrowLeftRight },
+  { value: "presupuesto", label: "Presupuesto", icon: Calculator },
+  { value: "informes", label: "Informes", icon: BarChart3 },
+];
+
+const useList = (key, entity, sort) => useQuery({
+  queryKey: [key],
+  queryFn: () => base44.entities[entity].list(sort),
+  staleTime: 120000,
+  refetchOnWindowFocus: false,
+});
 
 export default function TreasurerFinancialPanel() {
-  const [user, setUser] = useState(null);
-  const [activeSeason, setActiveSeason] = useState(null);
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState("resumen");
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const tab = params.get('tab');
-    if (tab) setActiveTab(tab);
-  }, []);
-  const [activeAnalysisTab, setActiveAnalysisTab] = useState("rentabilidad");
+  const [[startTab, startView]] = useState(initialTab);
+  const [activeTab, setActiveTab] = useState(startTab);
   const [showAddTransaction, setShowAddTransaction] = useState(false);
   const [showAIForecasting, setShowAIForecasting] = useState(false);
   const [budgetPlanForAI, setBudgetPlanForAI] = useState(null);
-  const [generatingPDF, setGeneratingPDF] = useState(false);
-  const [timeFilter, setTimeFilter] = useState("all");
-  const [generatingExcel, setGeneratingExcel] = useState(false);
   const [showSeasonComparison, setShowSeasonComparison] = useState(false);
-  const [isDownloadingBudgetExcel, setIsDownloadingBudgetExcel] = useState(false);
-  const [isImportingBudgetExcel, setIsImportingBudgetExcel] = useState(false);
+  const [user, setUser] = useState(null);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const currentUser = await base44.auth.me();
-        setUser(currentUser);
-      } catch (error) {
-        console.error("Error fetching user:", error);
-      }
-    };
-    fetchUser();
-  }, []);
+  useEffect(() => { base44.auth.me().then(setUser); }, []);
 
-  const { data: seasonConfigs = [] } = useQuery({
-    queryKey: ['seasons'],
-    queryFn: () => base44.entities.SeasonConfig.list(),
-    staleTime: 600000, // 10 minutos
-    refetchOnWindowFocus: false,
-  });
+  const { data: allSeasons = [] } = useList("seasons", "SeasonConfig");
+  const { data: payments = [] } = useList("payments", "Payment");
+  const { data: players = [] } = useList("players", "Player");
+  const { data: lotteryOrders = [] } = useList("lotteryOrders", "LotteryOrder");
+  const { data: clubMembers = [] } = useList("clubMembers", "ClubMember");
+  const { data: sponsors = [] } = useList("sponsors", "Sponsor");
+  const { data: customPlans = [] } = useList("customPaymentPlans", "CustomPaymentPlan");
+  const { data: budgets = [] } = useList("budgets", "Budget", "-created_date");
+  const { data: transactions = [] } = useList("transactions", "FinancialTransaction", "-fecha");
 
-  useEffect(() => {
-    const active = seasonConfigs.find(s => s.activa === true);
-    setActiveSeason(active);
-  }, [seasonConfigs]);
+  const activeSeason = allSeasons.find((s) => s.activa === true) || null;
+  const currentBudget = budgets.find((b) => activeSeason && seasonMatches(b.temporada, activeSeason.temporada)) || null;
+  // Incluye los movimientos sin temporada para que no queden ocultos
+  const seasonTransactions = transactions.filter((t) => !activeSeason || !t.temporada || seasonMatches(t.temporada, activeSeason.temporada));
 
-  const { data: payments = [] } = useQuery({
-    queryKey: ['payments'],
-    queryFn: () => base44.entities.Payment.list(),
-    staleTime: 60000, // 1 minuto
-    refetchOnWindowFocus: false,
-  });
+  const stats = useMemo(
+    () => computeFinanceStats({ activeSeason, payments, lotteryOrders, clubMembers, sponsors, transactions }),
+    [activeSeason, payments, lotteryOrders, clubMembers, sponsors, transactions]
+  );
+  const getImportePorMes = useMemo(() => makeGetImportePorMes(activeSeason, payments), [activeSeason, payments]);
 
-  const { data: players = [] } = useQuery({
-    queryKey: ['players'],
-    queryFn: () => base44.entities.Player.list(),
-    staleTime: 300000, // 5 minutos
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: clothingOrders = [] } = useQuery({
-    queryKey: ['clothingOrders'],
-    queryFn: () => base44.entities.ClothingOrder.list(),
-    staleTime: 120000, // 2 minutos
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: lotteryOrders = [] } = useQuery({
-    queryKey: ['lotteryOrders'],
-    queryFn: () => base44.entities.LotteryOrder.list(),
-    staleTime: 120000, // 2 minutos
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: clubMembers = [] } = useQuery({
-    queryKey: ['clubMembers'],
-    queryFn: () => base44.entities.ClubMember.list(),
-    staleTime: 300000, // 5 minutos
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: sponsors = [] } = useQuery({
-    queryKey: ['sponsors'],
-    queryFn: () => base44.entities.Sponsor.list(),
-    staleTime: 600000, // 10 minutos
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: customPlans = [] } = useQuery({
-    queryKey: ['customPaymentPlans'],
-    queryFn: () => base44.entities.CustomPaymentPlan.list(),
-    staleTime: 120000, // 2 minutos
-    refetchOnWindowFocus: false,
-  });
-
-  const { data: allSeasons = [] } = useQuery({
-    queryKey: ['allSeasons'],
-    queryFn: () => base44.entities.SeasonConfig.list(),
-  });
-
-  // Cargar presupuestos y transacciones solo si se activa su pestaña
-  const { data: budgets = [] } = useQuery({
-    queryKey: ['budgets'],
-    queryFn: () => base44.entities.Budget.list('-created_date'),
-    staleTime: 300000, // 5 minutos
-    enabled: activeTab === "presupuestos" || activeTab === "transacciones" || activeTab === "analisis",
-  });
-
-  const { data: transactions = [] } = useQuery({
-    queryKey: ['transactions'],
-    queryFn: () => base44.entities.FinancialTransaction.list('-fecha'),
-    staleTime: 120000, // 2 minutos
-    enabled: activeTab === "transacciones" || activeTab === "presupuestos" || activeTab === "analisis",
-  });
-
-  const currentBudget = useMemo(() => {
-    if (!activeSeason || budgets.length === 0) return null;
-    const normalizeSeason = (value) => String(value || "").replace(/[^\d]/g, "");
-    return budgets.find(b => normalizeSeason(b.temporada) === normalizeSeason(activeSeason.temporada)) || null;
-  }, [activeSeason, budgets]);
-
-  // Función para obtener importe por mes según temporada activa
-  const getImportePorMes = (_deporte, mes) => {
-    // 1) Preferir cuota fraccionada definida en temporada
-    if (activeSeason && Number(activeSeason.cuota_tres_meses) > 0) {
-      return Number(activeSeason.cuota_tres_meses);
+  const afterTransactionChange = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    if (currentBudget?.id) {
+      await base44.functions.invoke("updateBudgetExecuted", { budgetId: currentBudget.id }).catch(() => {});
+      await queryClient.invalidateQueries({ queryKey: ["budgets"] });
     }
-
-    // 2) Inferir desde pagos reales de la temporada (modo/valor más frecuente)
-    const normalizeSeasonKey = (s) => (s ? String(s).replace(/[^\d]/g, "") : "");
-    const seasonMatches = (a, b) => {
-      if (!a || !b) return false;
-      return normalizeSeasonKey(a) === normalizeSeasonKey(b);
-    };
-    const monthPayments = (payments || []).filter(p => 
-      seasonMatches(p.temporada, activeSeason?.temporada) &&
-      p.mes === mes &&
-      !(p.tipo_pago === 'Único' || p.tipo_pago === 'único')
-    );
-    const cantidades = monthPayments.map(p => Number(p.cantidad || 0)).filter(v => v > 0);
-    if (cantidades.length > 0) {
-      const freq = {};
-      let bestVal = 0, best = 0;
-      cantidades.forEach(v => {
-        const k = Math.round(v);
-        freq[k] = (freq[k] || 0) + 1;
-        if (freq[k] > best) { best = freq[k]; bestVal = k; }
-      });
-      return bestVal;
-    }
-
-    // 3) Derivar de cuota única si existe (dividir entre 3)
-    if (activeSeason && Number(activeSeason.cuota_unica) > 0) {
-      return Number(activeSeason.cuota_unica) / 3;
-    }
-
-    // 4) Último recurso: 0
-    return 0;
   };
 
-  // Normaliza temporadas ("2024-2025" vs "2024/2025") y utilidades de temporada
-  const normalizeSeasonKey = (s) => (s ? String(s).replace(/[^\d]/g, "") : "");
-  const seasonMatches = (a, b) => {
-    if (!a || !b) return false;
-    return normalizeSeasonKey(a) === normalizeSeasonKey(b);
-  };
-  const isInSeason = (dateStr, season) => {
-    if (!dateStr || !season) return false;
-    const d = new Date(dateStr);
-    const start = season?.fecha_inicio ? new Date(season.fecha_inicio) : null;
-    const end = season?.fecha_fin ? new Date(season.fecha_fin) : null;
-    if (start && end) return d >= start && d <= end;
-    return true; // si no hay fechas configuradas, no filtramos
-  };
-
-  const recalculateCurrentBudget = async () => {
-    if (!currentBudget?.id) return;
-    try {
-      await base44.functions.invoke("updateBudgetExecuted", { budgetId: currentBudget.id });
-    } catch (error) {
-      // El movimiento ya se ha guardado; la actualización del ejecutado puede hacerse desde Presupuestos.
-      console.warn("No se pudo recalcular automáticamente el presupuesto:", error?.message || error);
-    }
-    await queryClient.invalidateQueries({ queryKey: ["budgets"] });
-  };
-
-  const createBudgetMutation = useMutation({
-    mutationFn: (data) => base44.entities.Budget.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      toast.success("Presupuesto creado");
-    },
-  });
-
-  const updateBudgetMutation = useMutation({
-    mutationFn: ({ id, data }) => base44.entities.Budget.update(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      toast.success("Presupuesto actualizado");
-    },
-  });
-
-  const deleteBudgetMutation = useMutation({
-    mutationFn: (id) => base44.entities.Budget.delete(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['budgets'] });
-      toast.success("Presupuesto eliminado");
-    },
-    onError: () => toast.error("No se pudo eliminar el presupuesto"),
-  });
-
-  const createTransactionMutation = useMutation({
+  const createTransaction = useMutation({
     mutationFn: (data) => base44.entities.FinancialTransaction.create(data),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      await recalculateCurrentBudget();
+      await afterTransactionChange();
       setShowAddTransaction(false);
-      toast.success("Movimiento financiero registrado");
+      toast.success("Movimiento registrado");
     },
-    onError: (error) => {
-      console.error("Error creando movimiento financiero:", error);
-      toast.error("No se pudo guardar el movimiento. Revisa los datos e inténtalo de nuevo.");
-    },
+    onError: () => toast.error("No se pudo guardar el movimiento. Revisa los datos e inténtalo de nuevo."),
   });
 
-  const deleteTransactionMutation = useMutation({
+  const deleteTransaction = useMutation({
     mutationFn: (id) => base44.entities.FinancialTransaction.delete(id),
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['transactions'] });
-      await recalculateCurrentBudget();
-      toast.success("Movimiento eliminado");
-    },
+    onSuccess: async () => { await afterTransactionChange(); toast.success("Movimiento eliminado"); },
     onError: () => toast.error("No se pudo eliminar el movimiento"),
   });
 
-  const handleDeleteTransaction = (id) => {
-    if (!id) return;
-    if (typeof window !== "undefined" && !window.confirm("¿Quieres eliminar este movimiento financiero? Esta acción no se puede deshacer.")) return;
-    deleteTransactionMutation.mutate(id);
+  const handleDelete = (id) => {
+    if (id && window.confirm("¿Quieres eliminar este movimiento? Esta acción no se puede deshacer.")) deleteTransaction.mutate(id);
   };
-
-  const handleExportTransactions = (rows = transactions) => {
-    if (!rows?.length) {
-      toast.info("No hay movimientos para exportar");
-      return;
-    }
-    const columns = [
-      ["fecha", "Fecha"], ["tipo", "Tipo"], ["concepto", "Concepto"],
-      ["categoria", "Categoría"], ["subcategoria", "Subcategoría"],
-      ["proveedor_cliente", "Proveedor/Cliente"], ["numero_factura", "Nº factura"],
-      ["cantidad", "Importe (€)"], ["estado", "Estado"], ["metodo_pago", "Método de pago"],
-      ["temporada", "Temporada"], ["notas", "Notas"]
-    ];
-    const escapeCsv = (value) => {
-      const text = value == null ? "" : String(value);
-      return '"' + text.replace(/"/g, '""') + '"';
-    };
-    const csv = "\uFEFF" + [
-      columns.map(([, label]) => escapeCsv(label)).join(";"),
-      ...rows.map(row => columns.map(([key]) => escapeCsv(row[key])).join(";"))
-    ].join("\r\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `movimientos-financieros-${activeSeason?.temporada || "club"}.csv`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
-    toast.success(`Exportados ${rows.length} movimientos`);
-  };
-
-  const handleCreateBudget = () => {
-    if (!activeSeason) {
-      toast.error("No hay temporada activa");
-      return;
-    }
-    // Partidas base por defecto (ingresos y gastos)
-    if (budgets.some(b => seasonMatches(b.temporada, activeSeason.temporada))) {
-      toast.info("Ya existe un presupuesto para esta temporada");
-      return;
-    }
-    const defaultPartidas = [
-      // INGRESOS
-      { id: `p_${Date.now()}_1`, nombre: 'Inscripciones Jugadores', categoria: 'Ingresos', presupuestado: 0, ejecutado: 0 },
-      { id: `p_${Date.now()}_2`, nombre: 'Cuotas Socios', categoria: 'Ingresos', presupuestado: 0, ejecutado: 0 },
-      { id: `p_${Date.now()}_3`, nombre: 'Patrocinios', categoria: 'Ingresos', presupuestado: 0, ejecutado: 0 },
-      { id: `p_${Date.now()}_4`, nombre: 'Lotería Navidad', categoria: 'Ingresos', presupuestado: 0, ejecutado: 0 },
-      { id: `p_${Date.now()}_5`, nombre: 'Venta Equipación', categoria: 'Ingresos', presupuestado: 0, ejecutado: 0 },
-      { id: `p_${Date.now()}_6`, nombre: 'Subvenciones', categoria: 'Ingresos', presupuestado: 0, ejecutado: 0 },
-      // GASTOS
-      { id: `p_${Date.now()}_7`, nombre: 'Arbitrajes', categoria: 'Gastos Variables', presupuestado: 0, ejecutado: 0 },
-      { id: `p_${Date.now()}_8`, nombre: 'Instalaciones', categoria: 'Gastos Fijos', presupuestado: 0, ejecutado: 0 },
-      { id: `p_${Date.now()}_9`, nombre: 'Material Deportivo', categoria: 'Gastos Variables', presupuestado: 0, ejecutado: 0 },
-      { id: `p_${Date.now()}_10`, nombre: 'Viajes', categoria: 'Gastos Variables', presupuestado: 0, ejecutado: 0 },
-      { id: `p_${Date.now()}_11`, nombre: 'Publicidad y Redes', categoria: 'Gastos Variables', presupuestado: 0, ejecutado: 0 },
-    ];
-
-    createBudgetMutation.mutate({
-      temporada: activeSeason.temporada,
-      nombre: `Presupuesto ${activeSeason.temporada}`,
-      partidas: defaultPartidas
-    });
-  };
-
-  const handleUpdateBudget = (data) => {
-    if (!currentBudget) return;
-    updateBudgetMutation.mutate({
-      id: currentBudget.id,
-      data
-    });
-  };
-
-  // Cálculos financieros - Memoizados para mejor rendimiento
-  const stats = useMemo(() => {
-    if (!activeSeason) return {
-      cuotasPagadas: 0, cuotasPendientes: 0, cuotasPendientesCount: 0, cuotasVencidas: 0, cuotasVencidasCount: 0, cuotasEnRevision: 0,
-      ropaTotal: 0, ropaPagada: 0, ropaPendiente: 0,
-      loteriaTotal: 0, loteriaPagada: 0, loteriaPendiente: 0,
-      sociosTotal: 0, sociosPagados: 0, sociosPendientes: 0,
-      patrociniosTotal: 0
-    };
-
-    const currentSeasonPayments = payments.filter(p => seasonMatches(p.temporada, activeSeason.temporada) && p.is_deleted !== true);
-    const currentSeasonPlayers = players.filter(p => p.activo === true);
-    const currentSeasonClothing = clothingOrders.filter(o => seasonMatches(o.temporada, activeSeason.temporada) || (!o.temporada && isInSeason(o.created_date, activeSeason)));
-    const currentSeasonLottery = lotteryOrders.filter(o => seasonMatches(o.temporada, activeSeason.temporada) || (!o.temporada && isInSeason(o.created_date, activeSeason)));
-    const currentSeasonMembers = clubMembers.filter(m => seasonMatches(m.temporada, activeSeason.temporada));
-    const currentSeasonPlans = customPlans.filter(p => seasonMatches(p.temporada, activeSeason.temporada));
-
-    // FUENTE ÚNICA PARA CUOTAS PENDIENTES: pagos reales de la temporada en estado Pendiente.
-    // El importe y el número de cuotas se obtienen del mismo conjunto de registros.
-    const pendingQuotaPayments = currentSeasonPayments.filter(p => p.estado === "Pendiente");
-    const totalPendiente = pendingQuotaPayments.reduce((sum, p) => sum + getPaymentOutstanding(p), 0);
-    const pendingQuotaCount = pendingQuotaPayments.length;
-    // Una cuota se considera vencida cuando su mes de pago ya ha pasado dentro de la temporada.
-    // Calendario de referencia de la temporada: junio, septiembre, diciembre, marzo y otros meses indicados en Payment.mes.
-    const monthNumbers = { enero: 1, febrero: 2, marzo: 3, abril: 4, mayo: 5, junio: 6, julio: 7, agosto: 8, septiembre: 9, setiembre: 9, octubre: 10, noviembre: 11, diciembre: 12 };
-    const now = new Date();
-    const currentMonthNumber = now.getMonth() + 1;
-    const currentYear = now.getFullYear();
-    const seasonStartYear = Number(String(activeSeason.temporada).match(/20\d{2}/)?.[0]) || currentYear;
-    const seasonMonthIndex = (monthNumber) => monthNumber >= 6 ? { year: seasonStartYear, month: monthNumber } : { year: seasonStartYear + 1, month: monthNumber };
-    const pendingOverduePayments = pendingQuotaPayments.filter(payment => {
-      const monthName = String(payment.mes || "").trim().toLocaleLowerCase("es-ES");
-      const monthNumber = monthNumbers[monthName];
-      if (!monthNumber) return false; // Sin mes de vencimiento no se puede afirmar que esté vencida.
-      const due = seasonMonthIndex(monthNumber);
-      return due.year < currentYear || (due.year === currentYear && due.month < currentMonthNumber);
-    });
-    const overdueAmount = pendingOverduePayments.reduce((sum, payment) => sum + getPaymentOutstanding(payment), 0);
-
-    return {
-      cuotasPagadas: currentSeasonPayments.reduce((sum, p) => sum + getPaymentCollected(p), 0),
-      cuotasPendientes: totalPendiente,
-      cuotasPendientesCount: pendingQuotaCount,
-      cuotasVencidas: overdueAmount,
-      cuotasVencidasCount: pendingOverduePayments.length,
-      cuotasEnRevision: currentSeasonPayments.filter(p => p.estado === "En revisión").reduce((sum, p) => sum + (p.cantidad || 0), 0),
-      
-      ropaTotal: 0,
-      ropaPagada: 0,
-      ropaPendiente: 0,
-      
-      loteriaTotal: currentSeasonLottery.reduce((sum, o) => sum + (o.total || 0), 0),
-      loteriaPagada: currentSeasonLottery.filter(o => o.pagado === true).reduce((sum, o) => sum + (o.total || 0), 0),
-      loteriaPendiente: currentSeasonLottery.filter(o => o.pagado === false).reduce((sum, o) => sum + (o.total || 0), 0),
-      
-      // Solo cuentan los socios pagados EXTERNAMENTE (Stripe, transferencia, bizum).
-      // Los socios-padre automáticos (origen_pago='socio_padre_auto' o es_socio_padre=true)
-      // se excluyen porque sus 25€ ya están contados dentro de la cuota del jugador,
-      // y contarlos otra vez duplicaría el ingreso en el panel financiero.
-      sociosTotal: currentSeasonMembers.filter(m => m.activo !== false && m.es_socio_padre !== true && m.origen_pago !== 'socio_padre_auto').reduce((sum, m) => sum + (m.cuota_socio || m.cuota_pagada || 0), 0),
-      sociosPagados: currentSeasonMembers.filter(m => m.estado_pago === "Pagado" && m.es_socio_padre !== true && m.origen_pago !== 'socio_padre_auto').reduce((sum, m) => sum + ((m.cuota_pagada || m.cuota_socio || 0)), 0),
-      sociosPendientes: currentSeasonMembers.filter(m => m.estado_pago !== "Pagado" && m.es_socio_padre !== true && m.origen_pago !== 'socio_padre_auto').reduce((sum, m) => sum + (m.cuota_socio || 0), 0),
-      
-      patrociniosTotal: sponsors
-        .filter(s => s.activo === true && isInSeason(s.fecha_inicio, activeSeason))
-        .reduce((sum, s) => sum + (Number(s.precio_anual) || 0), 0),
-    };
-  }, [activeSeason, payments, players, clothingOrders, lotteryOrders, clubMembers, sponsors, customPlans]);
-
-  // TOTALES CORREGIDOS
-  const totalIngresos = stats.cuotasPagadas + stats.loteriaPagada + stats.sociosPagados + stats.patrociniosTotal;
-  const totalPendiente = stats.cuotasPendientes + stats.loteriaPendiente + stats.sociosPendientes;
-  const totalEsperado = totalIngresos + totalPendiente + stats.cuotasEnRevision;
-  // Total de cuotas de jugadores separado del resumen global (socios, lotería y patrocinios).
-  const totalCuotasJugadores = stats.cuotasPagadas + stats.cuotasEnRevision + stats.cuotasPendientes;
-  const jugadoresActivosTemporada = players.filter(p => p.activo === true).length;
-
-  // Datos para gráficos
-  const chartData = useMemo(() => {
-    return [
-      { name: 'Cuotas', Cobrado: stats.cuotasPagadas, Pendiente: stats.cuotasPendientes, EnRevision: stats.cuotasEnRevision },
-      { name: 'Lotería', Cobrado: stats.loteriaPagada, Pendiente: stats.loteriaPendiente, EnRevision: 0 },
-      { name: 'Socios', Cobrado: stats.sociosPagados, Pendiente: stats.sociosPendientes, EnRevision: 0 },
-      { name: 'Patrocinios', Cobrado: stats.patrociniosTotal, Pendiente: 0, EnRevision: 0 },
-    ];
-  }, [stats]);
-
-  const pieData = useMemo(() => [
-    { name: 'Cuotas', value: stats.cuotasPagadas, color: '#3b82f6' },
-    { name: 'Lotería', value: stats.loteriaPagada, color: '#22c55e' },
-    { name: 'Socios', value: stats.sociosPagados, color: '#6366f1' },
-    { name: 'Patrocinios', value: stats.patrociniosTotal, color: '#a855f7' },
-  ], [stats]);
-
-  const handleExportPDF = async () => {
-    setGeneratingPDF(true);
-    try {
-      const doc = new jsPDF();
-      
-      // Header
-      doc.setFontSize(20);
-      doc.text('Informe Financiero - CD Bustarviejo', 20, 20);
-      doc.setFontSize(12);
-      doc.text(`Temporada: ${activeSeason?.temporada || 'N/A'}`, 20, 30);
-      doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')}`, 20, 37);
-      
-      // Resumen Global
-      doc.setFontSize(14);
-      doc.text('Resumen Global', 20, 50);
-      doc.setFontSize(10);
-      let y = 60;
-      doc.text(`Total Ingresos Cobrados: ${totalIngresos.toFixed(2)}€`, 25, y);
-      y += 7;
-      doc.text(`Total Pendiente de Cobro: ${totalPendiente.toFixed(2)}€`, 25, y);
-      y += 7;
-      doc.text(`Total Esperado: ${totalEsperado.toFixed(2)}€`, 25, y);
-      y += 15;
-      
-      // Desglose
-      doc.setFontSize(14);
-      doc.text('Desglose por Conceptos', 20, y);
-      y += 10;
-      doc.setFontSize(10);
-      doc.text(`Cuotas: Cobradas ${stats.cuotasPagadas.toFixed(2)}€ | Pendientes ${stats.cuotasPendientes.toFixed(2)}€`, 25, y);
-      y += 7;
-      doc.text(`Ropa: Cobrada ${stats.ropaPagada.toFixed(2)}€ | Pendiente ${stats.ropaPendiente.toFixed(2)}€`, 25, y);
-      y += 7;
-      doc.text(`Lotería: Cobrada ${stats.loteriaPagada.toFixed(2)}€ | Pendiente ${stats.loteriaPendiente.toFixed(2)}€`, 25, y);
-      y += 7;
-      doc.text(`Socios: Cobrados ${stats.sociosPagados.toFixed(2)}€ | Pendientes ${stats.sociosPendientes.toFixed(2)}€`, 25, y);
-      y += 7;
-      doc.text(`Patrocinios: ${stats.patrociniosTotal.toFixed(2)}€`, 25, y);
-      
-      doc.save(`informe_financiero_${activeSeason?.temporada || 'actual'}.pdf`);
-      toast.success("PDF descargado correctamente");
-    } catch (error) {
-      toast.error("Error al generar PDF");
-      console.error(error);
-    } finally {
-      setGeneratingPDF(false);
-    }
-  };
-
-  const handleDownloadBudgetExcel = async () => {
-    setIsDownloadingBudgetExcel(true);
-    try {
-      const { data } = await base44.functions.invoke('downloadBudgetExcel', {
-        budgetId: currentBudget?.id
-      });
-      
-      if (data?.file_url) {
-        const link = document.createElement('a');
-        link.href = data.file_url;
-        link.download = `Presupuesto_${currentBudget.nombre}_${currentBudget.temporada}.xlsx`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        toast.success('✅ Presupuesto descargado como Excel');
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Error al descargar el presupuesto');
-    } finally {
-      setIsDownloadingBudgetExcel(false);
-    }
-  };
-
-  const handleImportBudgetExcel = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !currentBudget) return;
-
-    setIsImportingBudgetExcel(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      const result = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url,
-        json_schema: {
-          type: "object",
-          properties: {
-            partidas: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  nombre: { type: "string" },
-                  categoria: { type: "string" },
-                  presupuestado: { type: "number" },
-                  ejecutado: { type: "number" }
-                }
-              }
-            }
-          }
-        }
-      });
-
-      if (result.status === "success" && result.output?.partidas?.length > 0) {
-        const importedPartidas = result.output.partidas.map((p, idx) => ({
-          id: `partida_import_${Date.now()}_${idx}`,
-          nombre: p.nombre,
-          categoria: p.categoria,
-          presupuestado: p.presupuestado || 0,
-          ejecutado: p.ejecutado || 0
-        }));
-        
-        await base44.entities.Budget.update(currentBudget.id, { partidas: importedPartidas });
-        await queryClient.invalidateQueries({ queryKey: ['budgets'] });
-        toast.success(`✅ ${importedPartidas.length} partidas importadas`);
-      }
-    } catch (error) {
-      console.error('Error:', error);
-      toast.error('Error al importar Excel');
-    } finally {
-      setIsImportingBudgetExcel(false);
-      e.target.value = '';
-    }
-  };
-
-  const handleExportExcel = async () => {
-    setGeneratingExcel(true);
-    try {
-      // Crear CSV con todos los datos
-      let csv = "Concepto,Categoria,Jugadores,Esperado,Cobrado,Pendiente,En Revision,Tasa Cobro\n";
-      
-      // Resumen general
-      csv += `RESUMEN GENERAL,Todas,${players.filter(p => p.activo).length},${totalEsperado.toFixed(2)},${totalIngresos.toFixed(2)},${totalPendiente.toFixed(2)},${stats.cuotasEnRevision.toFixed(2)},${(totalEsperado > 0 ? ((totalIngresos / totalEsperado) * 100) : 0).toFixed(1)}%\n`;
-      csv += "\n";
-      
-      // Por concepto
-      csv += `Cuotas,Jugadores,-,${(stats.cuotasPagadas + stats.cuotasPendientes + stats.cuotasEnRevision).toFixed(2)},${stats.cuotasPagadas.toFixed(2)},${stats.cuotasPendientes.toFixed(2)},${stats.cuotasEnRevision.toFixed(2)},-\n`;
-      csv += `Ropa,Equipación,-,${stats.ropaTotal.toFixed(2)},${stats.ropaPagada.toFixed(2)},${stats.ropaPendiente.toFixed(2)},0,-\n`;
-      csv += `Lotería,Navidad,-,${stats.loteriaTotal.toFixed(2)},${stats.loteriaPagada.toFixed(2)},${stats.loteriaPendiente.toFixed(2)},0,-\n`;
-      csv += `Socios,Membresía,-,${stats.sociosTotal.toFixed(2)},${stats.sociosPagados.toFixed(2)},${stats.sociosPendientes.toFixed(2)},0,-\n`;
-      csv += `Patrocinios,Comercial,-,${stats.patrociniosTotal.toFixed(2)},${stats.patrociniosTotal.toFixed(2)},0,0,-\n`;
-
-      // Descargar
-      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `informe_financiero_${activeSeason?.temporada || 'actual'}.csv`;
-      link.click();
-      URL.revokeObjectURL(url);
-      
-      toast.success("Excel descargado correctamente");
-    } catch (error) {
-      toast.error("Error al generar Excel");
-      console.error(error);
-    } finally {
-      setGeneratingExcel(false);
-    }
+  const handleExportTransactions = (rows = seasonTransactions) => {
+    if (!rows?.length) return toast.info("No hay movimientos para exportar");
+    exportTransactionsCSV(rows, activeSeason?.temporada);
   };
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+      <div className="flex min-h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-orange-600"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen w-full min-w-0 max-w-full overflow-x-hidden overflow-y-auto box-border p-3 sm:p-4 lg:p-8 space-y-4 sm:space-y-6 pb-28 [&_*]:min-w-0">
-      {/* Alerta automática de morosidad */}
-      <AutomaticMorosidadAlert 
-        totalIngresos={totalIngresos}
-        totalPendiente={totalPendiente}
-        totalEsperado={totalEsperado}
-      />
-
-      <div className="relative isolate overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-emerald-950 p-4 text-white shadow-xl sm:p-6 lg:p-8">
-        <div aria-hidden="true" className="pointer-events-none absolute -right-12 -top-20 h-64 w-64 rounded-full bg-emerald-500/20 blur-3xl" />
-        <div className="relative flex flex-col items-start justify-between gap-5 xl:flex-row xl:items-center">
-          <div className="w-full min-w-0">
-            <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-emerald-300"><span className="h-2 w-2 rounded-full bg-emerald-400" /> Administración · Finanzas</div>
-            <h1 className="break-words text-2xl font-bold tracking-tight text-white sm:text-3xl lg:text-4xl">Panel Financiero</h1>
-            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Control total de ingresos, gastos y presupuestos</p>
-            <div className="mt-3 flex flex-wrap gap-2">
-              {activeSeason && (
-                <Badge className="bg-green-100 text-green-700 border border-green-200">
-                  📅 {activeSeason.temporada}
-                </Badge>
-              )}
-              <Badge className="bg-orange-100 text-orange-700 border border-orange-200">
-                {players.filter(p => p.activo).length} jugadores activos
-              </Badge>
-            </div>
-          </div>
-          <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:w-auto xl:min-w-[420px]">
-            <Select value={timeFilter} onValueChange={setTimeFilter}>
-              <SelectTrigger className="h-11 w-full rounded-xl border-white/25 bg-slate-800 text-white">
-                <SelectValue placeholder="Período" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toda la temporada</SelectItem>
-                <SelectItem value="30">Últimos 30 días</SelectItem>
-                <SelectItem value="60">Últimos 60 días</SelectItem>
-                <SelectItem value="90">Últimos 90 días</SelectItem>
-                <SelectItem value="fiscal">Año fiscal</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button 
-              onClick={() => setShowSeasonComparison(true)}
-              variant="outline"
-              className="h-auto min-h-11 w-full justify-center whitespace-normal rounded-xl border-white/25 bg-white/10 px-3 py-2 text-center text-white shadow-sm hover:bg-white/20 hover:text-white"
-            >
-              <TrendingUp className="mr-2 h-4 w-4 shrink-0" />
-              Comparar Temporadas
-            </Button>
-            <Button 
-              onClick={handleExportPDF}
-              disabled={generatingPDF}
-              className="h-11 w-full justify-center rounded-xl bg-red-600 font-semibold text-white shadow-sm hover:bg-red-500 hover:text-white"
-            >
-              <Download className="w-4 h-4 mr-2" />
-              {generatingPDF ? 'Generando...' : 'PDF'}
-            </Button>
-            <Button 
-              onClick={handleExportExcel}
-              disabled={generatingExcel}
-              className="h-11 w-full justify-center rounded-xl bg-green-600 font-semibold text-white shadow-sm hover:bg-green-500 hover:text-white"
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              {generatingExcel ? 'Generando...' : 'Excel'}
-            </Button>
-            {(activeTab === "presupuestos" || activeTab === "presupuesto2728") && (
-              <Button 
-                onClick={() => setShowAIForecasting(true)}
-                className="h-11 w-full justify-center rounded-xl bg-purple-600 font-semibold text-white shadow-sm hover:bg-purple-500 hover:text-white"
-              >
-                <Sparkles className="w-4 h-4 mr-2" />
-                Análisis IA
-              </Button>
-            )}
-          </div>
+    <div className="mx-auto w-full max-w-7xl space-y-5 p-3 pb-28 sm:p-4 lg:p-8">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-900 sm:text-3xl">Panel Financiero</h1>
+          <p className="text-sm text-slate-500">Cómo está el dinero del club</p>
         </div>
+        {activeSeason && <Badge className="border border-green-200 bg-green-100 text-green-700">Temporada {activeSeason.temporada}</Badge>}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid h-auto w-full grid-cols-3 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:grid-cols-4 lg:grid-cols-8">
-          <TabsTrigger value="resumen" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <BarChart3 className="h-4 w-4 shrink-0" />
-            <span>Resumen</span>
-          </TabsTrigger>
-          <TabsTrigger value="analisis" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <TrendingUp className="h-4 w-4 shrink-0" />
-            <span>Análisis</span>
-          </TabsTrigger>
-          <TabsTrigger value="tesoreria" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <Calendar className="h-4 w-4 shrink-0" />
-            <span>Tesorería</span>
-          </TabsTrigger>
-          <TabsTrigger value="bancario" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <Building2 className="h-4 w-4 shrink-0" />
-            <span>Bancario</span>
-          </TabsTrigger>
-          <TabsTrigger value="presupuestos" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <Euro className="h-4 w-4 shrink-0" />
-            <span>Presup.</span>
-          </TabsTrigger>
-          <TabsTrigger value="presupuesto2728" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <Calculator className="h-4 w-4 shrink-0" />
-            <span>Presup. 27/28</span>
-          </TabsTrigger>
-          <TabsTrigger value="stripe" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <Euro className="h-4 w-4 shrink-0" />
-            <span>Stripe</span>
-          </TabsTrigger>
-          <TabsTrigger value="transacciones" className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-[10px] leading-tight sm:flex-row sm:gap-2 sm:px-3 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-            <FileText className="h-4 w-4 shrink-0" />
-            <span>Transacc.</span>
-          </TabsTrigger>
+        <TabsList className="grid h-auto w-full grid-cols-4 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm">
+          {TABS.map(({ value, label, icon: Icon }) => (
+            <TabsTrigger key={value} value={value} className="flex h-auto min-h-12 flex-col gap-1 rounded-xl px-1 py-2 text-xs sm:flex-row sm:gap-2 sm:text-sm data-[state=active]:bg-orange-600 data-[state=active]:text-white">
+              <Icon className="h-4 w-4 shrink-0" />
+              <span>{label}</span>
+            </TabsTrigger>
+          ))}
         </TabsList>
 
-        <TabsContent value="stripe" className="mt-6">
-          <StripeCotejoPanel />
+        <TabsContent value="hoy" className="mt-6">
+          <HoyTab stats={stats} activeSeason={activeSeason} payments={payments} />
         </TabsContent>
 
-        {/* TAB RESUMEN */}
-        <TabsContent value="resumen" className="space-y-6 mt-6">
-          {/* Indicador de Salud Financiera */}
-          <FinancialHealthIndicator 
-            totalIngresos={totalIngresos}
-            totalPendiente={totalPendiente}
-            totalEsperado={totalEsperado}
-            stats={stats}
+        <TabsContent value="movimientos" className="mt-6">
+          <MovimientosTab
+            initialView={startTab === "movimientos" ? startView : undefined}
+            activeSeason={activeSeason}
+            transactions={seasonTransactions}
+            onAdd={() => setShowAddTransaction(true)}
+            onDelete={handleDelete}
+            onExport={handleExportTransactions}
           />
+        </TabsContent>
 
-          {/* Alertas Financieras */}
-          <FinancialAlerts 
-            totalIngresos={totalIngresos}
-            totalPendiente={totalPendiente}
-            totalEsperado={totalEsperado}
-            stats={stats}
+        <TabsContent value="presupuesto" className="mt-6">
+          <PresupuestoTab
+            initialView={startTab === "presupuesto" ? startView : undefined}
+            activeSeason={activeSeason}
+            onScenarioChange={setBudgetPlanForAI}
+            onOpenAI={() => setShowAIForecasting(true)}
           />
+        </TabsContent>
 
-          {/* Posición de caja conectada con Bancario y Tesorería */}
-          <CashPositionForecast compact activeSeason={activeSeason} />
-
-          {/* Fondo Solidario de Becas (solo si está activo en la temporada) */}
-          <SolidarityFundWidget activeSeason={activeSeason} payments={payments} />
-
-          {/* Resumen Global - Rediseñado */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5 sm:gap-4">
-            {/* Total Ingresos */}
-            <Card className="border-none shadow-xl bg-gradient-to-br from-green-600 to-emerald-700 text-white overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-              <CardContent className="p-6 relative z-10">
-                <div className="flex items-center justify-between mb-3">
-                  <CheckCircle2 className="w-8 h-8 text-white/80" />
-                  <TrendingUp className="w-5 h-5 text-white/60" />
-                </div>
-                <p className="text-sm text-green-100 mb-1">Ingresos Cobrados</p>
-                <p className="text-4xl font-bold">{totalIngresos.toFixed(2)}€</p>
-                <div className="mt-3 pt-3 border-t border-white/20">
-                  <div className="flex items-center justify-between text-xs text-green-100">
-                    <span>Tasa de cobro:</span>
-                    <span className="font-bold">{totalEsperado > 0 ? ((totalIngresos / totalEsperado) * 100).toFixed(1) : 0}%</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Pendientes de Cobro */}
-            <Card className="border-none shadow-xl bg-gradient-to-br from-orange-600 to-red-600 text-white overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-              <CardContent className="p-6 relative z-10">
-                <div className="flex items-center justify-between mb-3">
-                  <Clock className="w-8 h-8 text-white/80" />
-                  <AlertCircle className="w-5 h-5 text-white/60" />
-                </div>
-                <p className="text-sm text-orange-100 mb-1 flex items-center gap-2">Cuotas pendientes de pago
-                  <HelpCircle
-                    className="w-4 h-4 text-white/80"
-                    title="Importe y número salen exactamente de los mismos registros Payment de la temporada activa con estado Pendiente. No se estiman mensualidades futuras ni se reconstruyen cuotas que no estén registradas."
-                  />
-                </p>
-                <p className="text-4xl font-bold">{stats.cuotasPendientes.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€</p>
-                <div className="mt-3 pt-3 border-t border-white/20">
-                  <p className="text-xs text-orange-100">
-                    {`${stats.cuotasPendientesCount || 0} cuotas pendientes registradas · ${stats.cuotasPendientes.toLocaleString("es-ES", { style: "currency", currency: "EUR" })}`}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Cuotas vencidas */}
-            <Card className="border-none shadow-xl bg-gradient-to-br from-rose-700 to-red-900 text-white overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-              <CardContent className="p-6 relative z-10">
-                <div className="flex items-center justify-between mb-3">
-                  <Clock className="w-8 h-8 text-white/80" />
-                  <AlertCircle className="w-5 h-5 text-white/60" />
-                </div>
-                <p className="text-sm text-rose-100 mb-1 flex items-center gap-2">Cuotas vencidas
-                  <HelpCircle className="w-4 h-4 text-white/80" title="Suma únicamente las cuotas que siguen pendientes y cuyo mes de vencimiento ya ha pasado. Las cuotas sin mes identificable no se clasifican como vencidas." />
-                </p>
-                <p className="text-4xl font-bold">{stats.cuotasVencidas.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}€</p>
-                <div className="mt-3 pt-3 border-t border-white/20">
-                  <p className="text-xs text-rose-100">{stats.cuotasVencidasCount || 0} cuotas pendientes con vencimiento pasado</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* En Revisión */}
-            <Card className="border-none shadow-xl bg-gradient-to-br from-yellow-500 to-amber-600 text-white overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-              <CardContent className="p-6 relative z-10">
-                <div className="flex items-center justify-between mb-3">
-                  <FileText className="w-8 h-8 text-white/80" />
-                  <TrendingUp className="w-5 h-5 text-white/60" />
-                </div>
-                <p className="text-sm text-yellow-100 mb-1">En Revisión</p>
-                <p className="text-4xl font-bold">{stats.cuotasEnRevision.toFixed(2)}€</p>
-                <div className="mt-3 pt-3 border-t border-white/20">
-                  <p className="text-xs text-yellow-100">
-                    {(() => {
-                      const currentSeasonPayments = payments.filter(p => seasonMatches(p.temporada, activeSeason?.temporada) && p.is_deleted !== true);
-                      return currentSeasonPayments.filter(p => p.estado === "En revisión").length;
-                    })()} pagos esperando validación
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Total Esperado */}
-            <Card className="border-none shadow-xl bg-gradient-to-br from-blue-600 to-indigo-700 text-white overflow-hidden relative">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
-              <CardContent className="p-6 relative z-10">
-                <div className="flex items-center justify-between mb-3">
-                  <DollarSign className="w-8 h-8 text-white/80" />
-                  <BarChart3 className="w-5 h-5 text-white/60" />
-                </div>
-                <p className="text-sm text-blue-100 mb-1">Total esperado · todos los ingresos</p>
-                <p className="text-4xl font-bold">{totalEsperado.toFixed(2)}€</p>
-                <div className="mt-3 pt-3 border-t border-white/20">
-                  <p className="text-xs text-blue-100">
-                    Cuotas, socios, patrocinios y lotería · temporada {activeSeason?.temporada || "actual"}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Desglose por Conceptos - Mejorado */}
-          <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
-            {/* Cuotas Jugadores */}
-            <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="bg-gradient-to-r from-blue-50 to-cyan-50 border-b">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                      <CreditCard className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">Cuotas de Jugadores</CardTitle>
-                      <p className="text-xs text-slate-500">Pagos de inscripción temporada</p>
-                    </div>
-                  </div>
-                  <Link to={createPageUrl("Payments")}>
-                    <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                      Ver detalle →
-                    </Button>
-                  </Link>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="mb-3 rounded-lg border border-blue-100 bg-blue-50 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <span className="text-sm text-slate-700">Total previsto de cuotas</span>
-                    <span className="text-lg font-bold text-blue-800">{totalCuotasJugadores.toFixed(2)}€</span>
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">{jugadoresActivosTemporada} jugadores activos · incluye pagos únicos, fraccionados, planes especiales y mensuales calculados por el sistema.</p>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                    <span className="text-sm text-slate-700">✅ Cobradas</span>
-                    <span className="text-lg font-bold text-green-700">{stats.cuotasPagadas.toFixed(2)}€</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-orange-50 rounded-lg">
-                    <span className="text-sm text-slate-700">⏳ En Revisión</span>
-                    <span className="text-lg font-bold text-orange-700">{stats.cuotasEnRevision.toFixed(2)}€</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                    <span className="text-sm text-slate-700">❌ Pendientes</span>
-                    <span className="text-lg font-bold text-red-700">{stats.cuotasPendientes.toFixed(2)}€</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Pedidos Ropa - Eliminado por externalización */}
-            {/*
-              <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50 border-b">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-orange-600 rounded-xl flex items-center justify-center">
-                      <ShoppingBag className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">Equipación</CardTitle>
-                      <p className="text-xs text-slate-500">Pedidos de ropa del club</p>
-                    </div>
-                  </div>
-
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                    <span className="text-sm text-slate-700">📦 Total Pedidos</span>
-                    <span className="text-lg font-bold text-slate-700">{stats.ropaTotal.toFixed(2)}€</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                    <span className="text-sm text-slate-700">✅ Cobrados</span>
-                    <span className="text-lg font-bold text-green-700">{stats.ropaPagada.toFixed(2)}€</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                    <span className="text-sm text-slate-700">❌ Pendientes</span>
-                    <span className="text-lg font-bold text-red-700">{stats.ropaPendiente.toFixed(2)}€</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Socios */}
-            <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="bg-gradient-to-r from-indigo-50 to-purple-50 border-b">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
-                      <Users className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">Cuotas de Socios</CardTitle>
-                      <p className="text-xs text-slate-500">Membresía anual del club</p>
-                    </div>
-                  </div>
-                  <Link to={createPageUrl("ClubMembersManagement")}>
-                    <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
-                      Ver detalle →
-                    </Button>
-                  </Link>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                    <span className="text-sm text-slate-700">📊 Total</span>
-                    <span className="text-lg font-bold text-slate-700">{stats.sociosTotal.toFixed(2)}€</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                    <span className="text-sm text-slate-700">✅ Cobradas</span>
-                    <span className="text-lg font-bold text-green-700">{stats.sociosPagados.toFixed(2)}€</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-red-50 rounded-lg">
-                    <span className="text-sm text-slate-700">❌ Pendientes</span>
-                    <span className="text-lg font-bold text-red-700">{stats.sociosPendientes.toFixed(2)}€</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Patrocinios */}
-            <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 border-b">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
-                      <Building2 className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">Patrocinios</CardTitle>
-                      <p className="text-xs text-slate-500">Colaboraciones comerciales</p>
-                    </div>
-                  </div>
-                  <Link to={createPageUrl("Sponsorships")}>
-                    <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
-                      Ver detalle →
-                    </Button>
-                  </Link>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-3">
-                  <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                    <span className="text-sm text-slate-700">🏢 Activos</span>
-                    <span className="text-lg font-bold text-purple-700">{sponsors.filter(s => s.activo === true).length}</span>
-                  </div>
-                  <div className="flex justify-between items-center p-3 bg-purple-100 rounded-lg">
-                    <span className="text-sm text-slate-700">💰 Total</span>
-                    <span className="text-2xl font-bold text-purple-900">{stats.patrociniosTotal.toFixed(2)}€</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Lotería (si está activa) */}
-          {activeSeason?.loteria_navidad_abierta && (
-            <Card className="border-none shadow-lg hover:shadow-xl transition-shadow">
-              <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 border-b">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
-                      <Clover className="w-5 h-5 text-white" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-lg">Lotería de Navidad</CardTitle>
-                      <p className="text-xs text-slate-500">Número 28720</p>
-                    </div>
-                  </div>
-                  <Link to={createPageUrl("LotteryManagement")}>
-                    <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                      Ver detalle →
-                    </Button>
-                  </Link>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                  <div className="flex flex-col items-center p-3 bg-slate-50 rounded-lg">
-                    <span className="text-xs text-slate-600 mb-1">Total</span>
-                    <span className="text-xl font-bold text-slate-700">{stats.loteriaTotal.toFixed(0)}€</span>
-                  </div>
-                  <div className="flex flex-col items-center p-3 bg-green-50 rounded-lg">
-                    <span className="text-xs text-slate-600 mb-1">Cobrados</span>
-                    <span className="text-xl font-bold text-green-700">{stats.loteriaPagada.toFixed(0)}€</span>
-                  </div>
-                  <div className="flex flex-col items-center p-3 bg-red-50 rounded-lg">
-                    <span className="text-xs text-slate-600 mb-1">Pendientes</span>
-                    <span className="text-xl font-bold text-red-700">{stats.loteriaPendiente.toFixed(0)}€</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Estadísticas de Jugadores */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="w-5 h-5 text-blue-600" />
-                Estado de Jugadores y Cuotas
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4 sm:gap-4">
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-blue-700">{players.filter(p => p.activo).length}</p>
-                  <p className="text-xs text-slate-600 mt-1">Jugadores Activos</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-green-700">
-                    {(() => {
-                      const currentSeasonPayments = payments.filter(p => seasonMatches(p.temporada, activeSeason?.temporada) && p.is_deleted !== true);
-                      return currentSeasonPayments.filter(p => p.estado === "Pagado").length;
-                    })()}
-                  </p>
-                  <p className="text-xs text-slate-600 mt-1">Pagos Confirmados</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-orange-700">
-                    {(() => {
-                      const currentSeasonPayments = payments.filter(p => seasonMatches(p.temporada, activeSeason?.temporada) && p.is_deleted !== true);
-                      return currentSeasonPayments.filter(p => p.estado === "En revisión").length;
-                    })()}
-                  </p>
-                  <p className="text-xs text-slate-600 mt-1">En Revisión</p>
-                </div>
-                <div className="text-center">
-                  <p className="text-2xl font-bold text-red-700">
-                    {(() => {
-                      if (!activeSeason) return 0;
-                      const currentSeasonPayments = payments.filter(p => seasonMatches(p.temporada, activeSeason.temporada) && p.is_deleted !== true);
-                      const currentSeasonPlayers = players.filter(p => p.activo === true);
-                      const currentSeasonPlans = customPlans.filter(p => seasonMatches(p.temporada, activeSeason.temporada));
-                      let cuotasPendientes = 0;
-                      
-                      currentSeasonPlayers.forEach(player => {
-                        const playerPayments = currentSeasonPayments.filter(p => p.jugador_id === player.id);
-                        
-                        // Verificar si tiene plan especial activo - PRIORIDAD MÁXIMA
-                        const playerActivePlan = currentSeasonPlans.find(p => 
-                          p.jugador_id === player.id && 
-                          p.estado === "Activo"
-                        );
-
-                        if (playerActivePlan && playerActivePlan.cuotas) {
-                          // PLAN ESPECIAL: Priorizar pagos registrados; si no hay, contar cuotas del plan no pagadas
-                          const planPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
-                          if (planPayments.length > 0) {
-                            const rank = (s) => (s === "Pagado" ? 3 : s === "En revisión" ? 2 : s === "Pendiente" ? 1 : 0);
-                              const byMes = {};
-                              planPayments.forEach(pp => {
-                                const key = pp.mes || String(pp.id);
-                                if (!byMes[key] || rank(pp.estado) > rank(byMes[key].estado)) {
-                                  byMes[key] = pp;
-                                }
-                              });
-                              const countPend = Object.values(byMes).filter(p => p.estado === "Pendiente").length;
-                            cuotasPendientes += countPend;
-                          } else {
-                            const cuotasPendientesPlan = playerActivePlan.cuotas.filter(c => c.pagada !== true).length;
-                            cuotasPendientes += cuotasPendientesPlan;
-                          }
-                        } else {
-                          // NO tiene plan especial - lógica estándar o pagos Plan Especial sin plan activo
-                          const planEspecialPayments = playerPayments.filter(p => p.tipo_pago === "Plan Especial");
-                          if (planEspecialPayments.length > 0) {
-                            const rank = (s) => (s === "Pagado" ? 3 : s === "En revisión" ? 2 : s === "Pendiente" ? 1 : 0);
-                            const byMes = {};
-                            planEspecialPayments.forEach(pp => {
-                              const key = pp.mes || String(pp.id);
-                              if (!byMes[key] || rank(pp.estado) > rank(byMes[key].estado)) {
-                                byMes[key] = pp;
-                              }
-                            });
-                            const countPend = Object.values(byMes).filter(p => p.estado === "Pendiente").length;
-                            cuotasPendientes += countPend;
-                          } else {
-                            // Plan Mensual
-                            const hasPlanMensual2 = playerPayments.some(p => p.tipo_pago === "Plan Mensual");
-                            if (hasPlanMensual2) {
-                              const pmInit2 = playerPayments.find(p => p.tipo_pago === "Plan Mensual" && p.mes === "Junio");
-                              const nMeses2 = pmInit2?.plan_mensual_meses || (() => { const m = pmInit2?.notas?.match(/(\d+)x [\d.]+€\/mes/); return m ? Number(m[1]) : 0; })();
-                              const totalExp2 = 1 + nMeses2;
-                              const totalPaid2 = playerPayments.filter(p => p.tipo_pago === "Plan Mensual" && p.estado === "Pagado").length;
-                              cuotasPendientes += Math.max(0, totalExp2 - totalPaid2);
-                            } else {
-                              const hasPagoUnico = playerPayments.some(p => 
-                                p.tipo_pago === "Único" || p.tipo_pago === "único"
-                              );
-                              if (hasPagoUnico) {
-                                const pagoUnicoPendiente = playerPayments.find(p => 
-                                  (p.tipo_pago === "Único" || p.tipo_pago === "único") && 
-                                  p.estado === "Pendiente"
-                                );
-                                if (pagoUnicoPendiente) cuotasPendientes += 1;
-                              } else {
-                                const mesesPagadosORevision = playerPayments
-                                  .filter(p => (p.estado === "Pagado" || p.estado === "En revisión"))
-                                  .map(p => p.mes);
-
-                                const allMonths = ["Junio", "Septiembre", "Diciembre"];
-                                const mesesFaltantes = allMonths.filter(mes => !mesesPagadosORevision.includes(mes));
-                                cuotasPendientes += mesesFaltantes.length;
-                              }
-                            }
-                          }
-                        }
-                      });
-                      
-                      return cuotasPendientes;
-                    })()}
-                  </p>
-                  <p className="text-xs text-slate-600 mt-1">Cuotas Pendientes</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Accesos Rápidos - Rediseñado */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-            <Link to={createPageUrl("Payments")}>
-              <div className="group bg-gradient-to-br from-blue-600 to-cyan-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
-                <div className="flex flex-col items-center text-white text-center">
-                  <CreditCard className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
-                  <p className="font-bold text-sm">Gestionar Pagos</p>
-                  <p className="text-xs text-blue-100 mt-1">Cuotas de inscripción</p>
-                </div>
-              </div>
-            </Link>
-            
-            <Link to={createPageUrl("ClubMembersManagement")}>
-              <div className="group bg-gradient-to-br from-indigo-600 to-purple-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
-                <div className="flex flex-col items-center text-white text-center">
-                  <Users className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
-                  <p className="font-bold text-sm">Socios</p>
-                  <p className="text-xs text-indigo-100 mt-1">Gestión membresía</p>
-                </div>
-              </div>
-            </Link>
-
-            {activeSeason?.loteria_navidad_abierta && (
-              <Link to={createPageUrl("LotteryManagement")}>
-                <div className="group bg-gradient-to-br from-green-600 to-emerald-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
-                  <div className="flex flex-col items-center text-white text-center">
-                    <Clover className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
-                    <p className="font-bold text-sm">Lotería</p>
-                    <p className="text-xs text-green-100 mt-1">Número 28720</p>
-                  </div>
-                </div>
-              </Link>
-            )}
-
-            <Link to={createPageUrl("PaymentHistory")}>
-              <div className="group bg-gradient-to-br from-slate-600 to-slate-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
-                <div className="flex flex-col items-center text-white text-center">
-                  <Calendar className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
-                  <p className="font-bold text-sm">Histórico</p>
-                  <p className="text-xs text-slate-200 mt-1">Pagos anteriores</p>
-                </div>
-              </div>
-            </Link>
-
-            <Link to={createPageUrl("PaymentReminders")}>
-              <div className="group bg-gradient-to-br from-yellow-600 to-amber-700 rounded-xl p-4 shadow-lg hover:shadow-2xl transition-all hover:scale-105 cursor-pointer">
-                <div className="flex flex-col items-center text-white text-center">
-                  <AlertCircle className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" />
-                  <p className="font-bold text-sm">Recordatorios</p>
-                  <p className="text-xs text-yellow-100 mt-1">Avisos de pago</p>
-                </div>
-              </div>
-            </Link>
-          </div>
-
-          {/* Gráficos de Análisis */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Gráfico de Barras */}
-            <Card className="border-none shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-orange-600" />
-                  Análisis por Concepto
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip formatter={(value) => `${value.toFixed(2)}€`} />
-                    <Legend />
-                    <Bar dataKey="Cobrado" fill="#22c55e" />
-                    <Bar dataKey="EnRevision" fill="#f59e0b" />
-                    <Bar dataKey="Pendiente" fill="#ef4444" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Gráfico Circular */}
-            <Card className="border-none shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <PieChart className="w-5 h-5 text-purple-600" />
-                  Distribución de Ingresos
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col items-center">
-                  <ResponsiveContainer width="100%" height={250}>
-                    <RePieChart>
-                      <Pie
-                        data={pieData.filter(d => d.value > 0)}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {pieData.filter(d => d.value > 0).map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        formatter={(value) => `${value.toLocaleString('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 })}€`}
-                        contentStyle={{ fontSize: 12 }}
-                      />
-                    </RePieChart>
-                  </ResponsiveContainer>
-                  
-                  {/* Leyenda personalizada compacta */}
-                  <div className="mt-4 grid w-full grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                    {pieData.filter(d => d.value > 0).map((item, index) => {
-                      const total = pieData.reduce((sum, d) => sum + d.value, 0);
-                      const percent = total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
-                      return (
-                        <div key={index} className="flex items-center gap-2 p-2 bg-slate-50 rounded-lg">
-                          <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium text-slate-700 truncate">{item.name}</p>
-                            <p className="text-xs text-slate-500">{percent}%</p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Métricas Avanzadas */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-cyan-50">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                    <Target className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600">Tasa de Cobro</p>
-                    <p className="text-2xl font-bold text-blue-900">
-                      {totalEsperado > 0 ? ((totalIngresos / totalEsperado) * 100).toFixed(1) : 0}%
-                    </p>
-                  </div>
-                </div>
-                <div className="w-full bg-slate-200 rounded-full h-2">
-                  <div 
-                    className="bg-gradient-to-r from-blue-600 to-cyan-600 h-2 rounded-full transition-all"
-                    style={{ width: `${totalEsperado > 0 ? ((totalIngresos / totalEsperado) * 100) : 0}%` }}
-                  ></div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-lg bg-gradient-to-br from-green-50 to-emerald-50">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center">
-                    <Award className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600">Ingreso Medio/Jugador</p>
-                    <p className="text-2xl font-bold text-green-900">
-                      {players.filter(p => p.activo).length > 0 
-                        ? (totalIngresos / players.filter(p => p.activo).length).toFixed(2) 
-                        : 0}€
-                    </p>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500">
-                  Total: {players.filter(p => p.activo).length} jugadores
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-lg bg-gradient-to-br from-purple-50 to-pink-50">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-white" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-slate-600">Morosidad</p>
-                    <p className="text-2xl font-bold text-purple-900">
-                      {totalEsperado > 0 ? ((totalPendiente / totalEsperado) * 100).toFixed(1) : 0}%
-                    </p>
-                  </div>
-                </div>
-                <p className="text-xs text-slate-500">
-                  {totalPendiente.toFixed(2)}€ sin cobrar
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Evolución Mensual */}
-          <MonthlyEvolutionChart 
+        <TabsContent value="informes" className="mt-6">
+          <InformesTab
+            stats={stats}
+            activeSeason={activeSeason}
+            allSeasons={allSeasons}
             payments={payments}
-            clothingOrders={clothingOrders}
+            players={players}
+            transactions={seasonTransactions}
             lotteryOrders={lotteryOrders}
             clubMembers={clubMembers}
             sponsors={sponsors}
-            activeSeason={activeSeason}
-          />
-
-          {/* Top Deudores */}
-          <TopDebtorsPanel 
-            players={players}
-            payments={payments}
-            activeSeason={activeSeason}
-            getImportePorMes={getImportePorMes}
             customPlans={customPlans}
-          />
-
-          {/* Desglose por Categorías */}
-          <CategoryBreakdown 
-            players={players}
-            payments={payments}
-            activeSeason={activeSeason}
             getImportePorMes={getImportePorMes}
+            onCompare={() => setShowSeasonComparison(true)}
+            onPDF={() => { exportFinancePDF(stats, activeSeason?.temporada); toast.success("PDF descargado"); }}
+            onCSV={() => { exportFinanceCSV(stats, activeSeason?.temporada); toast.success("Excel descargado"); }}
           />
-
-          {/* Predicción Fin de Temporada */}
-          <EndOfSeasonForecast 
-            totalIngresos={totalIngresos}
-            totalPendiente={totalPendiente}
-            totalEsperado={totalEsperado}
-            stats={stats}
-            activeSeason={activeSeason}
-            payments={payments}
-          />
-
-          {/* Sistema de Metas/Objetivos */}
-          <FinancialGoalsTracker 
-            totalIngresos={totalIngresos}
-            totalPendiente={totalPendiente}
-            totalEsperado={totalEsperado}
-            activeSeason={activeSeason}
-          />
-
-          {/* Información de Cuotas (Solo lectura) */}
-          {activeSeason && (
-            <Card className="border-2 border-slate-200">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Euro className="w-5 h-5 text-slate-600" />
-                  Cuotas Configuradas (Solo Lectura)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-slate-50 rounded-lg p-4">
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    <div>
-                      <p className="text-sm text-slate-600">Cuota Única</p>
-                      <p className="text-2xl font-bold text-slate-900">{activeSeason.cuota_unica}€</p>
-                      <p className="text-xs text-slate-500 mt-1">Pago único en Junio</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-600">Cuota Fraccionada</p>
-                      <p className="text-2xl font-bold text-slate-900">{activeSeason.cuota_tres_meses}€ <span className="text-sm text-slate-600">x 3</span></p>
-                      <p className="text-xs text-slate-500 mt-1">Jun + Sep + Dic = {activeSeason.cuota_tres_meses * 3}€</p>
-                    </div>
-                  </div>
-                  <div className="mt-4 bg-yellow-50 border border-yellow-300 rounded-lg p-3">
-                    <p className="text-xs text-yellow-800">
-                      <strong>ℹ️ Nota:</strong> Para modificar las cuotas o configuración de temporadas, contacta al administrador del club.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        {/* TAB ANÁLISIS AVANZADOS */}
-        <TabsContent value="analisis" className="space-y-6 mt-6">
-          <Tabs value={activeAnalysisTab} onValueChange={setActiveAnalysisTab}>
-            <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm min-[420px]:grid-cols-3 lg:grid-cols-5">
-              <TabsTrigger value="rentabilidad" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs font-medium leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-                <span className="inline">💰 Rentabilidad</span>
-              </TabsTrigger>
-              <TabsTrigger value="retencion" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs font-medium leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-                <span className="inline">🔄 Retención</span>
-              </TabsTrigger>
-              <TabsTrigger value="flujo" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs font-medium leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-                <span className="inline">📊 Flujo de caja</span>
-              </TabsTrigger>
-              <TabsTrigger value="ratios" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs font-medium leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-                <span className="inline">📈 Ratios</span>
-              </TabsTrigger>
-              <TabsTrigger value="estacionalidad" className="h-auto min-h-11 whitespace-normal rounded-xl px-2 py-2 text-xs font-medium leading-tight data-[state=active]:bg-orange-600 data-[state=active]:text-white">
-                <span className="inline">📅 Estacionalidad</span>
-              </TabsTrigger>
-            </TabsList>
-
-            {activeAnalysisTab === "rentabilidad" && (
-              <div className="mt-6">
-                <CategoryProfitability 
-                  payments={payments}
-                  transactions={transactions}
-                  players={players}
-                  activeSeason={activeSeason}
-                />
-              </div>
-            )}
-
-            {activeAnalysisTab === "retencion" && (
-              <div className="mt-6">
-                <RetentionAnalysis 
-                  allSeasons={allSeasons}
-                  allPlayers={players}
-                />
-              </div>
-            )}
-
-            {activeAnalysisTab === "flujo" && (
-              <div className="mt-6">
-                <CashFlowAnalysis 
-                  payments={payments}
-                  transactions={transactions}
-                  clothingOrders={clothingOrders}
-                  lotteryOrders={lotteryOrders}
-                  clubMembers={clubMembers}
-                  sponsors={sponsors}
-                  activeSeason={activeSeason}
-                />
-              </div>
-            )}
-
-            {activeAnalysisTab === "ratios" && (
-              <div className="mt-6">
-                <FinancialRatios 
-                  totalIngresos={totalIngresos}
-                  totalPendiente={totalPendiente}
-                  totalGastos={transactions.filter(t => t.tipo === "Gasto").reduce((sum, t) => sum + (t.cantidad || 0), 0)}
-                  stats={stats}
-                />
-              </div>
-            )}
-
-            {activeAnalysisTab === "estacionalidad" && (
-              <div className="mt-6">
-                <SeasonalityAnalysis 
-                  payments={payments}
-                  activeSeason={activeSeason}
-                />
-              </div>
-            )}
-          </Tabs>
-        </TabsContent>
-
-        {/* TAB TESORERÍA: compromisos recurrentes */}
-        <TabsContent value="tesoreria" className="space-y-6 mt-6">
-          <CashPositionForecast activeSeason={activeSeason} />
-          <RecurringCommitmentsManager />
-        </TabsContent>
-
-        {/* TAB BANCARIO */}
-        <TabsContent value="bancario" className="space-y-6 mt-6">
-          <Card className="overflow-hidden border-0 bg-gradient-to-r from-red-700 via-red-600 to-rose-600 text-white shadow-lg">
-            <CardContent className="flex flex-col items-start justify-between gap-4 p-5 sm:flex-row sm:items-center sm:p-6">
-              <div className="flex items-start gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 ring-1 ring-white/25">
-                  <Building2 className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold sm:text-xl">Santander Empresas</h3>
-                  <p className="mt-1 max-w-2xl text-sm text-white/90">Acceso directo a la banca online para descargar los extractos de la cuenta del club e importarlos después aquí para conciliarlos.</p>
-                  <p className="mt-2 text-xs text-white/75">Por seguridad, el acceso se abre en una pestaña nueva. La aplicación no guarda tus claves bancarias.</p>
-                </div>
-              </div>
-              <Button asChild className="shrink-0 bg-white font-semibold text-red-700 hover:bg-red-50">
-                <a href="https://empresas3.gruposantander.es/paas/loginnwe/" target="_blank" rel="noopener noreferrer">
-                  Abrir Santander <ExternalLink className="ml-2 h-4 w-4" />
-                </a>
-              </Button>
-            </CardContent>
-          </Card>
-          <BankAccountManager activeSeason={activeSeason} />
-        </TabsContent>
-
-        {/* TAB PRESUPUESTOS: reconstrucción dinámica desde las partidas y registros existentes. */}
-        <TabsContent value="presupuestos" className="mt-6 space-y-8">
-          <FinancialAuditCenter activeSeason={activeSeason} />
-          <SeasonBudgetDashboard activeSeason={activeSeason} />
-        </TabsContent>
-
-        <TabsContent value="presupuesto2728" className="mt-6 space-y-8">
-          <BudgetPlanner onScenarioChange={setBudgetPlanForAI} />
-        </TabsContent>
-
-        {/* TAB TRANSACCIONES */}
-        <TabsContent value="transacciones" className="space-y-6 mt-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>📊 Registro de Transacciones</CardTitle>
-                <Button 
-                  onClick={() => setShowAddTransaction(true)}
-                  className="bg-orange-600 hover:bg-orange-700"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Añadir Transacción
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="mb-4 rounded-lg border border-blue-100 bg-blue-50 p-3 text-sm text-blue-900">
-                Este es el registro financiero central. Los movimientos nuevos del banco se incorporan aquí cuando no corresponden a una cuota ya registrada. <strong>No vuelvas a añadir manualmente una operación que ya se haya importado.</strong> Las categorías provisionales aparecen marcadas para que puedas revisarlas.
-              </div>
-              <TransactionList
-                transactions={transactions.filter(t => !activeSeason || seasonMatches(t.temporada, activeSeason.temporada))}
-                onDelete={handleDeleteTransaction}
-                onExport={handleExportTransactions}
-              />
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
 
-      {/* Dialog: Nueva Transacción */}
       <Dialog open={showAddTransaction} onOpenChange={setShowAddTransaction}>
         <DialogContent className="max-h-[90vh] max-w-4xl overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Nueva Transacción</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Nuevo movimiento</DialogTitle></DialogHeader>
           <TransactionForm
             partidas={currentBudget?.partidas || []}
             temporada={activeSeason?.temporada || ""}
-            onSubmit={(data) => createTransactionMutation.mutate(data)}
+            onSubmit={(data) => createTransaction.mutate(data)}
             onCancel={() => setShowAddTransaction(false)}
-            isSubmitting={createTransactionMutation.isPending}
+            isSubmitting={createTransaction.isPending}
           />
         </DialogContent>
       </Dialog>
 
-      {/* Dialog: Análisis IA Avanzado */}
-      <AIFinancialForecasting
-        open={showAIForecasting}
-        onClose={() => setShowAIForecasting(false)}
-        budgetPlan={budgetPlanForAI}
-      />
+      <AIFinancialForecasting open={showAIForecasting} onClose={() => setShowAIForecasting(false)} budgetPlan={budgetPlanForAI} />
 
-      {/* Dialog: Comparación Temporadas */}
       {showSeasonComparison && (
-        <SeasonComparison 
-          open={showSeasonComparison}
-          onClose={() => setShowSeasonComparison(false)}
-          currentSeason={activeSeason}
-          allSeasons={allSeasons}
-        />
+        <SeasonComparison open={showSeasonComparison} onClose={() => setShowSeasonComparison(false)} currentSeason={activeSeason} allSeasons={allSeasons} />
       )}
-
     </div>
   );
 }
