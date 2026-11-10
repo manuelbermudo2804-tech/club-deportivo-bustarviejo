@@ -15,7 +15,18 @@ Deno.serve(async (req) => {
     const comercios = await base44.asServiceRole.entities.LoteriaComercio.filter({ activo: true });
     comercios.sort((a, b) => (a.orden || 0) - (b.orden || 0));
 
-    return Response.json({ campana, comercios }, { status: 200 });
+    // Décimos que quedan en TuLotero (dato público de la peña de empresa)
+    let tulotero = null;
+    try {
+      const codigo = (campana.tulotero_url || 'cdb26').split('/').filter(Boolean).pop();
+      const r = await fetch(`https://web-backend.es.tulotero.net/tuloteroweb/rest/loteriaEmpresas/${codigo}`, { headers: { Accept: 'application/json' } });
+      if (r.ok) {
+        const penya = (await r.json())?.penyas?.[0];
+        if (penya) tulotero = { restantes: penya.participacionesRestantes, total: penya.numeroParticipaciones };
+      }
+    } catch (_) { /* si TuLotero no responde, la página se muestra igual */ }
+
+    return Response.json({ campana, comercios, tulotero }, { status: 200 });
   } catch (error) {
     return Response.json({ error: error.message }, { status: 500 });
   }

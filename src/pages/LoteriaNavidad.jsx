@@ -87,6 +87,12 @@ export default function LoteriaNavidad() {
           </div>
           <p className="mb-2 text-xs font-black uppercase tracking-[0.16em]">🎟️ Lotería de Navidad · CD Bustarviejo</p>
           <h2 className="text-2xl font-black leading-tight sm:text-3xl">¡Quedan muy pocos décimos en los comercios!</h2>
+          {typeof data?.tulotero?.restantes === "number" && (
+            <div className="mx-auto mt-4 inline-flex flex-col items-center rounded-2xl bg-red-950 px-6 py-3 text-amber-300 shadow-lg">
+              <span className="text-4xl font-black leading-none sm:text-5xl">{data.tulotero.restantes}</span>
+              <span className="mt-1 text-xs font-black uppercase tracking-[0.14em] text-amber-200">décimos disponibles online</span>
+            </div>
+          )}
           <p className="mx-auto mt-3 max-w-lg text-sm font-semibold leading-relaxed sm:text-base">Si todavía no tienes el tuyo, aún puedes conseguirlo online. ¡Colabora con el club y no te quedes sin lotería!</p>
           <div className="mx-auto mt-4 max-w-lg rounded-2xl border border-red-950/15 bg-white/45 px-4 py-3 text-sm leading-relaxed shadow-sm sm:text-base">
             <p className="font-black">🧡 Tu décimo también ayuda al club</p>
