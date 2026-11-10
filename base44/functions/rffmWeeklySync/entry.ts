@@ -213,25 +213,30 @@ async function retryOnRateLimit(fn, label = '', maxRetries = 3) {
   }
 }
 
+// Borrado en bloque (uno a uno agotaba el tiempo y dejaba listas a medias)
 async function batchDelete(entity, items) {
-  // Safety: ensure items is an array
   const arr = Array.isArray(items) ? items : (items?.results || items?.items || []);
-  if (!arr.length) return;
-  // Smaller batches (4) with longer pauses (1.5s) to avoid Base44 rate limits
-  for (let i = 0; i < arr.length; i += 4) {
-    const batch = arr.slice(i, i + 4);
-    await retryOnRateLimit(() => Promise.all(batch.map(o => entity.delete(o.id))), `del ${i}`);
-    if (i + 4 < arr.length) await sleep(1500);
+  for (let i = 0; i < arr.length; i += 200) {
+    const ids = arr.slice(i, i + 200).map(o => o.id);
+    await retryOnRateLimit(() => entity.deleteMany({ id: { $in: ids } }), `del ${i}`);
   }
 }
 
 async function batchCreate(entity, records, label = '') {
-  // Smaller batches (10) with longer pauses (1.5s) to avoid Base44 rate limits
-  for (let i = 0; i < records.length; i += 10) {
-    const batch = records.slice(i, i + 10);
-    await retryOnRateLimit(() => entity.bulkCreate(batch), `${label} ${i}`);
-    if (i + 10 < records.length) await sleep(1500);
+  for (let i = 0; i < records.length; i += 100) {
+    await retryOnRateLimit(() => entity.bulkCreate(records.slice(i, i + 100)), `${label} ${i}`);
   }
+}
+
+// Sustitución segura: primero se crean los nuevos y SOLO después se borran los antiguos.
+// Si algo falla a mitad, nunca se queda la lista vacía o incompleta.
+// Si la lista nueva es mucho más corta que la anterior (página mal leída), se conserva la anterior.
+async function safeReplace(entity, old, records, label) {
+  if (old.length >= 10 && records.length < old.length * 0.5) {
+    throw new Error(`${label}: la Federación devolvió ${records.length} registros frente a ${old.length} guardados; se conservan los anteriores`);
+  }
+  await batchCreate(entity, records, label);
+  await batchDelete(entity, old);
 }
 
 // ---- Sync one category ----
@@ -273,16 +278,15 @@ async function syncCategory(config, cookies, base44, temporada) {
       }
       if (standings.length) {
         // Incluir registros históricos sin campo competicion (equivalen a Liga).
-        const oldRaw = await retryOnRateLimit(() => base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada }));
+        const oldRaw = await retryOnRateLimit(() => base44.asServiceRole.entities.Clasificacion.filter({ categoria: cat, temporada }, '-updated_date', 5000));
         const old = oldRaw.filter(r => (r.competicion || 'Liga') === competition);
-        if (old.length) await batchDelete(base44.asServiceRole.entities.Clasificacion, old);
         const jornada = standings[0]?.pj || 0;
         const records = standings.map(s => ({
           temporada, categoria: cat, competicion: competition, jornada, posicion: s.posicion, nombre_equipo: s.equipo,
           puntos: s.puntos, partidos_jugados: s.pj, ganados: s.pg, empatados: s.pe, perdidos: s.pp,
           goles_favor: s.gf, goles_contra: s.gc, fecha_actualizacion: new Date().toISOString(),
         }));
-        await batchCreate(base44.asServiceRole.entities.Clasificacion, records, `St ${cat}`);
+        await safeReplace(base44.asServiceRole.entities.Clasificacion, old, records, `Clasificación ${cat}`);
         result.standings = { teams: standings.length, jornada };
       }
     } catch (e) { result.errors.push({ type: 'standings', error: e.message }); }
@@ -442,18 +446,11 @@ async function syncCategory(config, cookies, base44, temporada) {
           // Incluir registros históricos sin campo competicion (equivalen a Liga).
           const oldRaw = await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.filter({ categoria: cat, temporada }, '-updated_date', 5000));
           const old = oldRaw.filter(r => (r.competicion || 'Liga') === competition);
-          // Borrado y alta en bloque (uno a uno se agotaba el tiempo y quedaban listas a medias)
-          for (let i = 0; i < old.length; i += 200) {
-            const ids = old.slice(i, i + 200).map(o => o.id);
-            await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.deleteMany({ id: { $in: ids } }), `Sc del ${cat}`);
-          }
           const records = scorers.map((s, i) => ({
             temporada, categoria: cat, competicion: competition, jugador_nombre: s.jugador, equipo: s.equipo,
             goles: s.goles, posicion: i + 1, fecha_actualizacion: new Date().toISOString(),
           }));
-          for (let i = 0; i < records.length; i += 100) {
-            await retryOnRateLimit(() => base44.asServiceRole.entities.Goleador.bulkCreate(records.slice(i, i + 100)), `Sc ${cat} ${i}`);
-          }
+          await safeReplace(base44.asServiceRole.entities.Goleador, old, records, `Goleadores ${cat}`);
           result.scorers = { players: scorers.length };
         } else {
           // 0 scorers could mean bad page — retry
