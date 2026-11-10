@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
+import { toGroupId } from "@/lib/chatGroupId";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
@@ -127,7 +128,39 @@ export default function MeteoClub() {
       });
     }
 
-    toast.success(avisar ? "Decisión guardada y familias avisadas" : "Decisión guardada");
+    // Si se cancela, publicar también el aviso en el chat de esa categoría.
+    // client_id determinista para evitar duplicados si se vuelve a guardar la decisión.
+    if (decision === "cancelar" && avisar && mensaje) {
+      const grupoId = toGroupId(item.categoria);
+      const clientId = `meteo_cancel_${fechaHoy}_${item.horario_id}`;
+      const existentes = await base44.entities.ChatMessage.filter({ client_id: clientId });
+      if (!existentes?.length) {
+        await base44.entities.ChatMessage.create({
+          tipo: user?.role === "admin" ? "admin_a_grupo" : "entrenador_a_grupo",
+          remitente_email: user?.email || "",
+          remitente_nombre: user?.full_name || "Meteo Club",
+          mensaje,
+          prioridad: "Importante",
+          grupo_id: grupoId,
+          deporte: item.categoria,
+          categoria: item.categoria,
+          client_id: clientId,
+          leido_por: user?.email ? [{
+            email: user.email,
+            nombre: user.full_name || "",
+            fecha: new Date().toISOString(),
+          }] : [],
+        });
+      }
+    }
+
+    toast.success(
+      decision === "cancelar" && avisar
+        ? "Cancelación comunicada a las familias y al chat de la categoría"
+        : avisar
+          ? "Decisión guardada y familias avisadas"
+          : "Decisión guardada"
+    );
     const ds = await base44.entities.MeteoDecision.filter({ fecha: fechaHoy });
     setDecisiones(ds || []);
   };
