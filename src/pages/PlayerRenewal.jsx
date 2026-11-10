@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import RenewalPaymentFlow from "../components/renewals/RenewalPaymentFlow";
 import RenewalSuccessScreen from "../components/renewals/RenewalSuccessScreen";
+import RenewalPrepagoReturn from "@/components/renewals/RenewalPrepagoReturn";
 
 const CATEGORIAS = [
   "Fútbol Pre-Benjamín (Mixto)",
@@ -77,6 +78,16 @@ const suggestCategory = (birthDate) => {
 };
 
 export default function PlayerRenewal() {
+  const queryClient = useQueryClient();
+  return (
+    <>
+      <RenewalPrepagoReturn onConfirmed={() => queryClient.invalidateQueries({ queryKey: ['myPlayers'] })} />
+      <PlayerRenewalContent />
+    </>
+  );
+}
+
+function PlayerRenewalContent() {
   const [user, setUser] = useState(null);
   const [selectedCategories, setSelectedCategories] = useState({});
   const [confirmDialog, setConfirmDialog] = useState({ open: false, playerId: null, action: null });
