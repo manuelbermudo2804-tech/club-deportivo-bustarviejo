@@ -26,6 +26,11 @@
       "default": "22 de diciembre",
       "description": "Texto libre con la fecha del sorteo"
     },
+    "fecha_cierre": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora l\u00edmite de venta. A partir de ese momento se cierra autom\u00e1ticamente: desaparece el banner y la p\u00e1gina deja de ofrecer la compra"
+    },
     "tulotero_url": {
       "type": "string",
       "description": "Enlace de TuLotero para comprar online"

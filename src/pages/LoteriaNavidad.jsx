@@ -11,6 +11,8 @@ import PremioResultado from "@/components/loteria/PremioResultado";
 import TextoLoteria from "@/components/loteria/TextoLoteria";
 import BackToWebsiteButton from "@/components/public/BackToWebsiteButton";
 import usePublicPageTracker from "@/components/public/usePublicPageTracker";
+import VentaCerradaAviso from "@/components/loteria/VentaCerradaAviso";
+import { ventaCerrada, textoCierre } from "@/lib/loteriaCierre";
 
 const FONDO = "min-h-screen bg-gradient-to-b from-[#0b1f16] via-[#12261c] to-[#3b0a12]";
 const URL_TULOTERO = "https://web.tulotero.es/empresas/cdb26";
@@ -63,6 +65,7 @@ export default function LoteriaNavidad() {
 
   const campana = data?.campana;
   const comercios = data?.comercios || [];
+  const cerrada = ventaCerrada(campana);
 
   if (!campana) {
     return (
@@ -82,6 +85,7 @@ export default function LoteriaNavidad() {
       <div className="max-w-2xl mx-auto px-4 pt-16 space-y-5">
         {campana.resultado_publicado === true && <PremioResultado campana={campana} />}
 
+        {cerrada ? <VentaCerradaAviso /> : (
         <section className="overflow-hidden rounded-3xl border-2 border-amber-300 bg-gradient-to-br from-amber-300 via-yellow-400 to-amber-500 p-5 text-center text-red-950 shadow-2xl sm:p-6">
           <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-950 text-amber-300 shadow-lg">
             <ShoppingCart className="h-7 w-7" />
@@ -103,7 +107,9 @@ export default function LoteriaNavidad() {
             COMPRAR LOTERÍA ONLINE <ArrowUpRight className="h-5 w-5" />
           </a>
           <p className="mt-3 text-xs font-semibold text-red-950/80">Compra online a través de TuLotero</p>
+          {campana.fecha_cierre && <p className="mt-1 text-sm font-black">⏰ Venta abierta hasta el {textoCierre(campana)}</p>}
         </section>
+        )}
 
         <DecimoTicket
           titulo={campana.titulo}
@@ -118,6 +124,7 @@ export default function LoteriaNavidad() {
           </div>
         )}
 
+        {!cerrada && <>
         <SeccionLoteria numero="1" titulo="Dónde comprarlo en el pueblo" icono="🏪">
           {comercios.length === 0 ? (
             <p className="text-slate-600 text-sm">Pronto publicaremos los comercios colaboradores.</p>
@@ -135,6 +142,7 @@ export default function LoteriaNavidad() {
             <TuLoteroAccess password={campana.tulotero_password} />
           </SeccionLoteria>
         )}
+        </>}
 
         {campana.texto_como_funciona && (
           <SeccionLoteria numero="3" titulo="Cómo funciona" icono="ℹ️">

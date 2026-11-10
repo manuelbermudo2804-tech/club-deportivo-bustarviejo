@@ -2,18 +2,18 @@ import React from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Clover, ArrowUpRight } from "lucide-react";
+import { ventaCerrada, textoCierre } from "@/lib/loteriaCierre";
 
 export default function LoteriaAppBanner() {
-  const { data: campana } = useQuery({
-    queryKey: ["loteriaCampanaBanner"],
-    queryFn: async () => {
-      const rows = await base44.entities.LoteriaCampana.filter({ activa: true });
-      return rows[0] || null;
-    },
-    staleTime: 5 * 60 * 1000,
+  const { data } = useQuery({
+    queryKey: ["loteriaPublic"],
+    queryFn: async () => (await base44.functions.invoke("loteriaPublic", {})).data,
+    refetchInterval: 60000,
   });
 
-  if (!campana) return null;
+  const campana = data?.campana;
+  if (!campana || ventaCerrada(campana)) return null;
+  const restantes = data?.tulotero?.restantes;
 
   return (
     <a
@@ -25,9 +25,12 @@ export default function LoteriaAppBanner() {
           <Clover className="h-5 w-5 text-red-950" />
         </div>
         <div className="min-w-0 flex-1">
-          <p className="mb-0.5 text-[10px] font-black uppercase tracking-wide text-amber-300 sm:mb-1 sm:text-xs">¡Últimos décimos en comercios!</p>
+          <p className="mb-0.5 text-[10px] font-black uppercase tracking-wide text-amber-300 sm:mb-1 sm:text-xs">
+            {typeof restantes === "number" ? `¡Quedan solo ${restantes} décimos online!` : "¡Últimos décimos!"}
+          </p>
           <p className="text-[13px] font-black leading-tight text-white sm:text-base">🍀 {campana.titulo || "Lotería de Navidad"}</p>
           <p className="mt-0.5 text-[11px] font-medium leading-snug text-white/90 sm:mt-1 sm:text-sm">Casi agotada en el pueblo · Todavía disponible online</p>
+          {campana.fecha_cierre && <p className="mt-0.5 text-[11px] font-bold text-amber-200 sm:mt-1 sm:text-xs">⏰ Venta hasta el {textoCierre(campana)}</p>}
           {campana.precio_decimo && <p className="mt-0.5 text-[11px] font-semibold text-amber-200 sm:mt-1 sm:text-xs">{campana.precio_decimo}€ el décimo</p>}
           <p className="mt-0.5 text-[10px] font-semibold leading-snug text-amber-200 sm:mt-1 sm:text-xs">🧡 2 € de cada décimo ayudan a financiar al CD Bustarviejo.</p>
         </div>

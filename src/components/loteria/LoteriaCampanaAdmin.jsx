@@ -11,6 +11,7 @@ import { Plus, Trash2, Pencil, ExternalLink, ArrowUp, ArrowDown } from "lucide-r
 import { toast } from "sonner";
 import ComercioForm from "./ComercioForm";
 import LoteriaPremioAdmin from "./LoteriaPremioAdmin";
+import { isoALocal, localAIso } from "@/lib/loteriaCierre";
 
 export default function LoteriaCampanaAdmin() {
   const queryClient = useQueryClient();
@@ -61,6 +62,7 @@ export default function LoteriaCampanaAdmin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["loteriaCampana"] });
+      queryClient.invalidateQueries({ queryKey: ["loteriaPublic"] });
       toast.success("✅ Campaña guardada");
     },
   });
@@ -136,6 +138,11 @@ export default function LoteriaCampanaAdmin() {
             <div className="space-y-1">
               <Label>Fecha del sorteo</Label>
               <Input value={form.fecha_sorteo_texto || ""} onChange={(e) => setForm({ ...form, fecha_sorteo_texto: e.target.value })} />
+            </div>
+            <div className="space-y-1 sm:col-span-2">
+              <Label>Fecha y hora límite de venta</Label>
+              <Input type="datetime-local" value={isoALocal(form.fecha_cierre)} onChange={(e) => setForm({ ...form, fecha_cierre: localAIso(e.target.value) })} />
+              <p className="text-xs text-slate-500">A esa hora se cierra todo solo: desaparece el banner de la app y la página deja de ofrecer la compra. Déjalo vacío para no cerrar.</p>
             </div>
             <div className="space-y-1 sm:col-span-2">
               <Label>Enlace de TuLotero</Label>

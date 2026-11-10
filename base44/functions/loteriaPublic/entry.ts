@@ -17,7 +17,8 @@ Deno.serve(async (req) => {
 
     // Décimos que quedan en TuLotero (dato público de la peña de empresa)
     let tulotero = null;
-    try {
+    const cerrada = !!campana.fecha_cierre && new Date(campana.fecha_cierre).getTime() <= Date.now();
+    if (!cerrada) try {
       const codigo = (campana.tulotero_url || 'cdb26').split('/').filter(Boolean).pop();
       const r = await fetch(`https://web-backend.es.tulotero.net/tuloteroweb/rest/loteriaEmpresas/${codigo}`, { headers: { Accept: 'application/json' } });
       if (r.ok) {
