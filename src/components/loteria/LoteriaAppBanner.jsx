@@ -10,6 +10,8 @@ export default function LoteriaAppBanner() {
     queryKey: ["loteriaPublic"],
     queryFn: async () => (await base44.functions.invoke("loteriaPublic", {})).data,
     refetchInterval: 60000,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
 
   const campana = data?.campana;

@@ -20,7 +20,7 @@ Deno.serve(async (req) => {
     const cerrada = !!campana.fecha_cierre && new Date(campana.fecha_cierre).getTime() <= Date.now();
     if (!cerrada) try {
       const codigo = (campana.tulotero_url || 'cdb26').split('/').filter(Boolean).pop();
-      const r = await fetch(`https://web-backend.es.tulotero.net/tuloteroweb/rest/loteriaEmpresas/${codigo}`, { headers: { Accept: 'application/json' } });
+      const r = await fetch(`https://web-backend.es.tulotero.net/tuloteroweb/rest/loteriaEmpresas/${codigo}`, { headers: { Accept: 'application/json' }, cache: 'no-store' });
       if (r.ok) {
         const penya = (await r.json())?.penyas?.[0];
         if (penya) tulotero = { restantes: penya.participacionesRestantes, total: penya.numeroParticipaciones };
