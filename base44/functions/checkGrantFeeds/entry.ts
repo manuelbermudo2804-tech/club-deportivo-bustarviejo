@@ -1,5 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
-import webpush from 'npm:web-push@3.6.7';
+
+// Push a través del motor central (onPushTrigger): campana + registro de entrega.
+async function enginePush(base44, emails, title, body, url, tag, extra = {}) {
+  const list = [...new Set((emails || []).filter(Boolean))];
+  if (!list.length) return { sent: 0, failed: 0 };
+  const raw = new TextEncoder().encode(Deno.env.get('VAPID_PRIVATE_KEY') || '');
+  const internal_key = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', raw))).map(b => b.toString(16).padStart(2, '0')).join('');
+  try {
+    const res = await base44.asServiceRole.functions.invoke('onPushTrigger', { direct: { emails: list, title, body, url, tag, ...extra }, internal_key });
+    return res?.data || { sent: 0, failed: 0 };
+  } catch (e) { console.error('[push] motor central:', e.message); return { sent: 0, failed: 0 }; }
+}
 
 // Fuente oficial: Base de Datos Nacional de Subvenciones (BDNS / infosubvenciones)
 // Es el registro donde POR LEY se publican todas las convocatorias de España.
@@ -130,40 +141,13 @@ Deno.serve(async (req) => {
     // Push a todos los admins si hay novedades
     if (nuevasAlertas.length > 0) {
       try {
-        webpush.setVapidDetails(
-          'mailto:CDBUSTARVIEJO@GMAIL.COM',
-          Deno.env.get('VAPID_PUBLIC_KEY'),
-          Deno.env.get('VAPID_PRIVATE_KEY')
-        );
         const admins = await base44.asServiceRole.entities.User.filter({ role: 'admin' });
         const adminEmails = admins.map((a) => a.email).filter(Boolean);
-        const subs = [];
-        for (const email of adminEmails) {
-          const s = await base44.asServiceRole.entities.PushSubscription.filter({ usuario_email: email, activa: true });
-          subs.push(...s);
-        }
         const n = nuevasAlertas.length;
         const titulo = n === 1 ? 'Nueva subvención detectada' : `${n} nuevas subvenciones detectadas`;
         const cuerpo = n === 1 ? nuevasAlertas[0].titulo.slice(0, 120) : 'Revisa el panel de subvenciones del club';
-        const payloadJson = JSON.stringify({
-          title: titulo,
-          body: cuerpo,
-          tag: 'grant-alert',
-          requireInteraction: false,
-          data: { url: '/SubvencionesPanel', timestamp: new Date().toISOString() },
-        });
-        for (const sub of subs) {
-          try {
-            await webpush.sendNotification({
-              endpoint: sub.endpoint,
-              keys: { auth: sub.auth_key || sub.keys?.auth, p256dh: sub.p256dh_key || sub.keys?.p256dh },
-            }, payloadJson, { urgency: 'high', TTL: 86400 });
-          } catch (e) {
-            if (e.statusCode === 410 || e.statusCode === 404) {
-              try { await base44.asServiceRole.entities.PushSubscription.update(sub.id, { activa: false }); } catch (_) {}
-            }
-          }
-        }
+        await enginePush(base44, adminEmails, titulo, cuerpo, '/SubvencionesPanel',
+          `grant-alert-${new Date().toISOString().slice(0, 13)}`, { source: 'checkGrantFeeds' });
       } catch (e) {
         console.error('Error enviando push de subvenciones:', e.message);
       }

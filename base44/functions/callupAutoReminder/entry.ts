@@ -1,11 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.26';
-import webpush from 'npm:web-push@3.6.7';
 
-webpush.setVapidDetails(
-  'mailto:info@cdbustarviejo.com',
-  Deno.env.get('VAPID_PUBLIC_KEY'),
-  Deno.env.get('VAPID_PRIVATE_KEY')
-);
+// Push a través del motor central (onPushTrigger): campana + registro de entrega.
+async function enginePush(base44, emails, title, body, url, tag, extra = {}) {
+  const list = [...new Set((emails || []).filter(Boolean))];
+  if (!list.length) return { sent: 0, failed: 0 };
+  const raw = new TextEncoder().encode(Deno.env.get('VAPID_PRIVATE_KEY') || '');
+  const internal_key = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', raw))).map(b => b.toString(16).padStart(2, '0')).join('');
+  try {
+    const res = await base44.asServiceRole.functions.invoke('onPushTrigger', { direct: { emails: list, title, body, url, tag, ...extra }, internal_key });
+    return res?.data || { sent: 0, failed: 0 };
+  } catch (e) { console.error('[push] motor central:', e.message); return { sent: 0, failed: 0 }; }
+}
 
 const SOCIAL_FOOTER = `<div style="background:#1e293b;padding:24px;text-align:center;border-radius:0 0 12px 12px;margin-top:24px;"><div style="margin-bottom:12px;"><a href="https://www.cdbustarviejo.com" style="display:inline-block;background:#ea580c;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:10px 24px;border-radius:8px;">🌐 www.cdbustarviejo.com</a></div><div style="color:#94a3b8;font-size:12px;line-height:1.6;"><strong style="color:#f8fafc;">CD Bustarviejo</strong><br><a href="mailto:info@cdbustarviejo.com" style="color:#fb923c;text-decoration:none;">info@cdbustarviejo.com</a></div></div>`;
 
@@ -21,21 +26,6 @@ async function sendViaResend(to, subject, html) {
   if (!resp.ok) console.error(`[RESEND] Error ${resp.status}:`, await resp.text().catch(() => ''));
 }
 
-async function sendPush(base44, email, title, body, url) {
-  const subs = await base44.asServiceRole.entities.PushSubscription.filter({ usuario_email: email, activa: true });
-  for (const sub of subs) {
-    try {
-      await webpush.sendNotification(
-        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh_key, auth: sub.auth_key } },
-        JSON.stringify({ title, body, url: url || '/ParentCallups', tag: `callup-reminder-${Date.now()}` })
-      );
-    } catch (err) {
-      if (err.statusCode === 410 || err.statusCode === 404) {
-        await base44.asServiceRole.entities.PushSubscription.update(sub.id, { activa: false });
-      }
-    }
-  }
-}
 
 Deno.serve(async (req) => {
   try {
@@ -116,9 +106,8 @@ Deno.serve(async (req) => {
         // Enviar push a todos los emails relacionados
         const pushTitle = `⚠️ ¡Confirma la convocatoria!`;
         const pushBody = `${j.jugador_nombre}: ${callup.titulo} es MAÑANA a las ${callup.hora_partido || '??:??'}. Confirma asistencia.`;
-        for (const e of emails) {
-          await sendPush(base44, e, pushTitle, pushBody, '/ParentCallups');
-        }
+        await enginePush(base44, [...emails], pushTitle, pushBody, '/ParentCallups',
+          `callup-reminder-${callup.id}-${j.jugador_id || j.jugador_nombre}-${todayStr}`, { source: 'callupAutoReminder' });
 
         // Enviar email
         const emailHtml = `<!DOCTYPE html>

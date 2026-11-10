@@ -68,14 +68,8 @@ export default function Surveys() {
 
   const createSurveyMutation = useMutation({
     mutationFn: async (surveyData) => {
-      const newSurvey = await base44.entities.Survey.create(surveyData);
-      // Notificación push automática a destinatarios (best-effort)
-      try {
-        await base44.functions.invoke('notifySurveyCreated', { survey_id: newSurvey.id });
-      } catch (err) {
-        console.warn('No se pudo enviar push de encuesta:', err);
-      }
-      return newSurvey;
+      // El push a los destinatarios lo envía el motor central al crearse la encuesta
+      return await base44.entities.Survey.create(surveyData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['surveys'] });

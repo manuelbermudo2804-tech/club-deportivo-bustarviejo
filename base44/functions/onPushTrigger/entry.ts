@@ -25,9 +25,63 @@ async function saveToBell(base44, emails, title, body, url, tag) {
   } catch (e) { console.error('[bell] error', e.message); }
 }
 
-async function sendPushToEmails(base44, emails, title, body, url, tag) {
-  const uniqueEmails = [...new Set(emails)];
-  await saveToBell(base44, uniqueEmails, title, body, url, tag);
+// Los chats siguen exactamente igual que siempre (envío uno a uno, sin registro).
+const CHAT_TAG = /^(chat|private|coord|admin|staff)-/;
+const toB64Url = (k) => (k || '').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+// Envío para todo lo que NO es chat: registra cada entrega (PushDelivery) para saber
+// si llegó al móvil, normaliza claves antiguas y envía en bloques en paralelo.
+async function sendTracked(base44, subsByEmail, title, body, url, tag, opts) {
+  const sr = base44.asServiceRole.entities;
+  const sentAt = new Date().toISOString();
+  const items = [];
+  for (const [email, subs] of Object.entries(subsByEmail)) {
+    for (const sub of subs) items.push({ email, sub, deliveryId: crypto.randomUUID() });
+  }
+  const records = items.map(it => ({
+    delivery_id: it.deliveryId, usuario_email: it.email, endpoint_hash: String(it.sub.endpoint).slice(-24),
+    user_agent: it.sub.user_agent || '', title, tag: tag || 'notification', source: opts.source || 'onPushTrigger',
+    sent_at: sentAt, delivered: false,
+  }));
+  for (let i = 0; i < records.length; i += 200) {
+    try { await sr.PushDelivery.bulkCreate(records.slice(i, i + 200)); } catch (e) { console.error('[delivery] log error', e.message); }
+  }
+
+  let sent = 0, failed = 0;
+  const errors = [];
+  for (let i = 0; i < items.length; i += 6) {
+    const batch = items.slice(i, i + 6);
+    const results = await Promise.allSettled(batch.map(({ sub, deliveryId }) => webpush.sendNotification(
+      { endpoint: sub.endpoint, keys: { auth: toB64Url(sub.auth_key || sub.keys?.auth), p256dh: toB64Url(sub.p256dh_key || sub.keys?.p256dh) } },
+      JSON.stringify({
+        title, body, tag: tag || 'notification', badgeCount: 1, renotify: true,
+        requireInteraction: !!opts.requireInteraction, deliveryId,
+        data: { url: url || '/', timestamp: sentAt, deliveryId }
+      }),
+      { urgency: 'high', TTL: 86400 }
+    )));
+    results.forEach((r, idx) => {
+      if (r.status === 'fulfilled') { sent++; return; }
+      failed++;
+      const err = r.reason || {};
+      errors.push({ deliveryId: batch[idx].deliveryId, msg: `${err.statusCode || ''} ${err.message || ''}`.trim(), sub: batch[idx].sub, code: err.statusCode });
+    });
+  }
+
+  // Marcar errores y desactivar móviles muertos
+  for (let i = 0; i < errors.length; i += 6) {
+    await Promise.allSettled(errors.slice(i, i + 6).map(async (e) => {
+      if (e.code === 410 || e.code === 404) await sr.PushSubscription.update(e.sub.id, { activa: false });
+      const m = await sr.PushDelivery.filter({ delivery_id: e.deliveryId });
+      if (m[0]) await sr.PushDelivery.update(m[0].id, { send_error: e.msg.slice(0, 300) });
+    }));
+  }
+  return { sent, failed };
+}
+
+async function sendPushToEmails(base44, emails, title, body, url, tag, opts = {}) {
+  const uniqueEmails = [...new Set(emails.filter(Boolean))];
+  if (opts.bell !== false) await saveToBell(base44, uniqueEmails, title, body, url, tag);
   if (!uniqueEmails.length || !VAPID_PUBLIC || !VAPID_PRIVATE) return { sent: 0, failed: 0 };
 
   // OPTIMIZACIÓN: filtrar por email en la query en vez de traer TODAS las subs activas.
@@ -53,6 +107,8 @@ async function sendPushToEmails(base44, emails, title, body, url, tag) {
     if (!subsByEmail[sub.usuario_email]) subsByEmail[sub.usuario_email] = [];
     subsByEmail[sub.usuario_email].push(sub);
   }
+
+  if (!CHAT_TAG.test(tag || '')) return await sendTracked(base44, subsByEmail, title, body, url, tag, opts);
 
   let sent = 0, failed = 0;
   for (const [email, subs] of Object.entries(subsByEmail)) {
@@ -87,7 +143,25 @@ async function sendPushToEmails(base44, emails, title, body, url, tag) {
 Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
-    const payload = await req.json();
+    const payload = await req.json().catch(() => ({}));
+
+    // ==========================================
+    // 0. ENVÍO DIRECTO desde otras funciones del club (recordatorios, pagos, subvenciones...)
+    //    Solo se acepta con la clave interna derivada de la clave privada de push.
+    // ==========================================
+    if (payload.direct) {
+      const raw = new TextEncoder().encode(VAPID_PRIVATE || '');
+      const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', raw))).map(b => b.toString(16).padStart(2, '0')).join('');
+      if (!VAPID_PRIVATE || payload.internal_key !== hash) return Response.json({ error: 'Forbidden' }, { status: 403 });
+      const d = payload.direct;
+      if (!Array.isArray(d.emails) || !d.title || !d.tag) return Response.json({ error: 'emails, title y tag son obligatorios' }, { status: 400 });
+      if (CHAT_TAG.test(d.tag)) return Response.json({ error: 'tag no permitido' }, { status: 400 });
+      const result = await sendPushToEmails(base44, d.emails, d.title, d.body || '', d.url || '/', d.tag, {
+        bell: d.bell, source: d.source, requireInteraction: d.requireInteraction,
+      });
+      return Response.json({ type: 'direct', recipients: d.emails.length, ...result });
+    }
+
     const { event, data, old_data } = payload;
 
     if (!event || !data) return Response.json({ error: 'Missing event/data' }, { status: 400 });
@@ -523,10 +597,12 @@ Deno.serve(async (req) => {
       const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 5000);
       const targetEmails = [];
       for (const p of allPlayers) {
-        const match = destinatarios === 'Todos' || (p.categoria_principal || p.deporte) === destinatarios;
+        const match = destinatarios === 'Todos' || p.categoria_principal === destinatarios || p.deporte === destinatarios
+          || (Array.isArray(p.categorias) && p.categorias.includes(destinatarios));
         if (!match) continue;
         if (p.email_padre) targetEmails.push(p.email_padre);
         if (p.email_tutor_2) targetEmails.push(p.email_tutor_2);
+        if (p.email_jugador) targetEmails.push(p.email_jugador);
       }
       const filtered = [...new Set(targetEmails)].filter(e => e !== senderEmail);
       const result = await sendPushToEmails(base44, filtered, `📊 ${data.titulo || 'Nueva encuesta'}`, data.descripcion ? data.descripcion.substring(0, 100) : 'Hay una nueva encuesta disponible', '/Surveys', `survey-${event.entity_id}`);

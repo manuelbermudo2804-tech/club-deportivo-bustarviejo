@@ -1,10 +1,15 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.23';
-import webpush from 'npm:web-push@3.6.7';
 
-const VAPID_PUBLIC = Deno.env.get('VAPID_PUBLIC_KEY');
-const VAPID_PRIVATE = Deno.env.get('VAPID_PRIVATE_KEY');
-if (VAPID_PUBLIC && VAPID_PRIVATE) {
-  webpush.setVapidDetails('mailto:info@cdbustarviejo.com', VAPID_PUBLIC, VAPID_PRIVATE);
+// Push a través del motor central (onPushTrigger): registro de entrega.
+async function enginePush(base44, emails, title, body, url, tag, extra = {}) {
+  const list = [...new Set((emails || []).filter(Boolean))];
+  if (!list.length) return { sent: 0, failed: 0 };
+  const raw = new TextEncoder().encode(Deno.env.get('VAPID_PRIVATE_KEY') || '');
+  const internal_key = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', raw))).map(b => b.toString(16).padStart(2, '0')).join('');
+  try {
+    const res = await base44.asServiceRole.functions.invoke('onPushTrigger', { direct: { emails: list, title, body, url, tag, ...extra }, internal_key });
+    return res?.data || { sent: 0, failed: 0 };
+  } catch (e) { console.error('[push] motor central:', e.message); return { sent: 0, failed: 0 }; }
 }
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
@@ -168,33 +173,10 @@ Deno.serve(async (req) => {
     }
 
     // Push notification
-    if (VAPID_PUBLIC && VAPID_PRIVATE) {
-      try {
-        const allSubs = await base44.asServiceRole.entities.PushSubscription.filter({ activa: true });
-        const targetSubs = allSubs.filter(s => emails.includes(s.usuario_email));
-        for (const sub of targetSubs) {
-          try {
-            await webpush.sendNotification(
-              { endpoint: sub.endpoint, keys: { auth: sub.auth_key, p256dh: sub.p256dh_key } },
-              JSON.stringify({
-                title: '✅ Pago Aprobado',
-                body: `El pago de ${data.cantidad}€ de ${data.jugador_nombre} (${data.mes}) ha sido aprobado`,
-                tag: `payment-approved-${event.entity_id}`,
-                badgeCount: 1, renotify: true, requireInteraction: false,
-                data: { url: '/ParentPayments', timestamp: new Date().toISOString() }
-              }),
-              { urgency: 'high', TTL: 86400 }
-            );
-          } catch (pushErr) {
-            if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
-              try { await base44.asServiceRole.entities.PushSubscription.update(sub.id, { activa: false }); } catch {}
-            }
-          }
-        }
-      } catch (pushGroupErr) {
-        console.error('[onPaymentApproved] Push error:', pushGroupErr.message);
-      }
-    }
+    // La campana ya se guarda arriba (AppNotification), por eso bell: false
+    await enginePush(base44, emails, '✅ Pago Aprobado',
+      `El pago de ${data.cantidad}€ de ${data.jugador_nombre} (${data.mes}) ha sido aprobado`,
+      '/ParentPayments', `payment-approved-${event.entity_id}`, { bell: false, source: 'onPaymentApproved' });
 
     return Response.json({ success: true, notified: emails });
   } catch (error) {

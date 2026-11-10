@@ -1,6 +1,11 @@
 Deno.serve((req) => {
   // Derivar la URL absoluta del endpoint logPushDelivery a partir de la URL del SW
-  const logUrl = req.url.split('?')[0].replace(/\/sw$/, '/logPushDelivery');
+  // El SW se registra en el propio dominio de la app (/functions/sw), así que basta con
+  // rutas del mismo dominio: funcionan igual en app.cdbustarviejo.com y en base44.app.
+  const fnUrl = (name) => `/functions/${name}`;
+  const logUrl = fnUrl('logPushDelivery');
+  // Icono pequeño de la barra de Android: PNG blanco sobre transparente (Android lo tiñe)
+  const badgeUrl = fnUrl('badgeIcon');
 
   const swCode = `
 const LOG_DELIVERY_URL = '${logUrl}';
@@ -30,7 +35,7 @@ self.addEventListener('push', (event) => {
   const options = {
     body: data.body || 'Tienes notificaciones pendientes',
     icon: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg',
-    badge: 'https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg',
+    badge: '${badgeUrl}',
     tag: data.tag || 'notification',
     renotify: true,
     requireInteraction: true,

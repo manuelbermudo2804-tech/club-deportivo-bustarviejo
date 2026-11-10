@@ -1,5 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.25';
-import webpush from 'npm:web-push@3.6.7';
+
+// Push a través del motor central (onPushTrigger): campana + registro de entrega.
+async function enginePush(base44, emails, title, body, url, tag, extra = {}) {
+  const list = [...new Set((emails || []).filter(Boolean))];
+  if (!list.length) return { sent: 0, failed: 0 };
+  const raw = new TextEncoder().encode(Deno.env.get('VAPID_PRIVATE_KEY') || '');
+  const internal_key = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', raw))).map(b => b.toString(16).padStart(2, '0')).join('');
+  try {
+    const res = await base44.asServiceRole.functions.invoke('onPushTrigger', { direct: { emails: list, title, body, url, tag, ...extra }, internal_key });
+    return res?.data || { sent: 0, failed: 0 };
+  } catch (e) { console.error('[push] motor central:', e.message); return { sent: 0, failed: 0 }; }
+}
 
 // Email de respaldo si por algún motivo no hay admins en BD
 const FALLBACK_ADMIN_EMAIL = 'manuelbermudo2804@gmail.com';
@@ -24,11 +35,6 @@ async function sendWithResend(to, subject, html) {
   return response.json();
 }
 
-webpush.setVapidDetails(
-  'mailto:CDBUSTARVIEJO@GMAIL.COM',
-  Deno.env.get('VAPID_PUBLIC_KEY'),
-  Deno.env.get('VAPID_PRIVATE_KEY')
-);
 
 Deno.serve(async (req) => {
   try {
@@ -53,51 +59,10 @@ Deno.serve(async (req) => {
     } catch (e) { console.error('Error obteniendo admins:', e); }
     if (adminEmails.length === 0) adminEmails = [FALLBACK_ADMIN_EMAIL];
 
-    // Buscar suscripciones push de TODOS los admins
-    let subs = [];
-    for (const adminEmail of adminEmails) {
-      try {
-        const s = await base44.asServiceRole.entities.PushSubscription.filter({
-          usuario_email: adminEmail,
-          activa: true
-        });
-        subs = subs.concat(s);
-      } catch {}
-    }
-
-    let sent = 0;
-    const sendResults = [];
-    for (const sub of subs) {
-      const endpointShort = (sub.endpoint || '').slice(0, 60) + '...';
-      try {
-        const pushSubscription = {
-          endpoint: sub.endpoint,
-          keys: {
-            auth: sub.auth_key || (sub.keys && sub.keys.auth),
-            p256dh: sub.p256dh_key || (sub.keys && sub.keys.p256dh)
-          }
-        };
-        const payload = JSON.stringify({
-          title: titulo,
-          body: cuerpo,
-          tag: 'access-request',
-          requireInteraction: true,
-          data: { url: '/AdminAccessCodes?tab=bandeja', timestamp: new Date().toISOString() }
-        });
-        // TTL 24h: aunque Chrome Android esté en Doze/ahorro de batería, FCM guarda el
-        // push y lo entrega cuando el dispositivo se reactive. Con TTL=60 se descartaba.
-        const result = await webpush.sendNotification(pushSubscription, payload, { urgency: 'high', TTL: 86400 });
-        sent++;
-        console.log(`[push OK] ${sub.usuario_email} ${endpointShort} status=${result?.statusCode} body=${result?.body}`);
-        sendResults.push({ email: sub.usuario_email, ok: true, statusCode: result?.statusCode, body: result?.body });
-      } catch (error) {
-        console.error(`[push FAIL] ${sub.usuario_email} ${endpointShort} status=${error.statusCode} body=${error.body} message=${error.message}`);
-        sendResults.push({ email: sub.usuario_email, ok: false, statusCode: error.statusCode, body: error.body, message: error.message });
-        if (error.statusCode === 410 || error.statusCode === 404) {
-          try { await base44.asServiceRole.entities.PushSubscription.delete(sub.id); } catch {}
-        }
-      }
-    }
+    const body_id = body?.event?.entity_id || data.id || data.email;
+    const pushResult = await enginePush(base44, adminEmails, titulo, cuerpo, '/AdminAccessCodes?tab=bandeja',
+      `access-request-${body_id}`, { requireInteraction: true, source: 'notifyAdminNewAccessRequest' });
+    const sent = pushResult.sent || 0;
 
     // SIEMPRE enviar email a TODOS los admins como respaldo (push puede fallar / estar caducado)
     let emailSent = 0;
@@ -126,7 +91,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    return Response.json({ success: true, sent, emailSent, adminCount: adminEmails.length, sendResults });
+    return Response.json({ success: true, sent, emailSent, adminCount: adminEmails.length, push: pushResult });
   } catch (error) {
     console.error('Error notifyAdminNewAccessRequest:', error);
     return Response.json({ error: error.message }, { status: 500 });

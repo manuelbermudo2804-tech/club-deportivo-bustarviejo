@@ -1,5 +1,16 @@
 import { createClientFromRequest } from "npm:@base44/sdk@0.8.31";
-import webpush from "npm:web-push@3.6.7";
+
+// Push a través del motor central (onPushTrigger): campana + registro de entrega.
+async function enginePush(base44, emails, title, body, url, tag, extra = {}) {
+  const list = [...new Set((emails || []).filter(Boolean))];
+  if (!list.length) return { sent: 0, failed: 0 };
+  const raw = new TextEncoder().encode(Deno.env.get('VAPID_PRIVATE_KEY') || '');
+  const internal_key = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', raw))).map(b => b.toString(16).padStart(2, '0')).join('');
+  try {
+    const res = await base44.asServiceRole.functions.invoke('onPushTrigger', { direct: { emails: list, title, body, url, tag, ...extra }, internal_key });
+    return res?.data || { sent: 0, failed: 0 };
+  } catch (e) { console.error('[push] motor central:', e.message); return { sent: 0, failed: 0 }; }
+}
 
 // Vigilante diario de PLAZOS de las subvenciones que interesan al club.
 // Revisa las GrantAlert en estado 'interesa' o 'revisando' y:
@@ -64,23 +75,9 @@ async function enviarPush(base44, alertas, tipo) {
   if (alertas.length === 0) return false;
   let entregas = 0;
   try {
-    webpush.setVapidDetails(
-      "mailto:CDBUSTARVIEJO@GMAIL.COM",
-      Deno.env.get("VAPID_PUBLIC_KEY"),
-      Deno.env.get("VAPID_PRIVATE_KEY"),
-    );
     const admins = await base44.asServiceRole.entities.User.filter({
       role: "admin",
     });
-    const subs = [];
-    for (const a of admins) {
-      if (!a.email) continue;
-      const s = await base44.asServiceRole.entities.PushSubscription.filter({
-        usuario_email: a.email,
-        activa: true,
-      });
-      subs.push(...s);
-    }
     const n = alertas.length;
     let titulo, cuerpo;
     if (tipo === "abierto") {
@@ -98,38 +95,16 @@ async function enviarPush(base44, alertas, tipo) {
         ? alertas[0].titulo.slice(0, 120)
         : "Tienes solicitudes con el plazo terminando. Revísalas.";
     }
-    const payloadJson = JSON.stringify({
-      title: titulo,
-      body: cuerpo,
-      tag: "grant-deadline",
-      requireInteraction: true,
-      data: { url: "/SubvencionesPanel", timestamp: new Date().toISOString() },
-    });
-    for (const sub of subs) {
-      try {
-        await webpush.sendNotification(
-          {
-            endpoint: sub.endpoint,
-            keys: {
-              auth: sub.auth_key || sub.keys?.auth,
-              p256dh: sub.p256dh_key || sub.keys?.p256dh,
-            },
-          },
-          payloadJson,
-          { urgency: "high", TTL: 86400 },
-        );
-        entregas++;
-      } catch (e) {
-        if (e.statusCode === 410 || e.statusCode === 404) {
-          try {
-            await base44.asServiceRole.entities.PushSubscription.update(
-              sub.id,
-              { activa: false },
-            );
-          } catch (_) {}
-        }
-      }
-    }
+    const r = await enginePush(
+      base44,
+      admins.map((a) => a.email),
+      titulo,
+      cuerpo,
+      "/SubvencionesPanel",
+      `grant-deadline-${tipo}-${new Date().toISOString().slice(0, 10)}`,
+      { requireInteraction: true, source: "checkGrantDeadlines" },
+    );
+    entregas = r.sent || 0;
   } catch (e) {
     console.error("Error push plazos:", e.message);
   }

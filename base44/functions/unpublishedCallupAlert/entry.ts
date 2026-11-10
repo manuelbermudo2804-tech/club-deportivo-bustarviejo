@@ -1,11 +1,16 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.26';
-import webpush from 'npm:web-push@3.6.7';
 
-webpush.setVapidDetails(
-  'mailto:info@cdbustarviejo.com',
-  Deno.env.get('VAPID_PUBLIC_KEY'),
-  Deno.env.get('VAPID_PRIVATE_KEY')
-);
+// Push a través del motor central (onPushTrigger): campana + registro de entrega.
+async function enginePush(base44, emails, title, body, url, tag, extra = {}) {
+  const list = [...new Set((emails || []).filter(Boolean))];
+  if (!list.length) return { sent: 0, failed: 0 };
+  const raw = new TextEncoder().encode(Deno.env.get('VAPID_PRIVATE_KEY') || '');
+  const internal_key = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', raw))).map(b => b.toString(16).padStart(2, '0')).join('');
+  try {
+    const res = await base44.asServiceRole.functions.invoke('onPushTrigger', { direct: { emails: list, title, body, url, tag, ...extra }, internal_key });
+    return res?.data || { sent: 0, failed: 0 };
+  } catch (e) { console.error('[push] motor central:', e.message); return { sent: 0, failed: 0 }; }
+}
 
 async function sendEmail(to, subject, body) {
   const key = Deno.env.get('RESEND_API_KEY');
@@ -19,19 +24,7 @@ async function sendEmail(to, subject, body) {
 }
 
 async function sendPush(base44, email, title, body, url, tag) {
-  const subs = await base44.asServiceRole.entities.PushSubscription.filter({ usuario_email: email, activa: true });
-  for (const sub of subs) {
-    try {
-      await webpush.sendNotification(
-        { endpoint: sub.endpoint, keys: { p256dh: sub.p256dh_key, auth: sub.auth_key } },
-        JSON.stringify({ title, body, url: url || '/CoachCallups', tag })
-      );
-    } catch (err) {
-      if (err.statusCode === 410 || err.statusCode === 404) {
-        await base44.asServiceRole.entities.PushSubscription.update(sub.id, { activa: false });
-      }
-    }
-  }
+  await enginePush(base44, [email], title, body, url || '/CoachCallups', `${tag}-${getMadridDate(0)}`, { source: 'unpublishedCallupAlert' });
 }
 
 function getMadridDate(daysFromNow = 0) {
