@@ -12,10 +12,27 @@ export const previousSeason = (temporada) => {
 };
 
 // Posición del mes dentro de la temporada (junio = 0 ... mayo = 11)
-const seasonMonthIndex = (date) => {
+export const seasonMonthIndex = (date) => {
+  if (!date) return -1;
   const d = new Date(date);
   if (isNaN(d)) return -1;
   return (d.getMonth() + 7) % 12;
+};
+
+// Mes de cobro de una cuota: fecha real de pago; si no hay, el plazo; si no, la fecha de alta
+export const paymentMonthIndex = (p) => {
+  const byDate = seasonMonthIndex(p.fecha_pago);
+  if (byDate >= 0) return byDate;
+  const byName = MESES_LARGOS.indexOf(p.mes);
+  return byName >= 0 ? byName : seasonMonthIndex(p.created_date);
+};
+
+// ¿La fecha cae dentro de la temporada (1 jun - 31 may)?
+export const inSeasonRange = (date, temporada) => {
+  const years = String(temporada || "").match(/\d{4}/g);
+  if (!date || !years) return false;
+  const d = new Date(date);
+  return d >= new Date(Number(years[0]), 5, 1) && d < new Date(Number(years[0]) + 1, 5, 1);
 };
 
 // Lista plana de cobros de una temporada con su mes
@@ -26,7 +43,7 @@ export function collectIncome(temporada, { payments, lotteryOrders, clubMembers 
     if (p.is_deleted === true || !seasonMatches(p.temporada, temporada)) return;
     const importe = getPaymentCollected(p);
     if (importe <= 0) return;
-    items.push({ origen: "Cuotas", nombre: p.jugador_nombre, concepto: p.mes || "Cuota", importe, fecha: p.fecha_pago || p.created_date });
+    items.push({ origen: "Cuotas", nombre: p.jugador_nombre, concepto: p.mes || "Cuota", importe, fecha: p.fecha_pago || p.created_date, mesIndex: paymentMonthIndex(p) });
   });
   lotteryOrders.forEach((o) => {
     if (o.pagado !== true || !seasonMatches(o.temporada, temporada)) return;
@@ -36,7 +53,7 @@ export function collectIncome(temporada, { payments, lotteryOrders, clubMembers 
     if (m.estado_pago !== "Pagado" || !seasonMatches(m.temporada, temporada)) return;
     items.push({ origen: "Socios", nombre: m.nombre_completo, concepto: "Cuota de socio", importe: Number(m.cuota_pagada) || 0, fecha: m.fecha_pago || m.created_date });
   });
-  return items.map((i) => ({ ...i, mesIndex: seasonMonthIndex(i.fecha) })).filter((i) => i.mesIndex >= 0 && i.importe > 0);
+  return items.map((i) => ({ ...i, mesIndex: i.mesIndex ?? seasonMonthIndex(i.fecha) })).filter((i) => i.mesIndex >= 0 && i.importe > 0);
 }
 
 export function monthlyTotals(items) {

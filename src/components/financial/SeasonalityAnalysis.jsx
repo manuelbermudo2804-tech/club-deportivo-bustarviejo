@@ -3,24 +3,22 @@ import { sameSeason } from "@/lib/sameSeason";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Calendar, TrendingUp } from "lucide-react";
+import { getPaymentCollected } from "@/components/payments/paymentHelpers";
+import { paymentMonthIndex } from "@/components/financial/comparativa/buildMonthly";
 
 export default function SeasonalityAnalysis({ payments, activeSeason }) {
   const monthlyPaymentData = useMemo(() => {
     const months = ['Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo'];
     
-    return months.map(mes => {
-      const monthPayments = payments.filter(p => 
-        p.estado === "Pagado" && 
-        sameSeason(p.temporada, activeSeason?.temporada) &&
-        p.fecha_pago
-      );
+    const cobrados = payments.filter(p =>
+      p.is_deleted !== true &&
+      sameSeason(p.temporada, activeSeason?.temporada) &&
+      getPaymentCollected(p) > 0
+    );
 
-      const pagosEnMes = monthPayments.filter(p => {
-        const paymentMonth = new Date(p.fecha_pago).toLocaleString('es-ES', { month: 'long' });
-        return paymentMonth.charAt(0).toUpperCase() + paymentMonth.slice(1) === mes;
-      });
-
-      const cantidad = pagosEnMes.reduce((sum, p) => sum + (p.cantidad || 0), 0);
+    return months.map((mes, i) => {
+      const pagosEnMes = cobrados.filter(p => paymentMonthIndex(p) === i);
+      const cantidad = pagosEnMes.reduce((sum, p) => sum + getPaymentCollected(p), 0);
       const numeroPagos = pagosEnMes.length;
 
       return {

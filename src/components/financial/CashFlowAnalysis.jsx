@@ -4,44 +4,36 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ComposedChart, Line, Bar, BarChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Area } from "recharts";
 import { TrendingUp, Calendar } from "lucide-react";
 import { getPaymentCollected } from "@/components/payments/paymentHelpers";
+import { seasonMonthIndex, paymentMonthIndex, inSeasonRange } from "@/components/financial/comparativa/buildMonthly";
 
 export default function CashFlowAnalysis({ payments, transactions, clothingOrders, lotteryOrders, clubMembers, sponsors, activeSeason }) {
   const monthlyData = useMemo(() => {
     const months = ['Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo'];
     
-    return months.map(mes => {
-      // Ingresos
-      const cuotas = payments.filter(p => 
-        p.mes === mes && 
-        getPaymentCollected(p) > 0 && 
-        sameSeason(p.temporada, activeSeason?.temporada)
-      ).reduce((sum, p) => sum + getPaymentCollected(p), 0);
+    const t = activeSeason?.temporada;
+    const rows = months.map(() => ({ cuotas: 0, ropa: 0, loteria: 0, socios: 0, gastos: 0 }));
+    const add = (i, key, v) => { if (i >= 0) rows[i][key] += Number(v) || 0; };
 
-      const ropa = clothingOrders.filter(o => {
-        if (!o.fecha_pago || o.temporada !== activeSeason?.temporada) return false;
-        const month = new Date(o.fecha_pago).toLocaleString('es-ES', { month: 'long' });
-        return month.charAt(0).toUpperCase() + month.slice(1) === mes;
-      }).reduce((sum, o) => sum + (o.precio_final || 0), 0);
+    payments
+      .filter(p => p.is_deleted !== true && sameSeason(p.temporada, t))
+      .forEach(p => add(paymentMonthIndex(p), 'cuotas', getPaymentCollected(p)));
+    clothingOrders
+      .filter(o => o.pagado === true && sameSeason(o.temporada, t))
+      .forEach(o => add(seasonMonthIndex(o.fecha_pago || o.created_date), 'ropa', o.precio_final));
+    lotteryOrders
+      .filter(o => o.pagado === true && sameSeason(o.temporada, t))
+      .forEach(o => add(seasonMonthIndex(o.fecha_pago || o.created_date), 'loteria', o.total));
+    clubMembers
+      .filter(m => m.estado_pago === "Pagado" && sameSeason(m.temporada, t))
+      .forEach(m => add(seasonMonthIndex(m.fecha_pago || m.created_date), 'socios', m.cuota_pagada));
+    // Gastos: solo los de esta temporada
+    transactions
+      .filter(tx => tx.tipo === "Gasto" && tx.fecha && tx.estado !== "Anulado" &&
+        (tx.temporada ? sameSeason(tx.temporada, t) : inSeasonRange(tx.fecha, t)))
+      .forEach(tx => add(seasonMonthIndex(tx.fecha), 'gastos', tx.cantidad));
 
-      const loteria = lotteryOrders.filter(o => {
-        if (!o.fecha_pago || o.temporada !== activeSeason?.temporada) return false;
-        const month = new Date(o.fecha_pago).toLocaleString('es-ES', { month: 'long' });
-        return month.charAt(0).toUpperCase() + month.slice(1) === mes;
-      }).reduce((sum, o) => sum + (o.total || 0), 0);
-
-      const socios = clubMembers.filter(m => {
-        if (!m.fecha_pago || m.temporada !== activeSeason?.temporada) return false;
-        const month = new Date(m.fecha_pago).toLocaleString('es-ES', { month: 'long' });
-        return month.charAt(0).toUpperCase() + month.slice(1) === mes;
-      }).reduce((sum, m) => sum + (m.cuota_pagada || 0), 0);
-
-      // Gastos
-      const gastos = transactions.filter(t => {
-        if (t.tipo !== "Gasto" || !t.fecha) return false;
-        const month = new Date(t.fecha).toLocaleString('es-ES', { month: 'long' });
-        return month.charAt(0).toUpperCase() + month.slice(1) === mes;
-      }).reduce((sum, t) => sum + (t.cantidad || 0), 0);
-
+    return months.map((mes, i) => {
+      const { cuotas, ropa, loteria, socios, gastos } = rows[i];
       const ingresos = cuotas + ropa + loteria + socios;
       const flujo = ingresos - gastos;
 

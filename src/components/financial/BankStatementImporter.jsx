@@ -7,6 +7,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Upload, CheckCircle2, AlertTriangle, Loader2, CalendarDays, Wallet, FileCheck2 } from "lucide-react";
 import { toast } from "sonner";
+import { buildPaymentMatcher } from "./bankPaymentMatcher";
 
 function money(value) {
   if (value === null || value === undefined || value === "") return null;
@@ -307,13 +308,17 @@ export default function BankStatementImporter({ activeSeason, accountId, account
 
     setImporting(true);
     try {
-      const [allPayments, user, allTransactions, reconciliationRules, customCategoryRows] = await Promise.all([
-        base44.entities.Payment.filter({ temporada: activeSeason?.temporada }).catch(() => []),
+      const t = String(activeSeason?.temporada || "");
+      const seasonVariants = [...new Set([t, t.replace(/\//g, "-"), t.replace(/-/g, "/")])];
+      const [allPayments, user, allTransactions, reconciliationRules, customCategoryRows, allPlayers] = await Promise.all([
+        base44.entities.Payment.filter({ temporada: { $in: seasonVariants } }).catch(() => []),
         base44.auth.me(),
         base44.entities.FinancialTransaction.list("-fecha").catch(() => []),
         base44.entities.ReconciliationRule.list("-veces_aplicada").catch(() => []),
-        base44.entities.FinancialCategory.list("-orden", 500).catch(() => [])
+        base44.entities.FinancialCategory.list("-orden", 500).catch(() => []),
+        base44.entities.Player.list("-created_date", 2000).catch(() => [])
       ]);
+      const findPayment = buildPaymentMatcher(allPayments, allPlayers);
       const customCategories = customCategoryRows.filter((row) => row.activa !== false).map((row) => row.nombre);
       // Aprovechar también las transacciones bancarias que ya estaban clasificadas antes
       // de activar el aprendizaje persistente de reglas.
@@ -379,14 +384,7 @@ export default function BankStatementImporter({ activeSeason, accountId, account
           continue;
         }
 
-        const concept = mov.concepto.toLowerCase();
-        const matchingPayment = mov.tipo === "ingreso" ? allPayments.find((p) => {
-          const playerName = String(p.jugador_nombre || "").trim().toLowerCase();
-          const paymentAmount = Math.abs(Number(p.cantidad || 0));
-          const amountMatch = Math.abs(paymentAmount - mov.importe) < 0.02;
-          const conceptMatch = playerName.length > 2 && concept.includes(playerName);
-          return amountMatch && conceptMatch && !p.reconciliado_banco && !usedPaymentIds.has(p.id);
-        }) : null;
+        const matchingPayment = findPayment(mov, usedPaymentIds);
 
         const normalizedConcept = normalizeConcept(mov.concepto);
         // Busca también una partida financiera aunque el movimiento ya coincida con Payment:
