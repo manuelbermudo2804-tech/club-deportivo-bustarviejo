@@ -9,7 +9,7 @@ import { Image } from 'https://deno.land/x/imagescript@1.3.0/mod.ts';
 const W = 1080;
 const H = 1920;
 const FONT_URL = 'https://raw.githubusercontent.com/google/fonts/main/ofl/anton/Anton-Regular.ttf';
-const LOGO_URL = 'https://media.base44.com/images/public/6992c6be619d2da592897991/5d59cb383_fc5d50e49_ChatGPTImage18dic202513_39_39.png';
+const CARTEL_URL = 'https://base44.app/api/apps/6992c6be619d2da592897991/files/mp/public/6992c6be619d2da592897991/3a5225da2_cartel-loteria-2026.png';
 
 const centrado = (img, font, scale, text, color, y) => {
   const t = Image.renderText(font, scale, text, color);
@@ -17,54 +17,39 @@ const centrado = (img, font, scale, text, color, y) => {
   return y + t.height;
 };
 
-async function generarImagen({ restantes, dias, numero, precio }) {
-  const font = new Uint8Array(await (await fetch(FONT_URL, { signal: AbortSignal.timeout(15000) })).arrayBuffer());
-  console.log('fuente descargada', font.length);
+async function generarImagen({ restantes, dias }) {
+  const [fontBuf, cartelBuf] = await Promise.all([
+    fetch(FONT_URL, { signal: AbortSignal.timeout(15000) }).then((r) => r.arrayBuffer()),
+    fetch(CARTEL_URL, { signal: AbortSignal.timeout(15000) }).then((r) => r.arrayBuffer()),
+  ]);
+  const font = new Uint8Array(fontBuf);
   const img = new Image(W, H);
-  // Degradado vertical rojo navidad → granate oscuro
-  const from = [200, 30, 30], to = [60, 6, 12];
+  // Fondo azul noche a juego con el cielo del cartel
+  const from = [16, 42, 110], to = [6, 12, 34];
   for (let y = 0; y < H; y += 8) {
     const k = y / H;
     const c = from.map((v, i) => Math.round(v + (to[i] - v) * k));
     img.drawBox(1, y + 1, W, 8, Image.rgbaToColor(c[0], c[1], c[2], 255));
   }
-  // Marco dorado
+
+  // Cartel del club a todo el ancho (3:4 → 1080×1440)
+  const cartel = await Image.decode(new Uint8Array(cartelBuf));
+  cartel.resize(W, Image.RESIZE_AUTO);
+  const top = 90;
+  img.composite(cartel, 0, top);
   const oro = 0xfbbf24ff;
-  img.drawBox(40, 40, W - 80, 10, oro);
-  img.drawBox(40, H - 50, W - 80, 10, oro);
-  img.drawBox(40, 40, 10, H - 80, oro);
-  img.drawBox(W - 50, 40, 10, H - 80, oro);
+  img.drawBox(1, top + cartel.height + 1, W, 8, oro);
 
-  let y = 150;
-  try {
-    const logo = await Image.decode(new Uint8Array(await (await fetch(LOGO_URL, { signal: AbortSignal.timeout(15000) })).arrayBuffer()));
-    logo.resize(220, Image.RESIZE_AUTO);
-    img.composite(logo, Math.round((W - logo.width) / 2), y);
-    y += logo.height + 20;
-  } catch (_) { y += 40; }
-
+  // Bloque con el dato del día
   const blanco = 0xffffffff;
-  y = centrado(img, font, 80, 'LOTERÍA DE NAVIDAD', oro, y) - 15;
-  y = centrado(img, font, 52, 'CD BUSTARVIEJO', blanco, y) - 5;
-  if (numero) y = centrado(img, font, 64, `Nº ${numero}`, blanco, y) + 10;
+  let y = top + cartel.height + 30;
+  const principal = restantes != null
+    ? `QUEDAN ${restantes} ${restantes === 1 ? 'DÉCIMO' : 'DÉCIMOS'}`
+    : '¡CONSIGUE TU DÉCIMO!';
+  y = centrado(img, font, 96, principal, oro, y) - 10;
+  const textoDias = dias <= 1 ? '¡ÚLTIMO DÍA DE VENTA!' : `FALTAN ${dias} DÍAS · ENLACE EN LA BIO`;
+  centrado(img, font, 54, textoDias, blanco, y);
 
-  if (restantes != null) {
-    y = centrado(img, font, 64, 'QUEDAN', blanco, y) - 40;
-    y = centrado(img, font, 260, String(restantes), oro, y) - 90;
-    y = centrado(img, font, 72, restantes === 1 ? 'DÉCIMO' : 'DÉCIMOS', blanco, y) + 10;
-  } else {
-    y = centrado(img, font, 100, '¡CONSIGUE', blanco, y) - 20;
-    y = centrado(img, font, 100, 'TU DÉCIMO!', oro, y) + 20;
-  }
-
-  const textoDias = dias <= 1 ? '¡ÚLTIMO DÍA DE VENTA!' : `FALTAN ${dias} DÍAS`;
-  y = centrado(img, font, 84, textoDias, oro, y) - 10;
-  if (precio) centrado(img, font, 52, `${precio} € el décimo`, blanco, y);
-
-  centrado(img, font, 44, 'Compra en el enlace de la bio', blanco, H - 290);
-  centrado(img, font, 48, 'app.cdbustarviejo.com/loteria', oro, H - 220);
-
-  console.log('imagen compuesta');
   return await img.encodeJPEG(88);
 }
 
@@ -94,7 +79,7 @@ Deno.serve(async (req) => {
     if (restantes === 0) return Response.json({ skipped: 'Agotado' });
 
     const dias = cierre ? Math.max(1, Math.ceil((cierre - Date.now()) / 86400000)) : null;
-    const jpg = await generarImagen({ restantes, dias: dias ?? 99, numero: campana.numero, precio: campana.precio_decimo });
+    const jpg = await generarImagen({ restantes, dias: dias ?? 99 });
     const { file_url } = await base44.asServiceRole.integrations.Core.UploadPublicFile({
       file: new File([jpg], `historia-loteria-${Date.now()}.jpg`, { type: 'image/jpeg' }),
     });
