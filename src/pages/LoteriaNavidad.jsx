@@ -24,6 +24,7 @@ export default function LoteriaNavidad() {
       const res = await base44.functions.invoke("loteriaPublic", {});
       return res.data;
     },
+    refetchInterval: 60000,
   });
 
   // Metadatos específicos para buscadores y para compartir esta página pública.
