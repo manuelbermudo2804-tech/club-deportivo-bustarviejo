@@ -116,21 +116,16 @@ export default function BandejaTab({ stuckUsersWithStatus, accessCodes, generate
                         {/* Botones de contacto si hay teléfono */}
                         {phoneNorm && (
                           <>
-                            <a href={`tel:+${phoneNorm}`} title="Llamar">
-                              <Button size="sm" variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50 h-9 w-9 p-0">
+                            <Button asChild size="sm" variant="outline" className="text-blue-600 border-blue-200 hover:bg-blue-50 h-9 w-9 p-0">
+                              <a href={`tel:+${phoneNorm}`} title="Llamar">
                                 <Phone className="w-4 h-4" />
-                              </Button>
-                            </a>
-                            <a
-                              href={`https://wa.me/${phoneNorm}?text=${waMessage}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              title="WhatsApp"
-                            >
-                              <Button size="sm" variant="outline" className="text-green-600 border-green-200 hover:bg-green-50 h-9 w-9 p-0">
+                              </a>
+                            </Button>
+                            <Button asChild size="sm" variant="outline" className="text-green-600 border-green-200 hover:bg-green-50 h-9 w-9 p-0">
+                              <a href={`https://wa.me/${phoneNorm}?text=${waMessage}`} target="_blank" rel="noopener noreferrer" title="WhatsApp">
                                 <MessageCircle className="w-4 h-4" />
-                              </Button>
-                            </a>
+                              </a>
+                            </Button>
                           </>
                         )}
 

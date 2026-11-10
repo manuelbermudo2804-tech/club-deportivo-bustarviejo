@@ -26,18 +26,18 @@ export default function AgendaSubscribeButtons({ categoria, categorias = [], sol
   return (
     <div className="grid grid-cols-2 sm:flex sm:flex-wrap sm:items-center gap-2 rounded-2xl border border-slate-200 bg-white p-3 shadow-sm min-w-0">
       <span className="col-span-2 sm:col-span-1 text-sm font-semibold text-slate-600">Llévatelo a tu calendario</span>
-      <a className="min-w-0" href={google} target="_blank" rel="noopener noreferrer">
-        <Button size="sm" variant="outline" className="w-full min-w-0 h-10 px-3 text-sm">
+      <Button asChild size="sm" variant="outline" className="w-full min-w-0 h-10 px-3 text-sm">
+        <a href={google} target="_blank" rel="noopener noreferrer">
           <CalendarPlus className="w-3.5 h-3.5 mr-1.5" />
           Google
-        </Button>
-      </a>
-      <a className="min-w-0" href={webcal}>
-        <Button size="sm" variant="outline" className="w-full min-w-0 h-10 px-3 text-sm">
+        </a>
+      </Button>
+      <Button asChild size="sm" variant="outline" className="w-full min-w-0 h-10 px-3 text-sm">
+        <a href={webcal}>
           <Smartphone className="w-3.5 h-3.5 mr-1.5" />
           iPhone
-        </Button>
-      </a>
+        </a>
+      </Button>
       <Button size="sm" variant="outline" onClick={copiar} className="w-full min-w-0 h-10 px-3 text-sm">
         {copiado ? <Check className="w-3.5 h-3.5 mr-1.5 text-green-600" /> : <Copy className="w-3.5 h-3.5 mr-1.5" />}
         Copiar enlace

@@ -118,11 +118,11 @@ export default function ReadConfirmationPanel({ announcement }) {
                           <p className="text-[10px] text-slate-400 truncate">{f.categoria || f.email}</p>
                         </div>
                         {f.telefono && (
-                          <a href={whatsappLink(f)} target="_blank" rel="noopener noreferrer">
-                            <Button size="sm" variant="outline" className="h-7 text-[10px] text-green-700 border-green-300">
+                          <Button asChild size="sm" variant="outline" className="h-7 text-[10px] text-green-700 border-green-300">
+                            <a href={whatsappLink(f)} target="_blank" rel="noopener noreferrer">
                               <MessageCircle className="w-3 h-3 mr-1" /> WhatsApp
-                            </Button>
-                          </a>
+                            </a>
+                          </Button>
                         )}
                       </div>
                     ))}

@@ -189,10 +189,10 @@ export default function RffmImportButton({ type, config, category, competition =
     <div className="bg-green-50 rounded-xl p-4 border-2 border-green-300 space-y-2">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div>
-          <p className="font-bold text-green-900 flex items-center gap-2">
+          <div className="font-bold text-green-900 flex items-center gap-2">
             🤖 Importar de RFFM
             <Badge className="bg-green-100 text-green-700">Automático</Badge>
-          </p>
+          </div>
           <p className="text-xs text-green-700 mt-0.5">
             Descarga los datos directamente desde la web de la federación
           </p>

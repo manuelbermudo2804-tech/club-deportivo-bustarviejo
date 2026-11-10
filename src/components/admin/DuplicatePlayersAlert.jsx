@@ -151,11 +151,11 @@ export default function DuplicatePlayersAlert() {
                     {dup.players.map(p => (
                       <div key={p.id} className="flex items-center justify-between text-sm">
                         <span>{p.nombre} <Badge variant="outline" className="text-xs ml-2">{p.deporte}</Badge></span>
-                        <Link to={createPageUrl("Players") + `?search=${encodeURIComponent(p.nombre)}`}>
-                          <Button size="sm" variant="ghost" className="h-6 text-xs">
+                        <Button asChild size="sm" variant="ghost" className="h-6 text-xs">
+                          <Link to={createPageUrl("Players") + `?search=${encodeURIComponent(p.nombre)}`}>
                             <Eye className="w-3 h-3 mr-1" />Ver
-                          </Button>
-                        </Link>
+                          </Link>
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -174,11 +174,11 @@ export default function DuplicatePlayersAlert() {
                     {dup.players.map(p => (
                       <div key={p.id} className="flex items-center justify-between text-sm">
                         <span>{p.nombre} <Badge variant="outline" className="text-xs ml-2">{p.deporte}</Badge></span>
-                        <Link to={createPageUrl("Players") + `?search=${encodeURIComponent(p.nombre)}`}>
-                          <Button size="sm" variant="ghost" className="h-6 text-xs">
+                        <Button asChild size="sm" variant="ghost" className="h-6 text-xs">
+                          <Link to={createPageUrl("Players") + `?search=${encodeURIComponent(p.nombre)}`}>
                             <Eye className="w-3 h-3 mr-1" />Ver
-                          </Button>
-                        </Link>
+                          </Link>
+                        </Button>
                       </div>
                     ))}
                   </div>
@@ -198,11 +198,11 @@ export default function DuplicatePlayersAlert() {
                     {dup.players.map(p => (
                       <div key={p.id} className="flex items-center justify-between text-sm">
                         <span>{p.nombre} <Badge variant="outline" className="text-xs ml-2">{p.deporte}</Badge></span>
-                        <Link to={createPageUrl("Players") + `?search=${encodeURIComponent(p.nombre)}`}>
-                          <Button size="sm" variant="ghost" className="h-6 text-xs">
+                        <Button asChild size="sm" variant="ghost" className="h-6 text-xs">
+                          <Link to={createPageUrl("Players") + `?search=${encodeURIComponent(p.nombre)}`}>
                             <Eye className="w-3 h-3 mr-1" />Ver
-                          </Button>
-                        </Link>
+                          </Link>
+                        </Button>
                       </div>
                     ))}
                   </div>

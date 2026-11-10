@@ -280,12 +280,12 @@ export default function AccessRequestSendDialog({ request, open, onOpenChange, o
                 const waUrl = getWhatsAppUrl(request.telefono, sentResult.tipo, sentResult.nombre, sentResult.codigo, request.email);
                 if (!waUrl) return null;
                 return (
-                  <a href={waUrl} target="_blank" rel="noopener noreferrer" className="block">
-                    <Button className="w-full bg-green-600 hover:bg-green-700 text-white" type="button">
+                  <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white">
+                    <a href={waUrl} target="_blank" rel="noopener noreferrer">
                       <MessageCircle className="w-4 h-4 mr-2" />
                       {request.prefiere_whatsapp ? '📲 Enviar también por WhatsApp (lo pidió)' : '📲 Enviar también por WhatsApp'}
-                    </Button>
-                  </a>
+                    </a>
+                  </Button>
                 );
               })()}
 

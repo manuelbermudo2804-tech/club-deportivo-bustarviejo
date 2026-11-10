@@ -132,19 +132,19 @@ export default function AnnouncementCard({ announcement, onEdit, onDelete, isAdm
           {announcement.cta_url && (
             <div className="mb-3">
               {announcement.cta_url.startsWith("http") ? (
-                <a href={announcement.cta_url} target="_blank" rel="noopener noreferrer">
-                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 text-xs">
+                <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 text-xs">
+                  <a href={announcement.cta_url} target="_blank" rel="noopener noreferrer">
                     {announcement.cta_texto || "Abrir enlace"}
                     <ArrowRight className="w-3 h-3 ml-1" />
-                  </Button>
-                </a>
+                  </a>
+                </Button>
               ) : (
-                <Link to={announcement.cta_url}>
-                  <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 text-xs">
+                <Button asChild size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white h-8 text-xs">
+                  <Link to={announcement.cta_url}>
                     {announcement.cta_texto || "Ir a la sección"}
                     <ArrowRight className="w-3 h-3 ml-1" />
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               )}
             </div>
           )}

@@ -619,9 +619,9 @@ Sugiere 3-5 acciones de comunicación prioritarias con justificación.`;
                   <Card className="bg-slate-50">
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-3">
-                        <p className="font-medium text-sm">
+                        <div className="font-medium text-sm">
                           Destinatarios encontrados: <Badge>{filteredRecipients.length}</Badge>
-                        </p>
+                        </div>
                         <Button
                           size="sm"
                           variant="outline"

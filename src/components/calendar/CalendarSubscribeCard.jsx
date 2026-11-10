@@ -56,18 +56,18 @@ export default function CalendarSubscribeCard({ categories = [] }) {
         )}
 
         <div className="flex flex-wrap gap-2">
-          <a href={googleUrl} target="_blank" rel="noopener noreferrer">
-            <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button asChild className="bg-blue-600 hover:bg-blue-700">
+            <a href={googleUrl} target="_blank" rel="noopener noreferrer">
               <CalendarPlus className="w-4 h-4 mr-2" />
               Añadir en Google Calendar
-            </Button>
-          </a>
-          <a href={webcalUrl}>
-            <Button variant="outline" className="border-blue-300">
+            </a>
+          </Button>
+          <Button asChild variant="outline" className="border-blue-300">
+            <a href={webcalUrl}>
               <Smartphone className="w-4 h-4 mr-2" />
               Añadir en iPhone
-            </Button>
-          </a>
+            </a>
+          </Button>
           <Button variant="outline" onClick={copy} className="border-blue-300">
             {copied ? <Check className="w-4 h-4 mr-2 text-green-600" /> : <Copy className="w-4 h-4 mr-2" />}
             Copiar enlace

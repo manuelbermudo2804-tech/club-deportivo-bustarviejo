@@ -66,34 +66,29 @@ export default function NewSeasonWelcome({ seasonName }) {
             transition={{ delay: 0.8 }}
             className="space-y-3"
           >
-            <Link to={createPageUrl("ParentPlayers")}>
-              <Button
-                size="lg"
-                className="w-full bg-white text-green-700 hover:bg-green-50 font-bold py-6 text-xl shadow-2xl"
-              >
+            <Button
+              asChild
+              size="lg"
+              className="w-full bg-white text-green-700 hover:bg-green-50 font-bold py-6 text-xl shadow-2xl"
+            >
+              <Link to={createPageUrl("ParentPlayers")}>
                 <Users className="w-6 h-6 mr-3" />
                 Registrar / Renovar Jugadores
-              </Button>
-            </Link>
+              </Link>
+            </Button>
             
             <div className="grid grid-cols-2 gap-3">
-              <Link to={createPageUrl("AgendaClub")} className="w-full">
-                <Button
-                  variant="outline"
-                  className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20"
-                >
+              <Button asChild variant="outline" className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20">
+                <Link to={createPageUrl("AgendaClub")}>
                   <Calendar className="w-5 h-5 mr-2" />
                   Calendario
-                </Button>
-              </Link>
-              <Link to={createPageUrl("Announcements")} className="w-full">
-                <Button
-                  variant="outline"
-                  className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20"
-                >
+                </Link>
+              </Button>
+              <Button asChild variant="outline" className="w-full bg-white/10 border-white/30 text-white hover:bg-white/20">
+                <Link to={createPageUrl("Announcements")}>
                   📢 Anuncios
-                </Button>
-              </Link>
+                </Link>
+              </Button>
             </div>
           </motion.div>
 
