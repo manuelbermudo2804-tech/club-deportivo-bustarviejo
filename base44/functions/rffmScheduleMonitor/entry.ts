@@ -507,6 +507,8 @@ Deno.serve(async (req) => {
         // El entrenador debe revisar, editar y publicar manualmente.
         if (!callup && !existingForJornada) {
           if (!matchDate) return null; // Can't create without a date
+          // Nunca crear borradores de partidos ya pasados (la Federación a veces tarda en subir el resultado)
+          if (matchDate < new Date().toISOString().split('T')[0]) return null;
 
           // Get active players for this category
           // Incluir jugadores por categoría principal, lista de categorías o el campo antiguo "deporte"

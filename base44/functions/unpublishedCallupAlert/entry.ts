@@ -46,7 +46,6 @@ Deno.serve(async (req) => {
     // Filter: unpublished, with players, match in next 2 days, not cancelled/closed
     const drafts = all.filter(c =>
       !c.publicada &&
-      (c.jugadores_convocados?.length > 0) &&
       c.fecha_partido >= today &&
       c.fecha_partido <= in2Days &&
       c.estado_convocatoria !== 'cancelada' &&
