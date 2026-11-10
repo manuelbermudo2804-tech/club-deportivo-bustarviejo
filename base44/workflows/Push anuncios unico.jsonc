@@ -1,0 +1,45 @@
+{
+  "name": "Push anuncios unico",
+  "description": "\u00danico aviso push de anuncios: al crearlo publicado o al publicar un borrador. Se env\u00eda una sola vez.",
+  "trigger": {
+    "condition": "${ (.trigger.data.publicado == true) and (.trigger.data.push_enviada != true) }",
+    "config": {
+      "trigger_type": "entity",
+      "events": [
+        "create",
+        "update"
+      ],
+      "entity_name": "Announcement"
+    }
+  },
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "push_anuncios_unico",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "run_function": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "onPushTrigger",
+            "args": {
+              "event": {
+                "entity_name": "Announcement",
+                "entity_id": "${ .trigger.entity_id }",
+                "type": "${ .trigger.type }"
+              },
+              "data": "${ .trigger.data }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Enviar push del anuncio"
+          }
+        }
+      }
+    ]
+  }
+}

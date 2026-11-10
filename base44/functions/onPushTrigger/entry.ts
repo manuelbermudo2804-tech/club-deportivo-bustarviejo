@@ -43,7 +43,7 @@ async function sendPushToEmails(base44, emails, title, body, url, tag) {
     );
     targetSubs = subsArrays.flat();
   } else {
-    const allSubs = await base44.asServiceRole.entities.PushSubscription.filter({ activa: true });
+    const allSubs = await base44.asServiceRole.entities.PushSubscription.filter({ activa: true }, '-created_date', 5000);
     targetSubs = allSubs.filter(s => uniqueEmails.includes(s.usuario_email));
   }
   if (targetSubs.length === 0) return { sent: 0, failed: 0 };
@@ -117,8 +117,8 @@ Deno.serve(async (req) => {
 
       const normalizedCat = toGroupId(grupoId);
       const [allPlayers, allUsers] = await Promise.all([
-        base44.asServiceRole.entities.Player.filter({ activo: true }),
-        base44.asServiceRole.entities.User.list('-created_date', 500)
+        base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 5000),
+        base44.asServiceRole.entities.User.list('-created_date', 5000)
       ]);
 
       const targetEmails = [];
@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
           if (j.email_jugador) targetEmails.push(j.email_jugador);
         }
         // Also fetch tutor2 and minor emails from Player entity
-        const allPlayersData = await base44.asServiceRole.entities.Player.filter({ activo: true });
+        const allPlayersData = await base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 5000);
         for (const j of jugadores) {
           if (!j.jugador_id) continue;
           const p = allPlayersData.find(pl => pl.id === j.jugador_id);
@@ -181,7 +181,7 @@ Deno.serve(async (req) => {
           const allResponded = jugadores.every(j => j.confirmacion && j.confirmacion !== 'pendiente');
           if (allResponded) {
             // Find coach(es) for this category
-            const allUsers = await base44.asServiceRole.entities.User.list('-created_date', 500);
+            const allUsers = await base44.asServiceRole.entities.User.list('-created_date', 5000);
             const coachEmails = [];
             for (const u of allUsers) {
               if (u.es_entrenador && (u.categorias_entrena || []).includes(data.categoria)) coachEmails.push(u.email);
@@ -249,7 +249,7 @@ Deno.serve(async (req) => {
       } else if (data.destinatarios_emails && data.destinatarios_emails.length > 0) {
         targetEmails.push(...data.destinatarios_emails);
       } else {
-        const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true });
+        const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 5000);
         for (const p of allPlayers) {
           const matchCategory = destinatarios === 'Todos' || (p.categoria_principal || p.deporte) === destinatarios;
           if (!matchCategory) continue;
@@ -316,7 +316,7 @@ Deno.serve(async (req) => {
         const targetEmails = [];
         if (data.autor === 'padre') {
           // Notificar a todos los coordinadores
-          const users = await base44.asServiceRole.entities.User.list('-created_date', 500);
+          const users = await base44.asServiceRole.entities.User.list('-created_date', 5000);
           for (const u of users) {
             if (u.es_coordinador) targetEmails.push(u.email);
           }
@@ -344,7 +344,7 @@ Deno.serve(async (req) => {
         if (!conv) return Response.json({ skipped: 'conversation not found' });
         const targetEmails = [];
         if (data.autor === 'padre') {
-          const users = await base44.asServiceRole.entities.User.list('-created_date', 500);
+          const users = await base44.asServiceRole.entities.User.list('-created_date', 5000);
           for (const u of users) { if (u.role === 'admin') targetEmails.push(u.email); }
         } else {
           targetEmails.push(conv.padre_email);
@@ -407,7 +407,7 @@ Deno.serve(async (req) => {
       if (!data.publicado) return Response.json({ skipped: 'not published' });
       if (!data.importante && data.tipo === 'Entrenamiento') return Response.json({ skipped: 'routine event' });
       const destinatarios = data.destinatario_categoria || 'Todos';
-      const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true });
+      const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 5000);
       const targetEmails = [];
       for (const p of allPlayers) {
         const match = destinatarios === 'Todos' || (p.categoria_principal || p.deporte) === destinatarios;
@@ -430,7 +430,7 @@ Deno.serve(async (req) => {
     // ==========================================
     if (entityName === 'ExtraCharge') {
       if (data.estado !== 'activo') return Response.json({ skipped: 'not active' });
-      const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true });
+      const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 5000);
       const targetEmails = [];
       // If asignado_a has specific player IDs, use those; otherwise all active players
       const assignedIds = data.asignado_a || [];
@@ -455,8 +455,8 @@ Deno.serve(async (req) => {
       const tipoDestinatario = data.tipo_destinatario || 'todos';
 
       const [allPlayers, allUsers] = await Promise.all([
-        base44.asServiceRole.entities.Player.filter({ activo: true }),
-        base44.asServiceRole.entities.User.list('-created_date', 500)
+        base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 5000),
+        base44.asServiceRole.entities.User.list('-created_date', 5000)
       ]);
 
       const targetEmails = [];
@@ -518,7 +518,7 @@ Deno.serve(async (req) => {
     if (entityName === 'Survey') {
       if (!data.activa) return Response.json({ skipped: 'not active' });
       const destinatarios = data.destinatarios || 'Todos';
-      const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true });
+      const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 5000);
       const targetEmails = [];
       for (const p of allPlayers) {
         const match = destinatarios === 'Todos' || (p.categoria_principal || p.deporte) === destinatarios;
@@ -558,7 +558,7 @@ Deno.serve(async (req) => {
     // ==========================================
     if (entityName === 'VolunteerOpportunity') {
       if (data.estado === 'cerrada' || data.publicada === false) return Response.json({ skipped: 'not open' });
-      const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true });
+      const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 5000);
       const targetEmails = [];
       for (const p of allPlayers) {
         if (p.email_padre) targetEmails.push(p.email_padre);
