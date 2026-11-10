@@ -1,0 +1,45 @@
+{
+  "description": "Cada d\u00eda a las 10:00 sube una historia a Instagram con los d\u00e9cimos que quedan y los d\u00edas que faltan. Se para sola al cerrar la venta.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "0 10 * * *",
+      "one_time_date": null,
+      "timezone": "Europe/Madrid",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "on_date",
+      "ends_on_date": "2026-12-18T23:00:00Z",
+      "ends_after_count": null
+    }
+  },
+  "name": "Historia diaria Loter\u00eda (Instagram)",
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "historia_diaria_loteria",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "publicar_historia": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "loteriaHistoriaInstagram",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Subir historia de la loter\u00eda",
+            "description": "D\u00e9cimos restantes y d\u00edas"
+          }
+        }
+      }
+    ]
+  }
+}
