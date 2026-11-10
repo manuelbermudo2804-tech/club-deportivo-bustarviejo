@@ -23,6 +23,7 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
   });
 
   const [cuotas, setCuotas] = useState([]);
+  const [cuotasPersonalizadas, setCuotasPersonalizadas] = useState(8);
   const [activeSeason, setActiveSeason] = useState(null);
   const activities = [...new Set([player?.categoria_principal, player?.deporte, ...(Array.isArray(player?.categorias) ? player.categorias : [])].filter(Boolean))];
   const [categoriaActividad, setCategoriaActividad] = useState(existingPlan?.categoria_actividad || (activities.length === 1 ? activities[0] : ""));
@@ -337,6 +338,29 @@ export default function CustomPaymentPlanForm({ open, onClose, player, existingP
                     </Button>
                   );
                 })}
+              </div>
+
+              <div className="flex flex-wrap items-end gap-2 pt-2 border-t border-green-200">
+                <div>
+                  <label className="text-xs font-medium text-slate-700 mb-1 block">Otro nº de cuotas</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="36"
+                    value={cuotasPersonalizadas}
+                    onChange={(e) => setCuotasPersonalizadas(parseInt(e.target.value) || 0)}
+                    className="h-9 w-24 bg-white"
+                  />
+                </div>
+                <Button
+                  type="button"
+                  onClick={() => handleQuickPlan(cuotasPersonalizadas)}
+                  disabled={formData.deuda_original <= 0 || cuotasPersonalizadas < 1 || cuotasPersonalizadas > 36}
+                  className="h-9 bg-green-600 hover:bg-green-700"
+                >
+                  Generar {cuotasPersonalizadas || 0} cuotas
+                  {cuotasPersonalizadas > 0 && ` de ${(deudaFinal / cuotasPersonalizadas).toFixed(2)}€`}
+                </Button>
               </div>
             </CardContent>
           </Card>
