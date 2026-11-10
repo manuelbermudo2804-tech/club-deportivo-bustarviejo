@@ -5,7 +5,7 @@ Deno.serve((req) => {
   const fnUrl = (name) => `/functions/${name}`;
   const logUrl = fnUrl('logPushDelivery');
   // Icono pequeño de la barra de Android: PNG blanco sobre transparente (Android lo tiñe)
-  const badgeUrl = fnUrl('badgeIcon');
+  const badgeUrl = fnUrl('badgeIcon') + '?v=2';
 
   const swCode = `
 const LOG_DELIVERY_URL = '${logUrl}';

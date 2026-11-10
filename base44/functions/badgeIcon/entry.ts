@@ -13,13 +13,14 @@ const W = 96, H = 96;
 const png = new PNG({ width: W, height: H });
 png.data.fill(0); // todo transparente
 
-// Renderizar "CDB" centrado, escalado x5 (3 letras x 25px + 2 huecos x 10px = 95px, cabe en 96)
-const SCALE = 5;
+// Renderizar "CDB" ocupando casi todo el icono:
+// ancho x6 (3 letras x 30px + 2 huecos x 3px = 96px), alto x12 (84px)
+const SX = 6, SY = 12;
 const LETTERS = ["C","D","B"];
-const LETTER_W = 5 * SCALE;
-const GAP = 2 * SCALE;
+const LETTER_W = 5 * SX;
+const GAP = 3;
 const TOTAL_W = LETTERS.length * LETTER_W + (LETTERS.length - 1) * GAP;
-const TOTAL_H = 7 * SCALE;
+const TOTAL_H = 7 * SY;
 const startX = Math.floor((W - TOTAL_W) / 2);
 const startY = Math.floor((H - TOTAL_H) / 2);
 
@@ -29,10 +30,10 @@ LETTERS.forEach((letter, li) => {
   for (let row = 0; row < 7; row++) {
     for (let col = 0; col < 5; col++) {
       if (glyph[row][col] === "1") {
-        for (let dy = 0; dy < SCALE; dy++) {
-          for (let dx = 0; dx < SCALE; dx++) {
-            const x = offsetX + col * SCALE + dx;
-            const y = startY + row * SCALE + dy;
+        for (let dy = 0; dy < SY; dy++) {
+          for (let dx = 0; dx < SX; dx++) {
+            const x = offsetX + col * SX + dx;
+            const y = startY + row * SY + dy;
             const idx = (W * y + x) << 2;
             png.data[idx] = 255;     // R
             png.data[idx + 1] = 255; // G
