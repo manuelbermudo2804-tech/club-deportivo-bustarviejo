@@ -750,7 +750,8 @@ export default function Payments() {
   const filteredPlayers = React.useMemo(() => (players || []).filter(player => {
     if (!player.activo) return false;
     const matchesSearch = searchTerm === "" || player.nombre?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategoria = categoriaFilter === "all" || player.deporte === categoriaFilter;
+    const matchesCategoria = categoriaFilter === "all" || player.deporte === categoriaFilter || player.categoria_principal === categoriaFilter || (Array.isArray(player.categorias) && player.categorias.includes(categoriaFilter));
+    if (!matchesCategoria) return false;
     const playerPayments = (payments || []).filter(p => p.jugador_id === player.id && matchTemporada(p.temporada, temporadaFilter));
     const hasActivePlan = customPlans.some(p => p.jugador_id === player.id && p.estado === "Activo" && matchTemporada(p.temporada, temporadaFilter));
     if (estadoFilter !== "sin_pagos" && temporadaFilter !== "all" && playerPayments.length === 0 && !hasActivePlan) return false;
@@ -1569,6 +1570,11 @@ export default function Payments() {
                             isVirtual: true
                           };
                         }).filter(Boolean);
+                      }
+
+                      // Con filtro de categoría, en jugadores multiactividad mostrar solo las cuotas de esa actividad
+                      if (categoriaFilter !== "all" && hasMultipleActivities) {
+                        displayPayments = displayPayments.filter(p => !p.categoria_actividad || p.categoria_actividad === categoriaFilter);
                       }
 
                       // Si hay filtro de estado activo, filtrar displayPayments también
