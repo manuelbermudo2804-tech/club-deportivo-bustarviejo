@@ -31,35 +31,10 @@ export default function UploadEventRow({ event }) {
 
   return (
     <div className={`bg-white rounded-2xl border border-slate-200 border-l-4 ${accent} shadow-sm hover:shadow-md transition-shadow`}>
-      <button type="button" className="w-full text-left flex items-start gap-3 p-3 sm:p-4" onClick={() => setExpanded(!expanded)}>
-        <div className={`p-2.5 rounded-xl ${config.bg} flex-shrink-0`}><Icon className={`w-4 h-4 ${config.color}`} /></div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline" className={`text-xs ${config.color} border-current/20`}>{config.label}</Badge>
-            {event.context && <span className="text-xs text-slate-500 truncate">{event.context}</span>}
-          </div>
-          <div className="flex items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-slate-500 flex-wrap">
-            <span className="flex items-center gap-1 min-w-0 break-all"><User className="w-3 h-3 flex-shrink-0" />{event.user_email}</span>
-            <span className="flex items-center gap-1"><Smartphone className="w-3 h-3" />{event.device || '?'}</span>
-            <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{event.created_date ? format(new Date(event.created_date), "dd/MM HH:mm:ss", { locale: es }) : '?'}</span>
-          </div>
-          {event.file_name && (
-            <div className="text-xs text-slate-600 mt-1.5 flex items-center gap-1 min-w-0">
-              <FileText className="w-3 h-3 flex-shrink-0" />
-              <span className="truncate">{event.file_name} {event.file_size ? `(${Math.round(event.file_size / 1024)}KB)` : ''} {event.file_type ? `· ${event.file_type}` : ''}</span>
-            </div>
-          )}
-          {event.error_message && (
-            <div className="text-xs text-red-700 mt-2 font-medium bg-red-50 rounded-lg px-2.5 py-1.5">{event.error_message}</div>
-          )}
-          {isSuccess && event.result_url && (
-            <a href={event.result_url} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="inline-block mt-2">
-              <img src={event.result_url} alt="Subida" className="w-16 h-16 object-cover rounded-xl border border-green-200" onError={e => { e.target.style.display = 'none'; }} />
-            </a>
-          )}
-        </div>
+      <div role="button" tabIndex={0} className="w-full text-left flex items-start gap-3 p-3 sm:p-4 cursor-pointer" onClick={() => setExpanded(!expanded)}>
+...
         <ChevronDown className={`w-4 h-4 text-slate-400 flex-shrink-0 mt-1 transition-transform ${expanded ? 'rotate-180' : ''}`} />
-      </button>
+      </div>
       {expanded && (
         <div className="mx-3 sm:mx-4 mb-3 sm:mb-4 p-3 rounded-xl bg-slate-50 text-xs">
           {event.diagnostic_code && <Row label="Código">{event.diagnostic_code}</Row>}

@@ -85,11 +85,11 @@ export default function ContactRequestCard({ contact, onStatusChange, onAddNote,
           </Select>
 
           {contact.telefono && (
-            <a href={`https://wa.me/${contact.telefono.replace(/\s/g, '').replace(/^\+/, '')}`} target="_blank" rel="noopener noreferrer">
-              <Button size="sm" variant="outline" className="h-8 text-xs text-green-700 border-green-300 hover:bg-green-50">
+            <Button asChild size="sm" variant="outline" className="h-8 text-xs text-green-700 border-green-300 hover:bg-green-50">
+              <a href={`https://wa.me/${contact.telefono.replace(/\s/g, '').replace(/^\+/, '')}`} target="_blank" rel="noopener noreferrer">
                 💬 WhatsApp
-              </Button>
-            </a>
+              </a>
+            </Button>
           )}
 
           <Button size="sm" variant="outline" className="h-8 text-xs" onClick={() => onSendEmail(contact)}>

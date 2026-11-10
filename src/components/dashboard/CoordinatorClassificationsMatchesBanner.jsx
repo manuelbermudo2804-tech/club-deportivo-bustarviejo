@@ -170,7 +170,9 @@ export default function CoordinatorClassificationsMatchesBanner() {
             {/* DERECHA: PRÓXIMO PARTIDO */}
             <div className="bg-gradient-to-br from-green-50 to-emerald-50">
               {nextMatch ? (
-                <button
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setShowAllMatches(true)}
                   className="w-full h-full text-left p-4 hover:bg-green-100/50 transition-colors"
                 >
@@ -206,7 +208,7 @@ export default function CoordinatorClassificationsMatchesBanner() {
                     <MapPin className="w-3 h-3 mr-1" />
                     📍 Cómo Llegar
                   </Button>
-                </button>
+                </div>
               ) : (
                 <div className="p-4 text-center flex items-center justify-center h-full">
                   <div>

@@ -51,11 +51,11 @@ export default function PostInscripcionPasos({ categoria }) {
             Todas las categorías tienen su pack obligatorio. Lo encontrarás en la sección
             <strong> Tienda y Equipación</strong>{compite ? ", donde también verás el dorsal cuando el club te lo asigne." : "."}
           </p>
-          <Link to={createPageUrl("Tienda")}>
-            <Button variant="outline" size="sm" className="border-orange-400 text-orange-800">
+          <Button asChild variant="outline" size="sm" className="border-orange-400 text-orange-800">
+            <Link to={createPageUrl("Tienda")}>
               Ir a Tienda y Equipación
-            </Button>
-          </Link>
+            </Link>
+          </Button>
         </div>
       </div>
     </>

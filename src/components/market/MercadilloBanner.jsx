@@ -51,8 +51,8 @@ export default function MercadilloBanner() {
     .slice(0, 4);
 
   return (
-    <Link to={createPageUrl("Mercadillo")} className="block">
-      <div className="bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl p-3 shadow-lg border border-orange-400 transition-all hover:scale-[1.02] active:scale-95">
+    <div className="relative">
+      <Link to={createPageUrl("Mercadillo")} className="block bg-gradient-to-r from-orange-500 to-amber-600 rounded-xl p-3 pr-12 shadow-lg border border-orange-400 transition-all hover:scale-[1.02] active:scale-95">
         <div className="flex items-center gap-3">
           <ShoppingBag className="w-5 h-5 text-white flex-shrink-0" />
           <div className="flex-1 min-w-0">
@@ -71,15 +71,15 @@ export default function MercadilloBanner() {
               />
             ))}
           </div>
-          <button
-            onClick={handleDismiss}
-            aria-label="Descartar"
-            className="flex-shrink-0 w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
-          >
-            <X className="w-4 h-4 text-white" />
-          </button>
         </div>
-      </div>
-    </Link>
+      </Link>
+      <button
+        onClick={handleDismiss}
+        aria-label="Descartar"
+        className="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-white/20 hover:bg-white/30 flex items-center justify-center transition-colors"
+      >
+        <X className="w-4 h-4 text-white" />
+      </button>
+    </div>
   );
 }

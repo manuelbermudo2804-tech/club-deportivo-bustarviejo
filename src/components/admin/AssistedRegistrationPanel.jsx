@@ -86,18 +86,12 @@ function RequestCard({ request, onMarkContacted, onMarkResolved, onUpdateNotes }
           <div className="flex flex-col gap-1.5">
             {/* Botón para dar de alta al jugador (solo para tipo 'registro') */}
             {request.estado !== 'resuelto' && request.tipo !== 'instalacion' && (
-              <a
-                href={`${createPageUrl("Players")}?assisted=true&email=${encodeURIComponent(request.email_usuario || '')}&nombre_jugador=${encodeURIComponent(request.nombre_jugador || '')}&telefono=${encodeURIComponent(request.telefono || '')}&nombre_contacto=${encodeURIComponent(request.nombre_contacto || '')}&assisted_id=${request.id}`}
-                className="inline-flex"
-              >
-                <Button
-                  size="sm"
-                  className="bg-orange-600 hover:bg-orange-700 text-xs w-full"
-                >
+              <Button asChild size="sm" className="bg-orange-600 hover:bg-orange-700 text-xs">
+                <a href={`${createPageUrl("Players")}?assisted=true&email=${encodeURIComponent(request.email_usuario || '')}&nombre_jugador=${encodeURIComponent(request.nombre_jugador || '')}&telefono=${encodeURIComponent(request.telefono || '')}&nombre_contacto=${encodeURIComponent(request.nombre_contacto || '')}&assisted_id=${request.id}`}>
                   <Plus className="w-3 h-3 mr-1" />
                   Dar de alta jugador
-                </Button>
-              </a>
+                </a>
+              </Button>
             )}
             {request.estado === 'pendiente' && (
               <Button

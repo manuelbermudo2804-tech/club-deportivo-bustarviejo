@@ -30,11 +30,11 @@ export default function MeteoDashboardBanner({ categorias = [] }) {
             : "Avisos, asistencia, ejercicios, pizarra y reportes"}
         </p>
       </div>
-      <Link to={alerta ? "/MeteoClub" : "/EntrenamientoHub"} className="flex-shrink-0">
-        <Button size="sm" className={hayRojo ? "bg-red-600 hover:bg-red-700" : alerta ? "bg-amber-600 hover:bg-amber-700" : "bg-sky-600 hover:bg-sky-700"}>
+      <Button asChild size="sm" className={`flex-shrink-0 ${hayRojo ? "bg-red-600 hover:bg-red-700" : alerta ? "bg-amber-600 hover:bg-amber-700" : "bg-sky-600 hover:bg-sky-700"}`}>
+        <Link to={alerta ? "/MeteoClub" : "/EntrenamientoHub"}>
           {alerta ? "Decidir y avisar" : "Abrir"}
-        </Button>
-      </Link>
+        </Link>
+      </Button>
     </div>
   );
 }

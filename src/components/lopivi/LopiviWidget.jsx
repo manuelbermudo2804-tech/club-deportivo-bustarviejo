@@ -77,12 +77,12 @@ export default function LopiviWidget() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
             {config.protocolo_url && (
-              <a href={config.protocolo_url} target="_blank" rel="noopener noreferrer">
-                <Button variant="outline" className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50">
+              <Button asChild variant="outline" className="w-full border-emerald-300 text-emerald-700 hover:bg-emerald-50">
+                <a href={config.protocolo_url} target="_blank" rel="noopener noreferrer">
                   <FileText className="w-4 h-4 mr-2" />
                   Ver Protocolo LOPIVI
-                </Button>
-              </a>
+                </a>
+              </Button>
             )}
             <Button
               onClick={() => setShowReport(true)}

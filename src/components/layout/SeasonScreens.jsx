@@ -59,18 +59,18 @@ export function InscriptionPeriodScreen({ user, isAdmin, clothingStoreUrl }) {
             </div>
             <p className="text-xl text-slate-800">¡Bienvenidos al periodo de <strong className="text-green-700">inscripciones de Junio y Julio</strong>!</p>
             <div className="grid md:grid-cols-2 gap-4 pt-4">
-              <Link to={isAdmin ? createPageUrl("Players") : createPageUrl("ParentPlayers")} className="w-full">
-                <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg">
+              <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-6 text-lg">
+                <Link to={isAdmin ? createPageUrl("Players") : createPageUrl("ParentPlayers")}>
                   <Users className="w-5 h-5 mr-2" />
                   {isAdmin ? "Gestionar Jugadores" : "Mis Jugadores"}
-                </Button>
-              </Link>
+                </Link>
+              </Button>
               {clothingStoreUrl ? (
-                <a href={clothingStoreUrl} target="_blank" rel="noopener noreferrer" className="w-full">
-                  <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-6 text-lg">
+                <Button asChild className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-6 text-lg">
+                  <a href={clothingStoreUrl} target="_blank" rel="noopener noreferrer">
                     <ShoppingBag className="w-5 h-5 mr-2" />Pedidos de Equipación
-                  </Button>
-                </a>
+                  </a>
+                </Button>
               ) : (
                 <Button disabled className="w-full bg-gray-300 text-gray-600 font-bold py-6 text-lg">
                   <ShoppingBag className="w-5 h-5 mr-2" />Equipación (Próximamente)

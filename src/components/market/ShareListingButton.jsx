@@ -16,10 +16,10 @@ export default function ShareListingButton({ listing }) {
   ].filter(Boolean).join('\n');
 
   return (
-    <a href={`https://wa.me/?text=${encodeURIComponent(texto)}`} target="_blank" rel="noopener noreferrer">
-      <Button size="sm" variant="outline" className="border-green-400 text-green-700">
+    <Button asChild size="sm" variant="outline" className="border-green-400 text-green-700">
+      <a href={`https://wa.me/?text=${encodeURIComponent(texto)}`} target="_blank" rel="noopener noreferrer">
         <MessageCircle className="w-4 h-4 mr-1" /> Compartir por WhatsApp
-      </Button>
-    </a>
+      </a>
+    </Button>
   );
 }

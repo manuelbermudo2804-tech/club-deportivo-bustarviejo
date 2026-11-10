@@ -196,29 +196,21 @@ export default function DocumentCard({ document, players, onEdit, onDelete, isAd
 
           <div className="flex gap-3 flex-wrap">
             {document.archivo_url && (
-              <a
-                href={document.archivo_url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button variant="outline" size="sm">
+              <Button asChild variant="outline" size="sm">
+                <a href={document.archivo_url} target="_blank" rel="noopener noreferrer">
                   <Download className="w-4 h-4 mr-2" />
                   Descargar PDF
-                </Button>
-              </a>
+                </a>
+              </Button>
             )}
             
             {document.enlace_firma_externa && (
-              <a
-                href={document.enlace_firma_externa}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
+              <Button asChild size="sm" className="bg-blue-600 hover:bg-blue-700">
+                <a href={document.enlace_firma_externa} target="_blank" rel="noopener noreferrer">
                   <ExternalLink className="w-4 h-4 mr-2" />
                   Plataforma de Firma
-                </Button>
-              </a>
+                </a>
+              </Button>
             )}
           </div>
 

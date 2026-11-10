@@ -76,12 +76,12 @@ export default function ConvocatoriaBlockBanner({ players = [], darkMode = false
             </p>
             <p className={`text-xs font-semibold ${darkMode ? "text-slate-300" : "text-slate-700"}`}>Junta Directiva · CD Bustarviejo</p>
 
-            <Link to={createPageUrl("ParentPayments")}>
-              <Button className={isBlocked ? "bg-red-600 hover:bg-red-700" : "bg-amber-600 hover:bg-amber-700"}>
+            <Button asChild className={isBlocked ? "bg-red-600 hover:bg-red-700" : "bg-amber-600 hover:bg-amber-700"}>
+              <Link to={createPageUrl("ParentPayments")}>
                 <CreditCard className="w-4 h-4 mr-2" />
                 Ver y pagar mis cuotas
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
         </div>
       </CardContent>

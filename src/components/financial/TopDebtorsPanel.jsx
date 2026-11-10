@@ -166,12 +166,12 @@ export default function TopDebtorsPanel({ players, payments, activeSeason, getIm
 
               {/* Acciones */}
               <div className="col-span-2 flex min-w-0 justify-stretch gap-2 sm:col-auto sm:justify-end">
-                <Link to={createPageUrl("PaymentReminders")} className="w-full sm:w-auto">
-                  <Button size="sm" variant="outline" className="w-full gap-2 whitespace-nowrap sm:w-auto">
+                <Button asChild size="sm" variant="outline" className="w-full gap-2 whitespace-nowrap sm:w-auto">
+                  <Link to={createPageUrl("PaymentReminders")}>
                     <Mail className="w-3 h-3" />
                     Recordar
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             </div>
           ))}

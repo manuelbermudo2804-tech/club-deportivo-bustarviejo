@@ -54,25 +54,25 @@ export default function ContactCard({ contact, onUpdate }) {
           </div>
           <div className="flex items-center gap-1">
             {contact.telefono && (
-              <a href={`tel:${contact.telefono}`}>
-                <Button size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:bg-green-50">
+              <Button asChild size="icon" variant="ghost" className="h-8 w-8 text-green-600 hover:bg-green-50">
+                <a href={`tel:${contact.telefono}`}>
                   <Phone className="w-4 h-4" />
-                </Button>
-              </a>
+                </a>
+              </Button>
             )}
             {contact.email && (
-              <a href={`mailto:${contact.email}`}>
-                <Button size="icon" variant="ghost" className="h-8 w-8 text-blue-600 hover:bg-blue-50">
+              <Button asChild size="icon" variant="ghost" className="h-8 w-8 text-blue-600 hover:bg-blue-50">
+                <a href={`mailto:${contact.email}`}>
                   <Mail className="w-4 h-4" />
-                </Button>
-              </a>
+                </a>
+              </Button>
             )}
             {contact.telefono && (
-              <a href={`https://wa.me/${contact.telefono.replace(/\s/g,'').replace(/^\+?34/,'34').replace(/^(?!34)/,'34')}`} target="_blank" rel="noopener noreferrer">
-                <Button size="icon" variant="ghost" className="h-8 w-8 text-green-700 hover:bg-green-50">
+              <Button asChild size="icon" variant="ghost" className="h-8 w-8 text-green-700 hover:bg-green-50">
+                <a href={`https://wa.me/${contact.telefono.replace(/\s/g,'').replace(/^\+?34/,'34').replace(/^(?!34)/,'34')}`} target="_blank" rel="noopener noreferrer">
                   <MessageCircle className="w-4 h-4" />
-                </Button>
-              </a>
+                </a>
+              </Button>
             )}
           </div>
         </div>

@@ -632,12 +632,12 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
                         </Button>
                       )}
                       {alert.enlace && (
-                        <a href={alert.enlace} target="_blank" rel="noreferrer">
-                          <Button variant="outline" className="rounded-xl">
+                        <Button asChild variant="outline" className="rounded-xl">
+                          <a href={alert.enlace} target="_blank" rel="noreferrer">
                             <ExternalLink className="mr-2 h-4 w-4" />Bases
                             oficiales
-                          </Button>
-                        </a>
+                          </a>
+                        </Button>
                       )}
                       {days !== null && days >= 0 && days <= 7 && (
                         <Badge className="bg-red-100 text-red-700">
@@ -874,19 +874,11 @@ export default function GrantCommandCenter({ alerts = [], onChanged }) {
                             ))}
                           </SelectContent>
                         </Select>
-                        <a
-                          href={doc.archivo_url}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="rounded-lg"
-                          >
+                        <Button asChild variant="outline" size="sm" className="rounded-lg">
+                          <a href={doc.archivo_url} target="_blank" rel="noreferrer">
                             <ExternalLink className="mr-1 h-3.5 w-3.5" />Abrir
-                          </Button>
-                        </a>
+                          </a>
+                        </Button>
                       </div>
                     </CardContent>
                   </Card>

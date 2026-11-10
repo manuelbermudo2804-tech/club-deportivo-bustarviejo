@@ -149,13 +149,13 @@ export default function InscriptionSuccessScreen({
             >
               Cerrar
             </Button>
-            <Link to={createPageUrl("ParentPayments")} className="flex-1">
-              <Button className="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold text-base py-6">
+            <Button asChild className="flex-1 w-full bg-orange-600 hover:bg-orange-700 text-white font-bold text-base py-6">
+              <Link to={createPageUrl("ParentPayments")}>
                 <CreditCard className="w-5 h-5 mr-2" />
                 Ir a Pagar Ahora
                 <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
 
           {/* Aviso del segundo progenitor si se incluyó */}

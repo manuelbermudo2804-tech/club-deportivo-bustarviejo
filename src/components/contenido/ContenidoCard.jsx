@@ -41,17 +41,17 @@ export default function ContenidoCard({ item, onEstado }) {
             </Button>
           )}
           {item.tipo !== "video" && (
-            <Link to={`/SocialHub?imagen=${encodeURIComponent(item.archivo_url)}&desc=${encodeURIComponent(`${item.equipo}${item.descripcion ? ` — ${item.descripcion}` : ''}`)}`}>
-              <Button size="sm" className="bg-purple-600 hover:bg-purple-700">
+            <Button asChild size="sm" className="bg-purple-600 hover:bg-purple-700">
+              <Link to={`/SocialHub?imagen=${encodeURIComponent(item.archivo_url)}&desc=${encodeURIComponent(`${item.equipo}${item.descripcion ? ` — ${item.descripcion}` : ''}`)}`}>
                 <Megaphone className="w-4 h-4 mr-1" /> Usar en publicación
-              </Button>
-            </Link>
-          )}
-          <a href={item.archivo_url} target="_blank" rel="noopener noreferrer">
-            <Button size="sm" variant="outline">
-              <Download className="w-4 h-4 mr-1" /> Descargar
+              </Link>
             </Button>
-          </a>
+          )}
+          <Button asChild size="sm" variant="outline">
+            <a href={item.archivo_url} target="_blank" rel="noopener noreferrer">
+              <Download className="w-4 h-4 mr-1" /> Descargar
+            </a>
+          </Button>
         </div>
       </div>
     </div>

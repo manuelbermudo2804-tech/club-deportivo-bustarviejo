@@ -186,7 +186,9 @@ export default function CoachClassificationsMatchesBanner({ myCategories = [] })
             {/* DERECHA: MIS CONVOCATORIAS */}
             <div className="bg-gradient-to-br from-green-50 to-emerald-50">
               {nextMatch ? (
-                <button
+                <div
+                  role="button"
+                  tabIndex={0}
                   onClick={() => setShowAllMatches(true)}
                   className="w-full h-full text-left p-3 hover:bg-green-100/50 transition-colors"
                 >
@@ -222,7 +224,7 @@ export default function CoachClassificationsMatchesBanner({ myCategories = [] })
                     <MapPin className="w-3 h-3 mr-1" />
                     Cómo Llegar
                   </Button>
-                </button>
+                </div>
               ) : (
                 <Link to={"/AgendaClub"} className="block h-full">
                   <div className="p-3 text-center flex flex-col items-center justify-center h-full hover:bg-green-100/50 transition-colors">

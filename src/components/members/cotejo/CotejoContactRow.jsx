@@ -39,11 +39,11 @@ export default function CotejoContactRow({ persona, tipo, temporada, altaUrl, on
         </Button>
 
         {waLink ? (
-          <a href={waLink} target="_blank" rel="noopener noreferrer">
-            <Button size="sm" variant="outline">
+          <Button asChild size="sm" variant="outline">
+            <a href={waLink} target="_blank" rel="noopener noreferrer">
               <MessageCircle className="w-4 h-4 mr-1 text-green-600" /> WhatsApp
-            </Button>
-          </a>
+            </a>
+          </Button>
         ) : (
           <Button size="sm" variant="outline" onClick={copyMessage} title="Sin teléfono válido: copia el mensaje">
             <Copy className="w-4 h-4 mr-1" /> Copiar

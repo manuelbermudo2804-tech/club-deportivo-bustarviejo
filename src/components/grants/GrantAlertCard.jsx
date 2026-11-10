@@ -99,11 +99,11 @@ export default function GrantAlertCard({ alert, onChanged }) {
             {alert.analisis_ia ? "Ver cómo presentarla" : "¿Cómo la presento?"}
           </Button>
           {alert.enlace && (
-            <a href={alert.enlace} target="_blank" rel="noopener noreferrer" onClick={markRead}>
-              <Button variant="outline" size="sm" className="rounded-lg">
+            <Button asChild variant="outline" size="sm" className="rounded-lg">
+              <a href={alert.enlace} target="_blank" rel="noopener noreferrer" onClick={markRead}>
                 <ExternalLink className="w-3.5 h-3.5 mr-1" /> Ver convocatoria
-              </Button>
-            </a>
+              </a>
+            </Button>
           )}
           <Select value={alert.estado} onValueChange={updateEstado}>
             <SelectTrigger className="w-36 h-9"><SelectValue /></SelectTrigger>

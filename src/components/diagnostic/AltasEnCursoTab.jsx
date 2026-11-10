@@ -275,16 +275,16 @@ function AltaRow({ alta }) {
 
         {alta.status === "abandoned" && (
           <div className="flex gap-1 flex-shrink-0">
-            <a href={mailtoLink} title="Enviar email">
-              <Button variant="outline" size="icon" className="h-8 w-8">
+            <Button asChild variant="outline" size="icon" className="h-8 w-8">
+              <a href={mailtoLink} title="Enviar email">
                 <Mail className="w-3.5 h-3.5" />
-              </Button>
-            </a>
-            <a href={whatsappLink} target="_blank" rel="noopener noreferrer" title="WhatsApp">
-              <Button variant="outline" size="icon" className="h-8 w-8 text-green-600">
+              </a>
+            </Button>
+            <Button asChild variant="outline" size="icon" className="h-8 w-8 text-green-600">
+              <a href={whatsappLink} target="_blank" rel="noopener noreferrer" title="WhatsApp">
                 <Phone className="w-3.5 h-3.5" />
-              </Button>
-            </a>
+              </a>
+            </Button>
           </div>
         )}
       </div>

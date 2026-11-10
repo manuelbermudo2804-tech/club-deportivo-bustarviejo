@@ -57,7 +57,9 @@ export default function NextMatchWidget({ categoria }) {
 
   return (
     <>
-      <button
+      <div
+        role="button"
+        tabIndex={0}
         onClick={() => setShowAllMatches(true)}
         className="w-full text-left h-full"
       >
@@ -99,7 +101,7 @@ export default function NextMatchWidget({ categoria }) {
             </Button>
           </CardContent>
         </Card>
-      </button>
+      </div>
 
       <Dialog open={showAllMatches} onOpenChange={setShowAllMatches}>
         <DialogContent className="max-w-md">
