@@ -25,49 +25,42 @@ export default function MonthlyEvolutionChart({ payments, clothingOrders, lotter
       { key: 'may', label: 'May', fullName: 'Mayo' }
     ];
 
-    const currentSeasonPayments = payments.filter(p => sameSeason(p.temporada, activeSeason.temporada) && p.is_deleted !== true && getPaymentCollected(p) > 0);
-    const currentSeasonClothing = clothingOrders.filter(o => o.temporada === activeSeason.temporada && o.pagado === true);
-    const currentSeasonLottery = lotteryOrders.filter(o => o.temporada === activeSeason.temporada && o.pagado === true);
-    const currentSeasonMembers = clubMembers.filter(m => m.temporada === activeSeason.temporada && m.estado_pago === "Pagado");
-    const currentSeasonSponsors = sponsors.filter(s => s.estado === "Activo" && s.temporada === activeSeason.temporada);
+    const t = activeSeason.temporada;
+    // Índice del mes en la temporada (junio = 0 ... mayo = 11), o -1 si no hay fecha válida
+    const idxOf = (date) => {
+      if (!date) return -1;
+      const d = new Date(date);
+      return isNaN(d) ? -1 : (d.getMonth() + 7) % 12;
+    };
+    const paymentIdx = (p) => {
+      const byDate = idxOf(p.fecha_pago);
+      if (byDate >= 0) return byDate;
+      const byName = months.findIndex(m => m.fullName === p.mes);
+      return byName >= 0 ? byName : idxOf(p.created_date);
+    };
 
-    return months.map(month => {
-      // Pagos de cuotas por mes
-      const cuotasMes = currentSeasonPayments
-        .filter(p => p.mes === month.fullName || (p.fecha_pago && new Date(p.fecha_pago).getMonth() === months.findIndex(m => m.key === month.key)))
-        .reduce((sum, p) => sum + getPaymentCollected(p), 0);
+    const totals = months.map(() => ({ Cuotas: 0, Ropa: 0, Lotería: 0, Socios: 0, Patrocinios: 0 }));
+    const add = (i, key, amount) => { if (i >= 0) totals[i][key] += Number(amount) || 0; };
 
-      // Ropa por mes (fecha_pago)
-      const ropaMes = currentSeasonClothing
-        .filter(o => o.fecha_pago && new Date(o.fecha_pago).getMonth() === months.findIndex(m => m.key === month.key))
-        .reduce((sum, o) => sum + (o.precio_final || 0), 0);
+    payments
+      .filter(p => sameSeason(p.temporada, t) && p.is_deleted !== true)
+      .forEach(p => add(paymentIdx(p), 'Cuotas', getPaymentCollected(p)));
+    clothingOrders
+      .filter(o => sameSeason(o.temporada, t) && o.pagado === true)
+      .forEach(o => add(idxOf(o.fecha_pago || o.created_date), 'Ropa', o.precio_final));
+    lotteryOrders
+      .filter(o => sameSeason(o.temporada, t) && o.pagado === true)
+      .forEach(o => add(idxOf(o.fecha_pago || o.created_date), 'Lotería', o.total));
+    clubMembers
+      .filter(m => sameSeason(m.temporada, t) && m.estado_pago === "Pagado")
+      .forEach(m => add(idxOf(m.fecha_pago || m.created_date), 'Socios', m.cuota_pagada));
+    sponsors.forEach(s => (s.pagos_temporadas || [])
+      .filter(x => sameSeason(x.temporada, t))
+      .forEach(x => add(idxOf(x.fecha_pago), 'Patrocinios', x.importe)));
 
-      // Lotería por mes
-      const loteriaMes = currentSeasonLottery
-        .filter(o => o.fecha_pago && new Date(o.fecha_pago).getMonth() === months.findIndex(m => m.key === month.key))
-        .reduce((sum, o) => sum + (o.total || 0), 0);
-
-      // Socios por mes
-      const sociosMes = currentSeasonMembers
-        .filter(m => m.fecha_pago && new Date(m.fecha_pago).getMonth() === months.findIndex(m => m.key === month.key))
-        .reduce((sum, m) => sum + (m.cuota_pagada || 0), 0);
-
-      // Patrocinios (distribuir por meses si tienen fecha)
-      const patrociniosMes = currentSeasonSponsors
-        .filter(s => !s.fecha_inicio || (s.fecha_inicio && new Date(s.fecha_inicio).getMonth() === months.findIndex(m => m.key === month.key)))
-        .reduce((sum, s) => sum + (s.monto || 0), 0);
-
-      const total = cuotasMes + ropaMes + loteriaMes + sociosMes + patrociniosMes;
-
-      return {
-        mes: month.label,
-        Cuotas: cuotasMes,
-        Ropa: ropaMes,
-        Lotería: loteriaMes,
-        Socios: sociosMes,
-        Patrocinios: patrociniosMes,
-        Total: total
-      };
+    return months.map((month, i) => {
+      const r = totals[i];
+      return { mes: month.label, ...r, Total: r.Cuotas + r.Ropa + r.Lotería + r.Socios + r.Patrocinios };
     });
   }, [payments, clothingOrders, lotteryOrders, clubMembers, sponsors, activeSeason]);
 
