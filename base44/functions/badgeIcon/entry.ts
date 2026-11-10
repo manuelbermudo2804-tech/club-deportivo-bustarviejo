@@ -13,8 +13,8 @@ const W = 96, H = 96;
 const png = new PNG({ width: W, height: H });
 png.data.fill(0); // todo transparente
 
-// Renderizar "CDB" centrado, escalado x10
-const SCALE = 10;
+// Renderizar "CDB" centrado, escalado x5 (3 letras x 25px + 2 huecos x 10px = 95px, cabe en 96)
+const SCALE = 5;
 const LETTERS = ["C","D","B"];
 const LETTER_W = 5 * SCALE;
 const GAP = 2 * SCALE;
