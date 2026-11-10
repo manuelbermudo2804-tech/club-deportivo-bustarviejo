@@ -52,11 +52,9 @@ function SuccessScreen({ modLabel, onReset }) {
         <Button onClick={onReset} variant="outline" className="w-full font-bold">
           🔁 Apuntar a otra persona
         </Button>
-        <a href={WEB_CLUB} className="w-full">
-          <Button className="w-full bg-red-600 hover:bg-red-700 text-white font-bold">
-            🏠 Ir a la web del club
-          </Button>
-        </a>
+        <Button asChild className="w-full bg-red-600 hover:bg-red-700 text-white font-bold">
+          <a href={WEB_CLUB}>🏠 Ir a la web del club</a>
+        </Button>
         <p className="text-center text-slate-400 text-xs pt-1">
           Volverás a la web automáticamente en {countdown}s
         </p>

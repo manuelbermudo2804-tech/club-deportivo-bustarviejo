@@ -528,12 +528,12 @@ CD Bustarviejo`
                 <p className="text-green-700 text-sm mb-4">
                   Si necesitas inscribir un <strong>nuevo jugador</strong> (hermano, familiar, etc.), ve a la sección de jugadores
                 </p>
-                <Link to={createPageUrl("ParentPlayers")}>
-                  <Button className="bg-green-600 hover:bg-green-700">
+                <Button asChild className="bg-green-600 hover:bg-green-700">
+                  <Link to={createPageUrl("ParentPlayers")}>
                     <UserPlus className="w-4 h-4 mr-2" />
                     Ir a Mis Jugadores
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             </div>
           </CardContent>

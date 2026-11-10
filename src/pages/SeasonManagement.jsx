@@ -894,12 +894,12 @@ export default function SeasonManagement() {
                     <p className="text-sm text-slate-600">Edita los 9 precios de cuotas, o añade categorías extras si necesitas</p>
                   </div>
                 </div>
-                <Link className="block w-full sm:w-auto" to={createPageUrl("CategoryConfigAdmin")}>
-                  <Button className="w-full rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700 sm:w-auto">
+                <Button asChild className="w-full rounded-xl bg-orange-600 font-semibold text-white hover:bg-orange-700 sm:w-auto">
+                  <Link to={createPageUrl("CategoryConfigAdmin")}>
                     <Edit className="w-4 h-4 mr-2" />
                     Gestionar Cuotas
-                  </Button>
-                </Link>
+                  </Link>
+                </Button>
               </div>
             </div>
 

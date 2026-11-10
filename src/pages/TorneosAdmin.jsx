@@ -101,9 +101,9 @@ export default function TorneosAdmin() {
                     {t.fecha_inicio && <span className="inline-flex items-center gap-0.5"><Calendar className="w-3 h-3" />{t.fecha_inicio}</span>}
                   </p>
                 </div>
-                <Link to={createPageUrl("TorneoManager") + `?id=${t.id}`}>
-                  <Button variant="outline" size="sm"><Settings className="w-4 h-4 mr-1" /> Gestionar</Button>
-                </Link>
+                <Button asChild variant="outline" size="sm">
+                  <Link to={createPageUrl("TorneoManager") + `?id=${t.id}`}><Settings className="w-4 h-4 mr-1" /> Gestionar</Link>
+                </Button>
                 <Button variant="ghost" size="icon" className="text-red-400 h-8 w-8"
                   onClick={() => { if (confirm(`¿Eliminar "${t.nombre}"?`)) eliminar.mutate(t.id); }}>
                   <Trash2 className="w-4 h-4" />

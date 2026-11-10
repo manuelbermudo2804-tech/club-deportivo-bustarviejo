@@ -1147,12 +1147,12 @@ export default function Payments() {
             <span className="whitespace-nowrap">Actualizar</span>
           </Button>
           {isAdmin && (
-            <Link to={createPageUrl("MorososManagement")} className="flex-1 sm:flex-none min-w-0">
-              <Button variant="outline" className="h-auto min-h-11 w-full min-w-0 whitespace-normal px-3 py-3 text-center leading-tight justify-center rounded-xl border border-red-300/60 bg-red-950/70 text-white font-semibold shadow-sm hover:bg-red-900 hover:text-white focus-visible:ring-2 focus-visible:ring-orange-300">
+            <Button asChild variant="outline" className="flex-1 sm:flex-none h-auto min-h-11 w-full sm:w-auto min-w-0 whitespace-normal px-3 py-3 text-center leading-tight justify-center rounded-xl border border-red-300/60 bg-red-950/70 text-white font-semibold shadow-sm hover:bg-red-900 hover:text-white focus-visible:ring-2 focus-visible:ring-orange-300">
+              <Link to={createPageUrl("MorososManagement")}>
                 <ShieldAlert className="w-5 h-5 mr-2 flex-shrink-0" />
                 <span className="whitespace-normal">Gestión de Morosos</span>
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           )}
           <Button
             onClick={() => {

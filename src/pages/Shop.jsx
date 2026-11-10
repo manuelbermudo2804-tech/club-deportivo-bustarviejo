@@ -53,9 +53,9 @@ export default function Shop() {
                 </div>
                 <div>
                   {equipacionUrl ? (
-                    <a href={equipacionUrl} target="_blank" rel="noopener noreferrer">
-                      <Button className="w-full bg-orange-500 text-white hover:bg-orange-600 sm:w-auto">Entrar</Button>
-                    </a>
+                    <Button asChild className="w-full bg-orange-500 text-white hover:bg-orange-600 sm:w-auto">
+                      <a href={equipacionUrl} target="_blank" rel="noopener noreferrer">Entrar</a>
+                    </Button>
                   ) : (
                     <Button className="w-full sm:w-auto" variant="outline" disabled title="Próximamente">Próximamente</Button>
                   )}
@@ -74,9 +74,9 @@ export default function Shop() {
                   <p className="mt-1 text-sm text-slate-500">Camisetas casual, tazas, regalos y más</p>
                 </div>
                 <div>
-                  <a href={merchUrl} target="_blank" rel="noopener noreferrer">
-                    <Button className="w-full bg-orange-500 text-white hover:bg-orange-600 sm:w-auto">Entrar</Button>
-                  </a>
+                  <Button asChild className="w-full bg-orange-500 text-white hover:bg-orange-600 sm:w-auto">
+                    <a href={merchUrl} target="_blank" rel="noopener noreferrer">Entrar</a>
+                  </Button>
                 </div>
               </CardContent>
             </Card>

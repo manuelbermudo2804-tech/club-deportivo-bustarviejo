@@ -223,24 +223,24 @@ export default function Sponsorships() {
           <p className="mt-2 text-sm text-slate-300">Administra los patrocinadores del club</p>
         </div>
         <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:w-auto xl:grid-cols-2">
-          <Link to="/PresupuestoGenerator" className="w-full">
-            <Button variant="outline" className="w-full justify-center rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15">
+          <Button asChild variant="outline" className="w-full justify-center rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15">
+            <Link to="/PresupuestoGenerator">
               <ClipboardList className="w-4 h-4 mr-2" />
               Generar Presupuesto
-            </Button>
-          </Link>
-          <Link to="/ReciboGenerator" className="w-full">
-            <Button variant="outline" className="w-full justify-center rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15">
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="w-full justify-center rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15">
+            <Link to="/ReciboGenerator">
               <FileText className="w-4 h-4 mr-2" />
               Generar Recibo
-            </Button>
-          </Link>
-          <Link to="/FacturaGenerator" className="w-full">
-            <Button variant="outline" className="w-full justify-center rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15">
+            </Link>
+          </Button>
+          <Button asChild variant="outline" className="w-full justify-center rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15">
+            <Link to="/FacturaGenerator">
               <Receipt className="w-4 h-4 mr-2" />
               Generar Factura
-            </Button>
-          </Link>
+            </Link>
+          </Button>
           <Button
             onClick={() => {
               setEditingSponsor(null);

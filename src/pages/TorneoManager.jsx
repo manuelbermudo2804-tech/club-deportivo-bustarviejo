@@ -65,9 +65,9 @@ export default function TorneoManager() {
   return (
     <div className="p-4 lg:p-6 max-w-3xl mx-auto space-y-4">
       <div className="flex items-center gap-2">
-        <Link to={createPageUrl("TorneosAdmin")}>
-          <Button variant="ghost" size="icon"><ArrowLeft className="w-5 h-5" /></Button>
-        </Link>
+        <Button asChild variant="ghost" size="icon">
+          <Link to={createPageUrl("TorneosAdmin")}><ArrowLeft className="w-5 h-5" /></Link>
+        </Button>
         <div className="flex-1 min-w-0">
           <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2 truncate">
             <Trophy className="w-5 h-5 text-amber-500 flex-shrink-0" /> {torneo.nombre}
@@ -105,9 +105,9 @@ export default function TorneoManager() {
           </p>
           <p className="text-xs text-blue-500 -mt-1">{torneo.nombre}</p>
           <div className="flex items-center gap-2">
-            <a href={`/torneo/${torneo.slug}`} target="_blank" rel="noreferrer" className="flex-1">
-              <Button variant="outline" size="sm" className="w-full bg-white">Abrir página</Button>
-            </a>
+            <Button asChild variant="outline" size="sm" className="flex-1 bg-white">
+              <a href={`/torneo/${torneo.slug}`} target="_blank" rel="noreferrer">Abrir página</a>
+            </Button>
             <Button size="sm" className="flex-1"
               onClick={() => { navigator.clipboard.writeText(`${PUBLIC_DOMAIN}/torneo/${torneo.slug}`); toast.success("Enlace copiado"); }}>
               Copiar enlace

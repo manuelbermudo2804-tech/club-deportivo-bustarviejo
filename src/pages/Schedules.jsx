@@ -236,12 +236,12 @@ export default function Schedules() {
                 )}
               </div>
             </div>
-            <a href={UBICACION_MAPS_URL} target="_blank" rel="noopener noreferrer">
-              <Button className="bg-green-600 hover:bg-green-700 shadow-lg">
+            <Button asChild className="bg-green-600 hover:bg-green-700 shadow-lg">
+              <a href={UBICACION_MAPS_URL} target="_blank" rel="noopener noreferrer">
                 <ExternalLink className="w-4 h-4 mr-2" />
                 Ver en Google Maps
-              </Button>
-            </a>
+              </a>
+            </Button>
           </div>
         </CardContent>
       </Card>

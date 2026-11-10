@@ -168,17 +168,12 @@ export default function ParentDocuments() {
                 )}
 
                 {document.enlace_firma_externa && !document.archivo_url && (
-                  <a
-                    href={document.enlace_firma_externa}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block"
-                  >
-                    <Button variant="outline" className="w-full">
+                  <Button asChild variant="outline" className="w-full">
+                    <a href={document.enlace_firma_externa} target="_blank" rel="noopener noreferrer">
                       <FileText className="w-4 h-4 mr-2" />
                       Ver Documento
-                    </Button>
-                  </a>
+                    </a>
+                  </Button>
                 )}
               </CardContent>
             </Card>
