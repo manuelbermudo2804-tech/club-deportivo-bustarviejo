@@ -280,8 +280,11 @@ Deno.serve(async (req) => {
 
       const categoria = String(body.categoria || player.deporte || '').trim();
       const cfg = await getCategoryConfig(categoria, season.temporada);
+      const emailsPruebaRenov = (Array.isArray(season.pago_adelantado_emails_prueba) ? season.pago_adelantado_emails_prueba : [])
+        .map((e) => String(e || '').trim().toLowerCase());
+      const esPruebaRenov = emailsPruebaRenov.includes(String(user.email || '').trim().toLowerCase());
       const activaRenovacion = !!cfg && cfg.pago_adelantado_renovaciones === true &&
-        (cfg.pago_adelantado_renovaciones_prueba !== true || esAdmin);
+        (cfg.pago_adelantado_renovaciones_prueba !== true || esAdmin || esPruebaRenov);
       if (action === 'estado_renovacion') {
         return Response.json({ requerido: activaRenovacion, modo_prueba: cfg?.pago_adelantado_renovaciones_prueba === true, temporada: season.temporada });
       }

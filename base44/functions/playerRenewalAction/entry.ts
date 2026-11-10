@@ -168,6 +168,24 @@ Deno.serve(async (req) => {
         }
       }
 
+      // 💳 Si la categoría exige cobro anticipado en renovaciones, solo se renueva tras pagar con tarjeta
+      // (lo hace el webhook de Stripe). Bloquea el camino "renovar sin pagar" aunque la pantalla falle.
+      if (user.role !== 'admin') {
+        const catRenov = playerData?.deporte || actual.deporte;
+        const emailsPrueba = (Array.isArray(activeConfig.pago_adelantado_emails_prueba) ? activeConfig.pago_adelantado_emails_prueba : [])
+          .map((e) => String(e || '').trim().toLowerCase());
+        const esPrueba = emailsPrueba.includes(String(user.email || '').trim().toLowerCase());
+        for (const n of [catRenov, CATEGORY_NAME_MAPPING[catRenov]].filter(Boolean)) {
+          const cfgs = await base44.asServiceRole.entities.CategoryConfig.filter({ nombre: n, temporada: activeConfig.temporada });
+          if (cfgs.length) {
+            if (cfgs.some((c) => c.pago_adelantado_renovaciones === true && (c.pago_adelantado_renovaciones_prueba !== true || esPrueba))) {
+              return Response.json({ success: false, error: 'Esta categoría exige pagar la renovación con tarjeta. Recarga la página y usa "Pagar y renovar".' }, { status: 409 });
+            }
+            break;
+          }
+        }
+      }
+
       const nuevaCat = playerData?.deporte;
       const yaEnCategoria = actual.activo && (actual.deporte === nuevaCat || (actual.categorias || []).includes(nuevaCat));
       if (nuevaCat && !yaEnCategoria) {

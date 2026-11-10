@@ -33,6 +33,7 @@ export default function RenewalPaymentFlow({
   const [descuentoHermano, setDescuentoHermano] = useState(0);
   const [debtState, setDebtState] = useState({ has_debt: false, total: 0, accepted: false, deudas: [] });
   const [prepagoRenovacion, setPrepagoRenovacion] = useState(false);
+  const [prepagoChecked, setPrepagoChecked] = useState(false);
 
   const categoria = newCategory || player.deporte;
   const cuotas = getCuotasFromConfig(categoria, categoryConfigs, seasonConfig?.temporada);
@@ -73,9 +74,11 @@ export default function RenewalPaymentFlow({
 
   useEffect(() => {
     let cancelled = false;
+    setPrepagoChecked(false);
     base44.functions.invoke("prepagoInscripcion", { action: "estado_renovacion", playerId: player.id, categoria })
       .then((r) => { if (!cancelled) setPrepagoRenovacion(r?.data?.requerido === true); })
-      .catch((e) => console.warn("No se pudo consultar el pago anticipado de renovación:", e));
+      .catch((e) => console.warn("No se pudo consultar el pago anticipado de renovación:", e))
+      .finally(() => { if (!cancelled) setPrepagoChecked(true); });
     return () => { cancelled = true; };
   }, [player.id, categoria]);
 
@@ -323,7 +326,7 @@ export default function RenewalPaymentFlow({
           </Button>
           <Button
             onClick={handleConfirm}
-            disabled={isProcessing || (debtState.has_debt && !debtState.accepted)}
+            disabled={isProcessing || !prepagoChecked || (debtState.has_debt && !debtState.accepted)}
             className="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold"
           >
             {isProcessing ? (
