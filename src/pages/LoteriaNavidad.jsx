@@ -12,6 +12,7 @@ import TextoLoteria from "@/components/loteria/TextoLoteria";
 import BackToWebsiteButton from "@/components/public/BackToWebsiteButton";
 import usePublicPageTracker from "@/components/public/usePublicPageTracker";
 import VentaCerradaAviso from "@/components/loteria/VentaCerradaAviso";
+import CuentaAtrasLoteria from "@/components/loteria/CuentaAtrasLoteria";
 import { ventaCerrada, textoCierre } from "@/lib/loteriaCierre";
 
 const FONDO = "min-h-screen bg-gradient-to-b from-[#0b1f16] via-[#12261c] to-[#3b0a12]";
@@ -107,7 +108,12 @@ export default function LoteriaNavidad() {
             COMPRAR LOTERÍA ONLINE <ArrowUpRight className="h-5 w-5" />
           </a>
           <p className="mt-3 text-xs font-semibold text-red-950/80">Compra online a través de TuLotero</p>
-          {campana.fecha_cierre && <p className="mt-1 text-sm font-black">⏰ Venta abierta hasta el {textoCierre(campana)}</p>}
+          {campana.fecha_cierre && (
+            <div className="mt-3 rounded-xl bg-red-950 px-3 py-2 text-amber-300">
+              <CuentaAtrasLoteria fechaCierre={campana.fecha_cierre} className="text-lg font-black sm:text-xl" />
+              <p className="text-xs font-semibold text-amber-200/80">Venta abierta hasta el {textoCierre(campana)}</p>
+            </div>
+          )}
         </section>
         )}
 

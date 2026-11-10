@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Clover, ArrowUpRight } from "lucide-react";
 import { ventaCerrada, textoCierre } from "@/lib/loteriaCierre";
+import CuentaAtrasLoteria from "./CuentaAtrasLoteria";
 
 export default function LoteriaAppBanner() {
   const { data } = useQuery({
@@ -30,7 +31,12 @@ export default function LoteriaAppBanner() {
           </p>
           <p className="text-[13px] font-black leading-tight text-white sm:text-base">🍀 {campana.titulo || "Lotería de Navidad"}</p>
           <p className="mt-0.5 text-[11px] font-medium leading-snug text-white/90 sm:mt-1 sm:text-sm">Casi agotada en el pueblo · Todavía disponible online</p>
-          {campana.fecha_cierre && <p className="mt-0.5 text-[11px] font-bold text-amber-200 sm:mt-1 sm:text-xs">⏰ Venta hasta el {textoCierre(campana)}</p>}
+          {campana.fecha_cierre && (
+            <p className="mt-1 inline-block rounded-md bg-black/30 px-2 py-0.5 text-[12px] font-black text-amber-300 sm:text-sm">
+              <CuentaAtrasLoteria fechaCierre={campana.fecha_cierre} />
+              <span className="ml-1 font-semibold text-amber-200/80">({textoCierre(campana)})</span>
+            </p>
+          )}
           {campana.precio_decimo && <p className="mt-0.5 text-[11px] font-semibold text-amber-200 sm:mt-1 sm:text-xs">{campana.precio_decimo}€ el décimo</p>}
           <p className="mt-0.5 text-[10px] font-semibold leading-snug text-amber-200 sm:mt-1 sm:text-xs">🧡 2 € de cada décimo ayudan a financiar al CD Bustarviejo.</p>
         </div>
