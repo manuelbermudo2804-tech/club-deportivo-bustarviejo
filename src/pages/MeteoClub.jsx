@@ -166,13 +166,15 @@ export default function MeteoClub() {
   };
 
   return (
-    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-5 overflow-x-hidden px-3 pb-8 pt-4 sm:px-5 lg:space-y-6 lg:px-8 lg:pt-7">
-      <section className="relative isolate overflow-hidden rounded-3xl bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-5 text-white shadow-lg sm:p-7">
+    <div className="mx-auto w-full min-w-0 max-w-[1600px] space-y-6 overflow-x-hidden px-3 pb-8 pt-4 sm:px-5 lg:space-y-7 lg:px-8 lg:pt-7">
+      <section className="relative isolate overflow-hidden rounded-[28px] border border-slate-800/70 bg-[radial-gradient(ellipse_at_top_right,_rgba(249,115,22,0.22),_transparent_42%),linear-gradient(125deg,#101827_0%,#172033_54%,#332016_100%)] p-5 text-white shadow-[0_18px_50px_-24px_rgba(15,23,42,0.55)] sm:p-7">
         <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute right-8 top-5 h-36 w-36 rounded-full border border-white/10 sm:right-16 sm:top-7 sm:h-44 sm:w-44" />
+        <div aria-hidden="true" className="pointer-events-none absolute right-16 top-12 h-24 w-24 rounded-full border border-orange-200/10 sm:right-24 sm:top-14 sm:h-32 sm:w-32" />
         <div className="relative flex min-w-0 items-start gap-3 sm:gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-orange-400/15 ring-1 ring-orange-200/20 sm:h-14 sm:w-14"><CloudSun className="h-6 w-6 text-orange-300 sm:h-7 sm:w-7" /></div>
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[20px] border border-orange-200/20 bg-gradient-to-br from-orange-300/25 to-orange-500/10 shadow-inner shadow-white/10 sm:h-16 sm:w-16"><CloudSun className="h-7 w-7 text-orange-200 drop-shadow-[0_2px_8px_rgba(251,146,60,0.45)] sm:h-8 sm:w-8" /></div>
           <div className="min-w-0">
-            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.2em] text-orange-300">Área deportiva · Organización de entrenamientos</p>
+            <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.22em] text-orange-200/90">Área deportiva · Organización de entrenamientos</p>
             <h1 className="text-2xl font-bold tracking-tight text-white sm:text-3xl">Meteo Club</h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-300 sm:text-base">Decisiones de entrenamiento según el tiempo en Bustarviejo.</p>
           </div>
@@ -180,14 +182,14 @@ export default function MeteoClub() {
       </section>
 
       <Tabs defaultValue="hoy">
-        <TabsList className="grid h-auto w-full grid-cols-2 gap-1 rounded-2xl bg-slate-100 p-1 sm:grid-cols-4 lg:inline-flex">
+        <TabsList className="grid h-auto w-full grid-cols-2 gap-1.5 rounded-2xl border border-slate-200/80 bg-white/80 p-1.5 shadow-sm backdrop-blur sm:grid-cols-4 lg:inline-flex">
           <TabsTrigger value="hoy" className="min-w-0 gap-1.5 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:gap-2 sm:text-sm">Hoy</TabsTrigger>
           <TabsTrigger value="historial" className="min-w-0 gap-1.5 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:gap-2 sm:text-sm">Historial</TabsTrigger>
           {isAdmin && <TabsTrigger value="prueba" className="min-w-0 gap-1.5 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:gap-2 sm:text-sm">🧪 Modo prueba</TabsTrigger>}
           {isAdmin && <TabsTrigger value="criterios" className="min-w-0 gap-1.5 rounded-xl px-2 py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:gap-2 sm:text-sm">Criterios</TabsTrigger>}
         </TabsList>
 
-        <TabsContent value="hoy" className="space-y-3 mt-4">
+        <TabsContent value="hoy" className="mt-5 space-y-4">
           {loading ? (
             <p className="text-slate-500">Cargando previsión...</p>
           ) : items.length === 0 ? (
@@ -207,9 +209,10 @@ export default function MeteoClub() {
             </Card>
           ) : (
             <>
-              <p className="text-sm text-slate-600">
-                {diaSemana} · 🟢 {resumen.verde || 0} · 🟠 {resumen.ambar || 0} · 🔴 {resumen.rojo || 0}
-              </p>
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <div><p className="text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400">Entrenamientos de hoy</p><p className="mt-0.5 text-sm font-bold text-slate-800">{diaSemana}</p></div>
+                <div className="flex items-center gap-2 text-xs font-semibold"><span className="rounded-full bg-emerald-50 px-2.5 py-1 text-emerald-700">● {resumen.verde || 0}</span><span className="rounded-full bg-amber-50 px-2.5 py-1 text-amber-700">● {resumen.ambar || 0}</span><span className="rounded-full bg-rose-50 px-2.5 py-1 text-rose-700">● {resumen.rojo || 0}</span></div>
+              </div>
               {items.map((i) => (
                 <MeteoEntrenoCard key={i.horario_id} item={i} onDecidir={setDialogItem} />
               ))}
