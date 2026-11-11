@@ -40,7 +40,10 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   const [currentCallup, setCurrentCallup] = useState(callup || getInitialState());
   // Para convocatorias nuevas, excluir morosos por defecto (solo si bloqueo activo)
   const getInitialSelectedPlayers = () => {
-    if (callup?.jugadores_convocados) return callup.jugadores_convocados.map(j => j.jugador_id);
+    if (callup?.jugadores_convocados) {
+      const blockedIds = new Set(players.filter(p => p.bloqueo_convocatoria_activo === true).map(p => p.id));
+      return callup.jugadores_convocados.map(j => j.jugador_id).filter(id => !blockedIds.has(id));
+    }
     return [];
   };
   const [selectedPlayers, setSelectedPlayers] = useState(getInitialSelectedPlayers);
@@ -679,7 +682,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                                 <Badge className="bg-red-600 text-white text-xs">{player.lesionado ? "🤕 Baja médica" : "🚫 Sancionado"}</Badge>
                               )}
                               {isOverdue && (
-                                <Badge className="bg-slate-100 text-slate-600 border-slate-300 text-xs">No disponible</Badge>
+                                <Badge className="bg-slate-100 text-slate-600 border-slate-300 text-xs">No disponible · decisión del club</Badge>
                               )}
                             </div>
                             <p className="text-xs text-slate-500">{player.email_padre || player.email}</p>
