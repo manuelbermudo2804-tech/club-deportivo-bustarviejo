@@ -172,7 +172,14 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
 
   // Jugadores marcados manualmente por el club como "fuera de convocatorias" por impago
   const overduePlayerIds = new Set(players.filter(p => p.bloqueo_convocatoria_activo === true).map(p => p.id));
+  const selectablePlayers = players.filter(p => !p.lesionado && !p.sancionado && !overduePlayerIds.has(p.id));
   const paymentBlockEnabled = overduePlayerIds.size > 0;
+
+  // Si el club activa el bloqueo mientras el formulario está abierto,
+  // retirar inmediatamente al jugador de la selección, también al editar.
+  useEffect(() => {
+    setSelectedPlayers(prev => prev.filter(id => !overduePlayerIds.has(id)));
+  }, [players]);
 
   // Filtrar jugadores no disponibles (lesionados/sancionados)
   const availablePlayers = players.filter(p => !p.lesionado && !p.sancionado);
@@ -182,7 +189,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   useEffect(() => {
     if (callup) {
       setCurrentCallup(callup);
-      setSelectedPlayers(callup.jugadores_convocados?.map(j => j.jugador_id) || []);
+      setSelectedPlayers((callup.jugadores_convocados?.map(j => j.jugador_id) || []).filter(id => !overduePlayerIds.has(id)));
     } else {
       setCurrentCallup(getInitialState());
       setSelectedPlayers([]);
@@ -201,10 +208,6 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   };
 
   const handleSelectAll = () => {
-    // Si hay bloqueo activo, "Seleccionar todos" excluye morosos
-    const selectablePlayers = paymentBlockEnabled
-      ? availablePlayers.filter(p => !overduePlayerIds.has(p.id))
-      : availablePlayers;
     if (selectedPlayers.length === selectablePlayers.length) {
       setSelectedPlayers([]);
     } else {
@@ -225,7 +228,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   };
 
   const buildSubmitData = () => {
-    const jugadoresConvocados = selectedPlayers.map(playerId => {
+    const jugadoresConvocados = selectedPlayers.filter(playerId => !overduePlayerIds.has(playerId)).map(playerId => {
       const player = players.find(p => p.id === playerId);
       if (!player) return null;
       const existing = callup?.jugadores_convocados?.find(j => j.jugador_id === playerId);
@@ -249,6 +252,13 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   const handleSubmit = (e) => {
     e.preventDefault();
     
+    const jugadoresBloqueadosSeleccionados = selectedPlayers.filter(id => overduePlayerIds.has(id));
+    if (jugadoresBloqueadosSeleccionados.length > 0) {
+      alert("Hay jugadores que no están disponibles para ser convocados. Actualiza la selección antes de continuar.");
+      setSelectedPlayers(prev => prev.filter(id => !overduePlayerIds.has(id)));
+      return;
+    }
+
     if (selectedPlayers.length === 0) {
       alert("Debes seleccionar al menos un jugador");
       return;
@@ -585,13 +595,12 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               onToggleEnabled={handleToggleSuggestions}
             />
 
-            {/* Jugadores con pagos vencidos */}
-            {paymentBlockEnabled && overduePlayerIds.size > 0 && (
-              <Alert className="bg-red-50 border-red-300">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
-                <AlertDescription className="text-red-800 text-sm">
-                  <strong>💸 {overduePlayerIds.size} jugador(es) marcados por el club como fuera de convocatorias</strong> por cuota pendiente.
-                  No se pueden convocar hasta que el club quite el bloqueo.
+            {/* Aviso neutro: no mostrar al entrenador información administrativa */}
+            {paymentBlockEnabled && (
+              <Alert className="bg-slate-50 border-slate-200">
+                <AlertTriangle className="h-4 w-4 text-slate-500" />
+                <AlertDescription className="text-slate-700 text-sm">
+                  Algunos jugadores no están disponibles para esta convocatoria.
                 </AlertDescription>
               </Alert>
             )}
@@ -622,8 +631,9 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   variant="outline"
                   size="sm"
                   onClick={handleSelectAll}
+                  disabled={selectablePlayers.length === 0}
                 >
-                  {selectedPlayers.length === availablePlayers.length ? "Deseleccionar Todos" : "Seleccionar Todos"}
+                  {selectedPlayers.length === selectablePlayers.length ? "Deseleccionar Todos" : "Seleccionar Todos"}
                 </Button>
               </div>
               
@@ -657,7 +667,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                           <Checkbox
                             checked={selectedPlayers.includes(player.id)}
                             onCheckedChange={() => handlePlayerToggle(player)}
-                            disabled={isOverdue && !selectedPlayers.includes(player.id)}
+                            disabled={isOverdue}
                           />
                           <div className="flex-1">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -669,7 +679,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                                 <Badge className="bg-red-600 text-white text-xs">{player.lesionado ? "🤕 Baja médica" : "🚫 Sancionado"}</Badge>
                               )}
                               {isOverdue && (
-                                <Badge className="bg-red-100 text-red-700 border-red-300 text-xs">💸 Pago vencido</Badge>
+                                <Badge className="bg-slate-100 text-slate-600 border-slate-300 text-xs">No disponible</Badge>
                               )}
                             </div>
                             <p className="text-xs text-slate-500">{player.email_padre || player.email}</p>
@@ -683,7 +693,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               
               <p className="text-sm text-slate-600">
                 <Users className="w-4 h-4 inline mr-1" />
-                {selectedPlayers.length} de {availablePlayers.length} jugadores seleccionados
+                {selectedPlayers.length} de {selectablePlayers.length} jugadores seleccionados
                 {unavailablePlayers.length > 0 && (
                   <span className="text-amber-600 ml-2">
                     ({unavailablePlayers.length} no disponibles)
@@ -707,7 +717,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               <Button
                 type="submit"
                 className="bg-orange-600 hover:bg-orange-700"
-                disabled={isSubmitting || selectedPlayers.length === 0}
+                disabled={isSubmitting || selectedPlayers.length === 0 || selectedPlayers.some(id => overduePlayerIds.has(id))}
               >
                 {isSubmitting ? (
                   <>
