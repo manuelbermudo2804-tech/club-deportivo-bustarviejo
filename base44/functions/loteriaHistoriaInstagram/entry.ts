@@ -1,5 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.54';
-import { Image } from 'https://deno.land/x/imagescript@1.3.0/mod.ts';
+// La librería gráfica se carga bajo demanda para que Deno.serve arranque rápido.
 
 /**
  * Sube una HISTORIA diaria a Instagram con los décimos que quedan en TuLotero
@@ -18,9 +18,10 @@ const centrado = (img, font, scale, text, color, y) => {
 };
 
 async function generarImagen({ restantes, dias }) {
+  const { Image } = await import('https://deno.land/x/imagescript@1.3.0/mod.ts');
   const [fontBuf, cartelBuf] = await Promise.all([
-    fetch(FONT_URL, { signal: AbortSignal.timeout(15000) }).then((r) => r.arrayBuffer()),
-    fetch(CARTEL_URL, { signal: AbortSignal.timeout(15000) }).then((r) => r.arrayBuffer()),
+    fetch(FONT_URL, { signal: AbortSignal.timeout(8000) }).then((r) => { if (!r.ok) throw new Error('No se pudo descargar la fuente'); return r.arrayBuffer(); }),
+    fetch(CARTEL_URL, { signal: AbortSignal.timeout(8000) }).then((r) => { if (!r.ok) throw new Error('No se pudo descargar el cartel'); return r.arrayBuffer(); }),
   ]);
   const font = new Uint8Array(fontBuf);
   const img = new Image(W, H);
@@ -68,7 +69,7 @@ Deno.serve(async (req) => {
     try {
       const codigo = (campana.tulotero_url || 'cdb26').split('/').filter(Boolean).pop();
       const r = await fetch(`https://web-backend.es.tulotero.net/tuloteroweb/rest/loteriaEmpresas/${codigo}`, {
-        headers: { Accept: 'application/json' }, cache: 'no-store', signal: AbortSignal.timeout(10000),
+        headers: { Accept: 'application/json' }, cache: 'no-store', signal: AbortSignal.timeout(7000),
       });
       if (r.ok) restantes = (await r.json())?.penyas?.[0]?.participacionesRestantes ?? null;
     } catch (_) { /* sin dato: la imagen se genera sin número */ }
@@ -88,13 +89,13 @@ Deno.serve(async (req) => {
     const created = await (await fetch(`https://graph.instagram.com/v21.0/${me.id}/media`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ image_url: file_url, media_type: 'STORIES', access_token: accessToken }),
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(12000),
     })).json();
     if (!created?.id) return Response.json({ success: false, error: created?.error?.message || 'Instagram rechazó la imagen' }, { status: 400 });
 
     let status = '';
-    for (let i = 0; i < 12 && status !== 'FINISHED'; i++) {
-      await new Promise((r) => setTimeout(r, 2500));
+    for (let i = 0; i < 8 && status !== 'FINISHED'; i++) {
+      await new Promise((r) => setTimeout(r, 1500));
       const st = await (await fetch(`https://graph.instagram.com/v21.0/${created.id}?fields=status_code&access_token=${accessToken}`, { signal: AbortSignal.timeout(10000) })).json();
       status = st?.status_code || '';
       if (status === 'ERROR' || status === 'EXPIRED') return Response.json({ success: false, error: 'Instagram no pudo procesar la imagen' }, { status: 400 });
@@ -104,7 +105,7 @@ Deno.serve(async (req) => {
     const published = await (await fetch(`https://graph.instagram.com/v21.0/${me.id}/media_publish`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ creation_id: created.id, access_token: accessToken }),
-      signal: AbortSignal.timeout(20000),
+      signal: AbortSignal.timeout(12000),
     })).json();
     if (!published?.id) return Response.json({ success: false, error: published?.error?.message || 'No se pudo publicar' }, { status: 400 });
 
