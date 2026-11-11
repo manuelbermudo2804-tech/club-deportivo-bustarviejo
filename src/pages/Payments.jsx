@@ -206,6 +206,34 @@ export default function Payments() {
     initialData: [],
   });
 
+  // La pestaña de planes especiales debe reflejar el estado real de los pagos.
+  // Payment es la fuente de verdad: no dependemos del campo histórico cuotas[].pagada.
+  const customPlansWithPaymentStatus = customPlans.map((plan) => {
+    const planPayments = payments.filter((payment) =>
+      !payment.is_deleted &&
+      payment.estado !== "Anulado" &&
+      (
+        payment.plan_especial_id === plan.id ||
+        (!payment.plan_especial_id &&
+          payment.jugador_id === plan.jugador_id &&
+          payment.temporada === plan.temporada &&
+          payment.tipo_pago === "Plan Especial")
+      )
+    );
+
+    const cuotas = (plan.cuotas || []).map((cuota) => {
+      const payment = planPayments.find((p) => p.mes === `Cuota ${cuota.numero}`);
+      if (!payment) return cuota;
+      return {
+        ...cuota,
+        pagada: payment.estado === "Pagado",
+        fecha_pago: payment.fecha_pago || cuota.fecha_pago,
+      };
+    });
+
+    return { ...plan, cuotas };
+  });
+
   const createPaymentMutation = useMutation({
     mutationFn: (paymentData) => base44.entities.Payment.create(paymentData),
     onSuccess: () => {
@@ -2016,7 +2044,7 @@ export default function Payments() {
                 </div>
                 
                 <CustomPaymentPlansList
-                  plans={customPlans}
+                  plans={customPlansWithPaymentStatus}
                   players={players}
                   onEdit={(plan) => {
                     const player = players.find(p => p.id === plan.jugador_id);
