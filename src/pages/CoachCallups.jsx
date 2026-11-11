@@ -755,7 +755,7 @@ export default function CoachCallups() {
               {filteredByStatus.map((callup) => (
                 <CallupCard
                   key={callup.id}
-                  callup={callup}
+                  callup={removeBlockedPlayers(callup)}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                   onCloseNow={handleCloseNow}
