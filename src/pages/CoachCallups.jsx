@@ -161,12 +161,25 @@ export default function CoachCallups() {
     return playerInCategory(p, targetCategory);
   });
 
+  // Última barrera: nunca guardar ni publicar jugadores cuyo bloqueo esté activo.
+  const removeBlockedPlayers = (callupData) => {
+    const blockedIds = new Set((allPlayers || []).filter(p => p.bloqueo_convocatoria_activo === true).map(p => p.id));
+    const original = callupData.jugadores_convocados || [];
+    const safePlayers = original.filter(j => !blockedIds.has(j.jugador_id));
+    if (safePlayers.length !== original.length) {
+      toast.warning("Se han retirado de la convocatoria los jugadores que no están disponibles.");
+    }
+    return { ...callupData, jugadores_convocados: safePlayers };
+  };
+
   const createCallupMutation = useMutation({
     mutationFn: async (callupData) => {
-      const callup = await base44.entities.Convocatoria.create(callupData);
+      const safeData = removeBlockedPlayers(callupData);
+      if (!safeData.jugadores_convocados.length) throw new Error("No hay jugadores disponibles para convocar.");
+      const callup = await base44.entities.Convocatoria.create(safeData);
       
       // Send notifications if published
-      if (callupData.publicada && !callupData.notificaciones_enviadas) {
+      if (safeData.publicada && !safeData.notificaciones_enviadas) {
         await sendCallupNotifications(callup);
       }
       
@@ -184,11 +197,12 @@ export default function CoachCallups() {
 
   const updateCallupMutation = useMutation({
     mutationFn: async ({ id, callupData }) => {
-      const callup = await base44.entities.Convocatoria.update(id, callupData);
+      const safeData = removeBlockedPlayers(callupData);
+      const callup = await base44.entities.Convocatoria.update(id, safeData);
       
       // Send notifications if just published
       const original = callups.find(c => c.id === id);
-      if (callupData.publicada && !original?.publicada && !callupData.notificaciones_enviadas) {
+      if (safeData.publicada && !original?.publicada && !safeData.notificaciones_enviadas) {
         await sendCallupNotifications(callup);
       }
       
@@ -213,6 +227,12 @@ export default function CoachCallups() {
 
   const sendCallupNotifications = async (callup) => {
     try {
+      // Comprobación final antes de enviar cualquier notificación.
+      callup = removeBlockedPlayers(callup);
+      if (!callup.jugadores_convocados?.length) {
+        toast.error("No se puede publicar: no hay jugadores disponibles en la convocatoria.");
+        return;
+      }
       // Reusar allPlayers ya cargado en el componente (evita doble Player.list())
       const playersForEmails = allPlayers || [];
 
@@ -434,6 +454,11 @@ export default function CoachCallups() {
   };
 
   const handlePublish = async (callup) => {
+    if (playersLoading) {
+      toast.info("Estamos comprobando la disponibilidad de los jugadores. Inténtalo de nuevo en unos segundos.");
+      return;
+    }
+    callup = removeBlockedPlayers(callup);
     // Bloquear publicación si no hay jugadores convocados — abrir formulario para que los añada
     const numConvocados = callup.jugadores_convocados?.length || 0;
     if (numConvocados === 0) {
