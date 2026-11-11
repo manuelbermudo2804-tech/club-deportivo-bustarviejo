@@ -15,7 +15,7 @@ export function mensajeAviso({ decision, categoria, horaInicio, semicubierto, nu
   if (decision === "semicubierto") return `🔄 Cambio de instalación. El entrenamiento de ${base} se traslada a ${semicubierto}. Misma hora.`;
   if (decision === "modificar") return `⚠️ El entrenamiento de ${base} se mantiene con sesión adaptada por el tiempo.`;
   if (decision === "aplazar") return `⏰ El entrenamiento de ${base} se aplaza${nuevaHora ? ` a las ${nuevaHora}` : ""}.`;
-  if (decision === "cancelar") return `❌ El entrenamiento de ${base} queda cancelado por el tiempo.`;
+  if (decision === "cancelar") return `🚨🚨 ENTRENAMIENTO CANCELADO 🚨🚨\n❌ ${base} queda SUSPENDIDO por el tiempo. No acudáis al entrenamiento.`;
   if (decision === "otro") return `ℹ️ Aviso sobre el entrenamiento de ${base}: `;
   return "";
 }
