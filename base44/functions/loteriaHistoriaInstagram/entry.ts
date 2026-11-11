@@ -24,13 +24,9 @@ async function generarImagen({ restantes, dias }) {
   ]);
   const font = new Uint8Array(fontBuf);
   const img = new Image(W, H);
-  // Fondo azul noche a juego con el cielo del cartel
-  const from = [16, 42, 110], to = [6, 12, 34];
-  for (let y = 0; y < H; y += 8) {
-    const k = y / H;
-    const c = from.map((v, i) => Math.round(v + (to[i] - v) * k));
-    img.drawBox(1, y + 1, W, 8, Image.rgbaToColor(c[0], c[1], c[2], 255));
-  }
+  // Fondo azul noche uniforme. Evita cientos de operaciones de dibujo
+  // que ralentizaban la generación de la historia en el arranque del servicio.
+  img.drawBox(1, 1, W, H, Image.rgbaToColor(8, 20, 52, 255));
 
   // Cartel del club a todo el ancho (3:4 → 1080×1440)
   const cartel = await Image.decode(new Uint8Array(cartelBuf));
