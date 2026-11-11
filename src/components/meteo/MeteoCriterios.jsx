@@ -54,8 +54,8 @@ export default function MeteoCriterios({ config, onSaved }) {
 
   return (
     <div className="space-y-4">
-      <Card className="overflow-hidden rounded-2xl border-slate-200/80 shadow-sm">
-        <CardContent className="grid gap-4 p-5 sm:grid-cols-2">
+      <Card>
+        <CardContent className="p-4 grid gap-4 sm:grid-cols-2">
           <div>
             <Label>Instalación semicubierta</Label>
             <Input
@@ -75,9 +75,9 @@ export default function MeteoCriterios({ config, onSaved }) {
       </Card>
 
       {Object.keys(GRUPOS).map((g) => (
-        <Card key={g} className="overflow-hidden rounded-2xl border-slate-200/80 shadow-sm">
-          <CardContent className="p-5">
-            <p className="font-extrabold tracking-tight text-slate-900">{GRUPOS[g]}</p>
+        <Card key={g}>
+          <CardContent className="p-4">
+            <p className="font-bold text-slate-900">{GRUPOS[g]}</p>
             <p className="text-sm text-slate-500 mb-3">{GRUPO_DESC[g]}</p>
             <div className="grid gap-3 sm:grid-cols-3">
               {CAMPOS.map((c) => (
@@ -95,7 +95,7 @@ export default function MeteoCriterios({ config, onSaved }) {
         </Card>
       ))}
 
-      <Button className="h-11 rounded-xl bg-slate-900 px-6 font-bold shadow-md transition-colors hover:bg-orange-600" onClick={guardar} disabled={saving}>{saving ? "Guardando..." : "Guardar criterios"}</Button>
+      <Button onClick={guardar} disabled={saving}>{saving ? "Guardando..." : "Guardar criterios"}</Button>
     </div>
   );
 }
