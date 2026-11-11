@@ -11,7 +11,7 @@ const H = 1920;
 const FONT_URL = 'https://raw.githubusercontent.com/google/fonts/main/ofl/anton/Anton-Regular.ttf';
 const CARTEL_URL = 'https://base44.app/api/apps/6992c6be619d2da592897991/files/mp/public/6992c6be619d2da592897991/3a5225da2_cartel-loteria-2026.png';
 
-const centrado = (img, font, scale, text, color, y) => {
+const centrado = (img, Image, font, scale, text, color, y) => {
   const t = Image.renderText(font, scale, text, color);
   img.composite(t, Math.round((W - t.width) / 2), y);
   return y + t.height;
@@ -43,9 +43,9 @@ async function generarImagen({ restantes, dias }) {
   const principal = restantes != null
     ? `QUEDAN ${restantes} ${restantes === 1 ? 'DÉCIMO' : 'DÉCIMOS'}`
     : '¡CONSIGUE TU DÉCIMO!';
-  y = centrado(img, font, 96, principal, oro, y) - 10;
+  y = centrado(img, Image, font, 96, principal, oro, y) - 10;
   const textoDias = dias <= 1 ? '¡ÚLTIMO DÍA DE VENTA!' : `FALTAN ${dias} DÍAS · ENLACE EN LA BIO`;
-  centrado(img, font, 54, textoDias, blanco, y);
+  centrado(img, Image, font, 54, textoDias, blanco, y);
 
   return await img.encodeJPEG(88);
 }
