@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Smile, Check, CheckCheck, MapPin, Reply, Edit, Trash2, Users, Image as ImageIcon, Camera, Dumbbell, Pin } from "lucide-react";
+import { Send, Paperclip, X, FileText, Download, Mic, Play, Pause, Smile, Check, CheckCheck, MapPin, Reply, Edit, Trash2, Users, Image as ImageIcon, Camera, Dumbbell, Pin, Siren } from "lucide-react";
 import ChatInputActions from "../chat/ChatInputActions";
 import ChatMessageActions from "../chat/ChatMessageActions";
 import { format, isSameDay } from "date-fns";
@@ -725,6 +725,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
            const isMine = msg.remitente_email === user?.email;
            const isCoachMsg = msg.tipo === "entrenador_a_grupo";
+           const isCancellation = /entrenamiento cancelado|queda cancelado|queda suspendido/i.test(msg.mensaje || "");
            const sameAuthorRun = !showDateSeparator && prevMsg?.remitente_email === msg.remitente_email;
            const showAuthor = !isMine && !sameAuthorRun;
 
@@ -733,16 +734,24 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                {showDateSeparator && <DateSeparator date={msg.created_date} />}
 
                <div className={`flex ${isMine ? 'justify-end mr-2' : 'justify-start ml-2'} group ${sameAuthorRun ? 'mt-0.5' : 'mt-2'}`}>
-                 <div className={`max-w-[72%] rounded-2xl px-3 py-2 relative`} style={{
+                 <div className={`max-w-[88%] rounded-2xl px-3 py-2 relative ${isCancellation ? "border-2 border-red-600 shadow-lg shadow-red-200" : ""}`} style={{
                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
                    fontSize: '15px',
                    lineHeight: '1.4',
                    fontWeight: 400,
                    wordWrap: 'break-word',
                    whiteSpace: 'pre-wrap',
-                   backgroundColor: isMine ? '#DCF8C6' : '#FFFFFF',
-                   boxShadow: '0 1px 0.5px rgba(0,0,0,0.13)'
+                   backgroundColor: isCancellation ? "#FFF1F2" : (isMine ? '#DCF8C6' : '#FFFFFF'),
+                   color: isCancellation ? "#7F1D1D" : undefined,
+                   boxShadow: isCancellation ? "0 3px 12px rgba(220,38,38,0.22)" : '0 1px 0.5px rgba(0,0,0,0.13)'
                  }}>
+                   {isCancellation && (
+                     <div className="flex items-center justify-center gap-2 -mx-1 mb-2 px-2 py-2 rounded-lg bg-red-600 text-white font-black text-sm tracking-wide">
+                       <Siren className="w-5 h-5 animate-pulse" />
+                       <span>ENTRENAMIENTO CANCELADO</span>
+                       <Siren className="w-5 h-5 animate-pulse" />
+                     </div>
+                   )}
                    {msg.mensaje_citado && (
                      <div className={`mb-2 p-2 rounded border-l-2 ${isMine ? 'bg-black/5 border-green-600' : 'bg-slate-100 border-slate-400'}`}>
                        <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
