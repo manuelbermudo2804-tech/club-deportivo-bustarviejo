@@ -92,6 +92,11 @@ export default function AlertCenter({
   // Solo mantenemos state local para dismissed alerts y queries ligeras con staleTime alto
   const meUser = null; // Ya no hacemos query propia
   const { junta: juntaActiva, miRespuesta: juntaResp } = useJuntaActiva(userEmail ? { email: userEmail } : null);
+  const [clockNow, setClockNow] = useState(() => Date.now());
+  useEffect(() => {
+    const timer = setInterval(() => setClockNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
   const [campaignExpanded, setCampaignExpanded] = useState(false);
   const { data: campaignItems = [] } = useQuery({ queryKey: ["campanasActivasBanner"], queryFn: () => base44.entities.CampanaClub.list("-fecha_inicio", 200), staleTime: 0, refetchInterval: 30000, refetchOnWindowFocus: true });
   const todayForCampaign = new Date();
@@ -678,17 +683,24 @@ const alerts = [];
   const veJunta = juntaPrueba ? userEmail?.toLowerCase() === juntaPrueba : !isAdmin;
   if (juntaActiva && juntaResp && veJunta) {
     const r = RESPUESTAS[juntaResp.respuesta];
-    const juntaMs = new Date(juntaActiva.fecha).getTime() - Date.now();
+    const juntaFecha = new Date(juntaActiva.fecha);
+    const juntaMs = juntaFecha.getTime() - clockNow;
     const juntaEn48h = juntaMs > 0 && juntaMs <= 48 * 60 * 60 * 1000;
     const juntaEn24h = juntaMs > 0 && juntaMs <= 24 * 60 * 60 * 1000;
     const juntaHoy = juntaMs <= 0 && juntaMs > -24 * 60 * 60 * 1000;
-    const juntaCuenta = juntaHoy ? "¡ES HOY!" : juntaEn24h ? "¡MAÑANA ES LA REUNIÓN!" : juntaEn48h ? "¡ÚLTIMAS 48 HORAS!" : faltaTexto(juntaActiva.fecha);
+    const juntaCuenta = juntaMs > 0
+      ? (() => { const total = Math.floor(juntaMs / 1000); const d = Math.floor(total / 86400); const h = Math.floor((total % 86400) / 3600); const m = Math.floor((total % 3600) / 60); const s = total % 60; return d > 0 ? `FALTAN ${d} D · ${h} H · ${m} MIN` : `FALTAN ${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`; })()
+      : juntaHoy ? "¡LA REUNIÓN ES AHORA!" : "REUNIÓN FINALIZADA";
+    const juntaFechaTexto = juntaFecha.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" }).toUpperCase();
+    const juntaHoraTexto = juntaFecha.toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit" });
     alerts.push({
       id: "junta",
       icon: Users,
       title: `🗳️ ${juntaActiva.titulo || "Junta de Socios"}`,
       description: `Tu respuesta: ${r?.emoji || ""} ${r?.label || ""} (toca para cambiar)`,
       juntaCuenta,
+      juntaFechaTexto,
+      juntaHoraTexto,
       juntaEn48h,
       juntaEn24h,
       juntaHoy,
@@ -793,8 +805,8 @@ const alerts = [];
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`font-semibold text-sm ${alert.id === "junta" && alert.juntaEn48h ? "text-orange-600" : darkMode ? "text-white" : "text-slate-900"}`}>{alert.title}</p>
-                {alert.id === "junta" && alert.juntaCuenta && <p className={`mt-0.5 text-sm font-black tracking-wide ${alert.juntaEn48h || alert.juntaHoy ? "text-orange-600" : darkMode ? "text-slate-300" : "text-slate-600"}`}>{alert.juntaCuenta}</p>}
-                <p className={`text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{alert.description}</p>
+                {alert.id === "junta" && alert.juntaCuenta && <div className="mt-1.5 rounded-lg border border-orange-300 bg-orange-100 px-3 py-2.5"><p className="text-xs font-extrabold tracking-wide text-orange-800">📅 {alert.juntaFechaTexto} · {alert.juntaHoraTexto} H</p><p className="mt-1 text-base font-black tracking-wider text-orange-700">⏳ {alert.juntaCuenta}</p></div>}
+                <p className={`mt-1 text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{alert.description}</p>
               </div>
               <ChevronRight className={`w-5 h-5 transition-colors flex-shrink-0 ${darkMode ? "text-slate-500 group-hover:text-orange-400" : "text-slate-400 group-hover:text-orange-500"}`} />
             </Link>
