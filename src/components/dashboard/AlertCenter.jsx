@@ -805,7 +805,7 @@ const alerts = [];
               </div>
               <div className="flex-1 min-w-0">
                 <p className={`font-semibold text-sm ${alert.id === "junta" && alert.juntaEn48h ? "text-orange-600" : darkMode ? "text-white" : "text-slate-900"}`}>{alert.title}</p>
-                {alert.id === "junta" && alert.juntaCuenta && <div className="mt-1.5 rounded-lg border border-orange-300 bg-orange-100 px-3 py-2.5"><p className="text-xs font-extrabold tracking-wide text-orange-800">📅 {alert.juntaFechaTexto} · {alert.juntaHoraTexto} H</p><p className="mt-1 text-base font-black tracking-wider text-orange-700">⏳ {alert.juntaCuenta}</p></div>}
+                {alert.id === "junta" && alert.juntaCuenta && <p className="mt-0.5 text-xs font-bold text-orange-700">📅 {alert.juntaFechaTexto} · {alert.juntaHoraTexto} h <span className="mx-1 text-orange-300">|</span> ⏳ {alert.juntaCuenta}</p>}
                 <p className={`mt-1 text-xs ${darkMode ? "text-slate-400" : "text-slate-500"}`}>{alert.description}</p>
               </div>
               <ChevronRight className={`w-5 h-5 transition-colors flex-shrink-0 ${darkMode ? "text-slate-500 group-hover:text-orange-400" : "text-slate-400 group-hover:text-orange-500"}`} />
