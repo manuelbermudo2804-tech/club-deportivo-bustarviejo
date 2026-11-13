@@ -17,6 +17,7 @@ import EmailRelationLookup from "@/components/admin/EmailRelationLookup";
 import RecordarCorreoAccesoCard from "@/components/admin/RecordarCorreoAccesoCard";
 import PairParentsDialog from "@/components/admin/dialogs/PairParentsDialog";
 import PairingResultsDialog from "@/components/admin/dialogs/PairingResultsDialog";
+import AccountDeletionRequestsPanel from "@/components/admin/AccountDeletionRequestsPanel";
 
 const calcularEdad = (fechaNac) => {
   if (!fechaNac) return null;
@@ -814,6 +815,8 @@ export default function UserManagement() {
         </div>
         <div className="pointer-events-none absolute -right-10 -top-12 h-44 w-44 rounded-full bg-orange-500/10 blur-2xl" />
       </div>
+
+      <AccountDeletionRequestsPanel />
 
       <div className="grid min-w-0 grid-cols-1 items-stretch gap-4 xl:grid-cols-2">
         <EmailRelationLookup players={players} users={users} />
