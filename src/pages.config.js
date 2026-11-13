@@ -30,6 +30,7 @@ export const PAGES = {
     "CheckinTablet": lazy(() => import('./pages/CheckinTablet')),
     "ClubMembersManagement": lazy(() => import('./pages/ClubMembersManagement')),
     "ClubMembership": lazy(() => import('./pages/ClubMembership')),
+    "CampusAdmin": lazy(() => import('./pages/CampusAdmin')),
     "ClubStats": lazy(() => import('./pages/ClubStats')),
     "CoachAttendance": lazy(() => import('./pages/CoachAttendance')),
     "CoachCallups": lazy(() => import('./pages/CoachCallups')),
