@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json();
-    console.log('[publicMemberCheckout] Payload recibido:', JSON.stringify(body));
+    console.log('[publicMemberCheckout] Solicitud recibida:', { email_present: !!body.email, dni_present: !!body.dni, campus: !!body.campus_registration_id });
 
     const {
       nombre_completo,
@@ -71,15 +71,20 @@ Deno.serve(async (req) => {
     console.log('[publicMemberCheckout] Temporada:', temporada, '| Email:', email);
 
     // Verificar si ya existe un socio con ese email para esta temporada
-    let existingMembers = [];
+    let byEmail = [], byDni = [];
     try {
-      existingMembers = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
-      console.log('[publicMemberCheckout] Socios existentes:', existingMembers.length);
+      byEmail = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
+      if (dni) byDni = await base44.asServiceRole.entities.ClubMember.filter({ dni, temporada });
     } catch (filterErr) {
-      console.error('[publicMemberCheckout] Error buscando socios:', filterErr.message);
+      console.error('[publicMemberCheckout] Error buscando socio existente:', filterErr.message);
+      return Response.json({ error: 'No se ha podido comprobar si ya existe una ficha de socio. Inténtalo de nuevo.' }, { status: 503, headers: corsHeaders });
     }
-
-    let membership = existingMembers?.[0] || null;
+    const matches = [...new Map([...byEmail, ...byDni].map(m=>[m.id,m])).values()];
+    if (matches.length > 1) return Response.json({ error: 'Hemos encontrado fichas distintas con ese correo y DNI. Contacta con el club para evitar duplicados.' }, { status: 409, headers: corsHeaders });
+    let membership = matches[0] || null;
+    if (membership && dni && membership.dni && membership.dni.replace(/[.\\s-]/g,'').toUpperCase() !== dni.replace(/[.\\s-]/g,'').toUpperCase()) {
+      return Response.json({ error: 'El correo ya está asociado a una ficha con otro DNI. Contacta con el club.' }, { status: 409, headers: corsHeaders });
+    }
 
     if (membership && membership.estado_pago === 'Pagado') {
       return Response.json({ error: 'Ya eres socio esta temporada y tu pago esta confirmado.' }, { status: 400, headers: corsHeaders });
