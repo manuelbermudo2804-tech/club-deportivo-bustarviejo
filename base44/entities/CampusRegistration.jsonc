@@ -1,0 +1,106 @@
+{
+  "name": "CampusRegistration",
+  "type": "object",
+  "properties": {
+    "adulto_nombre": {
+      "type": "string"
+    },
+    "adulto_dni": {
+      "type": "string"
+    },
+    "adulto_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "adulto_telefono": {
+      "type": "string"
+    },
+    "adulto_municipio": {
+      "type": "string"
+    },
+    "es_socio": {
+      "type": "boolean",
+      "default": false
+    },
+    "socio_verificado": {
+      "type": "boolean",
+      "default": false
+    },
+    "club_member_id": {
+      "type": "string"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "confirmada",
+        "cancelada",
+        "revision"
+      ],
+      "default": "pendiente"
+    },
+    "estado_pago": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "pagado",
+        "fallido",
+        "no_requerido"
+      ],
+      "default": "pendiente"
+    },
+    "importe_total": {
+      "type": "number",
+      "default": 0
+    },
+    "cuota_socio_incluida": {
+      "type": "number",
+      "default": 0
+    },
+    "stripe_session_id": {
+      "type": "string"
+    },
+    "stripe_payment_intent": {
+      "type": "string"
+    },
+    "consentimiento_datos": {
+      "type": "boolean",
+      "default": false
+    },
+    "consentimiento_imagen": {
+      "type": "boolean",
+      "default": false
+    },
+    "notas": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "adulto_nombre",
+    "adulto_email",
+    "adulto_telefono",
+    "estado"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
