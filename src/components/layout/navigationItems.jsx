@@ -88,6 +88,7 @@ export function buildAdminNavigation(ctx) {
     { title: "🛍️ Mercadillo", url: createPageUrl("Mercadillo"), icon: Gift, badge: marketNewCount > 0 ? marketNewCount : null },
     { title: "🍀 Lotería Navidad", url: createPageUrl("LotteryManagement"), icon: Clover, badge: pendingLotteryOrders > 0 ? pendingLotteryOrders : null },
     { title: "🎫 Gestión Socios", url: createPageUrl("ClubMembersManagement"), icon: Users, badge: pendingMemberRequests > 0 ? pendingMemberRequests : null },
+    { title: "🏕️ Campus Verano 2027", url: createPageUrl("CampusAdmin"), icon: CalendarDays },
     { title: "💰 Patrocinios", url: createPageUrl("Sponsorships"), icon: CreditCard },
     { title: "🎁 Trae un Socio Amigo", url: createPageUrl("ReferralManagement"), icon: Gift },
     { title: "📋 Contactos Web", url: createPageUrl("WebContacts"), icon: Users },
