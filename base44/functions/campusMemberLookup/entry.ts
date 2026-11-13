@@ -33,7 +33,7 @@ Deno.serve(async (req) => {
     for (const child of linked) {
       if (child?.jugador_id && child?.jugador_nombre) unique.set(child.jugador_id, { id: child.jugador_id, name: child.jugador_nombre });
     }
-    return Response.json({ verified: true, children: [...unique.values()] }, { status: 200, headers });
+    return Response.json({ verified: true, member_id: member.id, children: [...unique.values()] }, { status: 200, headers });
   } catch (error) {
     console.error('[campusMemberLookup]', error?.message);
     return Response.json({ error: 'No se ha podido verificar ahora. Inténtalo de nuevo.' }, { status: 500, headers });
