@@ -145,7 +145,8 @@ Deno.serve(async (req) => {
       referidor_nombre: referidor_nombre || '',
       referidor_email: referidor_email || '',
       es_segundo_progenitor: String(es_segundo_progenitor || false),
-      origen: 'web_externa',
+      origen: body.campus_registration_id ? 'campus_2027' : 'web_externa',
+      campus_registration_id: body.campus_registration_id || '',
       origen_pago: isSuscripcion ? 'stripe_suscripcion' : 'stripe_unico',
     };
 
