@@ -1,0 +1,141 @@
+{
+  "name": "CampusParticipant",
+  "type": "object",
+  "description": "Participante individual del Campus 2027. Una fila por ni\u00f1o o ni\u00f1a.",
+  "properties": {
+    "registration_id": {
+      "type": "string"
+    },
+    "player_id": {
+      "type": "string"
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "fecha_nacimiento": {
+      "type": "string",
+      "format": "date"
+    },
+    "edad_inicio": {
+      "type": "integer"
+    },
+    "grupo_edad": {
+      "type": "string",
+      "enum": [
+        "6-8",
+        "9-11",
+        "12-15"
+      ]
+    },
+    "modalidad": {
+      "type": "string",
+      "enum": [
+        "semana",
+        "quincena",
+        "mes"
+      ]
+    },
+    "periodo": {
+      "type": "string",
+      "enum": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "Q1",
+        "Q2",
+        "JULIO"
+      ]
+    },
+    "semanas_ocupadas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "S1",
+          "S2",
+          "S3",
+          "S4"
+        ]
+      }
+    },
+    "es_socio": {
+      "type": "boolean",
+      "default": false
+    },
+    "precio_aplicado": {
+      "type": "number"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "confirmado",
+        "cancelado",
+        "lista_espera"
+      ],
+      "default": "pendiente"
+    },
+    "alergias": {
+      "type": "string"
+    },
+    "medicacion": {
+      "type": "string"
+    },
+    "observaciones_medicas": {
+      "type": "string"
+    },
+    "contacto_emergencia_nombre": {
+      "type": "string"
+    },
+    "contacto_emergencia_telefono": {
+      "type": "string"
+    },
+    "autorizacion_imagen": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no",
+        "pendiente"
+      ],
+      "default": "pendiente"
+    },
+    "observaciones_admin": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "registration_id",
+    "nombre",
+    "fecha_nacimiento",
+    "edad_inicio",
+    "grupo_edad",
+    "modalidad",
+    "periodo",
+    "semanas_ocupadas",
+    "precio_aplicado",
+    "estado"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
