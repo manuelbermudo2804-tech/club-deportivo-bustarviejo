@@ -32,7 +32,8 @@
       "enum": [
         "semana",
         "quincena",
-        "mes"
+        "mes",
+        "combinada"
       ]
     },
     "periodo": {
@@ -42,9 +43,11 @@
         "S2",
         "S3",
         "S4",
+        "S5",
         "Q1",
         "Q2",
-        "JULIO"
+        "JULIO",
+        "COMBINADA"
       ]
     },
     "semanas_ocupadas": {
@@ -55,7 +58,8 @@
           "S1",
           "S2",
           "S3",
-          "S4"
+          "S4",
+          "S5"
         ]
       }
     },
