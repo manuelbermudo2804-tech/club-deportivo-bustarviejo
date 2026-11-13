@@ -39,6 +39,16 @@
       ],
       "default": "pendiente"
     },
+    "estado_alta_socio": {
+      "type": "string",
+      "enum": [
+        "no_requerida",
+        "pendiente",
+        "pagado",
+        "fallido"
+      ],
+      "default": "no_requerida"
+    },
     "estado_pago": {
       "type": "string",
       "enum": [
@@ -122,16 +132,6 @@
     "participantes_count": {
       "type": "integer",
       "minimum": 1
-    },
-    "estado_alta_socio": {
-      "type": "string",
-      "enum": [
-        "no_requerida",
-        "pendiente",
-        "pagado",
-        "fallido"
-      ],
-      "default": "no_requerida"
     }
   },
   "required": [
