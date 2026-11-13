@@ -1185,6 +1185,43 @@ Deno.serve(async (req) => {
             }
           }
 
+          // Vincular el alta de socio pagada con la inscripción del Campus 2027.
+          if (metadata.campus_registration_id && member?.id) {
+            try {
+              const rid = metadata.campus_registration_id;
+              const regs = await base44.asServiceRole.entities.CampusRegistration.filter({ id: rid });
+              const reg = regs?.[0];
+              if (reg) {
+                const kids = await base44.asServiceRole.entities.CampusParticipant.filter({ registration_id: rid });
+                const cfgs = await base44.asServiceRole.entities.CampusSettings.list('-created_date', 5);
+                const cfg = cfgs?.[0] || {};
+                const wk = ['S1','S2','S3','S4','S5'];
+                const price = (weeks) => {
+                  const ids = [...new Set(weeks || [])].map(x=>wk.indexOf(x)).filter(x=>x>=0).sort((a,b)=>a-b);
+                  const week=Number(cfg.precio_semana_socio ?? 55), fortnight=Number(cfg.precio_quincena_socio ?? 95), month=Number(cfg.precio_mes_socio ?? 170);
+                  const dp=Array(ids.length+1).fill(Infinity); dp[0]=0;
+                  for(let i=1;i<=ids.length;i++){dp[i]=dp[i-1]+week;if(i>=2&&ids[i-1]===ids[i-2]+1)dp[i]=Math.min(dp[i],dp[i-2]+fortnight);if(i>=4&&ids.slice(i-4,i).every((v,j)=>v===ids[i-4]+j))dp[i]=Math.min(dp[i],dp[i-4]+month);}
+                  return dp[ids.length];
+                };
+                let total=0;
+                for (const kid of kids) {
+                  const linked = [...(member.jugadores_hijos||[]),...(member.jugadores_relacionados||[])].some(x=>String(x.jugador_nombre||'').trim().toLowerCase()===String(kid.nombre||'').trim().toLowerCase());
+                  if (linked) {
+                    const amount=price(kid.semanas_ocupadas);
+                    total+=amount;
+                    await base44.asServiceRole.entities.CampusParticipant.update(kid.id,{es_socio:true,precio_aplicado:amount});
+                  } else total+=Number(kid.precio_aplicado||0);
+                }
+                await base44.asServiceRole.entities.CampusRegistration.update(rid,{
+                  club_member_id:member.id,socio_verificado:true,es_socio:true,importe_total:total,
+                  notas:'Alta de socio confirmada mediante Stripe. Inscripción del campus guardada y pendiente de confirmación de plazas.'
+                });
+              }
+            } catch (campusErr) {
+              console.error('[stripe-webhook] Error vinculando alta al Campus:',campusErr?.message||campusErr);
+            }
+          }
+
           // Emails de confirmación (socio y admin)
           try {
             const to = member?.email || email;
