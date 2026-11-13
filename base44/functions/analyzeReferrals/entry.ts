@@ -13,9 +13,9 @@ Deno.serve(async (req) => {
 
         // 2. Procesar estadísticas básicas
         const totalReferrals = history.length;
-        const active referrersCount = new Set(history.map(h => h.referidor_email)).size;
+        const activeReferrersCount = new Set(history.map(h => h.referidor_email).filter(Boolean)).size;
         const totalUsers = users.length;
-        const participationRate = totalUsers > 0 ? (active / totalUsers * 100).toFixed(1) : 0;
+        const participationRate = totalUsers > 0 ? (activeReferrersCount / totalUsers * 100).toFixed(1) : 0;
         
         // Agrupar por mes (últimos 6 meses)
         const now = new Date();
@@ -36,7 +36,7 @@ Deno.serve(async (req) => {
 
         const statsSummary = {
             total_referidos: totalReferrals,
-            usuarios_participantes: active,
+            usuarios_participantes: activeReferrersCount,
             tasa_participacion: `${participationRate}%`,
             referidos_por_mes: monthlyStats,
             configuracion_actual: {
