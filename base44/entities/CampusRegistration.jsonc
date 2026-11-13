@@ -73,6 +73,55 @@
     },
     "notas": {
       "type": "string"
+    },
+    "adulto_direccion": {
+      "type": "string"
+    },
+    "adulto_fecha_nacimiento": {
+      "type": "string",
+      "format": "date"
+    },
+    "adulto_tipo_inscripcion": {
+      "type": "string",
+      "enum": [
+        "Nueva Inscripci\u00f3n",
+        "Renovaci\u00f3n"
+      ],
+      "default": "Nueva Inscripci\u00f3n"
+    },
+    "adulto_referido_por": {
+      "type": "string"
+    },
+    "segundo_progenitor_nombre": {
+      "type": "string"
+    },
+    "segundo_progenitor_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "segundo_progenitor_telefono": {
+      "type": "string"
+    },
+    "es_segundo_progenitor": {
+      "type": "boolean",
+      "default": false
+    },
+    "semanas_solicitadas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "S1",
+          "S2",
+          "S3",
+          "S4",
+          "S5"
+        ]
+      }
+    },
+    "participantes_count": {
+      "type": "integer",
+      "minimum": 1
     }
   },
   "required": [
