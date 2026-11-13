@@ -82,7 +82,7 @@ Deno.serve(async req=>{
       segundo_progenitor_nombre:clean(b.segundo_progenitor_nombre),segundo_progenitor_email:clean(b.segundo_progenitor_email),
       segundo_progenitor_telefono:clean(b.segundo_progenitor_telefono),es_segundo_progenitor:b.es_segundo_progenitor===true,
       es_socio:!!verifiedMember,socio_verificado:!!verifiedMember,club_member_id:verifiedMember?.id||'',
-      estado:'pendiente',estado_pago:'pendiente',importe_total:total,cuota_socio_incluida:0,
+      estado:'pendiente',estado_pago:'pendiente',estado_alta_socio:b.solicitar_alta_socio===true?'pendiente':verifiedMember?'pagado':'no_requerida',importe_total:total,cuota_socio_incluida:0,
       consentimiento_datos:true,consentimiento_imagen:b.consentimiento_imagen===true,
       semanas_solicitadas:[...new Set(participants.flatMap(p=>p.semanas))],participantes_count:participants.length,
       notas:'Inscripción recibida desde la web del Campus 2027. Pendiente de revisión y confirmación de plazas.'
