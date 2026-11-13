@@ -103,7 +103,22 @@ Deno.serve(async req=>{
       await base44.asServiceRole.entities.CampusRegistration.update(reg.id,{estado:'revision',notas:'Error parcial al guardar participantes: '+e.message});
       throw e;
     }
-    return Response.json({success:true,registration_id:reg.id,participants_saved:created.length,amount:total,message:'Inscripción guardada. El club revisará la disponibilidad y confirmará las plazas.'},{headers});
+    let membershipCheckoutUrl=null;
+    if(b.solicitar_alta_socio===true){
+      const checkout=await base44.asServiceRole.functions.invoke('publicMemberCheckout',{
+        nombre_completo:adult.nombre,dni:adult.dni,telefono:adult.telefono,email:adult.email,
+        direccion:adult.direccion,municipio:adult.municipio,fecha_nacimiento:adult.nacimiento,
+        tipo_inscripcion:clean(b.adulto_tipo_inscripcion)||'Nueva Inscripción',
+        referido_por:clean(b.adulto_referido_por),es_segundo_progenitor:b.es_segundo_progenitor===true,
+        campus_registration_id:reg.id,
+        success_url:'https://www.cdbustarviejo.com/campus-verano-2027.html?membership=paid&registration_id='+encodeURIComponent(reg.id),
+        cancel_url:'https://www.cdbustarviejo.com/campus-verano-2027.html?membership=cancelled&registration_id='+encodeURIComponent(reg.id)
+      });
+      if(!checkout?.success||!checkout?.url) throw new Error(checkout?.error||'No se ha podido preparar el pago de la cuota de socio. La inscripción del campus sí ha quedado guardada.');
+      membershipCheckoutUrl=checkout.url;
+      await base44.asServiceRole.entities.CampusRegistration.update(reg.id,{notas:'Inscripción guardada. Alta de socio pendiente de pago de cuota anual de 25 €.'});
+    }
+    return Response.json({success:true,registration_id:reg.id,participants_saved:created.length,amount:total,checkout_url:membershipCheckoutUrl,message:membershipCheckoutUrl?'Inscripción guardada. Completa el pago de 25 € para activar el alta de socio.':'Inscripción guardada. El club revisará la disponibilidad y confirmará las plazas.'},{headers});
   } catch(e) {
     console.error('[campusRegistrationSubmit]',e?.message||e);
     return Response.json({error:e?.message||'No se ha podido guardar la inscripción.'},{status:400,headers});
