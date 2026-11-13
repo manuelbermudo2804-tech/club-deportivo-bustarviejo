@@ -251,6 +251,21 @@
     "notas": {
       "type": "string",
       "description": "Notas adicionales"
+    },
+    "campus_participantes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "participante_id": {
+            "type": "string"
+          },
+          "participante_nombre": {
+            "type": "string"
+          }
+        }
+      },
+      "description": "Hijos inscritos en Campus que est\u00e1n vinculados a la ficha familiar para aplicar la tarifa de socio."
     }
   },
   "required": [
