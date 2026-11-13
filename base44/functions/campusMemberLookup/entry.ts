@@ -33,6 +33,9 @@ Deno.serve(async (req) => {
     for (const child of linked) {
       if (child?.jugador_id && child?.jugador_nombre) unique.set(child.jugador_id, { id: child.jugador_id, name: child.jugador_nombre });
     }
+    for (const child of (member.campus_participantes || [])) {
+      if (child?.participante_id && child?.participante_nombre) unique.set(child.participante_id, { id: child.participante_id, name: child.participante_nombre });
+    }
     return Response.json({ verified: true, member_id: member.id, children: [...unique.values()] }, { status: 200, headers });
   } catch (error) {
     console.error('[campusMemberLookup]', error?.message);
