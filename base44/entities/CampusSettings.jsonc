@@ -1,0 +1,93 @@
+{
+  "name": "CampusSettings",
+  "type": "object",
+  "properties": {
+    "nombre": {
+      "type": "string"
+    },
+    "activo": {
+      "type": "boolean",
+      "default": false
+    },
+    "fecha_inicio": {
+      "type": "string",
+      "format": "date"
+    },
+    "fecha_fin": {
+      "type": "string",
+      "format": "date"
+    },
+    "plazas_6_8": {
+      "type": "number",
+      "default": 12
+    },
+    "plazas_9_11": {
+      "type": "number",
+      "default": 14
+    },
+    "plazas_12_15": {
+      "type": "number",
+      "default": 14
+    },
+    "maximo_total": {
+      "type": "number",
+      "default": 40
+    },
+    "precio_semana_general": {
+      "type": "number",
+      "default": 60
+    },
+    "precio_semana_socio": {
+      "type": "number",
+      "default": 55
+    },
+    "precio_quincena_general": {
+      "type": "number",
+      "default": 110
+    },
+    "precio_quincena_socio": {
+      "type": "number",
+      "default": 95
+    },
+    "precio_mes_general": {
+      "type": "number",
+      "default": 200
+    },
+    "precio_mes_socio": {
+      "type": "number",
+      "default": 170
+    },
+    "cuota_socio": {
+      "type": "number",
+      "default": 25
+    },
+    "notas_capacidad": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "nombre"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
