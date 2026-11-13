@@ -1208,7 +1208,7 @@ Deno.serve(async (req) => {
                 };
                 let total=0;
                 for (const kid of kids) {
-                  const linked = [...(member.jugadores_hijos||[]),...(member.jugadores_relacionados||[])].some(x=>String(x.jugador_nombre||'').trim().toLowerCase()===String(kid.nombre||'').trim().toLowerCase());
+                  const linked = [...(member.jugadores_hijos||[]),...(member.jugadores_relacionados||[])].some(x=>String(x.jugador_nombre||'').trim().toLowerCase()===String(kid.nombre||'').trim().toLowerCase()) || (member.campus_participantes||[]).some(x=>String(x.participante_nombre||'').trim().toLowerCase()===String(kid.nombre||'').trim().toLowerCase());
                   if (linked) {
                     const amount=price(kid.semanas_ocupadas);
                     total+=amount;
