@@ -1193,6 +1193,9 @@ Deno.serve(async (req) => {
               const reg = regs?.[0];
               if (reg) {
                 const kids = await base44.asServiceRole.entities.CampusParticipant.filter({ registration_id: rid });
+                const campusLinks = kids.map(k=>({participante_id:k.id,participante_nombre:k.nombre}));
+                await base44.asServiceRole.entities.ClubMember.update(member.id,{campus_participantes:campusLinks});
+                member.campus_participantes = campusLinks;
                 const cfgs = await base44.asServiceRole.entities.CampusSettings.list('-created_date', 5);
                 const cfg = cfgs?.[0] || {};
                 const wk = ['S1','S2','S3','S4','S5'];
