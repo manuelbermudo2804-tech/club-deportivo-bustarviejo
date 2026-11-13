@@ -8,10 +8,10 @@ const GROUPS = [
   { key: "12-15", label: "Avanzado", range: "12–15 años", field: "plazas_12_15" },
 ];
 const WEEKS = [
-  { key: "S1", label: "Semana 1", dates: "1–4 julio" },
-  { key: "S2", label: "Semana 2", dates: "5–11 julio" },
-  { key: "S3", label: "Semana 3", dates: "12–18 julio" },
-  { key: "S4", label: "Semana 4", dates: "19–25 julio" },
+  { key: "S1", label: "Semana 1", dates: "5–9 julio" },
+  { key: "S2", label: "Semana 2", dates: "12–16 julio" },
+  { key: "S3", label: "Semana 3", dates: "19–23 julio" },
+  { key: "S4", label: "Semana 4", dates: "26–30 julio" },
 ];
 // Fechas y periodos definitivos se ajustarán al calendario operativo del campus.
 const money = (v) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(Number(v || 0));
