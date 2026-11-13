@@ -8,12 +8,12 @@ const GROUPS = [
   { key: "12-15", label: "Avanzado", range: "12–15 años" },
 ];
 const WEEKS = [
-  { key: "S1", label: "Semana 1", dates: "5–9 julio" },
-  { key: "S2", label: "Semana 2", dates: "12–16 julio" },
-  { key: "S3", label: "Semana 3", dates: "19–23 julio" },
-  { key: "S4", label: "Semana 4", dates: "26–30 julio" },
+  { key: "S1", label: "Semana 1", dates: "28 junio–2 julio" },
+  { key: "S2", label: "Semana 2", dates: "5–9 julio" },
+  { key: "S3", label: "Semana 3", dates: "12–16 julio" },
+  { key: "S4", label: "Semana 4", dates: "19–23 julio" },
+  { key: "S5", label: "Semana 5", dates: "26–30 julio" },
 ];
-// Fechas y periodos definitivos se ajustarán al calendario operativo del campus.
 const money = (v) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(Number(v || 0));
 
 export default function CampusAdmin() {
@@ -73,6 +73,7 @@ export default function CampusAdmin() {
         precio_semana_general: Number(settings.precio_semana_general), precio_semana_socio: Number(settings.precio_semana_socio),
         precio_quincena_general: Number(settings.precio_quincena_general), precio_quincena_socio: Number(settings.precio_quincena_socio),
         precio_mes_general: Number(settings.precio_mes_general), precio_mes_socio: Number(settings.precio_mes_socio),
+        fecha_inicio: "2027-06-28", fecha_fin: "2027-07-30",
         cuota_socio: Number(settings.cuota_socio), notas_capacidad: settings.notas_capacidad || "",
       });
       setNotice("Configuración guardada correctamente.");
@@ -109,13 +110,13 @@ export default function CampusAdmin() {
     </div>
 
     {tab === "resumen" && <div className="grid xl:grid-cols-2 gap-5">
-      <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-4">Ocupación por grupo</h2><div className="space-y-5">{groupStats.map(g=><div key={g.key}><div className="flex justify-between gap-3 text-sm mb-2"><div><strong>{g.label}</strong><span className="text-slate-500 ml-2">{g.range}</span></div><strong>{g.count} participantes</strong></div><div className="h-3 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full bg-orange-500" style={{width:`${Math.min(100,g.count*5)}%`}}/></div></div>)}</div><p className="text-xs text-slate-500 mt-4">Distribución informativa por edades, sin límite de plazas establecido.</p></section>
+      <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-4">Ocupación por grupo</h2><div className="space-y-5">{groupStats.map(g=><div key={g.key}><div className="flex justify-between gap-3 text-sm mb-2"><div><strong>{g.label}</strong><span className="text-slate-500 ml-2">{g.range}</span></div><strong>{g.count} participantes</strong></div><div className="h-3 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full bg-orange-500" style={{width:`${Math.min(100,g.count*5)}%`}}/></div></div>)}</div><p className="text-xs text-slate-500 mt-4">Distribución informativa por edades. Las plazas están pendientes de definir según monitores, turnos, grupos y ratios de seguridad.</p></section>
       <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-4">Ocupación por semana</h2><div className="space-y-3">{weekStats.map(w=><div key={w.key} className="flex items-center justify-between rounded-xl bg-slate-50 p-3"><div><strong>{w.label}</strong><p className="text-xs text-slate-500">{w.dates}</p></div><strong className="text-xl">{w.count} participantes</strong></div>)}</div><p className="text-xs text-slate-500 mt-4">Las quincenas y el mes completo ocupan plaza en todas las semanas incluidas.</p></section>
     </div>}
 
     {tab === "inscripciones" && <section className="rounded-2xl border bg-white p-5 overflow-x-auto"><h2 className="font-black text-xl mb-4">Inscripciones familiares</h2>{registrations.length===0?<p className="text-slate-500 py-8 text-center">Todavía no hay inscripciones. Cuando conectemos el formulario público aparecerán aquí automáticamente.</p>:<table className="w-full text-sm"><thead><tr className="text-left border-b text-slate-500"><th className="p-3">Responsable</th><th className="p-3">Email</th><th className="p-3">Estado</th><th className="p-3">Pago</th><th className="p-3 text-right">Total</th></tr></thead><tbody>{registrations.map(r=><tr key={r.id} className="border-b last:border-0"><td className="p-3 font-semibold">{r.adulto_nombre}</td><td className="p-3">{r.adulto_email}</td><td className="p-3">{r.estado}</td><td className="p-3">{r.estado_pago}</td><td className="p-3 text-right font-bold">{money(r.importe_total)}</td></tr>)}</tbody></table>}</section>}
 
-    {tab === "plazas" && <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-2">Participantes por edad</h2><p className="text-sm text-slate-500 mb-5">Seguimiento de participantes inscritos por grupo. No se establece un máximo de plazas.</p><div className="grid md:grid-cols-3 gap-4">{groupStats.map(g=><div key={g.key} className="rounded-xl border p-4"><p className="font-bold">{g.label}</p><p className="text-sm text-slate-500">{g.range}</p><p className="text-3xl font-black mt-3">{g.count}</p><p className="text-xs text-slate-500">participantes inscritos</p></div>)}</div></section>}
+    {tab === "plazas" && <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-2">Participantes por edad</h2><p className="text-sm text-slate-500 mb-5">Seguimiento de participantes inscritos por grupo. Las plazas se definirán al organizar monitores, turnos, grupos por edades y ratios de seguridad.</p><div className="grid md:grid-cols-3 gap-4">{groupStats.map(g=><div key={g.key} className="rounded-xl border p-4"><p className="font-bold">{g.label}</p><p className="text-sm text-slate-500">{g.range}</p><p className="text-3xl font-black mt-3">{g.count}</p><p className="text-xs text-slate-500">participantes inscritos</p></div>)}</div></section>}
 
     {tab === "configuracion" && settings && <section className="rounded-2xl border bg-white p-5 space-y-6">
       <div><h2 className="font-black text-xl">Tarifas aprobadas para el modelo de trabajo</h2><p className="text-sm text-slate-500">Se mantienen los importes acordados: semana 60/55 €, quincena 110/95 €, julio 200/170 € y cuota de socio 25 €.</p></div>
