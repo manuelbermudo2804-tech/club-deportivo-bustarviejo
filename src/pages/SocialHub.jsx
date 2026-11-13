@@ -129,8 +129,15 @@ export default function SocialHub() {
       const result = await base44.integrations.Core.InvokeLLM({
         prompt: `Adapta el mensaje del Club Deportivo Bustarviejo para X.
 Devuelve el texto final en el campo "texto", con un máximo de 270 caracteres contando espacios y emojis.
-Conserva los hechos importantes, no inventes datos y mantén un tono natural.
-No añadas explicaciones ni comillas.
+No inventes datos ni añadas explicaciones o comillas.
+
+${selectedType === "partidos_finde" ? `REGLA ESPECIAL — HORARIOS DE PARTIDOS:
+- El contenido es un calendario de partidos. Los datos de los encuentros son lo más importante.
+- Conserva SIEMPRE categoría, equipos, día y hora de cada partido.
+- No sustituyas los encuentros por frases como "consulta los horarios", "este fin de semana tenemos fútbol" o similares.
+- No elimines partidos para añadir texto promocional, hashtags o llamadas a la acción.
+- Usa formato telegráfico y abreviaturas claras para aprovechar caracteres.
+- Si no caben todos los partidos en 270 caracteres, devuelve los encuentros en orden hasta donde quepan, sin inventar ni reemplazar datos por un resumen genérico.` : `Conserva los hechos importantes y mantén un tono natural.`}
 
 MENSAJE:
 ${mensaje}`,
