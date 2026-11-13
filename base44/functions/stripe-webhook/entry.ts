@@ -1216,7 +1216,7 @@ Deno.serve(async (req) => {
                   } else total+=Number(kid.precio_aplicado||0);
                 }
                 await base44.asServiceRole.entities.CampusRegistration.update(rid,{
-                  club_member_id:member.id,socio_verificado:true,es_socio:true,importe_total:total,
+                  club_member_id:member.id,socio_verificado:true,es_socio:true,estado_alta_socio:'pagado',importe_total:total,
                   notas:'Alta de socio confirmada mediante Stripe. Inscripción del campus guardada y pendiente de confirmación de plazas.'
                 });
               }
