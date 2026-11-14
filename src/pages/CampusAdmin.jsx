@@ -178,8 +178,33 @@ export default function CampusAdmin() {
     </div>
 
     <div className="flex flex-wrap gap-2 border-b pb-3">
-      {[["resumen","Resumen"],["inscripciones","Inscripciones"],["plazas","Participantes por edad"],["configuracion","Tarifas y configuración"]].map(([key,label]) => <button key={key} onClick={()=>setTab(key)} className={`rounded-xl px-4 py-2 text-sm font-bold ${tab===key?"bg-slate-900 text-white":"bg-white border text-slate-600 hover:bg-slate-100"}`}>{label}</button>)}
+      {[["resumen","Resumen"],["inscripciones","Inscripciones"],["plazas","Participantes por edad"],["comunicaciones","Comunicaciones"],["configuracion","Tarifas y configuración"]].map(([key,label]) => <button key={key} onClick={()=>setTab(key)} className={`rounded-xl px-4 py-2 text-sm font-bold ${tab===key?"bg-slate-900 text-white":"bg-white border text-slate-600 hover:bg-slate-100"}`}>{label}</button>)}
     </div>
+
+    {tab === "comunicaciones" && <section className="grid xl:grid-cols-2 gap-5">
+      <div className="rounded-2xl border bg-white p-5 space-y-4">
+        <div><h2 className="text-xl font-black">Enviar comunicación a una familia</h2><p className="text-sm text-slate-500">El envío es siempre manual. No se envía nada al registrar una inscripción.</p></div>
+        <label className="block text-sm font-bold">Familia destinataria
+          <select value={communicationRecipient} onChange={e=>setCommunicationRecipient(e.target.value)} className="mt-2 w-full rounded-xl border p-3 font-normal">
+            <option value="">Selecciona una inscripción</option>
+            {registrations.filter(r=>r.adulto_email).map(r=><option key={r.id} value={r.id}>{r.adulto_nombre} · {r.adulto_email}</option>)}
+          </select>
+        </label>
+        <label className="block text-sm font-bold">Plantilla
+          <select value={communicationTemplate} onChange={e=>applyCommunicationTemplate(e.target.value)} className="mt-2 w-full rounded-xl border p-3 font-normal">
+            <option value="recepcion">Recepción de solicitud</option><option value="documentacion">Dossier / documentación</option><option value="horarios">Horarios y grupos</option><option value="material">Material necesario</option><option value="aviso">Aviso o modificación</option><option value="personalizado">Mensaje personalizado</option>
+          </select>
+        </label>
+        <label className="block text-sm font-bold">Asunto<input value={communicationSubject} onChange={e=>setCommunicationSubject(e.target.value)} className="mt-2 w-full rounded-xl border p-3 font-normal"/></label>
+        <label className="block text-sm font-bold">Mensaje<textarea value={communicationBody} onChange={e=>setCommunicationBody(e.target.value)} rows="10" className="mt-2 w-full rounded-xl border p-3 font-normal"/></label>
+        <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Revisa destinatario, asunto y contenido antes de enviar. El correo saldrá realmente y quedará registrado.</div>
+        <button onClick={sendCampusEmail} disabled={sendingEmail || !communicationRecipient} className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700 disabled:opacity-50"><Mail className="h-4 w-4"/>{sendingEmail?"Enviando…":"Enviar correo manualmente"}</button>
+      </div>
+      <div className="rounded-2xl border bg-white p-5">
+        <h2 className="text-xl font-black mb-4">Historial de comunicaciones</h2>
+        {communicationLogs.length===0?<p className="text-sm text-slate-500">Todavía no se ha enviado ningún correo desde este módulo.</p>:<div className="space-y-3">{communicationLogs.map(log=><div key={log.id} className="rounded-xl border p-3"><div className="flex flex-wrap justify-between gap-2"><strong>{log.subject}</strong><span className="text-xs text-slate-500">{log.sent_at?new Date(log.sent_at).toLocaleString("es-ES"):""}</span></div><p className="text-sm text-slate-600">{log.recipient_name} · {log.recipient_email}</p><p className="text-xs text-slate-500">Enviado por {log.sent_by}</p></div>)}</div>}
+      </div>
+    </section>}
 
     {tab === "resumen" && <div className="grid xl:grid-cols-2 gap-5">
       <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-4">Ocupación por grupo</h2><div className="space-y-5">{groupStats.map(g=><div key={g.key}><div className="flex justify-between gap-3 text-sm mb-2"><div><strong>{g.label}</strong><span className="text-slate-500 ml-2">{g.range}</span></div><strong>{g.count} participantes</strong></div><div className="h-3 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full bg-orange-500" style={{width:`${Math.min(100,g.count*5)}%`}}/></div></div>)}</div><p className="text-xs text-slate-500 mt-4">Distribución informativa por edades. Las plazas están pendientes de definir según monitores, turnos, grupos y ratios de seguridad.</p></section>
