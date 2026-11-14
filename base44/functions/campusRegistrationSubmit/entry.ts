@@ -69,9 +69,9 @@ Deno.serve(async req=>{
       const edad=ageOnStart(fecha);
       if(!nombre||!/^\d{4}-\d{2}-\d{2}$/.test(fecha)||ageOnStart(fecha)<6||edad>15||!semanas.length||semanas.some(w=>!WEEKS.includes(w)))
         throw new Error('Revisa el nombre, fecha de nacimiento y semanas seleccionadas de '+(nombre||'un participante')+'. El campus admite edades de 6 a 15 años.');
-      const linked=!!(verifiedMember && [...(verifiedMember.jugadores_hijos||[]),...(verifiedMember.jugadores_relacionados||[])].some(x=>normalize(x.jugador_nombre)===normalize(nombre)));
+      const linked=!!(verifiedMember && [...(verifiedMember.jugadores_hijos||[]),...(verifiedMember.jugadores_relacionados||[]),...(verifiedMember.campus_participantes||[])].some(x=>normalize(x.jugador_nombre||x.participante_nombre)===normalize(nombre)));
       const applied=linked;
-      return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates)};
+      return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates),alergias:clean(p.alergias),intolerancias:clean(p.intolerancias),medicacion:clean(p.medicacion),observaciones_medicas:clean(p.observaciones_medicas),contacto_emergencia_nombre:clean(p.contacto_emergencia_nombre),contacto_emergencia_telefono:clean(p.contacto_emergencia_telefono)};
     });
     const total=participants.reduce((s,p)=>s+p.price,0);
     const reg=await base44.asServiceRole.entities.CampusRegistration.create({
@@ -95,6 +95,8 @@ Deno.serve(async req=>{
         const row=await base44.asServiceRole.entities.CampusParticipant.create({
           registration_id:reg.id,nombre:p.nombre,fecha_nacimiento:p.fecha,edad_inicio:p.edad,grupo_edad:groupFor(p.edad),
           modalidad,periodo,semanas_ocupadas:p.semanas,es_socio:p.linked,precio_aplicado:p.price,estado:'pendiente',
+          alergias:p.alergias,intolerancias:p.intolerancias,medicacion:p.medicacion,observaciones_medicas:p.observaciones_medicas,
+          contacto_emergencia_nombre:p.contacto_emergencia_nombre,contacto_emergencia_telefono:p.contacto_emergencia_telefono,
           autorizacion_imagen:b.consentimiento_imagen===true?'si':'pendiente'
         });
         created.push(row.id);
@@ -103,23 +105,34 @@ Deno.serve(async req=>{
       await base44.asServiceRole.entities.CampusRegistration.update(reg.id,{estado:'revision',notas:'Error parcial al guardar participantes: '+e.message});
       throw e;
     }
-    let membershipCheckoutUrl=null;
+    let provisionalMemberId='';
     if(b.solicitar_alta_socio===true){
-      const checkoutResponse=await base44.asServiceRole.functions.invoke('publicMemberCheckout',{
-        nombre_completo:adult.nombre,dni:adult.dni,telefono:adult.telefono,email:adult.email,
-        direccion:adult.direccion,municipio:adult.municipio,fecha_nacimiento:adult.nacimiento,
-        tipo_inscripcion:clean(b.adulto_tipo_inscripcion)||'Nueva Inscripción',
-        referido_por:clean(b.adulto_referido_por),es_segundo_progenitor:b.es_segundo_progenitor===true,
-        campus_registration_id:reg.id,
-        success_url:'https://www.cdbustarviejo.com/campus-verano-2027.html?membership=paid&registration_id='+encodeURIComponent(reg.id),
-        cancel_url:'https://www.cdbustarviejo.com/campus-verano-2027.html?membership=cancelled&registration_id='+encodeURIComponent(reg.id)
-      });
-      const checkout=checkoutResponse?.data||checkoutResponse;
-      if(!checkout?.success||!checkout?.url) throw new Error(checkout?.error||'No se ha podido preparar el pago de la cuota de socio. La inscripción del campus sí ha quedado guardada.');
-      membershipCheckoutUrl=checkout.url;
-      await base44.asServiceRole.entities.CampusRegistration.update(reg.id,{notas:'Inscripción guardada. Alta de socio pendiente de pago de cuota anual de 25 €.'});
+      const temporada='2026-2027';
+      const existing=await base44.asServiceRole.entities.ClubMember.filter({email:adult.email,temporada});
+      let member=existing?.[0]||null;
+      if(member && String(member.dni||'').replace(/[.\\s-]/g,'').toUpperCase()!==adult.dni.replace(/[.\\s-]/g,'').toUpperCase())
+        throw new Error('Ya existe una ficha con ese correo y otro DNI. El club debe revisarla antes de continuar.');
+      if(!member){
+        const all=await base44.asServiceRole.entities.ClubMember.list();
+        const serial=all.filter(x=>x.numero_socio&&x.numero_socio.includes('CDB-2026')).length+1;
+        member=await base44.asServiceRole.entities.ClubMember.create({
+          numero_socio:'CDB-2026-'+String(serial).padStart(4,'0'),tipo_inscripcion:'Nueva Inscripción',
+          nombre_completo:adult.nombre,dni:adult.dni,telefono:adult.telefono,email:adult.email,
+          direccion:adult.direccion,municipio:adult.municipio,fecha_nacimiento:adult.nacimiento,
+          es_socio_externo:false,es_socio_padre:true,cuota_socio:25,estado_pago:'Pendiente',metodo_pago:'Tarjeta',
+          temporada,activo:false,notas:'Alta solicitada desde Campus Deportivo 2027. Pendiente de revisión y pago; NO activar hasta confirmar pago.'
+        });
+      }
+      provisionalMemberId=member.id;
+      const campusLinks=participants.map((p,i)=>({participante_id:created[i],participante_nombre:p.nombre}));
+      await base44.asServiceRole.entities.ClubMember.update(member.id,{campus_participantes:[...(member.campus_participantes||[]),...campusLinks]});
+      await base44.asServiceRole.entities.CampusRegistration.update(reg.id,{club_member_id:member.id,estado_alta_socio:'pendiente',notas:'Inscripción de prueba guardada. Alta de socio pendiente de revisión y pago. NO se ha iniciado ningún cobro.'});
     }
-    return Response.json({success:true,registration_id:reg.id,participants_saved:created.length,amount:total,checkout_url:membershipCheckoutUrl,message:membershipCheckoutUrl?'Inscripción guardada. Completa el pago de 25 € para activar el alta de socio.':'Inscripción guardada. El club revisará la disponibilidad y confirmará las plazas.'},{headers});
+    if(verifiedMember){
+      const campusLinks=participants.map((p,i)=>({participante_id:created[i],participante_nombre:p.nombre}));
+      await base44.asServiceRole.entities.ClubMember.update(verifiedMember.id,{campus_participantes:[...(verifiedMember.campus_participantes||[]),...campusLinks]});
+    }
+    return Response.json({success:true,registration_id:reg.id,participants_saved:created.length,amount:total,club_member_id:provisionalMemberId||verifiedMember?.id||null,payment_started:false,message:'Solicitud de prueba guardada en Base44. No se ha iniciado ningún pago; queda pendiente de revisión del club.'},{headers});
   } catch(e) {
     console.error('[campusRegistrationSubmit]',e?.message||e);
     return Response.json({error:e?.message||'No se ha podido guardar la inscripción.'},{status:400,headers});
