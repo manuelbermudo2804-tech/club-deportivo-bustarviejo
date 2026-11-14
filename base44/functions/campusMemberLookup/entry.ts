@@ -39,7 +39,8 @@ Deno.serve(async (req) => {
     }
     const base44 = createClientFromRequest(req);
     const matches = await base44.asServiceRole.entities.ClubMember.filter({ email });
-    const member = (matches || []).find(m => clean(m.dni) === dni && m.activo === true && String(m.estado_pago || '').toLowerCase() === 'pagado');
+    const today = new Date().toISOString().slice(0, 10);
+    const member = (matches || []).find(m => clean(m.dni) === dni && m.activo === true && String(m.estado_pago || '').toLowerCase() === 'pagado' && (!m.fecha_vencimiento || m.fecha_vencimiento >= today));
     if (!member) return Response.json({ verified: false, children: [] }, { status: 200, headers });
     const linked = [...(member.jugadores_hijos || []), ...(member.jugadores_relacionados || [])];
     const unique = new Map();
