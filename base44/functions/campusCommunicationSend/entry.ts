@@ -23,11 +23,11 @@ Deno.serve(async (req) => {
     if (test_mode === true) {
       await base44.integrations.Core.SendEmail({
         to: email,
-        subject: title.startsWith("[PRUEBA]") ? title : \`[PRUEBA] \${title}\`,
+        subject: title.startsWith("[PRUEBA]") ? title : "[PRUEBA] " + title,
         body: message,
         from_name: "C.D. Bustarviejo · Campus 2027"
       });
-      return Response.json({ success: true, message: \`Correo de prueba enviado a \${email}.\` });
+      return Response.json({ success: true, message: "Correo de prueba enviado a " + email + "." });
     }
 
     if (!registration_id) {
