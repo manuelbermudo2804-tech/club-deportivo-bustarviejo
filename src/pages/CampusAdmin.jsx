@@ -38,6 +38,8 @@ export default function CampusAdmin() {
   const [notice, setNotice] = useState("");
   const [tab, setTab] = useState("resumen");
   const [communicationRecipient, setCommunicationRecipient] = useState("");
+  const [testEmailRecipient, setTestEmailRecipient] = useState("manuelbermudo@hotmail.com");
+  const [sendingTestEmail, setSendingTestEmail] = useState(false);
   const [communicationTemplate, setCommunicationTemplate] = useState("recepcion");
   const [communicationSubject, setCommunicationSubject] = useState("Hemos recibido tu solicitud · Campus 2027");
   const [communicationBody, setCommunicationBody] = useState("Hola,\\n\\nHemos recibido la solicitud de inscripción al Campus Deportivo 2027 del C.D. Bustarviejo. La inscripción queda pendiente de revisión por parte del club. Este mensaje no confirma plaza ni implica ningún cobro.\\n\\nMuchas gracias.\\nC.D. Bustarviejo");
@@ -223,6 +225,25 @@ export default function CampusAdmin() {
     } finally { setSendingEmail(false); }
   };
 
+  const sendTestEmail = async () => {
+    const email = testEmailRecipient.trim().toLowerCase();
+    if (!/^\S+@\S+\.\S+$/.test(email)) { setError("Introduce una dirección de correo válida."); return; }
+    if (!window.confirm("¿Enviar un correo de PRUEBA a " + email + "? El envío será real.")) return;
+    setSendingTestEmail(true); setError(""); setNotice("");
+    try {
+      const response = await base44.functions.invoke("campusCommunicationSend", {
+        test_mode: true,
+        recipient_email: email,
+        subject: "Prueba de envío · Campus Deportivo 2027",
+        body: "Hola,\n\nEste es un correo de prueba del sistema de comunicaciones del Campus Deportivo 2027 del C.D. Bustarviejo.\n\nSi has recibido este mensaje, la función de envío está operativa.\n\nC.D. Bustarviejo"
+      });
+      const result = response?.data || response;
+      if (!result?.success) throw new Error(result?.error || "No se pudo confirmar el envío.");
+      setNotice(result.message || ("Correo de prueba enviado a " + email + "."));
+    } catch (e) {
+      setError(e?.response?.data?.error || e?.message || "No se pudo enviar el correo de prueba.");
+    } finally { setSendingTestEmail(false); }
+  };
   const updateSetting = (field, value) => setSettings(s => ({ ...s, [field]: value }));
   const saveSettings = async () => {
     if (!settings?.id) return;
