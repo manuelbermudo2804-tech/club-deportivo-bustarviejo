@@ -19,6 +19,19 @@ Deno.serve(async (req) => {
   if (!ALLOWED_ORIGINS.has(origin)) return Response.json({ error: 'Origen no autorizado' }, { status: 403, headers });
   try {
     const body = await req.json();
+    if (body.action === 'pricing') {
+      const pricingClient = createClientFromRequest(req);
+      const cfgs = await pricingClient.asServiceRole.entities.CampusSettings.list('-created_date', 5);
+      const configured = cfgs?.[0] || { precio_semana_general:60, precio_semana_socio:55, precio_quincena_general:110, precio_quincena_socio:95, precio_mes_general:200, precio_mes_socio:170 };
+      return Response.json({ rates: {
+        precio_semana_general:Number(configured.precio_semana_general),
+        precio_semana_socio:Number(configured.precio_semana_socio),
+        precio_quincena_general:Number(configured.precio_quincena_general),
+        precio_quincena_socio:Number(configured.precio_quincena_socio),
+        precio_cuatro_semanas_general:Number(configured.precio_mes_general),
+        precio_cuatro_semanas_socio:Number(configured.precio_mes_socio)
+      } }, { status:200, headers });
+    }
     const email = String(body.email || '').trim().toLowerCase();
     const dni = clean(body.dni);
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !dni || dni.length < 8 || dni.length > 12) {
