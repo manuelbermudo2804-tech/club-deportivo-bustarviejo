@@ -100,6 +100,42 @@ export default function CampusAdmin() {
     } finally { setDeletingId(null); }
   };
 
+  const applyCommunicationTemplate = (key) => {
+    const templates = {
+      recepcion: ["Hemos recibido tu solicitud · Campus 2027", "Hola,\\n\\nHemos recibido la solicitud de inscripción al Campus Deportivo 2027 del C.D. Bustarviejo. La inscripción queda pendiente de revisión por parte del club. Este mensaje no confirma plaza ni implica ningún cobro.\\n\\nMuchas gracias.\\nC.D. Bustarviejo"],
+      documentacion: ["Información del Campus Deportivo 2027", "Hola,\\n\\nTe enviamos la información general del Campus Deportivo 2027. La documentación definitiva y cualquier indicación específica se comunicarán cuando estén cerradas la organización y las condiciones del servicio.\\n\\nC.D. Bustarviejo"],
+      horarios: ["Horarios y organización · Campus 2027", "Hola,\\n\\nEl horario previsto del Campus es de 09:00 a 14:00. La distribución definitiva de grupos, turnos y actividades se comunicará cuando esté confirmada.\\n\\nC.D. Bustarviejo"],
+      material: ["Material necesario · Campus 2027", "Hola,\\n\\nComo orientación, los menores deberán traer ropa y calzado deportivo, muda, almuerzo, botella de agua, gorra y protección solar. En las jornadas de piscina se indicará el material específico.\\n\\nC.D. Bustarviejo"],
+      aviso: ["Aviso importante · Campus 2027", "Hola,\\n\\nTe escribimos para comunicarte una actualización relativa al Campus Deportivo 2027:\\n\\n[Escribe aquí el aviso]\\n\\nC.D. Bustarviejo"],
+      personalizado: ["Información Campus Deportivo 2027", "Hola,\\n\\n\\n\\nC.D. Bustarviejo"]
+    };
+    const draft = templates[key] || templates.personalizado;
+    setCommunicationTemplate(key);
+    setCommunicationSubject(draft[0]);
+    setCommunicationBody(draft[1]);
+  };
+
+  const sendCampusEmail = async () => {
+    const registration = registrations.find(r => r.id === communicationRecipient);
+    if (!registration?.adulto_email) { setError("Selecciona una familia con correo electrónico."); return; }
+    if (!communicationSubject.trim() || !communicationBody.trim()) { setError("Completa el asunto y el mensaje."); return; }
+    if (!window.confirm(`¿Enviar este correo a ${registration.adulto_nombre} ( ${registration.adulto_email} )? El envío será real.`)) return;
+    setSendingEmail(true); setError(""); setNotice("");
+    try {
+      const response = await base44.functions.invoke("campusCommunicationSend", {
+        registration_id: registration.id, recipient_email: registration.adulto_email,
+        recipient_name: registration.adulto_nombre, subject: communicationSubject,
+        body: communicationBody, template_key: communicationTemplate
+      });
+      const result = response?.data || response;
+      if (!result?.success) throw new Error(result?.error || "No se pudo confirmar el envío.");
+      setNotice(`Correo enviado a ${registration.adulto_email}.`);
+      await load();
+    } catch (e) {
+      setError(e?.response?.data?.error || e?.message || "No se pudo enviar el correo.");
+    } finally { setSendingEmail(false); }
+  };
+
   const updateSetting = (field, value) => setSettings(s => ({ ...s, [field]: value }));
   const saveSettings = async () => {
     if (!settings?.id) return;
