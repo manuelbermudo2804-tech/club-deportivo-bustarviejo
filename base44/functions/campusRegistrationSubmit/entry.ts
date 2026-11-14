@@ -20,7 +20,7 @@ function ageOnStart(date) {
   if (start.getUTCMonth()<born.getUTCMonth() || (start.getUTCMonth()===born.getUTCMonth() && start.getUTCDate()<born.getUTCDate())) age--;
   return age;
 }
-function groupFor(age){return age<=8?'6-8':age<=11?'9-11':'12-15'}
+function groupFor(age){return age<=8?'6-8':age<=11?'9-11':'12-16'}
 function priceForWeeks(selected, member, rates) {
   const ids = [...new Set(selected)].map(w=>WEEKS.indexOf(w)).filter(i=>i>=0).sort((a,b)=>a-b);
   const week = Number(member ? rates.precio_semana_socio : rates.precio_semana_general);
@@ -68,8 +68,8 @@ Deno.serve(async req=>{
     const participants=b.participantes.map(p=>{
       const nombre=clean(p.nombre), fecha=clean(p.fecha_nacimiento), semanas=[...new Set(p.semanas||[])];
       const edad=ageOnStart(fecha);
-      if(!nombre||!/^\d{4}-\d{2}-\d{2}$/.test(fecha)||ageOnStart(fecha)<6||edad>15||!semanas.length||semanas.some(w=>!WEEKS.includes(w)))
-        throw new Error('Revisa el nombre, fecha de nacimiento y semanas seleccionadas de '+(nombre||'un participante')+'. El campus admite edades de 6 a 15 años.');
+      if(!nombre||!/^\d{4}-\d{2}-\d{2}$/.test(fecha)||ageOnStart(fecha)<6||edad>16||!semanas.length||semanas.some(w=>!WEEKS.includes(w)))
+        throw new Error('Revisa el nombre, fecha de nacimiento y semanas seleccionadas de '+(nombre||'un participante')+'. El campus admite edades de 6 a 16 años.');
       const linked=!!(verifiedMember && [...(verifiedMember.jugadores_hijos||[]),...(verifiedMember.jugadores_relacionados||[]),...(verifiedMember.campus_participantes||[])].some(x=>normalize(x.jugador_nombre||x.participante_nombre)===normalize(nombre)));
       const applied=linked;
       return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates),alergias:clean(p.alergias),intolerancias:clean(p.intolerancias),medicacion:clean(p.medicacion),observaciones_medicas:clean(p.observaciones_medicas),contacto_emergencia_nombre:clean(p.contacto_emergencia_nombre),contacto_emergencia_telefono:clean(p.contacto_emergencia_telefono)};
