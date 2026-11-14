@@ -71,7 +71,8 @@ Deno.serve(async req=>{
       if(!memberId) return Response.json({error:'No se ha verificado la ficha de socio.'},{status:400,headers});
       const candidates=await base44.asServiceRole.entities.ClubMember.filter({id:memberId});
       verifiedMember=candidates?.[0]||null;
-      if(!verifiedMember || verifiedMember.activo!==true || String(verifiedMember.estado_pago).toLowerCase()!=='pagado' || verifiedMember.email?.toLowerCase()!==adult.email || String(verifiedMember.dni||'').replace(/[.\\s-]/g,'').toUpperCase()!==adult.dni.replace(/[.\\s-]/g,'').toUpperCase())
+      const today=new Date().toISOString().slice(0,10);
+      if(!verifiedMember || verifiedMember.activo!==true || String(verifiedMember.estado_pago).toLowerCase()!=='pagado' || (verifiedMember.fecha_vencimiento && verifiedMember.fecha_vencimiento<today) || verifiedMember.email?.toLowerCase()!==adult.email || String(verifiedMember.dni||'').replace(/[.\\s-]/g,'').toUpperCase()!==adult.dni.replace(/[.\\s-]/g,'').toUpperCase())
         return Response.json({error:'La ficha de socio ya no aparece activa y pagada. Vuelve a verificarla.'},{status:400,headers});
     }
     const participants=b.participantes.map(p=>{
