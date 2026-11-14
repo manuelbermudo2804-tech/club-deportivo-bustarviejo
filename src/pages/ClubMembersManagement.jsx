@@ -882,6 +882,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
     const emailToCheckOrigin = m.email?.toLowerCase()?.trim();
     const isPadreByEmail = emailToCheckOrigin && parentEmails.has(emailToCheckOrigin);
     const matchesOrigin = originFilter === "all" ||
+      (originFilter === "campus" && m.origen_pago === 'campus') ||
       (originFilter === "stripe_suscripcion" && m.origen_pago === 'stripe_suscripcion') ||
       (originFilter === "stripe_unico" && m.origen_pago === 'stripe_unico') ||
       (originFilter === "transferencia" && m.origen_pago === 'transferencia') ||
@@ -1421,6 +1422,7 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">🏷️ Todos los orígenes</SelectItem>
+              <SelectItem value="campus">🏕️ Alta desde Campus</SelectItem>
               <SelectItem value="stripe_suscripcion">🔄 Suscripción Stripe</SelectItem>
               <SelectItem value="stripe_unico">💳 Pago Único Stripe</SelectItem>
               <SelectItem value="transferencia">🏦 Transferencia</SelectItem>
@@ -1486,6 +1488,11 @@ Por solo *25€/año* seguirás apoyando a nuestros jóvenes deportistas.
                     </div>
                     <div className="flex flex-wrap items-center gap-1.5 mb-3">
                       {/* ORIGEN: Cómo llegó este socio */}
+                      {member.origen_pago === 'campus' && (
+                        <Badge className="bg-emerald-100 text-emerald-700 text-xs border border-emerald-200">
+                          🏕️ Campus
+                        </Badge>
+                      )}
                       {member.origen_pago === 'stripe_suscripcion' && (
                         <Badge className="bg-purple-100 text-purple-700 text-xs border border-purple-200">
                           🔄 Suscripción
