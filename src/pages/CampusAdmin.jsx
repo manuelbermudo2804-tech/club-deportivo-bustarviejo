@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2, Trash2, Mail } from "lucide-react";
+import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2, Trash2, Mail, FileDown, Filter, UsersRound, UserCheck } from "lucide-react";
+import { jsPDF } from "jspdf";
 
 const GROUPS = [
   { key: "6-8", label: "Iniciación", range: "6–8 años" },
@@ -42,6 +43,15 @@ export default function CampusAdmin() {
   const [communicationBody, setCommunicationBody] = useState("Hola,\\n\\nHemos recibido la solicitud de inscripción al Campus Deportivo 2027 del C.D. Bustarviejo. La inscripción queda pendiente de revisión por parte del club. Este mensaje no confirma plaza ni implica ningún cobro.\\n\\nMuchas gracias.\\nC.D. Bustarviejo");
   const [sendingEmail, setSendingEmail] = useState(false);
   const [communicationLogs, setCommunicationLogs] = useState([]);
+  const [filterText, setFilterText] = useState("");
+  const [filterWeek, setFilterWeek] = useState("todas");
+  const [filterAge, setFilterAge] = useState("todas");
+  const [filterStatus, setFilterStatus] = useState("todos");
+  const [filterSocio, setFilterSocio] = useState("todos");
+  const [filterManualGroup, setFilterManualGroup] = useState("todos");
+  const [selectedParticipantIds, setSelectedParticipantIds] = useState([]);
+  const [manualGroupName, setManualGroupName] = useState("");
+  const [savingGroups, setSavingGroups] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true); setError(""); setNotice("");
@@ -81,6 +91,74 @@ export default function CampusAdmin() {
     ...w,
     count: confirmedParticipants.filter(p => (p.semanas_ocupadas || []).includes(w.key)).length,
   })), [confirmedParticipants]);
+
+  const manualGroups = useMemo(() => [...new Set(participants.map(p => (p.grupo_manual || "").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es")), [participants]);
+  const filteredParticipants = useMemo(() => participants.filter(p => {
+    const reg = registrations.find(r => r.id === p.registration_id);
+    const age = naturalAge(p.fecha_nacimiento) ?? p.edad_inicio;
+    const haystack = `${p.nombre || ""} ${reg?.adulto_nombre || ""} ${reg?.adulto_email || ""} ${reg?.adulto_telefono || ""}`.toLocaleLowerCase("es");
+    if (filterText.trim() && !haystack.includes(filterText.trim().toLocaleLowerCase("es"))) return false;
+    if (filterWeek !== "todas" && !(p.semanas_ocupadas || []).includes(filterWeek)) return false;
+    if (filterAge !== "todas" && groupForParticipant(p) !== filterAge) return false;
+    if (filterStatus !== "todos" && (p.estado || "pendiente") !== filterStatus) return false;
+    if (filterSocio !== "todos" && String(!!p.es_socio) !== filterSocio) return false;
+    if (filterManualGroup === "sin_grupo" && p.grupo_manual) return false;
+    if (filterManualGroup !== "todos" && filterManualGroup !== "sin_grupo" && (p.grupo_manual || "") !== filterManualGroup) return false;
+    return true;
+  }).sort((a,b)=>(a.nombre||"").localeCompare(b.nombre||"","es")), [participants, registrations, filterText, filterWeek, filterAge, filterStatus, filterSocio, filterManualGroup]);
+
+  const toggleParticipant = (id) => setSelectedParticipantIds(ids => ids.includes(id) ? ids.filter(x=>x!==id) : [...ids,id]);
+  const toggleVisibleParticipants = () => {
+    const visibleIds = filteredParticipants.map(p=>p.id);
+    const allSelected = visibleIds.length && visibleIds.every(id=>selectedParticipantIds.includes(id));
+    setSelectedParticipantIds(ids => allSelected ? ids.filter(id=>!visibleIds.includes(id)) : [...new Set([...ids,...visibleIds])]);
+  };
+  const assignManualGroup = async () => {
+    const name = manualGroupName.trim();
+    if (!name || !selectedParticipantIds.length) { setError("Escribe el nombre del grupo y selecciona al menos un menor."); return; }
+    if (!window.confirm(`¿Asignar ${selectedParticipantIds.length} menor(es) al grupo «${name}»?`)) return;
+    setSavingGroups(true); setError(""); setNotice("");
+    try {
+      const chosen = participants.filter(p=>selectedParticipantIds.includes(p.id));
+      await Promise.all(chosen.map(p=>base44.entities.CampusParticipant.update(p.id,{grupo_manual:name})));
+      setNotice(`${chosen.length} participante(s) asignados al grupo «${name}».`);
+      setSelectedParticipantIds([]); setManualGroupName(""); await load();
+    } catch(e) { setError(e?.message || "No se pudo guardar la asignación de grupos."); }
+    finally { setSavingGroups(false); }
+  };
+  const clearManualGroup = async (name) => {
+    const chosen = participants.filter(p=>p.grupo_manual===name);
+    if (!chosen.length || !window.confirm(`¿Quitar el grupo «${name}» de ${chosen.length} menor(es)? No se borrarán las inscripciones.`)) return;
+    setSavingGroups(true); setError(""); setNotice("");
+    try {
+      await Promise.all(chosen.map(p=>base44.entities.CampusParticipant.update(p.id,{grupo_manual:""})));
+      setNotice(`Grupo «${name}» eliminado de los participantes.`); await load();
+    } catch(e) { setError(e?.message || "No se pudo eliminar el grupo."); }
+    finally { setSavingGroups(false); }
+  };
+  const exportParticipantsPdf = () => {
+    const doc = new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
+    const title = filterManualGroup !== "todos" ? `Campus 2027 · ${filterManualGroup==="sin_grupo"?"Sin grupo":filterManualGroup}` : "Campus Deportivo 2027 · Listado de participantes";
+    doc.setFontSize(16); doc.text(title,14,15);
+    doc.setFontSize(9); doc.text(`Listado: ${filteredParticipants.length} menores · Generado: ${new Date().toLocaleDateString("es-ES")}`,14,22);
+    const headers = ["Menor","Edad","Familia","Teléfono","Semanas","Grupo manual","Estado"];
+    const rows = filteredParticipants.map(p=>{
+      const reg=registrations.find(r=>r.id===p.registration_id);
+      return [p.nombre||"",String(naturalAge(p.fecha_nacimiento)??p.edad_inicio??""),reg?.adulto_nombre||"",reg?.adulto_telefono||"", (p.semanas_ocupadas||[]).join(", "),p.grupo_manual||"Sin asignar",p.estado||"pendiente"];
+    });
+    const widths=[45,15,48,28,35,48,25];
+    let y=31; const pageH=190;
+    const drawHeader=()=>{let x=14;doc.setFont("helvetica","bold");doc.setFontSize(8);headers.forEach((h,i)=>{doc.text(h,x,y);x+=widths[i];});y+=5;doc.setFont("helvetica","normal");};
+    drawHeader();
+    rows.forEach(row=>{
+      const cells=row.map((v,i)=>doc.splitTextToSize(String(v),widths[i]-2));
+      const rowH=Math.max(...cells.map(c=>c.length))*4+3;
+      if(y+rowH>pageH){doc.addPage();y=15;drawHeader();}
+      let x=14;cells.forEach((lines,i)=>{doc.text(lines,x,y);x+=widths[i];});
+      y+=rowH;doc.setDrawColor(225);doc.line(14,y-1,277,y-1);
+    });
+    doc.save("campus-2027-listado-participantes.pdf");
+  };
 
   const deleteRegistration = async (registration) => {
     const kids = participants.filter(p => p.registration_id === registration.id);
@@ -187,8 +265,29 @@ export default function CampusAdmin() {
     </div>
 
     <div className="flex flex-wrap gap-2 border-b pb-3">
-      {[["resumen","Resumen"],["inscripciones","Inscripciones"],["plazas","Participantes por edad"],["comunicaciones","Comunicaciones"],["configuracion","Tarifas y configuración"]].map(([key,label]) => <button key={key} onClick={()=>setTab(key)} className={`rounded-xl px-4 py-2 text-sm font-bold ${tab===key?"bg-slate-900 text-white":"bg-white border text-slate-600 hover:bg-slate-100"}`}>{label}</button>)}
+      {[["resumen","Resumen"],["inscripciones","Inscripciones"],["plazas","Participantes por edad"],["organizacion","Filtros y grupos"],["comunicaciones","Comunicaciones"],["configuracion","Tarifas y configuración"]].map(([key,label]) => <button key={key} onClick={()=>setTab(key)} className={`rounded-xl px-4 py-2 text-sm font-bold ${tab===key?"bg-slate-900 text-white":"bg-white border text-slate-600 hover:bg-slate-100"}`}>{label}</button>)}
     </div>
+
+    {tab === "organizacion" && <section className="space-y-5">
+      <div className="rounded-2xl border bg-white p-5 space-y-4">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div><h2 className="text-xl font-black flex items-center gap-2"><Filter className="h-5 w-5 text-orange-600"/>Filtros de participantes</h2><p className="text-sm text-slate-500">Combina filtros para localizar menores y preparar listados específicos.</p></div><button onClick={exportParticipantsPdf} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-3 font-bold text-white"><FileDown className="h-4 w-4"/>Exportar resultado a PDF</button></div>
+        <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3">
+          <input value={filterText} onChange={e=>setFilterText(e.target.value)} placeholder="Buscar menor o familia…" className="rounded-xl border p-3"/>
+          <select value={filterWeek} onChange={e=>setFilterWeek(e.target.value)} className="rounded-xl border p-3"><option value="todas">Todas las semanas</option>{WEEKS.map(w=><option key={w.key} value={w.key}>{w.label}</option>)}</select>
+          <select value={filterAge} onChange={e=>setFilterAge(e.target.value)} className="rounded-xl border p-3"><option value="todas">Todas las edades</option>{GROUPS.map(g=><option key={g.key} value={g.key}>{g.label} · {g.range}</option>)}</select>
+          <select value={filterStatus} onChange={e=>setFilterStatus(e.target.value)} className="rounded-xl border p-3"><option value="todos">Todos los estados</option><option value="pendiente">Pendiente</option><option value="confirmado">Confirmado</option><option value="cancelado">Cancelado</option><option value="lista_espera">Lista de espera</option></select>
+          <select value={filterSocio} onChange={e=>setFilterSocio(e.target.value)} className="rounded-xl border p-3"><option value="todos">Socios y no socios</option><option value="true">Socios</option><option value="false">No socios</option></select>
+          <select value={filterManualGroup} onChange={e=>setFilterManualGroup(e.target.value)} className="rounded-xl border p-3"><option value="todos">Todos los grupos manuales</option><option value="sin_grupo">Sin grupo asignado</option>{manualGroups.map(g=><option key={g} value={g}>{g}</option>)}</select>
+        </div>
+        <div className="flex flex-wrap items-center justify-between gap-2 text-sm"><span className="font-bold">{filteredParticipants.length} menores encontrados</span><button onClick={()=>{setFilterText("");setFilterWeek("todas");setFilterAge("todas");setFilterStatus("todos");setFilterSocio("todos");setFilterManualGroup("todos");}} className="text-orange-700 font-bold">Limpiar filtros</button></div>
+      </div>
+      <div className="rounded-2xl border bg-white p-5 space-y-4">
+        <div><h2 className="text-xl font-black flex items-center gap-2"><UsersRound className="h-5 w-5 text-orange-600"/>Crear y organizar grupos manualmente</h2><p className="text-sm text-slate-500">Selecciona menores del listado y asígnalos a un grupo con el nombre que quieras. La asignación queda guardada.</p></div>
+        <div className="flex flex-col sm:flex-row gap-2"><input value={manualGroupName} onChange={e=>setManualGroupName(e.target.value)} placeholder="Nombre del grupo (ej. Grupo A, Mañana…)" className="flex-1 rounded-xl border p-3"/><button onClick={assignManualGroup} disabled={savingGroups||!selectedParticipantIds.length||!manualGroupName.trim()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-bold text-white disabled:opacity-50"><UserCheck className="h-4 w-4"/>{savingGroups?"Guardando…":`Asignar ${selectedParticipantIds.length} seleccionados`}</button></div>
+        {manualGroups.length>0&&<div className="flex flex-wrap gap-2">{manualGroups.map(g=><div key={g} className="flex items-center gap-2 rounded-full border bg-orange-50 px-3 py-1 text-sm"><span className="font-bold">{g}</span><span className="text-slate-500">{participants.filter(p=>p.grupo_manual===g).length}</span><button onClick={()=>clearManualGroup(g)} disabled={savingGroups} className="font-bold text-red-600">Quitar</button></div>)}</div>}
+        <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b text-left text-slate-500"><th className="p-2"><input type="checkbox" checked={filteredParticipants.length>0&&filteredParticipants.every(p=>selectedParticipantIds.includes(p.id))} onChange={toggleVisibleParticipants}/></th><th className="p-2">Menor</th><th className="p-2">Edad</th><th className="p-2">Familia</th><th className="p-2">Semanas</th><th className="p-2">Grupo manual</th><th className="p-2">Estado</th></tr></thead><tbody>{filteredParticipants.map(p=>{const reg=registrations.find(r=>r.id===p.registration_id);return <tr key={p.id} className="border-b last:border-0"><td className="p-2"><input type="checkbox" checked={selectedParticipantIds.includes(p.id)} onChange={()=>toggleParticipant(p.id)}/></td><td className="p-2 font-semibold">{p.nombre}</td><td className="p-2">{naturalAge(p.fecha_nacimiento)??p.edad_inicio??"—"}</td><td className="p-2">{reg?.adulto_nombre||"—"}<div className="text-xs text-slate-500">{reg?.adulto_telefono||""}</div></td><td className="p-2">{(p.semanas_ocupadas||[]).join(", ")}</td><td className="p-2">{p.grupo_manual||"Sin asignar"}</td><td className="p-2">{p.estado||"pendiente"}</td></tr>})}</tbody></table>{filteredParticipants.length===0&&<p className="py-8 text-center text-slate-500">No hay participantes con esos filtros.</p>}</div>
+      </div>
+    </section>}
 
     {tab === "comunicaciones" && <section className="grid xl:grid-cols-2 gap-5">
       <div className="rounded-2xl border bg-white p-5 space-y-4">
