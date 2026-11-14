@@ -418,8 +418,9 @@ export default function ParentPlayers() {
           const currentYear = new Date().getFullYear();
           let allMembersForNum = [];
           try { allMembersForNum = await base44.entities.ClubMember.list(); } catch {}
-          const membersThisYear = allMembersForNum.filter(m => m.numero_socio?.includes(`CDB-${currentYear}`));
-          const nextNumber = membersThisYear.length + 1;
+          const usedNumbers = new Set(allMembersForNum.map(m => String(m.numero_socio || '')));
+          let nextNumber = 1;
+          while (usedNumbers.has(`CDB-${currentYear}-${String(nextNumber).padStart(4, '0')}`)) nextNumber++;
           const numeroSocio = `CDB-${currentYear}-${String(nextNumber).padStart(4, '0')}`;
           const tempActual = seasonConfig?.temporada || `${currentYear}/${currentYear + 1}`;
           // Calcular fecha_vencimiento
