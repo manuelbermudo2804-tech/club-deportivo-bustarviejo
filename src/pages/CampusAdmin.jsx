@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2, Trash2 } from "lucide-react";
+import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2, Trash2, Mail } from "lucide-react";
 
 const GROUPS = [
   { key: "6-8", label: "Iniciación", range: "6–8 años" },
@@ -27,6 +27,12 @@ export default function CampusAdmin() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [tab, setTab] = useState("resumen");
+  const [communicationRecipient, setCommunicationRecipient] = useState("");
+  const [communicationTemplate, setCommunicationTemplate] = useState("recepcion");
+  const [communicationSubject, setCommunicationSubject] = useState("Hemos recibido tu solicitud · Campus 2027");
+  const [communicationBody, setCommunicationBody] = useState("Hola,\\n\\nHemos recibido la solicitud de inscripción al Campus Deportivo 2027 del C.D. Bustarviejo. La inscripción queda pendiente de revisión por parte del club. Este mensaje no confirma plaza ni implica ningún cobro.\\n\\nMuchas gracias.\\nC.D. Bustarviejo");
+  const [sendingEmail, setSendingEmail] = useState(false);
+  const [communicationLogs, setCommunicationLogs] = useState([]);
 
   const load = useCallback(async () => {
     setLoading(true); setError(""); setNotice("");
@@ -37,14 +43,16 @@ export default function CampusAdmin() {
         setError("Esta sección está reservada a la administración del club.");
         setLoading(false); return;
       }
-      const [cfg, regs, kids] = await Promise.all([
+      const [cfg, regs, kids, logs] = await Promise.all([
         base44.entities.CampusSettings.list("-created_date", 5),
         base44.entities.CampusRegistration.list("-created_date", 500),
         base44.entities.CampusParticipant.list("-created_date", 1000),
+        base44.entities.CampusCommunicationLog.list("-sent_at", 100),
       ]);
       setSettings(cfg?.[0] || null);
       setRegistrations(regs || []);
       setParticipants(kids || []);
+      setCommunicationLogs(logs || []);
     } catch (e) {
       setError(e?.message || "No se han podido cargar los datos del campus.");
     } finally { setLoading(false); }
