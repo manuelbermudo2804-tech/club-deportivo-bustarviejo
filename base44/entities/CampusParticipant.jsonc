@@ -27,17 +27,14 @@
         "12-16"
       ]
     },
-    "grupo_manual": {
-      "type": "string",
-      "description": "Nombre del grupo manual asignado por la organizaci\u00f3n del Campus."
-    },
     "modalidad": {
       "type": "string",
       "enum": [
         "semana",
         "quincena",
         "mes",
-        "combinada"
+        "combinada",
+        "4_semanas"
       ]
     },
     "periodo": {
@@ -51,7 +48,8 @@
         "Q1",
         "Q2",
         "JULIO",
-        "COMBINADA"
+        "COMBINADA",
+        "4_SEMANAS"
       ]
     },
     "semanas_ocupadas": {
@@ -119,6 +117,10 @@
       "type": "boolean",
       "default": false,
       "description": "Consentimiento espec\u00edfico para tratar la informaci\u00f3n de salud del menor durante el campus."
+    },
+    "grupo_manual": {
+      "type": "string",
+      "description": "Nombre del grupo manual asignado por la organizaci\u00f3n del Campus."
     }
   },
   "required": [
