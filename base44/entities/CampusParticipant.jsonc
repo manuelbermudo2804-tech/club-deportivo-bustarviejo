@@ -27,6 +27,10 @@
         "12-16"
       ]
     },
+    "grupo_manual": {
+      "type": "string",
+      "description": "Nombre del grupo manual asignado por la organizaci\u00f3n del Campus."
+    },
     "modalidad": {
       "type": "string",
       "enum": [
@@ -115,10 +119,6 @@
       "type": "boolean",
       "default": false,
       "description": "Consentimiento espec\u00edfico para tratar la informaci\u00f3n de salud del menor durante el campus."
-    },
-    "grupo_manual": {
-      "type": "string",
-      "description": "Nombre del grupo manual asignado por la organizaci\u00f3n del Campus."
     }
   },
   "required": [
