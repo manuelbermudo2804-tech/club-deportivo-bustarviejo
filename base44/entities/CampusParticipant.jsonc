@@ -106,6 +106,15 @@
     },
     "observaciones_admin": {
       "type": "string"
+    },
+    "intolerancias": {
+      "type": "string",
+      "description": "Intolerancias alimentarias comunicadas por la familia; dato de salud confidencial."
+    },
+    "consentimiento_salud": {
+      "type": "boolean",
+      "default": false,
+      "description": "Consentimiento espec\u00edfico para tratar la informaci\u00f3n de salud del menor durante el campus."
     }
   },
   "required": [
