@@ -5,6 +5,10 @@
     "nombre": {
       "type": "string"
     },
+    "temporada": {
+      "type": "string",
+      "description": "Edici\u00f3n anual del Campus, por ejemplo 2027 o 2028."
+    },
     "activo": {
       "type": "boolean",
       "default": false
