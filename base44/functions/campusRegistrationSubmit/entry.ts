@@ -2,11 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 const ORIGINS = new Set(['https://www.cdbustarviejo.com','https://cdbustarviejo.com']);
 const WEEKS = ['S1','S2','S3','S4','S5'];
-const WEEK_DATES = {
-  S1:['2027-06-28','2027-07-02'], S2:['2027-07-05','2027-07-09'],
-  S3:['2027-07-12','2027-07-16'], S4:['2027-07-19','2027-07-23'],
-  S5:['2027-07-26','2027-07-30']
-};
+
 const cors = origin => ({
   'Access-Control-Allow-Origin': ORIGINS.has(origin) ? origin : 'https://www.cdbustarviejo.com',
   'Vary':'Origin','Access-Control-Allow-Methods':'POST, OPTIONS',
@@ -14,9 +10,10 @@ const cors = origin => ({
 });
 const clean = v => String(v || '').trim();
 const normalize = v => clean(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ');
-function ageOnStart(date) {
-  // Criterio de año natural: edad = 2027 menos año de nacimiento.
-  return 2027 - Number(String(date).slice(0,4));
+function ageOnStart(date, startDate) {
+  // Se mantiene el criterio de año natural, tomando el año de inicio de la edición.
+  const year = Number(String(startDate || '').slice(0,4));
+  return year - Number(String(date).slice(0,4));
 }
 function groupFor(age){return age<=8?'6-8':age<=11?'9-11':'12-16'}
 function priceForWeeks(selected, member, rates) {
@@ -63,8 +60,12 @@ Deno.serve(async req=>{
     });
     const alreadyRegistered=sameResponsible.reduce((sum,r)=>sum+Number(r.participantes_count||0),0);
     if(alreadyRegistered+b.participantes.length>6) return Response.json({error:'Este DNI o correo ya tiene menores inscritos y se superaría el máximo de 6 participantes por responsable. Contacta con el club para revisar una inscripción de grupo.'},{status:409,headers});
-    const cfgs=await base44.asServiceRole.entities.CampusSettings.list('-created_date',5);
-    const rates=cfgs?.[0]||{precio_semana_general:60,precio_semana_socio:55,precio_quincena_general:110,precio_quincena_socio:95,precio_mes_general:200,precio_mes_socio:170};
+    const cfgs=await base44.asServiceRole.entities.CampusSettings.list('-created_date',100);
+    // Si hay una edición activa, se utiliza; si todavía no hay ninguna activa, se conserva la más reciente (comportamiento actual de 2027).
+    const rates=(cfgs||[]).find(c=>c.activo===true)||(cfgs||[])[0];
+    if(!rates?.id || !rates.fecha_inicio || !rates.fecha_fin) return Response.json({error:'No hay una edición del Campus configurada con fechas de inicio y fin.'},{status:409,headers});
+    const campusYear=String(rates.temporada || rates.fecha_inicio.slice(0,4));
+    const membershipSeason=`${campusYear}-${Number(campusYear)+1}`;
     const memberId=clean(b.club_member_id);
     let verifiedMember=null;
     if(b.es_socio===true){
@@ -77,16 +78,17 @@ Deno.serve(async req=>{
     }
     const participants=b.participantes.map(p=>{
       const nombre=clean(p.nombre), fecha=clean(p.fecha_nacimiento), semanas=[...new Set(p.semanas||[])];
-      const edad=ageOnStart(fecha);
+      const edad=ageOnStart(fecha,rates.fecha_inicio);
       if(!nombre||!/^\d{4}-\d{2}-\d{2}$/.test(fecha)||ageOnStart(fecha)<6||edad>16||!semanas.length||semanas.some(w=>!WEEKS.includes(w)))
         throw new Error('Revisa el nombre, fecha de nacimiento y semanas seleccionadas de '+(nombre||'un participante')+'. El campus admite edades de 6 a 16 años.');
       const linked=!!(verifiedMember && [...(verifiedMember.jugadores_hijos||[]),...(verifiedMember.jugadores_relacionados||[]),...(verifiedMember.campus_participantes||[])].some(x=>normalize(x.jugador_nombre||x.participante_nombre)===normalize(nombre)));
       const applied=linked || b.solicitar_alta_socio===true;
       return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates),alergias:clean(p.alergias),intolerancias:clean(p.intolerancias),medicacion:clean(p.medicacion),observaciones_medicas:clean(p.observaciones_medicas),contacto_emergencia_nombre:clean(p.contacto_emergencia_nombre),contacto_emergencia_telefono:clean(p.contacto_emergencia_telefono)};
     });
-    const membershipFee=b.solicitar_alta_socio===true?25:0;
+    const membershipFee=b.solicitar_alta_socio===true?Number(rates.cuota_socio ?? 25):0;
     const total=participants.reduce((s,p)=>s+p.price,0)+membershipFee;
     const reg=await base44.asServiceRole.entities.CampusRegistration.create({
+      temporada:campusYear,campus_settings_id:rates.id,
       adulto_nombre:adult.nombre,adulto_dni:adult.dni,adulto_email:adult.email,adulto_telefono:adult.telefono,
       adulto_direccion:adult.direccion,adulto_municipio:adult.municipio,adulto_fecha_nacimiento:adult.nacimiento,
       adulto_tipo_inscripcion:clean(b.adulto_tipo_inscripcion)||'Nueva Inscripción',
@@ -97,7 +99,7 @@ Deno.serve(async req=>{
       estado:'pendiente',estado_pago:'pendiente',estado_alta_socio:b.solicitar_alta_socio===true?'pendiente':verifiedMember?'pagado':'no_requerida',importe_total:total,cuota_socio_incluida:membershipFee,
       consentimiento_datos:true,consentimiento_imagen:b.consentimiento_imagen===true,
       semanas_solicitadas:[...new Set(participants.flatMap(p=>p.semanas))],participantes_count:participants.length,
-      notas:'Inscripción recibida desde la web del Campus 2027. Pendiente de revisión y confirmación de plazas.'
+      notas:`Inscripción recibida desde la web del Campus ${campusYear}. Pendiente de revisión y confirmación de plazas.`
     });
     const created=[];
     try {
@@ -105,6 +107,7 @@ Deno.serve(async req=>{
         const modalidad=p.semanas.length===1?'semana':p.semanas.length===2?'quincena':p.semanas.length===4?'4_semanas':'combinada';
         const periodo=p.semanas.length===1?p.semanas[0]:p.semanas.length===4?'4_SEMANAS':'COMBINADA';
         const row=await base44.asServiceRole.entities.CampusParticipant.create({
+          temporada:campusYear,campus_settings_id:rates.id,
           registration_id:reg.id,nombre:p.nombre,fecha_nacimiento:p.fecha,edad_inicio:p.edad,grupo_edad:groupFor(p.edad),
           modalidad,periodo,semanas_ocupadas:p.semanas,es_socio:p.linked,precio_aplicado:p.price,estado:'pendiente',
           alergias:p.alergias,intolerancias:p.intolerancias,medicacion:p.medicacion,observaciones_medicas:p.observaciones_medicas,
@@ -119,7 +122,7 @@ Deno.serve(async req=>{
     }
     let provisionalMemberId='';
     if(b.solicitar_alta_socio===true){
-      const temporada='2026-2027';
+      const temporada=membershipSeason;
       const existing=await base44.asServiceRole.entities.ClubMember.filter({email:adult.email,temporada});
       let member=existing?.[0]||null;
       if(member && String(member.dni||'').replace(/[.\\s-]/g,'').toUpperCase()!==adult.dni.replace(/[.\\s-]/g,'').toUpperCase())
@@ -137,7 +140,7 @@ Deno.serve(async req=>{
           direccion:adult.direccion,municipio:adult.municipio,fecha_nacimiento:adult.nacimiento,
           es_socio_externo:false,es_socio_padre:false,cuota_socio:25,estado_pago:'Pendiente',metodo_pago:'Tarjeta',
           origen_pago:'campus',fecha_alta:new Date().toISOString().slice(0,10),
-          temporada,activo:false,notas:'Alta solicitada desde Campus Deportivo 2027. Pendiente de revisión y pago; NO activar hasta confirmar pago.'
+          fecha_vencimiento:`${Number(campusYear)+1}-06-30`,temporada,activo:false,notas:`Alta solicitada desde Campus Deportivo ${campusYear}. Pendiente de revisión y pago; NO activar hasta confirmar pago.`
         });
       }
       provisionalMemberId=member.id;
