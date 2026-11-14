@@ -11,12 +11,27 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
     if (!user || user.role !== "admin") return Response.json({ error: "Acceso reservado a administración." }, { status: 403 });
-    const { registration_id, recipient_email, recipient_name, subject, body, template_key } = await req.json();
+    const { registration_id, recipient_email, recipient_name, subject, body, template_key, test_mode } = await req.json();
     const email = String(recipient_email || "").trim().toLowerCase();
     const title = String(subject || "").trim();
     const message = String(body || "").trim();
-    if (!registration_id || !/^\S+@\S+\.\S+$/.test(email) || !title || !message) {
+    if (!/^\S+@\S+\.\S+$/.test(email) || !title || !message) {
       return Response.json({ error: "Faltan destinatario, asunto o contenido." }, { status: 400 });
+    }
+
+    // El correo de prueba solo puede enviarlo un administrador y no requiere inscripción.
+    if (test_mode === true) {
+      await base44.integrations.Core.SendEmail({
+        to: email,
+        subject: title.startsWith("[PRUEBA]") ? title : \`[PRUEBA] \${title}\`,
+        body: message,
+        from_name: "C.D. Bustarviejo · Campus 2027"
+      });
+      return Response.json({ success: true, message: \`Correo de prueba enviado a \${email}.\` });
+    }
+
+    if (!registration_id) {
+      return Response.json({ error: "Selecciona una inscripción válida." }, { status: 400 });
     }
     const reg = await base44.asServiceRole.entities.CampusRegistration.get(registration_id);
     if (!reg || String(reg.adulto_email || "").trim().toLowerCase() !== email) {
