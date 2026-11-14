@@ -3,6 +3,14 @@
   "type": "object",
   "description": "Participante individual del Campus 2027. Una fila por ni\u00f1o o ni\u00f1a.",
   "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Edici\u00f3n anual del Campus a la que pertenece el participante."
+    },
+    "campus_settings_id": {
+      "type": "string",
+      "description": "Configuraci\u00f3n de la edici\u00f3n utilizada en la inscripci\u00f3n."
+    },
     "registration_id": {
       "type": "string"
     },
