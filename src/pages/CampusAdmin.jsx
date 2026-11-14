@@ -328,6 +328,13 @@ export default function CampusAdmin() {
         <label className="block text-sm font-bold">Mensaje<textarea value={communicationBody} onChange={e=>setCommunicationBody(e.target.value)} rows="10" className="mt-2 w-full rounded-xl border p-3 font-normal"/></label>
         <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Revisa destinatario, asunto y contenido antes de enviar. El correo saldrá realmente y quedará registrado.</div>
         <button onClick={sendCampusEmail} disabled={sendingEmail || !communicationRecipient} className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700 disabled:opacity-50"><Mail className="h-4 w-4"/>{sendingEmail?"Enviando…":"Enviar correo manualmente"}</button>
+        <div className="rounded-xl border border-dashed border-orange-300 bg-orange-50/60 p-4 space-y-3">
+          <div><h3 className="font-black text-slate-900">Prueba de envío</h3><p className="text-sm text-slate-600">Envía un mensaje de comprobación sin necesitar una inscripción previa.</p></div>
+          <label className="block text-sm font-bold">Correo destinatario
+            <input type="email" value={testEmailRecipient} onChange={e=>setTestEmailRecipient(e.target.value)} className="mt-2 w-full rounded-xl border bg-white p-3 font-normal"/>
+          </label>
+          <button onClick={sendTestEmail} disabled={sendingTestEmail || !testEmailRecipient.trim()} className="inline-flex items-center gap-2 rounded-xl border border-orange-600 bg-white px-5 py-3 font-bold text-orange-700 hover:bg-orange-100 disabled:opacity-50"><Mail className="h-4 w-4"/>{sendingTestEmail?"Enviando prueba…":"Enviar correo de prueba"}</button>
+        </div>
       </div>
       <div className="rounded-2xl border bg-white p-5">
         <h2 className="text-xl font-black mb-4">Historial de comunicaciones</h2>
