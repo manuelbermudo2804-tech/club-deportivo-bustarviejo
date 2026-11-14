@@ -125,12 +125,17 @@ Deno.serve(async req=>{
         throw new Error('Ya existe una ficha con ese correo y otro DNI. El club debe revisarla antes de continuar.');
       if(!member){
         const all=await base44.asServiceRole.entities.ClubMember.list();
-        const serial=all.filter(x=>x.numero_socio&&x.numero_socio.includes('CDB-2026')).length+1;
+        const year=new Date().getFullYear();
+        const used=new Set(all.map(x=>String(x.numero_socio||'')));
+        let serial=1;
+        while(used.has('CDB-'+year+'-'+String(serial).padStart(4,'0'))) serial++;
+        const numeroSocio='CDB-'+year+'-'+String(serial).padStart(4,'0');
         member=await base44.asServiceRole.entities.ClubMember.create({
-          numero_socio:'CDB-2026-'+String(serial).padStart(4,'0'),tipo_inscripcion:'Nueva Inscripción',
+          numero_socio:numeroSocio,tipo_inscripcion:'Nueva Inscripción',
           nombre_completo:adult.nombre,dni:adult.dni,telefono:adult.telefono,email:adult.email,
           direccion:adult.direccion,municipio:adult.municipio,fecha_nacimiento:adult.nacimiento,
-          es_socio_externo:false,es_socio_padre:true,cuota_socio:25,estado_pago:'Pendiente',metodo_pago:'Tarjeta',
+          es_socio_externo:false,es_socio_padre:false,cuota_socio:25,estado_pago:'Pendiente',metodo_pago:'Tarjeta',
+          origen_pago:'campus',fecha_alta:new Date().toISOString().slice(0,10),
           temporada,activo:false,notas:'Alta solicitada desde Campus Deportivo 2027. Pendiente de revisión y pago; NO activar hasta confirmar pago.'
         });
       }
