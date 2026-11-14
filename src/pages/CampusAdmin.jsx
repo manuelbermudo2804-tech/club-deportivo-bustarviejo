@@ -144,7 +144,42 @@ export default function CampusAdmin() {
 
     {tab === "inscripciones" && <section className="rounded-2xl border bg-white p-5 overflow-x-auto"><h2 className="font-black text-xl mb-4">Inscripciones familiares</h2>{registrations.length===0?<p className="text-slate-500 py-8 text-center">Todavía no hay inscripciones. Cuando se envíe el formulario público aparecerán aquí automáticamente.</p>:<table className="w-full text-sm"><thead><tr className="text-left border-b text-slate-500"><th className="p-3">Responsable</th><th className="p-3">Participantes</th><th className="p-3">Email</th><th className="p-3">Estado</th><th className="p-3">Alta socio</th><th className="p-3">Pago campus</th><th className="p-3 text-right">Total</th><th className="p-3 text-right">Acciones</th></tr></thead><tbody>{registrations.map(r=>{const kids=participants.filter(p=>p.registration_id===r.id);return <tr key={r.id} className="border-b last:border-0 align-top"><td className="p-3 font-semibold">{r.adulto_nombre}<div className="text-xs font-normal text-slate-500">{r.adulto_telefono}</div></td><td className="p-3">{kids.map(k=><div key={k.id} className="mb-3"><strong>{k.nombre}</strong><div className="text-xs text-slate-500">{k.fecha_nacimiento} · {(k.semanas_ocupadas||[]).join(", ")} · {k.grupo_edad}</div><details className="mt-2 rounded-lg bg-slate-50 p-2"><summary className="cursor-pointer text-xs font-bold text-orange-700">Ficha de salud y emergencia</summary><div className="mt-2 space-y-1 text-xs text-slate-700"><p><b>Alergias:</b> {k.alergias||"No indicado"}</p><p><b>Intolerancias:</b> {k.intolerancias||"No indicado"}</p><p><b>Medicación:</b> {k.medicacion||"No indicada"}</p><p><b>Observaciones:</b> {k.observaciones_medicas||"Ninguna"}</p><p><b>Emergencia:</b> {k.contacto_emergencia_nombre||"—"} · {k.contacto_emergencia_telefono||"—"}</p><p><b>Consentimiento salud:</b> {k.consentimiento_salud?"Sí":"No consta"}</p></div></details></div>)}</td><td className="p-3">{r.adulto_email}</td><td className="p-3">{r.estado}</td><td className="p-3">{r.estado_alta_socio||"no_requerida"}</td><td className="p-3">{r.estado_pago}</td><td className="p-3 text-right font-bold">{money(r.importe_total)}</td><td className="p-3 text-right"><button onClick={()=>deleteRegistration(r)} disabled={deletingId===r.id} className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-50" title="Borrar inscripción y participantes"><Trash2 className="h-4 w-4"/>{deletingId===r.id?"Borrando…":"Borrar"}</button></td></tr>})}</tbody></table>}</section>}
 
-    {tab === "plazas" && <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-2">Participantes por edad</h2><p className="text-sm text-slate-500 mb-5">Seguimiento de participantes inscritos por grupo. Las plazas se definirán al organizar monitores, turnos, grupos por edades y ratios de seguridad.</p><div className="grid md:grid-cols-3 gap-4">{groupStats.map(g=><div key={g.key} className="rounded-xl border p-4"><p className="font-bold">{g.label}</p><p className="text-sm text-slate-500">{g.range}</p><p className="text-3xl font-black mt-3">{g.count}</p><p className="text-xs text-slate-500">participantes inscritos</p></div>)}</div></section>}
+    {tab === "plazas" && <section className="space-y-5">
+      <div className="rounded-2xl border bg-white p-5">
+        <h2 className="font-black text-xl mb-2">Participantes por edad</h2>
+        <p className="text-sm text-slate-500 mb-5">Edad calculada a fecha de inicio del Campus: 28 de junio de 2027. Las plazas se definirán al organizar monitores, turnos, grupos por edades y ratios de seguridad.</p>
+        <div className="grid md:grid-cols-3 gap-4">{groupStats.map(g=><div key={g.key} className="rounded-xl border p-4"><p className="font-bold">{g.label}</p><p className="text-sm text-slate-500">{g.range}</p><p className="text-3xl font-black mt-3">{g.count}</p><p className="text-xs text-slate-500">participantes inscritos</p></div>)}</div>
+      </div>
+      {GROUPS.map(group => {
+        const groupKids = confirmedParticipants.filter(p => p.grupo_edad === group.key);
+        return <div key={group.key} className="rounded-2xl border bg-white p-5">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div><h3 className="text-lg font-black">{group.label}</h3><p className="text-sm text-slate-500">{group.range}</p></div>
+            <span className="rounded-full bg-orange-50 px-3 py-1 text-sm font-bold text-orange-700">{groupKids.length} menores</span>
+          </div>
+          {groupKids.length === 0 ? <p className="py-5 text-center text-sm text-slate-400">Todavía no hay menores en este grupo.</p> :
+            <div className="overflow-x-auto"><table className="w-full text-sm">
+              <thead><tr className="border-b text-left text-slate-500"><th className="p-3">Menor</th><th className="p-3">Edad (28/06/2027)</th><th className="p-3">Familia / correo</th><th className="p-3">Semanas</th><th className="p-3">Estado</th></tr></thead>
+              <tbody>{groupKids.map(kid => {
+                const registration = registrations.find(r => r.id === kid.registration_id);
+                const birth = kid.fecha_nacimiento ? new Date(`${kid.fecha_nacimiento}T00:00:00`) : null;
+                let calculatedAge = kid.edad_inicio;
+                if (calculatedAge == null && birth && !Number.isNaN(birth.getTime())) {
+                  calculatedAge = 2027 - birth.getFullYear();
+                  if (birth.getMonth() > 5 || (birth.getMonth() === 5 && birth.getDate() > 28)) calculatedAge -= 1;
+                }
+                return <tr key={kid.id} className="border-b last:border-0 align-top">
+                  <td className="p-3 font-semibold">{kid.nombre}<div className="text-xs font-normal text-slate-500">{kid.fecha_nacimiento || "Sin fecha"}</div></td>
+                  <td className="p-3">{calculatedAge == null ? "—" : `${calculatedAge} años`}</td>
+                  <td className="p-3">{registration?.adulto_nombre || "Familia sin localizar"}<div className="text-xs text-slate-500 break-all">{registration?.adulto_email || "Sin correo asociado"}</div></td>
+                  <td className="p-3">{(kid.semanas_ocupadas || []).join(", ") || "—"}</td>
+                  <td className="p-3">{kid.estado || "pendiente"}</td>
+                </tr>;
+              })}</tbody>
+            </table></div>}
+        </div>;
+      })}
+    </section>}
 
     {tab === "configuracion" && settings && <section className="rounded-2xl border bg-white p-5 space-y-6">
       <div><h2 className="font-black text-xl">Tarifas aprobadas para el modelo de trabajo</h2><p className="text-sm text-slate-500">Se mantienen los importes acordados: semana 60/55 €, quincena 110/95 €, julio 200/170 € y cuota de socio 25 €.</p></div>
