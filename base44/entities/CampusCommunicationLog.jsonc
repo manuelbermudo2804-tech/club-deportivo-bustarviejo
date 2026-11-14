@@ -1,0 +1,80 @@
+{
+  "name": "CampusCommunicationLog",
+  "type": "object",
+  "properties": {
+    "registration_id": {
+      "type": "string"
+    },
+    "recipient_email": {
+      "type": "string",
+      "format": "email"
+    },
+    "recipient_name": {
+      "type": "string"
+    },
+    "subject": {
+      "type": "string"
+    },
+    "body": {
+      "type": "string"
+    },
+    "template_key": {
+      "type": "string",
+      "enum": [
+        "recepcion",
+        "documentacion",
+        "horarios",
+        "material",
+        "aviso",
+        "personalizado"
+      ]
+    },
+    "sent_by": {
+      "type": "string",
+      "format": "email"
+    },
+    "sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "sent",
+        "error"
+      ],
+      "default": "sent"
+    }
+  },
+  "required": [
+    "registration_id",
+    "recipient_email",
+    "subject",
+    "template_key",
+    "sent_by",
+    "sent_at",
+    "status"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
