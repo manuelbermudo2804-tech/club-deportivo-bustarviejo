@@ -15,10 +15,8 @@ const cors = origin => ({
 const clean = v => String(v || '').trim();
 const normalize = v => clean(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ');
 function ageOnStart(date) {
-  const born = new Date(date+'T00:00:00Z'), start = new Date('2027-06-28T00:00:00Z');
-  let age = start.getUTCFullYear()-born.getUTCFullYear();
-  if (start.getUTCMonth()<born.getUTCMonth() || (start.getUTCMonth()===born.getUTCMonth() && start.getUTCDate()<born.getUTCDate())) age--;
-  return age;
+  // Criterio de año natural: edad = 2027 menos año de nacimiento.
+  return 2027 - Number(String(date).slice(0,4));
 }
 function groupFor(age){return age<=8?'6-8':age<=11?'9-11':'12-16'}
 function priceForWeeks(selected, member, rates) {
@@ -53,6 +51,17 @@ Deno.serve(async req=>{
     if(b.consentimiento_datos!==true) return Response.json({error:'Es obligatorio aceptar la información de protección de datos para enviar la inscripción.'},{status:400,headers});
     if(b.consentimiento_salud!==true) return Response.json({error:'Es necesario aceptar el tratamiento de los datos de salud para gestionar la seguridad del menor.'},{status:400,headers});
     if(!Array.isArray(b.participantes)||!b.participantes.length) return Response.json({error:'Añade al menos un participante.'},{status:400,headers});
+    if(b.participantes.length>6) return Response.json({error:'Cada inscripción admite un máximo de 6 menores. Para grupos o inscripciones especiales, contacta directamente con el club.'},{status:400,headers});
+    if(b.declaracion_responsable!==true) return Response.json({error:'Debes declarar que eres padre, madre, tutor legal o persona expresamente autorizada para inscribir a estos menores.'},{status:400,headers});
+    const priorRegistrations=await base44.asServiceRole.entities.CampusRegistration.list('-created_date',1000);
+    const normId=adult.dni.replace(/[.\\s-]/g,'').toUpperCase();
+    const sameResponsible=(priorRegistrations||[]).filter(r=>{
+      const sameDni=String(r.adulto_dni||'').replace(/[.\\s-]/g,'').toUpperCase()===normId;
+      const sameEmail=String(r.adulto_email||'').trim().toLowerCase()===adult.email;
+      return sameDni||sameEmail;
+    });
+    const alreadyRegistered=sameResponsible.reduce((sum,r)=>sum+Number(r.participantes_count||0),0);
+    if(alreadyRegistered+b.participantes.length>6) return Response.json({error:'Este DNI o correo ya tiene menores inscritos y se superaría el máximo de 6 participantes por responsable. Contacta con el club para revisar una inscripción de grupo.'},{status:409,headers});
     const base44=createClientFromRequest(req);
     const cfgs=await base44.asServiceRole.entities.CampusSettings.list('-created_date',5);
     const rates=cfgs?.[0]||{precio_semana_general:60,precio_semana_socio:55,precio_quincena_general:110,precio_quincena_socio:95,precio_mes_general:200,precio_mes_socio:170};
