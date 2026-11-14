@@ -39,6 +39,7 @@ Deno.serve(async req=>{
   if(!ORIGINS.has(origin)) return Response.json({error:'Origen no autorizado'},{status:403,headers});
   try {
     const b=await req.json();
+    const base44=createClientFromRequest(req);
     const adult={
       nombre:clean(b.adulto_nombre), dni:clean(b.adulto_dni).toUpperCase(),
       email:clean(b.adulto_email).toLowerCase(), telefono:clean(b.adulto_telefono),
@@ -62,7 +63,6 @@ Deno.serve(async req=>{
     });
     const alreadyRegistered=sameResponsible.reduce((sum,r)=>sum+Number(r.participantes_count||0),0);
     if(alreadyRegistered+b.participantes.length>6) return Response.json({error:'Este DNI o correo ya tiene menores inscritos y se superaría el máximo de 6 participantes por responsable. Contacta con el club para revisar una inscripción de grupo.'},{status:409,headers});
-    const base44=createClientFromRequest(req);
     const cfgs=await base44.asServiceRole.entities.CampusSettings.list('-created_date',5);
     const rates=cfgs?.[0]||{precio_semana_general:60,precio_semana_socio:55,precio_quincena_general:110,precio_quincena_socio:95,precio_mes_general:200,precio_mes_socio:170};
     const memberId=clean(b.club_member_id);
@@ -80,10 +80,11 @@ Deno.serve(async req=>{
       if(!nombre||!/^\d{4}-\d{2}-\d{2}$/.test(fecha)||ageOnStart(fecha)<6||edad>16||!semanas.length||semanas.some(w=>!WEEKS.includes(w)))
         throw new Error('Revisa el nombre, fecha de nacimiento y semanas seleccionadas de '+(nombre||'un participante')+'. El campus admite edades de 6 a 16 años.');
       const linked=!!(verifiedMember && [...(verifiedMember.jugadores_hijos||[]),...(verifiedMember.jugadores_relacionados||[]),...(verifiedMember.campus_participantes||[])].some(x=>normalize(x.jugador_nombre||x.participante_nombre)===normalize(nombre)));
-      const applied=linked;
+      const applied=linked || b.solicitar_alta_socio===true;
       return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates),alergias:clean(p.alergias),intolerancias:clean(p.intolerancias),medicacion:clean(p.medicacion),observaciones_medicas:clean(p.observaciones_medicas),contacto_emergencia_nombre:clean(p.contacto_emergencia_nombre),contacto_emergencia_telefono:clean(p.contacto_emergencia_telefono)};
     });
-    const total=participants.reduce((s,p)=>s+p.price,0);
+    const membershipFee=b.solicitar_alta_socio===true?25:0;
+    const total=participants.reduce((s,p)=>s+p.price,0)+membershipFee;
     const reg=await base44.asServiceRole.entities.CampusRegistration.create({
       adulto_nombre:adult.nombre,adulto_dni:adult.dni,adulto_email:adult.email,adulto_telefono:adult.telefono,
       adulto_direccion:adult.direccion,adulto_municipio:adult.municipio,adulto_fecha_nacimiento:adult.nacimiento,
@@ -92,7 +93,7 @@ Deno.serve(async req=>{
       segundo_progenitor_nombre:clean(b.segundo_progenitor_nombre),segundo_progenitor_email:clean(b.segundo_progenitor_email),
       segundo_progenitor_telefono:clean(b.segundo_progenitor_telefono),es_segundo_progenitor:b.es_segundo_progenitor===true,
       es_socio:!!verifiedMember,socio_verificado:!!verifiedMember,club_member_id:verifiedMember?.id||'',
-      estado:'pendiente',estado_pago:'pendiente',estado_alta_socio:b.solicitar_alta_socio===true?'pendiente':verifiedMember?'pagado':'no_requerida',importe_total:total,cuota_socio_incluida:0,
+      estado:'pendiente',estado_pago:'pendiente',estado_alta_socio:b.solicitar_alta_socio===true?'pendiente':verifiedMember?'pagado':'no_requerida',importe_total:total,cuota_socio_incluida:membershipFee,
       consentimiento_datos:true,consentimiento_imagen:b.consentimiento_imagen===true,
       semanas_solicitadas:[...new Set(participants.flatMap(p=>p.semanas))],participantes_count:participants.length,
       notas:'Inscripción recibida desde la web del Campus 2027. Pendiente de revisión y confirmación de plazas.'
@@ -100,8 +101,8 @@ Deno.serve(async req=>{
     const created=[];
     try {
       for(const p of participants){
-        const modalidad=p.semanas.length===1?'semana':p.semanas.length===2?'quincena':p.semanas.length===4?'mes':'combinada';
-        const periodo=p.semanas.length===1?p.semanas[0]:p.semanas.length===4?'JULIO':'COMBINADA';
+        const modalidad=p.semanas.length===1?'semana':p.semanas.length===2?'quincena':p.semanas.length===4?'4_semanas':'combinada';
+        const periodo=p.semanas.length===1?p.semanas[0]:p.semanas.length===4?'4_SEMANAS':'COMBINADA';
         const row=await base44.asServiceRole.entities.CampusParticipant.create({
           registration_id:reg.id,nombre:p.nombre,fecha_nacimiento:p.fecha,edad_inicio:p.edad,grupo_edad:groupFor(p.edad),
           modalidad,periodo,semanas_ocupadas:p.semanas,es_socio:p.linked,precio_aplicado:p.price,estado:'pendiente',
