@@ -136,7 +136,8 @@
         "stripe_unico",
         "stripe_suscripcion",
         "transferencia",
-        "socio_padre_auto"
+        "socio_padre_auto",
+        "campus"
       ],
       "description": "Origen/tipo del pago"
     },
