@@ -2,6 +2,14 @@
   "name": "CampusRegistration",
   "type": "object",
   "properties": {
+    "temporada": {
+      "type": "string",
+      "description": "Edici\u00f3n del Campus a la que pertenece la inscripci\u00f3n."
+    },
+    "campus_settings_id": {
+      "type": "string",
+      "description": "Configuraci\u00f3n de la edici\u00f3n utilizada al inscribirse."
+    },
     "adulto_nombre": {
       "type": "string"
     },
