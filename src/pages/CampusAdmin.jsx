@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2, Trash2, Mail, FileDown, Filter, UsersRound, UserCheck } from "lucide-react";
+import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2, Trash2, Mail, MessageCircle, FileDown, Filter, UsersRound, UserCheck } from "lucide-react";
 import { jsPDF } from "jspdf";
 
 const GROUPS = [
@@ -225,6 +225,22 @@ export default function CampusAdmin() {
     } finally { setSendingEmail(false); }
   };
 
+  const openCampusWhatsApp = () => {
+    const registration = registrations.find(r => r.id === communicationRecipient);
+    if (!registration?.adulto_telefono) { setError("La familia seleccionada no tiene un teléfono registrado."); return; }
+    if (!communicationSubject.trim() || !communicationBody.trim()) { setError("Completa el asunto y el mensaje antes de abrir WhatsApp."); return; }
+    let phone = String(registration.adulto_telefono).replace(/\D/g, "");
+    if (phone.startsWith("00")) phone = phone.slice(2);
+    if (phone.length === 9) phone = "34" + phone;
+    if (phone.length < 10 || phone.length > 15) { setError("El teléfono registrado no parece válido. Revísalo en la inscripción."); return; }
+    const body = communicationBody.replace(/\\n/g, "\n").replace(/\\r/g, "");
+    const message = `*${communicationSubject.trim()}*\n\n${body}`;
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+    setError("");
+    setNotice("WhatsApp se ha abierto con el mensaje preparado. Revisa el contenido y pulsa Enviar en WhatsApp.");
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
   const sendTestEmail = async () => {
     const email = testEmailRecipient.trim().toLowerCase();
     if (!/^\S+@\S+\.\S+$/.test(email)) { setError("Introduce una dirección de correo válida."); return; }
@@ -327,7 +343,11 @@ export default function CampusAdmin() {
         <label className="block text-sm font-bold">Asunto<input value={communicationSubject} onChange={e=>setCommunicationSubject(e.target.value)} className="mt-2 w-full rounded-xl border p-3 font-normal"/></label>
         <label className="block text-sm font-bold">Mensaje<textarea value={communicationBody} onChange={e=>setCommunicationBody(e.target.value)} rows="10" className="mt-2 w-full rounded-xl border p-3 font-normal"/></label>
         <div className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Revisa destinatario, asunto y contenido antes de enviar. El correo saldrá realmente y quedará registrado.</div>
-        <button onClick={sendCampusEmail} disabled={sendingEmail || !communicationRecipient} className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700 disabled:opacity-50"><Mail className="h-4 w-4"/>{sendingEmail?"Enviando…":"Enviar correo manualmente"}</button>
+        <div className="flex flex-wrap gap-3">
+          <button onClick={sendCampusEmail} disabled={sendingEmail || !communicationRecipient} className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700 disabled:opacity-50"><Mail className="h-4 w-4"/>{sendingEmail?"Enviando…":"Enviar correo manualmente"}</button>
+          <button onClick={openCampusWhatsApp} disabled={!communicationRecipient || !registrations.find(r => r.id === communicationRecipient)?.adulto_telefono} className="inline-flex items-center gap-2 rounded-xl bg-green-600 px-5 py-3 font-bold text-white hover:bg-green-700 disabled:opacity-50"><MessageCircle className="h-4 w-4"/>Preparar WhatsApp</button>
+        </div>
+        <p className="text-xs text-slate-500">WhatsApp se abrirá con el teléfono y el texto preparados. El mensaje no se envía automáticamente: tendrás que revisarlo y pulsar Enviar en WhatsApp.</p>
         <div className="rounded-xl border border-dashed border-orange-300 bg-orange-50/60 p-4 space-y-3">
           <div><h3 className="font-black text-slate-900">Prueba de envío</h3><p className="text-sm text-slate-600">Envía un mensaje de comprobación sin necesitar una inscripción previa.</p></div>
           <label className="block text-sm font-bold">Correo destinatario
