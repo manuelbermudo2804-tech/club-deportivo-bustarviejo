@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2 } from "lucide-react";
+import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2, Trash2 } from "lucide-react";
 
 const GROUPS = [
   { key: "6-8", label: "Iniciación", range: "6–8 años" },
@@ -23,6 +23,7 @@ export default function CampusAdmin() {
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [tab, setTab] = useState("resumen");
@@ -63,6 +64,33 @@ export default function CampusAdmin() {
     ...w,
     count: confirmedParticipants.filter(p => (p.semanas_ocupadas || []).includes(w.key)).length,
   })), [confirmedParticipants]);
+
+  const deleteRegistration = async (registration) => {
+    const kids = participants.filter(p => p.registration_id === registration.id);
+    const confirmed = window.confirm(`¿Borrar la inscripción de ${registration.adulto_nombre || "esta familia"} y sus ${kids.length} participante(s)? Esta acción no se puede deshacer.`);
+    if (!confirmed) return;
+    setDeletingId(registration.id); setError(""); setNotice("");
+    try {
+      // Eliminar primero los participantes asociados para no dejar fichas huérfanas.
+      for (const kid of kids) await base44.entities.CampusParticipant.delete(kid.id);
+      await base44.entities.CampusRegistration.delete(registration.id);
+      // Si la inscripción creó/vinculó una ficha provisional, retirar solo los enlaces de estos participantes.
+      if (registration.club_member_id) {
+        const member = await base44.entities.ClubMember.get(registration.club_member_id);
+        if (member) {
+          const removedIds = new Set(kids.map(k => k.id));
+          await base44.entities.ClubMember.update(member.id, {
+            campus_participantes: (member.campus_participantes || []).filter(x => !removedIds.has(x.participante_id))
+          });
+        }
+      }
+      setNotice(`Inscripción de ${registration.adulto_nombre || "la familia"} eliminada junto con sus participantes.`);
+      await load();
+    } catch (e) {
+      setError(e?.message || "No se pudo eliminar la inscripción completa. Revisa los registros asociados.");
+      await load();
+    } finally { setDeletingId(null); }
+  };
 
   const updateSetting = (field, value) => setSettings(s => ({ ...s, [field]: value }));
   const saveSettings = async () => {
@@ -114,7 +142,7 @@ export default function CampusAdmin() {
       <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-4">Ocupación por semana</h2><div className="space-y-3">{weekStats.map(w=><div key={w.key} className="flex items-center justify-between rounded-xl bg-slate-50 p-3"><div><strong>{w.label}</strong><p className="text-xs text-slate-500">{w.dates}</p></div><strong className="text-xl">{w.count} participantes</strong></div>)}</div><p className="text-xs text-slate-500 mt-4">Las quincenas y el mes completo ocupan plaza en todas las semanas incluidas.</p></section>
     </div>}
 
-    {tab === "inscripciones" && <section className="rounded-2xl border bg-white p-5 overflow-x-auto"><h2 className="font-black text-xl mb-4">Inscripciones familiares</h2>{registrations.length===0?<p className="text-slate-500 py-8 text-center">Todavía no hay inscripciones. Cuando se envíe el formulario público aparecerán aquí automáticamente.</p>:<table className="w-full text-sm"><thead><tr className="text-left border-b text-slate-500"><th className="p-3">Responsable</th><th className="p-3">Participantes</th><th className="p-3">Email</th><th className="p-3">Estado</th><th className="p-3">Alta socio</th><th className="p-3">Pago campus</th><th className="p-3 text-right">Total</th></tr></thead><tbody>{registrations.map(r=>{const kids=participants.filter(p=>p.registration_id===r.id);return <tr key={r.id} className="border-b last:border-0 align-top"><td className="p-3 font-semibold">{r.adulto_nombre}<div className="text-xs font-normal text-slate-500">{r.adulto_telefono}</div></td><td className="p-3">{kids.map(k=><div key={k.id} className="mb-3"><strong>{k.nombre}</strong><div className="text-xs text-slate-500">{k.fecha_nacimiento} · {(k.semanas_ocupadas||[]).join(", ")} · {k.grupo_edad}</div><details className="mt-2 rounded-lg bg-slate-50 p-2"><summary className="cursor-pointer text-xs font-bold text-orange-700">Ficha de salud y emergencia</summary><div className="mt-2 space-y-1 text-xs text-slate-700"><p><b>Alergias:</b> {k.alergias||"No indicado"}</p><p><b>Intolerancias:</b> {k.intolerancias||"No indicado"}</p><p><b>Medicación:</b> {k.medicacion||"No indicada"}</p><p><b>Observaciones:</b> {k.observaciones_medicas||"Ninguna"}</p><p><b>Emergencia:</b> {k.contacto_emergencia_nombre||"—"} · {k.contacto_emergencia_telefono||"—"}</p><p><b>Consentimiento salud:</b> {k.consentimiento_salud?"Sí":"No consta"}</p></div></details></div>)}</td><td className="p-3">{r.adulto_email}</td><td className="p-3">{r.estado}</td><td className="p-3">{r.estado_alta_socio||"no_requerida"}</td><td className="p-3">{r.estado_pago}</td><td className="p-3 text-right font-bold">{money(r.importe_total)}</td></tr>})}</tbody></table>}</section>}
+    {tab === "inscripciones" && <section className="rounded-2xl border bg-white p-5 overflow-x-auto"><h2 className="font-black text-xl mb-4">Inscripciones familiares</h2>{registrations.length===0?<p className="text-slate-500 py-8 text-center">Todavía no hay inscripciones. Cuando se envíe el formulario público aparecerán aquí automáticamente.</p>:<table className="w-full text-sm"><thead><tr className="text-left border-b text-slate-500"><th className="p-3">Responsable</th><th className="p-3">Participantes</th><th className="p-3">Email</th><th className="p-3">Estado</th><th className="p-3">Alta socio</th><th className="p-3">Pago campus</th><th className="p-3 text-right">Total</th><th className="p-3 text-right">Acciones</th></tr></thead><tbody>{registrations.map(r=>{const kids=participants.filter(p=>p.registration_id===r.id);return <tr key={r.id} className="border-b last:border-0 align-top"><td className="p-3 font-semibold">{r.adulto_nombre}<div className="text-xs font-normal text-slate-500">{r.adulto_telefono}</div></td><td className="p-3">{kids.map(k=><div key={k.id} className="mb-3"><strong>{k.nombre}</strong><div className="text-xs text-slate-500">{k.fecha_nacimiento} · {(k.semanas_ocupadas||[]).join(", ")} · {k.grupo_edad}</div><details className="mt-2 rounded-lg bg-slate-50 p-2"><summary className="cursor-pointer text-xs font-bold text-orange-700">Ficha de salud y emergencia</summary><div className="mt-2 space-y-1 text-xs text-slate-700"><p><b>Alergias:</b> {k.alergias||"No indicado"}</p><p><b>Intolerancias:</b> {k.intolerancias||"No indicado"}</p><p><b>Medicación:</b> {k.medicacion||"No indicada"}</p><p><b>Observaciones:</b> {k.observaciones_medicas||"Ninguna"}</p><p><b>Emergencia:</b> {k.contacto_emergencia_nombre||"—"} · {k.contacto_emergencia_telefono||"—"}</p><p><b>Consentimiento salud:</b> {k.consentimiento_salud?"Sí":"No consta"}</p></div></details></div>)}</td><td className="p-3">{r.adulto_email}</td><td className="p-3">{r.estado}</td><td className="p-3">{r.estado_alta_socio||"no_requerida"}</td><td className="p-3">{r.estado_pago}</td><td className="p-3 text-right font-bold">{money(r.importe_total)}</td><td className="p-3 text-right"><button onClick={()=>deleteRegistration(r)} disabled={deletingId===r.id} className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-50" title="Borrar inscripción y participantes"><Trash2 className="h-4 w-4"/>{deletingId===r.id?"Borrando…":"Borrar"}</button></td></tr>})}</tbody></table>}</section>}
 
     {tab === "plazas" && <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-2">Participantes por edad</h2><p className="text-sm text-slate-500 mb-5">Seguimiento de participantes inscritos por grupo. Las plazas se definirán al organizar monitores, turnos, grupos por edades y ratios de seguridad.</p><div className="grid md:grid-cols-3 gap-4">{groupStats.map(g=><div key={g.key} className="rounded-xl border p-4"><p className="font-bold">{g.label}</p><p className="text-sm text-slate-500">{g.range}</p><p className="text-3xl font-black mt-3">{g.count}</p><p className="text-xs text-slate-500">participantes inscritos</p></div>)}</div></section>}
 
