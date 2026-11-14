@@ -16,13 +16,13 @@ const WEEKS = [
   { key: "S5", label: "Semana 5", dates: "26–30 julio" },
 ];
 const money = (v) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(Number(v || 0));
-const naturalAge = (birth) => {
+const naturalAge = (birth, startDate) => {
   if (!birth || !/^\\d{4}-\\d{2}-\\d{2}$/.test(birth)) return null;
-  const year = Number(birth.slice(0, 4));
-  return Number.isFinite(year) ? 2027 - year : null;
+  const year = Number(String(startDate || "").slice(0, 4));
+  return Number.isFinite(year) && year > 0 ? year - Number(birth.slice(0, 4)) : null;
 };
-const groupForParticipant = (p) => {
-  const age = naturalAge(p.fecha_nacimiento) ?? p.edad_inicio;
+const groupForParticipant = (p, startDate) => {
+  const age = naturalAge(p.fecha_nacimiento, startDate) ?? p.edad_inicio;
   return age == null ? p.grupo_edad : age <= 8 ? "6-8" : age <= 11 ? "9-11" : age <= 16 ? "12-16" : "fuera";
 };
 
@@ -85,7 +85,7 @@ export default function CampusAdmin() {
   const confirmedRegistrations = registrations.filter(r => r.estado === "confirmada");
   const paid = registrations.filter(r => r.estado_pago === "pagado").reduce((s, r) => s + Number(r.importe_total || 0), 0);
   const groupStats = useMemo(() => GROUPS.map(g => {
-    const list = confirmedParticipants.filter(p => groupForParticipant(p) === g.key);
+    const list = confirmedParticipants.filter(p => groupForParticipant(p, settings?.fecha_inicio) === g.key);
     return { ...g, count: list.length };
   }), [confirmedParticipants, settings]);
 
@@ -97,11 +97,11 @@ export default function CampusAdmin() {
   const manualGroups = useMemo(() => [...new Set(participants.map(p => (p.grupo_manual || "").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es")), [participants]);
   const filteredParticipants = useMemo(() => participants.filter(p => {
     const reg = registrations.find(r => r.id === p.registration_id);
-    const age = naturalAge(p.fecha_nacimiento) ?? p.edad_inicio;
+    const age = naturalAge(p.fecha_nacimiento, settings?.fecha_inicio) ?? p.edad_inicio;
     const haystack = `${p.nombre || ""} ${reg?.adulto_nombre || ""} ${reg?.adulto_email || ""} ${reg?.adulto_telefono || ""}`.toLocaleLowerCase("es");
     if (filterText.trim() && !haystack.includes(filterText.trim().toLocaleLowerCase("es"))) return false;
     if (filterWeek !== "todas" && !(p.semanas_ocupadas || []).includes(filterWeek)) return false;
-    if (filterAge !== "todas" && groupForParticipant(p) !== filterAge) return false;
+    if (filterAge !== "todas" && groupForParticipant(p, settings?.fecha_inicio) !== filterAge) return false;
     if (filterStatus !== "todos" && (p.estado || "pendiente") !== filterStatus) return false;
     if (filterSocio !== "todos" && String(!!p.es_socio) !== filterSocio) return false;
     if (filterManualGroup === "sin_grupo" && p.grupo_manual) return false;
@@ -146,7 +146,7 @@ export default function CampusAdmin() {
     const headers = ["Menor","Edad","Familia","Teléfono","Semanas","Grupo manual","Estado"];
     const rows = filteredParticipants.map(p=>{
       const reg=registrations.find(r=>r.id===p.registration_id);
-      return [p.nombre||"",String(naturalAge(p.fecha_nacimiento)??p.edad_inicio??""),reg?.adulto_nombre||"",reg?.adulto_telefono||"", (p.semanas_ocupadas||[]).join(", "),p.grupo_manual||"Sin asignar",p.estado||"pendiente"];
+      return [p.nombre||"",String(naturalAge(p.fecha_nacimiento, settings?.fecha_inicio)??p.edad_inicio??""),reg?.adulto_nombre||"",reg?.adulto_telefono||"", (p.semanas_ocupadas||[]).join(", "),p.grupo_manual||"Sin asignar",p.estado||"pendiente"];
     });
     const widths=[45,15,48,28,35,48,25];
     let y=31; const pageH=190;
@@ -322,7 +322,7 @@ export default function CampusAdmin() {
         <div><h2 className="text-xl font-black flex items-center gap-2"><UsersRound className="h-5 w-5 text-orange-600"/>Crear y organizar grupos manualmente</h2><p className="text-sm text-slate-500">Selecciona menores del listado y asígnalos a un grupo con el nombre que quieras. La asignación queda guardada.</p></div>
         <div className="flex flex-col sm:flex-row gap-2"><input value={manualGroupName} onChange={e=>setManualGroupName(e.target.value)} placeholder="Nombre del grupo (ej. Grupo A, Mañana…)" className="flex-1 rounded-xl border p-3"/><button onClick={assignManualGroup} disabled={savingGroups||!selectedParticipantIds.length||!manualGroupName.trim()} className="inline-flex items-center justify-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-bold text-white disabled:opacity-50"><UserCheck className="h-4 w-4"/>{savingGroups?"Guardando…":`Asignar ${selectedParticipantIds.length} seleccionados`}</button></div>
         {manualGroups.length>0&&<div className="flex flex-wrap gap-2">{manualGroups.map(g=><div key={g} className="flex items-center gap-2 rounded-full border bg-orange-50 px-3 py-1 text-sm"><span className="font-bold">{g}</span><span className="text-slate-500">{participants.filter(p=>p.grupo_manual===g).length}</span><button onClick={()=>clearManualGroup(g)} disabled={savingGroups} className="font-bold text-red-600">Quitar</button></div>)}</div>}
-        <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b text-left text-slate-500"><th className="p-2"><input type="checkbox" checked={filteredParticipants.length>0&&filteredParticipants.every(p=>selectedParticipantIds.includes(p.id))} onChange={toggleVisibleParticipants}/></th><th className="p-2">Menor</th><th className="p-2">Edad</th><th className="p-2">Familia</th><th className="p-2">Semanas</th><th className="p-2">Grupo manual</th><th className="p-2">Estado</th></tr></thead><tbody>{filteredParticipants.map(p=>{const reg=registrations.find(r=>r.id===p.registration_id);return <tr key={p.id} className="border-b last:border-0"><td className="p-2"><input type="checkbox" checked={selectedParticipantIds.includes(p.id)} onChange={()=>toggleParticipant(p.id)}/></td><td className="p-2 font-semibold">{p.nombre}</td><td className="p-2">{naturalAge(p.fecha_nacimiento)??p.edad_inicio??"—"}</td><td className="p-2">{reg?.adulto_nombre||"—"}<div className="text-xs text-slate-500">{reg?.adulto_telefono||""}</div></td><td className="p-2">{(p.semanas_ocupadas||[]).join(", ")}</td><td className="p-2">{p.grupo_manual||"Sin asignar"}</td><td className="p-2">{p.estado||"pendiente"}</td></tr>})}</tbody></table>{filteredParticipants.length===0&&<p className="py-8 text-center text-slate-500">No hay participantes con esos filtros.</p>}</div>
+        <div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b text-left text-slate-500"><th className="p-2"><input type="checkbox" checked={filteredParticipants.length>0&&filteredParticipants.every(p=>selectedParticipantIds.includes(p.id))} onChange={toggleVisibleParticipants}/></th><th className="p-2">Menor</th><th className="p-2">Edad</th><th className="p-2">Familia</th><th className="p-2">Semanas</th><th className="p-2">Grupo manual</th><th className="p-2">Estado</th></tr></thead><tbody>{filteredParticipants.map(p=>{const reg=registrations.find(r=>r.id===p.registration_id);return <tr key={p.id} className="border-b last:border-0"><td className="p-2"><input type="checkbox" checked={selectedParticipantIds.includes(p.id)} onChange={()=>toggleParticipant(p.id)}/></td><td className="p-2 font-semibold">{p.nombre}</td><td className="p-2">{naturalAge(p.fecha_nacimiento, settings?.fecha_inicio)??p.edad_inicio??"—"}</td><td className="p-2">{reg?.adulto_nombre||"—"}<div className="text-xs text-slate-500">{reg?.adulto_telefono||""}</div></td><td className="p-2">{(p.semanas_ocupadas||[]).join(", ")}</td><td className="p-2">{p.grupo_manual||"Sin asignar"}</td><td className="p-2">{p.estado||"pendiente"}</td></tr>})}</tbody></table>{filteredParticipants.length===0&&<p className="py-8 text-center text-slate-500">No hay participantes con esos filtros.</p>}</div>
       </div>
     </section>}
 
@@ -376,7 +376,7 @@ export default function CampusAdmin() {
         <div className="grid md:grid-cols-3 gap-4">{groupStats.map(g=><div key={g.key} className="rounded-xl border p-4"><p className="font-bold">{g.label}</p><p className="text-sm text-slate-500">{g.range}</p><p className="text-3xl font-black mt-3">{g.count}</p><p className="text-xs text-slate-500">participantes inscritos</p></div>)}</div>
       </div>
       {GROUPS.map(group => {
-        const groupKids = confirmedParticipants.filter(p => groupForParticipant(p) === group.key);
+        const groupKids = confirmedParticipants.filter(p => groupForParticipant(p, settings?.fecha_inicio) === group.key);
         return <div key={group.key} className="rounded-2xl border bg-white p-5">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <div><h3 className="text-lg font-black">{group.label}</h3><p className="text-sm text-slate-500">{group.range}</p></div>
@@ -387,7 +387,7 @@ export default function CampusAdmin() {
               <thead><tr className="border-b text-left text-slate-500"><th className="p-3">Menor</th><th className="p-3">Edad por año natural 2027</th><th className="p-3">Familia / correo</th><th className="p-3">Semanas</th><th className="p-3">Estado</th></tr></thead>
               <tbody>{groupKids.map(kid => {
                 const registration = registrations.find(r => r.id === kid.registration_id);
-                const calculatedAge = naturalAge(kid.fecha_nacimiento) ?? kid.edad_inicio;
+                const calculatedAge = naturalAge(kid.fecha_nacimiento, settings?.fecha_inicio) ?? kid.edad_inicio;
                 return <tr key={kid.id} className="border-b last:border-0 align-top">
                   <td className="p-3 font-semibold">{kid.nombre}<div className="text-xs font-normal text-slate-500">{kid.fecha_nacimiento || "Sin fecha"}</div></td>
                   <td className="p-3">{calculatedAge == null ? "—" : `${calculatedAge} años en 2027`}</td>
