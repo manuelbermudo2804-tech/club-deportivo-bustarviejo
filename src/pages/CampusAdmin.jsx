@@ -15,6 +15,15 @@ const WEEKS = [
   { key: "S5", label: "Semana 5", dates: "26–30 julio" },
 ];
 const money = (v) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(Number(v || 0));
+const naturalAge = (birth) => {
+  if (!birth || !/^\\d{4}-\\d{2}-\\d{2}$/.test(birth)) return null;
+  const year = Number(birth.slice(0, 4));
+  return Number.isFinite(year) ? 2027 - year : null;
+};
+const groupForParticipant = (p) => {
+  const age = naturalAge(p.fecha_nacimiento) ?? p.edad_inicio;
+  return age == null ? p.grupo_edad : age <= 8 ? "6-8" : age <= 11 ? "9-11" : age <= 16 ? "12-16" : "fuera";
+};
 
 export default function CampusAdmin() {
   const [user, setUser] = useState(null);
@@ -64,7 +73,7 @@ export default function CampusAdmin() {
   const confirmedRegistrations = registrations.filter(r => r.estado === "confirmada");
   const paid = registrations.filter(r => r.estado_pago === "pagado").reduce((s, r) => s + Number(r.importe_total || 0), 0);
   const groupStats = useMemo(() => GROUPS.map(g => {
-    const list = confirmedParticipants.filter(p => p.grupo_edad === g.key);
+    const list = confirmedParticipants.filter(p => groupForParticipant(p) === g.key);
     return { ...g, count: list.length };
   }), [confirmedParticipants, settings]);
 
@@ -220,7 +229,7 @@ export default function CampusAdmin() {
         <div className="grid md:grid-cols-3 gap-4">{groupStats.map(g=><div key={g.key} className="rounded-xl border p-4"><p className="font-bold">{g.label}</p><p className="text-sm text-slate-500">{g.range}</p><p className="text-3xl font-black mt-3">{g.count}</p><p className="text-xs text-slate-500">participantes inscritos</p></div>)}</div>
       </div>
       {GROUPS.map(group => {
-        const groupKids = confirmedParticipants.filter(p => p.grupo_edad === group.key);
+        const groupKids = confirmedParticipants.filter(p => groupForParticipant(p) === group.key);
         return <div key={group.key} className="rounded-2xl border bg-white p-5">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
             <div><h3 className="text-lg font-black">{group.label}</h3><p className="text-sm text-slate-500">{group.range}</p></div>
@@ -228,18 +237,13 @@ export default function CampusAdmin() {
           </div>
           {groupKids.length === 0 ? <p className="py-5 text-center text-sm text-slate-400">Todavía no hay menores en este grupo.</p> :
             <div className="overflow-x-auto"><table className="w-full text-sm">
-              <thead><tr className="border-b text-left text-slate-500"><th className="p-3">Menor</th><th className="p-3">Edad (28/06/2027)</th><th className="p-3">Familia / correo</th><th className="p-3">Semanas</th><th className="p-3">Estado</th></tr></thead>
+              <thead><tr className="border-b text-left text-slate-500"><th className="p-3">Menor</th><th className="p-3">Edad por año natural 2027</th><th className="p-3">Familia / correo</th><th className="p-3">Semanas</th><th className="p-3">Estado</th></tr></thead>
               <tbody>{groupKids.map(kid => {
                 const registration = registrations.find(r => r.id === kid.registration_id);
-                const birth = kid.fecha_nacimiento ? new Date(`${kid.fecha_nacimiento}T00:00:00`) : null;
-                let calculatedAge = kid.edad_inicio;
-                if (calculatedAge == null && birth && !Number.isNaN(birth.getTime())) {
-                  calculatedAge = 2027 - birth.getFullYear();
-                  if (birth.getMonth() > 5 || (birth.getMonth() === 5 && birth.getDate() > 28)) calculatedAge -= 1;
-                }
+                const calculatedAge = naturalAge(kid.fecha_nacimiento) ?? kid.edad_inicio;
                 return <tr key={kid.id} className="border-b last:border-0 align-top">
                   <td className="p-3 font-semibold">{kid.nombre}<div className="text-xs font-normal text-slate-500">{kid.fecha_nacimiento || "Sin fecha"}</div></td>
-                  <td className="p-3">{calculatedAge == null ? "—" : `${calculatedAge} años`}</td>
+                  <td className="p-3">{calculatedAge == null ? "—" : `${calculatedAge} años en 2027`}</td>
                   <td className="p-3">{registration?.adulto_nombre || "Familia sin localizar"}<div className="text-xs text-slate-500 break-all">{registration?.adulto_email || "Sin correo asociado"}</div></td>
                   <td className="p-3">{(kid.semanas_ocupadas || []).join(", ") || "—"}</td>
                   <td className="p-3">{kid.estado || "pendiente"}</td>
