@@ -269,7 +269,7 @@ export default function CampusAdmin() {
         precio_semana_general: Number(settings.precio_semana_general), precio_semana_socio: Number(settings.precio_semana_socio),
         precio_quincena_general: Number(settings.precio_quincena_general), precio_quincena_socio: Number(settings.precio_quincena_socio),
         precio_mes_general: Number(settings.precio_mes_general), precio_mes_socio: Number(settings.precio_mes_socio),
-        fecha_inicio: "2027-06-28", fecha_fin: "2027-07-30",
+        fecha_inicio: settings.fecha_inicio, fecha_fin: settings.fecha_fin, temporada: String(settings.temporada || settings.fecha_inicio?.slice(0,4) || ""),
         cuota_socio: Number(settings.cuota_socio), notas_capacidad: settings.notas_capacidad || "",
       });
       setNotice("Configuración guardada correctamente.");
