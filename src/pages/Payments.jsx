@@ -514,8 +514,10 @@ export default function Payments() {
               
               // Generar número de socio
               const currentYear = new Date().getFullYear();
-              const memberCount = allMembers.length + 1;
-              const numeroSocio = `CDB-${currentYear}-${String(memberCount).padStart(4, '0')}`;
+              const usedNumbers = new Set(allMembers.map(m => String(m.numero_socio || '')));
+              let nextNumber = 1;
+              while (usedNumbers.has(`CDB-${currentYear}-${String(nextNumber).padStart(4, '0')}`)) nextNumber++;
+              const numeroSocio = `CDB-${currentYear}-${String(nextNumber).padStart(4, '0')}`;
               
               // Verificar si es renovación (existe en temporada anterior)
               const previousSeasonMember = allMembers.find(m => 
@@ -537,6 +539,7 @@ export default function Payments() {
                 fecha_pago: updatedData.fecha_pago,
                 activo: true,
                 es_socio_padre: true, // Marcador para distinguir socios-padres de externos
+                origen_pago: "socio_padre_auto",
                 jugadores_hijos: [{ jugador_id: player.id, jugador_nombre: player.nombre }],
                 notas: `Socio creado automáticamente al confirmar pago de ${player.nombre}`
               });
