@@ -5,7 +5,7 @@ import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2, Trash2 } from
 const GROUPS = [
   { key: "6-8", label: "Iniciación", range: "6–8 años" },
   { key: "9-11", label: "Intermedio", range: "9–11 años" },
-  { key: "12-15", label: "Avanzado", range: "12–15 años" },
+  { key: "12-16", label: "Avanzado", range: "12–16 años" },
 ];
 const WEEKS = [
   { key: "S1", label: "Semana 1", dates: "28 junio–2 julio" },
