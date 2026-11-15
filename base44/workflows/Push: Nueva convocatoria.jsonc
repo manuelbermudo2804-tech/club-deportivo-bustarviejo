@@ -2,7 +2,7 @@
   "name": "Push: Nueva convocatoria",
   "description": "",
   "trigger": {
-    "condition": "${ (.trigger.data.publicada == true) and ((.trigger.event == "create") or ((.trigger.event == "update") and (.trigger.changed_fields | index("publicada") != null) and (.trigger.old_data.publicada != true))) }",
+    "condition": "${ (.trigger.data.publicada == true) and ((.trigger.event == \"create\") or ((.trigger.event == \"update\") and (.trigger.changed_fields | index(\"publicada\") != null) and (.trigger.old_data.publicada != true))) }",
     "config": {
       "trigger_type": "entity",
       "events": [
