@@ -31,7 +31,12 @@
     },
     "plazas_12_15": {
       "type": "number",
-      "default": 14
+      "default": 14,
+      "description": "Campo heredado de la configuraci\u00f3n anterior; no se utiliza como l\u00edmite de plazas."
+    },
+    "plazas_12_16": {
+      "type": "number",
+      "description": "Campo preparado para la futura capacidad del tramo 12\u201316. No definir hasta cerrar monitores, turnos y ratios."
     },
     "maximo_total": {
       "type": "number",
