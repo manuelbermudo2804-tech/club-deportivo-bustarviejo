@@ -850,45 +850,92 @@ export default function Payments() {
       const doc = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const pageWidth = doc.internal.pageSize.getWidth();
       const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 12;
+      const margin = 10;
       const categoryLabel = categoriaFilter === "all" ? "Todas" : categoriaFilter;
       const seasonLabel = temporadaFilter === "all" ? "Todas" : String(temporadaFilter || "—").replace("-", "/");
+      const getAge = (date) => {
+        if (!date) return null;
+        const birth = new Date(date);
+        if (Number.isNaN(birth.getTime())) return null;
+        const today = new Date();
+        let age = today.getFullYear() - birth.getFullYear();
+        if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
+        return age;
+      };
       const rows = filteredPlayers.map(player => {
         const seasonPayments = payments.filter(p => p.jugador_id === player.id && matchTemporada(p.temporada, temporadaFilter));
         const pending = seasonPayments.filter(p => p.estado === "Pendiente");
         const review = seasonPayments.filter(p => p.estado === "En revisión");
         const paid = seasonPayments.filter(p => p.estado === "Pagado");
+        const isAdult = player.es_mayor_edad === true || getAge(player.fecha_nacimiento) >= 18;
+        const contactName = isAdult
+          ? (player.nombre || "Jugador")
+          : (player.nombre_tutor_legal || "Progenitor/tutor no indicado");
+        const contactPhone = isAdult
+          ? (player.telefono || "No indicado")
+          : (player.telefono || "No indicado");
+        const contactEmail = isAdult
+          ? (player.email_jugador || "No indicado")
+          : (player.email_padre || "No indicado");
+        const secondaryContact = !isAdult && (player.nombre_tutor_2 || player.telefono_tutor_2 || player.email_tutor_2)
+          ? [player.nombre_tutor_2, player.telefono_tutor_2, player.email_tutor_2].filter(Boolean).join(" · ")
+          : "";
         return {
-          name: player.nombre || "—", category: player.deporte || "—",
+          name: player.nombre || "—",
+          category: player.categoria_principal || player.deporte || (player.categorias || []).join(", ") || "—",
+          contactName,
+          contactPhone,
+          contactEmail,
+          secondaryContact,
           details: [pending.length ? `${pending.length} pendiente(s)` : "", review.length ? `${review.length} en revisión` : "", paid.length ? `${paid.length} pagado(s)` : ""].filter(Boolean).join(" · ") || "Sin pagos registrados",
           amount: pending.reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0)
         };
       });
-      doc.setFont("helvetica", "bold"); doc.setFontSize(17); doc.text("C.D. BUSTARVIEJO", margin, 15);
-      doc.setFontSize(12); doc.text("Listado de pagos por jugador", margin, 22);
-      doc.setFont("helvetica", "normal"); doc.setFontSize(9);
-      doc.text(`Generado: ${new Date().toLocaleString("es-ES")}`, pageWidth - margin, 15, { align: "right" });
-      doc.text(`Temporada: ${seasonLabel} | Categoría: ${categoryLabel} | Estado: ${getReportFilterLabel()}`, margin, 29);
-      doc.text(`Búsqueda: ${searchTerm || "Sin búsqueda"} | Jugadores: ${rows.length}`, margin, 35);
-      let y = 44;
-      const columns = [{ title: "Jugador", x: margin, width: 85 }, { title: "Categoría", x: 100, width: 42 }, { title: "Detalle de pagos", x: 146, width: 90 }, { title: "Pendiente registrado (€)", x: 240, width: 45 }];
+      doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.text("C.D. BUSTARVIEJO", margin, 13);
+      doc.setFontSize(11); doc.text("Listado de pagos por jugador y datos de contacto", margin, 20);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+      doc.text(`Generado: ${new Date().toLocaleString("es-ES")}`, pageWidth - margin, 13, { align: "right" });
+      doc.text(`Temporada: ${seasonLabel} | Categoría: ${categoryLabel} | Estado: ${getReportFilterLabel()}`, margin, 26);
+      doc.text(`Búsqueda: ${searchTerm || "Sin búsqueda"} | Jugadores: ${rows.length}`, margin, 31);
+      let y = 40;
+      const columns = [
+        { title: "Jugador", x: margin, width: 38 },
+        { title: "Categoría", x: 50, width: 25 },
+        { title: "Progenitor / contacto", x: 78, width: 43 },
+        { title: "Teléfono", x: 123, width: 27 },
+        { title: "Email", x: 152, width: 48 },
+        { title: "Detalle de pagos", x: 202, width: 47 },
+        { title: "Pendiente €", x: 251, width: 30 }
+      ];
       const drawHeader = () => {
         doc.setFillColor(245, 247, 250); doc.rect(margin, y - 5, pageWidth - margin * 2, 9, "F");
-        doc.setFont("helvetica", "bold"); doc.setFontSize(8); columns.forEach(col => doc.text(col.title, col.x, y)); y += 7;
+        doc.setFont("helvetica", "bold"); doc.setFontSize(7); columns.forEach(col => doc.text(col.title, col.x, y)); y += 7;
       };
-      drawHeader(); doc.setFont("helvetica", "normal"); doc.setFontSize(8);
+      drawHeader(); doc.setFont("helvetica", "normal"); doc.setFontSize(7);
       rows.forEach(row => {
         const nameLines = doc.splitTextToSize(row.name, columns[0].width);
-        const detailLines = doc.splitTextToSize(row.details, columns[2].width);
-        const rowHeight = Math.max(nameLines.length, detailLines.length, 1) * 4 + 3;
-        if (y + rowHeight > pageHeight - 13) { doc.addPage(); y = 15; drawHeader(); doc.setFont("helvetica", "normal"); doc.setFontSize(8); }
-        doc.text(nameLines, columns[0].x, y); doc.text(row.category, columns[1].x, y); doc.text(detailLines, columns[2].x, y);
-        doc.text(row.amount.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), columns[3].x + columns[3].width, y, { align: "right" });
+        const categoryLines = doc.splitTextToSize(row.category, columns[1].width);
+        const contactLines = doc.splitTextToSize(row.contactName, columns[2].width);
+        const phoneLines = doc.splitTextToSize(row.contactPhone, columns[3].width);
+        const emailLines = doc.splitTextToSize(row.contactEmail, columns[4].width);
+        const detailLines = doc.splitTextToSize(row.details, columns[5].width);
+        const secondaryLines = row.secondaryContact ? doc.splitTextToSize(`2º contacto: ${row.secondaryContact}`, columns[2].width) : [];
+        const rowLineCount = Math.max(nameLines.length, categoryLines.length, contactLines.length + secondaryLines.length, phoneLines.length, emailLines.length, detailLines.length, 1);
+        const rowHeight = rowLineCount * 3.5 + 3;
+        if (y + rowHeight > pageHeight - 13) { doc.addPage(); y = 15; drawHeader(); doc.setFont("helvetica", "normal"); doc.setFontSize(7); }
+        doc.text(nameLines, columns[0].x, y);
+        doc.text(categoryLines, columns[1].x, y);
+        doc.text(contactLines, columns[2].x, y);
+        if (secondaryLines.length) doc.text(secondaryLines, columns[2].x, y + contactLines.length * 3.5);
+        doc.text(phoneLines, columns[3].x, y);
+        doc.text(emailLines, columns[4].x, y);
+        doc.text(detailLines, columns[5].x, y);
+        doc.text(row.amount.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 }), columns[6].x + columns[6].width, y, { align: "right" });
         doc.setDrawColor(225, 229, 235); doc.line(margin, y + rowHeight - 2, pageWidth - margin, y + rowHeight - 2); y += rowHeight;
       });
       const totalPending = rows.reduce((sum, row) => sum + row.amount, 0);
       if (y + 10 > pageHeight - 10) { doc.addPage(); y = 18; }
-      doc.setFont("helvetica", "bold"); doc.setFontSize(10);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9);
       doc.text(`Total pendiente registrado: ${totalPending.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`, margin, y + 4);
       doc.save(`CD_Bustarviejo_pagos_${new Date().toISOString().slice(0, 10)}.pdf`);
       toast.success(`PDF descargado: ${rows.length} jugadores`);
