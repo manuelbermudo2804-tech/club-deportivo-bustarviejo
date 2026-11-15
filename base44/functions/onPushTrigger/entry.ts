@@ -220,10 +220,14 @@ Deno.serve(async (req) => {
       // 2a. Cancelación o reprogramación
       const estado = data.estado_convocatoria;
       if (estado === 'cancelada' || estado === 'reprogramada') {
-        // Solo avisar en la transición real al estado cancelada/reprogramada.
-        // Las actualizaciones posteriores de la convocatoria no deben repetir la push.
-        if (event.type !== 'update' || !old_data || old_data.estado_convocatoria === estado) {
-          return Response.json({ skipped: 'estado sin cambio - push ya gestionada' });
+        // Cancelación: avisar solo al cambiar realmente a cancelada.
+        if (estado === 'cancelada' && (event.type !== 'update' || !old_data || old_data.estado_convocatoria === 'cancelada')) {
+          return Response.json({ skipped: 'cancelación ya notificada' });
+        }
+        // Reprogramación: avisar solo cuando cambia realmente la fecha/hora federativa.
+        // El estado reprogramada es informativo; no genera avisos por sí mismo.
+        if (estado === 'reprogramada' && (event.type !== 'update' || !old_data || (old_data.fecha_partido === data.fecha_partido && old_data.hora_partido === data.hora_partido))) {
+          return Response.json({ skipped: 'sin cambio real de fecha/hora' });
         }
         const jugadores = data.jugadores_convocados || [];
         const targetEmails = [];
@@ -250,7 +254,7 @@ Deno.serve(async (req) => {
           // 'reprogramada' queda como dato interno; la push solo informa fecha/hora vigentes.
           const fecha = data.fecha_partido || '';
           const hora = data.hora_partido || '';
-          const result = await sendPushToEmails(base44, filtered, `⚽ ${titulo}${rival}`, `${fecha}${hora ? ' a las ' + hora : ''} - Confirma asistencia`, '/ParentCallups', `callup-${event.entity_id}`);
+          const result = await sendPushToEmails(base44, filtered, `⚽ ${titulo}${rival}`, `${fecha}${hora ? ' a las ' + hora : ''} - Confirma asistencia`, '/ParentCallups', `callup-${event.entity_id}-${fecha}-${hora}`);
           return Response.json({ type: 'callup', reprogramada: true, ...result });
         }
       }

@@ -2,7 +2,7 @@
   "name": "Push: Convocatoria cancelada/reprogramada",
   "description": "Env\u00eda push cuando se cancela o reprograma una convocatoria",
   "trigger": {
-    "condition": "${ ((.trigger.changed_fields | index(\"estado_convocatoria\") != null) and (.trigger.data.estado_convocatoria == \"cancelada\" or .trigger.data.estado_convocatoria == \"reprogramada\")) }",
+    "condition": "${ (((.trigger.changed_fields | index(\"estado_convocatoria\") != null) and (.trigger.data.estado_convocatoria == \"cancelada\"))) or ((.trigger.data.estado_convocatoria == \"reprogramada\") and ((.trigger.changed_fields | index(\"fecha_partido\") != null) or (.trigger.changed_fields | index(\"hora_partido\") != null))) }",
     "config": {
       "trigger_type": "entity",
       "events": [
