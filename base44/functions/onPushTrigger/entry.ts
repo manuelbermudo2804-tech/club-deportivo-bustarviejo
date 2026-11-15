@@ -246,10 +246,12 @@ Deno.serve(async (req) => {
           const result = await sendPushToEmails(base44, filtered, `🚫 CANCELADA: ${titulo}${rival}`, `Motivo: ${data.motivo_cambio || 'Ver app'}`, '/ParentCallups', `callup-cancel-${event.entity_id}`);
           return Response.json({ type: 'callup_cancel', ...result });
         } else {
-          const nuevaFecha = data.fecha_partido || '';
-          const nuevaHora = data.hora_partido || '';
-          const result = await sendPushToEmails(base44, filtered, `🔄 REPROGRAMADA: ${titulo}${rival}`, `Nueva fecha: ${nuevaFecha}${nuevaHora ? ' a las ' + nuevaHora : ''} — Revisa tu disponibilidad`, '/ParentCallups', `callup-reschedule-${event.entity_id}`);
-          return Response.json({ type: 'callup_reschedule', ...result });
+          // Una reprogramación se comunica exactamente igual que una convocatoria normal.
+          // 'reprogramada' queda como dato interno; la push solo informa fecha/hora vigentes.
+          const fecha = data.fecha_partido || '';
+          const hora = data.hora_partido || '';
+          const result = await sendPushToEmails(base44, filtered, `⚽ ${titulo}${rival}`, `${fecha}${hora ? ' a las ' + hora : ''} - Confirma asistencia`, '/ParentCallups', `callup-${event.entity_id}`);
+          return Response.json({ type: 'callup', reprogramada: true, ...result });
         }
       }
 
