@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
     if (body.action === 'pricing') {
       const pricingClient = createClientFromRequest(req);
       const cfgs = await pricingClient.asServiceRole.entities.CampusSettings.list('-created_date', 5);
-      const configured = cfgs?.[0] || { precio_semana_general:60, precio_semana_socio:55, precio_quincena_general:110, precio_quincena_socio:95, precio_mes_general:200, precio_mes_socio:170 };
+      const configured = (cfgs || []).find(c => c.activo === true) || cfgs?.[0] || { precio_semana_general:60, precio_semana_socio:55, precio_quincena_general:110, precio_quincena_socio:95, precio_mes_general:200, precio_mes_socio:170 };
       return Response.json({ rates: {
         precio_semana_general:Number(configured.precio_semana_general),
         precio_semana_socio:Number(configured.precio_semana_socio),
