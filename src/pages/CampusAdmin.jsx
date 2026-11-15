@@ -293,7 +293,7 @@ export default function CampusAdmin() {
 
   return <div className="min-h-screen bg-slate-50 p-4 md:p-8 space-y-6">
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <div><p className="text-sm font-bold uppercase tracking-widest text-orange-600">C.D. Bustarviejo · Gestión</p><h1 className="text-3xl font-black text-slate-900">Campus Deportivo 2027</h1><p className="text-slate-500 mt-1">Inscripciones, plazas por edad, tarifas y seguimiento económico.</p></div>
+      <div><p className="text-sm font-bold uppercase tracking-widest text-orange-600">C.D. Bustarviejo · Gestión</p><h1 className="text-3xl font-black text-slate-900">Campus Deportivo {selectedSeason}</h1><p className="text-slate-500 mt-1">Inscripciones, plazas por edad, tarifas y seguimiento económico.</p><div className="mt-3 flex items-center gap-2"><label className="text-sm font-semibold text-slate-600">Edición:</label><select value={selectedSeason} onChange={e=>{const year=e.target.value;setSelectedSeason(year);setSettings(settingsList.find(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")===year)||null);setSelectedParticipantIds([]);}} className="rounded-lg border bg-white px-3 py-2 text-sm font-semibold">{[...new Set(settingsList.map(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")).filter(Boolean))].sort((a,b)=>b.localeCompare(a)).map(year=><option key={year} value={year}>Campus {year}</option>)}</select></div></div>
       <button onClick={load} className="inline-flex items-center justify-center gap-2 rounded-xl border bg-white px-4 py-3 font-semibold text-slate-700 hover:bg-slate-100"><RefreshCw className="h-4 w-4"/>Actualizar datos</button>
     </div>
 
