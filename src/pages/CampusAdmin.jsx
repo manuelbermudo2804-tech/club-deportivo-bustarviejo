@@ -53,6 +53,10 @@ export default function CampusAdmin() {
   const [notice, setNotice] = useState("");
   const [tab, setTab] = useState("resumen");
   const [communicationRecipient, setCommunicationRecipient] = useState("");
+  const [communicationGroup, setCommunicationGroup] = useState("todos");
+  const [communicationStatusFilter, setCommunicationStatusFilter] = useState("todos");
+  const [communicationPaymentFilter, setCommunicationPaymentFilter] = useState("todos");
+  const [sendingBulkEmail, setSendingBulkEmail] = useState(false);
   const [testEmailRecipient, setTestEmailRecipient] = useState("manuelbermudo@hotmail.com");
   const [sendingTestEmail, setSendingTestEmail] = useState(false);
   const [communicationTemplate, setCommunicationTemplate] = useState("recepcion");
@@ -118,6 +122,25 @@ export default function CampusAdmin() {
   const failedIncome = seasonRegistrations.filter(r => r.estado_pago === "fallido").reduce((s, r) => s + Number(r.importe_total || 0), 0);
   const confirmedRegistrationIds = new Set(seasonRegistrations.filter(r => r.estado === "confirmada").map(r => r.id));
   const confirmedPlaces = confirmedParticipants.filter(p => p.estado === "confirmado" || confirmedRegistrationIds.has(p.registration_id)).length;
+  const communicationTargets = useMemo(() => {
+    const eligible = seasonRegistrations.filter(reg => {
+      if (!reg.adulto_email) return false;
+      if (communicationStatusFilter !== "todos" && (reg.estado || "pendiente") !== communicationStatusFilter) return false;
+      if (communicationPaymentFilter !== "todos" && (reg.estado_pago || "pendiente") !== communicationPaymentFilter) return false;
+      if (communicationGroup !== "todos") {
+        const kids = seasonParticipants.filter(p => p.registration_id === reg.id);
+        if (!kids.some(p => groupForParticipant(p, settings?.fecha_inicio) === communicationGroup)) return false;
+      }
+      return true;
+    });
+    const unique = new Map();
+    eligible.forEach(reg => {
+      const email = String(reg.adulto_email || "").trim().toLowerCase();
+      if (email && !unique.has(email)) unique.set(email, reg);
+    });
+    return [...unique.values()];
+  }, [seasonRegistrations, seasonParticipants, settings, communicationGroup, communicationStatusFilter, communicationPaymentFilter]);
+
   const filteredRegistrations = useMemo(() => seasonRegistrations.filter(r => {
     const q = registrationSearch.trim().toLocaleLowerCase("es");
     const text = `${r.adulto_nombre || ""} ${r.adulto_email || ""} ${r.adulto_telefono || ""}`.toLocaleLowerCase("es");
@@ -314,6 +337,40 @@ export default function CampusAdmin() {
     } finally { setSendingEmail(false); }
   };
 
+  const sendCampusBulkEmail = async () => {
+    const targets = communicationTargets;
+    if (!targets.length) { setError("No hay familias con correo que coincidan con esos filtros."); return; }
+    if (!communicationSubject.trim() || !communicationBody.trim()) { setError("Completa el asunto y el mensaje antes de enviar."); return; }
+    if (!window.confirm(`Vas a enviar este correo a ${targets.length} familias únicas. Se enviará un mensaje por dirección de correo. El envío será real. ¿Continuar?`)) return;
+    setSendingBulkEmail(true); setError(""); setNotice("");
+    let sent = 0;
+    const failures = [];
+    try {
+      for (const registration of targets) {
+        try {
+          const response = await base44.functions.invoke("campusCommunicationSend", {
+            registration_id: registration.id,
+            recipient_email: registration.adulto_email,
+            recipient_name: registration.adulto_nombre,
+            subject: communicationSubject,
+            body: communicationBody,
+            template_key: communicationTemplate
+          });
+          const result = response?.data || response;
+          if (!result?.success) throw new Error(result?.error || "No se pudo confirmar el envío.");
+          sent += 1;
+        } catch (e) {
+          failures.push(`${registration.adulto_nombre || registration.adulto_email}: ${e?.message || "Error de envío"}`);
+        }
+      }
+      await load();
+      setNotice(`Envío finalizado: ${sent} correos aceptados por el servicio y ${failures.length} errores.`);
+      if (failures.length) setError(failures.slice(0, 5).join(" · "));
+    } finally {
+      setSendingBulkEmail(false);
+    }
+  };
+
   const openCampusWhatsApp = () => {
     const registration = seasonRegistrations.find(r => r.id === communicationRecipient);
     if (!registration?.adulto_telefono) { setError("La familia seleccionada no tiene un teléfono registrado."); return; }
@@ -415,7 +472,16 @@ export default function CampusAdmin() {
     {tab === "comunicaciones" && <section className="grid xl:grid-cols-2 gap-5">
       <div className="rounded-2xl border bg-white p-5 space-y-4">
         <div><h2 className="text-xl font-black">Enviar comunicación a una familia</h2><p className="text-sm text-slate-500">El envío es siempre manual. No se envía nada al registrar una inscripción.</p></div>
-        <label className="block text-sm font-bold">Familia destinataria
+        <div className="rounded-2xl border border-orange-100 bg-orange-50/50 p-4 space-y-3">
+          <div><h3 className="font-black text-slate-900">Destinatarios por grupo</h3><p className="text-xs text-slate-600">Filtra por edad, estado de inscripción y pago. Se envía un solo correo por dirección, aunque haya varios menores o solicitudes duplicadas.</p></div>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <label className="text-xs font-bold text-slate-600">Grupo de edad<select value={communicationGroup} onChange={e=>setCommunicationGroup(e.target.value)} className="mt-1 w-full rounded-xl border bg-white p-2.5 text-sm font-normal"><option value="todos">Todos los grupos</option>{GROUPS.map(g=><option key={g.key} value={g.key}>{g.range}</option>)}</select></label>
+            <label className="text-xs font-bold text-slate-600">Estado de inscripción<select value={communicationStatusFilter} onChange={e=>setCommunicationStatusFilter(e.target.value)} className="mt-1 w-full rounded-xl border bg-white p-2.5 text-sm font-normal"><option value="todos">Todos los estados</option><option value="pendiente">Pendiente</option><option value="revision">En revisión</option><option value="confirmada">Confirmada</option><option value="cancelada">Cancelada</option></select></label>
+            <label className="text-xs font-bold text-slate-600">Estado del pago<select value={communicationPaymentFilter} onChange={e=>setCommunicationPaymentFilter(e.target.value)} className="mt-1 w-full rounded-xl border bg-white p-2.5 text-sm font-normal"><option value="todos">Todos los pagos</option><option value="pendiente">Pendiente</option><option value="pagado">Pagado</option><option value="fallido">Fallido</option></select></label>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-3"><p className="text-sm font-bold text-slate-800">{communicationTargets.length} familias únicas seleccionadas</p><button onClick={sendCampusBulkEmail} disabled={sendingBulkEmail || !communicationTargets.length} className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800 disabled:opacity-50"><Mail className="h-4 w-4"/>{sendingBulkEmail ? "Enviando…" : `Enviar correo a ${communicationTargets.length} familias`}</button></div>
+        </div>
+        <label className="block text-sm font-bold">O seleccionar una sola familia
           <select value={communicationRecipient} onChange={e=>setCommunicationRecipient(e.target.value)} className="mt-2 w-full rounded-xl border p-3 font-normal">
             <option value="">Selecciona una inscripción</option>
             {seasonRegistrations.filter(r=>r.adulto_email).map(r=><option key={r.id} value={r.id}>{r.adulto_nombre} · {r.adulto_email}</option>)}
