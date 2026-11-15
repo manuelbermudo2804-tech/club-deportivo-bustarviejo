@@ -220,6 +220,11 @@ Deno.serve(async (req) => {
       // 2a. Cancelación o reprogramación
       const estado = data.estado_convocatoria;
       if (estado === 'cancelada' || estado === 'reprogramada') {
+        // Solo avisar en la transición real al estado cancelada/reprogramada.
+        // Las actualizaciones posteriores de la convocatoria no deben repetir la push.
+        if (event.type !== 'update' || !old_data || old_data.estado_convocatoria === estado) {
+          return Response.json({ skipped: 'estado sin cambio - push ya gestionada' });
+        }
         const jugadores = data.jugadores_convocados || [];
         const targetEmails = [];
         for (const j of jugadores) {
