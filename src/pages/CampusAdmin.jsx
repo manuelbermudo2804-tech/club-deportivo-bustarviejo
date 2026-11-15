@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2, Trash2, Mail, MessageCircle, FileDown, Filter, UsersRound, UserCheck } from "lucide-react";
+import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2, Trash2, Mail, MessageCircle, FileDown, Filter, UsersRound, UserCheck, Pencil, X } from "lucide-react";
 import { jsPDF } from "jspdf";
 
 const GROUPS = [
@@ -17,9 +17,13 @@ const WEEKS = [
 ];
 const money = (v) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(Number(v || 0));
 const naturalAge = (birth, startDate) => {
-  if (!birth || !/^\\d{4}-\\d{2}-\\d{2}$/.test(birth)) return null;
-  const year = Number(String(startDate || "").slice(0, 4));
-  return Number.isFinite(year) && year > 0 ? year - Number(birth.slice(0, 4)) : null;
+  if (!birth || !/^\d{4}-\d{2}-\d{2}$/.test(birth) || !startDate) return null;
+  const [by, bm, bd] = birth.split("-").map(Number);
+  const [ry, rm, rd] = String(startDate).slice(0, 10).split("-").map(Number);
+  if (![by, bm, bd, ry, rm, rd].every(Number.isFinite)) return null;
+  let age = ry - by;
+  if (rm < bm || (rm === bm && rd < bd)) age -= 1;
+  return age;
 };
 const weekDateRange = (startDate, index) => {
   if (!startDate) return "Fechas por configurar";
@@ -68,6 +72,9 @@ export default function CampusAdmin() {
   const [selectedParticipantIds, setSelectedParticipantIds] = useState([]);
   const [manualGroupName, setManualGroupName] = useState("");
   const [savingGroups, setSavingGroups] = useState(false);
+  const [editingRegistration, setEditingRegistration] = useState(null);
+  const [registrationDraft, setRegistrationDraft] = useState({ adulto_nombre: "", adulto_email: "", adulto_telefono: "", adulto_direccion: "", adulto_municipio: "" });
+  const [savingRegistration, setSavingRegistration] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true); setError(""); setNotice("");
@@ -105,6 +112,10 @@ export default function CampusAdmin() {
   const confirmedParticipants = seasonParticipants.filter(p => !["cancelado", "lista_espera"].includes(p.estado));
   const confirmedRegistrations = seasonRegistrations.filter(r => r.estado === "confirmada");
   const paid = seasonRegistrations.filter(r => r.estado_pago === "pagado").reduce((s, r) => s + Number(r.importe_total || 0), 0);
+  const expectedIncome = seasonRegistrations.filter(r => r.estado !== "cancelada").reduce((s, r) => s + Number(r.importe_total || 0), 0);
+  const pendingIncome = seasonRegistrations.filter(r => r.estado !== "cancelada" && r.estado_pago === "pendiente").reduce((s, r) => s + Number(r.importe_total || 0), 0);
+  const failedIncome = seasonRegistrations.filter(r => r.estado_pago === "fallido").reduce((s, r) => s + Number(r.importe_total || 0), 0);
+  const confirmedPlaces = seasonParticipants.filter(p => p.estado === "confirmado").length;
   const filteredRegistrations = useMemo(() => seasonRegistrations.filter(r => {
     const q = registrationSearch.trim().toLocaleLowerCase("es");
     const text = `${r.adulto_nombre || ""} ${r.adulto_email || ""} ${r.adulto_telefono || ""}`.toLocaleLowerCase("es");
@@ -113,9 +124,7 @@ export default function CampusAdmin() {
     if (registrationPaymentFilter !== "todos" && (r.estado_pago || "pendiente") !== registrationPaymentFilter) return false;
     return true;
   }).sort((a,b)=>(a.adulto_nombre||"").localeCompare(b.adulto_nombre||"","es")), [seasonRegistrations, registrationSearch, registrationStatusFilter, registrationPaymentFilter]);
-  const capacityTotal = Number(settings?.maximo_total || 0);
-  const totalOccupied = confirmedParticipants.length;
-  const totalAvailable = capacityTotal > 0 ? capacityTotal - totalOccupied : null;
+  const totalRegisteredParticipants = confirmedParticipants.length;
   const groupStats = useMemo(() => GROUPS.map(g => {
     const list = confirmedParticipants.filter(p => groupForParticipant(p, settings?.fecha_inicio) === g.key);
     return { ...g, count: list.length };
@@ -193,6 +202,51 @@ export default function CampusAdmin() {
       y+=rowH;doc.setDrawColor(225);doc.line(14,y-1,277,y-1);
     });
     doc.save("campus-2027-listado-participantes.pdf");
+  };
+
+  const beginEditRegistration = (registration) => {
+    setEditingRegistration(registration.id);
+    setRegistrationDraft({
+      adulto_nombre: registration.adulto_nombre || "",
+      adulto_email: registration.adulto_email || "",
+      adulto_telefono: registration.adulto_telefono || "",
+      adulto_direccion: registration.adulto_direccion || "",
+      adulto_municipio: registration.adulto_municipio || "",
+    });
+    setError(""); setNotice("");
+  };
+
+  const saveRegistrationContact = async () => {
+    const email = registrationDraft.adulto_email.trim().toLowerCase();
+    if (!registrationDraft.adulto_nombre.trim() || !/^\S+@\S+\.\S+$/.test(email) || !registrationDraft.adulto_telefono.trim()) {
+      setError("Comprueba el nombre, el correo y el teléfono del responsable."); return;
+    }
+    setSavingRegistration(true); setError(""); setNotice("");
+    try {
+      await base44.entities.CampusRegistration.update(editingRegistration, {
+        adulto_nombre: registrationDraft.adulto_nombre.trim(),
+        adulto_email: email,
+        adulto_telefono: registrationDraft.adulto_telefono.trim(),
+        adulto_direccion: registrationDraft.adulto_direccion.trim(),
+        adulto_municipio: registrationDraft.adulto_municipio.trim(),
+      });
+      setEditingRegistration(null);
+      setNotice("Datos de contacto actualizados. No se han modificado pagos ni participantes.");
+      await load();
+    } catch (e) { setError(e?.message || "No se pudieron guardar los datos de contacto."); }
+    finally { setSavingRegistration(false); }
+  };
+
+  const updateRegistrationStatus = async (registration, nextStatus) => {
+    if (nextStatus === registration.estado) return;
+    const labels = { pendiente: "pendiente", confirmada: "confirmada", cancelada: "cancelada", revision: "en revisión" };
+    if (!window.confirm(`¿Cambiar la inscripción de ${registration.adulto_nombre} a «${labels[nextStatus] || nextStatus}»? El estado del pago no cambiará.`)) return;
+    setError(""); setNotice("");
+    try {
+      await base44.entities.CampusRegistration.update(registration.id, { estado: nextStatus });
+      setNotice(`Estado de inscripción actualizado a «${labels[nextStatus] || nextStatus}». El pago permanece sin cambios.`);
+      await load();
+    } catch (e) { setError(e?.message || "No se pudo actualizar el estado."); }
   };
 
   const deleteRegistration = async (registration) => {
@@ -393,20 +447,25 @@ export default function CampusAdmin() {
       </div>
     </section>}
 
-    {tab === "resumen" && <div className="grid xl:grid-cols-2 gap-5">
+    {tab === "resumen" && <div className="space-y-5">
+      <section className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+        {[["Ingresos previstos", money(expectedIncome), "Importe total de inscripciones no canceladas"], ["Ingresos cobrados", money(paid), "Inscripciones marcadas como pagadas"], ["Pendiente de cobro", money(pendingIncome), "Según el estado registrado"], ["Pagos fallidos", money(failedIncome), "No incluye pagos pendientes"]].map(([label,value,help]) => <div key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p><p className="mt-2 text-2xl font-black text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-500">{help}</p></div>)}
+      </section>
+      <div className="grid xl:grid-cols-2 gap-5">
       <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-4">Ocupación por grupo</h2><div className="space-y-5">{groupStats.map(g=><div key={g.key}><div className="flex justify-between gap-3 text-sm mb-2"><div><strong>{g.label}</strong><span className="text-slate-500 ml-2">{g.range}</span></div><strong>{g.count} participantes</strong></div><div className="h-3 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full bg-orange-500" style={{width:`${Math.min(100,g.count*5)}%`}}/></div></div>)}</div><p className="text-xs text-slate-500 mt-4">Distribución informativa por edades. Las plazas están pendientes de definir según monitores, turnos, grupos y ratios de seguridad.</p></section>
       <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-4">Ocupación por semana</h2><div className="space-y-3">{weekStats.map(w=><div key={w.key} className="flex items-center justify-between rounded-xl bg-slate-50 p-3"><div><strong>{w.label}</strong><p className="text-xs text-slate-500">{w.dates}</p></div><strong className="text-xl">{w.count} participantes</strong></div>)}</div><p className="text-xs text-slate-500 mt-4">Las quincenas y el mes completo ocupan plaza en todas las semanas incluidas.</p></section>
+      </div>
     </div>}
 
-    {tab === "inscripciones" && <section className="rounded-3xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm"><div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between"><div><p className="text-xs font-black uppercase tracking-[.18em] text-orange-600">Gestión de familias</p><h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">Inscripciones familiares</h2><p className="mt-1 text-sm text-slate-500">{filteredRegistrations.length} de {seasonRegistrations.length} inscripciones</p></div><div className="grid gap-2 sm:grid-cols-3"><input value={registrationSearch} onChange={e=>setRegistrationSearch(e.target.value)} placeholder="Buscar familia, email o teléfono…" className="min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-sm"/><select value={registrationStatusFilter} onChange={e=>setRegistrationStatusFilter(e.target.value)} className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"><option value="todos">Todos los estados</option><option value="pendiente">Pendiente</option><option value="confirmada">Confirmada</option><option value="cancelada">Cancelada</option></select><select value={registrationPaymentFilter} onChange={e=>setRegistrationPaymentFilter(e.target.value)} className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"><option value="todos">Todos los pagos</option><option value="pendiente">Pago pendiente</option><option value="pagado">Pagado</option><option value="fallido">Fallido</option></select></div></div>{seasonRegistrations.length===0?<p className="text-slate-500 py-8 text-center">Todavía no hay inscripciones. Cuando se envíe el formulario público aparecerán aquí automáticamente.</p>:filteredRegistrations.length===0?<p className="rounded-2xl bg-slate-50 py-8 text-center text-slate-500">No hay inscripciones que coincidan con esos filtros.</p>:<div className="overflow-x-auto"><table className="w-full min-w-[1050px] text-sm"><thead><tr className="text-left border-b text-xs uppercase tracking-wide text-slate-500"><th className="p-3">Responsable</th><th className="p-3">Participantes</th><th className="p-3">Email</th><th className="p-3">Estado</th><th className="p-3">Alta socio</th><th className="p-3">Pago campus</th><th className="p-3 text-right">Total</th><th className="p-3 text-right">Acciones</th></tr></thead><tbody>{filteredRegistrations.map(r=>{const kids=seasonParticipants.filter(p=>p.registration_id===r.id);return <tr key={r.id} className="border-b last:border-0 align-top"><td className="p-3 font-semibold text-slate-900">{r.adulto_nombre}<div className="mt-1 text-xs font-normal text-slate-500">{r.adulto_telefono || "Sin teléfono"}</div></td><td className="p-3">{kids.map(k=><div key={k.id} className="mb-3"><strong>{k.nombre}</strong><div className="text-xs text-slate-500">{k.fecha_nacimiento} · {(k.semanas_ocupadas||[]).join(", ")} · {k.grupo_edad}</div><details className="mt-2 rounded-lg bg-slate-50 p-2"><summary className="cursor-pointer text-xs font-bold text-orange-700">Ficha de salud y emergencia</summary><div className="mt-2 space-y-1 text-xs text-slate-700"><p><b>Alergias:</b> {k.alergias||"No indicado"}</p><p><b>Intolerancias:</b> {k.intolerancias||"No indicado"}</p><p><b>Medicación:</b> {k.medicacion||"No indicada"}</p><p><b>Observaciones:</b> {k.observaciones_medicas||"Ninguna"}</p><p><b>Emergencia:</b> {k.contacto_emergencia_nombre||"—"} · {k.contacto_emergencia_telefono||"—"}</p><p><b>Consentimiento salud:</b> {k.consentimiento_salud?"Sí":"No consta"}</p><p><b>Autorización de imagen:</b> {k.autorizacion_imagen==="si"?"Sí autoriza":k.autorizacion_imagen==="no"?"No autoriza":"Pendiente"}</p></div></details></div>)}</td><td className="p-3">{r.adulto_email}</td><td className="p-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${r.estado==="confirmada"?"bg-emerald-50 text-emerald-700":"bg-amber-50 text-amber-800"}`}>{r.estado||"pendiente"}</span></td><td className="p-3 text-xs">{r.estado_alta_socio||"no_requerida"}</td><td className="p-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${r.estado_pago==="pagado"?"bg-emerald-50 text-emerald-700":"bg-amber-50 text-amber-800"}`}>{r.estado_pago||"pendiente"}</span></td><td className="p-3 text-right font-bold">{money(r.importe_total)}</td><td className="p-3 text-right"><button onClick={()=>deleteRegistration(r)} disabled={deletingId===r.id} className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-50" title="Borrar inscripción y participantes"><Trash2 className="h-4 w-4"/>{deletingId===r.id?"Borrando…":"Borrar"}</button></td></tr>})}</tbody></table></div>}</section>}
+    {tab === "inscripciones" && <section className="rounded-3xl border border-slate-200 bg-white p-4 md:p-6 shadow-sm"><div className="mb-5 flex flex-col gap-3 md:flex-row md:items-end md:justify-between"><div><p className="text-xs font-black uppercase tracking-[.18em] text-orange-600">Gestión de familias</p><h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">Inscripciones familiares</h2><p className="mt-1 text-sm text-slate-500">{filteredRegistrations.length} de {seasonRegistrations.length} inscripciones</p></div><div className="grid gap-2 sm:grid-cols-3"><input value={registrationSearch} onChange={e=>setRegistrationSearch(e.target.value)} placeholder="Buscar familia, email o teléfono…" className="min-w-0 rounded-xl border border-slate-200 px-3 py-2.5 text-sm"/><select value={registrationStatusFilter} onChange={e=>setRegistrationStatusFilter(e.target.value)} className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"><option value="todos">Todos los estados</option><option value="pendiente">Pendiente</option><option value="confirmada">Confirmada</option><option value="cancelada">Cancelada</option></select><select value={registrationPaymentFilter} onChange={e=>setRegistrationPaymentFilter(e.target.value)} className="rounded-xl border border-slate-200 px-3 py-2.5 text-sm"><option value="todos">Todos los pagos</option><option value="pendiente">Pago pendiente</option><option value="pagado">Pagado</option><option value="fallido">Fallido</option></select></div></div>{seasonRegistrations.length===0?<p className="text-slate-500 py-8 text-center">Todavía no hay inscripciones. Cuando se envíe el formulario público aparecerán aquí automáticamente.</p>:filteredRegistrations.length===0?<p className="rounded-2xl bg-slate-50 py-8 text-center text-slate-500">No hay inscripciones que coincidan con esos filtros.</p>:<div className="overflow-x-auto"><table className="w-full min-w-[1050px] text-sm"><thead><tr className="text-left border-b text-xs uppercase tracking-wide text-slate-500"><th className="p-3">Responsable</th><th className="p-3">Participantes</th><th className="p-3">Email</th><th className="p-3">Estado</th><th className="p-3">Alta socio</th><th className="p-3">Pago campus</th><th className="p-3 text-right">Total</th><th className="p-3 text-right">Acciones</th></tr></thead><tbody>{filteredRegistrations.map(r=>{const kids=seasonParticipants.filter(p=>p.registration_id===r.id);return <tr key={r.id} className="border-b last:border-0 align-top"><td className="p-3 font-semibold text-slate-900">{r.adulto_nombre}<div className="mt-1 text-xs font-normal text-slate-500">{r.adulto_telefono || "Sin teléfono"}</div></td><td className="p-3">{kids.map(k=><div key={k.id} className="mb-3"><strong>{k.nombre}</strong><div className="text-xs text-slate-500">{k.fecha_nacimiento} · {(k.semanas_ocupadas||[]).join(", ")} · {k.grupo_edad}</div><details className="mt-2 rounded-lg bg-slate-50 p-2"><summary className="cursor-pointer text-xs font-bold text-orange-700">Ficha de salud y emergencia</summary><div className="mt-2 space-y-1 text-xs text-slate-700"><p><b>Alergias:</b> {k.alergias||"No indicado"}</p><p><b>Intolerancias:</b> {k.intolerancias||"No indicado"}</p><p><b>Medicación:</b> {k.medicacion||"No indicada"}</p><p><b>Observaciones:</b> {k.observaciones_medicas||"Ninguna"}</p><p><b>Emergencia:</b> {k.contacto_emergencia_nombre||"—"} · {k.contacto_emergencia_telefono||"—"}</p><p><b>Consentimiento salud:</b> {k.consentimiento_salud?"Sí":"No consta"}</p><p><b>Autorización de imagen:</b> {k.autorizacion_imagen==="si"?"Sí autoriza":k.autorizacion_imagen==="no"?"No autoriza":"Pendiente"}</p></div></details></div>)}</td><td className="p-3">{r.adulto_email}</td><td className="p-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${r.estado==="confirmada"?"bg-emerald-50 text-emerald-700":"bg-amber-50 text-amber-800"}`}>{r.estado||"pendiente"}</span></td><td className="p-3 text-xs">{r.estado_alta_socio||"no_requerida"}</td><td className="p-3"><span className={`inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${r.estado_pago==="pagado"?"bg-emerald-50 text-emerald-700":"bg-amber-50 text-amber-800"}`}>{r.estado_pago||"pendiente"}</span></td><td className="p-3 text-right font-bold">{money(r.importe_total)}</td><td className="p-3 text-right"><div className="flex min-w-[150px] flex-col items-end gap-2"><select aria-label="Estado de inscripción" value={r.estado || "pendiente"} onChange={e=>updateRegistrationStatus(r,e.target.value)} className="w-full rounded-lg border border-slate-200 bg-white px-2 py-2 text-xs"><option value="pendiente">Pendiente</option><option value="revision">En revisión</option><option value="confirmada">Confirmada</option><option value="cancelada">Cancelada</option></select><button onClick={()=>beginEditRegistration(r)} className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"><Pencil className="h-3.5 w-3.5"/>Editar contacto</button><button onClick={()=>deleteRegistration(r)} disabled={deletingId===r.id} className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-50" title="Borrar inscripción y participantes"><Trash2 className="h-4 w-4"/>{deletingId===r.id?"Borrando…":"Borrar"}</button></div></td></tr>})}</tbody></table></div>}</section>}
 
     {tab === "plazas" && <section className="space-y-5">
       <div className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
         <div className="mb-5 flex flex-col gap-2 md:flex-row md:items-end md:justify-between"><div><p className="text-xs font-black uppercase tracking-[.18em] text-orange-600">Organización de plazas</p><h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">Capacidad y edades</h2><p className="mt-1 text-sm text-slate-500">Consulta la distribución actual de participantes por tramo.</p></div><span className="w-fit rounded-full bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-800">Capacidad pendiente de validación</span></div>
         <p className="text-sm text-slate-500 mb-5">La clasificación actual se mantiene sin cambios. Antes de configurar límites, confirmaremos las edades admitidas y la organización de monitores.</p>
-        <div className="mb-5 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl bg-slate-950 p-4 text-white"><p className="text-xs font-semibold text-slate-300">Plazas ocupadas</p><p className="mt-1 text-3xl font-black">{totalOccupied}</p></div><div className="rounded-2xl bg-orange-600 p-4 text-white"><p className="text-xs font-semibold text-orange-100">Plazas disponibles</p><p className="mt-1 text-3xl font-black">{totalAvailable===null?"Sin límite":Math.max(0,totalAvailable)}</p></div><div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p className="text-xs font-semibold text-slate-500">Capacidad total configurada</p><p className="mt-1 text-3xl font-black text-slate-950">{capacityTotal>0?capacityTotal:"Pendiente"}</p></div></div>
+        <div className="mb-5 grid gap-3 sm:grid-cols-3"><div className="rounded-2xl bg-slate-950 p-4 text-white"><p className="text-xs font-semibold text-slate-300">Participantes registrados</p><p className="mt-1 text-3xl font-black">{totalRegisteredParticipants}</p></div><div className="rounded-2xl bg-orange-600 p-4 text-white"><p className="text-xs font-semibold text-orange-100">Plazas confirmadas</p><p className="mt-1 text-3xl font-black">{confirmedPlaces}</p></div><div className="rounded-2xl border border-slate-200 bg-slate-50 p-4"><p className="text-xs font-semibold text-slate-500">Límite de participantes</p><p className="mt-1 text-2xl font-black text-slate-950">Pendiente de definir</p></div></div>
         <div className="grid md:grid-cols-3 gap-4">{groupStats.map(g=>{const limit=g.key==="6-8"?Number(settings?.plazas_6_8||0):g.key==="9-11"?Number(settings?.plazas_9_11||0):0;const pct=limit>0?Math.min(100,Math.round(g.count/limit*100)):null;return <div key={g.key} className="rounded-2xl border border-slate-200 bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm"><p className="text-sm font-bold text-slate-700">{g.label}</p><p className="text-xs text-slate-500">{g.range}</p><div className="mt-3 flex items-baseline gap-1"><span className="text-4xl font-black tracking-tight text-slate-950">{g.count}</span><span className="text-sm text-slate-500">{limit>0?`/ ${limit} plazas`:"participantes"}</span></div>{pct!==null?<><div className="mt-3 h-2.5 overflow-hidden rounded-full bg-slate-100"><div className={`h-full rounded-full ${pct>=100?"bg-red-500":"bg-orange-500"}`} style={{width:`${pct}%`}}/></div><p className="mt-2 text-xs font-semibold text-slate-500">{Math.max(0,limit-g.count)} disponibles · {pct}% ocupado</p></>:<p className="mt-2 text-xs text-slate-500">Límite pendiente de confirmar</p>}</div>})}</div>
-        <div className="mt-6 border-t border-slate-100 pt-5"><div className="mb-3"><h3 className="font-black text-slate-900">Configurar capacidad</h3><p className="text-xs text-slate-500">Estos valores son informativos. No bloquean inscripciones ni modifican el formulario público.</p></div><div className="grid gap-3 sm:grid-cols-3"><label className="text-sm font-bold text-slate-700">Plazas 6–8 años<input type="number" min="0" value={settings?.plazas_6_8??0} onChange={e=>updateSetting("plazas_6_8",e.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 p-3 text-lg"/></label><label className="text-sm font-bold text-slate-700">Plazas 9–11 años<input type="number" min="0" value={settings?.plazas_9_11??0} onChange={e=>updateSetting("plazas_9_11",e.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 p-3 text-lg"/></label><label className="text-sm font-bold text-slate-700">Máximo total<input type="number" min="0" value={settings?.maximo_total??0} onChange={e=>updateSetting("maximo_total",e.target.value)} className="mt-2 w-full rounded-xl border border-slate-200 p-3 text-lg"/></label></div><p className="mt-3 rounded-xl bg-amber-50 p-3 text-xs text-amber-900">El tramo avanzado aparece como 12–16 años en la clasificación del panel, pero la configuración disponible en la base de datos se llama 12–15. No se permite editar ese límite hasta aclarar el tramo y evitar asignar plazas a edades incorrectas.</p><button onClick={saveSettings} disabled={saving} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-bold text-white shadow-sm hover:bg-orange-700 disabled:opacity-60">{saving?<RefreshCw className="h-4 w-4 animate-spin"/>:<Save className="h-4 w-4"/>}{saving?"Guardando…":"Guardar capacidad"}</button></div>
+        <div className="mt-6 rounded-2xl border border-dashed border-orange-300 bg-orange-50/60 p-5"><h3 className="font-black text-slate-900">Definición de plazas pendiente</h3><p className="mt-2 text-sm leading-relaxed text-slate-700">No se establecen límites provisionales ni se bloquean inscripciones. Las plazas definitivas se fijarán cuando estén cerrados los monitores, los turnos, los grupos y las ratios de seguridad. Hasta entonces, este panel muestra únicamente el volumen de solicitudes recibido.</p><p className="mt-3 text-sm font-semibold text-slate-800">Tramos de edad de esta edición:</p><div className="mt-2 flex flex-wrap gap-2">{GROUPS.map(g=><span key={g.key} className="rounded-full border border-orange-200 bg-white px-3 py-1.5 text-xs font-bold text-slate-700">{g.range}</span>)}</div><p className="mt-3 text-xs text-slate-500">La edad se calcula a fecha de inicio del Campus: 28/06/2027. Las cifras antiguas de capacidad se conservan únicamente por compatibilidad y no se utilizan como límites.</p></div>
       </div>
       {GROUPS.map(group => {
         const groupKids = confirmedParticipants.filter(p => groupForParticipant(p, settings?.fecha_inicio) === group.key);
@@ -417,13 +476,13 @@ export default function CampusAdmin() {
           </div>
           {groupKids.length === 0 ? <p className="py-5 text-center text-sm text-slate-400">Todavía no hay menores en este grupo.</p> :
             <div className="overflow-x-auto"><table className="w-full text-sm">
-              <thead><tr className="border-b text-left text-slate-500"><th className="p-3">Menor</th><th className="p-3">Edad por año natural 2027</th><th className="p-3">Familia / correo</th><th className="p-3">Semanas</th><th className="p-3">Estado</th></tr></thead>
+              <thead><tr className="border-b text-left text-slate-500"><th className="p-3">Menor</th><th className="p-3">Edad al inicio · 28/06/2027</th><th className="p-3">Familia / correo</th><th className="p-3">Semanas</th><th className="p-3">Estado</th></tr></thead>
               <tbody>{groupKids.map(kid => {
                 const registration = seasonRegistrations.find(r => r.id === kid.registration_id);
                 const calculatedAge = naturalAge(kid.fecha_nacimiento, settings?.fecha_inicio) ?? kid.edad_inicio;
                 return <tr key={kid.id} className="border-b last:border-0 align-top">
                   <td className="p-3 font-semibold">{kid.nombre}<div className="text-xs font-normal text-slate-500">{kid.fecha_nacimiento || "Sin fecha"}</div></td>
-                  <td className="p-3">{calculatedAge == null ? "—" : `${calculatedAge} años en 2027`}</td>
+                  <td className="p-3">{calculatedAge == null ? "—" : `${calculatedAge} años el 28/06/2027`}</td>
                   <td className="p-3">{registration?.adulto_nombre || "Familia sin localizar"}<div className="text-xs text-slate-500 break-all">{registration?.adulto_email || "Sin correo asociado"}</div></td>
                   <td className="p-3">{(kid.semanas_ocupadas || []).join(", ") || "—"}</td>
                   <td className="p-3">{kid.estado || "pendiente"}</td>
