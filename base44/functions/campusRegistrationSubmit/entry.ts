@@ -11,9 +11,13 @@ const cors = origin => ({
 const clean = v => String(v || '').trim();
 const normalize = v => clean(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ');
 function ageOnStart(date, startDate) {
-  // Se mantiene el criterio de año natural, tomando el año de inicio de la edición.
-  const year = Number(String(startDate || '').slice(0,4));
-  return year - Number(String(date).slice(0,4));
+  // Edad cumplida exactamente en la fecha de inicio del Campus (28/06/2027 para esta edición).
+  const birth = String(date || '').slice(0,10).split('-').map(Number);
+  const start = String(startDate || '').slice(0,10).split('-').map(Number);
+  if (birth.length !== 3 || start.length !== 3 || [...birth, ...start].some(n => !Number.isFinite(n))) return NaN;
+  let age = start[0] - birth[0];
+  if (start[1] < birth[1] || (start[1] === birth[1] && start[2] < birth[2])) age -= 1;
+  return age;
 }
 function groupFor(age){return age<=8?'6-8':age<=11?'9-11':'12-16'}
 function priceForWeeks(selected, member, rates) {
