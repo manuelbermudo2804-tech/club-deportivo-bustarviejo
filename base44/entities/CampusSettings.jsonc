@@ -32,15 +32,39 @@
     "plazas_12_15": {
       "type": "number",
       "default": 14,
-      "description": "Campo heredado de la configuraci\u00f3n anterior; no se utiliza como l\u00edmite de plazas."
+      "description": "Campo heredado; no se utiliza para la capacidad actual."
     },
     "plazas_12_16": {
       "type": "number",
-      "description": "Campo preparado para la futura capacidad del tramo 12\u201316. No definir hasta cerrar monitores, turnos y ratios."
+      "description": "Capacidad m\u00e1xima configurable del tramo 12\u201316."
     },
     "maximo_total": {
       "type": "number",
-      "default": 40
+      "description": "Capacidad m\u00e1xima general del campamento."
+    },
+    "ratio_6_8": {
+      "type": "number",
+      "description": "N\u00famero m\u00e1ximo de participantes por monitor en Iniciaci\u00f3n (6\u20138)."
+    },
+    "ratio_9_11": {
+      "type": "number",
+      "description": "N\u00famero m\u00e1ximo de participantes por monitor en Intermedio (9\u201311)."
+    },
+    "ratio_12_16": {
+      "type": "number",
+      "description": "N\u00famero m\u00e1ximo de participantes por monitor en Avanzado (12\u201316)."
+    },
+    "monitor_mode": {
+      "type": "string",
+      "enum": [
+        "calcular",
+        "manual"
+      ],
+      "default": "calcular"
+    },
+    "monitores_disponibles": {
+      "type": "number",
+      "description": "N\u00famero de monitores disponibles introducido manualmente."
     },
     "precio_semana_general": {
       "type": "number",
