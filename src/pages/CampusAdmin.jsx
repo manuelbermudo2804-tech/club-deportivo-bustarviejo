@@ -149,7 +149,7 @@ export default function CampusAdmin() {
   };
   const exportParticipantsPdf = () => {
     const doc = new jsPDF({orientation:"landscape",unit:"mm",format:"a4"});
-    const title = filterManualGroup !== "todos" ? `Campus 2027 · ${filterManualGroup==="sin_grupo"?"Sin grupo":filterManualGroup}` : "Campus Deportivo 2027 · Listado de participantes";
+    const title = filterManualGroup !== "todos" ? `Campus ${selectedSeason} · ${filterManualGroup==="sin_grupo"?"Sin grupo":filterManualGroup}` : `Campus Deportivo ${selectedSeason} · Listado de participantes`;
     doc.setFontSize(16); doc.text(title,14,15);
     doc.setFontSize(9); doc.text(`Listado: ${filteredParticipants.length} menores · Generado: ${new Date().toLocaleDateString("es-ES")}`,14,22);
     const headers = ["Menor","Edad","Familia","Teléfono","Semanas","Grupo manual","Estado"];
@@ -395,7 +395,7 @@ export default function CampusAdmin() {
             <div className="overflow-x-auto"><table className="w-full text-sm">
               <thead><tr className="border-b text-left text-slate-500"><th className="p-3">Menor</th><th className="p-3">Edad por año natural 2027</th><th className="p-3">Familia / correo</th><th className="p-3">Semanas</th><th className="p-3">Estado</th></tr></thead>
               <tbody>{groupKids.map(kid => {
-                const registration = registrations.find(r => r.id === kid.registration_id);
+                const registration = seasonRegistrations.find(r => r.id === kid.registration_id);
                 const calculatedAge = naturalAge(kid.fecha_nacimiento, settings?.fecha_inicio) ?? kid.edad_inicio;
                 return <tr key={kid.id} className="border-b last:border-0 align-top">
                   <td className="p-3 font-semibold">{kid.nombre}<div className="text-xs font-normal text-slate-500">{kid.fecha_nacimiento || "Sin fecha"}</div></td>
