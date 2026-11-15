@@ -1,0 +1,49 @@
+{
+  "name": "ClubMemberBackup",
+  "type": "object",
+  "properties": {
+    "snapshot_id": {
+      "type": "string"
+    },
+    "original_member_id": {
+      "type": "string"
+    },
+    "original_numero_socio": {
+      "type": "string"
+    },
+    "snapshot_created_at": {
+      "type": "string"
+    },
+    "snapshot_json": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "snapshot_id",
+    "original_member_id",
+    "snapshot_created_at",
+    "snapshot_json"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
