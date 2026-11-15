@@ -824,22 +824,47 @@ export default function Payments() {
     if (!filteredPlayers.length) return toast.error("No hay jugadores en el filtro actual");
     const categoryLabel = categoriaFilter === "all" ? "Todas" : categoriaFilter;
     const seasonLabel = temporadaFilter === "all" ? "Todas" : String(temporadaFilter || "—").replace("-", "/");
+    const getAge = (date) => {
+      if (!date) return null;
+      const birth = new Date(date);
+      if (Number.isNaN(birth.getTime())) return null;
+      const today = new Date();
+      let age = today.getFullYear() - birth.getFullYear();
+      if (today.getMonth() < birth.getMonth() || (today.getMonth() === birth.getMonth() && today.getDate() < birth.getDate())) age--;
+      return age;
+    };
     const lines = [
       "📋 *C.D. BUSTARVIEJO – LISTADO DE PAGOS*",
       `Filtro: ${getReportFilterLabel()}`,
       `Temporada: ${seasonLabel} | Categoría: ${categoryLabel}`,
       `Jugadores: ${filteredPlayers.length}`,
-      "",
-      ...filteredPlayers.map((player, index) => {
-        const seasonPayments = payments.filter(p => p.jugador_id === player.id && matchTemporada(p.temporada, temporadaFilter));
-        const amount = seasonPayments.filter(p => p.estado === "Pendiente").reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0);
-        return `${index + 1}. ${player.nombre} (${player.deporte || "Sin categoría"})${amount > 0 ? ` — Pendiente registrado: ${amount.toFixed(2)} €` : ""}`;
-      }),
-      "",
-      "_Listado generado desde la aplicación del club._"
+      ""
     ];
+    filteredPlayers.forEach((player, index) => {
+      const isAdult = player.es_mayor_edad === true || getAge(player.fecha_nacimiento) >= 18;
+      const contactName = isAdult ? (player.nombre || "Jugador") : (player.nombre_tutor_legal || "Progenitor/tutor no indicado");
+      const contactPhone = player.telefono || "No indicado";
+      const contactEmail = isAdult ? (player.email_jugador || "No indicado") : (player.email_padre || "No indicado");
+      const secondaryContact = !isAdult && (player.nombre_tutor_2 || player.telefono_tutor_2 || player.email_tutor_2)
+        ? [player.nombre_tutor_2, player.telefono_tutor_2, player.email_tutor_2].filter(Boolean).join(" · ") : "";
+      const category = player.categoria_principal || player.deporte || (player.categorias || []).join(", ") || "—";
+      const seasonPayments = payments.filter(p => p.jugador_id === player.id && matchTemporada(p.temporada, temporadaFilter));
+      const pending = seasonPayments.filter(p => p.estado === "Pendiente");
+      const review = seasonPayments.filter(p => p.estado === "En revisión");
+      const paid = seasonPayments.filter(p => p.estado === "Pagado");
+      const amount = pending.reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0);
+      lines.push(`*${index + 1}. ${player.nombre || "—"}*`, `Categoría: ${category}`, `Progenitor/contacto: ${contactName}`, `Teléfono: ${contactPhone}`, `Email: ${contactEmail}`);
+      if (secondaryContact) lines.push(`Segundo contacto: ${secondaryContact}`);
+      lines.push(`Pagos: ${pending.length} pendiente(s) · ${review.length} en revisión · ${paid.length} pagado(s)`);
+      lines.push(`Pendiente registrado: ${amount.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`, "");
+    });
+    const totalPending = filteredPlayers.reduce((total, player) => {
+      const playerPayments = payments.filter(p => p.jugador_id === player.id && matchTemporada(p.temporada, temporadaFilter));
+      return total + playerPayments.filter(p => p.estado === "Pendiente").reduce((sum, p) => sum + (Number(p.cantidad) || 0), 0);
+    }, 0);
+    lines.push(`*TOTAL PENDIENTE REGISTRADO: ${totalPending.toLocaleString("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €*`, "", "_Listado generado desde la aplicación del club._");
     const message = lines.join("\n");
-    if (message.length > 7000) return toast.error("El listado es demasiado largo para WhatsApp. Descarga el PDF para obtenerlo completo.");
+    if (message.length > 7000) return toast.error("El listado supera el límite práctico de WhatsApp. Descarga el PDF para obtenerlo completo.");
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, "_blank", "noopener,noreferrer");
   };
 
