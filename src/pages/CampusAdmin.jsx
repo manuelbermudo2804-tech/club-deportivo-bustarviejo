@@ -104,8 +104,8 @@ export default function CampusAdmin() {
   })), [confirmedParticipants]);
 
   const manualGroups = useMemo(() => [...new Set(seasonParticipants.map(p => (p.grupo_manual || "").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es")), [seasonParticipants]);
-  const filteredParticipants = useMemo(() => participants.filter(p => {
-    const reg = registrations.find(r => r.id === p.registration_id);
+  const filteredParticipants = useMemo(() => seasonParticipants.filter(p => {
+    const reg = seasonRegistrations.find(r => r.id === p.registration_id);
     const age = naturalAge(p.fecha_nacimiento, settings?.fecha_inicio) ?? p.edad_inicio;
     const haystack = `${p.nombre || ""} ${reg?.adulto_nombre || ""} ${reg?.adulto_email || ""} ${reg?.adulto_telefono || ""}`.toLocaleLowerCase("es");
     if (filterText.trim() && !haystack.includes(filterText.trim().toLocaleLowerCase("es"))) return false;
@@ -116,7 +116,7 @@ export default function CampusAdmin() {
     if (filterManualGroup === "sin_grupo" && p.grupo_manual) return false;
     if (filterManualGroup !== "todos" && filterManualGroup !== "sin_grupo" && (p.grupo_manual || "") !== filterManualGroup) return false;
     return true;
-  }).sort((a,b)=>(a.nombre||"").localeCompare(b.nombre||"","es")), [participants, registrations, filterText, filterWeek, filterAge, filterStatus, filterSocio, filterManualGroup]);
+  }).sort((a,b)=>(a.nombre||"").localeCompare(b.nombre||"","es")), [seasonParticipants, seasonRegistrations, filterText, filterWeek, filterAge, filterStatus, filterSocio, filterManualGroup]);
 
   const toggleParticipant = (id) => setSelectedParticipantIds(ids => ids.includes(id) ? ids.filter(x=>x!==id) : [...ids,id]);
   const toggleVisibleParticipants = () => {
@@ -130,7 +130,7 @@ export default function CampusAdmin() {
     if (!window.confirm(`¿Asignar ${selectedParticipantIds.length} menor(es) al grupo «${name}»?`)) return;
     setSavingGroups(true); setError(""); setNotice("");
     try {
-      const chosen = participants.filter(p=>selectedParticipantIds.includes(p.id));
+      const chosen = seasonParticipants.filter(p=>selectedParticipantIds.includes(p.id));
       await Promise.all(chosen.map(p=>base44.entities.CampusParticipant.update(p.id,{grupo_manual:name})));
       setNotice(`${chosen.length} participante(s) asignados al grupo «${name}».`);
       setSelectedParticipantIds([]); setManualGroupName(""); await load();
@@ -138,7 +138,7 @@ export default function CampusAdmin() {
     finally { setSavingGroups(false); }
   };
   const clearManualGroup = async (name) => {
-    const chosen = participants.filter(p=>p.grupo_manual===name);
+    const chosen = seasonParticipants.filter(p=>p.grupo_manual===name);
     if (!chosen.length || !window.confirm(`¿Quitar el grupo «${name}» de ${chosen.length} menor(es)? No se borrarán las inscripciones.`)) return;
     setSavingGroups(true); setError(""); setNotice("");
     try {
