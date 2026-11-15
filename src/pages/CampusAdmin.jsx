@@ -116,7 +116,8 @@ export default function CampusAdmin() {
   const expectedIncome = seasonRegistrations.filter(r => r.estado !== "cancelada").reduce((s, r) => s + Number(r.importe_total || 0), 0);
   const pendingIncome = seasonRegistrations.filter(r => r.estado !== "cancelada" && r.estado_pago === "pendiente").reduce((s, r) => s + Number(r.importe_total || 0), 0);
   const failedIncome = seasonRegistrations.filter(r => r.estado_pago === "fallido").reduce((s, r) => s + Number(r.importe_total || 0), 0);
-  const confirmedPlaces = confirmedParticipants.filter(p => p.estado === "confirmado").length;
+  const confirmedRegistrationIds = new Set(seasonRegistrations.filter(r => r.estado === "confirmada").map(r => r.id));
+  const confirmedPlaces = confirmedParticipants.filter(p => p.estado === "confirmado" || confirmedRegistrationIds.has(p.registration_id)).length;
   const filteredRegistrations = useMemo(() => seasonRegistrations.filter(r => {
     const q = registrationSearch.trim().toLocaleLowerCase("es");
     const text = `${r.adulto_nombre || ""} ${r.adulto_email || ""} ${r.adulto_telefono || ""}`.toLocaleLowerCase("es");
@@ -128,7 +129,7 @@ export default function CampusAdmin() {
   const totalRegisteredParticipants = confirmedParticipants.length;
   const groupStats = useMemo(() => GROUPS.map(g => {
     const list = confirmedParticipants.filter(p => groupForParticipant(p, settings?.fecha_inicio) === g.key);
-    return { ...g, count: list.length };
+    return { ...g, count: list.length, amount: list.reduce((sum, p) => sum + Number(p.precio_aplicado || 0), 0) };
   }), [confirmedParticipants, settings]);
 
   const weekStats = useMemo(() => WEEKS.map((w, i) => ({
@@ -452,7 +453,7 @@ export default function CampusAdmin() {
         {[["Ingresos previstos", money(expectedIncome), "Importe total de inscripciones no canceladas"], ["Ingresos cobrados", money(paid), "Inscripciones marcadas como pagadas"], ["Pendiente de cobro", money(pendingIncome), "Según el estado registrado"], ["Pagos fallidos", money(failedIncome), "No incluye pagos pendientes"]].map(([label,value,help]) => <div key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p><p className="mt-2 text-2xl font-black text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-500">{help}</p></div>)}
       </section>
       <div className="grid xl:grid-cols-2 gap-5">
-      <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-4">Ocupación por grupo</h2><div className="space-y-5">{groupStats.map(g=><div key={g.key}><div className="flex justify-between gap-3 text-sm mb-2"><div><strong>{g.label}</strong><span className="text-slate-500 ml-2">{g.range}</span></div><strong>{g.count} participantes</strong></div><div className="h-3 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full bg-orange-500" style={{width:`${Math.min(100,g.count*5)}%`}}/></div></div>)}</div><p className="text-xs text-slate-500 mt-4">Distribución informativa por edades. Las plazas están pendientes de definir según monitores, turnos, grupos y ratios de seguridad.</p></section>
+      <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-4">Ocupación por grupo</h2><div className="space-y-5">{groupStats.map(g=><div key={g.key}><div className="flex justify-between gap-3 text-sm mb-2"><div><strong>{g.label}</strong><span className="text-slate-500 ml-2">{g.range}</span></div><strong>{g.count} participantes · {money(g.amount)}</strong></div><div className="h-3 rounded-full bg-slate-100 overflow-hidden"><div className="h-full rounded-full bg-orange-500" style={{width:`${Math.min(100,g.count*5)}%`}}/></div></div>)}</div><p className="text-xs text-slate-500 mt-4">Distribución informativa por edades. Las plazas están pendientes de definir según monitores, turnos, grupos y ratios de seguridad.</p></section>
       <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-4">Ocupación por semana</h2><div className="space-y-3">{weekStats.map(w=><div key={w.key} className="flex items-center justify-between rounded-xl bg-slate-50 p-3"><div><strong>{w.label}</strong><p className="text-xs text-slate-500">{w.dates}</p></div><strong className="text-xl">{w.count} participantes</strong></div>)}</div><p className="text-xs text-slate-500 mt-4">Las quincenas y el mes completo ocupan plaza en todas las semanas incluidas.</p></section>
       </div>
     </div>}
