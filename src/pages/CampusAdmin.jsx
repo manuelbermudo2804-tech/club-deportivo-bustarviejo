@@ -21,6 +21,15 @@ const naturalAge = (birth, startDate) => {
   const year = Number(String(startDate || "").slice(0, 4));
   return Number.isFinite(year) && year > 0 ? year - Number(birth.slice(0, 4)) : null;
 };
+const weekDateRange = (startDate, index) => {
+  if (!startDate) return "Fechas por configurar";
+  const start = new Date(`${startDate}T00:00:00Z`);
+  start.setUTCDate(start.getUTCDate() + index * 7);
+  const end = new Date(start);
+  end.setUTCDate(end.getUTCDate() + 4);
+  const fmt = d => new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "long", timeZone: "UTC" }).format(d);
+  return `${fmt(start)}–${fmt(end)}`;
+};
 const groupForParticipant = (p, startDate) => {
   const age = naturalAge(p.fecha_nacimiento, startDate) ?? p.edad_inicio;
   return age == null ? p.grupo_edad : age <= 8 ? "6-8" : age <= 11 ? "9-11" : age <= 16 ? "12-16" : "fuera";
@@ -98,10 +107,11 @@ export default function CampusAdmin() {
     return { ...g, count: list.length };
   }), [confirmedParticipants, settings]);
 
-  const weekStats = useMemo(() => WEEKS.map(w => ({
+  const weekStats = useMemo(() => WEEKS.map((w, i) => ({
     ...w,
+    dates: weekDateRange(settings?.fecha_inicio, i),
     count: confirmedParticipants.filter(p => (p.semanas_ocupadas || []).includes(w.key)).length,
-  })), [confirmedParticipants]);
+  })), [confirmedParticipants, settings?.fecha_inicio]);
 
   const manualGroups = useMemo(() => [...new Set(seasonParticipants.map(p => (p.grupo_manual || "").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es")), [seasonParticipants]);
   const filteredParticipants = useMemo(() => seasonParticipants.filter(p => {
