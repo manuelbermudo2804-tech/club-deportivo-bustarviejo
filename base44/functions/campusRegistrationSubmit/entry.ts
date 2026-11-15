@@ -79,7 +79,7 @@ Deno.serve(async req=>{
     const participants=b.participantes.map(p=>{
       const nombre=clean(p.nombre), fecha=clean(p.fecha_nacimiento), semanas=[...new Set(p.semanas||[])];
       const edad=ageOnStart(fecha,rates.fecha_inicio);
-      if(!nombre||!/^\d{4}-\d{2}-\d{2}$/.test(fecha)||ageOnStart(fecha)<6||edad>16||!semanas.length||semanas.some(w=>!WEEKS.includes(w)))
+      if(!nombre||!/^\d{4}-\d{2}-\d{2}$/.test(fecha)||edad<6||edad>16||!semanas.length||semanas.some(w=>!WEEKS.includes(w)))
         throw new Error('Revisa el nombre, fecha de nacimiento y semanas seleccionadas de '+(nombre||'un participante')+'. El campus admite edades de 6 a 16 años.');
       const linked=!!(verifiedMember && [...(verifiedMember.jugadores_hijos||[]),...(verifiedMember.jugadores_relacionados||[]),...(verifiedMember.campus_participantes||[])].some(x=>normalize(x.jugador_nombre||x.participante_nombre)===normalize(nombre)));
       const applied=linked || b.solicitar_alta_socio===true;
