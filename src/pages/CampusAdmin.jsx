@@ -29,6 +29,8 @@ const groupForParticipant = (p, startDate) => {
 export default function CampusAdmin() {
   const [user, setUser] = useState(null);
   const [settings, setSettings] = useState(null);
+  const [settingsList, setSettingsList] = useState([]);
+  const [selectedSeason, setSelectedSeason] = useState("2027");
   const [registrations, setRegistrations] = useState([]);
   const [participants, setParticipants] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,19 +67,23 @@ export default function CampusAdmin() {
         setLoading(false); return;
       }
       const [cfg, regs, kids, logs] = await Promise.all([
-        base44.entities.CampusSettings.list("-created_date", 5),
+        base44.entities.CampusSettings.list("-created_date", 100),
         base44.entities.CampusRegistration.list("-created_date", 500),
         base44.entities.CampusParticipant.list("-created_date", 1000),
         base44.entities.CampusCommunicationLog.list("-sent_at", 100),
       ]);
-      setSettings(cfg?.[0] || null);
+      setSettingsList(cfg || []);
+      const seasons = [...new Set((cfg || []).map(c => String(c.temporada || c.fecha_inicio?.slice(0,4) || "")).filter(Boolean))].sort((a,b)=>b.localeCompare(a));
+      const chosenSeason = seasons.includes(selectedSeason) ? selectedSeason : (seasons[0] || "2027");
+      setSelectedSeason(chosenSeason);
+      setSettings((cfg || []).find(c => String(c.temporada || c.fecha_inicio?.slice(0,4) || "") === chosenSeason) || cfg?.[0] || null);
       setRegistrations(regs || []);
       setParticipants(kids || []);
       setCommunicationLogs(logs || []);
     } catch (e) {
       setError(e?.message || "No se han podido cargar los datos del campus.");
     } finally { setLoading(false); }
-  }, []);
+  }, [selectedSeason]);
 
   useEffect(() => { load(); }, [load]);
 
