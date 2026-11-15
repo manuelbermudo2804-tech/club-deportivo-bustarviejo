@@ -85,7 +85,7 @@ export default function CampusAdmin() {
       const seasons = [...new Set((cfg || []).map(c => String(c.temporada || c.fecha_inicio?.slice(0,4) || "")).filter(Boolean))].sort((a,b)=>b.localeCompare(a));
       const chosenSeason = seasons.includes(selectedSeason) ? selectedSeason : (seasons[0] || "2027");
       setSelectedSeason(chosenSeason);
-      setSettings((cfg || []).find(c => String(c.temporada || c.fecha_inicio?.slice(0,4) || "") === chosenSeason) || cfg?.[0] || null);
+      setSettings((cfg || []).find(c => String(c.temporada || c.fecha_inicio?.slice(0,4) || "") === chosenSeason && c.activo === true) || (cfg || []).find(c => String(c.temporada || c.fecha_inicio?.slice(0,4) || "") === chosenSeason) || cfg?.[0] || null);
       setRegistrations(regs || []);
       setParticipants(kids || []);
       setCommunicationLogs(logs || []);
@@ -285,13 +285,15 @@ export default function CampusAdmin() {
     setSaving(true); setNotice(""); setError("");
     try {
       await base44.entities.CampusSettings.update(settings.id, {
+        activo: true,
         precio_semana_general: Number(settings.precio_semana_general), precio_semana_socio: Number(settings.precio_semana_socio),
         precio_quincena_general: Number(settings.precio_quincena_general), precio_quincena_socio: Number(settings.precio_quincena_socio),
         precio_mes_general: Number(settings.precio_mes_general), precio_mes_socio: Number(settings.precio_mes_socio),
         fecha_inicio: settings.fecha_inicio, fecha_fin: settings.fecha_fin, temporada: String(settings.temporada || settings.fecha_inicio?.slice(0,4) || ""),
         cuota_socio: Number(settings.cuota_socio), notas_capacidad: settings.notas_capacidad || "",
       });
-      setNotice("Configuración guardada correctamente.");
+      await Promise.all(settingsList.filter(c => c.id !== settings.id && String(c.temporada || c.fecha_inicio?.slice(0,4) || "") === String(settings.temporada || "2027") && c.activo === true).map(c => base44.entities.CampusSettings.update(c.id, { activo: false })));
+      setNotice("Configuración guardada y activada. Se ha desactivado cualquier configuración duplicada de la misma temporada.");
       await load();
     } catch (e) { setError(e?.message || "No se pudo guardar la configuración."); }
     finally { setSaving(false); }
@@ -303,7 +305,7 @@ export default function CampusAdmin() {
 
   return <div className="min-h-screen bg-slate-50 p-4 md:p-8 space-y-6">
     <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-      <div><p className="text-sm font-bold uppercase tracking-widest text-orange-600">C.D. Bustarviejo · Gestión</p><h1 className="text-3xl font-black text-slate-900">Campus Deportivo {selectedSeason}</h1><p className="text-slate-500 mt-1">Inscripciones, plazas por edad, tarifas y seguimiento económico.</p><div className="mt-3 flex items-center gap-2"><label className="text-sm font-semibold text-slate-600">Edición:</label><select value={selectedSeason} onChange={e=>{const year=e.target.value;setSelectedSeason(year);setSettings(settingsList.find(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")===year)||null);setSelectedParticipantIds([]);}} className="rounded-lg border bg-white px-3 py-2 text-sm font-semibold">{[...new Set(settingsList.map(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")).filter(Boolean))].sort((a,b)=>b.localeCompare(a)).map(year=><option key={year} value={year}>Campus {year}</option>)}</select></div></div>
+      <div><p className="text-sm font-bold uppercase tracking-widest text-orange-600">C.D. Bustarviejo · Gestión</p><h1 className="text-3xl font-black text-slate-900">Campus Deportivo {selectedSeason}</h1><p className="text-slate-500 mt-1">Inscripciones, plazas por edad, tarifas y seguimiento económico.</p><div className="mt-3 flex items-center gap-2"><label className="text-sm font-semibold text-slate-600">Edición:</label><select value={selectedSeason} onChange={e=>{const year=e.target.value;setSelectedSeason(year);setSettings(settingsList.find(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")===year&&c.activo===true)||settingsList.find(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")===year)||null);setSelectedParticipantIds([]);}} className="rounded-lg border bg-white px-3 py-2 text-sm font-semibold">{[...new Set(settingsList.map(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")).filter(Boolean))].sort((a,b)=>b.localeCompare(a)).map(year=><option key={year} value={year}>Campus {year}</option>)}</select></div></div>
       <button onClick={load} className="inline-flex items-center justify-center gap-2 rounded-xl border bg-white px-4 py-3 font-semibold text-slate-700 hover:bg-slate-100"><RefreshCw className="h-4 w-4"/>Actualizar datos</button>
     </div>
 
@@ -421,9 +423,9 @@ export default function CampusAdmin() {
     </section>}
 
     {tab === "configuracion" && settings && <section className="rounded-2xl border bg-white p-5 space-y-6">
-      <div><h2 className="font-black text-xl">Tarifas aprobadas para el modelo de trabajo</h2><p className="text-sm text-slate-500">Se mantienen los importes acordados: semana 60/55 €, quincena 110/95 €, julio 200/170 € y cuota de socio 25 €.</p></div>
+      <div><h2 className="font-black text-xl">Tarifas aprobadas para el modelo de trabajo</h2><p className="text-sm text-slate-500">Se mantienen los importes acordados: semana 60/55 €, quincena 110/95 €, 4 semanas consecutivas 200/170 € y cuota de socio 25 €.</p></div>
       <div className="grid md:grid-cols-3 gap-4">{[
-        ["Semana","precio_semana_general","precio_semana_socio"],["Quincena","precio_quincena_general","precio_quincena_socio"],["Julio completo","precio_mes_general","precio_mes_socio"]
+        ["Semana","precio_semana_general","precio_semana_socio"],["Quincena","precio_quincena_general","precio_quincena_socio"],["4 semanas consecutivas","precio_mes_general","precio_mes_socio"]
       ].map(([label,general,socio])=><div key={label} className="rounded-xl border p-4 space-y-3"><h3 className="font-bold">{label}</h3><label className="block text-xs font-bold text-slate-500">No socio (€)<input type="number" min="0" value={settings[general]??0} onChange={e=>updateSetting(general,e.target.value)} className="mt-1 w-full rounded-lg border p-2 text-base text-slate-900"/></label><label className="block text-xs font-bold text-slate-500">Socio (€)<input type="number" min="0" value={settings[socio]??0} onChange={e=>updateSetting(socio,e.target.value)} className="mt-1 w-full rounded-lg border p-2 text-base text-slate-900"/></label></div>)}</div>
       <label className="block text-sm font-bold">Cuota anual de socio (€)<input type="number" min="0" value={settings.cuota_socio??25} onChange={e=>updateSetting("cuota_socio",e.target.value)} className="mt-2 w-full md:w-48 rounded-xl border p-3 font-normal"/></label>
       <label className="block text-sm font-bold">Notas de capacidad y seguridad<textarea value={settings.notas_capacidad||""} onChange={e=>updateSetting("notas_capacidad",e.target.value)} rows="3" className="mt-2 w-full rounded-xl border p-3 font-normal"/></label>
