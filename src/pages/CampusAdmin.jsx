@@ -87,9 +87,12 @@ export default function CampusAdmin() {
 
   useEffect(() => { load(); }, [load]);
 
-  const confirmedParticipants = participants.filter(p => !["cancelado", "lista_espera"].includes(p.estado));
-  const confirmedRegistrations = registrations.filter(r => r.estado === "confirmada");
-  const paid = registrations.filter(r => r.estado_pago === "pagado").reduce((s, r) => s + Number(r.importe_total || 0), 0);
+  const seasonRegistrations = registrations.filter(r => String(r.temporada || "2027") === selectedSeason);
+  const seasonRegistrationIds = new Set(seasonRegistrations.map(r => r.id));
+  const seasonParticipants = participants.filter(p => String(p.temporada || "2027") === selectedSeason || seasonRegistrationIds.has(p.registration_id));
+  const confirmedParticipants = seasonParticipants.filter(p => !["cancelado", "lista_espera"].includes(p.estado));
+  const confirmedRegistrations = seasonRegistrations.filter(r => r.estado === "confirmada");
+  const paid = seasonRegistrations.filter(r => r.estado_pago === "pagado").reduce((s, r) => s + Number(r.importe_total || 0), 0);
   const groupStats = useMemo(() => GROUPS.map(g => {
     const list = confirmedParticipants.filter(p => groupForParticipant(p, settings?.fecha_inicio) === g.key);
     return { ...g, count: list.length };
@@ -100,7 +103,7 @@ export default function CampusAdmin() {
     count: confirmedParticipants.filter(p => (p.semanas_ocupadas || []).includes(w.key)).length,
   })), [confirmedParticipants]);
 
-  const manualGroups = useMemo(() => [...new Set(participants.map(p => (p.grupo_manual || "").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es")), [participants]);
+  const manualGroups = useMemo(() => [...new Set(seasonParticipants.map(p => (p.grupo_manual || "").trim()).filter(Boolean))].sort((a,b)=>a.localeCompare(b,"es")), [seasonParticipants]);
   const filteredParticipants = useMemo(() => participants.filter(p => {
     const reg = registrations.find(r => r.id === p.registration_id);
     const age = naturalAge(p.fecha_nacimiento, settings?.fecha_inicio) ?? p.edad_inicio;
