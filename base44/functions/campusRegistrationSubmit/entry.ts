@@ -113,7 +113,7 @@ Deno.serve(async req=>{
           modalidad,periodo,semanas_ocupadas:p.semanas,es_socio:p.linked,precio_aplicado:p.price,estado:'pendiente',
           alergias:p.alergias,intolerancias:p.intolerancias,medicacion:p.medicacion,observaciones_medicas:p.observaciones_medicas,
           contacto_emergencia_nombre:p.contacto_emergencia_nombre,contacto_emergencia_telefono:p.contacto_emergencia_telefono,consentimiento_salud:b.consentimiento_salud===true,
-          autorizacion_imagen:b.consentimiento_imagen===true?'si':'pendiente'
+          autorizacion_imagen:b.consentimiento_imagen===true?'si':'no'
         });
         created.push(row.id);
       }
