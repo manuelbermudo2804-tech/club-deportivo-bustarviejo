@@ -340,7 +340,17 @@ async function syncCategory(config, cookies, base44, temporada) {
             const match = uniqueExisting.find(e => 
               norm(e.local) === norm(m.local) && norm(e.visitante) === norm(m.visitante)
             );
-            if (match && match.estado !== 'finalizado') {
+            // Actualizar también partidos ya finalizados: la RFFM puede corregir
+            // un acta después del primer cierre (p. ej. un 0-0 provisional).
+            // Un 0-0 real se conserva porque se compara explícitamente, no por truthiness.
+            if (match && (
+              match.estado !== 'finalizado' ||
+              Number(match.goles_local) !== Number(m.goles_local) ||
+              Number(match.goles_visitante) !== Number(m.goles_visitante) ||
+              (m.fecha && match.fecha_partido !== m.fecha) ||
+              (m.hora && match.hora_partido !== m.hora) ||
+              (m.campo && match.campo !== m.campo)
+            )) {
               await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.update(match.id, {
                 goles_local: m.goles_local, goles_visitante: m.goles_visitante,
                 estado: 'finalizado', fecha_actualizacion: new Date().toISOString(),
@@ -382,15 +392,19 @@ async function syncCategory(config, cookies, base44, temporada) {
               const tipo = gf > gc ? 'Victoria' : gf === gc ? 'Empate' : 'Derrota';
               const emoji = tipo === 'Victoria' ? '\u2705' : tipo === 'Empate' ? '\ud83e\udd1d' : '\u274c';
               const existingObs = await retryOnRateLimit(() => base44.asServiceRole.entities.MatchObservation.filter({ categoria: cat, temporada, jornada: latestJ }));
+              const observationData = {
+                categoria: cat, rival,
+                fecha_partido: bustMatch.fecha ? bustMatch.fecha.split('/').reverse().join('-') : new Date().toISOString().split('T')[0],
+                resultado: `${bustMatch.goles_local}-${bustMatch.goles_visitante} (${tipo})`,
+                temporada, jornada: latestJ, auto_generada: true,
+                local_visitante: isLocal ? 'Local' : 'Visitante',
+                goles_favor: gf, goles_contra: gc, resultado_tipo: tipo,
+                campo: bustMatch.campo || '',
+              };
               if (!existingObs.length) {
                 await base44.asServiceRole.entities.MatchObservation.create({
-                  categoria: cat, rival,
-                  fecha_partido: bustMatch.fecha ? bustMatch.fecha.split('/').reverse().join('-') : new Date().toISOString().split('T')[0],
-                  resultado: `${bustMatch.goles_local}-${bustMatch.goles_visitante} (${tipo})`,
-                  temporada, jornada: latestJ, auto_generada: true,
-                  local_visitante: isLocal ? 'Local' : 'Visitante',
-                  goles_favor: gf, goles_contra: gc, resultado_tipo: tipo,
-                  campo: bustMatch.campo || '', completada_por_entrenador: false,
+                  ...observationData,
+                  completada_por_entrenador: false,
                   email_enviado: false, entrenador_email: '', entrenador_nombre: '',
                 });
                 result.autoObservation = { rival, resultado: `${gf}-${gc}`, tipo };
@@ -404,6 +418,10 @@ async function syncCategory(config, cookies, base44, temporada) {
                     if (obs[0]) await base44.asServiceRole.entities.MatchObservation.update(obs[0].id, { entrenador_email: coach.email, entrenador_nombre: coach.full_name || '', email_enviado: true });
                   }
                 } catch (ce) { console.error(`Coach email error (${cat}):`, ce.message); }
+              } else {
+                // Mantener las notas/estado del entrenador, pero corregir el marcador federativo.
+                await retryOnRateLimit(() => base44.asServiceRole.entities.MatchObservation.update(existingObs[0].id, observationData));
+                result.autoObservation = { rival, resultado: `${gf}-${gc}`, tipo, updated: true };
               }
             }
           } catch (oe) { console.error(`Observation error (${cat}):`, oe.message); }
