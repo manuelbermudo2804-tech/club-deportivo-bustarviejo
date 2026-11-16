@@ -173,6 +173,15 @@
       "default": false,
       "description": "Activar programa de incentivos por referir nuevos socios"
     },
+    "programa_referidos_modo_prueba": {
+      "type": "boolean",
+      "default": false,
+      "description": "Permite probar el programa de referidos solo al usuario autorizado, sin activar el programa real"
+    },
+    "programa_referidos_usuario_prueba_email": {
+      "type": "string",
+      "description": "Email del \u00fanico usuario autorizado para probar Trae un Socio Amigo"
+    },
     "referidos_permitir_whatsapp_padres": {
       "type": "boolean",
       "default": true,
