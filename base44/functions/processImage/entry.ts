@@ -32,9 +32,13 @@ Deno.serve(async (req) => {
 
     let fileBlob;
     let originalName = 'photo.jpg';
+    let requestedMaxSide = 1500;
+    let requestedQuality = 75;
 
     if (contentType.includes('multipart/form-data')) {
       const formData = await req.formData();
+      requestedMaxSide = Number(formData.get('max_side')) || requestedMaxSide;
+      requestedQuality = Number(formData.get('quality')) || requestedQuality;
       // SDK sends the file under the parameter name used in invoke (e.g. 'image')
       const file = formData.get('image') || formData.get('file');
       if (!file || !(file instanceof File)) {
@@ -60,8 +64,6 @@ Deno.serve(async (req) => {
       }, { status: 413 });
     }
 
-    const requestedMaxSide = Number(new URL(req.url).searchParams.get('max_side')) || 1500;
-    const requestedQuality = Number(new URL(req.url).searchParams.get('quality')) || 75;
     const MAX_SIDE = Math.max(400, Math.min(1800, requestedMaxSide));
     const QUALITY = Math.max(35, Math.min(85, requestedQuality)) / 100;
 
@@ -115,8 +117,6 @@ Deno.serve(async (req) => {
       { scale: 0.55, quality: Math.max(0.35, QUALITY - 0.25) },
     ];
     let jpegBlob;
-    let outputW = targetW;
-    let outputH = targetH;
     for (const stage of stages) {
       const w = Math.max(1, Math.round(targetW * stage.scale));
       const h = Math.max(1, Math.round(targetH * stage.scale));
