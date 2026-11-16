@@ -82,23 +82,55 @@ export default function StaffChat() {
   const messagesContainerRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Subida piloto exclusiva del chat Staff:
-  // el procesado de calidad se hace en servidor, nunca en el móvil.
-  // En dispositivos antiguos/de poca RAM se sube el original directamente.
+  // Lee dimensiones sin canvas ni createImageBitmap: compatible con móviles antiguos.
+  const readStaffImageDimensions = (file) => new Promise((resolve) => {
+    try {
+      const objectUrl = URL.createObjectURL(file);
+      const image = new Image();
+      image.onload = () => {
+        resolve({ width: image.naturalWidth || image.width || null, height: image.naturalHeight || image.height || null });
+        URL.revokeObjectURL(objectUrl);
+      };
+      image.onerror = () => {
+        URL.revokeObjectURL(objectUrl);
+        resolve({ width: null, height: null });
+      };
+      image.src = objectUrl;
+    } catch {
+      resolve({ width: null, height: null });
+    }
+  });
+
+  // Subida piloto exclusiva del chat Staff. Conserva datos técnicos de origen y resultado.
   const uploadStaffChatImage = async (file) => {
     if (!file || !file.size) throw new Error("La imagen está vacía");
     if (file.size > 15 * 1024 * 1024) {
       throw new Error("La foto supera el límite de 15 MB");
     }
 
+    const originalDimensions = await readStaffImageDimensions(file);
     const caps = getDeviceCapabilities();
     const useDirectUpload = caps.degraded === true || caps.isLowRAM === true || file.size > 10 * 1024 * 1024;
 
     if (!useDirectUpload) {
       try {
         const response = await base44.functions.invoke("processImage", { image: file });
-        const processedUrl = response?.data?.file_url || response?.file_url;
-        if (processedUrl) return processedUrl;
+        const result = response?.data || response;
+        const processedUrl = result?.file_url;
+        if (processedUrl) {
+          return {
+            url: processedUrl,
+            metadata: {
+              ancho_original: result.original_width || originalDimensions.width,
+              alto_original: result.original_height || originalDimensions.height,
+              ancho_final: result.output_width || originalDimensions.width,
+              alto_final: result.output_height || originalDimensions.height,
+              tamano_original: file.size,
+              tamano_final: result.size_bytes || (result.size_kb ? result.size_kb * 1024 : null),
+              metodo_subida: result.note === "uploaded_without_processing" ? "original_sin_procesar" : "procesada_servidor"
+            }
+          };
+        }
         console.warn("[StaffChat] processImage no devolvió URL; se usará subida directa.");
       } catch (error) {
         console.warn("[StaffChat] Falló el procesado en servidor; se usará subida directa.", error);
@@ -109,7 +141,18 @@ export default function StaffChat() {
     const response = await base44.integrations.Core.UploadFile({ file });
     const directUrl = response?.file_url || response?.data?.file_url;
     if (!directUrl) throw new Error("El almacenamiento no devolvió la URL del archivo");
-    return directUrl;
+    return {
+      url: directUrl,
+      metadata: {
+        ancho_original: originalDimensions.width,
+        alto_original: originalDimensions.height,
+        ancho_final: originalDimensions.width,
+        alto_final: originalDimensions.height,
+        tamano_original: file.size,
+        tamano_final: file.size,
+        metodo_subida: "original_directa"
+      }
+    };
   };
 
 
@@ -424,8 +467,8 @@ export default function StaffChat() {
       for (const file of files) {
         const isImage = file.type?.startsWith('image/') || /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name || '');
         if (isImage) {
-          const url = await uploadStaffChatImage(file);
-          if (url) uploaded.push({ url, nombre: file.name, tipo: file.type || 'image/jpeg', tamano: file.size });
+          const result = await uploadStaffChatImage(file);
+          if (result?.url) uploaded.push({ url: result.url, nombre: file.name, tipo: file.type || 'image/jpeg', tamano: file.size, ...result.metadata });
         } else {
           const { file_url } = await base44.integrations.Core.UploadFile({ file });
           uploaded.push({ url: file_url, nombre: file.name, tipo: file.type, tamano: file.size });
@@ -450,10 +493,10 @@ export default function StaffChat() {
     
     setUploading(true);
     try {
-      const url = await uploadStaffChatImage(file);
-      if (!url) return null;
+      const result = await uploadStaffChatImage(file);
+      if (!result?.url) return null;
       toast.success("Foto capturada");
-      return { url, nombre: file.name, tipo: file.type || 'image/jpeg', tamano: file.size };
+      return { url: result.url, nombre: file.name, tipo: file.type || 'image/jpeg', tamano: file.size, ...result.metadata };
     } catch (error) {
       toast.error("Error al capturar foto");
       return null;
@@ -1053,7 +1096,7 @@ export default function StaffChat() {
                           const files = attachments.filter(f => !f.tipo?.startsWith('image/') && !f.tipo?.startsWith('audio/'));
                           return (
                             <>
-                              {images.length > 0 && <div className="mt-1"><ChatImageBubble images={images} isMine={isMine} /></div>}
+                              {images.length > 0 && <div className="mt-1 space-y-1"><ChatImageBubble images={images} isMine={isMine} />{images.map((image, idx) => (image.ancho_original || image.alto_original || image.tamano_original) ? <p key={idx} className="text-[10px] opacity-60 px-1">{image.ancho_original && image.alto_original ? `Original: ${image.ancho_original}×${image.alto_original}` : "Resolución original no disponible"}{image.ancho_final && image.alto_final ? ` → Chat: ${image.ancho_final}×${image.alto_final}` : ""}{image.tamano_original ? ` · ${(image.tamano_original / 1024).toFixed(0)} KB` : ""}{image.tamano_final ? ` → ${(image.tamano_final / 1024).toFixed(0)} KB` : ""}</p> : null)}</div>}
                               {audios.map((file, idx) => <div key={`a-${idx}`} className="mt-1"><ChatAudioBubble url={file.url} duration={file.duracion} isMine={isMine} /></div>)}
                               {files.length > 0 && <div className="mt-1 space-y-1">{files.map((file, idx) => (
                                 <a key={idx} href={file.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-black/5' : 'bg-slate-100'}`}>
