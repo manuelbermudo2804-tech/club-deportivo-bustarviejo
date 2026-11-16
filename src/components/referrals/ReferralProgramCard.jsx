@@ -39,9 +39,9 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
   // (atribución automática de papeleta); si está INACTIVO seguimos usando la página de Vercel.
   // Solo apuntamos a Vercel si el programa está EXPLÍCITAMENTE desactivado (=== false).
   // Si seasonConfig aún no cargó (undefined/null), usamos /AltaSocio para no caer a Vercel por error.
-  const programaReferidosActivo = seasonConfig?.programa_referidos_activo !== false;
+  const programaReferidosActivo = seasonConfig?.programa_referidos_activo === true || modoPrueba;
   const referralLink = programaReferidosActivo
-    ? (userRefCode ? `${window.location.origin}/AltaSocio?ref=${userRefCode}` : `${window.location.origin}/AltaSocio`)
+    ? (userRefCode ? `${window.location.origin}/AltaSocio?ref=${userRefCode}${modoPrueba ? "&test_ref=1" : ""}` : `${window.location.origin}/AltaSocio${modoPrueba ? "?test_ref=1" : ""}`)
     : (userRefCode ? `https://alta-socio.vercel.app/alta-socio.html?ref=${userRefCode}` : "https://alta-socio.vercel.app/alta-socio.html");
   const femeninoLink = userRefCode ? `${window.location.origin}/JoinFemenino?ref=${userRefCode}` : "";
   
@@ -143,7 +143,8 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
     setShowAiModal(false);
   };
 
-  const programaActivo = seasonConfig?.programa_referidos_activo;
+  const modoPrueba = seasonConfig?.programa_referidos_modo_prueba === true && seasonConfig?.programa_referidos_usuario_prueba_email?.toLowerCase() === userEmail?.toLowerCase();
+  const programaActivo = seasonConfig?.programa_referidos_activo === true || modoPrueba;
 
   return (
     <Card className={`shadow-lg overflow-hidden relative border-none text-white ${
@@ -247,7 +248,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
         </div>
 
         {/* SECCIONES DE INCENTIVOS - SOLO SI EL PROGRAMA ESTÁ ACTIVO */}
-        {seasonConfig?.programa_referidos_activo && (
+        {programaActivo && (
           <>
             {/* BONUS FÚTBOL FEMENINO + BOTÓN COMPARTIR */}
             {seasonConfig.bonus_femenino_activo && (
