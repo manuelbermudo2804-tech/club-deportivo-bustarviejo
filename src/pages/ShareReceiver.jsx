@@ -8,6 +8,7 @@ import { Loader2, Share2, AlertCircle, ImageIcon } from "lucide-react";
 import { readSharedFiles, clearSharedFiles } from "../components/share/sharedFilesStore";
 import ChatTargetSelector from "../components/share/ChatTargetSelector";
 import { uploadChatImage } from "@/components/chat/uploadChatImage";
+import { getDeviceCapabilities } from "@/components/utils/deviceCapabilities";
 
 /**
  * Página que se abre cuando el usuario comparte imágenes a la PWA desde Android.
@@ -45,13 +46,18 @@ export default function ShareReceiver() {
           return;
         }
 
-        files.forEach(f => {
-          localPreviews.push({
-            name: f.name || "imagen",
-            blobUrl: URL.createObjectURL(f),
-            size: f.size,
+        const capabilities = getDeviceCapabilities();
+        if (!capabilities.degraded && !capabilities.isLowRAM) {
+          files.forEach(f => {
+            try {
+              localPreviews.push({
+                name: f.name || "imagen",
+                blobUrl: URL.createObjectURL(f),
+                size: f.size,
+              });
+            } catch {}
           });
-        });
+        }
         setPreviews(localPreviews);
 
         setStage("uploading");

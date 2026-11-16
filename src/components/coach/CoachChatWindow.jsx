@@ -31,7 +31,7 @@ import DateSeparator from "../chat/DateSeparator";
 import NewMessageButton from "../chat/NewMessageButton";
 import { groupConsecutiveMessages } from "../chat/MessageGrouping";
 import { mentionCandidates } from "@/lib/chatMentions";
-import { uploadChatImage } from "@/components/chat/uploadChatImage";
+import { uploadChatImage, isChatImage } from "@/components/chat/uploadChatImage";
 import { newClientId, isNetworkError, queueChatMessage } from "@/lib/chatQueue";
 import ChatPendingBanner from "../chat/ChatPendingBanner";
 
@@ -249,7 +249,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           continue;
         }
         
-        const url = file.type?.startsWith("image/") ? (await uploadChatImage(file)).url : await uploadFile(file);
+        const url = isChatImage(file) ? (await uploadChatImage(file)).url : await uploadFile(file);
         if (url) {
           uploaded.push({
             url,
@@ -265,7 +265,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       }
       return [];
     } catch (error) {
-      toast.error("Error al subir archivos");
+      toast.error(error?.message || "Error al subir archivos");
       return [];
     } finally {
       setUploading(false);
@@ -278,7 +278,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     
     setUploading(true);
     try {
-      const url = file.type?.startsWith("image/") ? (await uploadChatImage(file)).url : await uploadFile(file);
+      const url = isChatImage(file) ? (await uploadChatImage(file)).url : await uploadFile(file);
       if (!url) return null;
       const fileObj = {
         url,
@@ -289,7 +289,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       toast.success("Foto capturada");
       return fileObj;
     } catch (error) {
-      toast.error("Error al capturar foto");
+      toast.error(error?.message || "Error al capturar foto");
       return null;
     } finally {
       setUploading(false);

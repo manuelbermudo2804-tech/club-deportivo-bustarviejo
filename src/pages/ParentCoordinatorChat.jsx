@@ -411,7 +411,7 @@ export default function ParentCoordinatorChat() {
       if (uploaded.length > 0) toast.success("Archivos adjuntados");
       return uploaded;
     } catch (error) {
-      toast.error("Error al subir archivos");
+      toast.error(error?.message || "Error al subir archivos");
       return [];
     } finally {
       setUploading(false);
@@ -428,7 +428,7 @@ export default function ParentCoordinatorChat() {
       toast.success("Foto capturada");
       return { url, nombre: file.name, tipo: 'image/jpeg', tamano: file.size };
     } catch (error) {
-      toast.error("Error al capturar foto");
+      toast.error(error?.message || "Error al capturar foto");
       return null;
     } finally {
       setUploading(false);
