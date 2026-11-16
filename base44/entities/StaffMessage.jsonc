@@ -43,6 +43,27 @@
           },
           "tamano": {
             "type": "number"
+          },
+          "ancho_original": {
+            "type": "number"
+          },
+          "alto_original": {
+            "type": "number"
+          },
+          "ancho_final": {
+            "type": "number"
+          },
+          "alto_final": {
+            "type": "number"
+          },
+          "tamano_original": {
+            "type": "number"
+          },
+          "tamano_final": {
+            "type": "number"
+          },
+          "metodo_subida": {
+            "type": "string"
           }
         }
       },
