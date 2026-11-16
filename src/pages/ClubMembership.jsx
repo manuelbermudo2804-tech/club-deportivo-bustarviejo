@@ -643,6 +643,12 @@ export default function ClubMembership() {
     <>
       <InvitationPWAGuide />
       <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:px-8 lg:pt-7">
+        {user?.email && seasonConfig?.programa_referidos_modo_prueba === true && seasonConfig?.programa_referidos_usuario_prueba_email?.toLowerCase() === user.email.toLowerCase() && (
+          <div className="mb-4 flex flex-col gap-2 rounded-xl border border-blue-200 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <div><p className="font-semibold text-blue-900">Tienes habilitado el modo de pruebas</p><p className="text-sm text-blue-800">Puedes probar Trae un Socio Amigo sin afectar a los socios reales.</p></div>
+            <Button asChild className="bg-blue-700 hover:bg-blue-800"><Link to="/ReferralTestMode">Entrar en modo de pruebas</Link></Button>
+          </div>
+        )}
         <div className="min-h-screen min-w-0 space-y-5 overflow-x-hidden sm:space-y-6" style={{ overflowX: 'hidden' }}> 
         {showSuccess && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowSuccess(false)}>
