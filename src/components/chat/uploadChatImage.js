@@ -22,14 +22,23 @@ const waitForFileReady = async (file) => {
 };
 
 const directUpload = async (file) => {
-  const response = await base44.integrations.Core.UploadFile({ file });
-  const url = response?.file_url || response?.data?.file_url;
-  if (!url) throw new Error("El servidor no ha devuelto la dirección de la foto.");
-  return {
-    url, tipo: file.type || "image/jpeg", tamano: file.size,
-    ancho_original: null, alto_original: null, ancho_final: null, alto_final: null,
-    metodo_subida: "original_directa",
-  };
+  let lastError;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const response = await base44.integrations.Core.UploadFile({ file });
+      const url = response?.file_url || response?.data?.file_url;
+      if (!url) throw new Error("El servidor no ha devuelto la dirección de la foto.");
+      return {
+        url, tipo: file.type || "image/jpeg", tamano: file.size,
+        ancho_original: null, alto_original: null, ancho_final: null, alto_final: null,
+        metodo_subida: "original_directa",
+      };
+    } catch (error) {
+      lastError = error;
+      if (attempt === 0) await new Promise(resolve => setTimeout(resolve, 700));
+    }
+  }
+  throw lastError;
 };
 
 const serverProcess = async (file, maxSide, quality) => {
