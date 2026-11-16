@@ -34,6 +34,7 @@ export default function ReferralProgramCard({ seasonConfig, userReferrals = 0, u
   };
 
   const userRefCode = userEmail ? generateReferralCode(userEmail) : "";
+  const modoPrueba = seasonConfig?.programa_referidos_modo_prueba === true && seasonConfig?.programa_referidos_usuario_prueba_email?.toLowerCase() === userEmail?.toLowerCase();
   
   // Enlace de alta: si el programa de referidos está ACTIVO usamos el alta interna /AltaSocio
   // (atribución automática de papeleta); si está INACTIVO seguimos usando la página de Vercel.
@@ -143,7 +144,6 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
     setShowAiModal(false);
   };
 
-  const modoPrueba = seasonConfig?.programa_referidos_modo_prueba === true && seasonConfig?.programa_referidos_usuario_prueba_email?.toLowerCase() === userEmail?.toLowerCase();
   const programaActivo = seasonConfig?.programa_referidos_activo === true || modoPrueba;
 
   return (
