@@ -397,41 +397,20 @@ export default function ClubMembership() {
             } catch (error) {
               console.warn("[ClubMembership] No se pudo guardar el referidor en la ficha del socio:", error);
             }
-            // Verificar que el referrer no haya alcanzado el máximo de 15 referidos
-            const currentCount = referrer.referrals_count || 0;
-            if (currentCount >= 15) {
-              console.log("Referrer ha alcanzado el máximo de 15 referidos, no se añaden más premios");
-              await base44.entities.ReferralReward.create({
-                referrer_email: referrer.email,
-                referrer_name: referrer.full_name,
-                referred_member_id: membership.id,
-                referred_member_name: data.nombre_completo,
-                temporada: seasonConfig?.temporada,
-                limite_alcanzado: true
-              });
-            } else {
-              // Registrar la referencia
-              await base44.entities.ReferralReward.create({
-                referrer_email: referrer.email,
-                referrer_name: referrer.full_name,
-                referred_member_id: membership.id,
-                referred_member_name: data.nombre_completo,
-                temporada: seasonConfig?.temporada
-              });
+            // Registrar la referencia sin límites antiguos de 15 referidos ni premios por niveles.
+            await base44.entities.ReferralReward.create({
+              referrer_email: referrer.email,
+              referrer_name: referrer.full_name,
+              referred_member_id: membership.id,
+              referred_member_name: data.nombre_completo,
+              temporada: seasonConfig?.temporada,
+              clothing_credit_earned: 0,
+              raffle_entries_earned: 1,
+              reward_tier: "standard"
+            });
 
-              // Actualizar contador del usuario (máximo 15)
-              const newCount = Math.min(currentCount + 1, 15);
-              // 1 amigo = 1 papeleta: cada referido suma exactamente una participación
-              const newRaffles = (referrer.raffle_entries_total || 0) + 1;
-
-              // Usar updateMe en lugar de User.update para el usuario actual (no requiere permisos de admin)
-              await base44.auth.updateMe({
-                referrals_count: newCount,
-                raffle_entries_total: newRaffles
-              });
-
-              
-            }
+            // El histórico ReferralHistory será la fuente de verdad de papeletas y ranking.
+            // No mantener contadores paralelos que puedan desincronizarse.
           }
         } catch (error) {
           console.error("Error processing referral:", error);
