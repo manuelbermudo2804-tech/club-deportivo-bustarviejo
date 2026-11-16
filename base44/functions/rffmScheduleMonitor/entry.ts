@@ -178,9 +178,10 @@ async function findNextMatch(url, cookies, lastKnownJornada) {
 
   // Backwards-compat: return primary "next match" plus the full list
   if (upcomingMatches.length === 0) return { match: null, allMatches: [] };
-  // El "próximo partido" es el más cercano EN FECHA (un aplazado puede tener jornada menor pero jugarse después)
-  const toKey = (f) => { const p = (f || '').split('/'); return p.length === 3 ? `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}` : '9999'; };
-  upcomingMatches.sort((a, b) => toKey(a.match.fecha).localeCompare(toKey(b.match.fecha)));
+  // El "próximo partido" es el más cercano EN FECHA (un aplazado puede tener jornada menor pero jugarse después).
+  // sortDateKey tiene nombre propio para no redeclarar el helper toKey del filtro anterior.
+  const sortDateKey = (f) => { const p = (f || '').split('/'); return p.length === 3 ? `${p[2]}-${p[1].padStart(2, '0')}-${p[0].padStart(2, '0')}` : '9999'; };
+  upcomingMatches.sort((a, b) => sortDateKey(a.match.fecha).localeCompare(sortDateKey(b.match.fecha)));
   return { jornada: upcomingMatches[0].jornada, match: upcomingMatches[0].match, allMatches: upcomingMatches };
 }
 
@@ -375,6 +376,7 @@ Deno.serve(async (req) => {
           const candidates = allCallups.filter(c =>
             c.categoria === config.categoria &&
             (c.competicion || "Liga") === competition &&
+            c.entrenador_email === 'sistema@cdbustarviejo.es' &&
             !c.cerrada && c.estado_convocatoria !== 'cancelada' &&
             normTeam(c.rival) === normTeam(umRival)
           );
