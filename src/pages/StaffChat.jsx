@@ -31,7 +31,7 @@ import EmojiScaler from "../components/chat/EmojiScaler";
 import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
-import { useImageUpload } from "../components/utils/useImageUpload";
+import { getDeviceCapabilities } from "../components/utils/deviceCapabilities";
 import { mentionCandidates } from "@/lib/chatMentions";
 import useMentionNames from "@/hooks/useMentionNames";
 import { toGroupId } from "@/lib/chatGroupId";
@@ -49,7 +49,6 @@ export default function StaffChat() {
    const [user, setUser] = useState(null);
    const [isStaff, setIsStaff] = useState(false);
    const staffMentionNames = useMentionNames("staff");
-  const [uploadingImage, uploadFile] = useImageUpload();
   const [uploading, setUploading] = useState(false);
   const [conversation, setConversation] = useState(null);
   const [showParticipants, setShowParticipants] = useState(false);
@@ -82,6 +81,37 @@ export default function StaffChat() {
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const fileInputRef = useRef(null);
+
+  // Subida piloto exclusiva del chat Staff:
+  // el procesado de calidad se hace en servidor, nunca en el móvil.
+  // En dispositivos antiguos/de poca RAM se sube el original directamente.
+  const uploadStaffChatImage = async (file) => {
+    if (!file || !file.size) throw new Error("La imagen está vacía");
+    if (file.size > 15 * 1024 * 1024) {
+      throw new Error("La foto supera el límite de 15 MB");
+    }
+
+    const caps = getDeviceCapabilities();
+    const useDirectUpload = caps.degraded === true || caps.isLowRAM === true || file.size > 10 * 1024 * 1024;
+
+    if (!useDirectUpload) {
+      try {
+        const response = await base44.functions.invoke("processImage", { image: file });
+        const processedUrl = response?.data?.file_url || response?.file_url;
+        if (processedUrl) return processedUrl;
+        console.warn("[StaffChat] processImage no devolvió URL; se usará subida directa.");
+      } catch (error) {
+        console.warn("[StaffChat] Falló el procesado en servidor; se usará subida directa.", error);
+      }
+    }
+
+    // Fallback compatible: no usa canvas, createImageBitmap ni conversión a base64.
+    const response = await base44.integrations.Core.UploadFile({ file });
+    const directUrl = response?.file_url || response?.data?.file_url;
+    if (!directUrl) throw new Error("El almacenamiento no devolvió la URL del archivo");
+    return directUrl;
+  };
+
 
   const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉"];
   const cameraInputRef = useRef(null);
@@ -394,8 +424,8 @@ export default function StaffChat() {
       for (const file of files) {
         const isImage = file.type?.startsWith('image/') || /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name || '');
         if (isImage) {
-          const url = await uploadFile(file);
-          if (url) uploaded.push({ url, nombre: file.name, tipo: 'image/jpeg', tamano: file.size });
+          const url = await uploadStaffChatImage(file);
+          if (url) uploaded.push({ url, nombre: file.name, tipo: file.type || 'image/jpeg', tamano: file.size });
         } else {
           const { file_url } = await base44.integrations.Core.UploadFile({ file });
           uploaded.push({ url: file_url, nombre: file.name, tipo: file.type, tamano: file.size });
@@ -420,10 +450,10 @@ export default function StaffChat() {
     
     setUploading(true);
     try {
-      const url = await uploadFile(file);
+      const url = await uploadStaffChatImage(file);
       if (!url) return null;
       toast.success("Foto capturada");
-      return { url, nombre: file.name, tipo: 'image/jpeg', tamano: file.size };
+      return { url, nombre: file.name, tipo: file.type || 'image/jpeg', tamano: file.size };
     } catch (error) {
       toast.error("Error al capturar foto");
       return null;
@@ -1101,7 +1131,7 @@ export default function StaffChat() {
             onCameraCapture={handleCameraCapture}
             onLocationClick={() => setShowLocationDialog(true)}
             onPollClick={() => setShowPollDialog(true)}
-            uploading={uploading || uploadingImage}
+            uploading={uploading}
             placeholder="Escribe un mensaje..."
           />
         </CardContent>
