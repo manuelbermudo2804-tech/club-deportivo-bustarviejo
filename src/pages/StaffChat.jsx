@@ -31,7 +31,7 @@ import EmojiScaler from "../components/chat/EmojiScaler";
 import ChatImageBubble from "../components/chat/ChatImageBubble";
 import ChatAudioBubble from "../components/chat/ChatAudioBubble";
 import { useChatUnreadCounts } from "../components/chat/useChatUnreadCounts";
-import { getDeviceCapabilities } from "../components/utils/deviceCapabilities";
+import { uploadChatImage } from "@/components/chat/uploadChatImage";
 import { mentionCandidates } from "@/lib/chatMentions";
 import useMentionNames from "@/hooks/useMentionNames";
 import { toGroupId } from "@/lib/chatGroupId";
@@ -101,60 +101,22 @@ export default function StaffChat() {
     }
   });
 
-  // Subida piloto exclusiva del chat Staff. Conserva datos técnicos de origen y resultado.
+  // Sistema común adaptativo. No decodifica la foto en el móvil para medirla.
   const uploadStaffChatImage = async (file) => {
-    if (!file || !file.size) throw new Error("La imagen está vacía");
-    if (file.size > 15 * 1024 * 1024) {
-      throw new Error("La foto supera el límite de 15 MB");
-    }
-
-    const originalDimensions = await readStaffImageDimensions(file);
-    const caps = getDeviceCapabilities();
-    const useDirectUpload = caps.degraded === true || caps.isLowRAM === true || file.size > 10 * 1024 * 1024;
-
-    if (!useDirectUpload) {
-      try {
-        const response = await base44.functions.invoke("processImage", { image: file });
-        const result = response?.data || response;
-        const processedUrl = result?.file_url;
-        if (processedUrl) {
-          return {
-            url: processedUrl,
-            metadata: {
-              ancho_original: result.original_width || originalDimensions.width,
-              alto_original: result.original_height || originalDimensions.height,
-              ancho_final: result.output_width || originalDimensions.width,
-              alto_final: result.output_height || originalDimensions.height,
-              tamano_original: file.size,
-              tamano_final: result.size_bytes || (result.size_kb ? result.size_kb * 1024 : null),
-              metodo_subida: result.note === "uploaded_without_processing" ? "original_sin_procesar" : "procesada_servidor"
-            }
-          };
-        }
-        console.warn("[StaffChat] processImage no devolvió URL; se usará subida directa.");
-      } catch (error) {
-        console.warn("[StaffChat] Falló el procesado en servidor; se usará subida directa.", error);
-      }
-    }
-
-    // Fallback compatible: no usa canvas, createImageBitmap ni conversión a base64.
-    const response = await base44.integrations.Core.UploadFile({ file });
-    const directUrl = response?.file_url || response?.data?.file_url;
-    if (!directUrl) throw new Error("El almacenamiento no devolvió la URL del archivo");
+    const result = await uploadChatImage(file);
     return {
-      url: directUrl,
+      url: result.url,
       metadata: {
-        ancho_original: originalDimensions.width,
-        alto_original: originalDimensions.height,
-        ancho_final: originalDimensions.width,
-        alto_final: originalDimensions.height,
+        ancho_original: result.ancho_original ?? null,
+        alto_original: result.alto_original ?? null,
+        ancho_final: result.ancho_final ?? null,
+        alto_final: result.alto_final ?? null,
         tamano_original: file.size,
-        tamano_final: file.size,
-        metodo_subida: "original_directa"
+        tamano_final: result.tamano ?? file.size,
+        metodo_subida: result.metodo_subida || "original_directa"
       }
     };
   };
-
 
   const REACTIONS = ["👍", "❤️", "😊", "👏", "🎉"];
   const cameraInputRef = useRef(null);
