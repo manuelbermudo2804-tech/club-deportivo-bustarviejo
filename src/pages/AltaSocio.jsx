@@ -15,10 +15,19 @@ export default function AltaSocio() {
   const [tipoPago, setTipoPago] = useState("unico"); // 'unico' | 'suscripcion'
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [testMode, setTestMode] = useState(false);
+  const [testSuccess, setTestSuccess] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
+    const requestedTest = params.get("test_ref") === "1";
+    if (requestedTest) {
+      base44.entities.SeasonConfig.filter({ activa: true }).then((configs) => {
+        const cfg = configs?.[0];
+        if (cfg?.programa_referidos_modo_prueba === true) setTestMode(true);
+      }).catch(() => {});
+    }
     if (!ref) return;
     setRefCode(ref);
     (async () => {
@@ -42,6 +51,28 @@ export default function AltaSocio() {
     }
     setSubmitting(true);
     try {
+      if (testMode) {
+        const configs = await base44.entities.SeasonConfig.filter({ activa: true });
+        const cfg = configs?.[0];
+        const testerEmail = cfg?.programa_referidos_usuario_prueba_email?.toLowerCase();
+        if (cfg?.programa_referidos_modo_prueba !== true || !referidor?.email || referidor.email.toLowerCase() !== testerEmail) {
+          throw new Error("El modo de pruebas no está autorizado para este enlace.");
+        }
+        const sessionToken = `ref-test-${crypto.randomUUID ? crypto.randomUUID() : Date.now()}`;
+        await base44.entities.ReferralTestRun.create({
+          tipo_registro: "sesion", session_token: sessionToken, referidor_email: referidor.email,
+          referidor_nombre: referidor.nombre || referidor.email, estado_prueba: "abierta", fecha_prueba: new Date().toISOString()
+        });
+        await base44.entities.ReferralTestRun.create({
+          tipo_registro: "referido", session_token: sessionToken, flujo: "automatic",
+          referidor_email: referidor.email, referido_nombre: form.nombre_completo.trim(),
+          referido_email: form.email.trim().toLowerCase(), referido_telefono: form.telefono.trim(),
+          estado_prueba: "pendiente_validacion", pago_simulado: true, fecha_prueba: new Date().toISOString()
+        });
+        setTestSuccess(true);
+        setSubmitting(false);
+        return;
+      }
       const { data } = await base44.functions.invoke("publicMemberCheckout", {
         nombre_completo: form.nombre_completo.trim(),
         email: form.email.trim().toLowerCase(),
@@ -67,6 +98,11 @@ export default function AltaSocio() {
   };
 
   const paidOk = new URLSearchParams(window.location.search).get("paid") === "ok";
+  if (testSuccess) return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-700 via-blue-800 to-slate-900 flex items-center justify-center p-4">
+      <Card className="max-w-md w-full"><CardContent className="p-8 text-center space-y-4"><CheckCircle2 className="w-16 h-16 text-green-600 mx-auto"/><h1 className="text-2xl font-bold">¡Inscripción de prueba recibida!</h1><p className="text-slate-600">No se ha realizado ningún cobro ni se ha creado un socio oficial. La administración puede validar el pago simulado y comprobar la papeleta.</p></CardContent></Card>
+    </div>
+  );
   if (paidOk) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-900 flex items-center justify-center p-6">
