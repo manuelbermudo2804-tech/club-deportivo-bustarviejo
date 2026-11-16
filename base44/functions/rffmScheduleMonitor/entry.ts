@@ -155,23 +155,25 @@ async function findNextMatch(url, cookies, lastKnownJornada) {
 
   const firstHtml = await safeFetch(buildJornadaUrl(p, startFrom));
   const total = detectTotalJornadas(firstHtml);
-
-  // Keep each workflow run within the backend execution budget. Scan a short rolling window;
-  // subsequent runs continue from the earliest unplayed jornada, so coverage advances safely.
+  // Buscar hasta encontrar los DOS próximos partidos futuros, no solo dos jornadas.
   const upcomingMatches = [];
-  const maxScan = Math.min(total, startFrom + 1);
-  for (let j = startFrom; j <= maxScan; j++) {
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const toKey = (f) => {
+    const parts = String(f || '').split('/');
+    return parts.length === 3 ? `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}` : '';
+  };
+  for (let j = startFrom; j <= total && upcomingMatches.length < 2; j++) {
     const html = j === startFrom ? firstHtml : await safeFetch(buildJornadaUrl(p, j));
     const matches = parseJornadaMatches(html);
     const bust = matches.find(m =>
       !m.jugado &&
       (m.local?.toUpperCase().includes('BUSTARVIEJO') || m.visitante?.toUpperCase().includes('BUSTARVIEJO')) &&
       !m.local?.toUpperCase().includes('DESCANSA') &&
-      !m.visitante?.toUpperCase().includes('DESCANSA')
+      !m.visitante?.toUpperCase().includes('DESCANSA') &&
+      toKey(m.fecha) >= todayKey
     );
-    if (bust) upcomingMatches.push({ jornada: j, match: bust });
-    // Brief pause only: the monitor runs every two hours and must finish before runtime timeout.
-    if (j < maxScan) await new Promise(r => setTimeout(r, 400));
+    if (bust) upcomingMatches.push({ jornada:j, match:bust });
+    if (j < total && upcomingMatches.length < 2) await new Promise(r => setTimeout(r, 350));
   }
 
   // Backwards-compat: return primary "next match" plus the full list
@@ -484,6 +486,47 @@ Deno.serve(async (req) => {
           }
         }
 
+        // Crear un borrador independiente para cada uno de los dos próximos partidos.
+        for (const um of allUpcoming) {
+          const umMatch = um.match;
+          const umJornada = um.jornada;
+          if (!umMatch || !umJornada || !umMatch.fecha) continue;
+          const parts = umMatch.fecha.split('/');
+          if (parts.length !== 3) continue;
+          const umDate = `${parts[2]}-${parts[1].padStart(2,'0')}-${parts[0].padStart(2,'0')}`;
+          if (umDate < new Date().toISOString().slice(0,10)) continue;
+          const umLocal = umMatch.local?.toUpperCase().includes('BUSTARVIEJO');
+          const umRival = umLocal ? umMatch.visitante : umMatch.local;
+          const sameComp = c => c.categoria === config.categoria && (c.competicion || 'Liga') === competition;
+          const byJornada = allCallups.filter(c => sameComp(c) &&
+            (c.titulo?.includes(`Jornada ${umJornada}`) || c.descripcion?.includes(`(Jornada ${umJornada})`)));
+          const byRival = allCallups.filter(c => sameComp(c) && normTeam(c.rival) === normTeam(umRival) &&
+            !c.cerrada && c.estado_convocatoria !== 'cancelada');
+          const existing = byJornada.length === 1 ? byJornada[0] :
+            (byJornada.length === 0 && byRival.length === 1 ? byRival[0] : null);
+          if (existing) continue;
+          if (byJornada.length > 1 || byRival.length > 1) {
+            errors.push({categoria:config.categoria,jornada:umJornada,error:'Convocatorias duplicadas/ambiguas; no se crea otra.'});
+            continue;
+          }
+          const playersRaw = await base44.asServiceRole.entities.Player.filter({activo:true});
+          const players = playersRaw.filter(p => p.categoria_principal === config.categoria ||
+            (Array.isArray(p.categorias) && p.categorias.includes(config.categoria)) || p.deporte === config.categoria);
+          const jugadores_convocados = players.map(p => ({jugador_id:p.id,jugador_nombre:p.nombre,
+            email_padre:p.email_padre || '',email_jugador:p.email_jugador || '',confirmacion:'pendiente'}));
+          await base44.asServiceRole.entities.Convocatoria.create({
+            titulo:`Jornada ${umJornada}${competitionLabel} vs ${umRival}`,
+            categoria:config.categoria,competicion:competition,tipo:'Partido',rival:umRival,fecha_partido:umDate,
+            hora_partido:umMatch.hora || '00:00',ubicacion:umMatch.campo || 'Por confirmar',
+            enlace_ubicacion:umMatch.campo ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(umMatch.campo)}` : '',
+            local_visitante:umLocal ? 'Local' : 'Visitante',jugadores_convocados,
+            entrenador_email:'sistema@cdbustarviejo.es',entrenador_nombre:'Sistema automático',
+            publicada:false,notificaciones_enviadas:false,
+            descripcion:`Borrador creado automáticamente desde RFFM${competitionLabel} (Jornada ${umJornada}). Revisa y publica cuando esté lista.`
+          });
+          created.push({categoria:config.categoria,competicion,rival:umRival,jornada:umJornada,fecha:umDate});
+        }
+
         // Find matching convocatoria for this category AND jornada to prevent duplicates
         // ONLY match convocatorias created by the system OR that match this specific jornada+rival
         // Never touch manually-created callups (amistosos, torneos, etc.)
@@ -505,7 +548,7 @@ Deno.serve(async (req) => {
         // --- FASE 4: Auto-create DRAFT (never published, never notified) ---
         // El sistema SOLO crea borradores. JAMÁS publica ni envía notificaciones.
         // El entrenador debe revisar, editar y publicar manualmente.
-        if (!callup && !existingForJornada) {
+        if (!callup && !existingForJornada && !allUpcoming.some(x => x.jornada === jornada)) {
           if (!matchDate) return null; // Can't create without a date
           // Nunca crear borradores de partidos ya pasados (la Federación a veces tarda en subir el resultado)
           if (matchDate < new Date().toISOString().split('T')[0]) return null;
