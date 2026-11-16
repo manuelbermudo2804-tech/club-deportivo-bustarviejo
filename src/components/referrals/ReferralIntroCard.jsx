@@ -9,7 +9,7 @@ import ReferralShareRow from "./ReferralShareRow";
  * Cabecera del programa "Trae un socio amigo": explica en dos líneas cómo
  * participar y recuerda que CUALQUIERA puede hacerse socio.
  */
-export default function ReferralIntroCard({ precio = 25, premio, premioFoto, sorteoFecha, sorteoLugar, onQuieroSerSocio, userEmail, userName, showShare = false }) {
+export default function ReferralIntroCard({ precio = 25, premio, premioFoto, sorteoFecha, sorteoLugar, onQuieroSerSocio, userEmail, userName, showShare = false, isTestMode = false }) {
   return (
     <Card className="border-none shadow-lg overflow-hidden bg-gradient-to-br from-amber-500 via-orange-600 to-rose-600">
       <CardContent className="p-5 text-white">
@@ -46,7 +46,7 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, sor
           </p>
         </div>
 
-        {showShare && <ReferralShareRow userEmail={userEmail} userName={userName} />}
+        {showShare && <ReferralShareRow userEmail={userEmail} userName={userName} isTestMode={isTestMode} />}
 
         <SorteoCountdown fecha={sorteoFecha} lugar={sorteoLugar} />
 
