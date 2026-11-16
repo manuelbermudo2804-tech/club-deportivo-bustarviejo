@@ -82,12 +82,7 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating,
                 ) : (
                   <p className="text-xs text-amber-800">Selecciona un usuario para habilitar el acceso de pruebas.</p>
                 )}
-                <p className="text-xs text-slate-600">El interruptor superior activa el programa real. Este modo de pruebas es independiente.</p>
-                {testerEmail && (
-                  <Button asChild variant="outline" size="sm">
-                    <Link to="/ReferralTestMode">Abrir panel de pruebas</Link>
-                  </Button>
-                )}
+                <p className="text-xs text-slate-600">El usuario seleccionado verá el programa real dentro de la app. Las altas de prueba no crearán socios oficiales ni pasarán por Stripe.</p>
               </div>
             )}
           </section>
