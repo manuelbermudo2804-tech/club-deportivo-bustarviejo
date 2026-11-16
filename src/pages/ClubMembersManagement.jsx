@@ -339,7 +339,7 @@ export default function ClubMembersManagement() {
 
   const handleStatusChange = async (member, newStatus) => {
     // Procesar programa de referidos cuando se marca como PAGADO
-    if (newStatus === "Pagado" && member.referido_por_email && !member.referido_procesado) {
+    if (newStatus === "Pagado" && seasonConfig?.programa_referidos_activo && member.referido_por_email && !member.referido_procesado) {
       try {
         console.log('[Referidos] Procesando referido:', member.nombre_completo);
         
@@ -398,9 +398,16 @@ export default function ClubMembersManagement() {
           rewardData.referred_player_category = relatedPlayers[0].deporte;
         }
         
-        await base44.entities.ReferralReward.create(rewardData);
+        // El alta automática puede haber creado ya el registro de recompensa.
+        // Evitar duplicarlo al confirmar el pago.
+        const existingRewards = await base44.entities.ReferralReward.filter({
+          referred_member_id: member.id
+        });
+        if (!existingRewards || existingRewards.length === 0) {
+          await base44.entities.ReferralReward.create(rewardData);
+        }
         
-        toast.success(`🎁 Premios de referido procesados correctamente`);
+        toast.success(`🎟️ Referido validado correctamente`);
       } catch (error) {
         console.error('[Referidos] Error procesando:', error);
         toast.error('Error procesando programa de referidos');
