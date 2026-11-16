@@ -3,12 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Paperclip, Loader2 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { toast } from "sonner";
-import { useImageUpload } from "../utils/useImageUpload";
+import { uploadChatImage, isChatImage } from "@/components/chat/uploadChatImage";
 
 export default function FileAttachmentButton({ onFileUploaded, disabled = false }) {
-  const [uploadingImage, uploadFile] = useImageUpload();
-  const [uploadingOther, setUploadingOther] = React.useState(false);
-  const uploading = uploadingImage || uploadingOther;
+  const [uploading, setUploading] = React.useState(false);
   const fileInputRef = useRef(null);
 
   const handleFileSelect = async (e) => {
@@ -23,31 +21,32 @@ export default function FileAttachmentButton({ onFileUploaded, disabled = false 
       return;
     }
 
-    const isImage = file.type?.startsWith('image/') || /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name || '');
+    const isImage = isChatImage(file);
 
     try {
       let fileUrl, fileName, fileType;
       if (isImage) {
-        // Imágenes → cascada robusta con reintentos
-        fileUrl = await uploadFile(file);
-        if (!fileUrl) return; // el hook ya muestra el error
+        // Imágenes → detección de dispositivo y cascada adaptativa compartida
+        setUploading(true);
+        const image = await uploadChatImage(file);
+        fileUrl = image.url;
         fileName = file.name;
-        fileType = 'image/jpeg';
+        fileType = image.tipo || 'image/jpeg';
       } else {
         // Otros archivos → subida directa
-        setUploadingOther(true);
+        setUploading(true);
         const { file_url } = await base44.integrations.Core.UploadFile({ file });
         fileUrl = file_url;
         fileName = file.name;
         fileType = file.type;
-        setUploadingOther(false);
       }
       onFileUploaded({ url: fileUrl, nombre: fileName, tipo: fileType });
       if (!isImage) toast.success("Archivo subido");
     } catch (error) {
-      setUploadingOther(false);
       toast.error(error?.message || "Error al subir archivo");
       console.error(error);
+    } finally {
+      setUploading(false);
     }
   };
 

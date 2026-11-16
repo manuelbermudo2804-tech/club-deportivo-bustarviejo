@@ -82,25 +82,6 @@ export default function StaffChat() {
   const messagesContainerRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Lee dimensiones sin canvas ni createImageBitmap: compatible con móviles antiguos.
-  const readStaffImageDimensions = (file) => new Promise((resolve) => {
-    try {
-      const objectUrl = URL.createObjectURL(file);
-      const image = new Image();
-      image.onload = () => {
-        resolve({ width: image.naturalWidth || image.width || null, height: image.naturalHeight || image.height || null });
-        URL.revokeObjectURL(objectUrl);
-      };
-      image.onerror = () => {
-        URL.revokeObjectURL(objectUrl);
-        resolve({ width: null, height: null });
-      };
-      image.src = objectUrl;
-    } catch {
-      resolve({ width: null, height: null });
-    }
-  });
-
   // Sistema común adaptativo. No decodifica la foto en el móvil para medirla.
   const uploadStaffChatImage = async (file) => {
     const result = await uploadChatImage(file);
