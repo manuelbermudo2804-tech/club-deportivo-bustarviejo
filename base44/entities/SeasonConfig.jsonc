@@ -178,66 +178,6 @@
       "default": true,
       "description": "Permitir a los padres compartir su enlace de referidos por WhatsApp"
     },
-    "tier_1_activo": {
-      "type": "boolean",
-      "default": true
-    },
-    "tier_3_activo": {
-      "type": "boolean",
-      "default": true
-    },
-    "tier_5_activo": {
-      "type": "boolean",
-      "default": true
-    },
-    "tier_10_activo": {
-      "type": "boolean",
-      "default": true
-    },
-    "tier_15_activo": {
-      "type": "boolean",
-      "default": true
-    },
-    "referidos_premio_1": {
-      "type": "number",
-      "default": 5
-    },
-    "referidos_premio_3": {
-      "type": "number",
-      "default": 15
-    },
-    "referidos_sorteo_3": {
-      "type": "number",
-      "default": 1
-    },
-    "referidos_premio_5": {
-      "type": "number",
-      "default": 25
-    },
-    "referidos_sorteo_5": {
-      "type": "number",
-      "default": 3
-    },
-    "referidos_premio_10": {
-      "type": "number",
-      "default": 50
-    },
-    "referidos_sorteo_10": {
-      "type": "number",
-      "default": 5
-    },
-    "referidos_premio_15": {
-      "type": "number",
-      "default": 50
-    },
-    "referidos_sorteo_15": {
-      "type": "number",
-      "default": 10
-    },
-    "referidos_premio_hotel": {
-      "type": "boolean",
-      "default": true
-    },
     "sorteo_premio_principal_nombre": {
       "type": "string",
       "description": "Nombre del premio principal del sorteo de referidos (ej: PlayStation 5)"
