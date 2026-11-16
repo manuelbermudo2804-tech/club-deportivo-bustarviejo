@@ -27,7 +27,8 @@ export function useFetchUser(location) {
   // Detectar inmediatamente si es página pública (antes de cualquier async)
   const lowerPathInit = typeof window !== 'undefined' ? window.location.pathname.toLowerCase() : '';
   const isPublicPageRef = useRef(
-    lowerPathInit.includes('clubmembership') ||\n    lowerPathInit.includes('referraltestmode') || 
+    lowerPathInit.includes('clubmembership') ||
+    lowerPathInit.includes('referraltestmode') || 
     lowerPathInit.includes('validateadmininvitation') ||
     lowerPathInit.includes('pwaentry') ||
     lowerPathInit.includes('joinreferral') ||
@@ -42,7 +43,8 @@ export function useFetchUser(location) {
 
   const executeFetch = async () => {
     const lowerPath = location.pathname.toLowerCase();
-    const isPublicPage = lowerPath.includes('clubmembership') ||\n                         lowerPath.includes('referraltestmode') || 
+    const isPublicPage = lowerPath.includes('clubmembership') ||
+                         lowerPath.includes('referraltestmode') || 
                          lowerPath.includes('validateadmininvitation') ||
                          lowerPath.includes('pwaentry') ||
                          lowerPath.includes('joinreferral') ||
