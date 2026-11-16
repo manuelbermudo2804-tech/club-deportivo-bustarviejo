@@ -34,8 +34,6 @@ export default function ReferralManagement() {
   const [winner, setWinner] = useState(null);
   const [activeTab, setActiveTab] = useState("ranking");
   const [newReferral, setNewReferral] = useState({ referrer_email: "", referred_name: "" });
-  const [simulationResult, setSimulationResult] = useState(null);
-  const [runningSimulation, setRunningSimulation] = useState(false);
   
   // AI Analysis State
   const [aiReport, setAiReport] = useState(null);
@@ -265,72 +263,6 @@ export default function ReferralManagement() {
   const umbralAlcanzado = umbralPapeletas === 0 || totalRaffleEntries >= umbralPapeletas;
   const papeletasFaltantes = Math.max(0, umbralPapeletas - totalRaffleEntries);
 
-  // Simulación local: no crea ni modifica registros en Base44.
-  const runReferralSimulation = () => {
-    setRunningSimulation(true);
-    try {
-      const referrer = users.find((u) => u.email);
-      if (!referrer) throw new Error("No hay ningún usuario con email para utilizar como socio de prueba.");
-
-      const usedNumbers = new Set(papeletasTemporada.map((r) => String(r.numero_papeleta)));
-      const simulatedHistory = [];
-      const checks = [];
-      const testReferrals = [
-        { id: "SIM-AUTO-001", name: "Socio de prueba automático", flow: "Automático" },
-        { id: "SIM-MANUAL-001", name: "Socio de prueba manual", flow: "Manual" },
-      ];
-
-      const createSimulatedTicket = (referral) => {
-        if (simulatedHistory.some((r) => r.referido_id === referral.id)) return null;
-        let ticket = "";
-        for (let attempt = 0; attempt < 100; attempt += 1) {
-          const candidate = String(Math.floor(Math.random() * 10000)).padStart(4, "0");
-          if (!usedNumbers.has(candidate)) {
-            ticket = candidate;
-            break;
-          }
-        }
-        if (!ticket) throw new Error("No se pudo generar un número de papeleta único.");
-        usedNumbers.add(ticket);
-        const record = {
-          referido_id: referral.id,
-          referido_nombre: referral.name,
-          referidor_email: referrer.email,
-          referidor_nombre: referrer.full_name || referrer.email,
-          temporada: seasonConfig?.temporada || "Prueba",
-          estado: "activo",
-          sorteos_otorgados: 1,
-          numero_papeleta: ticket,
-          origen: referral.flow,
-        };
-        simulatedHistory.push(record);
-        return record;
-      };
-
-      testReferrals.forEach((referral) => {
-        const record = createSimulatedTicket(referral);
-        checks.push({ label: `${referral.flow}: crea una papeleta`, ok: Boolean(record), detail: record ? `N.º ${record.numero_papeleta}` : "No creada" });
-      });
-
-      const duplicateAttempt = createSimulatedTicket(testReferrals[0]);
-      checks.push({ label: "Evita duplicar el mismo referido", ok: duplicateAttempt === null && simulatedHistory.length === 2, detail: duplicateAttempt === null ? "El segundo intento se bloquea" : "Se habría duplicado" });
-
-      const rankingCount = simulatedHistory.filter((r) => r.referidor_email === referrer.email).length;
-      const raffleEntries = simulatedHistory.reduce((sum, r) => sum + r.sorteos_otorgados, 0);
-      checks.push({ label: "Ranking: cuenta los dos referidos", ok: rankingCount === 2, detail: `${rankingCount} referidos para ${referrer.full_name || referrer.email}` });
-      checks.push({ label: "Sorteo: hay dos papeletas elegibles", ok: raffleEntries === 2 && simulatedHistory.every((r) => r.numero_papeleta), detail: `${raffleEntries} papeletas disponibles` });
-
-      const winnerRecord = simulatedHistory[Math.floor(Math.random() * simulatedHistory.length)];
-      checks.push({ label: "Sorteo: identifica al propietario", ok: Boolean(winnerRecord?.referidor_email), detail: winnerRecord ? `Ganaría ${winnerRecord.referidor_nombre} con el n.º ${winnerRecord.numero_papeleta}` : "Sin ganador" });
-
-      setSimulationResult({ checks, referrer: referrer.full_name || referrer.email, date: new Date().toLocaleString("es-ES"), passed: checks.every((c) => c.ok) });
-    } catch (error) {
-      setSimulationResult({ checks: [{ label: "Ejecución de la simulación", ok: false, detail: error.message }], passed: false, date: new Date().toLocaleString("es-ES") });
-    } finally {
-      setRunningSimulation(false);
-    }
-  };
-
   // Exportar datos
   const exportData = () => {
     const data = filteredUsers.map(u => ({
@@ -447,40 +379,6 @@ export default function ReferralManagement() {
               </Alert>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Simulación aislada: utiliza datos ficticios y solo estado local */}
-      <Card className="rounded-2xl border-2 border-dashed border-orange-300 bg-orange-50/60 shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="flex items-center gap-2 text-slate-900">
-            <CheckCircle2 className="h-5 w-5 text-orange-600" />
-            Prueba del sistema (sin pagos ni cambios reales)
-          </CardTitle>
-          <p className="text-sm text-slate-600">Ejecuta dos altas ficticias —una automática y otra manual—, comprueba papeletas, duplicados, ranking y sorteo. Los datos solo existen durante esta prueba y no se guardan.</p>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <Button onClick={runReferralSimulation} disabled={runningSimulation || users.length === 0} className="gap-2 bg-orange-600 hover:bg-orange-700">
-            {runningSimulation ? "Ejecutando pruebas…" : "Ejecutar prueba completa"}
-          </Button>
-          {simulationResult && (
-            <div className="space-y-2 rounded-xl border border-slate-200 bg-white p-3">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <p className="font-semibold text-slate-900">Resultado · {simulationResult.date}</p>
-                <Badge className={simulationResult.passed ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}>
-                  {simulationResult.passed ? "Todas las comprobaciones superadas" : "Hay comprobaciones fallidas"}
-                </Badge>
-              </div>
-              {simulationResult.referrer && <p className="text-xs text-slate-500">Socio utilizado como referencia: {simulationResult.referrer}</p>}
-              {simulationResult.checks.map((check, index) => (
-                <div key={index} className="flex items-start gap-2 text-sm">
-                  {check.ok ? <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-green-600" /> : <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />}
-                  <div><p className="font-medium text-slate-800">{check.label}</p><p className="text-slate-500">{check.detail}</p></div>
-                </div>
-              ))}
-              <p className="border-t pt-2 text-xs text-slate-500">Prueba aislada de la lógica de papeletas y sorteo. No ejecuta el cobro ni modifica socios, pagos, histórico o ranking reales.</p>
-            </div>
-          )}
         </CardContent>
       </Card>
 
