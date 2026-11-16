@@ -94,6 +94,8 @@ Deno.serve(async (req) => {
       const ratio = Math.min(MAX_SIDE / targetW, MAX_SIDE / targetH);
       targetW = Math.round(targetW * ratio);
       targetH = Math.round(targetH * ratio);
+      outputW = targetW;
+      outputH = targetH;
     }
 
     // Draw onto OffscreenCanvas and export as JPEG
