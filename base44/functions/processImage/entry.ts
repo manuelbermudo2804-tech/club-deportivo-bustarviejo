@@ -52,15 +52,18 @@ Deno.serve(async (req) => {
       fileBlob = new Blob([body], { type: ct });
     }
 
-    // Validate size (double check — frontend limits to 5MB)
-    if (fileBlob.size > 10 * 1024 * 1024) {
+    // Validate size: el cliente limita a 15 MB; el servidor asume el procesamiento pesado.
+    if (fileBlob.size > 15 * 1024 * 1024) {
       return Response.json({
         error: 'Archivo demasiado grande',
-        userMessage: 'El archivo supera los 10MB. Reduce la resolución de la cámara.'
+        userMessage: 'El archivo supera los 15MB. Selecciona una foto más pequeña.'
       }, { status: 413 });
     }
 
-    const MAX_SIDE = 1500;
+    const requestedMaxSide = Number(new URL(req.url).searchParams.get('max_side')) || 1500;
+    const requestedQuality = Number(new URL(req.url).searchParams.get('quality')) || 75;
+    const MAX_SIDE = Math.max(400, Math.min(1800, requestedMaxSide));
+    const QUALITY = Math.max(35, Math.min(85, requestedQuality)) / 100;
 
     // Decode image using createImageBitmap (available in Deno Deploy)
     let bitmap;
@@ -104,31 +107,34 @@ Deno.serve(async (req) => {
     ctx.drawImage(bitmap, 0, 0, targetW, targetH);
     bitmap.close();
 
-    // First pass: quality 0.75
-    let jpegBlob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.75 });
-    console.log(`[processImage] Pass 1: ${targetW}x${targetH}, ${(jpegBlob.size/1024).toFixed(0)}KB`);
-
-    // If still > 2MB, recompress at lower quality
-    if (jpegBlob.size > 2 * 1024 * 1024) {
-      jpegBlob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.60 });
-      console.log(`[processImage] Pass 2 (q=60): ${(jpegBlob.size/1024).toFixed(0)}KB`);
+    // Escalera adaptativa en servidor: reduce calidad y dimensiones solo si hace falta.
+    const stages = [
+      { scale: 1, quality: QUALITY },
+      { scale: 0.85, quality: Math.max(0.50, QUALITY - 0.10) },
+      { scale: 0.70, quality: Math.max(0.42, QUALITY - 0.18) },
+      { scale: 0.55, quality: Math.max(0.35, QUALITY - 0.25) },
+    ];
+    let jpegBlob;
+    let outputW = targetW;
+    let outputH = targetH;
+    for (const stage of stages) {
+      const w = Math.max(1, Math.round(targetW * stage.scale));
+      const h = Math.max(1, Math.round(targetH * stage.scale));
+      let stageCanvas = canvas;
+      if (w !== targetW || h !== targetH) {
+        stageCanvas = new OffscreenCanvas(w, h);
+        const stageCtx = stageCanvas.getContext('2d');
+        if (!stageCtx) continue;
+        stageCtx.drawImage(canvas, 0, 0, w, h);
+      }
+      const candidate = await stageCanvas.convertToBlob({ type: 'image/jpeg', quality: stage.quality });
+      console.log('[processImage] ' + w + 'x' + h + ', q=' + stage.quality + ', ' + Math.round(candidate.size/1024) + 'KB');
+      jpegBlob = candidate;
+      outputW = w;
+      outputH = h;
+      if (candidate.size <= 2 * 1024 * 1024) break;
     }
-
-    // If STILL > 2MB, reduce dimensions further
-    if (jpegBlob.size > 2 * 1024 * 1024) {
-      const smallerW = Math.round(targetW * 0.7);
-      const smallerH = Math.round(targetH * 0.7);
-      outputW = smallerW;
-      outputH = smallerH;
-      const canvas2 = new OffscreenCanvas(smallerW, smallerH);
-      const ctx2 = canvas2.getContext('2d');
-      // Re-decode from the first jpeg to avoid re-decoding original
-      const tmpBitmap = await createImageBitmap(jpegBlob);
-      ctx2.drawImage(tmpBitmap, 0, 0, smallerW, smallerH);
-      tmpBitmap.close();
-      jpegBlob = await canvas2.convertToBlob({ type: 'image/jpeg', quality: 0.60 });
-      console.log(`[processImage] Pass 3 (${smallerW}x${smallerH}, q=60): ${(jpegBlob.size/1024).toFixed(0)}KB`);
-    }
+    if (!jpegBlob || jpegBlob.size === 0) throw new Error('No se pudo generar la imagen comprimida');
 
     // Create File for upload
     const fileName = originalName.replace(/\.[^.]+$/, '.jpg');
