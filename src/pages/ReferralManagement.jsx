@@ -330,10 +330,6 @@ export default function ReferralManagement() {
             <UserPlus className="w-4 h-4" />
             Añadir Socio Amigo
           </Button>
-          <Button onClick={() => { window.location.href = "/ReferralTestMode"; }} variant="outline" className="gap-2 rounded-xl border-orange-300/40 bg-orange-500/20 text-white hover:bg-orange-500/30">
-            <Play className="w-4 h-4" />
-            Modo de pruebas
-          </Button>
           <Button onClick={exportData} variant="outline" className="gap-2 rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15">
             <Download className="w-4 h-4" />
             Exportar CSV
