@@ -1096,7 +1096,7 @@ export default function StaffChat() {
                           const files = attachments.filter(f => !f.tipo?.startsWith('image/') && !f.tipo?.startsWith('audio/'));
                           return (
                             <>
-                              {images.length > 0 && <div className="mt-1 space-y-1"><ChatImageBubble images={images} isMine={isMine} />{images.map((image, idx) => (image.ancho_original || image.alto_original || image.tamano_original) ? <p key={idx} className="text-[10px] opacity-60 px-1">{image.ancho_original && image.alto_original ? `Original: ${image.ancho_original}×${image.alto_original}` : "Resolución original no disponible"}{image.ancho_final && image.alto_final ? ` → Chat: ${image.ancho_final}×${image.alto_final}` : ""}{image.tamano_original ? ` · ${(image.tamano_original / 1024).toFixed(0)} KB` : ""}{image.tamano_final ? ` → ${(image.tamano_final / 1024).toFixed(0)} KB` : ""}</p> : null)}</div>}
+                              {images.length > 0 && <div className="mt-1"><ChatImageBubble images={images} isMine={isMine} /></div>}
                               {audios.map((file, idx) => <div key={`a-${idx}`} className="mt-1"><ChatAudioBubble url={file.url} duration={file.duracion} isMine={isMine} /></div>)}
                               {files.length > 0 && <div className="mt-1 space-y-1">{files.map((file, idx) => (
                                 <a key={idx} href={file.url} target="_blank" rel="noopener noreferrer" className={`flex items-center gap-2 text-xs p-2 rounded ${isMine ? 'bg-black/5' : 'bg-slate-100'}`}>
