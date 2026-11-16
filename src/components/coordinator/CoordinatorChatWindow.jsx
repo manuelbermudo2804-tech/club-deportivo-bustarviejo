@@ -23,6 +23,7 @@ import ChatImageBubble from "../chat/ChatImageBubble";
 import ChatAudioBubble from "../chat/ChatAudioBubble";
 import { useAudioRecording } from "../chat/useAudioRecording";
 import { mentionCandidates } from "@/lib/chatMentions";
+import { uploadChatImage, isChatImage } from "@/components/chat/uploadChatImage";
 
 const REACTIONS = ["👍", "❤️", "✅", "👏", "🎉"];
 
@@ -188,79 +189,28 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
     }, 3000);
   };
 
-  const compressImage = (file) => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          const MAX_WIDTH = 800;
-          const MAX_HEIGHT = 800;
-          let width = img.width;
-          let height = img.height;
-
-          if (width > height) {
-            if (width > MAX_WIDTH) {
-              height *= MAX_WIDTH / width;
-              width = MAX_WIDTH;
-            }
-          } else {
-            if (height > MAX_HEIGHT) {
-              width *= MAX_HEIGHT / height;
-              height = MAX_HEIGHT;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-
-          canvas.toBlob((blob) => {
-            resolve(new File([blob], file.name, { type: 'image/jpeg' }));
-          }, 'image/jpeg', 0.7);
-        };
-        img.src = e.target.result;
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
   const handleFileUpload = async (e) => {
-    const files = Array.from(e.target.files);
+    const files = Array.from(e.target.files || []);
     setUploading(true);
-
     try {
       const uploaded = [];
       for (const file of files) {
-        if (file.type.startsWith('video/')) {
+        if (file.type?.startsWith("video/")) {
           toast.error("❌ No se pueden enviar videos");
           continue;
         }
-        
-        let fileToUpload = file;
-        if (file.type.startsWith('image/')) {
-          fileToUpload = await compressImage(file);
+        if (isChatImage(file)) {
+          const image = await uploadChatImage(file);
+          uploaded.push({ url: image.url, nombre: file.name, tipo: "image/jpeg", tamano: file.size });
+        } else {
+          const { file_url } = await base44.integrations.Core.UploadFile({ file });
+          uploaded.push({ url: file_url, nombre: file.name, tipo: file.type || "application/octet-stream", tamano: file.size });
         }
-        
-        const { file_url } = await base44.integrations.Core.UploadFile({ file: fileToUpload });
-        // Si el archivo original era imagen, forzar tipo 'image/jpeg' para que se renderice como burbuja
-        const isImage = file.type?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp|heic|heif)$/i.test(file.name || '');
-        uploaded.push({
-          url: file_url,
-          nombre: file.name,
-          tipo: isImage ? 'image/jpeg' : (file.type || 'application/octet-stream'),
-          tamano: file.size
-        });
       }
-      if (uploaded.length > 0) {
-        toast.success("Archivos adjuntados");
-        return uploaded;
-      }
-      return [];
+      if (uploaded.length) toast.success("Archivos adjuntados");
+      return uploaded;
     } catch (error) {
-      toast.error("Error al subir archivos");
+      toast.error(error?.message || "Error al subir archivos");
       return [];
     } finally {
       setUploading(false);
@@ -270,21 +220,13 @@ export default function CoordinatorChatWindow({ conversation, user, onClose }) {
   const handleCameraCapture = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return null;
-    
     setUploading(true);
     try {
-      const compressedFile = await compressImage(file);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: compressedFile });
-      const fileObj = {
-        url: file_url,
-        nombre: file.name,
-        tipo: file.type,
-        tamano: file.size
-      };
+      const image = await uploadChatImage(file);
       toast.success("Foto capturada");
-      return fileObj;
+      return { url: image.url, nombre: file.name, tipo: "image/jpeg", tamano: file.size };
     } catch (error) {
-      toast.error("Error al capturar foto");
+      toast.error(error?.message || "Error al capturar foto");
       return null;
     } finally {
       setUploading(false);

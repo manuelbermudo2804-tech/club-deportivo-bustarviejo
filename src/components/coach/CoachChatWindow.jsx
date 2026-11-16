@@ -31,6 +31,7 @@ import DateSeparator from "../chat/DateSeparator";
 import NewMessageButton from "../chat/NewMessageButton";
 import { groupConsecutiveMessages } from "../chat/MessageGrouping";
 import { mentionCandidates } from "@/lib/chatMentions";
+import { uploadChatImage } from "@/components/chat/uploadChatImage";
 import { newClientId, isNetworkError, queueChatMessage } from "@/lib/chatQueue";
 import ChatPendingBanner from "../chat/ChatPendingBanner";
 
@@ -248,7 +249,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
           continue;
         }
         
-        const url = await uploadFile(file);
+        const url = file.type?.startsWith("image/") ? (await uploadChatImage(file)).url : await uploadFile(file);
         if (url) {
           uploaded.push({
             url,
@@ -277,7 +278,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
     
     setUploading(true);
     try {
-      const url = await uploadFile(file);
+      const url = file.type?.startsWith("image/") ? (await uploadChatImage(file)).url : await uploadFile(file);
       if (!url) return null;
       const fileObj = {
         url,

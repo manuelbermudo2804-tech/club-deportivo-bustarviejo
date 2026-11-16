@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, Share2, AlertCircle, ImageIcon } from "lucide-react";
 import { readSharedFiles, clearSharedFiles } from "../components/share/sharedFilesStore";
 import ChatTargetSelector from "../components/share/ChatTargetSelector";
+import { uploadChatImage } from "@/components/chat/uploadChatImage";
 
 /**
  * Página que se abre cuando el usuario comparte imágenes a la PWA desde Android.
@@ -57,12 +58,12 @@ export default function ShareReceiver() {
         const urls = [];
         for (const file of files) {
           try {
-            const { file_url } = await base44.integrations.Core.UploadFile({ file });
-            if (file_url) {
+            const image = await uploadChatImage(file);
+            if (image?.url) {
               urls.push({
-                url: file_url,
+                url: image.url,
                 nombre: file.name || "imagen.jpg",
-                tipo: file.type || "image/jpeg",
+                tipo: "image/jpeg",
                 tamano: file.size,
               });
             }

@@ -29,6 +29,7 @@ import NewMessageButton from "../components/chat/NewMessageButton";
 import ChatLocationDialog from "../components/chat/ChatLocationDialog";
 import ChatPollDialog from "../components/chat/ChatPollDialog";
 import { mentionCandidates } from "@/lib/chatMentions";
+import { uploadChatImage } from "@/components/chat/uploadChatImage";
 import useMentionNames from "@/hooks/useMentionNames";
 import { newClientId, isNetworkError, queueChatMessage } from "@/lib/chatQueue";
 import ChatPendingBanner from "@/components/chat/ChatPendingBanner";
@@ -434,7 +435,7 @@ export default function ParentCoachChat() {
       for (const file of files) {
         const isImage = file.type?.startsWith('image/') || /\.(jpe?g|png|webp|heic|heif)$/i.test(file.name || '');
         if (isImage) {
-          const url = await uploadFile(file);
+          const url = (await uploadChatImage(file)).url;
           if (url) uploaded.push({ url, nombre: file.name, tipo: 'image/jpeg', tamano: file.size });
         } else {
           const { file_url } = await base44.integrations.Core.UploadFile({ file });
@@ -456,7 +457,7 @@ export default function ParentCoachChat() {
     if (!file) return null;
     setUploading(true);
     try {
-      const url = await uploadFile(file);
+      const url = (await uploadChatImage(file)).url;
       if (!url) return null;
       toast.success("Foto capturada");
       return { url, nombre: file.name, tipo: 'image/jpeg', tamano: file.size };
