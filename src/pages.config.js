@@ -113,6 +113,7 @@ export const PAGES = {
     "PlayerStatsPreview": lazy(() => import('./pages/PlayerStatsPreview')),
     "PwaEntry": lazy(() => import('./pages/PwaEntry')),
     "ReferralManagement": lazy(() => import('./pages/ReferralManagement')),
+    "ReferralTestMode": lazy(() => import('./pages/ReferralTestMode')),
     "Reminders": lazy(() => import('./pages/Reminders')),
     "RenewalDashboard": lazy(() => import('./pages/RenewalDashboard')),
     "RffmMonitor": lazy(() => import('./pages/RffmMonitor')),
