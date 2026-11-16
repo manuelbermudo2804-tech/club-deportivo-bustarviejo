@@ -73,14 +73,23 @@ Deno.serve(async (req) => {
       const uploadResult = await base44.integrations.Core.UploadFile({ file: fileBlob });
       return Response.json({
         file_url: uploadResult.file_url,
+        original_width: null,
+        original_height: null,
+        output_width: null,
+        output_height: null,
+        size_bytes: fileBlob.size,
         size_kb: Math.round(fileBlob.size / 1024),
         note: 'uploaded_without_processing'
       });
     }
 
     // Calculate target dimensions (fit inside MAX_SIDE, keep aspect ratio)
+    const originalW = bitmap.width;
+    const originalH = bitmap.height;
     let targetW = bitmap.width;
     let targetH = bitmap.height;
+    let outputW = targetW;
+    let outputH = targetH;
     if (targetW > MAX_SIDE || targetH > MAX_SIDE) {
       const ratio = Math.min(MAX_SIDE / targetW, MAX_SIDE / targetH);
       targetW = Math.round(targetW * ratio);
@@ -107,6 +116,8 @@ Deno.serve(async (req) => {
     if (jpegBlob.size > 2 * 1024 * 1024) {
       const smallerW = Math.round(targetW * 0.7);
       const smallerH = Math.round(targetH * 0.7);
+      outputW = smallerW;
+      outputH = smallerH;
       const canvas2 = new OffscreenCanvas(smallerW, smallerH);
       const ctx2 = canvas2.getContext('2d');
       // Re-decode from the first jpeg to avoid re-decoding original
@@ -126,6 +137,11 @@ Deno.serve(async (req) => {
 
     return Response.json({
       file_url,
+      original_width: originalW,
+      original_height: originalH,
+      output_width: outputW,
+      output_height: outputH,
+      size_bytes: jpegBlob.size,
       size_kb: Math.round(jpegBlob.size / 1024)
     });
 
