@@ -617,7 +617,8 @@ export default function ClubMembership() {
   const isPlayerUser = (user?.tipo_panel === 'jugador_adulto') || (user?.es_jugador === true);
   // Los jugadores adultos SÍ pueden darse de alta como socios; solo limitamos que no creen NUEVOS jugadores.
 
-  const programaReferidosActivo = seasonConfig?.programa_referidos_activo === true;
+  const modoPruebaReferidos = seasonConfig?.programa_referidos_modo_prueba === true && user?.email?.toLowerCase() === seasonConfig?.programa_referidos_usuario_prueba_email?.toLowerCase();
+  const programaReferidosActivo = seasonConfig?.programa_referidos_activo === true || modoPruebaReferidos;
 
   const totalSocios = allMemberships.filter(m => m.temporada === seasonConfig?.temporada && m.estado_pago === 'Pagado').length;
 
@@ -643,10 +644,9 @@ export default function ClubMembership() {
     <>
       <InvitationPWAGuide />
       <div className="mx-auto box-border w-full min-w-0 max-w-[1600px] overflow-x-hidden px-3 pb-24 pt-4 sm:px-5 lg:px-8 lg:pt-7">
-        {user?.email && seasonConfig?.programa_referidos_modo_prueba === true && seasonConfig?.programa_referidos_usuario_prueba_email?.toLowerCase() === user.email.toLowerCase() && (
-          <div className="mb-4 flex flex-col gap-2 rounded-xl border border-blue-200 bg-blue-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <div><p className="font-semibold text-blue-900">Tienes habilitado el modo de pruebas</p><p className="text-sm text-blue-800">Puedes probar Trae un Socio Amigo sin afectar a los socios reales.</p></div>
-            <Button asChild className="bg-blue-700 hover:bg-blue-800"><Link to="/ReferralTestMode">Entrar en modo de pruebas</Link></Button>
+        {modoPruebaReferidos && (
+          <div className="mb-4 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900">
+            <strong>Modo de pruebas activo para esta cuenta.</strong> Ves el programa real; las altas de prueba no se incorporan al censo oficial ni generan cobros.
           </div>
         )}
         <div className="min-h-screen min-w-0 space-y-5 overflow-x-hidden sm:space-y-6" style={{ overflowX: 'hidden' }}> 
@@ -744,7 +744,7 @@ export default function ClubMembership() {
           </div>
           
           {/* Stats de referidos del usuario - Solo para padres con hijos */}
-          {currentUser && seasonConfig?.programa_referidos_activo && (
+          {currentUser && programaReferidosActivo && !modoPruebaReferidos && (
             <div className="border-t border-slate-200 pt-4 mt-4">
               <p className="text-center text-sm font-semibold text-slate-700 mb-3">🎁 Tu Programa "Trae un Socio Amigo"</p>
               <div className="grid min-w-0 grid-cols-1 gap-3 text-center sm:grid-cols-2">
