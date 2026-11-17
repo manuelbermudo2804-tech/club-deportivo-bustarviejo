@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import ReactMarkdown from 'react-markdown';
 import { toast } from "sonner";
-import { generatePapeletaNumber } from "../components/referrals/generatePapeletaNumber";
 
 
 export default function ReferralManagement() {
