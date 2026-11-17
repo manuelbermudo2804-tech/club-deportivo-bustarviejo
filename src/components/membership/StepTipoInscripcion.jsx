@@ -4,7 +4,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Gift } from "lucide-react";
-import { Input } from "@/components/ui/input";
 
 export default function StepTipoInscripcion({
   formData,
@@ -81,47 +80,13 @@ export default function StepTipoInscripcion({
         </div>
       </div>
 
-      {/* Campo de quién te invitó - SOLO para usuarios externos */}
       {seasonConfig?.programa_referidos_activo && isExternalUser && (
-        <div
-          className={`p-4 rounded-xl border-2 ${
-            invitadoPor
-              ? "bg-gradient-to-r from-green-50 to-green-100 border-green-300"
-              : "bg-gradient-to-r from-purple-50 to-pink-50 border-purple-200"
-          }`}
-        >
-          <div className="flex items-start gap-3">
-            <Gift className={`w-6 h-6 mt-1 flex-shrink-0 ${invitadoPor ? "text-green-600" : "text-purple-600"}`} />
-            <div className="flex-1">
-              {invitadoPor ? (
-                <>
-                  <Label className="font-semibold text-green-900 flex items-center gap-2">
-                    ✅ ¡Te ha invitado {invitadoPor.full_name}!
-                  </Label>
-                  <p className="text-xs text-green-700 mt-1 mb-2">
-                    Al registrarte, {invitadoPor.full_name} recibirá su premio automáticamente 🎉
-                  </p>
-                </>
-              ) : (
-                <>
-                  <Label htmlFor="referido_por" className="font-semibold text-purple-900 flex items-center gap-2">
-                    🎁 ¿Quién te ha invitado a hacerte socio?
-                  </Label>
-                  <p className="text-xs text-purple-700 mt-1 mb-2">
-                    Si un amigo o familiar te invitó, escribe su nombre para que reciba su premio
-                  </p>
-                  <Input
-                    id="referido_por"
-                    value={formData.referido_por}
-                    onChange={(e) => setFormData({ ...formData, referido_por: e.target.value })}
-                    placeholder="Nombre de quien te invitó (opcional)"
-                    className="bg-white"
-                  />
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        <Alert className="bg-purple-50 border-purple-200">
+          <Gift className="w-4 h-4 text-purple-600" />
+          <AlertDescription className="text-purple-800 text-sm">
+            Para que la invitación quede registrada, debes acceder desde el enlace personal que te han enviado. Escribir un nombre no permite validar la invitación.
+          </AlertDescription>
+        </Alert>
       )}
 
       {/* Mensaje informativo para padres con hijos */}
@@ -134,7 +99,7 @@ export default function StepTipoInscripcion({
                 🎁 ¡Este socio se sumará a tu programa de referidos!
               </Label>
               <p className="text-xs text-green-700 mt-1">
-                Al registrar este nuevo socio desde tu panel, recibirás automáticamente tu crédito en ropa y participaciones en sorteos 🎉
+                Al registrar este nuevo socio desde tu cuenta, recibirás una papeleta para el sorteo cuando su pago esté confirmado 🎟️
               </p>
             </div>
           </div>
