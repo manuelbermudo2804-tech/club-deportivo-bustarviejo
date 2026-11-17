@@ -9,7 +9,7 @@ import ReferralShareRow from "./ReferralShareRow";
  * Cabecera del programa "Trae un socio amigo": explica en dos líneas cómo
  * participar y recuerda que CUALQUIERA puede hacerse socio.
  */
-export default function ReferralIntroCard({ precio = 25, premio, premioFoto, premioTexto, sorteoFecha, sorteoLugar, onQuieroSerSocio, userEmail, userName, showShare = false }) {
+export default function ReferralIntroCard({ precio = 25, premio, premioFoto, premioFotos = [], premioTexto, sorteoFecha, sorteoLugar, onQuieroSerSocio, userEmail, userName, showShare = false }) {
   const premioUrl = "https://www.castillatermal.com/hoteles/castilla-y-leon/castilla-termal-monasterio-de-valbuena/";
   return (
     <Card className="border-none shadow-lg overflow-hidden bg-gradient-to-br from-amber-500 via-orange-600 to-rose-600">
@@ -19,6 +19,15 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, pre
           <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-slate-950/80 px-3 py-1.5 text-xs font-black text-white shadow">
             <Ticket className="h-3.5 w-3.5 text-amber-300" /> PREMIO DEL SORTEO
           </div>
+        </div>
+      )}
+      {premioFotos.length > 0 && (
+        <div className="grid grid-cols-3 gap-1.5 bg-slate-950 p-2">
+          {premioFotos.slice(0, 3).map((foto, index) => (
+            <a key={`${foto}-${index}`} href={foto} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-lg focus:outline-none focus:ring-2 focus:ring-white">
+              <img src={foto} alt={`Fotografía ${index + 2} del premio ${premio || "del sorteo"}`} loading="lazy" className="h-24 w-full object-cover transition-transform duration-300 hover:scale-105 sm:h-32" />
+            </a>
+          ))}
         </div>
       )}
       <CardContent className="p-5 text-white">
