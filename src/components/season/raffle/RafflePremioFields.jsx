@@ -116,6 +116,37 @@ export default function RafflePremioFields({ activeSeason, update }) {
         </div>
       </div>
 
+      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-3">
+        <div className="flex items-center justify-between gap-2">
+          <div>
+            <Label className="text-sm font-semibold">Galería adicional</Label>
+            <p className="text-xs text-slate-500 mt-0.5">Añade hasta 3 fotos más para enseñar el premio.</p>
+          </div>
+          <span className="text-xs font-semibold text-slate-500">{fotosAdicionales.length}/3</span>
+        </div>
+        {fotosAdicionales.length > 0 && (
+          <div className="grid grid-cols-3 gap-2">
+            {fotosAdicionales.map((foto, index) => (
+              <div key={`${foto}-${index}`} className="relative">
+                <img src={foto} alt={`Foto adicional ${index + 1}`} className="h-24 w-full rounded-lg border border-slate-200 object-cover" />
+                <Button type="button" variant="destructive" size="sm" className="absolute right-1 top-1 h-6 w-6 p-0" aria-label={`Quitar foto ${index + 1}`} onClick={() => update({ sorteo_premio_fotos: fotosAdicionales.filter((_, i) => i !== index) })}>×</Button>
+              </div>
+            ))}
+          </div>
+        )}
+        {fotosAdicionales.length < 3 && (
+          <label className="inline-flex cursor-pointer">
+            <input type="file" accept="image/*" multiple className="hidden" onChange={handleFotosAdicionalesUpload} />
+            <Button type="button" variant="outline" size="sm" asChild disabled={uploading}>
+              <span className="cursor-pointer">
+                {uploading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Upload className="mr-2 h-4 w-4" />}
+                Añadir fotografías
+              </span>
+            </Button>
+          </label>
+        )}
+      </div>
+
       <div>
         <Label className="text-sm font-medium">Descripción (opcional)</Label>
         <Textarea
