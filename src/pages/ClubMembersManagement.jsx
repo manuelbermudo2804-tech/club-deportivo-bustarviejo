@@ -341,6 +341,15 @@ export default function ClubMembersManagement() {
     // Procesar programa de referidos cuando se marca como PAGADO
     if (newStatus === "Pagado" && seasonConfig?.programa_referidos_activo && member.referido_por_email && !member.referido_procesado) {
       try {
+        const referidorMemberships = await base44.entities.ClubMember.filter({ temporada: member.temporada });
+        const referidorElegible = referidorMemberships.some(s =>
+          String(s.email || '').trim().toLowerCase() === String(member.referido_por_email || '').trim().toLowerCase() &&
+          s.estado_pago === 'Pagado'
+        );
+        if (!referidorElegible) {
+          console.info('[Referidos] No se concede papeleta: el referidor no es socio pagado de la temporada.');
+          return;
+        }
         console.log('[Referidos] Procesando referido:', member.nombre_completo);
         
         // Regla única: una papeleta por cada nuevo socio con pago confirmado.
