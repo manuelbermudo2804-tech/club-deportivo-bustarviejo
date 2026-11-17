@@ -2,16 +2,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@14.21.0';
 
 
-function generateReferralCode(email: string) {
-  const normalized = String(email || '').trim().toLowerCase();
-  let hash = 0;
-  for (let i = 0; i < normalized.length; i++) {
-    hash = ((hash << 5) - hash) + normalized.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
-}
-
 // Endpoint PÚBLICO para que la landing page externa cree un socio + sesión Stripe.
 // Usa asServiceRole porque no hay usuario autenticado (llamada externa).
 Deno.serve(async (req) => {
