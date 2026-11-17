@@ -899,6 +899,7 @@ export default function ClubMembership() {
                   uploadingJustificante={uploadingJustificante}
                   onJustificanteUpload={handleJustificanteUpload}
                   isIframe={isIframe}
+                  referralCode={user?.email ? generateReferralCode(user.email) : ""}
                 />
               )}
 
