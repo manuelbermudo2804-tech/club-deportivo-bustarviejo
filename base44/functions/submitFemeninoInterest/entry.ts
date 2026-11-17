@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
 • Municipio: ${data.municipio || "No indicado"}
 
 📣 ¿Cómo nos conoció?: ${data.como_nos_conocio || "No indicado"}
-${data.referido_por_nombre ? `🎁 REFERIDO POR: ${data.referido_por_nombre} (${data.referido_por_email}) - ¡Aplicar bonus si se inscribe!` : ""}
+${data.referido_por_nombre ? `REFERIDO POR: ${data.referido_por_nombre} (${data.referido_por_email})` : ""}
 
 💬 Mensaje: ${data.mensaje || "Sin mensaje"}
 
