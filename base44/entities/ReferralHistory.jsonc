@@ -69,5 +69,34 @@
     "referidor_email",
     "referidor_nombre",
     "referido_nombre"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.referidor_email": "{{user.email}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }
