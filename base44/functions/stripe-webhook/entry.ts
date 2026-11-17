@@ -1256,61 +1256,54 @@ Deno.serve(async (req) => {
             const referidorNombre = metadata.referidor_nombre || '';
             const referidoEmail = member?.email || email;
             if (member?.estado_pago === 'Pagado' && member?.temporada === temporada && referidorEmail && referidoEmail && referidorEmail.toLowerCase() !== referidoEmail.toLowerCase()) {
-              // El referidor debe ser socio pagado en la misma temporada. Si no se puede verificar, no se concede papeleta.
-              let referidorEsSocioPagado = false;
-              try {
-                const sociosTemporada = await base44.asServiceRole.entities.ClubMember.filter({ temporada });
-                referidorEsSocioPagado = sociosTemporada.some(s =>
-                  String(s.email || '').trim().toLowerCase() === String(referidorEmail).trim().toLowerCase() &&
-                  s.estado_pago === 'Pagado'
-                );
-              } catch (eligibilityErr) {
-                console.error('[stripe-webhook] No se pudo verificar la condición de socio del referidor:', eligibilityErr?.message || eligibilityErr);
+              // Verificación fail-closed: un error de lectura nunca debe conceder ni saltarse una papeleta.
+              const normalizedReferrer = String(referidorEmail).trim().toLowerCase();
+              const normalizedReferred = String(referidoEmail).trim().toLowerCase();
+              const seasonConfigs = await base44.asServiceRole.entities.SeasonConfig.filter({ activa: true });
+              if (seasonConfigs.length !== 1 || seasonConfigs[0].temporada !== temporada) {
+                throw new Error('No se puede validar el referido: debe existir exactamente una temporada activa y coincidir con el pago.');
               }
-
-              // Comprobar que el programa esté activo
-              let programaActivo = false;
-              try {
-                const seasonConfigs = await base44.asServiceRole.entities.SeasonConfig.list();
-                const activeConfig = seasonConfigs.find(c => c.activa === true);
-                programaActivo = activeConfig?.programa_referidos_activo === true;
-              } catch {}
-
-              if (programaActivo && referidorEsSocioPagado) {
-                // Evitar duplicados: ¿ya existe un ReferralHistory para este referido esta temporada?
-                let yaExiste = [];
-                try {
-                  yaExiste = await base44.asServiceRole.entities.ReferralHistory.filter({ temporada, referido_email: referidoEmail });
-                } catch {}
-
-                if (!yaExiste || yaExiste.length === 0) {
-                  // Generar número de papeleta único de 4 dígitos
-                  let usados = new Set();
-                  try {
-                    const existentes = await base44.asServiceRole.entities.ReferralHistory.filter({ temporada });
-                    usados = new Set(existentes.map(r => r.numero_papeleta).filter(Boolean));
-                  } catch {}
-                  let numeroPapeleta = null;
-                  for (let i = 0; i < 50; i++) {
-                    const n = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
-                    if (!usados.has(n)) { numeroPapeleta = n; break; }
-                  }
-                  if (!numeroPapeleta) numeroPapeleta = String(Math.floor(Math.random() * 100000)).padStart(5, '0');
-
-                  await base44.asServiceRole.entities.ReferralHistory.create({
-                    temporada,
-                    referidor_email: referidorEmail,
-                    referidor_nombre: referidorNombre || referidorEmail.split('@')[0],
-                    referido_email: referidoEmail,
-                    referido_nombre: member?.nombre_completo || metadata.nombre_completo || '',
-                    referido_id: member?.id || null,
-                    estado: 'activo',
-                    credito_otorgado: 0,
-                    sorteos_otorgados: 1,
-                    numero_papeleta: numeroPapeleta,
-                    fecha_referido: new Date().toISOString(),
+              if (seasonConfigs[0].programa_referidos_activo !== true) {
+                console.log('[stripe-webhook] Programa de referidos inactivo; no se concede papeleta.');
+              } else {
+                const referidoresPagados = await base44.asServiceRole.entities.ClubMember.filter({
+                  email: normalizedReferrer, temporada, estado_pago: 'Pagado'
+                });
+                if (!referidoresPagados.length) {
+                  console.log('[stripe-webhook] Referidor no elegible; no se concede papeleta.');
+                } else {
+                  // Si la consulta falla, la excepción sube al manejador y Stripe podrá reintentar.
+                  const yaExiste = await base44.asServiceRole.entities.ReferralHistory.filter({
+                    temporada, referido_email: normalizedReferred
                   });
-                  console.log('[stripe-webhook] Papeleta de referido creada', { referidor: referidorEmail, referido: referidoEmail, numero: numeroPapeleta });
+                  if (!yaExiste.length) {
+                    const existentes = await base44.asServiceRole.entities.ReferralHistory.filter({ temporada });
+                    const usados = new Set(existentes.map(r => String(r.numero_papeleta || '').trim()).filter(Boolean));
+                    let numeroPapeleta = null;
+                    const randomBytes = new Uint32Array(1);
+                    for (let i = 0; i < 10000; i++) {
+                      crypto.getRandomValues(randomBytes);
+                      const candidate = String(randomBytes[0] % 10000).padStart(4, '0');
+                      if (!usados.has(candidate)) { numeroPapeleta = candidate; break; }
+                    }
+                    if (!numeroPapeleta) throw new Error('No quedan números de papeleta libres; no se ha concedido ninguna.');
+                    await base44.asServiceRole.entities.ReferralHistory.create({
+                      temporada,
+                      referidor_email: normalizedReferrer,
+                      referidor_nombre: referidorNombre || normalizedReferrer.split('@')[0],
+                      referido_email: normalizedReferred,
+                      referido_nombre: member?.nombre_completo || metadata.nombre_completo || '',
+                      referido_id: member?.id || null,
+                      estado: 'activo',
+                      credito_otorgado: 0,
+                      sorteos_otorgados: 1,
+                      numero_papeleta: numeroPapeleta,
+                      fecha_referido: new Date().toISOString(),
+                    });
+                    console.log('[stripe-webhook] Papeleta de referido creada', { referidor: normalizedReferrer, referido: normalizedReferred, numero: numeroPapeleta });
+                  } else {
+                    console.log('[stripe-webhook] Referido ya registrado; se evita duplicar su papeleta.');
+                  }
                 }
               }
             }
