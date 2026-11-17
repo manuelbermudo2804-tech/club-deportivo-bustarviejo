@@ -70,12 +70,9 @@ export default function FemeninoInterests() {
     }
   });
 
+  // El bonus femenino está retirado definitivamente; no existe acción para reactivarlo.
   const toggleBanner = () => {
-    if (!activeSeason) return;
-    updateSeasonMutation.mutate({
-      id: activeSeason.id,
-      data: { bonus_femenino_activo: !activeSeason.bonus_femenino_activo }
-    });
+    toast.info("El bonus femenino ya no forma parte del programa.");
   };
 
   const filteredInterests = interests.filter(i => {
@@ -137,13 +134,7 @@ export default function FemeninoInterests() {
             </div>
           </div>
           
-          {activeSeason?.bonus_femenino_activo && (
-            <div className="mt-4 p-3 bg-white rounded-xl border border-pink-200">
-              <p className="text-sm text-slate-700">
-                <strong>💰 Bonus configurado:</strong> +{activeSeason.bonus_femenino_credito || 10}€ en ropa + {activeSeason.bonus_femenino_sorteos || 2} participaciones en sorteo por cada jugadora referida que se inscriba.
-              </p>
-            </div>
-          )}
+
         </CardContent>
       </Card>
 
