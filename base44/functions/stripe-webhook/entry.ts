@@ -1256,6 +1256,18 @@ Deno.serve(async (req) => {
             const referidorNombre = metadata.referidor_nombre || '';
             const referidoEmail = member?.email || email;
             if (referidorEmail && referidoEmail && referidorEmail.toLowerCase() !== referidoEmail.toLowerCase()) {
+              // El referidor debe ser socio pagado en la misma temporada. Si no se puede verificar, no se concede papeleta.
+              let referidorEsSocioPagado = false;
+              try {
+                const sociosTemporada = await base44.asServiceRole.entities.ClubMember.filter({ temporada });
+                referidorEsSocioPagado = sociosTemporada.some(s =>
+                  String(s.email || '').trim().toLowerCase() === String(referidorEmail).trim().toLowerCase() &&
+                  s.estado_pago === 'Pagado'
+                );
+              } catch (eligibilityErr) {
+                console.error('[stripe-webhook] No se pudo verificar la condición de socio del referidor:', eligibilityErr?.message || eligibilityErr);
+              }
+
               // Comprobar que el programa esté activo
               let programaActivo = false;
               try {
@@ -1264,7 +1276,7 @@ Deno.serve(async (req) => {
                 programaActivo = activeConfig?.programa_referidos_activo === true;
               } catch {}
 
-              if (programaActivo) {
+              if (programaActivo && referidorEsSocioPagado) {
                 // Evitar duplicados: ¿ya existe un ReferralHistory para este referido esta temporada?
                 let yaExiste = [];
                 try {
