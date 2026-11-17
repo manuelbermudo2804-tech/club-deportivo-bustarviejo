@@ -247,8 +247,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
         </div>
 
         {/* SECCIONES DE INCENTIVOS - SOLO SI EL PROGRAMA ESTÁ ACTIVO */}
-        {programaActivo && (
-          <>
+
 
 
 
@@ -308,8 +307,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
             <p className="text-center text-xs text-white/70">
               * Los sorteos se realizan al final de la temporada entre todos los participantes.
             </p>
-          </>
-        )}
+
       </CardContent>
 
       <Dialog open={showAiModal} onOpenChange={setShowAiModal}>
