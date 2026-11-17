@@ -112,48 +112,8 @@ export default function ReferralManagement() {
 
   // Mutation para añadir referido manualmente
   const addReferralMutation = useMutation({
-    mutationFn: async ({ referrerEmail, referredName }) => {
-      const referrer = users.find(u => u.email === referrerEmail);
-      if (!referrer) throw new Error("Usuario no encontrado");
-      const referrerMemberships = await base44.entities.ClubMember.filter({ email: referrer.email, temporada: seasonConfig?.temporada });
-      if (!referrerMemberships.some(m => m.estado_pago === 'Pagado')) {
-        throw new Error("Este usuario todavía no es socio con la cuota pagada y no puede participar en el sorteo.");
-      }
-
-      // Crear registro de referido
-      await base44.entities.ReferralReward.create({
-        referrer_email: referrer.email,
-        referrer_name: referrer.full_name,
-        referred_member_id: `manual_${Date.now()}`,
-        referred_member_name: referredName,
-        temporada: seasonConfig?.temporada
-      });
-
-      // Registrar también en histórico (fuente de verdad del ranking) — 1 papeleta por amigo
-      const numeroPapeleta = await generatePapeletaNumber(seasonConfig?.temporada || "");
-      await base44.entities.ReferralHistory.create({
-        temporada: seasonConfig?.temporada || "",
-        referidor_email: referrer.email,
-        referidor_nombre: referrer.full_name,
-        referido_nombre: referredName,
-        estado: "activo",
-        credito_otorgado: 0,
-        sorteos_otorgados: 1,
-        numero_papeleta: numeroPapeleta,
-        fecha_referido: new Date().toISOString()
-      });
-
-      // Calcular nuevos valores — 1 amigo = 1 papeleta
-      const newCount = (referrer.referrals_count || 0) + 1;
-      const newRaffles = (referrer.raffle_entries_total || 0) + 1;
-
-      // Actualizar usuario
-      await base44.entities.User.update(referrer.id, {
-        referrals_count: newCount,
-        raffle_entries_total: newRaffles
-      });
-
-      return { referrer, newCount };
+    mutationFn: async () => {
+      throw new Error("Alta manual deshabilitada. Solo se conceden papeletas automáticamente cuando existe una ficha real de socio nuevo y su pago está confirmado. Para incidencias, concilia la ficha existente con el administrador.");
     },
     onSuccess: ({ referrer, newCount }) => {
       queryClient.invalidateQueries({ queryKey: ['allUsers'] });
