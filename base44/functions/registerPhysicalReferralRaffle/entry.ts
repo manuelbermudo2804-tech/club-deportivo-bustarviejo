@@ -1,8 +1,10 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
 Deno.serve(async (req) => {
+  const base44 = createClientFromRequest(req);
+  let lockConfigId = '';
+  let lockToken = '';
   try {
-    const base44 = createClientFromRequest(req);
     const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
@@ -19,6 +21,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Debe existir exactamente una temporada activa' }, { status: 409 });
     }
     const config = configs[0];
+
+    // Compare-and-set en una sola operación para impedir dos registros simultáneos.
+    lockConfigId = config.id;
+    lockToken = `raffle:${crypto.randomUUID()}`;
+    const claim = await base44.asServiceRole.entities.SeasonConfig.updateMany(
+      { id: lockConfigId, $or: [{ raffle_draw_lock: '' }, { raffle_draw_lock: { $exists: false } }] },
+      { $set: { raffle_draw_lock: lockToken } }
+    );
+    if (claim.updated !== 1) {
+      lockConfigId = '';
+      return Response.json({ error: 'Ya hay una operación de sorteo en curso. Espera unos segundos y vuelve a intentarlo.', code: 'RAFFLE_LOCKED' }, { status: 409 });
+    }
+
     const prizes = Array.isArray(config.sorteo_premios) ? config.sorteo_premios : [];
     const configuredPrize = prizes.find((p) => String(p.nombre || '').trim() === prizeName);
     if (!configuredPrize) {
@@ -115,5 +130,16 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('[registerPhysicalReferralRaffle]', error);
     return Response.json({ error: error?.message || 'No se pudo registrar el resultado del sorteo físico' }, { status: 500 });
+  } finally {
+    if (lockConfigId && lockToken) {
+      try {
+        await base44.asServiceRole.entities.SeasonConfig.updateMany(
+          { id: lockConfigId, raffle_draw_lock: lockToken },
+          { $set: { raffle_draw_lock: '' } }
+        );
+      } catch (releaseError) {
+        console.error('[registerPhysicalReferralRaffle] No se pudo liberar el bloqueo:', releaseError);
+      }
+    }
   }
 });
