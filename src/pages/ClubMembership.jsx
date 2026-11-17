@@ -707,6 +707,7 @@ export default function ClubMembership() {
             userEmail={currentUser?.email || ""}
             userName={currentUser?.full_name || ""}
             showShare={!!user}
+            isTestMode={modoPruebaReferidos}
           />
         </>
       )}
