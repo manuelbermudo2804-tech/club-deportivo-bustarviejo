@@ -91,15 +91,6 @@ export default function ReferralManagement() {
     queryFn: () => base44.entities.Player.list(),
   });
 
-  // Mutation para crear sorteo
-  const createDrawMutation = useMutation({
-    mutationFn: (data) => base44.entities.RaffleDraw.create(data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['raffleDraws'] });
-      toast.success("🎉 ¡Sorteo registrado!");
-    }
-  });
-
   // Mutation para marcar premio como entregado
   const markDeliveredMutation = useMutation({
     mutationFn: ({ id, data }) => base44.entities.RaffleDraw.update(id, data),
@@ -278,10 +269,9 @@ export default function ReferralManagement() {
           <p className="mt-2 text-sm text-slate-300">Controla premios y participaciones del programa de incentivos</p>
         </div>
         <div className="grid w-full grid-cols-1 gap-2 sm:grid-cols-2 xl:w-auto">
-          <Button onClick={() => setShowAddReferralDialog(true)} className="gap-2 rounded-xl bg-orange-600 font-semibold hover:bg-orange-700">
-            <UserPlus className="w-4 h-4" />
-            Añadir Socio Amigo
-          </Button>
+          <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-2 text-xs text-slate-200">
+            Las papeletas solo se generan tras verificar el pago del nuevo socio.
+          </div>
           <Button onClick={exportData} variant="outline" className="gap-2 rounded-xl border-white/20 bg-white/10 text-white hover:bg-white/15">
             <Download className="w-4 h-4" />
             Exportar CSV
