@@ -1,16 +1,13 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Gift, Ticket, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
+import { Gift, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import RafflePrizeConfig from "@/components/season/RafflePrizeConfig";
 
 export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating, updateSeasonMutation }) {
   const [expanded, setExpanded] = useState(false);
   const activo = seasonConfig?.programa_referidos_activo === true;
-  const bonusFemenino = seasonConfig?.bonus_femenino_activo ?? false;
 
   const update = (data) => onUpdate(data);
 
@@ -41,27 +38,6 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating,
         <CardContent className="space-y-4 pt-0">
           <RafflePrizeConfig activeSeason={seasonConfig} updateSeasonMutation={updateSeasonMutation} />
 
-          <section className="bg-white border border-slate-200 rounded-xl p-4">
-            <div className="flex items-start gap-3">
-              <span className="w-6 h-6 shrink-0 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center">4</span>
-              <div className="flex-1">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <p className="font-semibold text-slate-900 text-sm">Papeletas extra por fútbol femenino</p>
-                    <p className="text-xs text-slate-500 mt-0.5">Opcional: premia más a quien traiga jugadoras.</p>
-                  </div>
-                  <Switch checked={bonusFemenino} onCheckedChange={(checked) => update({ bonus_femenino_activo: checked })} />
-                </div>
-                {bonusFemenino && (
-                  <div className="mt-3 flex items-center gap-3">
-                    <Ticket className="w-4 h-4 text-slate-500" />
-                    <Label className="text-sm">Papeletas extra por jugadora:</Label>
-                    <Input type="number" min="0" value={seasonConfig?.bonus_femenino_sorteos ?? 2} onChange={(e) => update({ bonus_femenino_sorteos: Number(e.target.value) })} className="w-20" />
-                  </div>
-                )}
-              </div>
-            </div>
-          </section>
         </CardContent>
       )}
     </Card>
