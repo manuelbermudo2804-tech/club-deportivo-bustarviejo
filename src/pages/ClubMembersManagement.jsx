@@ -338,95 +338,36 @@ export default function ClubMembersManagement() {
   });
 
   const handleStatusChange = async (member, newStatus) => {
-    // Procesar programa de referidos cuando se marca como PAGADO
-    if (newStatus === "Pagado" && seasonConfig?.programa_referidos_activo && member.referido_por_email && !member.referido_procesado) {
-      try {
-        const referidorMemberships = await base44.entities.ClubMember.filter({ temporada: member.temporada });
-        const referidorElegible = referidorMemberships.some(s =>
-          String(s.email || '').trim().toLowerCase() === String(member.referido_por_email || '').trim().toLowerCase() &&
-          s.estado_pago === 'Pagado'
-        );
-        if (referidorElegible) {
-        console.log('[Referidos] Procesando referido:', member.nombre_completo);
-        
-        // Regla única: una papeleta por cada nuevo socio con pago confirmado.
-        const relatedPlayers = [];
-        const rafflesToAdd = 1;
-
-        // Comprobar si el alta automática ya creó su papeleta.
-        const existingHistory = await base44.entities.ReferralHistory.filter({
-          referido_id: member.id,
-          temporada: member.temporada
-        });
-        if (!existingHistory || existingHistory.length === 0) {
-          const numeroPapeleta = await generatePapeletaNumber(member.temporada || "");
-          await base44.entities.ReferralHistory.create({
-            temporada: member.temporada || "",
-            referidor_email: member.referido_por_email,
-            referidor_nombre: member.referido_por || "",
-            referido_email: member.email || "",
-            referido_nombre: member.nombre_completo || "",
-            referido_id: member.id,
-            estado: "activo",
-            credito_otorgado: 0,
-            sorteos_otorgados: rafflesToAdd,
-            numero_papeleta: numeroPapeleta,
-            fecha_referido: new Date().toISOString()
-          });
-        }
-
-        // Crear registro histórico sin créditos ni niveles antiguos.
-        const rewardData = {
-          referrer_email: member.referido_por_email,
-          referrer_name: member.referido_por,
-          referred_member_id: member.id,
-          referred_member_name: member.nombre_completo,
-          temporada: member.temporada,
-          clothing_credit_earned: 0,
-          raffle_entries_earned: rafflesToAdd,
-          is_femenino_bonus: false,
-          reward_tier: 'standard'
-        };
-        
-        if (relatedPlayers.length > 0) {
-          rewardData.referred_player_id = relatedPlayers[0].id;
-          rewardData.referred_player_name = relatedPlayers[0].nombre;
-          rewardData.referred_player_category = relatedPlayers[0].deporte;
-        }
-        
-        // El alta automática puede haber creado ya el registro de recompensa.
-        // Evitar duplicarlo al confirmar el pago.
-        const existingRewards = await base44.entities.ReferralReward.filter({
-          referred_member_id: member.id
-        });
-        if (!existingRewards || existingRewards.length === 0) {
-          await base44.entities.ReferralReward.create(rewardData);
-        }
-        
-        toast.success(`🎟️ Referido validado correctamente`);
-        } else {
-          console.info('[Referidos] No se concede papeleta: el referidor no es socio pagado de la temporada.');
-        }
-      } catch (error) {
-        console.error('[Referidos] Error procesando:', error);
-        toast.error('Error procesando programa de referidos');
-      }
-    }
-    
     // Actualizar estado del socio
-    updateMemberMutation.mutate({
-      id: member.id,
-      data: {
-        estado_pago: newStatus,
-        ...(newStatus === "Pagado" ? { 
-          fecha_pago: new Date().toISOString().split('T')[0]
-        } : {})
-      },
-      memberEmail: member.email,
-      memberName: member.nombre_completo,
-      sendEmail: newStatus === "Pagado",
-      member: member
-    });
+    try {
+      await updateMemberMutation.mutateAsync({
+        id: member.id,
+        data: {
+          estado_pago: newStatus,
+          ...(newStatus === "Pagado" ? {
+            fecha_pago: new Date().toISOString().split('T')[0]
+          } : {})
+        },
+        memberEmail: member.email,
+        memberName: member.nombre_completo,
+        sendEmail: newStatus === "Pagado",
+        member: member
+      });
+      // La papeleta, si procede, se valida y crea exclusivamente en servidor.
+      if (newStatus === "Pagado" && member.referido_por_email) {
+        try {
+          const result = await base44.functions.invoke("processHistoricReferrals", { member_id: member.id });
+          if (result?.data?.processed > 0) {
+            toast.success("🎟️ Referido validado: papeleta asignada al socio que lo invitó.");
+          }
+        } catch (referralError) {
+          console.error("[Referidos] No se pudo procesar el referido en servidor:", referralError);
+          toast.error("El socio se ha actualizado, pero no se pudo procesar el referido. Revisa el panel de referidos.");
+        }
+      }
+    } catch (error) {
+      console.error("[ClubMembersManagement] Error actualizando socio:", error);
+    }
   };
 
   const handleSaveEdit = (formData) => {

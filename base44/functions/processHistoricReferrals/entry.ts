@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     }
 
     const payload = await req.json().catch(() => ({}));
-    const targetId = payload.event?.entity_id || payload.entity_id;
+    const targetId = payload.event?.entity_id || payload.entity_id || payload.member_id;
     const members = targetId
       ? [await base44.asServiceRole.entities.ClubMember.get(targetId)].filter(Boolean)
       : await base44.asServiceRole.entities.ClubMember.filter({ temporada: config.temporada, estado_pago: 'Pagado' });
