@@ -69,8 +69,9 @@ Deno.serve(async (req) => {
     if (referido_por) {
       try {
         const users = await base44.asServiceRole.entities.User.list('', 5000);
-        const match = users.find(u => u.email && generateReferralCode(u.email) === String(referido_por).trim().toUpperCase());
-        if (match && String(match.email).toLowerCase() !== String(email).trim().toLowerCase()) {
+        const matches = users.filter(u => u.email && generateReferralCode(u.email) === String(referido_por).trim().toUpperCase());
+        const match = matches.length === 1 ? matches[0] : null;
+        if (match && String(match.email).trim().toLowerCase() !== String(email).trim().toLowerCase()) {
           trustedReferrer = {
             email: String(match.email).trim().toLowerCase(),
             name: match.full_name || String(match.email).split('@')[0],
@@ -83,10 +84,13 @@ Deno.serve(async (req) => {
 
     // Obtener temporada activa desde SeasonConfig
     let temporada;
+    let precioSocio = 25;
     try {
       const seasonConfigs = await base44.asServiceRole.entities.SeasonConfig.list();
       const activeConfig = seasonConfigs.find(c => c.activa === true);
       temporada = activeConfig?.temporada;
+      const configuredPrice = Number(activeConfig?.precio_socio);
+      if (Number.isFinite(configuredPrice) && configuredPrice > 0) precioSocio = configuredPrice;
     } catch (e) {
       console.error('[publicMemberCheckout] Error obteniendo SeasonConfig:', e.message);
     }
@@ -146,7 +150,7 @@ Deno.serve(async (req) => {
         fecha_nacimiento: fecha_nacimiento || '',
         es_segundo_progenitor: es_segundo_progenitor === true || es_segundo_progenitor === 'true',
         es_socio_externo: true,
-        cuota_socio: 25,
+        cuota_socio: precioSocio,
         estado_pago: 'Pendiente',
         metodo_pago: 'Tarjeta',
         temporada,
@@ -190,8 +194,17 @@ Deno.serve(async (req) => {
       origen_pago: isSuscripcion ? 'stripe_suscripcion' : 'stripe_unico',
     };
 
-    const defaultSuccessUrl = success_url || ('https://manuelbermudo2804-tech.github.io/-club-landing-page-Bustarviejo/?paid=ok&membership_id=' + membership.id);
-    const defaultCancelUrl = cancel_url || ('https://manuelbermudo2804-tech.github.io/-club-landing-page-Bustarviejo/?canceled=socio&membership_id=' + membership.id);
+    const allowedReturnHosts = new Set(['app.cdbustarviejo.com', 'www.cdbustarviejo.com', 'cdbustarviejo.com', 'alta-socio.vercel.app', 'manuelbermudo2804-tech.github.io']);
+    const safeReturnUrl = (candidate, fallback) => {
+      try {
+        const parsed = new URL(candidate || fallback);
+        return parsed.protocol === 'https:' && allowedReturnHosts.has(parsed.hostname) ? parsed.toString() : fallback;
+      } catch { return fallback; }
+    };
+    const fallbackSuccess = 'https://app.cdbustarviejo.com/ClubMembership?paid=ok&membership_id=' + membership.id;
+    const fallbackCancel = 'https://app.cdbustarviejo.com/ClubMembership?canceled=socio&membership_id=' + membership.id;
+    const defaultSuccessUrl = safeReturnUrl(success_url, fallbackSuccess);
+    const defaultCancelUrl = safeReturnUrl(cancel_url, fallbackCancel);
 
     console.log('[publicMemberCheckout] Creando sesion Stripe, modo:', isSuscripcion ? 'subscription' : 'payment');
     console.log('[publicMemberCheckout] success_url:', defaultSuccessUrl);
