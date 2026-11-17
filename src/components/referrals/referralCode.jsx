@@ -3,12 +3,12 @@
 // EXACTAMENTE con la lógica usada en ReferralProgramCard para generar enlaces.
 
 export function generateReferralCode(email) {
-  if (!email) return "";
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized) return '';
   let hash = 0;
-  for (let i = 0; i < email.length; i++) {
-    const char = email.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
+  for (let i = 0; i < normalized.length; i++) {
+    hash = ((hash << 5) - hash) + normalized.charCodeAt(i);
+    hash |= 0;
   }
   return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
 }
