@@ -42,9 +42,20 @@ Deno.serve(async (req) => {
     // Un código ambiguo nunca se atribuye: evita asignar la papeleta a la persona equivocada.
     if (matches.length === 1) {
       const match = matches[0];
+      const email = String(match.email).trim().toLowerCase();
+      const configs = await base44.asServiceRole.entities.SeasonConfig.list();
+      const activeConfig = configs.find(c => c.activa === true);
+      const temporada = activeConfig?.temporada;
+      if (!temporada) return Response.json({ found: false }, { headers: corsHeaders });
+
+      // Solo un socio con la cuota pagada en la temporada activa puede ser referidor.
+      const memberships = await base44.asServiceRole.entities.ClubMember.filter({ email, temporada });
+      const isPaidMember = memberships.some(m => m.estado_pago === 'Pagado');
+      if (!isPaidMember) return Response.json({ found: false }, { headers: corsHeaders });
+
       return Response.json({
         found: true,
-        referidor_nombre: match.full_name || 'Un socio del club',
+        referidor_nombre: match.full_name || memberships.find(m => m.estado_pago === 'Pagado')?.nombre_completo || 'Un socio del club',
       }, { headers: corsHeaders });
     }
 
