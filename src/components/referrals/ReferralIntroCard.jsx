@@ -63,13 +63,20 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, pre
           </div>
         )}
 
-        <div className="mt-4 bg-white/15 rounded-2xl p-4">
-          <p className="font-bold text-sm mb-2">¿Cómo funciona?</p>
-          <ol className="text-sm space-y-2 text-white/95">
-            <li>1️⃣ <strong>Inscripción directa:</strong> tú das de alta al nuevo socio mediante el formulario, introduces sus datos y se realiza el pago habitual. Cuando el pago se confirma, se te asigna una papeleta.</li>
-            <li>2️⃣ <strong>Inscripción mediante enlace:</strong> compartes tu enlace personal y el invitado realiza el alta por su cuenta y efectúa el pago. Cuando se confirma, se te asigna igualmente una papeleta.</li>
+        <div className="mt-4 rounded-2xl border border-white/25 bg-white/15 p-4">
+          <p className="mb-3 text-base font-black">📲 ¿Cómo funciona tu enlace personal?</p>
+          <ol className="space-y-3 text-sm leading-relaxed text-white/95">
+            <li><strong>1. Consigue tu enlace:</strong> entra en la app del club y copia el enlace personal que aparece en esta sección. Cada socio tiene su propio enlace.</li>
+            <li><strong>2. Compártelo donde quieras:</strong> puedes enviarlo por WhatsApp, correo electrónico o cualquier otro medio. También puedes reenviarlo tantas veces como quieras.</li>
+            <li><strong>3. La otra persona no necesita la app:</strong> puede abrir el enlace desde cualquier móvil u ordenador y completar su inscripción en la página pública del club. Después tendrá que realizar el pago normal de la cuota de socio.</li>
+            <li><strong>4. ¿Quién consigue la papeleta?</strong> tú, como titular del enlace. Cuando una nueva persona se inscribe utilizando tu enlace y su pago queda confirmado, se te asigna una papeleta para el sorteo.</li>
           </ol>
-          <p className="mt-3 text-sm font-bold text-white">¡Tú eliges cómo invitar! Las dos formas cuentan exactamente igual para el sorteo.</p>
+          <div className="mt-4 rounded-xl border border-amber-200/40 bg-slate-950/20 p-3">
+            <p className="text-sm font-black text-white">🔑 Muy importante: el enlace identifica a quien lo creó, no a quien lo reenvía.</p>
+            <p className="mt-1 text-sm leading-relaxed text-white/90">Por ejemplo: si tú envías tu enlace a María y María se lo reenvía a Juan, si Juan se hace socio a través de ese mismo enlace, la papeleta será para ti. Si Juan utiliza el enlace personal de María, la papeleta será para María.</p>
+          </div>
+          <p className="mt-3 text-sm font-bold text-white">La papeleta es para el socio que invita; la persona nueva se hace socia y paga su cuota habitual. El premio del sorteo no se entrega automáticamente a la persona invitada.</p>
+          <p className="mt-2 text-xs leading-relaxed text-white/85">Recuerda: necesitas entrar en la app para obtener tu propio enlace. Una vez copiado, cualquier persona puede recibirlo, abrirlo y reenviarlo sin tener instalada la app.</p>
         </div>
 
         {showShare && <ReferralShareRow userEmail={userEmail} userName={userName} />}
