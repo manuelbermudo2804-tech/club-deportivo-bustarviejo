@@ -12,7 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift, Share2, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
 import ReferralIntroCard from "../components/referrals/ReferralIntroCard";
-import { generatePapeletaNumber } from "../components/referrals/generatePapeletaNumber";
 import { toast } from "sonner";
 import InvitationPWAGuide from "../components/pwa/InvitationPWAGuide";
 import { Link } from "react-router-dom";
@@ -348,99 +347,27 @@ export default function ClubMembership() {
       // NOTA: El carnet virtual se enviará cuando el admin apruebe el pago (estado_pago = "Pagado")
       // NO enviamos carnet automáticamente aquí - solo cuando el pago sea confirmado
 
-      // Procesar programa de referidos
-      let referrer = null;
+      // Guardar únicamente la atribución del referido en la ficha.
+      // La papeleta y la recompensa se generan cuando el pago queda confirmado.
       if (seasonConfig?.programa_referidos_activo) {
-      try {
-      const allPlayersForRef = await base44.entities.Player.list();
-          
-          // Obtener emails de padres con jugadores activos
-          const parentEmails = new Set();
-          allPlayersForRef.forEach(p => {
-            if (p.email_padre) parentEmails.add(p.email_padre.toLowerCase().trim());
-            if (p.email_tutor_2) parentEmails.add(p.email_tutor_2.toLowerCase().trim());
-          });
-
-          const currentUserEmail = user?.email?.toLowerCase().trim();
-
-          console.log("DEBUG Referidos:", {
-            currentUserEmail,
-            myPlayersCount: myPlayers.length,
-            parentEmailsCount: parentEmails.size,
-            isParent: currentUserEmail ? parentEmails.has(currentUserEmail) : false,
-            referidoPor: data.referido_por,
-            userId: user?.id
-          });
-
-          // CASO 1: Usuario logueado con hijos en el club → ÉL es el referidor automático
-          // Usamos directamente el objeto user en lugar de buscar en User.list() (que requiere permisos de admin)
-          if (user && currentUserEmail && myPlayers.length > 0 && parentEmails.has(currentUserEmail)) {
-            referrer = user; // Usar el usuario actual directamente
-            
-          }
-          // CASO 2: Usuario externo con referido_por manual - NO podemos procesar sin permisos de admin
-          // El referido manual se procesará cuando un admin apruebe el pago
-          else if (data.referido_por) {
-            
-            // Guardamos el nombre del referidor en el socio para que el admin lo procese manualmente
-          }
-          
-          
-          
-          if (referrer) {
-            // Guardar referidor en la ficha del socio
-            try {
-              await base44.entities.ClubMember.update(membership.id, {
-                referido_por: referrer.full_name,
-                referido_por_email: referrer.email,
-              });
-            } catch (error) {
-              console.warn("[ClubMembership] No se pudo guardar el referidor en la ficha del socio:", error);
-            }
-            // Registrar la referencia sin límites antiguos de 15 referidos ni premios por niveles.
-            await base44.entities.ReferralReward.create({
-              referrer_email: referrer.email,
-              referrer_name: referrer.full_name,
-              referred_member_id: membership.id,
-              referred_member_name: data.nombre_completo,
-              temporada: seasonConfig?.temporada,
-              clothing_credit_earned: 0,
-              raffle_entries_earned: 1,
-              reward_tier: "standard"
-            });
-
-            // El histórico ReferralHistory será la fuente de verdad de papeletas y ranking.
-            // No mantener contadores paralelos que puedan desincronizarse.
-          }
-        } catch (error) {
-          console.error("Error processing referral:", error);
-        }
-      }
-
-      // REGISTRAR EN HISTÓRICO DE REFERIDOS (después de procesar el programa)
-      if ((data.referido_por || referrer) && seasonConfig?.programa_referidos_activo) {
         try {
-          // Asignar número de papeleta único solo si hay referidor real (suma sorteo)
-          let numeroPapeleta = "";
-          if (referrer) {
-            numeroPapeleta = await generatePapeletaNumber(seasonConfig?.temporada || "");
+          const currentUserEmail = user?.email?.toLowerCase().trim();
+          if (user && currentUserEmail && myPlayers.length > 0) {
+            const allPlayersForRef = await base44.entities.Player.list();
+            const parentEmails = new Set();
+            allPlayersForRef.forEach(player => {
+              if (player.email_padre) parentEmails.add(player.email_padre.toLowerCase().trim());
+              if (player.email_tutor_2) parentEmails.add(player.email_tutor_2.toLowerCase().trim());
+            });
+            if (parentEmails.has(currentUserEmail)) {
+              await base44.entities.ClubMember.update(membership.id, {
+                referido_por: user.full_name || user.email,
+                referido_por_email: user.email
+              });
+            }
           }
-          await base44.entities.ReferralHistory.create({
-            temporada: seasonConfig?.temporada || "",
-            referidor_email: referrer?.email || "",
-            referidor_nombre: referrer?.full_name || data.referido_por || "",
-            referido_email: data.email,
-            referido_nombre: data.nombre_completo,
-            referido_id: membership.id,
-            estado: "activo",
-            credito_otorgado: 0,
-            sorteos_otorgados: referrer ? 1 : 0,
-            numero_papeleta: numeroPapeleta,
-            fecha_referido: new Date().toISOString()
-          });
-          
         } catch (error) {
-          console.error("Error guardando histórico de referido:", error);
+          console.error("[Referidos] No se pudo guardar la atribución del socio:", error);
         }
       }
 
