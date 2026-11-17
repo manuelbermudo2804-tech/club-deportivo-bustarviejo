@@ -31,6 +31,8 @@ export default function ReferralManagement() {
   const [selectedPrize, setSelectedPrize] = useState(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [winner, setWinner] = useState(null);
+  const [physicalTicket, setPhysicalTicket] = useState("");
+  const [savingPhysicalDraw, setSavingPhysicalDraw] = useState(false);
   const [activeTab, setActiveTab] = useState("ranking");
   const [newReferral, setNewReferral] = useState({ referrer_email: "", referred_name: "" });
   
@@ -159,41 +161,43 @@ export default function ReferralManagement() {
     : referralHistory
   ).filter(r => r.numero_papeleta);
 
-  // La selección y el registro del ganador se realizan en servidor.
-  const performDraw = async (prize) => {
+  // Sorteo físico: el número se extrae de la urna y la app solo valida y registra el resultado.
+  const performDraw = (prize) => {
     if (!seasonConfig?.temporada) return toast.error("No hay temporada activa");
-    if (!umbralAlcanzado) return toast.error(`Aún no se puede sortear: faltan ${papeletasFaltantes} papeletas para cubrir el valor del premio (${valorPremio}€).`);
+    if (!umbralAlcanzado) return toast.error("Aún no se puede sortear: faltan " + papeletasFaltantes + " papeletas para cubrir el valor del premio (" + valorPremio + "€).");
     setSelectedPrize(prize);
-    setShowRaffleDialog(true);
-    setIsDrawing(true);
+    setPhysicalTicket("");
     setWinner(null);
-    let iterations = 0;
-    const interval = setInterval(async () => {
-      setWinner(papeletasTemporada[Math.floor(Math.random() * Math.max(1, papeletasTemporada.length))] || null);
-      iterations++;
-      if (iterations < 20) return;
-      clearInterval(interval);
-      try {
-        const { data } = await base44.functions.invoke("executeReferralRaffle", {
-          prize_name: prize.nombre,
-          prize_emoji: prize.emoji,
-          prize_description: prize.descripcion
-        });
-        if (!data?.success || !data.draw) throw new Error(data?.error || "El servidor no ha confirmado el sorteo");
-        setWinner({
-          numero_papeleta: data.draw.numero_ganador,
-          referidor_email: data.draw.ganador_email,
-          referidor_nombre: data.draw.ganador_nombre
-        });
-        queryClient.invalidateQueries({ queryKey: ["raffleDraws"] });
-        toast.success("Sorteo registrado y ganador confirmado por el servidor");
-      } catch (error) {
-        setWinner(null);
-        toast.error(error?.message || "No se pudo completar el sorteo");
-      } finally {
-        setIsDrawing(false);
-      }
-    }, 100);
+    setShowRaffleDialog(true);
+  };
+
+  const selectedPhysicalTicket = papeletasTemporada.find(p =>
+    String(p.numero_papeleta || "").trim() === physicalTicket.trim()
+  );
+
+  const registerPhysicalDraw = async () => {
+    if (!selectedPrize || !physicalTicket.trim()) return toast.error("Introduce el número extraído de la urna");
+    setSavingPhysicalDraw(true);
+    try {
+      const { data } = await base44.functions.invoke("registerPhysicalReferralRaffle", {
+        prize_name: selectedPrize.nombre,
+        prize_emoji: selectedPrize.emoji,
+        prize_description: selectedPrize.descripcion,
+        winning_ticket: physicalTicket.trim()
+      });
+      if (!data?.success || !data.draw) throw new Error(data?.error || "No se pudo registrar el resultado");
+      setWinner({
+        numero_papeleta: data.draw.numero_ganador,
+        referidor_email: data.draw.ganador_email,
+        referidor_nombre: data.draw.ganador_nombre
+      });
+      queryClient.invalidateQueries({ queryKey: ["raffleDraws"] });
+      toast.success("Resultado del sorteo físico registrado correctamente");
+    } catch (error) {
+      toast.error(error?.message || "No se pudo registrar el sorteo");
+    } finally {
+      setSavingPhysicalDraw(false);
+    }
   };
 
   // Sorteos de la temporada actual
@@ -628,7 +632,7 @@ export default function ReferralManagement() {
                             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
                           >
                             <Play className="w-4 h-4 mr-2" />
-                            ¡Sortear!
+                            Registrar sorteo de urna
                           </Button>
                         )}
                       </div>
@@ -843,54 +847,64 @@ export default function ReferralManagement() {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog de sorteo */}
-      <Dialog open={showRaffleDialog} onOpenChange={setShowRaffleDialog}>
-        <DialogContent className="max-w-md text-center">
+      {/* Registro del resultado del sorteo realizado físicamente con urna */}
+      <Dialog open={showRaffleDialog} onOpenChange={(open) => { if (!savingPhysicalDraw) setShowRaffleDialog(open); }}>
+        <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-2xl flex items-center justify-center gap-2">
-              <Dices className={`w-6 h-6 text-purple-600 ${isDrawing ? 'animate-spin' : ''}`} />
-              {isDrawing ? "¡Sorteando número!" : "🎉 ¡Número Ganador!"}
+            <DialogTitle className="text-xl flex items-center gap-2">
+              <Dices className="w-6 h-6 text-orange-600" />
+              Registrar resultado de la urna
             </DialogTitle>
           </DialogHeader>
-          
           {selectedPrize && (
-            <div className="space-y-6 py-4">
-              {/* Premio */}
-              <div className="bg-gradient-to-r from-yellow-100 to-orange-100 rounded-2xl p-6 border-2 border-yellow-300">
-                <span className="text-6xl block mb-2">{selectedPrize.emoji}</span>
-                <p className="font-bold text-xl text-slate-900">{selectedPrize.nombre}</p>
-                <p className="text-slate-600">{selectedPrize.descripcion}</p>
+            <div className="space-y-4 py-3">
+              <div className="bg-orange-50 rounded-xl p-4 border border-orange-200 text-center">
+                <span className="text-4xl block mb-2">{selectedPrize.emoji}</span>
+                <p className="font-bold text-lg text-slate-900">{selectedPrize.nombre}</p>
+                <p className="text-sm text-slate-600">{selectedPrize.descripcion}</p>
               </div>
-
-              {/* Número ganador y su dueño */}
-              {winner && (
-                <div className={`bg-gradient-to-r from-purple-100 to-pink-100 rounded-2xl p-6 border-2 border-purple-300 ${isDrawing ? 'animate-pulse' : ''}`}>
-                  <p className="text-xs uppercase tracking-wide text-purple-500 mb-1">Número de papeleta</p>
-                  <p className="text-5xl font-bold font-mono text-purple-900 mb-3">🎟️ #{winner.numero_papeleta}</p>
-                  {!isDrawing && (
-                    <>
-                      <PartyPopper className="w-10 h-10 mx-auto mb-2 text-purple-600" />
-                      <p className="text-xl font-bold text-purple-900">{winner.referidor_nombre}</p>
-                      <p className="text-purple-600 text-sm">{winner.referidor_email}</p>
-                    </>
-                  )}
+              {!winner ? (
+                <>
+                  <Alert className="bg-blue-50 border-blue-200">
+                    <Info className="w-4 h-4 text-blue-600" />
+                    <AlertDescription className="text-blue-800 text-sm">
+                      Realiza el sorteo con la urna física e introduce aquí el número que haya salido. La aplicación no elige ningún ganador.
+                    </AlertDescription>
+                  </Alert>
+                  <div className="space-y-2">
+                    <Label htmlFor="physical-winning-ticket">Número de la papeleta ganadora</Label>
+                    <Input id="physical-winning-ticket" value={physicalTicket} onChange={(e) => setPhysicalTicket(e.target.value.replace(/[^0-9]/g, "").slice(0, 5))} placeholder="Ej. 0042" inputMode="numeric" />
+                  </div>
+                  {physicalTicket && (selectedPhysicalTicket ? (
+                    <div className="rounded-xl border border-green-200 bg-green-50 p-3">
+                      <p className="font-semibold text-green-800">Papeleta válida</p>
+                      <p className="text-sm text-green-900">Titular: {selectedPhysicalTicket.referidor_nombre}</p>
+                      <p className="text-xs text-green-700">Nuevo socio referido: {selectedPhysicalTicket.referido_nombre}</p>
+                    </div>
+                  ) : (
+                    <Alert className="bg-red-50 border-red-200"><AlertCircle className="w-4 h-4 text-red-600" /><AlertDescription className="text-red-800 text-sm">Ese número no aparece entre las papeletas de esta temporada.</AlertDescription></Alert>
+                  ))}
+                </>
+              ) : (
+                <div className="rounded-xl bg-green-50 border border-green-200 p-5 text-center">
+                  <PartyPopper className="w-10 h-10 mx-auto mb-2 text-green-700" />
+                  <p className="text-xs uppercase tracking-wide text-green-700">Resultado registrado</p>
+                  <p className="text-4xl font-bold font-mono text-green-900 my-2">#{winner.numero_papeleta}</p>
+                  <p className="text-xl font-bold text-green-900">{winner.referidor_nombre}</p>
+                  <p className="text-sm text-green-700">{winner.referidor_email}</p>
                 </div>
               )}
             </div>
           )}
-
           <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowRaffleDialog(false);
-                setWinner(null);
-                setSelectedPrize(null);
-              }}
-              disabled={isDrawing}
-            >
-              {isDrawing ? "Sorteando..." : "Cerrar"}
-            </Button>
+            {!winner && <Button variant="outline" onClick={() => setShowRaffleDialog(false)} disabled={savingPhysicalDraw}>Cancelar</Button>}
+            {!winner ? (
+              <Button onClick={registerPhysicalDraw} disabled={!selectedPhysicalTicket || savingPhysicalDraw} className="bg-orange-600 hover:bg-orange-700">
+                {savingPhysicalDraw ? "Validando y guardando…" : "Confirmar ganador y guardar"}
+              </Button>
+            ) : (
+              <Button onClick={() => { setShowRaffleDialog(false); setWinner(null); setSelectedPrize(null); setPhysicalTicket(""); }} className="bg-green-700 hover:bg-green-800">Cerrar</Button>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
