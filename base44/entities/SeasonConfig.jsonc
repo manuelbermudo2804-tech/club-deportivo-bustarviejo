@@ -184,7 +184,15 @@
     },
     "sorteo_premio_principal_foto": {
       "type": "string",
-      "description": "URL de la foto del premio principal del sorteo de referidos"
+      "description": "URL de la foto principal del premio del sorteo de referidos"
+    },
+    "sorteo_premio_fotos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "default": [],
+      "description": "Hasta tres fotograf\u00edas adicionales para la galer\u00eda del premio principal"
     },
     "sorteo_premio_principal_texto": {
       "type": "string",
