@@ -18,6 +18,22 @@
       "type": "string",
       "description": "Descripci\u00f3n del premio"
     },
+    "numero_ganador": {
+      "type": "string",
+      "description": "N\u00famero de papeleta ganadora"
+    },
+    "papeleta_referido_id": {
+      "type": "string",
+      "description": "Ficha del nuevo socio que gener\u00f3 la papeleta ganadora"
+    },
+    "admin_email": {
+      "type": "string",
+      "description": "Administrador que ejecut\u00f3 el sorteo"
+    },
+    "snapshot_papeletas": {
+      "type": "string",
+      "description": "Snapshot JSON de papeletas elegibles en el momento del sorteo"
+    },
     "ganador_email": {
       "type": "string",
       "description": "Email del ganador"
