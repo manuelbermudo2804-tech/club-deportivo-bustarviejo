@@ -1272,10 +1272,20 @@ Deno.serve(async (req) => {
                 if (!referidoresPagados.length) {
                   console.log('[stripe-webhook] Referidor no elegible; no se concede papeleta.');
                 } else {
-                  // Si la consulta falla, la excepción sube al manejador y Stripe podrá reintentar.
-                  const yaExiste = await base44.asServiceRole.entities.ReferralHistory.filter({
-                    temporada, referido_email: normalizedReferred
-                  });
+                  // Bloqueo compare-and-set compartido con el backfill: serializa todas las asignaciones.
+                  const ticketLockToken = `stripe:${crypto.randomUUID()}`;
+                  const ticketLock = await base44.asServiceRole.entities.SeasonConfig.updateMany(
+                    { id: seasonConfigs[0].id, $or: [{ referral_ticket_lock: '' }, { referral_ticket_lock: { $exists: false } }] },
+                    { $set: { referral_ticket_lock: ticketLockToken } }
+                  );
+                  if (ticketLock.updated !== 1) {
+                    throw new Error('La asignación de papeletas está ocupada; Stripe debe reintentar este evento.');
+                  }
+                  try {
+                    // Si la consulta falla, la excepción sube al manejador y Stripe podrá reintentar.
+                    const yaExiste = await base44.asServiceRole.entities.ReferralHistory.filter({
+                      temporada, referido_email: normalizedReferred
+                    });
                   if (!yaExiste.length) {
                     const existentes = await base44.asServiceRole.entities.ReferralHistory.filter({ temporada });
                     const usados = new Set(existentes.map(r => String(r.numero_papeleta || '').trim()).filter(Boolean));
@@ -1301,8 +1311,14 @@ Deno.serve(async (req) => {
                       fecha_referido: new Date().toISOString(),
                     });
                     console.log('[stripe-webhook] Papeleta de referido creada', { referidor: normalizedReferrer, referido: normalizedReferred, numero: numeroPapeleta });
-                  } else {
-                    console.log('[stripe-webhook] Referido ya registrado; se evita duplicar su papeleta.');
+                    } else {
+                      console.log('[stripe-webhook] Referido ya registrado; se evita duplicar su papeleta.');
+                    }
+                  } finally {
+                    await base44.asServiceRole.entities.SeasonConfig.updateMany(
+                      { id: seasonConfigs[0].id, referral_ticket_lock: ticketLockToken },
+                      { $set: { referral_ticket_lock: '' } }
+                    );
                   }
                 }
               }
