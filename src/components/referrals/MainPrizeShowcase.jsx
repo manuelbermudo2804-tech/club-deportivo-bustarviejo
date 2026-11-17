@@ -11,6 +11,7 @@ export default function MainPrizeShowcase({ seasonConfig, userEmail }) {
 
   const premioNombre = seasonConfig?.sorteo_premio_principal_nombre;
   const premioFoto = seasonConfig?.sorteo_premio_principal_foto;
+  const premioFotos = Array.isArray(seasonConfig?.sorteo_premio_fotos) ? seasonConfig.sorteo_premio_fotos : [];
   const premioTexto = seasonConfig?.sorteo_premio_principal_texto;
 
   useEffect(() => {
@@ -40,6 +41,16 @@ export default function MainPrizeShowcase({ seasonConfig, userEmail }) {
           <div className="absolute top-3 left-3 bg-amber-500 text-white text-xs font-bold px-3 py-1 rounded-full shadow flex items-center gap-1">
             <Trophy className="w-3.5 h-3.5" /> PREMIO DEL SORTEO
           </div>
+        </div>
+      )}
+
+      {premioFotos.length > 0 && (
+        <div className="grid grid-cols-3 gap-1.5 bg-slate-50 p-2">
+          {premioFotos.slice(0, 3).map((foto, index) => (
+            <a key={`${foto}-${index}`} href={foto} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-lg">
+              <img src={foto} alt={`Fotografía ${index + 2} del premio`} loading="lazy" className="h-24 w-full object-cover sm:h-28" />
+            </a>
+          ))}
         </div>
       )}
 
