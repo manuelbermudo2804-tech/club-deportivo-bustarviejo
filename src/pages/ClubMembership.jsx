@@ -541,6 +541,7 @@ export default function ClubMembership() {
 
   // Cálculos derivados DESPUÉS de todos los hooks
   const currentSeasonMembership = myMemberships.find(m => m.temporada === seasonConfig?.temporada);
+  const isCurrentSeasonPaidMember = currentSeasonMembership?.estado_pago === 'Pagado';
   const isPlayerUser = (user?.tipo_panel === 'jugador_adulto') || (user?.es_jugador === true);
   // Los jugadores adultos SÍ pueden darse de alta como socios; solo limitamos que no creen NUEVOS jugadores.
 
@@ -629,7 +630,8 @@ export default function ClubMembership() {
             onQuieroSerSocio={!(isPlayerUser && currentSeasonMembership) ? () => setShowForm(true) : null}
             userEmail={currentUser?.email || ""}
             userName={currentUser?.full_name || ""}
-            showShare={!!user}
+            isMember={isCurrentSeasonPaidMember}
+            showShare={!!user && isCurrentSeasonPaidMember}
           />
         </>
       )}
