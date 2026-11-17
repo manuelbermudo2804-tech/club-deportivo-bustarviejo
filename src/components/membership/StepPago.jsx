@@ -12,6 +12,7 @@ export default function StepPago({
   seasonConfig,
   cuotaSocio,
   isIframe,
+  referralCode = "",
 }) {
   const [tipoPago, setTipoPago] = useState("unico");
   const [loading, setLoading] = useState(false);
@@ -37,7 +38,7 @@ export default function StepPago({
         municipio: formData.municipio || '',
         fecha_nacimiento: formData.fecha_nacimiento || '',
         tipo_pago: tipoPago === 'suscripcion' ? 'suscripcion' : 'unico',
-        referido_por: formData.referido_por || '',
+        referido_por: referralCode || formData.referido_por || ''
         es_segundo_progenitor: formData.es_segundo_progenitor || false,
         success_url: `${baseUrl}?paid=stripe&membership_id={CHECKOUT_SESSION_ID}`,
         cancel_url: `${baseUrl}?canceled=socio`,
