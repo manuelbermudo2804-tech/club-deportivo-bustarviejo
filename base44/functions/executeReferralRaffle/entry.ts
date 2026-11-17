@@ -7,6 +7,10 @@ Deno.serve(async (req) => {
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
+    // Bloqueo preventivo: Base44 no ofrece en esta app un lock/unique atomicamente verificable.
+    // No ejecutar sorteos hasta disponer de exclusión mutua real; evita dos ganadores simultáneos.
+    return Response.json({ error: 'Sorteo temporalmente bloqueado por seguridad: falta un bloqueo atómico para impedir ejecuciones simultáneas.' }, { status: 503 });
+
     const body = await req.json();
     const prizeName = String(body.prize_name || '').trim();
     if (!prizeName) return Response.json({ error: 'Falta el nombre del premio' }, { status: 400 });

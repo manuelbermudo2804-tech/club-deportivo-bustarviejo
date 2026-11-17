@@ -61,7 +61,9 @@ Deno.serve(async (req) => {
       const used = new Set(historyForSeason.map(x => x.numero_papeleta).filter(Boolean));
       let ticket = '';
       for (let i = 0; i < 100; i++) {
-        const candidate = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+        const bytes = new Uint32Array(1);
+        crypto.getRandomValues(bytes);
+        const candidate = String(bytes[0] % 10000).padStart(4, '0');
         if (!used.has(candidate)) { ticket = candidate; break; }
       }
       if (!ticket) {

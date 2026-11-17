@@ -16,19 +16,19 @@
     },
     "premio_descripcion": {
       "type": "string",
-      "description": "Descripci\u00f3n del premio"
+      "description": "Descripción del premio"
     },
     "numero_ganador": {
       "type": "string",
-      "description": "N\u00famero de papeleta ganadora"
+      "description": "Número de papeleta ganadora"
     },
     "papeleta_referido_id": {
       "type": "string",
-      "description": "Ficha del nuevo socio que gener\u00f3 la papeleta ganadora"
+      "description": "Ficha del nuevo socio que generó la papeleta ganadora"
     },
     "admin_email": {
       "type": "string",
-      "description": "Administrador que ejecut\u00f3 el sorteo"
+      "description": "Administrador que ejecutó el sorteo"
     },
     "snapshot_papeletas": {
       "type": "string",
@@ -44,7 +44,7 @@
     },
     "participaciones_ganador": {
       "type": "number",
-      "description": "N\u00famero de participaciones que ten\u00eda el ganador"
+      "description": "Número de participaciones que tenía el ganador"
     },
     "total_participaciones": {
       "type": "number",
