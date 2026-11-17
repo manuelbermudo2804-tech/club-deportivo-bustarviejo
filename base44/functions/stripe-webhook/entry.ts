@@ -126,6 +126,7 @@ Deno.serve(async (req) => {
 
   // A partir de aquí, el request es auténtico. Usamos service role para operar en BD.
   const base44 = createClientFromRequest(req);
+  let referralProcessingFailed = false;
 
   try {
     console.log('[stripe-webhook] Recibido', { id: event.id, type: event.type, livemode: event.livemode });
@@ -1324,7 +1325,8 @@ Deno.serve(async (req) => {
               }
             }
           } catch (refErr) {
-            console.error('[stripe-webhook] Error creando papeleta de referido; se solicita reintento del webhook:', refErr?.message || refErr);
+            referralProcessingFailed = true;
+            console.error('[stripe-webhook] Error creando papeleta de referido; Stripe debe reintentar el webhook:', refErr?.message || refErr);
             throw refErr;
           }
 
@@ -1805,10 +1807,13 @@ Deno.serve(async (req) => {
     }
 
   } catch (e) {
-    // No devolvemos 500 para evitar reintentos infinitos; solo registramos.
     console.error('[stripe-webhook] Error general manejando evento:', e?.message || e);
+    // Stripe solo debe reintentar los fallos de asignación de papeleta; mantenemos el comportamiento
+    // histórico para el resto de eventos para no provocar reintentos masivos ajenos a referidos.
+    if (referralProcessingFailed) {
+      return Response.json({ received: false, retry: true, error: 'No se pudo completar la asignación de la papeleta' }, { status: 500 });
+    }
   }
 
-  // Siempre 200 tras validar firma
   return Response.json({ received: true });
 });
