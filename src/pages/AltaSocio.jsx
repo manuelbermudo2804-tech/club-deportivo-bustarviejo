@@ -15,32 +15,18 @@ export default function AltaSocio() {
   const [tipoPago, setTipoPago] = useState("unico"); // 'unico' | 'suscripcion'
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [testMode, setTestMode] = useState(false);
-  const [testSuccess, setTestSuccess] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const ref = params.get("ref");
-    const requestedTest = params.get("test_ref") === "1";
     if (!ref) return;
     setRefCode(ref);
     (async () => {
       try {
-        const [{ data }, configs] = await Promise.all([
-          base44.functions.invoke("resolveReferralCode", { code: ref }),
-          requestedTest ? base44.entities.SeasonConfig.filter({ activa: true }) : Promise.resolve([])
-        ]);
-        if (data?.found) {
-          setReferidor({ nombre: data.referidor_nombre, email: data.referidor_email });
-          const cfg = configs?.[0];
-          const authorized = requestedTest &&
-            cfg?.programa_referidos_modo_prueba === true &&
-            cfg?.programa_referidos_activo !== true &&
-            cfg?.programa_referidos_usuario_prueba_email?.trim().toLowerCase() === data.referidor_email?.trim().toLowerCase();
-          setTestMode(Boolean(authorized));
-        }
+        const { data } = await base44.functions.invoke("resolveReferralCode", { code: ref });
+        if (data?.found) setReferidor({ nombre: data.referidor_nombre, email: data.referidor_email });
       } catch (error) {
-        console.warn("[AltaSocio] No se pudo validar el enlace de referido:", error);
+        console.warn("[AltaSocio] No se pudo resolver el código de referido:", error);
       }
     })();
   }, []);
@@ -54,18 +40,6 @@ export default function AltaSocio() {
     }
     setSubmitting(true);
     try {
-      if (testMode) {
-        const { data } = await base44.functions.invoke("createReferralTestRun", {
-          code: refCode,
-          nombre_completo: form.nombre_completo.trim(),
-          email: form.email.trim().toLowerCase(),
-          telefono: form.telefono.trim()
-        });
-        if (!data?.success) throw new Error(data?.error || "No se pudo registrar la inscripción de prueba.");
-        setTestSuccess(true);
-        setSubmitting(false);
-        return;
-      }
       const { data } = await base44.functions.invoke("publicMemberCheckout", {
         nombre_completo: form.nombre_completo.trim(),
         email: form.email.trim().toLowerCase(),
@@ -91,11 +65,6 @@ export default function AltaSocio() {
   };
 
   const paidOk = new URLSearchParams(window.location.search).get("paid") === "ok";
-  if (testSuccess) return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-700 via-blue-800 to-slate-900 flex items-center justify-center p-4">
-      <Card className="max-w-md w-full"><CardContent className="p-8 text-center space-y-4"><CheckCircle2 className="w-16 h-16 text-green-600 mx-auto"/><h1 className="text-2xl font-bold">¡Inscripción de prueba recibida!</h1><p className="text-slate-600">No se ha realizado ningún cobro ni se ha creado un socio oficial. La administración puede validar el pago simulado y comprobar la papeleta.</p></CardContent></Card>
-    </div>
-  );
   if (paidOk) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-green-600 via-green-700 to-green-900 flex items-center justify-center p-6">
@@ -116,7 +85,7 @@ export default function AltaSocio() {
         <div className="text-center text-white">
           <img src={CLUB_LOGO} alt="CD Bustarviejo" className="w-16 h-16 mx-auto mb-3 rounded-xl shadow-lg" />
           <h1 className="text-2xl font-bold">Hazte socio del CD Bustarviejo</h1>
-          <p className="text-white/90 text-sm mt-1">{testMode ? "Simulación de inscripción · No se realizará ningún cobro" : "Cuota anual: 25€ · Apoya el deporte base de Bustarviejo"}</p>
+          <p className="text-white/90 text-sm mt-1">Cuota anual: 25€ · Apoya el deporte base de Bustarviejo</p>
         </div>
 
         {referidor && (
@@ -145,32 +114,27 @@ export default function AltaSocio() {
                 <Input id="telefono" value={form.telefono} onChange={(e) => setForm({ ...form, telefono: e.target.value })} placeholder="600 000 000" />
               </div>
 
-              {!testMode && (
-                <div className="space-y-2">
-                  <Label>Tipo de pago</Label>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button type="button" onClick={() => setTipoPago("unico")} className={`rounded-xl p-3 text-sm font-semibold border-2 transition-all ${tipoPago === "unico" ? "border-orange-600 bg-orange-50 text-orange-700" : "border-slate-200 text-slate-600"}`}>
-                      Pago único<br /><span className="text-xs font-normal">25€ una vez</span>
-                    </button>
-                    <button type="button" onClick={() => setTipoPago("suscripcion")} className={`rounded-xl p-3 text-sm font-semibold border-2 transition-all ${tipoPago === "suscripcion" ? "border-orange-600 bg-orange-50 text-orange-700" : "border-slate-200 text-slate-600"}`}>
-                      Renovación anual<br /><span className="text-xs font-normal">25€/año automático</span>
-                    </button>
-                  </div>
+              <div className="space-y-2">
+                <Label>Tipo de pago</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" onClick={() => setTipoPago("unico")} className={`rounded-xl p-3 text-sm font-semibold border-2 transition-all ${tipoPago === "unico" ? "border-orange-600 bg-orange-50 text-orange-700" : "border-slate-200 text-slate-600"}`}>
+                    Pago único<br /><span className="text-xs font-normal">25€ una vez</span>
+                  </button>
+                  <button type="button" onClick={() => setTipoPago("suscripcion")} className={`rounded-xl p-3 text-sm font-semibold border-2 transition-all ${tipoPago === "suscripcion" ? "border-orange-600 bg-orange-50 text-orange-700" : "border-slate-200 text-slate-600"}`}>
+                    Renovación anual<br /><span className="text-xs font-normal">25€/año automático</span>
+                  </button>
                 </div>
-              )}
+              </div>
 
               {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg p-2">{error}</p>}
 
               <Button type="submit" disabled={submitting} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold h-12 text-base">
-                {submitting ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Procesando...</> : testMode ? "Enviar inscripción de prueba" : "Pagar 25€ y hacerme socio"}
+                {submitting ? <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Procesando...</> : "Pagar 25€ y hacerme socio"}
               </Button>
 
-              {!testMode && (
-                <p className="text-xs text-slate-400 flex items-center justify-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5" /> Pago seguro con tarjeta vía Stripe
-                </p>
-              )}
-              {testMode && <p className="text-xs text-blue-700 text-center">Modo de pruebas: no se cobra, no se crea ningún socio oficial y los datos quedan aislados.</p>}
+              <p className="text-xs text-slate-400 flex items-center justify-center gap-1">
+                <ShieldCheck className="w-3.5 h-3.5" /> Pago seguro con tarjeta vía Stripe
+              </p>
             </form>
           </CardContent>
         </Card>
