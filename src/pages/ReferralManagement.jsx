@@ -169,50 +169,39 @@ export default function ReferralManagement() {
     : referralHistory
   ).filter(r => r.numero_papeleta);
 
-  // Función para hacer el sorteo POR NÚMERO DE PAPELETA
+  // La selección y el registro del ganador se realizan en servidor.
   const performDraw = async (prize) => {
-    if (papeletasTemporada.length === 0) {
-      toast.error("No hay papeletas repartidas para el sorteo");
-      return;
-    }
-
-    if (!umbralAlcanzado) {
-      toast.error(`Aún no se puede sortear: faltan ${papeletasFaltantes} papeletas para cubrir el valor del premio (${valorPremio}€).`);
-      return;
-    }
-
+    if (!seasonConfig?.temporada) return toast.error("No hay temporada activa");
+    if (!umbralAlcanzado) return toast.error(`Aún no se puede sortear: faltan ${papeletasFaltantes} papeletas para cubrir el valor del premio (${valorPremio}€).`);
     setSelectedPrize(prize);
     setShowRaffleDialog(true);
     setIsDrawing(true);
     setWinner(null);
-
-    // Animación: ir mostrando números aleatorios
     let iterations = 0;
-    const maxIterations = 20;
-    const interval = setInterval(() => {
-      const randomPapeleta = papeletasTemporada[Math.floor(Math.random() * papeletasTemporada.length)];
-      setWinner(randomPapeleta);
+    const interval = setInterval(async () => {
+      setWinner(papeletasTemporada[Math.floor(Math.random() * Math.max(1, papeletasTemporada.length))] || null);
       iterations++;
-
-      if (iterations >= maxIterations) {
-        clearInterval(interval);
-        // Sacar la papeleta ganadora final
-        const finalPapeleta = papeletasTemporada[Math.floor(Math.random() * papeletasTemporada.length)];
-        setWinner(finalPapeleta);
-        setIsDrawing(false);
-
-        // Guardar el sorteo (el ganador es el dueño de la papeleta)
-        createDrawMutation.mutate({
-          temporada: seasonConfig?.temporada,
-          premio_nombre: prize.nombre,
-          premio_emoji: prize.emoji,
-          premio_descripcion: prize.descripcion,
-          numero_ganador: finalPapeleta.numero_papeleta,
-          ganador_email: finalPapeleta.referidor_email,
-          ganador_nombre: finalPapeleta.referidor_nombre,
-          total_participaciones: papeletasTemporada.length,
-          fecha_sorteo: new Date().toISOString()
+      if (iterations < 20) return;
+      clearInterval(interval);
+      try {
+        const { data } = await base44.functions.invoke("executeReferralRaffle", {
+          prize_name: prize.nombre,
+          prize_emoji: prize.emoji,
+          prize_description: prize.descripcion
         });
+        if (!data?.success || !data.draw) throw new Error(data?.error || "El servidor no ha confirmado el sorteo");
+        setWinner({
+          numero_papeleta: data.draw.numero_ganador,
+          referidor_email: data.draw.ganador_email,
+          referidor_nombre: data.draw.ganador_nombre
+        });
+        queryClient.invalidateQueries({ queryKey: ["raffleDraws"] });
+        toast.success("Sorteo registrado y ganador confirmado por el servidor");
+      } catch (error) {
+        setWinner(null);
+        toast.error(error?.message || "No se pudo completar el sorteo");
+      } finally {
+        setIsDrawing(false);
       }
     }, 100);
   };
