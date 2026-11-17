@@ -1,7 +1,8 @@
 import React, { useState } from "react";
-import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Gift, Ticket, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import RafflePrizeConfig from "@/components/season/RafflePrizeConfig";
