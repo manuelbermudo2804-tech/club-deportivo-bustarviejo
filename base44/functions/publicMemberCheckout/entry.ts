@@ -223,7 +223,7 @@ Deno.serve(async (req) => {
           price_data: {
             currency: 'eur',
             product_data: { name: 'Cuota Socio CD Bustarviejo (Anual)' },
-            unit_amount: 2500,
+            unit_amount: Math.round(precioSocio * 100),
             recurring: { interval: 'year' },
           },
           quantity: 1,
@@ -241,7 +241,7 @@ Deno.serve(async (req) => {
           price_data: {
             currency: 'eur',
             product_data: { name: 'Cuota Socio CD Bustarviejo (Pago Unico)' },
-            unit_amount: 2500,
+            unit_amount: Math.round(precioSocio * 100),
           },
           quantity: 1,
         }],
