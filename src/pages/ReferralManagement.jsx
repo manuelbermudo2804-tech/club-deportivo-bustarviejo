@@ -115,6 +115,10 @@ export default function ReferralManagement() {
     mutationFn: async ({ referrerEmail, referredName }) => {
       const referrer = users.find(u => u.email === referrerEmail);
       if (!referrer) throw new Error("Usuario no encontrado");
+      const referrerMemberships = await base44.entities.ClubMember.filter({ email: referrer.email, temporada: seasonConfig?.temporada });
+      if (!referrerMemberships.some(m => m.estado_pago === 'Pagado')) {
+        throw new Error("Este usuario todavía no es socio con la cuota pagada y no puede participar en el sorteo.");
+      }
 
       // Crear registro de referido
       await base44.entities.ReferralReward.create({
