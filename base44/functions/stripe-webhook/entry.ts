@@ -1255,7 +1255,7 @@ Deno.serve(async (req) => {
             const referidorEmail = metadata.referidor_email || '';
             const referidorNombre = metadata.referidor_nombre || '';
             const referidoEmail = member?.email || email;
-            if (referidorEmail && referidoEmail && referidorEmail.toLowerCase() !== referidoEmail.toLowerCase()) {
+            if (member?.estado_pago === 'Pagado' && member?.temporada === temporada && referidorEmail && referidoEmail && referidorEmail.toLowerCase() !== referidoEmail.toLowerCase()) {
               // El referidor debe ser socio pagado en la misma temporada. Si no se puede verificar, no se concede papeleta.
               let referidorEsSocioPagado = false;
               try {
@@ -1315,7 +1315,8 @@ Deno.serve(async (req) => {
               }
             }
           } catch (refErr) {
-            console.error('[stripe-webhook] Error creando papeleta de referido:', refErr?.message || refErr);
+            console.error('[stripe-webhook] Error creando papeleta de referido; se solicita reintento del webhook:', refErr?.message || refErr);
+            throw refErr;
           }
 
           }
