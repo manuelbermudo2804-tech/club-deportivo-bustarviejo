@@ -11,6 +11,7 @@ import ReferralShareRow from "./ReferralShareRow";
  */
 export default function ReferralIntroCard({ precio = 25, premio, premioFoto, premioFotos = [], premioTexto, sorteoFecha, sorteoLugar, onQuieroSerSocio, userEmail, userName, showShare = false }) {
   const premioUrl = "https://www.castillatermal.com/hoteles/castilla-y-leon/castilla-termal-monasterio-de-valbuena/";
+  const fotosAdicionales = Array.isArray(premioFotos) ? premioFotos.filter(Boolean).slice(0, 3) : [];
   return (
     <Card className="border-none shadow-lg overflow-hidden bg-gradient-to-br from-amber-500 via-orange-600 to-rose-600">
       {premioFoto && (
@@ -19,15 +20,6 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, pre
           <div className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-slate-950/80 px-3 py-1.5 text-xs font-black text-white shadow">
             <Ticket className="h-3.5 w-3.5 text-amber-300" /> PREMIO DEL SORTEO
           </div>
-        </div>
-      )}
-      {premioFotos.length > 0 && (
-        <div className="grid grid-cols-3 gap-1.5 bg-slate-950 p-2">
-          {premioFotos.slice(0, 3).map((foto, index) => (
-            <a key={`${foto}-${index}`} href={foto} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-lg focus:outline-none focus:ring-2 focus:ring-white">
-              <img src={foto} alt={`Fotografía ${index + 2} del premio ${premio || "del sorteo"}`} loading="lazy" className="h-24 w-full object-cover transition-transform duration-300 hover:scale-105 sm:h-32" />
-            </a>
-          ))}
         </div>
       )}
       <CardContent className="p-5 text-white">
@@ -58,16 +50,26 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, pre
           </div>
         )}
 
+        {fotosAdicionales.length > 0 && (
+          <div className="mt-4 rounded-2xl border border-white/20 bg-slate-950/15 p-3">
+            <p className="mb-2 text-xs font-black uppercase tracking-wider text-amber-100">Descubre el premio</p>
+            <div className="grid grid-cols-3 gap-2">
+              {fotosAdicionales.map((foto, index) => (
+                <a key={`${foto}-${index}`} href={foto} target="_blank" rel="noopener noreferrer" className="block overflow-hidden rounded-xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-white">
+                  <img src={foto} alt={`Imagen adicional ${index + 1} de ${premio || "el premio"}`} loading="lazy" className="h-24 w-full object-cover sm:h-32" />
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="mt-4 bg-white/15 rounded-2xl p-4">
           <p className="font-bold text-sm mb-2">¿Cómo funciona?</p>
           <ol className="text-sm space-y-1 text-white/95">
-            <li>1️⃣ Comparte tu invitación por WhatsApp (lleva tu enlace personal).</li>
-            <li>2️⃣ Quien la reciba completa el formulario de alta y paga los {precio}€.</li>
-            <li>3️⃣ Se te suma automáticamente una papeleta para el sorteo.</li>
+            <li>1️⃣ Invita a esa persona en directo o comparte tu enlace personal por WhatsApp, mensaje o correo.</li>
+            <li>2️⃣ Puede darse de alta por su cuenta con tu enlace, o puedes apuntarla tú desde el botón de abajo.</li>
+            <li>3️⃣ Cuando el alta queda registrada y el pago se confirma, se genera tu papeleta para el sorteo.</li>
           </ol>
-          <p className="text-white/80 text-xs mt-2">
-            También puedes apuntar tú mismo a alguien con el botón de abajo.
-          </p>
         </div>
 
         {showShare && <ReferralShareRow userEmail={userEmail} userName={userName} />}
