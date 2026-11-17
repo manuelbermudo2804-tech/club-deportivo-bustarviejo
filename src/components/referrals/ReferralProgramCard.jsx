@@ -251,16 +251,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
           <>
 
 
-              <p className="text-white/90 text-xs mt-3 bg-white/20 rounded-lg p-2">
-                📌 <strong>¿Cómo funciona?</strong> Tú invitas → Ellos se hacen socios → Inscriben a su hija → ¡Tú ganas!
-              </p>
-              {userFemeninoReferrals > 0 && (
-                <div className="mt-3 bg-white/20 rounded-xl p-2">
-                  <p className="text-white font-bold">
-                    ✨ Ya has traído {userFemeninoReferrals} jugadora{userFemeninoReferrals > 1 ? 's' : ''} al femenino
-                  </p>
-                </div>
-              )}
+
             </div>
           </div>
         )}
