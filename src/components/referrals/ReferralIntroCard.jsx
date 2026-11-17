@@ -65,11 +65,11 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, pre
 
         <div className="mt-4 bg-white/15 rounded-2xl p-4">
           <p className="font-bold text-sm mb-2">¿Cómo funciona?</p>
-          <ol className="text-sm space-y-1 text-white/95">
-            <li>1️⃣ Invita a esa persona en directo o comparte tu enlace personal por WhatsApp, mensaje o correo.</li>
-            <li>2️⃣ Puede darse de alta por su cuenta con tu enlace, o puedes apuntarla tú desde el botón de abajo.</li>
-            <li>3️⃣ Cuando el alta queda registrada y el pago se confirma, se genera tu papeleta para el sorteo.</li>
+          <ol className="text-sm space-y-2 text-white/95">
+            <li>1️⃣ <strong>Inscripción directa:</strong> tú das de alta al nuevo socio mediante el formulario, introduces sus datos y se realiza el pago habitual. Cuando el pago se confirma, se te asigna una papeleta.</li>
+            <li>2️⃣ <strong>Inscripción mediante enlace:</strong> compartes tu enlace personal y el invitado realiza el alta por su cuenta y efectúa el pago. Cuando se confirma, se te asigna igualmente una papeleta.</li>
           </ol>
+          <p className="mt-3 text-sm font-bold text-white">¡Tú eliges cómo invitar! Las dos formas cuentan exactamente igual para el sorteo.</p>
         </div>
 
         {showShare && <ReferralShareRow userEmail={userEmail} userName={userName} />}
