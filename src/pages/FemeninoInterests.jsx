@@ -127,12 +127,12 @@ export default function FemeninoInterests() {
             </div>
             <div className="flex items-center gap-3">
               <Label className="text-sm font-medium">
-                {activeSeason?.bonus_femenino_activo ? "Activado" : "Desactivado"}
+                Retirado definitivamente
               </Label>
               <Switch
-                checked={activeSeason?.bonus_femenino_activo || false}
-                onCheckedChange={toggleBanner}
-                disabled={!activeSeason}
+                checked={false}
+                onCheckedChange={() => toast.info("El bonus femenino ya no forma parte del programa.")}
+                disabled={true}
               />
             </div>
           </div>
@@ -342,7 +342,7 @@ export default function FemeninoInterests() {
                     <strong>Referido por:</strong> {selectedInterest.referido_por_nombre} ({selectedInterest.referido_por_email})
                   </p>
                   <p className="text-xs text-pink-600 mt-1">
-                    ⚠️ Recuerda aplicar el bonus si se inscribe
+                    La solicitud se gestiona como una inscripción ordinaria, sin bonificaciones por referido.
                   </p>
                 </div>
               )}
