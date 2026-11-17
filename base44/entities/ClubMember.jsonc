@@ -216,6 +216,10 @@
       "default": false,
       "description": "Si ya se envi\u00f3 el email con el enlace al carnet p\u00fablico"
     },
+    "codigo_referido": {
+      "type": "string",
+      "description": "Token aleatorio privado y persistente para atribuci\u00f3n de invitaciones"
+    },
     "referido_por": {
       "type": "string",
       "description": "Nombre de quien refiri\u00f3 a este socio"
