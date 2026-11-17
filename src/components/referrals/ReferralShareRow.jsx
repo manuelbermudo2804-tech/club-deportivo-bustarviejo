@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -6,7 +6,6 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MessageCircle, Copy, Sparkles, Share2 } from "lucide-react";
 import { toast } from "sonner";
-import { generateReferralCode } from "./referralCode";
 
 /**
  * Una sola línea de acciones para compartir la invitación:
@@ -18,10 +17,18 @@ export default function ReferralShareRow({ userEmail = "", userName = "" }) {
   const [message, setMessage] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const code = generateReferralCode(userEmail);
-  const link = code
-    ? `${window.location.origin}/AltaSocio?ref=${code}`
-    : `${window.location.origin}/AltaSocio`;
+  const [code, setCode] = useState("");
+  useEffect(() => {
+    let active = true;
+    if (!userEmail) return () => { active = false; };
+    base44.functions.invoke("getMyReferralCode", {}).then(({ data }) => {
+      if (active && data?.success && data.code) setCode(data.code);
+    }).catch(() => {
+      if (active) toast.error("No se pudo cargar tu enlace personal. Comprueba que tu cuota está pagada.");
+    });
+    return () => { active = false; };
+  }, [userEmail]);
+  const link = code ? `${window.location.origin}/AltaSocio?ref=${code}` : `${window.location.origin}/AltaSocio`;
 
   const defaultMessage = `¡Hola! Quería invitarte personalmente a hacerte socio/a del CD Bustarviejo. ⚽🏀
 
@@ -65,7 +72,7 @@ Además, esta invitación forma parte de nuestra campaña “Trae un socio amigo
     <>
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <Button
-          onClick={() => share(defaultMessage)}
+          onClick={() => code ? share(defaultMessage) : toast.error("Tu enlace personal todavía no está disponible.")}
           className="flex-1 min-w-[150px] bg-green-500 hover:bg-green-600 text-white font-bold"
         >
           <MessageCircle className="w-5 h-5 mr-2" />
@@ -80,7 +87,7 @@ Además, esta invitación forma parte de nuestra campaña “Trae un socio amigo
           Escribirlo por mí
         </Button>
         <Button
-          onClick={() => { navigator.clipboard.writeText(link); toast.success("Enlace copiado"); }}
+          onClick={() => { if (!code) return toast.error("Tu enlace personal todavía no está disponible."); navigator.clipboard.writeText(link); toast.success("Enlace copiado"); }}
           variant="outline"
           className="bg-white/20 hover:bg-white/30 text-white border-white/40 px-3"
           title="Copiar enlace"
