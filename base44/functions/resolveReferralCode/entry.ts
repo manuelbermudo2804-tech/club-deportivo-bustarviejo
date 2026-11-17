@@ -1,16 +1,14 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-// Endpoint PÚBLICO: dado un código de referido (hash del email del socio que invita),
-// devuelve el nombre y email del referidor para mostrarlo en la página de alta y
-// poder atribuir la papeleta tras el pago.
-// El código es un hash corto del email (misma lógica que el frontend).
+// Endpoint público: resuelve un código de invitación y devuelve únicamente
+// el nombre público del socio. Nunca expone su correo electrónico.
 function generateReferralCode(email) {
-  if (!email) return '';
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized) return '';
   let hash = 0;
-  for (let i = 0; i < email.length; i++) {
-    const char = email.charCodeAt(i);
-    hash = ((hash << 5) - hash) + char;
-    hash = hash & hash;
+  for (let i = 0; i < normalized.length; i++) {
+    hash = ((hash << 5) - hash) + normalized.charCodeAt(i);
+    hash |= 0;
   }
   return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
 }
@@ -40,12 +38,13 @@ Deno.serve(async (req) => {
       console.error('[resolveReferralCode] Error listando usuarios:', e?.message || e);
     }
 
-    const match = users.find(u => u.email && generateReferralCode(u.email) === target);
-    if (match) {
+    const matches = users.filter(u => u.email && generateReferralCode(u.email) === target);
+    // Un código ambiguo nunca se atribuye: evita asignar la papeleta a la persona equivocada.
+    if (matches.length === 1) {
+      const match = matches[0];
       return Response.json({
         found: true,
-        referidor_nombre: match.full_name || match.email.split('@')[0],
-        referidor_email: match.email,
+        referidor_nombre: match.full_name || 'Un socio del club',
       }, { headers: corsHeaders });
     }
 
