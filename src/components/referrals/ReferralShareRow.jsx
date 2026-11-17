@@ -12,7 +12,7 @@ import { generateReferralCode } from "./referralCode";
  * Una sola línea de acciones para compartir la invitación:
  * WhatsApp + asistente de mensajes + copiar enlace.
  */
-export default function ReferralShareRow({ userEmail = "", userName = "", isTestMode = false }) {
+export default function ReferralShareRow({ userEmail = "", userName = "" }) {
   const [showAi, setShowAi] = useState(false);
   const [targetType, setTargetType] = useState("");
   const [message, setMessage] = useState("");
@@ -20,8 +20,8 @@ export default function ReferralShareRow({ userEmail = "", userName = "", isTest
 
   const code = generateReferralCode(userEmail);
   const link = code
-    ? `${window.location.origin}/AltaSocio?ref=${code}${isTestMode ? "&test_ref=1" : ""}`
-    : `${window.location.origin}/AltaSocio${isTestMode ? "?test_ref=1" : ""}`;
+    ? `${window.location.origin}/AltaSocio?ref=${code}`
+    : `${window.location.origin}/AltaSocio`;
 
   const defaultMessage = `¡Únete al CD Bustarviejo! ⚽🏀
 

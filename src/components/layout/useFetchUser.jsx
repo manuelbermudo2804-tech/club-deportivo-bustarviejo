@@ -44,7 +44,6 @@ export function useFetchUser(location) {
   const executeFetch = async () => {
     const lowerPath = location.pathname.toLowerCase();
     const isPublicPage = lowerPath.includes('clubmembership') ||
-                         lowerPath.includes('referraltestmode') || 
                          lowerPath.includes('validateadmininvitation') ||
                          lowerPath.includes('pwaentry') ||
                          lowerPath.includes('joinreferral') ||

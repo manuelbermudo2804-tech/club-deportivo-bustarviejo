@@ -9,7 +9,7 @@ import ReferralShareRow from "./ReferralShareRow";
  * Cabecera del programa "Trae un socio amigo": explica en dos líneas cómo
  * participar y recuerda que CUALQUIERA puede hacerse socio.
  */
-export default function ReferralIntroCard({ precio = 25, premio, premioFoto, sorteoFecha, sorteoLugar, onQuieroSerSocio, userEmail, userName, showShare = false, isTestMode = false }) {
+export default function ReferralIntroCard({ precio = 25, premio, premioFoto, sorteoFecha, sorteoLugar, onQuieroSerSocio, userEmail, userName, showShare = false }) {
   return (
     <Card className="border-none shadow-lg overflow-hidden bg-gradient-to-br from-amber-500 via-orange-600 to-rose-600">
       <CardContent className="p-5 text-white">
@@ -29,7 +29,7 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, sor
               Por cada persona que se haga socia con tu invitación consigues una papeleta para el sorteo.
             </p>
             <p className="text-white/90 text-sm mt-2">
-              <strong>Cualquiera puede ser socio</strong>: tu pareja, abuelos, tíos, vecinos o amigos. {isTestMode ? "En esta prueba no se realizará ningún cobro." : `Solo ${precio}€ por temporada.`}
+              <strong>Cualquiera puede ser socio</strong>: tu pareja, abuelos, tíos, vecinos o amigos. Solo {precio}€ por temporada.
             </p>
           </div>
         </div>
@@ -38,15 +38,15 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, sor
           <p className="font-bold text-sm mb-2">¿Cómo funciona?</p>
           <ol className="text-sm space-y-1 text-white/95">
             <li>1️⃣ Comparte tu invitación por WhatsApp (lleva tu enlace personal).</li>
-            <li>2️⃣ Quien la reciba completa el formulario de alta{isTestMode ? " de prueba, sin pagar" : ` y paga los ${precio}€`}.</li>
-            <li>3️⃣ {isTestMode ? "La administración valida el pago simulado y comprueba la papeleta." : "Se te suma automáticamente una papeleta para el sorteo."}</li>
+            <li>2️⃣ Quien la reciba completa el formulario de alta y paga los {precio}€.</li>
+            <li>3️⃣ Se te suma automáticamente una papeleta para el sorteo.</li>
           </ol>
           <p className="text-white/80 text-xs mt-2">
             También puedes apuntar tú mismo a alguien con el botón de abajo.
           </p>
         </div>
 
-        {showShare && <ReferralShareRow userEmail={userEmail} userName={userName} isTestMode={isTestMode} />}
+        {showShare && <ReferralShareRow userEmail={userEmail} userName={userName} />}
 
         <SorteoCountdown fecha={sorteoFecha} lugar={sorteoLugar} />
 

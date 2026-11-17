@@ -1,29 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Gift, Ticket, ChevronDown, ChevronUp, Sparkles, FlaskConical, UserRound } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Gift, Ticket, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 import RafflePrizeConfig from "@/components/season/RafflePrizeConfig";
 
 export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating, updateSeasonMutation }) {
   const [expanded, setExpanded] = useState(false);
-  const [users, setUsers] = useState([]);
   const activo = seasonConfig?.programa_referidos_activo === true;
-  const modoPrueba = seasonConfig?.programa_referidos_modo_prueba === true;
   const bonusFemenino = seasonConfig?.bonus_femenino_activo ?? false;
-  const testerEmail = seasonConfig?.programa_referidos_usuario_prueba_email || "";
-
-  useEffect(() => {
-    base44.entities.User.list().then(setUsers).catch(() => setUsers([]));
-  }, []);
 
   const update = (data) => onUpdate(data);
-  const tester = users.find(u => u.email?.toLowerCase() === testerEmail.toLowerCase());
 
   return (
     <Card className={`border-2 ${activo ? 'border-purple-300 bg-gradient-to-r from-purple-50 to-pink-50' : 'border-slate-200'}`}>
@@ -50,43 +38,6 @@ export default function ReferralConfigCard({ seasonConfig, onUpdate, isUpdating,
 
       {expanded && (
         <CardContent className="space-y-4 pt-0">
-          <section className="rounded-xl border border-blue-200 bg-blue-50 p-4 space-y-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <FlaskConical className="h-5 w-5 text-blue-700" />
-                <div>
-                  <p className="font-semibold text-slate-900">Modo de pruebas</p>
-                  <p className="text-xs text-slate-600">Permite probar el circuito sin activar el programa para las familias.</p>
-                </div>
-              </div>
-              <Switch checked={modoPrueba} onCheckedChange={(checked) => update({ programa_referidos_modo_prueba: checked })} />
-            </div>
-            {modoPrueba && (
-              <div className="space-y-2 border-t border-blue-200 pt-3">
-                <Label>Único usuario autorizado</Label>
-                <select
-                  className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm"
-                  value={testerEmail}
-                  onChange={(e) => update({ programa_referidos_usuario_prueba_email: e.target.value })}
-                >
-                  <option value="">Selecciona el usuario que hará las pruebas</option>
-                  {users.filter(u => u.email).sort((a,b) => (a.full_name || a.email).localeCompare(b.full_name || b.email)).map(u => (
-                    <option key={u.id} value={u.email}>{u.full_name || u.email} · {u.email}</option>
-                  ))}
-                </select>
-                {testerEmail ? (
-                  <div className="flex items-center gap-2 rounded-lg bg-white p-3 text-sm text-blue-900">
-                    <UserRound className="h-4 w-4 shrink-0" />
-                    <span>Autorizado: <strong>{tester?.full_name || testerEmail}</strong>. Solo esta cuenta podrá acceder al modo de pruebas.</span>
-                  </div>
-                ) : (
-                  <p className="text-xs text-amber-800">Selecciona un usuario para habilitar el acceso de pruebas.</p>
-                )}
-                <p className="text-xs text-slate-600">El usuario seleccionado verá el programa real dentro de la app. Las altas de prueba no crearán socios oficiales ni pasarán por Stripe.</p>
-              </div>
-            )}
-          </section>
-
           <RafflePrizeConfig activeSeason={seasonConfig} updateSeasonMutation={updateSeasonMutation} />
 
           <section className="bg-white border border-slate-200 rounded-xl p-4">
