@@ -10,7 +10,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, Upload, AlertCircle, CheckCircle2, Users, CreditCard, Download, Heart, Star, PartyPopper, Sparkles, UserPlus, Trophy, Gift, Share2, MessageCircle, ChevronLeft, ChevronRight } from "lucide-react";
-import ReferralProgramCard from "../components/referrals/ReferralProgramCard";
 import ReferralIntroCard from "../components/referrals/ReferralIntroCard";
 import { toast } from "sonner";
 import InvitationPWAGuide from "../components/pwa/InvitationPWAGuide";
@@ -59,17 +58,6 @@ export default function ClubMembership() {
   useEffect(() => {
     try { setIsIframe(window.self !== window.top); } catch (e) { setIsIframe(false); }
   }, []);
-
-  // Función para generar el mismo código de referido que en ReferralProgramCard
-  const generateReferralCode = (email) => {
-    const normalized = String(email || '').trim().toLowerCase();
-    let hash = 0;
-    for (let i = 0; i < normalized.length; i++) {
-      hash = ((hash << 5) - hash) + normalized.charCodeAt(i);
-      hash |= 0;
-    }
-    return normalized ? Math.abs(hash).toString(36).toUpperCase().slice(0, 8) : '';
-  };
 
   // Función para generar código de renovación (igual que en ReferralManagement)
   const generateRenewalCode = (memberId) => {
@@ -849,20 +837,6 @@ export default function ClubMembership() {
         </div>
       )}
 
-      {/* Programa Trae un Socio Amigo - solo aquí si el programa NO está activo (ya se muestra arriba cuando lo está) */}
-      {user && !programaReferidosActivo && (
-        <ReferralProgramCard 
-          seasonConfig={seasonConfig}
-          userReferrals={currentUser?.referrals_count || 0}
-          userRaffleEntries={currentUser?.raffle_entries_total || 0}
-          userFemeninoReferrals={currentUser?.femenino_referrals_count || 0}
-          userEmail={currentUser?.email || ""}
-          userName={currentUser?.full_name || ""}
-          hasPlayersInClub={myPlayers.length > 0}
-        />
-      )}
-
-
 
       {/* Formulario de inscripción - WIZARD */}
       {((showForm && !(isPlayerUser && currentSeasonMembership)) || isRenewal) ? (
@@ -901,7 +875,6 @@ export default function ClubMembership() {
                   uploadingJustificante={uploadingJustificante}
                   onJustificanteUpload={handleJustificanteUpload}
                   isIframe={isIframe}
-                  referralCode={user?.email ? generateReferralCode(user.email) : ""}
                 />
               )}
 
