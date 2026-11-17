@@ -64,23 +64,9 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' });
 
-    // La atribución se resuelve en servidor; nunca confiamos en el email/nombre enviado por el navegador.
+    // La atribución se resolverá en servidor después de conocer la temporada activa.
+    // Nunca confiamos en el nombre o email de referidor enviado por el navegador.
     let trustedReferrer = null;
-    if (referido_por) {
-      try {
-        const users = await base44.asServiceRole.entities.User.list('', 5000);
-        const matches = users.filter(u => u.email && generateReferralCode(u.email) === String(referido_por).trim().toUpperCase());
-        const match = matches.length === 1 ? matches[0] : null;
-        if (match && String(match.email).trim().toLowerCase() !== String(email).trim().toLowerCase()) {
-          trustedReferrer = {
-            email: String(match.email).trim().toLowerCase(),
-            name: match.full_name || String(match.email).split('@')[0],
-          };
-        }
-      } catch (refErr) {
-        console.error('[publicMemberCheckout] No se pudo validar el código de referido:', refErr?.message || refErr);
-      }
-    }
 
     // Obtener temporada activa desde SeasonConfig
     let temporada;
@@ -101,6 +87,31 @@ Deno.serve(async (req) => {
       temporada = month >= 7 ? `${year}-${year + 1}` : `${year - 1}-${year}`;
     }
     console.log('[publicMemberCheckout] Temporada:', temporada, '| Email:', email);
+
+    // Solo aceptamos enlaces de socios con la cuota pagada en la temporada activa.
+    if (referido_por) {
+      try {
+        const users = await base44.asServiceRole.entities.User.list('', 5000);
+        const code = String(referido_por).trim().toUpperCase();
+        const referrerMatches = users.filter(u => u.email && generateReferralCode(u.email) === code);
+        const match = referrerMatches.length === 1 ? referrerMatches[0] : null;
+        if (match) {
+          const refEmail = String(match.email).trim().toLowerCase();
+          if (refEmail !== String(email).trim().toLowerCase()) {
+            const refMemberships = await base44.asServiceRole.entities.ClubMember.filter({ email: refEmail, temporada });
+            const paidMembership = refMemberships.find(m => m.estado_pago === 'Pagado');
+            if (paidMembership) {
+              trustedReferrer = {
+                email: refEmail,
+                name: match.full_name || paidMembership.nombre_completo || refEmail.split('@')[0],
+              };
+            }
+          }
+        }
+      } catch (refErr) {
+        console.error('[publicMemberCheckout] No se pudo validar el socio referidor:', refErr?.message || refErr);
+      }
+    }
 
     // Verificar si ya existe un socio con ese email para esta temporada
     let byEmail = [], byDni = [];
