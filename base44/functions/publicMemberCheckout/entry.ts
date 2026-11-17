@@ -88,28 +88,23 @@ Deno.serve(async (req) => {
     }
     console.log('[publicMemberCheckout] Temporada:', temporada, '| Email:', email);
 
-    // Solo aceptamos enlaces de socios con la cuota pagada en la temporada activa.
+    // Solo se aceptan tokens aleatorios persistidos en una ficha de socio pagada.
     if (referido_por) {
       try {
-        const users = await base44.asServiceRole.entities.User.list('', 5000);
         const code = String(referido_por).trim().toUpperCase();
-        const referrerMatches = users.filter(u => u.email && generateReferralCode(u.email) === code);
-        const match = referrerMatches.length === 1 ? referrerMatches[0] : null;
-        if (match) {
-          const refEmail = String(match.email).trim().toLowerCase();
-          if (refEmail !== String(email).trim().toLowerCase()) {
-            const refMemberships = await base44.asServiceRole.entities.ClubMember.filter({ email: refEmail, temporada });
-            const paidMembership = refMemberships.find(m => m.estado_pago === 'Pagado');
-            if (paidMembership) {
-              trustedReferrer = {
-                email: refEmail,
-                name: match.full_name || paidMembership.nombre_completo || refEmail.split('@')[0],
-              };
-            }
+        if (/^[A-F0-9]{32}$/.test(code)) {
+          const referrerMatches = await base44.asServiceRole.entities.ClubMember.filter({
+            codigo_referido: code, temporada, estado_pago: 'Pagado'
+          });
+          const paidMembership = referrerMatches.length === 1 ? referrerMatches[0] : null;
+          const refEmail = String(paidMembership?.email || '').trim().toLowerCase();
+          if (paidMembership && refEmail && refEmail !== String(email).trim().toLowerCase()) {
+            trustedReferrer = { email: refEmail, name: paidMembership.nombre_completo || 'Socio del club' };
           }
         }
       } catch (refErr) {
-        console.error('[publicMemberCheckout] No se pudo validar el socio referidor:', refErr?.message || refErr);
+        console.error('[publicMemberCheckout] No se pudo validar el token de referido:', refErr?.message || refErr);
+        return Response.json({ error: 'No se ha podido validar el enlace de invitación. Inténtalo de nuevo.' }, { status: 503, headers: corsHeaders });
       }
     }
 
