@@ -23,13 +23,15 @@ export default function ReferralShareRow({ userEmail = "", userName = "" }) {
     ? `${window.location.origin}/AltaSocio?ref=${code}`
     : `${window.location.origin}/AltaSocio`;
 
-  const defaultMessage = `¡Únete al CD Bustarviejo! ⚽🏀
+  const defaultMessage = `¡Hola! Quería invitarte personalmente a hacerte socio/a del CD Bustarviejo. ⚽🏀
 
-El mejor club para disfrutar del deporte, con ambiente familiar y para todas las edades.
+Somos un club deportivo familiar, con actividades para distintas edades, y tu cuota ayuda a que el deporte siga creciendo en Bustarviejo.
 
-👉 Hazte socio aquí: ${link}
+👉 Puedes hacerte socio/a aquí: ${link}
 
-¡Vente a formar parte del club! 💪`;
+Además, esta invitación forma parte de nuestra campaña “Trae un socio amigo”: si completas tu alta y el pago, yo consigo una papeleta para participar en el sorteo del club. 🎟️
+
+¡Me encantaría que formaras parte de la familia del CD Bustarviejo! 🟠⚫`;
 
   const share = async (text) => {
     if (navigator.share) {
@@ -51,7 +53,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
         userName: userName || "un socio",
         targetType,
       });
-      setMessage(`${data.message}\n\n👉 Apúntate aquí: ${link}`);
+      setMessage(`${data.message}\n\n👉 Puedes hacerte socio/a aquí: ${link}\n\nSi completas el alta y el pago, yo consigo una papeleta para participar en el sorteo de la campaña “Trae un socio amigo”. 🎟️`);
     } catch {
       toast.error("No se pudo crear el mensaje. Inténtalo de nuevo.");
     } finally {
