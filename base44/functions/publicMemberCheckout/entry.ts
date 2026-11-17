@@ -1,6 +1,17 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 import Stripe from 'npm:stripe@14.21.0';
 
+
+function generateReferralCode(email: string) {
+  const normalized = String(email || '').trim().toLowerCase();
+  let hash = 0;
+  for (let i = 0; i < normalized.length; i++) {
+    hash = ((hash << 5) - hash) + normalized.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
+}
+
 // Endpoint PÚBLICO para que la landing page externa cree un socio + sesión Stripe.
 // Usa asServiceRole porque no hay usuario autenticado (llamada externa).
 Deno.serve(async (req) => {
@@ -52,6 +63,23 @@ Deno.serve(async (req) => {
     // Inicializar Base44 SDK - usar service role directamente para endpoints públicos
     const base44 = createClientFromRequest(req);
     const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' });
+
+    // La atribución se resuelve en servidor; nunca confiamos en el email/nombre enviado por el navegador.
+    let trustedReferrer = null;
+    if (referido_por) {
+      try {
+        const users = await base44.asServiceRole.entities.User.list('', 5000);
+        const match = users.find(u => u.email && generateReferralCode(u.email) === String(referido_por).trim().toUpperCase());
+        if (match && String(match.email).toLowerCase() !== String(email).trim().toLowerCase()) {
+          trustedReferrer = {
+            email: String(match.email).trim().toLowerCase(),
+            name: match.full_name || String(match.email).split('@')[0],
+          };
+        }
+      } catch (refErr) {
+        console.error('[publicMemberCheckout] No se pudo validar el código de referido:', refErr?.message || refErr);
+      }
+    }
 
     // Obtener temporada activa desde SeasonConfig
     let temporada;
@@ -123,13 +151,20 @@ Deno.serve(async (req) => {
         metodo_pago: 'Tarjeta',
         temporada,
         activo: false,
-        referido_por: referido_por || '',
+        referido_por: trustedReferrer?.name || '',
+        referido_por_email: trustedReferrer?.email || '',
         notas: 'Registro desde web externa - pendiente de pago Stripe',
       });
 
       console.log('[publicMemberCheckout] Socio creado ID:', membership.id);
     } else {
       console.log('[publicMemberCheckout] Reutilizando socio existente ID:', membership.id);
+      if (membership.estado_pago !== 'Pagado' && trustedReferrer) {
+        await base44.asServiceRole.entities.ClubMember.update(membership.id, {
+          referido_por: trustedReferrer.name,
+          referido_por_email: trustedReferrer.email,
+        });
+      }
     }
 
     // Crear sesión de Stripe Checkout
@@ -146,9 +181,9 @@ Deno.serve(async (req) => {
       municipio: municipio || '',
       temporada,
       tipo_inscripcion: tipo_inscripcion || 'Nueva Inscripcion',
-      referido_por: referido_por || '',
-      referidor_nombre: referidor_nombre || '',
-      referidor_email: referidor_email || '',
+      referido_por: trustedReferrer ? String(referido_por).trim().toUpperCase() : '',
+      referidor_nombre: trustedReferrer?.name || '',
+      referidor_email: trustedReferrer?.email || '',
       es_segundo_progenitor: String(es_segundo_progenitor || false),
       origen: body.campus_registration_id ? 'campus_2027' : 'web_externa',
       campus_registration_id: body.campus_registration_id || '',
