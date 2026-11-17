@@ -8,11 +8,11 @@
     },
     "referidor_email": {
       "type": "string",
-      "description": "Email de quien refiri\u00f3"
+      "description": "Email de quien refirió"
     },
     "referidor_nombre": {
       "type": "string",
-      "description": "Nombre de quien refiri\u00f3"
+      "description": "Nombre de quien refirió"
     },
     "referido_email": {
       "type": "string",
@@ -38,7 +38,7 @@
     },
     "credito_otorgado": {
       "type": "number",
-      "description": "Cr\u00e9dito en ropa otorgado al referidor"
+      "description": "Crédito en ropa otorgado al referidor"
     },
     "sorteos_otorgados": {
       "type": "number",
@@ -46,22 +46,12 @@
     },
     "numero_papeleta": {
       "type": "string",
-      "description": "N\u00famero de papeleta aleatorio y \u00fanico asignado a este referido para el sorteo (ej: 0427)"
-    },
-    "es_femenino": {
-      "type": "boolean",
-      "default": false,
-      "description": "Si el referido es jugadora de f\u00fatbol femenino (bonus doble)"
-    },
-    "bonus_femenino_aplicado": {
-      "type": "boolean",
-      "default": false,
-      "description": "Si se aplic\u00f3 el bonus extra por femenino"
+      "description": "Número de papeleta aleatorio y único asignado a este referido para el sorteo (ej: 0427)"
     },
     "fecha_referido": {
       "type": "string",
       "format": "date-time",
-      "description": "Fecha en que se refiri\u00f3"
+      "description": "Fecha en que se refirió"
     }
   },
   "required": [

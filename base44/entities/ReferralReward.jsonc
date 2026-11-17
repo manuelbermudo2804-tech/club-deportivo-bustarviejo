@@ -4,11 +4,11 @@
   "properties": {
     "referrer_email": {
       "type": "string",
-      "description": "Email del socio que refiri\u00f3"
+      "description": "Email del socio que refirió"
     },
     "referrer_name": {
       "type": "string",
-      "description": "Nombre del socio que refiri\u00f3"
+      "description": "Nombre del socio que refirió"
     },
     "referred_member_id": {
       "type": "string",
@@ -28,21 +28,16 @@
     },
     "referred_player_category": {
       "type": "string",
-      "description": "Categor\u00eda del jugador referido (ej: F\u00fatbol Femenino)"
-    },
-    "is_femenino_bonus": {
-      "type": "boolean",
-      "default": false,
-      "description": "Si se aplic\u00f3 bonus especial por f\u00fatbol femenino"
+      "description": "Categoría del jugador referido (ej: Fútbol Femenino)"
     },
     "temporada": {
       "type": "string",
-      "description": "Temporada en la que se realiz\u00f3 la referencia"
+      "description": "Temporada en la que se realizó la referencia"
     },
     "clothing_credit_earned": {
       "type": "number",
       "default": 0,
-      "description": "Cr\u00e9dito en ropa ganado por esta referencia"
+      "description": "Crédito en ropa ganado por esta referencia"
     },
     "raffle_entries_earned": {
       "type": "number",
@@ -72,7 +67,7 @@
     "claimed_date": {
       "type": "string",
       "format": "date-time",
-      "description": "Fecha en que se reclam\u00f3 el premio"
+      "description": "Fecha en que se reclamó el premio"
     },
     "notas": {
       "type": "string",
@@ -85,5 +80,34 @@
     "referred_member_id",
     "referred_member_name",
     "temporada"
-  ]
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.referrer_email": "{{user.email}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
 }

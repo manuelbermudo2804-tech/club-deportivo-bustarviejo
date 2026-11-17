@@ -13,7 +13,7 @@
     },
     "cuota_unica": {
       "type": "number",
-      "description": "Importe de cuota \u00fanica en euros"
+      "description": "Importe de cuota única en euros"
     },
     "cuota_tres_meses": {
       "type": "number",
@@ -22,7 +22,7 @@
     "permitir_plan_mensual": {
       "type": "boolean",
       "default": false,
-      "description": "Permitir plan mensual con domiciliaci\u00f3n por tarjeta (60% inicial + resto prorrateado)"
+      "description": "Permitir plan mensual con domiciliación por tarjeta (60% inicial + resto prorrateado)"
     },
     "plan_mensual_porcentaje_inicial": {
       "type": "number",
@@ -40,12 +40,12 @@
         "Junio"
       ],
       "default": "Mayo",
-      "description": "\u00daltimo mes en que se cobra la mensualidad"
+      "description": "Último mes en que se cobra la mensualidad"
     },
     "plan_mensual_modo_test": {
       "type": "boolean",
       "default": false,
-      "description": "Si est\u00e1 activado, el Plan Mensual solo estar\u00e1 visible para los emails de la lista de test"
+      "description": "Si está activado, el Plan Mensual solo estará visible para los emails de la lista de test"
     },
     "plan_mensual_emails_test": {
       "type": "array",
@@ -66,7 +66,7 @@
     },
     "google_sheets_id": {
       "type": "string",
-      "description": "ID del Google Sheets para sincronizaci\u00f3n de presupuestos"
+      "description": "ID del Google Sheets para sincronización de presupuestos"
     },
     "permitir_renovaciones": {
       "type": "boolean",
@@ -76,17 +76,17 @@
     "fecha_limite_renovaciones": {
       "type": "string",
       "format": "date",
-      "description": "Fecha l\u00edmite para renovar jugadores (opcional)"
+      "description": "Fecha límite para renovar jugadores (opcional)"
     },
     "enviar_recordatorios_renovacion": {
       "type": "boolean",
       "default": false,
-      "description": "Enviar recordatorios autom\u00e1ticos de renovaci\u00f3n"
+      "description": "Enviar recordatorios automáticos de renovación"
     },
     "dias_antes_recordatorio_renovacion": {
       "type": "number",
       "default": 15,
-      "description": "D\u00edas antes de la fecha l\u00edmite para enviar recordatorio autom\u00e1tico"
+      "description": "Días antes de la fecha límite para enviar recordatorio automático"
     },
     "tienda_ropa_abierta": {
       "type": "boolean",
@@ -115,26 +115,26 @@
           }
         }
       },
-      "description": "Cat\u00e1logo de productos de ropa con precios configurables"
+      "description": "Catálogo de productos de ropa con precios configurables"
     },
     "loteria_navidad_abierta": {
       "type": "boolean",
       "default": false,
-      "description": "Control manual para abrir/cerrar pedidos de loter\u00eda"
+      "description": "Control manual para abrir/cerrar pedidos de lotería"
     },
     "loteria_requiere_pago_adelantado": {
       "type": "boolean",
       "default": false,
-      "description": "Si la loter\u00eda requiere pago adelantado con justificante"
+      "description": "Si la lotería requiere pago adelantado con justificante"
     },
     "precio_decimo_loteria": {
       "type": "number",
       "default": 22,
-      "description": "Precio del d\u00e9cimo de loter\u00eda en euros"
+      "description": "Precio del décimo de lotería en euros"
     },
     "loteria_max_decimos": {
       "type": "number",
-      "description": "N\u00famero m\u00e1ximo de d\u00e9cimos disponibles para vender"
+      "description": "Número máximo de décimos disponibles para vender"
     },
     "bizum_activo": {
       "type": "boolean",
@@ -143,15 +143,15 @@
     },
     "bizum_telefono": {
       "type": "string",
-      "description": "N\u00famero de tel\u00e9fono del club para Bizum"
+      "description": "Número de teléfono del club para Bizum"
     },
     "club_iban": {
       "type": "string",
-      "description": "IBAN del club para transferencias bancarias (sin espacios). Si est\u00e1 vac\u00edo, se usa el IBAN por defecto."
+      "description": "IBAN del club para transferencias bancarias (sin espacios). Si está vacío, se usa el IBAN por defecto."
     },
     "club_bank": {
       "type": "string",
-      "description": "Nombre del banco del club (ej: Banco Santander). Si est\u00e1 vac\u00edo, se usa el banco por defecto."
+      "description": "Nombre del banco del club (ej: Banco Santander). Si está vacío, se usa el banco por defecto."
     },
     "mostrar_patrocinadores": {
       "type": "boolean",
@@ -161,7 +161,7 @@
     "notificaciones_admin_email": {
       "type": "boolean",
       "default": false,
-      "description": "Enviar correos autom\u00e1ticos al administrador"
+      "description": "Enviar correos automáticos al administrador"
     },
     "notificaciones_push_manuales_activas": {
       "type": "boolean",
@@ -192,7 +192,7 @@
         "type": "string"
       },
       "default": [],
-      "description": "Hasta tres fotograf\u00edas adicionales para la galer\u00eda del premio principal"
+      "description": "Hasta tres fotografías adicionales para la galería del premio principal"
     },
     "sorteo_premio_principal_texto": {
       "type": "string",
@@ -201,20 +201,20 @@
     "sorteo_premio_valor": {
       "type": "number",
       "default": 0,
-      "description": "Valor estimado del premio principal en euros. Sirve para calcular cu\u00e1ntas papeletas se necesitan antes de poder sortear (rentabilidad)."
+      "description": "Valor estimado del premio principal en euros. Sirve para calcular cuántas papeletas se necesitan antes de poder sortear (rentabilidad)."
     },
     "sorteo_valor_papeleta": {
       "type": "number",
       "default": 25,
-      "description": "Valor en euros que aporta cada papeleta/amigo referido (normalmente la cuota de socio). Con el valor del premio se calcula el umbral m\u00ednimo de papeletas para que el sorteo sea rentable."
+      "description": "Valor en euros que aporta cada papeleta/amigo referido (normalmente la cuota de socio). Con el valor del premio se calcula el umbral mínimo de papeletas para que el sorteo sea rentable."
     },
     "sorteo_fecha": {
       "type": "string",
-      "description": "Fecha y hora del sorteo del premio principal (formato YYYY-MM-DDTHH:mm, hora local). Se muestra como cuenta atr\u00e1s a los socios."
+      "description": "Fecha y hora del sorteo del premio principal (formato YYYY-MM-DDTHH:mm, hora local). Se muestra como cuenta atrás a los socios."
     },
     "sorteo_lugar": {
       "type": "string",
-      "description": "D\u00f3nde se celebra el sorteo (ej: Torneo de fin de temporada)"
+      "description": "Dónde se celebra el sorteo (ej: Torneo de fin de temporada)"
     },
     "sorteo_premios": {
       "type": "array",
@@ -234,21 +234,6 @@
       },
       "description": "Lista de premios disponibles en los sorteos"
     },
-    "bonus_femenino_activo": {
-      "type": "boolean",
-      "default": false,
-      "description": "Activar bonus extra por referir jugadoras al f\u00fatbol femenino"
-    },
-    "bonus_femenino_credito": {
-      "type": "number",
-      "default": 10,
-      "description": "Cr\u00e9dito extra en ropa por cada jugadora femenina referida"
-    },
-    "bonus_femenino_sorteos": {
-      "type": "number",
-      "default": 2,
-      "description": "Participaciones extra en sorteo por cada jugadora femenina referida"
-    },
     "programa_socios_activo": {
       "type": "boolean",
       "default": false,
@@ -257,7 +242,7 @@
     "carnet_publico_activo": {
       "type": "boolean",
       "default": false,
-      "description": "Activar enlace p\u00fablico del carnet de socio (para socios externos sin app)"
+      "description": "Activar enlace público del carnet de socio (para socios externos sin app)"
     },
     "precio_socio": {
       "type": "number",
@@ -267,7 +252,7 @@
     "dias_gracia_carnet": {
       "type": "number",
       "default": 15,
-      "description": "D\u00edas de gracia despu\u00e9s de cada fecha l\u00edmite de pago"
+      "description": "Días de gracia después de cada fecha límite de pago"
     },
     "comercios_descuento": {
       "type": "array",
@@ -299,11 +284,11 @@
           },
           "codigo_descuento": {
             "type": "string",
-            "description": "C\u00f3digo de descuento que el socio debe usar (ej: para tiendas online)"
+            "description": "Código de descuento que el socio debe usar (ej: para tiendas online)"
           },
           "instrucciones_codigo": {
             "type": "string",
-            "description": "Instrucciones para usar el c\u00f3digo (ej: Introduce este c\u00f3digo en el checkout)"
+            "description": "Instrucciones para usar el código (ej: Introduce este código en el checkout)"
           }
         }
       },
@@ -315,7 +300,7 @@
     },
     "tienda_ropa_url": {
       "type": "string",
-      "description": "URL externa de la tienda de equipaci\u00f3n"
+      "description": "URL externa de la tienda de equipación"
     },
     "tienda_merch_url": {
       "type": "string",
@@ -324,45 +309,45 @@
     "bloqueo_convocatorias_impago": {
       "type": "boolean",
       "default": false,
-      "description": "Si est\u00e1 activo, los jugadores con pagos vencidos aparecen marcados y excluidos por defecto en las convocatorias"
+      "description": "Si está activo, los jugadores con pagos vencidos aparecen marcados y excluidos por defecto en las convocatorias"
     },
     "dias_gracia_convocatoria": {
       "type": "number",
       "default": 14,
-      "description": "D\u00edas de gracia despu\u00e9s del vencimiento del pago antes de marcar al jugador como moroso en convocatorias"
+      "description": "Días de gracia después del vencimiento del pago antes de marcar al jugador como moroso en convocatorias"
     },
     "fecha_limite_patrocinios": {
       "type": "string",
       "format": "date",
-      "description": "Fecha l\u00edmite para presentar solicitudes de patrocinio (se muestra en la web p\u00fablica)"
+      "description": "Fecha límite para presentar solicitudes de patrocinio (se muestra en la web pública)"
     },
     "campana_torneos_activa": {
       "type": "boolean",
       "default": false,
-      "description": "Mostrar la campa\u00f1a de Patrocinio de Torneos (P\u00e1del + F\u00fatbol Sala) en la p\u00e1gina p\u00fablica /Patrocinadores"
+      "description": "Mostrar la campaña de Patrocinio de Torneos (Pádel + Fútbol Sala) en la página pública /Patrocinadores"
     },
     "torneo_padel_fecha": {
       "type": "string",
-      "description": "Texto libre con la fecha del torneo de p\u00e1del (ej: 'S\u00e1bado 20 Junio 2026' o 'Junio 2026 \u00b7 fecha por confirmar')"
+      "description": "Texto libre con la fecha del torneo de pádel (ej: 'Sábado 20 Junio 2026' o 'Junio 2026 · fecha por confirmar')"
     },
     "torneo_futsal_fecha": {
       "type": "string",
-      "description": "Texto libre con la fecha del torneo de f\u00fatbol sala"
+      "description": "Texto libre con la fecha del torneo de fútbol sala"
     },
     "torneo_padel_ocupado": {
       "type": "boolean",
       "default": false,
-      "description": "Marcar como YA RESERVADO el patrocinio del torneo de p\u00e1del"
+      "description": "Marcar como YA RESERVADO el patrocinio del torneo de pádel"
     },
     "torneo_futsal_ocupado": {
       "type": "boolean",
       "default": false,
-      "description": "Marcar como YA RESERVADO el patrocinio del torneo de f\u00fatbol sala"
+      "description": "Marcar como YA RESERVADO el patrocinio del torneo de fútbol sala"
     },
     "fondo_solidario_activo": {
       "type": "boolean",
       "default": false,
-      "description": "Activar el Fondo Solidario de Becas: las familias pueden aportar voluntariamente para becar a ni\u00f1os sin recursos"
+      "description": "Activar el Fondo Solidario de Becas: las familias pueden aportar voluntariamente para becar a niños sin recursos"
     },
     "fondo_solidario_importes": {
       "type": "array",
@@ -374,17 +359,17 @@
         20,
         50
       ],
-      "description": "Los 3 importes (\u20ac) que la familia puede elegir para su aportaci\u00f3n solidaria"
+      "description": "Los 3 importes (€) que la familia puede elegir para su aportación solidaria"
     },
     "fondo_solidario_texto": {
       "type": "string",
-      "default": "Aporta voluntariamente para becar a ni\u00f1os y ni\u00f1as del club que lo necesiten. El 100% del dinero recaudado se destinar\u00e1 a cubrir cuotas de familias sin recursos.",
-      "description": "Texto que ver\u00e1n las familias al activar la aportaci\u00f3n solidaria"
+      "default": "Aporta voluntariamente para becar a niños y niñas del club que lo necesiten. El 100% del dinero recaudado se destinará a cubrir cuotas de familias sin recursos.",
+      "description": "Texto que verán las familias al activar la aportación solidaria"
     },
     "fondo_solidario_titulo": {
       "type": "string",
-      "default": "\ud83d\udc9a Fondo Solidario de Becas",
-      "description": "T\u00edtulo mostrado a las familias en la opci\u00f3n de aportaci\u00f3n"
+      "default": "💚 Fondo Solidario de Becas",
+      "description": "Título mostrado a las familias en la opción de aportación"
     },
     "pago_adelantado_emails_prueba": {
       "type": "array",
