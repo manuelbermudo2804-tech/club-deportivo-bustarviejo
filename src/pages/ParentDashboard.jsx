@@ -636,9 +636,7 @@ export default function ParentDashboard() {
         <HazteSocioBanner seasonConfig={activeSeason} />
 
         {/* BANNER FÚTBOL FEMENINO - COMPARTIR POR WHATSAPP (solo para familias de fútbol) */}
-        {activeSeason?.bonus_femenino_activo && myPlayers && myPlayers.length > 0 && !onlyComplementary && (
-          <FemeninoShareBanner />
-        )}
+        {/* El bonus femenino está retirado; no se muestra ningún banner asociado a incentivos. */}
 
 
         {/* Botón de configuración de dashboard */}
