@@ -9,7 +9,7 @@ import ReferralShareRow from "./ReferralShareRow";
  * Cabecera del programa "Trae un socio amigo": explica en dos líneas cómo
  * participar y recuerda que CUALQUIERA puede hacerse socio.
  */
-export default function ReferralIntroCard({ precio = 25, premio, premioFoto, premioFotos = [], premioTexto, sorteoFecha, sorteoLugar, onQuieroSerSocio, userEmail, userName, showShare = false }) {
+export default function ReferralIntroCard({ precio = 25, premio, premioFoto, premioFotos = [], premioTexto, sorteoFecha, sorteoLugar, onQuieroSerSocio, userEmail, userName, isMember = false, showShare = false }) {
   const premioUrl = "https://www.castillatermal.com/hoteles/castilla-y-leon/castilla-termal-monasterio-de-valbuena/";
   const fotosAdicionales = Array.isArray(premioFotos) ? premioFotos.filter(Boolean).slice(0, 3) : [];
   return (
@@ -32,7 +32,9 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, pre
               Trae un socio amigo{premio ? ` y gana ${premio}` : ""}
             </h2>
             <p className="text-white/90 text-sm mt-1">
-              Por cada persona que se haga socia con tu invitación consigues una papeleta para el sorteo.
+              {isMember
+                ? "Por cada persona que se haga socia con tu invitación consigues una papeleta para el sorteo."
+                : "Descubre el premio, las condiciones y cómo participar. Para conseguir papeletas primero tienes que hacerte socio/a del club."}
             </p>
             <p className="text-white/90 text-sm mt-2">
               <strong>Cualquiera puede ser socio</strong>: tu pareja, abuelos, tíos, vecinos o amigos. Solo {precio}€ por temporada.
@@ -63,6 +65,7 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, pre
           </div>
         )}
 
+        {isMember ? (
         <div className="mt-4 rounded-2xl border border-white/25 bg-white/15 p-4">
           <p className="mb-3 text-base font-black">📲 ¿Cómo funciona tu enlace personal?</p>
           <ol className="space-y-3 text-sm leading-relaxed text-white/95">
@@ -78,8 +81,14 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, pre
           <p className="mt-3 text-sm font-bold text-white">La papeleta es para el socio que invita; la persona nueva se hace socia y paga su cuota habitual. El premio del sorteo no se entrega automáticamente a la persona invitada.</p>
           <p className="mt-2 text-xs leading-relaxed text-white/85">Recuerda: necesitas entrar en la app para obtener tu propio enlace. Una vez copiado, cualquier persona puede recibirlo, abrirlo y reenviarlo sin tener instalada la app.</p>
         </div>
+        ) : (
+          <div className="mt-4 rounded-2xl border border-amber-200/50 bg-slate-950/20 p-4">
+            <p className="text-base font-black">🔒 Todavía no eres socio/a del club</p>
+            <p className="mt-2 text-sm leading-relaxed text-white/95">Puedes consultar aquí toda la información del sorteo y del premio. Para participar, tener tu propio enlace y conseguir papeletas, primero debes formalizar tu alta como socio/a. Cuando tu cuota esté confirmada, verás este apartado exactamente igual que el resto de socios.</p>
+          </div>
+        )}
 
-        {showShare && <ReferralShareRow userEmail={userEmail} userName={userName} />}
+        {showShare && isMember && <ReferralShareRow userEmail={userEmail} userName={userName} />}
 
         <SorteoCountdown fecha={sorteoFecha} lugar={sorteoLugar} />
 
@@ -89,7 +98,7 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, pre
             className="mt-4 w-full bg-white text-orange-700 hover:bg-amber-50 font-bold py-6"
           >
             <UserPlus className="w-5 h-5 mr-2" />
-            Quiero ser socio / apuntar a alguien
+            {isMember ? "Quiero inscribir a alguien" : "Hazte socio para participar"}
           </Button>
         )}
       </CardContent>
