@@ -1,25 +1,31 @@
-import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
+import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 
-/**
- * Backfill histórico protegido.
- * Solo administradores pueden ejecutarlo y únicamente genera una papeleta
- * cuando tanto el referido como el referidor tienen cuota pagada en temporada activa.
- * No procesa renovaciones ni altas sin una ficha ClubMember verificable.
- */
 Deno.serve(async (req) => {
+  const base44 = createClientFromRequest(req);
+  let lockConfigId = '';
+  let lockToken = '';
   try {
-    const base44 = createClientFromRequest(req);
     const user = await base44.auth.me().catch(() => null);
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
     if (user.role !== 'admin') return Response.json({ error: 'Forbidden' }, { status: 403 });
 
     const configs = await base44.asServiceRole.entities.SeasonConfig.filter({ activa: true });
-    if (configs.length !== 1) {
-      return Response.json({ error: 'Debe existir exactamente una temporada activa' }, { status: 409 });
-    }
+    if (configs.length !== 1) return Response.json({ error: 'Debe existir exactamente una temporada activa' }, { status: 409 });
     const config = configs[0];
     if (config.programa_referidos_activo !== true) {
       return Response.json({ message: 'Programa no activo', processed: 0 }, { status: 200 });
+    }
+
+    // Compare-and-set en una sola operación: solo una ejecución puede adquirir el bloqueo.
+    lockConfigId = config.id;
+    lockToken = `process:${crypto.randomUUID()}`;
+    const claim = await base44.asServiceRole.entities.SeasonConfig.updateMany(
+      { id: lockConfigId, $or: [{ referral_ticket_lock: '' }, { referral_ticket_lock: { $exists: false } }] },
+      { $set: { referral_ticket_lock: lockToken } }
+    );
+    if (claim.updated !== 1) {
+      lockConfigId = '';
+      return Response.json({ error: 'Ya hay otro proceso asignando papeletas. Espera a que termine y vuelve a intentarlo.', code: 'REFERRAL_PROCESS_LOCKED' }, { status: 409 });
     }
 
     const payload = await req.json().catch(() => ({}));
@@ -58,16 +64,16 @@ Deno.serve(async (req) => {
 
       const referrer = refMemberships[0];
       const historyForSeason = await base44.asServiceRole.entities.ReferralHistory.filter({ temporada: config.temporada });
-      const used = new Set(historyForSeason.map(x => x.numero_papeleta).filter(Boolean));
+      const used = new Set(historyForSeason.map(x => String(x.numero_papeleta || '')).filter(Boolean));
       let ticket = '';
-      for (let i = 0; i < 100; i++) {
+      for (let i = 0; i < 10000; i++) {
         const bytes = new Uint32Array(1);
         crypto.getRandomValues(bytes);
         const candidate = String(bytes[0] % 10000).padStart(4, '0');
         if (!used.has(candidate)) { ticket = candidate; break; }
       }
       if (!ticket) {
-        skipped.push({ member_id: member.id, reason: 'No se pudo reservar un número de papeleta libre' });
+        skipped.push({ member_id: member.id, reason: 'No quedan números de papeleta libres (0000-9999)' });
         continue;
       }
 
@@ -92,5 +98,16 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error('[processHistoricReferrals] Error:', error);
     return Response.json({ error: error?.message || 'Internal error' }, { status: 500 });
+  } finally {
+    if (lockConfigId && lockToken) {
+      try {
+        await base44.asServiceRole.entities.SeasonConfig.updateMany(
+          { id: lockConfigId, referral_ticket_lock: lockToken },
+          { $set: { referral_ticket_lock: '' } }
+        );
+      } catch (releaseError) {
+        console.error('[processHistoricReferrals] No se pudo liberar el bloqueo:', releaseError);
+      }
+    }
   }
 });
