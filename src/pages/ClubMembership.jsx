@@ -62,13 +62,13 @@ export default function ClubMembership() {
 
   // Función para generar el mismo código de referido que en ReferralProgramCard
   const generateReferralCode = (email) => {
+    const normalized = String(email || '').trim().toLowerCase();
     let hash = 0;
-    for (let i = 0; i < email.length; i++) {
-      const char = email.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash;
+    for (let i = 0; i < normalized.length; i++) {
+      hash = ((hash << 5) - hash) + normalized.charCodeAt(i);
+      hash |= 0;
     }
-    return Math.abs(hash).toString(36).toUpperCase().slice(0, 8);
+    return normalized ? Math.abs(hash).toString(36).toUpperCase().slice(0, 8) : '';
   };
 
   // Función para generar código de renovación (igual que en ReferralManagement)
