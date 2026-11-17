@@ -21,7 +21,6 @@ import MemberDetailDialog from "../components/members/MemberDetailDialog";
 import MemberAdvancedFilters from "../components/members/MemberAdvancedFilters";
 import MembershipStatsPanel from "../components/members/MembershipStatsPanel";
 import CotejarArchivoPanel from "../components/members/CotejarArchivoPanel";
-import { generatePapeletaNumber } from "../components/referrals/generatePapeletaNumber";
 
 export default function ClubMembersManagement() {
   const [user, setUser] = useState(null);
