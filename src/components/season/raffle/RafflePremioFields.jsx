@@ -9,6 +9,37 @@ import { toast } from "sonner";
 
 export default function RafflePremioFields({ activeSeason, update }) {
   const [uploading, setUploading] = useState(false);
+  const fotosAdicionales = Array.isArray(activeSeason.sorteo_premio_fotos) ? activeSeason.sorteo_premio_fotos : [];
+
+  const handleFotosAdicionalesUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (e.target) e.target.value = "";
+    if (!files.length) return;
+    const disponibles = Math.max(0, 3 - fotosAdicionales.length);
+    if (files.length > disponibles) {
+      toast.error(`Puedes añadir ${disponibles} foto${disponibles === 1 ? "" : "s"} más. El máximo son 3 adicionales.`);
+      return;
+    }
+    const demasiadoGrandes = files.find((file) => file.size > 5 * 1024 * 1024);
+    if (demasiadoGrandes) {
+      toast.error(`La imagen ${demasiadoGrandes.name} supera los 5MB.`);
+      return;
+    }
+    setUploading(true);
+    try {
+      const nuevasFotos = [];
+      for (const file of files) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file });
+        nuevasFotos.push(file_url);
+      }
+      update({ sorteo_premio_fotos: [...fotosAdicionales, ...nuevasFotos] });
+      toast.success(`✅ ${nuevasFotos.length} foto${nuevasFotos.length === 1 ? " subida" : "s subidas"}`);
+    } catch {
+      toast.error("No se han podido subir todas las fotografías. Comprueba e inténtalo de nuevo.");
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleFotoUpload = async (e) => {
     const file = e.target.files?.[0];
