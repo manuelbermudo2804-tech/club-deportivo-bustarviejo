@@ -246,12 +246,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
           </div>
         </div>
 
-        {/* SECCIONES DE INCENTIVOS - SOLO SI EL PROGRAMA ESTÁ ACTIVO */}
-
-
-
-
-        )}
+        {/* Incentivos y sorteo del programa activo */}
 
         {/* Premio principal del sorteo + papeletas con número del usuario */}
         <MainPrizeShowcase seasonConfig={seasonConfig} userEmail={userEmail} />
