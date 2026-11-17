@@ -249,45 +249,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
         {/* SECCIONES DE INCENTIVOS - SOLO SI EL PROGRAMA ESTÁ ACTIVO */}
         {programaActivo && (
           <>
-            {/* BONUS FÚTBOL FEMENINO + BOTÓN COMPARTIR */}
-            {false && seasonConfig.bonus_femenino_activo && (
-          <div className="bg-gradient-to-r from-pink-500 via-fuchsia-500 to-purple-500 rounded-2xl p-4 text-center border-4 border-pink-300 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-full bg-white/10"></div>
-            <div className="relative">
-              <div className="text-4xl mb-2">⚽👧</div>
-              <h4 className="text-xl font-bold text-white mb-1">🌟 ¡BONUS FÚTBOL FEMENINO! 🌟</h4>
-              <p className="text-white/95 font-medium text-sm mb-2">
-                Si alguien que <strong>TÚ refieres</strong> inscribe a una niña/chica en el <strong>Fútbol Femenino</strong>, ¡ganas premios EXTRA!
-              </p>
-              <div className="flex justify-center gap-3 mt-2">
-                <div className="bg-white/30 backdrop-blur-sm rounded-xl px-3 py-2">
-                  <p className="text-white font-bold text-lg">+{seasonConfig.bonus_femenino_sorteos || 2}</p>
-                  <p className="text-white/80 text-xs">sorteos extra</p>
-                </div>
-              </div>
 
-              {/* Botones para compartir Femenino */}
-              {femeninoLink && (
-                <div className="mt-4 space-y-2">
-                  <p className="text-white/90 text-xs font-semibold">👇 CAMPAÑA ESPECIAL FEMENINO 👇</p>
-                  <div className="flex gap-2 justify-center">
-                    <Button
-                      onClick={shareWhatsAppFemenino}
-                      className="bg-pink-600 hover:bg-pink-700 text-white font-bold py-2 px-4 rounded-xl shadow-lg border border-pink-400"
-                    >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Invitar al Femenino
-                    </Button>
-                    <Button
-                      onClick={() => copyLink(femeninoLink)}
-                      variant="outline"
-                      className="bg-white/20 hover:bg-white/30 text-white border-white/30 py-2 px-3 rounded-xl"
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
 
               <p className="text-white/90 text-xs mt-3 bg-white/20 rounded-lg p-2">
                 📌 <strong>¿Cómo funciona?</strong> Tú invitas → Ellos se hacen socios → Inscriben a su hija → ¡Tú ganas!
@@ -331,7 +293,7 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
           </h4>
           <ol className="text-sm space-y-1 text-white/95">
             <li>1️⃣ Invita a amigos y familiares a hacerse socios</li>
-            <li>2️⃣ Cuando se registren, diles que pongan tu nombre como referido</li>
+            <li>2️⃣ Comparte tu enlace personal: deben inscribirse desde ese enlace</li>
             <li>3️⃣ Cada amigo que se haga socio te da 1 papeleta para el sorteo</li>
           </ol>
         </div>
