@@ -252,8 +252,6 @@ El mejor club para disfrutar del deporte, con ambiente familiar y para todas las
 
 
 
-            </div>
-          </div>
         )}
 
         {/* Premio principal del sorteo + papeletas con número del usuario */}
