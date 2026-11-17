@@ -346,10 +346,7 @@ export default function ClubMembersManagement() {
           String(s.email || '').trim().toLowerCase() === String(member.referido_por_email || '').trim().toLowerCase() &&
           s.estado_pago === 'Pagado'
         );
-        if (!referidorElegible) {
-          console.info('[Referidos] No se concede papeleta: el referidor no es socio pagado de la temporada.');
-          return;
-        }
+        if (referidorElegible) {
         console.log('[Referidos] Procesando referido:', member.nombre_completo);
         
         // Regla única: una papeleta por cada nuevo socio con pago confirmado.
@@ -407,6 +404,9 @@ export default function ClubMembersManagement() {
         }
         
         toast.success(`🎟️ Referido validado correctamente`);
+        } else {
+          console.info('[Referidos] No se concede papeleta: el referidor no es socio pagado de la temporada.');
+        }
       } catch (error) {
         console.error('[Referidos] Error procesando:', error);
         toast.error('Error procesando programa de referidos');
