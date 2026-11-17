@@ -23,13 +23,9 @@ export default function ReferralIntroCard({ precio = 25, premio, premioFoto, pre
       )}
       <CardContent className="p-5 text-white">
         <div className="flex items-start gap-4">
-          {premioFoto ? (
-            <img src={premioFoto} alt={premio || "Premio"} className="w-16 h-16 rounded-xl object-cover border-2 border-white/70 flex-shrink-0" />
-          ) : (
-            <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
-              <Gift className="w-7 h-7 text-white" />
-            </div>
-          )}
+          <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <Gift className="w-7 h-7 text-white" />
+          </div>
           <div className="flex-1 min-w-0">
             <h2 className="text-xl font-black leading-tight">
               Trae un socio amigo{premio ? ` y gana ${premio}` : ""}
