@@ -343,19 +343,9 @@ export default function ClubMembersManagement() {
       try {
         console.log('[Referidos] Procesando referido:', member.nombre_completo);
         
-        // Buscar jugadores relacionados al socio para detectar fútbol femenino
-        const allPlayers = await base44.entities.Player.list();
-        const relatedPlayers = allPlayers.filter(p => 
-          p.email_padre === member.email || p.email_tutor_2 === member.email
-        );
-        const hasFemeninoPlayer = relatedPlayers.some(p => p.deporte === "Fútbol Femenino");
-        
-        // Sistema vigente: cada nuevo socio validado genera una papeleta.
-        // Se conserva el bonus femenino actual, si está activado.
-        let rafflesToAdd = 1;
-        if (hasFemeninoPlayer && seasonConfig?.bonus_femenino_activo) {
-          rafflesToAdd += seasonConfig?.bonus_femenino_sorteos || 2;
-        }
+        // Regla única: una papeleta por cada nuevo socio con pago confirmado.
+        const relatedPlayers = [];
+        const rafflesToAdd = 1;
 
         // Comprobar si el alta automática ya creó su papeleta.
         const existingHistory = await base44.entities.ReferralHistory.filter({
@@ -388,7 +378,7 @@ export default function ClubMembersManagement() {
           temporada: member.temporada,
           clothing_credit_earned: 0,
           raffle_entries_earned: rafflesToAdd,
-          is_femenino_bonus: hasFemeninoPlayer,
+          is_femenino_bonus: false,
           reward_tier: 'standard'
         };
         
@@ -420,8 +410,7 @@ export default function ClubMembersManagement() {
       data: {
         estado_pago: newStatus,
         ...(newStatus === "Pagado" ? { 
-          fecha_pago: new Date().toISOString().split('T')[0],
-          referido_procesado: true // Marcar como procesado
+          fecha_pago: new Date().toISOString().split('T')[0]
         } : {})
       },
       memberEmail: member.email,
