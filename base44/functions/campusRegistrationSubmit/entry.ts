@@ -101,7 +101,7 @@ Deno.serve(async req=>{
     const capacityField={'6-8':'plazas_6_8','9-11':'plazas_9_11','12-16':'plazas_12_16'};
     const demand=new Map();
     for(const p of participants) for(const week of p.semanas){
-      const key=p.grupo+'|'+week;
+      const key=groupFor(p.edad)+'|'+week;
       demand.set(key,(demand.get(key)||0)+1);
     }
     for(const [key,requested] of demand){
