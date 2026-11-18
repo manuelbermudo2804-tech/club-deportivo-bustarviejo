@@ -725,6 +725,95 @@ export default function Payments() {
     }
   };
 
+  // Confirma una transferencia bancaria verificada por administración, aunque la familia no haya adjuntado justificante.
+  const handleTransferReceived = async (payment) => {
+    if (!isAdmin || !payment || payment.isVirtual || payment.estado === "Pagado") return;
+    const confirmed = window.confirm(
+      `¿Has comprobado en la cuenta bancaria el ingreso de ${payment.cantidad}€ de ${payment.jugador_nombre} (${payment.mes})?\\n\\nSe marcará como PAGADO por TRANSFERENCIA, aunque no haya justificante adjunto.`
+    );
+    if (!confirmed) return;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const total = Math.round((Number(payment.cantidad) || 0) * 100) / 100;
+    const previouslyCollected = payment.importe_cobrado !== undefined && payment.importe_cobrado !== null
+      ? Number(payment.importe_cobrado) || 0
+      : payment.estado === "Pagado" ? total : 0;
+    const remaining = Math.max(0, Math.round((total - previouslyCollected) * 100) / 100);
+    if (remaining <= 0) {
+      toast.error("Esta cuota no tiene saldo pendiente. Revisa el historial antes de continuar.");
+      return;
+    }
+
+    const currentUser = await base44.auth.me();
+    const movementId = `transfer-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const movement = {
+      id: movementId,
+      importe: remaining,
+      fecha: today,
+      metodo_pago: "Transferencia",
+      anotacion: "Transferencia bancaria comprobada por administración. Sin justificante adjunto.",
+      registrado_por: currentUser?.email || "",
+      registrado_el: new Date().toISOString(),
+      recibo_url: "",
+    };
+    const updatedFields = {
+      metodo_pago: "Transferencia",
+      importe_cobrado: total,
+      movimientos_cobro: [...(Array.isArray(payment.movimientos_cobro) ? payment.movimientos_cobro : []), movement],
+      notas: [payment.notas, `Transferencia bancaria comprobada por administración el ${new Date(today).toLocaleDateString("es-ES")}. Sin justificante adjunto.`].filter(Boolean).join(" | "),
+      estado: "Pagado",
+      fecha_pago: today,
+    };
+
+    let paymentSaved = false;
+    try {
+      await base44.entities.Payment.update(payment.id, updatedFields);
+      const savedPayment = await base44.entities.Payment.get(payment.id);
+      const savedMovements = Array.isArray(savedPayment?.movimientos_cobro) ? savedPayment.movimientos_cobro : [];
+      if (!savedPayment || savedPayment.estado !== "Pagado" || !savedMovements.some(item => item.id === movementId)) {
+        throw new Error("No se ha podido verificar el registro del pago. Comprueba la cuota antes de repetirlo.");
+      }
+      paymentSaved = true;
+
+      const ledgerReference = `payment-transfer:${payment.id}:${movementId}`;
+      const existingLedgerRows = await base44.entities.FinancialTransaction.filter({ referencia_origen: ledgerReference });
+      if (!existingLedgerRows?.length) {
+        await base44.entities.FinancialTransaction.create({
+          tipo: "Ingreso",
+          concepto: `Cuota deportiva · ${payment.jugador_nombre} · ${payment.mes}`,
+          cantidad: remaining,
+          fecha: today,
+          categoria: "Cuotas deportivas",
+          subcategoria: "Cobro por transferencia",
+          proveedor_cliente: payment.jugador_nombre,
+          metodo_pago: "Transferencia",
+          estado: "Cobrado",
+          temporada: payment.temporada,
+          automatico: true,
+          referencia_origen: ledgerReference,
+          notas: "Transferencia bancaria comprobada por administración. Sin justificante adjunto.",
+          subtipo_documento: "Cuota deportiva",
+        });
+      }
+
+      // Ejecuta también las sincronizaciones existentes: avisos de impago, planes especiales y socios.
+      await handleStatusChange(savedPayment, "Pagado");
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["myPayments"] }),
+        queryClient.invalidateQueries({ queryKey: ["payments"] }),
+        queryClient.invalidateQueries({ queryKey: ["transactions"] }),
+        queryClient.invalidateQueries({ queryKey: ["financialTransactions"] }),
+        queryClient.invalidateQueries({ queryKey: ["cashForecastFinancialTransactions"] }),
+      ]);
+      toast.success("Transferencia registrada y cuota marcada como pagada.");
+    } catch (error) {
+      console.error("[Payments] Error registrando transferencia:", error);
+      toast.error(paymentSaved
+        ? `La cuota sí quedó marcada como pagada, pero falló el asiento de tesorería: ${error?.message || "error desconocido"}. Comprueba tesorería antes de repetir.`
+        : error?.message || "No se pudo registrar la transferencia.");
+    }
+  };
+
   const handleFileUpload = async (paymentId, e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -2053,6 +2142,17 @@ export default function Payments() {
                                                             title="Registrar cobro en efectivo con anotación"
                                                           >
                                                             💵 Efectivo
+                                                          </Button>
+                                                        )}
+                                                        {isAdmin && payment.estado !== "Pagado" && !payment.isVirtual && (
+                                                          <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => handleTransferReceived(payment)}
+                                                            className="border-blue-400 text-blue-700 hover:bg-blue-50 text-[10px] lg:text-xs h-6 px-2"
+                                                            title="Confirmar transferencia bancaria comprobada, aunque no haya justificante"
+                                                          >
+                                                            🏦 Transferencia
                                                           </Button>
                                                         )}
                                                         {isAdmin && payment.estado !== "Pagado" && payment.justificante_url && !payment.isVirtual && (
