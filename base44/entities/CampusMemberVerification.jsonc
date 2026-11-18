@@ -1,0 +1,84 @@
+{
+  "name": "CampusMemberVerification",
+  "type": "object",
+  "properties": {
+    "member_id": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string"
+    },
+    "dni_hash": {
+      "type": "string"
+    },
+    "code_hash": {
+      "type": "string"
+    },
+    "expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "attempts": {
+      "type": "integer",
+      "default": 0
+    },
+    "used": {
+      "type": "boolean",
+      "default": false
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "last_sent_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "verification_token_hash": {
+      "type": "string"
+    },
+    "verified_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "token_expires_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "consumed": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "required": [
+    "member_id",
+    "email",
+    "dni_hash",
+    "code_hash",
+    "expires_at",
+    "attempts",
+    "used"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
