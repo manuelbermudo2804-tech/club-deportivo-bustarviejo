@@ -90,6 +90,37 @@ Deno.serve(async req=>{
       const applied=linked || b.solicitar_alta_socio===true;
       return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates),alergias:clean(p.alergias),intolerancias:clean(p.intolerancias),medicacion:clean(p.medicacion),observaciones_medicas:clean(p.observaciones_medicas),contacto_emergencia_nombre:clean(p.contacto_emergencia_nombre),contacto_emergencia_telefono:clean(p.contacto_emergencia_telefono)};
     });
+    // Control de aforo: las solicitudes pendientes también ocupan plaza para evitar aceptar más inscripciones que capacidad.
+    const existingParticipants=await base44.asServiceRole.entities.CampusParticipant.list('-created_date',2000);
+    const registrationById=new Map((priorRegistrations||[]).map(r=>[r.id,r]));
+    const activeExisting=(existingParticipants||[]).filter(p=>{
+      if(String(p.temporada||'2027')!==campusYear || ['cancelado','lista_espera'].includes(p.estado)) return false;
+      const parent=registrationById.get(p.registration_id);
+      return !parent || !['cancelada','revision'].includes(parent.estado);
+    });
+    const capacityField={'6-8':'plazas_6_8','9-11':'plazas_9_11','12-16':'plazas_12_16'};
+    const demand=new Map();
+    for(const p of participants) for(const week of p.semanas){
+      const key=p.grupo+'|'+week;
+      demand.set(key,(demand.get(key)||0)+1);
+    }
+    for(const [key,requested] of demand){
+      const [group,week]=key.split('|');
+      const field=capacityField[group];
+      const raw=rates[field];
+      const limit=raw===undefined||raw===null||raw===''?null:Number(raw);
+      const occupied=activeExisting.filter(p=>p.grupo_edad===group&&(p.semanas_ocupadas||[]).includes(week)).length;
+      if(limit!==null && Number.isFinite(limit) && occupied+requested>limit)
+        return Response.json({error:'No quedan plazas suficientes para el grupo '+group+' en '+week+'. Plazas disponibles: '+Math.max(0,limit-occupied)+'. Reduce la selección o elige otra semana.'},{status:409,headers});
+    }
+    if(rates.maximo_total!==undefined && rates.maximo_total!==null && rates.maximo_total!==''){
+      const limit=Number(rates.maximo_total);
+      if(Number.isFinite(limit)&&limit>0) for(const week of WEEKS){
+        const requested=participants.filter(p=>p.semanas.includes(week)).length;
+        const occupied=activeExisting.filter(p=>(p.semanas_ocupadas||[]).includes(week)).length;
+        if(occupied+requested>limit) return Response.json({error:'Se ha alcanzado el máximo general del campus para '+week+'. Plazas disponibles: '+Math.max(0,limit-occupied)+'. Reduce la selección o elige otra semana.'},{status:409,headers});
+      }
+    }
     const membershipFee=b.solicitar_alta_socio===true?Number(rates.cuota_socio ?? 25):0;
     const total=participants.reduce((s,p)=>s+p.price,0)+membershipFee;
     const reg=await base44.asServiceRole.entities.CampusRegistration.create({
@@ -157,7 +188,8 @@ Deno.serve(async req=>{
       const campusLinks=participants.map((p,i)=>({participante_id:created[i],participante_nombre:p.nombre}));
       await base44.asServiceRole.entities.ClubMember.update(verifiedMember.id,{campus_participantes:[...(verifiedMember.campus_participantes||[]),...campusLinks]});
     }
-    return Response.json({success:true,registration_id:reg.id,participants_saved:created.length,amount:total,club_member_id:provisionalMemberId||verifiedMember?.id||null,payment_started:false,message:'Solicitud de prueba guardada en Base44. No se ha iniciado ningún pago; queda pendiente de revisión del club.'},{headers});
+    const reference='CDB27-'+String(reg.id).replace(/[^a-zA-Z0-9]/g,'').slice(-8).toUpperCase();
+    return Response.json({success:true,registration_id:reg.id,reference,participants_saved:created.length,amount:total,club_member_id:provisionalMemberId||verifiedMember?.id||null,payment_started:false,payment_status:'pendiente',message:'Inscripción recibida correctamente. Queda pendiente de pago y confirmación por parte del club.'},{headers});
   } catch(e) {
     console.error('[campusRegistrationSubmit]',e?.message||e);
     return Response.json({error:e?.message||'No se ha podido guardar la inscripción.'},{status:400,headers});
