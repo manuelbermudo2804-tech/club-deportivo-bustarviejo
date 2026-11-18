@@ -40,11 +40,17 @@ export async function descargarContratoPdf(c) {
     doc.setFontSize(10);
   }
 
+  if (c.tipo === "sancion_disciplinaria") {
+    ensure(16); y += 6;
+    doc.setFont("helvetica", "bold").setFontSize(9);
+    doc.splitTextToSize("Las firmas que constan a continuación acreditan la recepción y conocimiento de esta comunicación; no implican conformidad ni aceptación de la sanción.", W).forEach((line) => { ensure(5); doc.text(line, 15, y); y += 4.5; });
+  }
+
   if (c.estado === "firmado" && c.firma_uri) {
     const { signed_url } = await base44.integrations.Core.CreateFileSignedUrl({ file_uri: c.firma_uri });
     const img = await toDataUrl(signed_url);
     ensure(80); y += 8;
-    doc.setFont("helvetica", "bold").text(c.es_menor ? "Firma del menor:" : "Firma del voluntario:", 15, y);
+    doc.setFont("helvetica", "bold").text(c.es_menor ? (c.tipo === "sancion_disciplinaria" ? "Firma del jugador:" : "Firma del menor:") : "Firma del voluntario:", 15, y);
     if (c.es_menor && c.tutor_firma_uri) doc.text(`Firma del tutor (${c.tutor_relacion || ""}):`, 105, y);
     y += 3;
     doc.addImage(img, "PNG", 15, y, 70, 30);
