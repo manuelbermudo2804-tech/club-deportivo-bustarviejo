@@ -117,6 +117,7 @@ Deno.serve(async req=>{
       const limit=Number(rates.maximo_total);
       if(Number.isFinite(limit)&&limit>0) for(const week of WEEKS){
         const requested=participants.filter(p=>p.semanas.includes(week)).length;
+        if(requested===0) continue;
         const occupied=activeExisting.filter(p=>(p.semanas_ocupadas||[]).includes(week)).length;
         if(occupied+requested>limit) return Response.json({error:'Se ha alcanzado el máximo general del campus para '+week+'. Plazas disponibles: '+Math.max(0,limit-occupied)+'. Reduce la selección o elige otra semana.'},{status:409,headers});
       }
@@ -182,7 +183,7 @@ Deno.serve(async req=>{
       provisionalMemberId=member.id;
       const campusLinks=participants.map((p,i)=>({participante_id:created[i],participante_nombre:p.nombre}));
       await base44.asServiceRole.entities.ClubMember.update(member.id,{campus_participantes:[...(member.campus_participantes||[]),...campusLinks]});
-      await base44.asServiceRole.entities.CampusRegistration.update(reg.id,{club_member_id:member.id,estado_alta_socio:'pendiente',notas:'Inscripción de prueba guardada. Alta de socio pendiente de revisión y pago. NO se ha iniciado ningún cobro.'});
+      await base44.asServiceRole.entities.CampusRegistration.update(reg.id,{club_member_id:member.id,estado_alta_socio:'pendiente',notas:'Inscripción del Campus recibida. Alta de socio pendiente de pago. No se ha iniciado ningún cobro.'});
     }
     if(verifiedMember){
       const campusLinks=participants.map((p,i)=>({participante_id:created[i],participante_nombre:p.nombre}));
