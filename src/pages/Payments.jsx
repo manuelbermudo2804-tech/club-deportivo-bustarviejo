@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Upload, FileText, Loader2, Search, Plus, X, FileSpreadsheet, AlertTriangle, Calendar, Filter, RefreshCw, Settings2, ShieldAlert, Download, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -2045,125 +2046,109 @@ export default function Payments() {
                                           )}
                                         </div>
                                       </div>
-                                      <div className="flex shrink-0 flex-wrap items-center justify-end gap-1 self-end sm:self-auto">
-                                       {payment.justificante_url ? (
-                                         <Button
-                                           variant="ghost"
-                                           size="sm"
-                                           onClick={() => setPreviewImage(payment.justificante_url)}
-                                           className="text-orange-600 hover:text-orange-700 p-1 h-6"
-                                           title="Ver justificante"
-                                         >
-                                           <FileText className="w-3 h-3 lg:w-4 lg:h-4" />
-                                         </Button>
-                                       ) : payment.estado === "Pendiente" && (
-                                         <span className="text-red-600 text-xs lg:text-sm">❌</span>
-                                       )}
-                                       {isAdmin && !payment.isVirtual && (
-                                         <label className="inline-flex items-center justify-center rounded-md border border-slate-200 bg-white px-2 py-1 text-[10px] font-medium text-slate-700 hover:bg-slate-50 cursor-pointer" title="Adjuntar o sustituir recibo">
-                                           <Upload className="mr-1 h-3 w-3" /> {payment.recibo_url ? "Cambiar recibo" : "Adjuntar recibo"}
-                                           <input type="file" accept="application/pdf,image/*" className="hidden" onChange={async (event) => {
-                                             const file = event.target.files?.[0];
-                                             event.target.value = "";
-                                             if (!file) return;
-                                             try {
-                                               const upload = await base44.integrations.Core.UploadFile({ file });
-                                               const url = upload?.file_url || upload?.url;
-                                               if (!url || !String(url).startsWith("http")) throw new Error("No se pudo guardar el archivo.");
-                                               await base44.entities.Payment.update(payment.id, { recibo_url: url, recibo_adjuntado_manualmente: true });
-                                               queryClient.invalidateQueries({ queryKey: ["myPayments"] });
-                                               toast.success("Recibo adjuntado. Ya está disponible para la familia.");
-                                             } catch (error) {
-                                               console.error("Error adjuntando recibo:", error);
-                                               toast.error(error?.message || "No se pudo adjuntar el recibo.");
-                                             }
-                                           }} />
-                                         </label>
-                                       )}
-                                       {payment.estado === "Pagado" && !payment.isVirtual && (
-                                         <Button
-                                           variant="ghost"
-                                           size="sm"
-                                           onClick={async () => {
-                                             if (payment.recibo_url) { window.open(payment.recibo_url, '_blank'); return; }
-                                             try {
-                                               const numeroRecibo = await ensurePaymentReceiptNumber(payment, base44);
-                                               const receiptData = { ...createPlayerPaymentReceiptData(payment, player, { temporada: payment.temporada }), numeroRecibo };
-                                               let branding = { logoUrl: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" };
-                                               try {
-                                                 const assets = await base44.entities.BrandingAssets.list();
-                                                 const shared = assets?.[0];
-                                                 if (shared?.logo_url) branding.logoUrl = shared.logo_url;
-                                                 if (shared?.sello_url) branding.selloUrl = shared.sello_url;
-                                                 if (shared?.firma_url) branding.firmaUrl = shared.firma_url;
-                                               } catch (brandingError) {
-                                                 console.warn('[Payments] No se pudieron cargar firma/sello compartidos:', brandingError);
-                                               }
-                                               const amount = Number(receiptData.importe || 0);
-                                               await generateReciboPDF({
-                                                 numero: receiptData.numeroRecibo,
-                                                 fecha: String(receiptData.fechaPago || new Date().toISOString()).slice(0, 10),
-                                                 recibiDe: receiptData.nombre || payment.jugador_nombre || player?.nombre || 'Jugador',
-                                                 cantidad: amount.toFixed(2).replace('.', ','),
-                                                 concepto: `Cuota deportiva de ${receiptData.jugadorNombre || payment.jugador_nombre || player?.nombre || 'jugador'} · ${receiptData.mes || payment.mes || 'Cuota'}`,
-                                                 temporada: receiptData.temporada || payment.temporada || '',
-                                                 lugar: 'Bustarviejo',
-                                                 ...branding,
-                                               });
-                                               toast.success('Recibo oficial descargado correctamente.');
-                                             } catch (e) {
-                                               console.error('[Payments] Error generando PDF local:', e);
-                                               toast.error(`No se ha podido generar el PDF: ${e?.message || 'error desconocido'}`);
-                                             }
-                                           }}
-                                           className="text-green-600 hover:text-green-700 p-1 h-6"
-                                           title="Descargar recibo"
-                                         >
-                                           📄
-                                         </Button>
-                                       )}
-                                       {isAdmin && payment.estado === "En revisión" && !payment.isVirtual && (
-                                                          <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => handleStatusChange(payment, "Pendiente")}
-                                                            className="border-red-400 text-red-600 hover:bg-red-50 text-[10px] lg:text-xs h-6 px-2"
-                                                            title="Rechazar justificante y volver a Pendiente"
-                                                          >
-                                                            ✗ Rechazar
-                                                          </Button>
-                                                        )}
-                                                        {isAdmin && payment.estado !== "Pagado" && (
-                                                          <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => setEfectivoData({ payment, playerName: player.nombre })}
-                                                            className="border-green-400 text-green-700 hover:bg-green-50 text-[10px] lg:text-xs h-6 px-2"
-                                                            title="Registrar cobro en efectivo con anotación"
-                                                          >
-                                                            💵 Efectivo
-                                                          </Button>
-                                                        )}
-                                                        {isAdmin && payment.estado !== "Pagado" && !payment.isVirtual && (
-                                                          <Button
-                                                            size="sm"
-                                                            variant="outline"
-                                                            onClick={() => handleTransferReceived(payment)}
-                                                            className="border-blue-400 text-blue-700 hover:bg-blue-50 text-[10px] lg:text-xs h-6 px-2"
-                                                            title="Confirmar transferencia bancaria comprobada, aunque no haya justificante"
-                                                          >
-                                                            🏦 Transferencia
-                                                          </Button>
-                                                        )}
-                                                        {isAdmin && payment.estado !== "Pagado" && payment.justificante_url && !payment.isVirtual && (
-                                                          <Button
-                                                            size="sm"
-                                                            onClick={() => handleStatusChange(payment, "Pagado")}
-                                                            className="bg-green-600 hover:bg-green-700 text-[10px] lg:text-xs h-6 px-2"
-                                                          >
-                                                            ✓ Pagado
-                                                          </Button>
-                                                        )}
+                                      <div className="flex shrink-0 items-center justify-end self-end sm:self-auto">
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button variant="outline" size="sm" className="h-8 gap-2 border-slate-300 bg-white px-3 text-xs font-medium text-slate-700 hover:border-orange-300 hover:bg-orange-50">
+                                              <Settings2 className="h-3.5 w-3.5" />
+                                              Acciones
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end" className="w-64">
+                                            {isAdmin && payment.estado !== "Pagado" && (
+                                              <>
+                                                <DropdownMenuItem onSelect={() => setEfectivoData({ payment, playerName: player.nombre })}>
+                                                  💵 Registrar pago en efectivo
+                                                </DropdownMenuItem>
+                                                {!payment.isVirtual && (
+                                                  <DropdownMenuItem onSelect={() => handleTransferReceived(payment)}>
+                                                    🏦 Confirmar transferencia sin justificante
+                                                  </DropdownMenuItem>
+                                                )}
+                                                <DropdownMenuSeparator />
+                                              </>
+                                            )}
+                                            {payment.justificante_url && (
+                                              <DropdownMenuItem onSelect={() => setPreviewImage(payment.justificante_url)}>
+                                                <FileText className="mr-2 h-4 w-4 text-orange-600" />
+                                                Ver justificante enviado
+                                              </DropdownMenuItem>
+                                            )}
+                                            {isAdmin && payment.estado === "En revisión" && !payment.isVirtual && (
+                                              <>
+                                                <DropdownMenuItem onSelect={() => handleStatusChange(payment, "Pagado")} className="text-green-700 focus:text-green-700">
+                                                  ✓ Aprobar justificante y marcar pagado
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem onSelect={() => handleStatusChange(payment, "Pendiente")} className="text-red-600 focus:text-red-600">
+                                                  ✗ Rechazar justificante
+                                                </DropdownMenuItem>
+                                              </>
+                                            )}
+                                            {isAdmin && !payment.isVirtual && (
+                                              <>
+                                                {(payment.justificante_url || payment.estado === "En revisión") && <DropdownMenuSeparator />}
+                                                <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+                                                  <label className="flex w-full cursor-pointer items-center">
+                                                    <Upload className="mr-2 h-4 w-4" />
+                                                    {payment.recibo_url ? "Cambiar recibo adjunto" : "Adjuntar recibo"}
+                                                    <input type="file" accept="application/pdf,image/*" className="hidden" onChange={async (event) => {
+                                                      const file = event.target.files?.[0];
+                                                      event.target.value = "";
+                                                      if (!file) return;
+                                                      try {
+                                                        const upload = await base44.integrations.Core.UploadFile({ file });
+                                                        const url = upload?.file_url || upload?.url;
+                                                        if (!url || !String(url).startsWith("http")) throw new Error("No se pudo guardar el archivo.");
+                                                        await base44.entities.Payment.update(payment.id, { recibo_url: url, recibo_adjuntado_manualmente: true });
+                                                        queryClient.invalidateQueries({ queryKey: ["myPayments"] });
+                                                        toast.success("Recibo adjuntado. Ya está disponible para la familia.");
+                                                      } catch (error) {
+                                                        console.error("Error adjuntando recibo:", error);
+                                                        toast.error(error?.message || "No se pudo adjuntar el recibo.");
+                                                      }
+                                                    }} />
+                                                  </label>
+                                                </DropdownMenuItem>
+                                              </>
+                                            )}
+                                            {payment.estado === "Pagado" && !payment.isVirtual && (
+                                              <DropdownMenuItem onSelect={async () => {
+                                                if (payment.recibo_url) { window.open(payment.recibo_url, "_blank"); return; }
+                                                try {
+                                                  const numeroRecibo = await ensurePaymentReceiptNumber(payment, base44);
+                                                  const receiptData = { ...createPlayerPaymentReceiptData(payment, player, { temporada: payment.temporada }), numeroRecibo };
+                                                  let branding = { logoUrl: "https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/6911b8e453ca3ac01fb134d6/e3f0a8e26_logo_cd_bustarviejo_mediano.jpg" };
+                                                  try {
+                                                    const assets = await base44.entities.BrandingAssets.list();
+                                                    const shared = assets?.[0];
+                                                    if (shared?.logo_url) branding.logoUrl = shared.logo_url;
+                                                    if (shared?.sello_url) branding.selloUrl = shared.sello_url;
+                                                    if (shared?.firma_url) branding.firmaUrl = shared.firma_url;
+                                                  } catch (brandingError) {
+                                                    console.warn("[Payments] No se pudieron cargar firma/sello compartidos:", brandingError);
+                                                  }
+                                                  const amount = Number(receiptData.importe || 0);
+                                                  await generateReciboPDF({
+                                                    numero: receiptData.numeroRecibo,
+                                                    fecha: String(receiptData.fechaPago || new Date().toISOString()).slice(0, 10),
+                                                    recibiDe: receiptData.nombre || payment.jugador_nombre || player?.nombre || "Jugador",
+                                                    cantidad: amount.toFixed(2).replace(".", ","),
+                                                    concepto: `Cuota deportiva de ${receiptData.jugadorNombre || payment.jugador_nombre || player?.nombre || "jugador"} · ${receiptData.mes || payment.mes || "Cuota"}`,
+                                                    temporada: receiptData.temporada || payment.temporada || "",
+                                                    lugar: "Bustarviejo",
+                                                    ...branding,
+                                                  });
+                                                  toast.success("Recibo oficial descargado correctamente.");
+                                                } catch (e) {
+                                                  console.error("[Payments] Error generando PDF local:", e);
+                                                  toast.error(`No se ha podido generar el PDF: ${e?.message || "error desconocido"}`);
+                                                }
+                                              }}>
+                                                📄 Descargar recibo oficial
+                                              </DropdownMenuItem>
+                                            )}
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
                                       </div>
                                     </div>
                                   );
