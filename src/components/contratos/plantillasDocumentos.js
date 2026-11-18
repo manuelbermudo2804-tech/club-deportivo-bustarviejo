@@ -48,4 +48,5 @@ Autorizo a los responsables del club a acompañarle y a tomar las decisiones nec
 Esta autorización es válida hasta que la retire por escrito al club.`,
   },
   { id: "familia_libre", grupo: "familia", titulo: "Autorización puntual", texto: "Como padre, madre o tutor legal de {jugador}, autorizo:\n\n" },
+  { id: "sancion_disciplinaria", grupo: "familia", titulo: "Notificación de sanción disciplinaria", texto: "" },
 ];
