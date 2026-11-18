@@ -91,7 +91,7 @@ Deno.serve(async req=>{
       const edad=ageOnStart(fecha,rates.fecha_inicio);
       if(!nombre||!/^\d{4}-\d{2}-\d{2}$/.test(fecha)||edad<6||edad>16||!semanas.length||semanas.some(w=>!WEEKS.includes(w)))
         throw new Error('Revisa el nombre, fecha de nacimiento y semanas seleccionadas de '+(nombre||'un participante')+'. El campus admite edades de 6 a 16 años.');
-      const linked=!!(verifiedMember && [...(verifiedMember.jugadores_hijos||[]),...(verifiedMember.jugadores_relacionados||[]),...(verifiedMember.campus_participantes||[])].some(x=>normalize(x.jugador_nombre||x.participante_nombre)===normalize(nombre)));
+      const linked=!!verifiedMember;
       const applied=linked || b.solicitar_alta_socio===true;
       return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates),alergias:clean(p.alergias),intolerancias:clean(p.intolerancias),medicacion:clean(p.medicacion),observaciones_medicas:clean(p.observaciones_medicas),contacto_emergencia_nombre:clean(p.contacto_emergencia_nombre),contacto_emergencia_telefono:clean(p.contacto_emergencia_telefono)};
     });
@@ -129,6 +129,7 @@ Deno.serve(async req=>{
     }
     const membershipFee=b.solicitar_alta_socio===true?Number(rates.cuota_socio ?? 25):0;
     const total=participants.reduce((s,p)=>s+p.price,0)+membershipFee;
+    if(verificationChallenge) await base44.asServiceRole.entities.CampusMemberVerification.update(verificationChallenge.id,{consumed:true,used:true});
     const reg=await base44.asServiceRole.entities.CampusRegistration.create({
       temporada:campusYear,campus_settings_id:rates.id,
       adulto_nombre:adult.nombre,adulto_dni:adult.dni,adulto_email:adult.email,adulto_telefono:adult.telefono,
