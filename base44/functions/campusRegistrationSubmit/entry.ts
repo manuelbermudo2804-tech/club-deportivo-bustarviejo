@@ -71,15 +71,20 @@ Deno.serve(async req=>{
     const alreadyRegistered=sameResponsible.reduce((sum,r)=>sum+Number(r.participantes_count||0),0);
     if(alreadyRegistered+b.participantes.length>4) return Response.json({error:'Este DNI o correo ya tiene menores inscritos en esta edición y se superaría el máximo de 4 participantes por responsable. Contacta con el club para revisar el caso.'},{status:409,headers});
     const membershipSeason=`${campusYear}-${Number(campusYear)+1}`;
-    const memberId=clean(b.club_member_id);
-    let verifiedMember=null;
+    let verifiedMember=null, verificationChallenge=null;
     if(b.es_socio===true){
-      if(!memberId) return Response.json({error:'No se ha verificado la ficha de socio.'},{status:400,headers});
-      const candidates=await base44.asServiceRole.entities.ClubMember.filter({id:memberId});
+      const verificationToken=clean(b.verification_token);
+      if(!verificationToken) return Response.json({error:'Debes verificar el código enviado al correo del socio.'},{status:400,headers});
+      const tokenHash=Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(verificationToken)))).map(x=>x.toString(16).padStart(2,'0')).join('');
+      const matches=await base44.asServiceRole.entities.CampusMemberVerification.filter({verification_token_hash:tokenHash});
+      verificationChallenge=(matches||[]).find(x=>!x.consumed&&new Date(x.token_expires_at||0).getTime()>Date.now())||null;
+      if(!verificationChallenge) return Response.json({error:'La verificación ha caducado o ya se ha utilizado. Verifica de nuevo tu condición de socio.'},{status:400,headers});
+      const candidates=await base44.asServiceRole.entities.ClubMember.filter({id:verificationChallenge.member_id});
       verifiedMember=candidates?.[0]||null;
       const today=new Date().toISOString().slice(0,10);
-      if(!verifiedMember || verifiedMember.activo!==true || String(verifiedMember.estado_pago).toLowerCase()!=='pagado' || (verifiedMember.fecha_vencimiento && verifiedMember.fecha_vencimiento<today) || verifiedMember.email?.toLowerCase()!==adult.email || String(verifiedMember.dni||'').replace(/[.\\s-]/g,'').toUpperCase()!==adult.dni.replace(/[.\\s-]/g,'').toUpperCase())
-        return Response.json({error:'La ficha de socio ya no aparece activa y pagada. Vuelve a verificarla.'},{status:400,headers});
+      const normalizeDni=value=>String(value||'').toUpperCase().replace(/[.\\s-]/g,'');
+      if(!verifiedMember||verifiedMember.activo!==true||String(verifiedMember.estado_pago||'').toLowerCase()!=='pagado'||(verifiedMember.fecha_vencimiento&&verifiedMember.fecha_vencimiento<today)||verifiedMember.email?.toLowerCase()!==adult.email||normalizeDni(verifiedMember.dni)!==normalizeDni(adult.dni))
+        return Response.json({error:'La ficha verificada no coincide con los datos del responsable o ya no está activa y pagada.'},{status:400,headers});
     }
     const participants=b.participantes.map(p=>{
       const nombre=clean(p.nombre), fecha=clean(p.fecha_nacimiento), semanas=[...new Set(p.semanas||[])];
