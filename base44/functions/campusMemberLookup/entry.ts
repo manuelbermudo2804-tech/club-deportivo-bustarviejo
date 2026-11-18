@@ -104,7 +104,7 @@ Deno.serve(async (req) => {
       const memberRows=await base44.asServiceRole.entities.ClubMember.filter({id:challenge.member_id}),member=memberRows?.[0],today=new Date().toISOString().slice(0,10);
       if(!member||member.activo!==true||String(member.estado_pago||'').toLowerCase()!=='pagado'||(member.fecha_vencimiento&&member.fecha_vencimiento<today))return Response.json({error:'La ficha de socio ya no está activa y pagada.'},{status:400,headers});
       const token=Array.from(crypto.getRandomValues(new Uint8Array(32))).map(x=>x.toString(16).padStart(2,'0')).join('');
-      await base44.asServiceRole.entities.CampusMemberVerification.update(challenge.id,{verification_token_hash:await hash(token),verified_at:new Date().toISOString(),token_expires_at:new Date(Date.now()+30*60*1000).toISOString()});
+      await base44.asServiceRole.entities.CampusMemberVerification.update(challenge.id,{used:true,verification_token_hash:await hash(token),verified_at:new Date().toISOString(),token_expires_at:new Date(Date.now()+30*60*1000).toISOString()});
       return Response.json({verified:true,verification_token:token,member_id:member.id,member:{nombre:member.nombre_completo||'',dni:member.dni||'',email:member.email||'',telefono:member.telefono||'',direccion:member.direccion||'',municipio:member.municipio||'',fecha_nacimiento:member.fecha_nacimiento||''}},{status:200,headers});
     }
     return Response.json({error:'Acción no válida.'},{status:400,headers});
