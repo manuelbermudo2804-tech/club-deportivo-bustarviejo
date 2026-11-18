@@ -58,8 +58,8 @@ export default function NuevoContratoForm({ onCreated }) {
       const menores = [...menoresPorId.values()].map((p) => ({
         key: `menor:${p.id}`, email: p.acceso_menor_email || p.email_padre || p.email_tutor_2, nombre: p.nombre, menor: true, jugador: p,
       }));
-      const familias = jugadores.filter((p) => p.email_padre).sort((a, b) => a.nombre.localeCompare(b.nombre))
-        .map((p) => ({ key: p.id, email: p.email_padre, nombre: p.nombre_tutor_legal || p.email_padre, jugador: p }));
+      const familias = jugadores.filter((p) => p.email_padre || p.email_tutor_2).sort((a, b) => a.nombre.localeCompare(b.nombre))
+        .map((p) => ({ key: p.id, email: p.email_padre || p.email_tutor_2, nombre: p.nombre_tutor_legal || p.email_padre || p.email_tutor_2, jugador: p, menor: esMenorLegal(p) }));
       const registrados = new Set(users.map((u) => (u.email || "").toLowerCase()));
       const añadirTutores = (registro) => {
         const p = registro.jugador;
@@ -75,7 +75,9 @@ export default function NuevoContratoForm({ onCreated }) {
       return { staff: [...staff, ...menores], familias };
     },
   });
-  const lista = (familia ? data?.familias : data?.staff) || [];
+  const listaCompleta = (familia ? data?.familias : data?.staff) || [];
+  const esSancion = tipo === "sancion_disciplinaria";
+  const lista = esSancion ? listaCompleta.filter((s) => s.menor && s.tutores?.some((t) => t.enApp)) : listaCompleta;
   const elegido = lista.find((s) => s.key === destino);
   const [quienes, setQuienes] = useState([]);
   const [entrenadoraMenor, setEntrenadoraMenor] = useState(false);
@@ -141,14 +143,16 @@ export default function NuevoContratoForm({ onCreated }) {
           await crearFirma({
             email: f.email,
             nombre: firmaPorTutor ? `${elegido.jugador.nombre} (tutor legal · ${f.nombre})` : elegido.nombre,
-            textoFirmar: final, esMenor: !!elegido.menor,
+            textoFirmar: final, esMenor: esSancion ? true : (!familia && !!elegido.menor),
             jugadorId: elegido.jugador?.id, jugadorNombre: elegido.jugador?.nombre,
           });
         }
       }
-      toast.success(dobleFirmaEntrenadora
-        ? "Documento preparado para doble firma: entrenadora y tutor legal."
-        : "Documento enviado. Le aparecerá al abrir la app.");
+      toast.success(esSancion
+        ? "Sanción enviada de forma confidencial para firma del jugador y su tutor legal."
+        : dobleFirmaEntrenadora
+          ? "Documento preparado para doble firma: entrenadora y tutor legal."
+          : "Documento enviado. Le aparecerá al abrir la app.");
       setDestino(""); setTexto(plantilla.texto); setEntrenadoraMenor(false);
       onCreated();
     } catch (error) {
@@ -168,6 +172,7 @@ export default function NuevoContratoForm({ onCreated }) {
           {PLANTILLAS.map((p) => <SelectItem key={p.id} value={p.id}>{p.grupo === "staff" ? "👔 Staff · " : "👪 Familia · "}{p.titulo}</SelectItem>)}
         </SelectContent>
       </Select>
+      {esSancion && <div className="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-900">Documento disciplinario confidencial. Solo aparecerán jugadores menores con al menos un tutor que tenga acceso a la app. El texto lo introduces tú y se solicitarán las dos firmas: jugador y tutor legal.</div>}
       <Select value={destino} onValueChange={elegir}>
         <SelectTrigger><SelectValue placeholder={familia ? "Elige el jugador (firma su familia)" : "Elige quién firma"} /></SelectTrigger>
         <SelectContent>
