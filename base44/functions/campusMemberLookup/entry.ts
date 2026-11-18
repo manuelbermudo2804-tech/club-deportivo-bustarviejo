@@ -68,25 +68,46 @@ Deno.serve(async (req) => {
         precio_cuatro_semanas_socio:Number(configured.precio_mes_socio)
       } }, { status:200, headers });
     }
-    const email = String(body.email || '').trim().toLowerCase();
-    const dni = clean(body.dni);
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || !dni || dni.length < 8 || dni.length > 12) {
-      return Response.json({ error: 'Introduce un correo y DNI/NIE válidos.' }, { status: 400, headers });
+    const email=String(body.email||'').trim().toLowerCase();
+    const dni=clean(body.dni).toUpperCase().replace(/[.\s-]/g,'');
+    const base44=createClientFromRequest(req);
+    const hash=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(String(value))))).map(x=>x.toString(16).padStart(2,'0')).join('');
+    const validInput=!!email&&/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)&&dni.length>=8&&dni.length<=12;
+    if(body.action==='request_code'){
+      if(!validInput)return Response.json({error:'Introduce un correo y DNI/NIE válidos.'},{status:400,headers});
+      const matches=await base44.asServiceRole.entities.ClubMember.filter({email});
+      const today=new Date().toISOString().slice(0,10);
+      const member=(matches||[]).find(m=>clean(m.dni).toUpperCase().replace(/[.\s-]/g,'')===dni&&m.activo===true&&String(m.estado_pago||'').toLowerCase()==='pagado'&&(!m.fecha_vencimiento||m.fecha_vencimiento>=today));
+      if(!member)return Response.json({sent:true,message:'Si los datos coinciden con una ficha activa, recibirás un código en el correo registrado.'},{status:200,headers});
+      const challenges=await base44.asServiceRole.entities.CampusMemberVerification.filter({email});
+      const now=Date.now(),recent=(challenges||[]).filter(x=>new Date(x.created_at||0).getTime()>now-15*60*1000);
+      if(recent.length>=3||(challenges||[]).some(x=>new Date(x.last_sent_at||x.created_at||0).getTime()>now-60*1000))
+        return Response.json({error:'Por seguridad, espera antes de solicitar otro código.'},{status:429,headers});
+      for(const prior of (challenges||[]).filter(x=>!x.used&&!x.consumed))await base44.asServiceRole.entities.CampusMemberVerification.update(prior.id,{used:true});
+      const code=String(crypto.getRandomValues(new Uint32Array(1))[0]%1000000).padStart(6,'0');
+      const createdAt=new Date();
+      const record=await base44.asServiceRole.entities.CampusMemberVerification.create({member_id:member.id,email,dni_hash:await hash(dni),code_hash:await hash(code),expires_at:new Date(now+10*60*1000).toISOString(),attempts:0,used:false,consumed:false,created_at:createdAt.toISOString(),last_sent_at:createdAt.toISOString()});
+      const key=Deno.env.get('RESEND_API_KEY');
+      if(!key){await base44.asServiceRole.entities.CampusMemberVerification.update(record.id,{used:true});throw new Error('El servicio de correo no está disponible temporalmente.');}
+      const mail=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:\`Bearer \${key}\`,'Content-Type':'application/json'},body:JSON.stringify({from:'CD Bustarviejo <noreply@cdbustarviejo.com>',to:[member.email],subject:'Código de verificación · Campus Deportivo 2027',html:\`<div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;color:#172033"><div style="background:#f57c00;padding:22px;text-align:center;color:#111;font-weight:bold">C.D. BUSTARVIEJO</div><div style="padding:24px"><h2>Verifica tu condición de socio</h2><p>Introduce este código en la inscripción del Campus Deportivo 2027:</p><div style="font-size:32px;letter-spacing:8px;font-weight:bold;text-align:center;background:#fff4e8;padding:18px;border-radius:12px">\${code}</div><p>El código caduca en 10 minutos. Si no has solicitado esta verificación, ignora este mensaje.</p></div></div>\`})});
+      if(!mail.ok){console.error('[campusMemberLookup] Resend',mail.status,await mail.text().catch(()=>'Error'));await base44.asServiceRole.entities.CampusMemberVerification.update(record.id,{used:true});throw new Error('No se ha podido enviar el código. Inténtalo de nuevo.');}
+      return Response.json({sent:true,challenge_id:record.id,message:'Si los datos coinciden con una ficha activa, recibirás un código en el correo registrado.'},{status:200,headers});
     }
-    const base44 = createClientFromRequest(req);
-    const matches = await base44.asServiceRole.entities.ClubMember.filter({ email });
-    const today = new Date().toISOString().slice(0, 10);
-    const member = (matches || []).find(m => clean(m.dni) === dni && m.activo === true && String(m.estado_pago || '').toLowerCase() === 'pagado' && (!m.fecha_vencimiento || m.fecha_vencimiento >= today));
-    if (!member) return Response.json({ verified: false, children: [] }, { status: 200, headers });
-    const linked = [...(member.jugadores_hijos || []), ...(member.jugadores_relacionados || [])];
-    const unique = new Map();
-    for (const child of linked) {
-      if (child?.jugador_id && child?.jugador_nombre) unique.set(child.jugador_id, { id: child.jugador_id, name: child.jugador_nombre });
+    if(body.action==='verify_code'){
+      const challengeId=String(body.challenge_id||'').trim(),code=String(body.code||'').trim();
+      if(!challengeId||! /^\d{6}$/.test(code))return Response.json({error:'Introduce el código de seis cifras.'},{status:400,headers});
+      const rows=await base44.asServiceRole.entities.CampusMemberVerification.filter({id:challengeId}),challenge=rows?.[0];
+      if(!challenge||challenge.used||challenge.consumed||new Date(challenge.expires_at).getTime()<Date.now()||Number(challenge.attempts||0)>=5)
+        return Response.json({error:'El código ha caducado o ya no es válido. Solicita uno nuevo.'},{status:400,headers});
+      const attempts=Number(challenge.attempts||0)+1;
+      if(await hash(code)!==challenge.code_hash){await base44.asServiceRole.entities.CampusMemberVerification.update(challenge.id,{attempts,used:attempts>=5});return Response.json({error:attempts>=5?'Has superado el número de intentos. Solicita un código nuevo.':'El código no es correcto.'},{status:400,headers});}
+      const memberRows=await base44.asServiceRole.entities.ClubMember.filter({id:challenge.member_id}),member=memberRows?.[0],today=new Date().toISOString().slice(0,10);
+      if(!member||member.activo!==true||String(member.estado_pago||'').toLowerCase()!=='pagado'||(member.fecha_vencimiento&&member.fecha_vencimiento<today))return Response.json({error:'La ficha de socio ya no está activa y pagada.'},{status:400,headers});
+      const token=Array.from(crypto.getRandomValues(new Uint8Array(32))).map(x=>x.toString(16).padStart(2,'0')).join('');
+      await base44.asServiceRole.entities.CampusMemberVerification.update(challenge.id,{verification_token_hash:await hash(token),verified_at:new Date().toISOString(),token_expires_at:new Date(Date.now()+30*60*1000).toISOString()});
+      return Response.json({verified:true,verification_token:token,member_id:member.id,member:{nombre:member.nombre_completo||'',dni:member.dni||'',email:member.email||'',telefono:member.telefono||'',direccion:member.direccion||'',municipio:member.municipio||'',fecha_nacimiento:member.fecha_nacimiento||''}},{status:200,headers});
     }
-    for (const child of (member.campus_participantes || [])) {
-      if (child?.participante_id && child?.participante_nombre) unique.set(child.participante_id, { id: child.participante_id, name: child.participante_nombre });
-    }
-    return Response.json({ verified: true, member_id: member.id, children: [...unique.values()] }, { status: 200, headers });
+    return Response.json({error:'Acción no válida.'},{status:400,headers});
   } catch (error) {
     console.error('[campusMemberLookup]', error?.message);
     return Response.json({ error: 'No se ha podido verificar ahora. Inténtalo de nuevo.' }, { status: 500, headers });
