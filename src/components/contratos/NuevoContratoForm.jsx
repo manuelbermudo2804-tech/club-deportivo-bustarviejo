@@ -87,7 +87,7 @@ export default function NuevoContratoForm({ onCreated }) {
     setQuienes(f?.tutores ? f.tutores.filter((t) => t.enApp).map((t) => t.email).slice(0, 1) : []);
     setEntrenadoraMenor(false);
   };
-  const toggleQuien = (email) => setQuienes((q) => q.includes(email) ? q.filter((e) => e !== email) : [...q, email]);
+  const toggleQuien = (email) => setQuienes((q) => esSancion ? (q.includes(email) ? [] : [email]) : (q.includes(email) ? q.filter((e) => e !== email) : [...q, email]));
   // En documentos de staff, el destinatario es siempre el propio entrenador, también si es menor.
   // La firma del tutor legal se recoge dentro del modal de firma. Solo los documentos de familia
   // se envían directamente al progenitor/tutor seleccionado.
@@ -98,7 +98,7 @@ export default function NuevoContratoForm({ onCreated }) {
 
   const cambiarTipo = (id) => {
     const p = PLANTILLAS.find((x) => x.id === id);
-    if (p.grupo !== plantilla.grupo) setDestino("");
+    if (p.grupo !== plantilla.grupo || p.id === "sancion_disciplinaria" || tipo === "sancion_disciplinaria") { setDestino(""); setQuienes([]); }
     setTipo(id); setTitulo(p.titulo); setTexto(p.texto);
   };
 
@@ -194,7 +194,7 @@ export default function NuevoContratoForm({ onCreated }) {
       )}
       {seleccionaTutores && (
         <div className="border rounded-lg p-3 space-y-2 bg-slate-50">
-          <p className="text-sm font-semibold">¿Quién tiene que firmar?</p>
+          <p className="text-sm font-semibold">{esSancion ? "Selecciona el tutor legal que recibirá la solicitud de firma" : "¿Quién tiene que firmar?"}</p>
           {elegido.tutores.map((t) => (
             <label key={t.email} className={`flex items-center gap-2 text-sm ${t.enApp ? "" : "opacity-50"}`}>
               <Checkbox disabled={!t.enApp} checked={quienes.includes(t.email)} onCheckedChange={() => toggleQuien(t.email)} />
