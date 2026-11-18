@@ -117,7 +117,6 @@ export default function Payments() {
   const [efectivoData, setEfectivoData] = useState(null);
   const [savingEfectivo, setSavingEfectivo] = useState(false);
   const [cashPaymentError, setCashPaymentError] = useState("");
-  const [selectedCobroPaymentId, setSelectedCobroPaymentId] = useState("");
 
   const formRef = useRef(null);
   const queryClient = useQueryClient();
@@ -1452,14 +1451,7 @@ export default function Payments() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1.5 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-sm sm:flex-nowrap">
-          <TabsTrigger value="pagos" className="min-w-0 flex-1 whitespace-normal rounded-xl py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">Cuotas</TabsTrigger>
-          {isAdmin && (
-            <>
-              <TabsTrigger value="justificantes" className="min-w-0 flex-1 whitespace-normal rounded-xl py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">Justificantes ({payments.filter(p => p.estado === "En revisión" && p.justificante_url).length})</TabsTrigger>
-              <TabsTrigger value="cobros" className="min-w-0 flex-1 whitespace-normal rounded-xl py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">Registrar cobros</TabsTrigger>
-              <TabsTrigger value="recibos" className="min-w-0 flex-1 whitespace-normal rounded-xl py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">Recibos</TabsTrigger>
-            </>
-          )}
+          <TabsTrigger value="pagos" className="min-w-0 flex-1 whitespace-normal rounded-xl py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">Gestión de Pagos</TabsTrigger>
           {isAdmin && (
             <>
               <TabsTrigger value="planes" className="min-w-0 flex-1 whitespace-normal rounded-xl py-2.5 text-xs data-[state=active]:bg-slate-900 data-[state=active]:text-white sm:text-sm">
@@ -2141,6 +2133,28 @@ export default function Payments() {
                                                             ✗ Rechazar
                                                           </Button>
                                                         )}
+                                                        {isAdmin && payment.estado !== "Pagado" && (
+                                                          <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => setEfectivoData({ payment, playerName: player.nombre })}
+                                                            className="border-green-400 text-green-700 hover:bg-green-50 text-[10px] lg:text-xs h-6 px-2"
+                                                            title="Registrar cobro en efectivo con anotación"
+                                                          >
+                                                            💵 Efectivo
+                                                          </Button>
+                                                        )}
+                                                        {isAdmin && payment.estado !== "Pagado" && !payment.isVirtual && (
+                                                          <Button
+                                                            size="sm"
+                                                            variant="outline"
+                                                            onClick={() => handleTransferReceived(payment)}
+                                                            className="border-blue-400 text-blue-700 hover:bg-blue-50 text-[10px] lg:text-xs h-6 px-2"
+                                                            title="Confirmar transferencia bancaria comprobada, aunque no haya justificante"
+                                                          >
+                                                            🏦 Transferencia
+                                                          </Button>
+                                                        )}
                                                         {isAdmin && payment.estado !== "Pagado" && payment.justificante_url && !payment.isVirtual && (
                                                           <Button
                                                             size="sm"
@@ -2188,93 +2202,6 @@ export default function Payments() {
 
         {isAdmin && (
           <>
-            <TabsContent value="justificantes" className="space-y-4">
-              <Card className="rounded-2xl border border-orange-200 bg-orange-50/50 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">📎 Justificantes pendientes de revisar</CardTitle>
-                  <p className="text-sm text-slate-600">Aquí aparecen los documentos que han enviado las familias. Este proceso de subida y revisión se mantiene sin cambios.</p>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {payments.filter(p => p.estado === "En revisión" && p.justificante_url && !p.is_deleted).length === 0 ? (
-                    <p className="rounded-xl border border-dashed border-slate-300 bg-white p-6 text-center text-sm text-slate-500">No hay justificantes pendientes de revisión.</p>
-                  ) : payments.filter(p => p.estado === "En revisión" && p.justificante_url && !p.is_deleted).map(payment => (
-                    <div key={payment.id} className="flex flex-col gap-3 rounded-xl border bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="min-w-0">
-                        <p className="font-semibold text-slate-900">{payment.jugador_nombre}</p>
-                        <p className="text-sm text-slate-600">{payment.mes} · {payment.temporada} · {Number(payment.cantidad || 0).toFixed(2)}€</p>
-                        <p className="mt-1 text-xs text-orange-700">Pendiente de comprobación</p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Button size="sm" variant="outline" onClick={() => setPreviewImage(payment.justificante_url)}>Ver justificante</Button>
-                        <Button size="sm" variant="outline" className="border-red-300 text-red-700" onClick={() => handleStatusChange(payment, "Pendiente")}>Rechazar</Button>
-                        <Button size="sm" className="bg-green-600 hover:bg-green-700" onClick={() => handleStatusChange(payment, "Pagado")}>Confirmar pago</Button>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="cobros" className="space-y-4">
-              <Card className="rounded-2xl border border-slate-200 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-lg">💳 Registrar un cobro</CardTitle>
-                  <p className="text-sm text-slate-600">Selecciona la cuota y registra el método de cobro. El efectivo permite cobros parciales y adjuntar recibo; la transferencia se confirma únicamente después de comprobar el ingreso en el banco.</p>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Cuota pendiente</label>
-                    <Select value={selectedCobroPaymentId} onValueChange={setSelectedCobroPaymentId}>
-                      <SelectTrigger><SelectValue placeholder="Selecciona jugador y cuota" /></SelectTrigger>
-                      <SelectContent>
-                        {payments.filter(p => p.estado !== "Pagado" && p.estado !== "Anulado" && !p.is_deleted).sort((a,b) => (a.jugador_nombre || "").localeCompare(b.jugador_nombre || "")).map(p => (
-                          <SelectItem key={p.id} value={p.id}>{p.jugador_nombre} · {p.mes} · {Number(p.cantidad || 0).toFixed(2)}€ · {p.estado}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {selectedCobroPaymentId && (() => {
-                    const payment = payments.find(p => p.id === selectedCobroPaymentId);
-                    const player = players.find(p => p.id === payment?.jugador_id);
-                    if (!payment) return null;
-                    return (
-                      <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
-                        <p className="font-semibold">{payment.jugador_nombre} · {payment.mes}</p>
-                        <p className="mb-3 text-sm text-slate-600">Importe de cuota: {Number(payment.cantidad || 0).toFixed(2)}€ · Estado: {payment.estado}</p>
-                        <div className="flex flex-wrap gap-2">
-                          <Button onClick={() => setEfectivoData({ payment, playerName: player?.nombre || payment.jugador_nombre })} className="bg-green-600 hover:bg-green-700">💵 Registrar efectivo</Button>
-                          <Button variant="outline" disabled={payment.isVirtual} onClick={() => handleTransferReceived(payment)} className="border-blue-300 text-blue-700">🏦 Confirmar transferencia bancaria</Button>
-                        </div>
-                        {payment.isVirtual && <p className="mt-2 text-xs text-slate-500">La transferencia bancaria se habilita cuando exista una cuota registrada.</p>}
-                      </div>
-                    );
-                  })()}
-                  <p className="text-xs text-slate-500">Importante: confirmar una transferencia significa que tesorería ha comprobado el ingreso en la cuenta. No sustituye ni modifica el justificante que puede enviar la familia.</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="recibos" className="space-y-4">
-              <Card className="rounded-2xl border border-slate-200 shadow-sm">
-                <CardHeader>
-                  <CardTitle className="text-lg">🧾 Recibos de cuotas pagadas</CardTitle>
-                  <p className="text-sm text-slate-600">Consulta los recibos ya asociados a cuotas pagadas. La generación oficial desde la ficha de cada cuota sigue disponible.</p>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {payments.filter(p => p.estado === "Pagado" && !p.is_deleted).length === 0 ? (
-                    <p className="rounded-xl border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">Todavía no hay cuotas pagadas.</p>
-                  ) : payments.filter(p => p.estado === "Pagado" && !p.is_deleted).sort((a,b) => (b.fecha_pago || "").localeCompare(a.fecha_pago || "")).map(payment => (
-                    <div key={payment.id} className="flex flex-col gap-2 rounded-xl border p-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div><p className="font-medium">{payment.jugador_nombre}</p><p className="text-sm text-slate-600">{payment.mes} · {payment.temporada} · {Number(payment.cantidad || 0).toFixed(2)}€</p></div>
-                      <div className="flex items-center gap-2">
-                        {payment.recibo_url ? <Button size="sm" variant="outline" onClick={() => window.open(payment.recibo_url, "_blank")}>Abrir recibo</Button> : <Badge variant="secondary">Sin recibo adjunto</Badge>}
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
             <TabsContent value="planes">
               <div className="space-y-6">
                 <div className="flex justify-end">
