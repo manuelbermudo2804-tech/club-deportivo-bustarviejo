@@ -19,6 +19,42 @@ Deno.serve(async (req) => {
   if (!ALLOWED_ORIGINS.has(origin)) return Response.json({ error: 'Origen no autorizado' }, { status: 403, headers });
   try {
     const body = await req.json();
+    if (body.action === 'availability') {
+      const availabilityClient = createClientFromRequest(req);
+      const cfgs = await availabilityClient.asServiceRole.entities.CampusSettings.list('-created_date', 100);
+      const configured = (cfgs || []).find(c => c.activo === true) || (cfgs || [])[0];
+      if (!configured?.id) return Response.json({ error: 'El campus todavía no tiene una edición configurada.' }, { status: 409, headers });
+      const season = String(configured.temporada || configured.fecha_inicio?.slice(0,4) || '2027');
+      const [registrations, participants] = await Promise.all([
+        availabilityClient.asServiceRole.entities.CampusRegistration.list('-created_date', 2000),
+        availabilityClient.asServiceRole.entities.CampusParticipant.list('-created_date', 3000)
+      ]);
+      const registrationsById = new Map((registrations || []).map(r => [r.id, r]));
+      const active = (participants || []).filter(p => {
+        if (String(p.temporada || '2027') !== season || ['cancelado','lista_espera'].includes(String(p.estado || '').toLowerCase())) return false;
+        const parent = registrationsById.get(p.registration_id);
+        return !parent || !['cancelada','revision'].includes(String(parent.estado || '').toLowerCase());
+      });
+      const groups = [
+        { key:'6-8', label:'6–8 años', capacity:configured.plazas_6_8 },
+        { key:'9-11', label:'9–11 años', capacity:configured.plazas_9_11 },
+        { key:'12-16', label:'12–16 años', capacity:configured.plazas_12_16 }
+      ];
+      const weeks = ['S1','S2','S3','S4','S5'];
+      const matrix = groups.map(g => ({
+        group:g.key, label:g.label,
+        weeks:weeks.map(week => {
+          const occupied = active.filter(p => p.grupo_edad === g.key && (p.semanas_ocupadas || []).includes(week)).length;
+          const cap = g.capacity === undefined || g.capacity === null || g.capacity === '' ? null : Math.max(0, Number(g.capacity));
+          const generalCap = configured.maximo_total === undefined || configured.maximo_total === null || configured.maximo_total === '' ? null : Math.max(0, Number(configured.maximo_total));
+          const generalOccupied = active.filter(p => (p.semanas_ocupadas || []).includes(week)).length;
+          const remaining = cap === null ? null : Math.max(0, cap - occupied);
+          const generalRemaining = generalCap === null || generalCap === 0 ? null : Math.max(0, generalCap - generalOccupied);
+          return { week, occupied, capacity:cap, remaining:remaining === null ? null : (generalRemaining === null ? remaining : Math.min(remaining, generalRemaining)), full:(remaining !== null && remaining <= 0) || (generalRemaining !== null && generalRemaining <= 0) };
+        })
+      }));
+      return Response.json({ season, weeks, groups:matrix, updated_at:new Date().toISOString() }, { status:200, headers });
+    }
     if (body.action === 'pricing') {
       const pricingClient = createClientFromRequest(req);
       const cfgs = await pricingClient.asServiceRole.entities.CampusSettings.list('-created_date', 5);
