@@ -102,7 +102,9 @@ export default function FirmarContratoModal({ user }) {
         {menor && <TutorFirmaBloque tutor={tutor} setTutor={setTutor} onFirma={setTutorCanvas} />}
         <label className="flex items-start gap-2 text-sm">
           <Checkbox checked={acepto} onCheckedChange={(v) => setAcepto(!!v)} className="mt-0.5" />
-          He leído el acuerdo y lo acepto{menor ? " (y, como tutor, autorizo al menor)" : ""}.
+          {c.tipo === "sancion_disciplinaria"
+            ? "Confirmo que he recibido y conozco esta comunicación disciplinaria. Mi firma acredita su recepción, no implica conformidad ni aceptación de la sanción."
+            : `He leído el acuerdo y lo acepto${menor ? " (y, como tutor, autorizo al menor)" : ""}.`}
         </label>
         <label className="flex items-start gap-2 text-sm">
           <Checkbox checked={privacidad} onCheckedChange={(v) => setPrivacidad(!!v)} className="mt-0.5" />
