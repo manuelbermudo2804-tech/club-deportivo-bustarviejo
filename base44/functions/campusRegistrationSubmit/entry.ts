@@ -202,8 +202,9 @@ Deno.serve(async req=>{
       const campusLinks=participants.map((p,i)=>({participante_id:created[i],participante_nombre:p.nombre}));
       await base44.asServiceRole.entities.ClubMember.update(verifiedMember.id,{campus_participantes:[...(verifiedMember.campus_participantes||[]),...campusLinks]});
     }
-    const stripeSecret=Deno.env.get('STRIPE_SECRET_KEY');
-    if(!stripeSecret) throw new Error('El pago con tarjeta no está configurado. No se ha realizado ningún cobro.');
+    const campusTestMode=Deno.env.get('CAMPUS_TEST_MODE')==='true';
+    const stripeSecret=Deno.env.get(campusTestMode?'STRIPE_SECRET_KEY_TEST':'STRIPE_SECRET_KEY');
+    if(!stripeSecret) throw new Error(campusTestMode?'Falta STRIPE_SECRET_KEY_TEST. No se ha iniciado ningún cobro.':'El pago con tarjeta no está configurado. No se ha realizado ningún cobro.');
     if(!Number.isFinite(total)||total<=0) throw new Error('El importe calculado no es válido.');
     const stripe=new Stripe(stripeSecret,{apiVersion:'2024-06-20'});
     const reference='CDB27-'+String(reg.id).replace(/[^a-zA-Z0-9]/g,'').slice(-8).toUpperCase();
@@ -213,10 +214,10 @@ Deno.serve(async req=>{
       line_items:[{price_data:{currency:'eur',unit_amount:Math.round(total*100),product_data:{name:'Campus Deportivo CD Bustarviejo 2027',description:participants.map(p=>p.nombre+' ('+p.semanas.join(', ')+')').join(' · ')}},quantity:1}],
       success_url:site+'?pago=correcto&ref='+encodeURIComponent(reference),
       cancel_url:site+'?pago=cancelado&ref='+encodeURIComponent(reference),
-      metadata:{tipo:'campus_2027',campus_registration_id:String(reg.id),club_member_id:String(provisionalMemberId||verifiedMember?.id||''),new_member:b.solicitar_alta_socio===true?'true':'false',season:campusYear,reference},
-      payment_intent_data:{metadata:{tipo:'campus_2027',campus_registration_id:String(reg.id),reference}}
+      metadata:{tipo:'campus_2027',campus_registration_id:String(reg.id),club_member_id:String(provisionalMemberId||verifiedMember?.id||''),new_member:b.solicitar_alta_socio===true?'true':'false',season:campusYear,reference,test_mode:campusTestMode?'true':'false'},
+      payment_intent_data:{metadata:{tipo:'campus_2027',campus_registration_id:String(reg.id),reference,test_mode:campusTestMode?'true':'false'}}
     });
-    await base44.asServiceRole.entities.CampusRegistration.update(reg.id,{stripe_session_id:session.id,notas:'Inscripción guardada. Checkout Stripe generado; pendiente de pago.'});
+    await base44.asServiceRole.entities.CampusRegistration.update(reg.id,{stripe_session_id:session.id,notas:(campusTestMode?'[PRUEBA STRIPE TEST] ':'')+'Inscripción guardada. Checkout Stripe generado; pendiente de pago.'});
     const weekLabels={S1:'28 junio–2 julio',S2:'5–9 julio',S3:'12–16 julio',S4:'19–23 julio',S5:'26–30 julio'};
     const safeEmail=v=>String(v||'').replace(/[&<>\"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c]));
     const pendingHtml=`<div style="font-family:Arial,sans-serif;max-width:600px;margin:auto;color:#222"><div style="background:#ea580c;color:white;padding:24px;text-align:center"><h2>Hemos recibido tu inscripción</h2><strong>CD Bustarviejo · Campus 2027</strong></div><div style="padding:24px"><p>Hola <strong>${safeEmail(adult.nombre)}</strong>,</p><p>Hemos recibido correctamente la solicitud de inscripción al Campus Deportivo 2027.</p><p><strong>Participantes y semanas:</strong></p><ul>${participants.map(p=>`<li>${safeEmail(p.nombre)} — ${p.semanas.map(w=>weekLabels[w]||w).join(', ')}</li>`).join('')}</ul><p><strong>Importe pendiente:</strong> ${total.toFixed(2).replace('.',',')} €</p><p>La inscripción todavía <strong>no está confirmada</strong>. Para completar el proceso y reservar las plazas, realiza el pago seguro desde este enlace:</p><p><a href="${session.url}" style="display:inline-block;background:#ea580c;color:white;padding:13px 20px;border-radius:6px;text-decoration:none;font-weight:bold">Continuar al pago seguro</a></p><p>Una vez confirmado el pago, recibirás otro correo con la confirmación definitiva.</p><p>Muchas gracias,<br><strong>CD Bustarviejo</strong></p></div></div>`;
