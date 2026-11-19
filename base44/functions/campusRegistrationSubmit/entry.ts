@@ -1,4 +1,5 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
+import Stripe from 'npm:stripe@14.21.0';
 
 const ORIGINS = new Set(['https://www.cdbustarviejo.com','https://cdbustarviejo.com']);
 const WEEKS = ['S1','S2','S3','S4','S5'];
@@ -129,7 +130,6 @@ Deno.serve(async req=>{
     }
     const membershipFee=b.solicitar_alta_socio===true?Number(rates.cuota_socio ?? 25):0;
     const total=participants.reduce((s,p)=>s+p.price,0)+membershipFee;
-    if(verificationChallenge) await base44.asServiceRole.entities.CampusMemberVerification.update(verificationChallenge.id,{consumed:true,used:true});
     const reg=await base44.asServiceRole.entities.CampusRegistration.create({
       temporada:campusYear,campus_settings_id:rates.id,
       adulto_nombre:adult.nombre,adulto_dni:adult.dni,adulto_email:adult.email,adulto_telefono:adult.telefono,
@@ -195,8 +195,23 @@ Deno.serve(async req=>{
       const campusLinks=participants.map((p,i)=>({participante_id:created[i],participante_nombre:p.nombre}));
       await base44.asServiceRole.entities.ClubMember.update(verifiedMember.id,{campus_participantes:[...(verifiedMember.campus_participantes||[]),...campusLinks]});
     }
+    const stripeSecret=Deno.env.get('STRIPE_SECRET_KEY');
+    if(!stripeSecret) throw new Error('El pago con tarjeta no está configurado. No se ha realizado ningún cobro.');
+    if(!Number.isFinite(total)||total<=0) throw new Error('El importe calculado no es válido.');
+    const stripe=new Stripe(stripeSecret,{apiVersion:'2024-06-20'});
     const reference='CDB27-'+String(reg.id).replace(/[^a-zA-Z0-9]/g,'').slice(-8).toUpperCase();
-    return Response.json({success:true,registration_id:reg.id,reference,participants_saved:created.length,amount:total,club_member_id:provisionalMemberId||verifiedMember?.id||null,payment_started:false,payment_status:'pendiente',message:'Inscripción recibida correctamente. Queda pendiente de pago y confirmación por parte del club.'},{headers});
+    const site='https://www.cdbustarviejo.com/campus-verano-2027.html';
+    const session=await stripe.checkout.sessions.create({
+      mode:'payment',customer_email:adult.email,
+      line_items:[{price_data:{currency:'eur',unit_amount:Math.round(total*100),product_data:{name:'Campus Deportivo CD Bustarviejo 2027',description:participants.map(p=>p.nombre+' ('+p.semanas.join(', ')+')').join(' · ')}},quantity:1}],
+      success_url:site+'?pago=correcto&ref='+encodeURIComponent(reference),
+      cancel_url:site+'?pago=cancelado&ref='+encodeURIComponent(reference),
+      metadata:{tipo:'campus_2027',campus_registration_id:String(reg.id),club_member_id:String(provisionalMemberId||verifiedMember?.id||''),new_member:b.solicitar_alta_socio===true?'true':'false',season:campusYear,reference},
+      payment_intent_data:{metadata:{tipo:'campus_2027',campus_registration_id:String(reg.id),reference}}
+    });
+    await base44.asServiceRole.entities.CampusRegistration.update(reg.id,{stripe_session_id:session.id,notas:'Inscripción guardada. Checkout Stripe generado; pendiente de pago.'});
+    if(verificationChallenge) await base44.asServiceRole.entities.CampusMemberVerification.update(verificationChallenge.id,{consumed:true,used:true});
+    return Response.json({success:true,registration_id:reg.id,reference,participants_saved:created.length,amount:total,club_member_id:provisionalMemberId||verifiedMember?.id||null,payment_started:true,payment_status:'pendiente',payment_url:session.url,message:'Inscripción guardada. Continúa a Stripe para completar el pago.'},{headers});
   } catch(e) {
     console.error('[campusRegistrationSubmit]',e?.message||e);
     return Response.json({error:e?.message||'No se ha podido guardar la inscripción.'},{status:400,headers});
