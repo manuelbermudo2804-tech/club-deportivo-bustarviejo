@@ -34,6 +34,13 @@ function priceForWeeks(selected, member, rates) {
   }
   return dp[ids.length];
 }
+async function sendCampusEmail({to,subject,html}) {
+  const key=Deno.env.get('RESEND_API_KEY');
+  if(!key) throw new Error('RESEND_API_KEY no configurada');
+  const response=await fetch('https://api.resend.com/emails',{method:'POST',headers:{Authorization:`Bearer ${key}`,'Content-Type':'application/json'},body:JSON.stringify({from:'CD Bustarviejo <noreply@cdbustarviejo.com>',to:[to],subject,html})});
+  if(!response.ok) throw new Error(`Resend error ${response.status}: ${await response.text()}`);
+  return true;
+}
 Deno.serve(async req=>{
   const origin=req.headers.get('origin')||'', headers=cors(origin);
   if(req.method==='OPTIONS') return new Response(null,{status:204,headers});
