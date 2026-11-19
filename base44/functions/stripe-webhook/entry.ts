@@ -138,6 +138,36 @@ Deno.serve(async (req) => {
       console.log('[stripe-webhook] checkout.session.completed', { session_id: session.id, status, metadata });
 
       if (session?.payment_status === 'paid') {
+        if (metadata.tipo === 'campus_2027' && metadata.campus_registration_id) {
+          try {
+            const rid=String(metadata.campus_registration_id);
+            const regs=await base44.asServiceRole.entities.CampusRegistration.filter({id:rid});
+            const reg=regs?.[0];
+            if (!reg) throw new Error('Inscripción de Campus no encontrada.');
+            const paid=Number(session.amount_total||0)/100;
+            if (reg.stripe_session_id !== session.id) throw new Error('La sesión Stripe no coincide con la inscripción.');
+            if (Math.abs(paid-Number(reg.importe_total||0))>0.01) throw new Error('El importe cobrado no coincide con el importe calculado.');
+            if (reg.estado_pago !== 'pagado') {
+              const kids=await base44.asServiceRole.entities.CampusParticipant.filter({registration_id:rid});
+              for (const kid of kids) if (kid.estado !== 'confirmado') await base44.asServiceRole.entities.CampusParticipant.update(kid.id,{estado:'confirmado'});
+              const memberId=String(metadata.club_member_id||reg.club_member_id||'');
+              if (metadata.new_member==='true' && memberId) {
+                const members=await base44.asServiceRole.entities.ClubMember.filter({id:memberId});
+                if (!members?.[0]) throw new Error('No se encuentra el alta de socio del Campus.');
+                await base44.asServiceRole.entities.ClubMember.update(memberId,{estado_pago:'Pagado',activo:true,metodo_pago:'Tarjeta',origen_pago:'campus',fecha_alta:new Date().toISOString().slice(0,10),fecha_pago:new Date().toISOString().slice(0,10),cuota_socio:Number(reg.cuota_socio_incluida||25)});
+              }
+              await base44.asServiceRole.entities.CampusRegistration.update(rid,{estado:'confirmada',estado_pago:'pagado',estado_alta_socio:metadata.new_member==='true'?'pagado':reg.estado_alta_socio,stripe_payment_intent:session.payment_intent||'',notas:'Pago Stripe verificado. Inscripción y plazas confirmadas automáticamente.'});
+              const weekLabels={S1:'28 junio–2 julio',S2:'5–9 julio',S3:'12–16 julio',S4:'19–23 julio',S5:'26–30 julio'};
+              const safe=v=>String(v||'').replace(/[&<>"]/g,'');
+              const participantHtml=kids.map(k=>'<li><strong>'+safe(k.nombre)+'</strong> — '+(k.semanas_ocupadas||[]).map(w=>weekLabels[w]||w).join(', ')+'</li>').join('');
+              const membership=metadata.new_member==='true'?'<p>También hemos confirmado tu alta como socio/a para la temporada '+safe(reg.temporada)+'–'+(Number(reg.temporada||2027)+1)+'.</p>':(reg.es_socio?'<p>Se ha aplicado la tarifa de socio verificada.</p>':'');
+              const html=baseLayout('#ea580c','¡INSCRIPCIÓN CONFIRMADA!','✅','<p>Hola <strong>'+safe(reg.adulto_nombre)+'</strong>,</p><p>Hemos recibido correctamente el pago del Campus Deportivo 2027. ¡Tu inscripción está confirmada!</p><p><strong>Referencia:</strong> '+safe(metadata.reference||rid)+'</p><p><strong>Participantes y semanas:</strong></p><ul>'+participantHtml+'</ul><p><strong>Importe abonado:</strong> '+paid.toFixed(2).replace('.',',')+' €</p>'+membership+'<p>En los próximos días os enviaremos la información práctica para el inicio del campus.</p><p>¡Muchas gracias por confiar en el CD Bustarviejo!</p>');
+              await sendEmailResend({to:reg.adulto_email,subject:'✅ Campus Deportivo 2027 · Inscripción confirmada',body:html});
+              try { await sendEmailResend({to:'info@cdbustarviejo.com',subject:'Nueva inscripción pagada · Campus 2027',body:'Referencia: '+(metadata.reference||rid)+'\nResponsable: '+reg.adulto_nombre+'\nEmail: '+reg.adulto_email+'\nParticipantes: '+kids.map(k=>k.nombre).join(', ')+'\nImporte: '+paid.toFixed(2)+' €'}); } catch(adminErr) { console.error('[stripe-webhook] Email admin Campus:',adminErr?.message||adminErr); }
+            }
+            console.log('[stripe-webhook] Campus 2027 confirmado',{registration_id:rid,session_id:session.id});
+          } catch(campusErr) { console.error('[stripe-webhook] Error Campus 2027:',campusErr?.message||campusErr); throw campusErr; }
+        }
         // Fallback log: si el tipo no es uno de los conocidos, registramos igualmente
         try {
           const tipo = metadata?.tipo;
