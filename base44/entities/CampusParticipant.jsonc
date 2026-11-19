@@ -105,6 +105,14 @@
     "contacto_emergencia_telefono": {
       "type": "string"
     },
+    "contacto_emergencia_2_nombre": {
+      "type": "string",
+      "description": "Segundo contacto de emergencia opcional."
+    },
+    "contacto_emergencia_2_telefono": {
+      "type": "string",
+      "description": "Tel\u00e9fono del segundo contacto de emergencia opcional."
+    },
     "autorizacion_imagen": {
       "type": "string",
       "enum": [
