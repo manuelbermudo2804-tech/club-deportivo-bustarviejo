@@ -101,7 +101,7 @@ Deno.serve(async req=>{
         throw new Error('Revisa el nombre, fecha de nacimiento y semanas seleccionadas de '+(nombre||'un participante')+'. El campus admite edades de 6 a 16 años.');
       const linked=!!verifiedMember;
       const applied=linked || b.solicitar_alta_socio===true;
-      return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates),alergias:clean(p.alergias),intolerancias:clean(p.intolerancias),medicacion:clean(p.medicacion),observaciones_medicas:clean(p.observaciones_medicas),contacto_emergencia_nombre:clean(p.contacto_emergencia_nombre),contacto_emergencia_telefono:clean(p.contacto_emergencia_telefono)};
+      return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates),alergias:clean(p.alergias),intolerancias:clean(p.intolerancias),medicacion:clean(p.medicacion),observaciones_medicas:clean(p.observaciones_medicas),contacto_emergencia_nombre:clean(p.contacto_emergencia_nombre),contacto_emergencia_telefono:clean(p.contacto_emergencia_telefono),contacto_emergencia_2_nombre:clean(p.contacto_emergencia_2_nombre),contacto_emergencia_2_telefono:clean(p.contacto_emergencia_2_telefono)};
     });
     // Control de aforo: las solicitudes pendientes también ocupan plaza para evitar aceptar más inscripciones que capacidad.
     const existingParticipants=await base44.asServiceRole.entities.CampusParticipant.list('-created_date',2000);
@@ -161,7 +161,7 @@ Deno.serve(async req=>{
           registration_id:reg.id,nombre:p.nombre,fecha_nacimiento:p.fecha,edad_inicio:p.edad,grupo_edad:groupFor(p.edad),
           modalidad,periodo,semanas_ocupadas:p.semanas,es_socio:p.linked,precio_aplicado:p.price,estado:'pendiente',
           alergias:p.alergias,intolerancias:p.intolerancias,medicacion:p.medicacion,observaciones_medicas:p.observaciones_medicas,
-          contacto_emergencia_nombre:p.contacto_emergencia_nombre,contacto_emergencia_telefono:p.contacto_emergencia_telefono,consentimiento_salud:b.consentimiento_salud===true,
+          contacto_emergencia_nombre:p.contacto_emergencia_nombre,contacto_emergencia_telefono:p.contacto_emergencia_telefono,contacto_emergencia_2_nombre:p.contacto_emergencia_2_nombre,contacto_emergencia_2_telefono:p.contacto_emergencia_2_telefono,consentimiento_salud:b.consentimiento_salud===true,
           autorizacion_imagen:b.consentimiento_imagen===true?'si':'no'
         });
         created.push(row.id);
