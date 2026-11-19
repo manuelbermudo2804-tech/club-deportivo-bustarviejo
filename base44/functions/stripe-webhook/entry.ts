@@ -106,12 +106,17 @@ Deno.serve(async (req) => {
   const rawBody = await req.text();
   const signature = req.headers.get('stripe-signature') || '';
 
-  const webhookSecret = Deno.env.get('STRIPE_WEBHOOK_SECRET');
-  const stripeSecret = Deno.env.get('STRIPE_SECRET_KEY');
+  // livemode solo selecciona qué secreto probar; la autenticidad se determina después verificando la firma.
+  let payloadMode;
+  try { payloadMode = JSON.parse(rawBody)?.livemode; } catch { return new Response('Invalid payload', { status: 400 }); }
+  if (typeof payloadMode !== 'boolean') return new Response('Invalid Stripe mode', { status: 400 });
+  const isTestEvent = payloadMode === false;
+  const webhookSecret = Deno.env.get(isTestEvent ? 'STRIPE_WEBHOOK_SECRET_TEST' : 'STRIPE_WEBHOOK_SECRET');
+  const stripeSecret = Deno.env.get(isTestEvent ? 'STRIPE_SECRET_KEY_TEST' : 'STRIPE_SECRET_KEY');
 
   if (!webhookSecret || !stripeSecret) {
-    console.error('[stripe-webhook] Falta STRIPE_WEBHOOK_SECRET o STRIPE_SECRET_KEY');
-    return Response.json({ error: 'Stripe no está configurado' }, { status: 500 });
+    console.error('[stripe-webhook] Faltan las credenciales Stripe para el modo recibido', { test: isTestEvent });
+    return Response.json({ error: 'Stripe no está configurado para este modo' }, { status: 500 });
   }
 
   const stripe = new Stripe(stripeSecret, { apiVersion: '2024-06-20' });
@@ -119,6 +124,7 @@ Deno.serve(async (req) => {
   let event;
   try {
     event = await stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret);
+    if (event.livemode !== payloadMode) throw new Error('El modo del evento no coincide con el contenido recibido.');
   } catch (err) {
     console.error('[stripe-webhook] Firma inválida:', err?.message || err);
     return new Response('Signature verification failed', { status: 400 });
@@ -140,6 +146,8 @@ Deno.serve(async (req) => {
       if (session?.payment_status === 'paid') {
         if (metadata.tipo === 'campus_2027' && metadata.campus_registration_id) {
           try {
+            const isCampusTest = metadata.test_mode === 'true';
+            if (isCampusTest !== (event.livemode === false)) throw new Error('El modo de pago no coincide con el modo declarado por la inscripción.');
             const rid=String(metadata.campus_registration_id);
             const regs=await base44.asServiceRole.entities.CampusRegistration.filter({id:rid});
             const reg=regs?.[0];
@@ -151,7 +159,7 @@ Deno.serve(async (req) => {
               const kids=await base44.asServiceRole.entities.CampusParticipant.filter({registration_id:rid});
               for (const kid of kids) if (kid.estado !== 'confirmado') await base44.asServiceRole.entities.CampusParticipant.update(kid.id,{estado:'confirmado'});
               const memberId=String(metadata.club_member_id||reg.club_member_id||'');
-              if (metadata.new_member==='true' && memberId) {
+              if (metadata.new_member==='true' && memberId && !isCampusTest) {
                 const members=await base44.asServiceRole.entities.ClubMember.filter({id:memberId});
                 if (!members?.[0]) throw new Error('No se encuentra el alta de socio del Campus.');
                 await base44.asServiceRole.entities.ClubMember.update(memberId,{estado_pago:'Pagado',activo:true,metodo_pago:'Tarjeta',origen_pago:'campus',fecha_alta:new Date().toISOString().slice(0,10),fecha_pago:new Date().toISOString().slice(0,10),cuota_socio:Number(reg.cuota_socio_incluida||25)});
@@ -159,11 +167,13 @@ Deno.serve(async (req) => {
               const weekLabels={S1:'28 junio–2 julio',S2:'5–9 julio',S3:'12–16 julio',S4:'19–23 julio',S5:'26–30 julio'};
               const safe=v=>String(v||'').replace(/[&<>"]/g,'');
               const participantHtml=kids.map(k=>'<li><strong>'+safe(k.nombre)+'</strong> — '+(k.semanas_ocupadas||[]).map(w=>weekLabels[w]||w).join(', ')+'</li>').join('');
-              const membership=metadata.new_member==='true'?'<p>También hemos confirmado tu alta como socio/a para la temporada '+safe(reg.temporada)+'–'+(Number(reg.temporada||2027)+1)+'.</p>':(reg.es_socio?'<p>Se ha aplicado la tarifa de socio verificada.</p>':'');
+              const membership=isCampusTest?'<p><strong>Esta inscripción se ha procesado en modo de pruebas. No se ha activado ningún alta de socio.</strong></p>':(metadata.new_member==='true'?'<p>También hemos confirmado tu alta como socio/a para la temporada '+safe(reg.temporada)+'–'+(Number(reg.temporada||2027)+1)+'.</p>':(reg.es_socio?'<p>Se ha aplicado la tarifa de socio verificada.</p>':''));
               const html=baseLayout('#ea580c','¡INSCRIPCIÓN CONFIRMADA!','✅','<p>Hola <strong>'+safe(reg.adulto_nombre)+'</strong>,</p><p>Hemos recibido correctamente el pago del Campus Deportivo 2027. ¡Tu inscripción está confirmada!</p><p><strong>Referencia:</strong> '+safe(metadata.reference||rid)+'</p><p><strong>Participantes y semanas:</strong></p><ul>'+participantHtml+'</ul><p><strong>Importe abonado:</strong> '+paid.toFixed(2).replace('.',',')+' €</p>'+membership+'<p>En los próximos días os enviaremos la información práctica para el inicio del campus.</p><p>¡Muchas gracias por confiar en el CD Bustarviejo!</p>');
               await sendEmailResend({to:reg.adulto_email,subject:'✅ Campus Deportivo 2027 · Inscripción confirmada',body:html});
-              await base44.asServiceRole.entities.CampusRegistration.update(rid,{estado:'confirmada',estado_pago:'pagado',estado_alta_socio:metadata.new_member==='true'?'pagado':reg.estado_alta_socio,stripe_payment_intent:session.payment_intent||'',notas:'Pago Stripe verificado. Inscripción y plazas confirmadas automáticamente.'});
-              try { await sendEmailResend({to:'info@cdbustarviejo.com',subject:'Nueva inscripción pagada · Campus 2027',body:'Referencia: '+(metadata.reference||rid)+'\nResponsable: '+reg.adulto_nombre+'\nEmail: '+reg.adulto_email+'\nParticipantes: '+kids.map(k=>k.nombre).join(', ')+'\nImporte: '+paid.toFixed(2)+' €'}); } catch(adminErr) { console.error('[stripe-webhook] Email admin Campus:',adminErr?.message||adminErr); }
+              await base44.asServiceRole.entities.CampusRegistration.update(rid,{estado:'confirmada',estado_pago:'pagado',estado_alta_socio:isCampusTest?'pendiente':metadata.new_member==='true'?'pagado':reg.estado_alta_socio,stripe_payment_intent:session.payment_intent||'',notas:(isCampusTest?'[PRUEBA STRIPE TEST] ':'')+'Pago Stripe verificado. Inscripción y plazas confirmadas automáticamente.'});
+              if (!isCampusTest) {
+                try { await sendEmailResend({to:'info@cdbustarviejo.com',subject:'Nueva inscripción pagada · Campus 2027',body:'Referencia: '+(metadata.reference||rid)+'\nResponsable: '+reg.adulto_nombre+'\nEmail: '+reg.adulto_email+'\nParticipantes: '+kids.map(k=>k.nombre).join(', ')+'\nImporte: '+paid.toFixed(2)+' €'}); } catch(adminErr) { console.error('[stripe-webhook] Email admin Campus:',adminErr?.message||adminErr); }
+              }
             }
             console.log('[stripe-webhook] Campus 2027 confirmado',{registration_id:rid,session_id:session.id});
           } catch(campusErr) { console.error('[stripe-webhook] Error Campus 2027:',campusErr?.message||campusErr); throw campusErr; }
@@ -171,7 +181,7 @@ Deno.serve(async (req) => {
         // Fallback log: si el tipo no es uno de los conocidos, registramos igualmente
         try {
           const tipo = metadata?.tipo;
-          if (!['pago_cuota','pago_cuota_batch','loteria','cuota_socio','porra_eurocopa','prepago_inscripcion','prepago_renovacion'].includes(tipo)) {
+          if (!['campus_2027','pago_cuota','pago_cuota_batch','loteria','cuota_socio','porra_eurocopa','prepago_inscripcion','prepago_renovacion'].includes(tipo)) {
             await base44.asServiceRole.entities.StripePaymentLog.create({
               section: 'extra',
               amount: Number(session.amount_total || 0) / 100,
