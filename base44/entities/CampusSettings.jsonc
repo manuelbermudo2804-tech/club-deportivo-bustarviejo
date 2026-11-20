@@ -96,6 +96,35 @@
     },
     "notas_capacidad": {
       "type": "string"
+    },
+    "campana_preferente_inicio": {
+      "type": "string",
+      "format": "date"
+    },
+    "campana_preferente_fin": {
+      "type": "string",
+      "format": "date"
+    },
+    "campana_publica_inicio": {
+      "type": "string",
+      "format": "date"
+    },
+    "campana_banner_titulo": {
+      "type": "string"
+    },
+    "campana_banner_texto": {
+      "type": "string"
+    },
+    "campana_app_banner_preparado": {
+      "type": "boolean",
+      "default": false
+    },
+    "campana_web_preparada": {
+      "type": "boolean",
+      "default": false
+    },
+    "campana_notas": {
+      "type": "string"
     }
   },
   "required": [
