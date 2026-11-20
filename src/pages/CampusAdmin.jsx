@@ -417,6 +417,54 @@ export default function CampusAdmin() {
     } finally { setSendingTestEmail(false); }
   };
   const updateSetting = (field, value) => setSettings(s => ({ ...s, [field]: value }));
+
+  const createNextSeasonDraft = async () => {
+    const baseYear = Number(selectedSeason);
+    const nextYear = String(baseYear + 1);
+    if (!settings?.id || !Number.isFinite(baseYear) || settingsList.some(c => String(c.temporada || c.fecha_inicio?.slice(0,4) || "") === nextYear)) {
+      setError(settings?.id ? `Ya existe una configuración para Campus ${nextYear}.` : "Selecciona primero una temporada de referencia.");
+      return;
+    }
+    if (!window.confirm(`Se creará Campus ${nextYear} como borrador, copiando precios, plazas y ratios de Campus ${selectedSeason}. No se abrirán inscripciones ni se modificarán los datos de ${selectedSeason}. ¿Continuar?`)) return;
+    setSaving(true); setError(""); setNotice("");
+    try {
+      const draft = await base44.entities.CampusSettings.create({
+        nombre: `Campus Deportivo ${nextYear}`,
+        temporada: nextYear,
+        activo: false,
+        precio_semana_general: Number(settings.precio_semana_general || 0),
+        precio_semana_socio: Number(settings.precio_semana_socio || 0),
+        precio_quincena_general: Number(settings.precio_quincena_general || 0),
+        precio_quincena_socio: Number(settings.precio_quincena_socio || 0),
+        precio_mes_general: Number(settings.precio_mes_general || 0),
+        precio_mes_socio: Number(settings.precio_mes_socio || 0),
+        cuota_socio: Number(settings.cuota_socio || 0),
+        plazas_6_8: Number(settings.plazas_6_8 || 0),
+        plazas_9_11: Number(settings.plazas_9_11 || 0),
+        plazas_12_16: Number(settings.plazas_12_16 || 0),
+        maximo_total: Number(settings.maximo_total || 0),
+        ratio_6_8: Number(settings.ratio_6_8 || 0),
+        ratio_9_11: Number(settings.ratio_9_11 || 0),
+        ratio_12_16: Number(settings.ratio_12_16 || 0),
+        monitor_mode: settings.monitor_mode || "calcular",
+        monitores_disponibles: Number(settings.monitores_disponibles || 0),
+        campana_preferente_activa: false,
+        campana_app_banner_preparado: false,
+        campana_web_preparada: false,
+        campana_banner_titulo: `Campus Deportivo ${nextYear}`,
+        campana_banner_texto: "",
+        campana_notas: "Borrador creado copiando precios, plazas y ratios de la temporada anterior. Revisar calendario, semanas, precios y campaña antes de activar."
+      });
+      setSettingsList(list => [...list, draft]);
+      setSelectedSeason(nextYear);
+      setSettings(draft);
+      setSelectedParticipantIds([]);
+      setTab("configuracion");
+      setNotice(`Campus ${nextYear} creado como borrador. Está inactivo y no admite inscripciones; completa y revisa sus fechas y configuración antes de publicarlo.`);
+    } catch (e) {
+      setError(e?.message || `No se pudo crear el borrador de Campus ${nextYear}.`);
+    } finally { setSaving(false); }
+  };
   const togglePreferenteBanner = async (enabled) => {
     if (!settings?.id) return;
     setSaving(true); setNotice(""); setError("");
@@ -476,7 +524,7 @@ export default function CampusAdmin() {
   if (user?.role !== "admin") return <div className="max-w-3xl mx-auto p-8"><div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-800">{error || "Acceso restringido."}</div></div>;
 
   return <div className="min-h-screen bg-[#f4f5f7] p-3 md:p-7 space-y-6 text-slate-800">
-    <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-6 md:p-8 text-white shadow-xl"><div className="absolute -right-12 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl"/><div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-5"><div><div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[.18em] text-orange-200">C.D. Bustarviejo · Área de gestión</div><h1 className="text-3xl md:text-4xl font-black tracking-tight">Campus Deportivo {selectedSeason}</h1><p className="mt-2 max-w-2xl text-sm md:text-base text-slate-300">Toda la organización del Campus, las familias y el seguimiento económico en un solo lugar.</p><div className="mt-5 flex flex-wrap items-center gap-3"><label className="text-sm font-semibold text-slate-300">Edición</label><select value={selectedSeason} onChange={e=>{const year=e.target.value;setSelectedSeason(year);setSettings(settingsList.find(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")===year&&c.activo===true)||settingsList.find(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")===year)||null);setSelectedParticipantIds([]);}} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white">{[...new Set(settingsList.map(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")).filter(Boolean))].sort((a,b)=>b.localeCompare(a)).map(year=><option className="text-slate-900" key={year} value={year}>Campus {year}</option>)}</select><span className="rounded-xl bg-orange-500 px-3 py-2 text-xs font-black uppercase tracking-wide">{settings?.activo ? "Edición activa" : "Consulta"}</span></div></div><button onClick={load} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 font-bold text-white transition hover:bg-white/20"><RefreshCw className="h-4 w-4"/>Actualizar datos</button></div></div>
+    <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-6 md:p-8 text-white shadow-xl"><div className="absolute -right-12 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl"/><div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-5"><div><div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[.18em] text-orange-200">C.D. Bustarviejo · Área de gestión</div><h1 className="text-3xl md:text-4xl font-black tracking-tight">Campus Deportivo {selectedSeason}</h1><p className="mt-2 max-w-2xl text-sm md:text-base text-slate-300">Toda la organización del Campus, las familias y el seguimiento económico en un solo lugar.</p><div className="mt-5 flex flex-wrap items-center gap-3"><label className="text-sm font-semibold text-slate-300">Edición</label><select value={selectedSeason} onChange={e=>{const year=e.target.value;setSelectedSeason(year);setSettings(settingsList.find(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")===year&&c.activo===true)||settingsList.find(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")===year)||null);setSelectedParticipantIds([]);}} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white">{[...new Set(settingsList.map(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")).filter(Boolean))].sort((a,b)=>b.localeCompare(a)).map(year=><option className="text-slate-900" key={year} value={year}>Campus {year}</option>)}</select><span className="rounded-xl bg-orange-500 px-3 py-2 text-xs font-black uppercase tracking-wide">{settings?.activo ? "Edición activa" : "Borrador / consulta"}</span><button type="button" onClick={createNextSeasonDraft} disabled={saving || !settings?.id} className="rounded-xl border border-orange-300 bg-orange-500/15 px-3 py-2 text-xs font-black text-orange-100 hover:bg-orange-500/25 disabled:opacity-50">+ Crear temporada siguiente</button></div></div><button onClick={load} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 font-bold text-white transition hover:bg-white/20"><RefreshCw className="h-4 w-4"/>Actualizar datos</button></div></div>
 
     {error && <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">{error}</div>}
     {notice && <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-green-800 flex gap-2"><CheckCircle2 className="h-5 w-5"/>{notice}</div>}
