@@ -28,6 +28,7 @@ const CreditUsage = lazy(() => import('@/pages/CreditUsage'));
 const PushBadgeTest = lazy(() => import('@/pages/PushBadgeTest'));
 const PushStats = lazy(() => import('@/pages/PushStats'));
 const FamilyPresentation = lazy(() => import('@/pages/FamilyPresentation'));
+const CampusPreferente = lazy(() => import('@/pages/CampusPreferente'));
 const PublicMemberCard = lazy(() => import('@/pages/PublicMemberCard'));
 const SocialHub = lazy(() => import('@/pages/SocialHub'));
 const PublicAccessRequest = lazy(() => import('@/pages/PublicAccessRequest'));
@@ -127,7 +128,7 @@ const AppRouter = () => {
   
   // Rutas 100% públicas (sin auth, sin layout)
   const cleanPath = location.pathname.replace(/\/+$/, '').replace(/^\/+/, '/').toLowerCase();
-  const publicPaths = ['/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/eurocopa2028', '/eurocopa2028crear', '/eurocopa2028miporra', '/eurocopa2028ranking', '/eurocopa2028exito', '/propuestagvcgaesco', '/privacidad', '/colabora', '/altasocio', '/loteria', '/instalarapp', '/enviarfotosweb'];
+  const publicPaths = ['/campuspreferente', '/publicmembercard', '/familypresentation', '/solicitaracceso', '/patrocinadores', '/sanisidro', '/porra', '/porracrear', '/porraexito', '/porramiporra', '/porraranking', '/eurocopa2028', '/eurocopa2028crear', '/eurocopa2028miporra', '/eurocopa2028ranking', '/eurocopa2028exito', '/propuestagvcgaesco', '/privacidad', '/colabora', '/altasocio', '/loteria', '/instalarapp', '/enviarfotosweb'];
   // Constructor de páginas: cualquier URL que empiece por /l/ es pública
   const isLandingPath = cleanPath.startsWith('/l/');
   // Página pública propia de torneo: cualquier URL que empiece por /torneo/
@@ -162,6 +163,8 @@ const AppRouter = () => {
     return (
       <Routes>
         <Route path="/PublicMemberCard" element={<PublicMemberCard />} />
+        <Route path="/CampusPreferente" element={<CampusPreferente />} />
+        <Route path="/campuspreferente" element={<CampusPreferente />} />
         <Route path="/FamilyPresentation" element={<FamilyPresentation />} />
         <Route path="/SolicitarAcceso" element={<PublicAccessRequest />} />
         <Route path="/solicitaracceso" element={<PublicAccessRequest />} />
