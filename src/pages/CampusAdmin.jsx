@@ -122,6 +122,10 @@ export default function CampusAdmin() {
   const failedIncome = seasonRegistrations.filter(r => r.estado_pago === "fallido").reduce((s, r) => s + Number(r.importe_total || 0), 0);
   const confirmedRegistrationIds = new Set(seasonRegistrations.filter(r => r.estado === "confirmada").map(r => r.id));
   const confirmedPlaces = confirmedParticipants.filter(p => p.estado === "confirmado" || confirmedRegistrationIds.has(p.registration_id)).length;
+  const registrationsToReview = seasonRegistrations.filter(r => ["pendiente", "revision"].includes(r.estado || "pendiente"));
+  const failedPaymentRegistrations = seasonRegistrations.filter(r => r.estado !== "cancelada" && r.estado_pago === "fallido");
+  const registrationsWithoutContact = seasonRegistrations.filter(r => !String(r.adulto_email || "").trim() || !String(r.adulto_telefono || "").trim());
+  const participantsWithoutGroup = confirmedParticipants.filter(p => !String(p.grupo_manual || "").trim());
   const communicationTargets = useMemo(() => {
     const eligible = seasonRegistrations.filter(reg => {
       if (!reg.adulto_email) return false;
@@ -526,6 +530,21 @@ export default function CampusAdmin() {
     {tab === "resumen" && <div className="space-y-5">
       <section className="grid grid-cols-2 xl:grid-cols-4 gap-3">
         {[["Ingresos previstos", money(expectedIncome), "Importe total de inscripciones no canceladas"], ["Ingresos cobrados", money(paid), "Inscripciones marcadas como pagadas"], ["Pendiente de cobro", money(pendingIncome), "Según el estado registrado"], ["Pagos fallidos", money(failedIncome), "No incluye pagos pendientes"]].map(([label,value,help]) => <div key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p><p className="mt-2 text-2xl font-black text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-500">{help}</p></div>)}
+      </section>
+      <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+        <div><h2 className="text-xl font-black text-slate-950">Pendientes de atención</h2><p className="mt-1 text-sm text-slate-500">Avisos calculados a partir de los estados y datos que ya constan en las inscripciones.</p></div>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          <button onClick={()=>{setTab("inscripciones");setRegistrationStatusFilter("pendiente");}} className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-left transition hover:border-amber-400"><p className="text-xs font-bold uppercase tracking-wide text-amber-800">Inscripciones pendientes</p><p className="mt-1 text-3xl font-black text-slate-950">{registrationsToReview.length}</p><p className="mt-1 text-xs text-slate-600">Pendientes o en revisión · Ver inscripciones</p></button>
+          <button onClick={()=>{setTab("inscripciones");setRegistrationPaymentFilter("fallido");}} className="rounded-xl border border-red-200 bg-red-50 p-4 text-left transition hover:border-red-400"><p className="text-xs font-bold uppercase tracking-wide text-red-800">Pagos fallidos</p><p className="mt-1 text-3xl font-black text-slate-950">{failedPaymentRegistrations.length}</p><p className="mt-1 text-xs text-slate-600">Inscripciones no canceladas · Revisar pagos</p></button>
+          <button onClick={()=>setTab("inscripciones")} className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left transition hover:border-slate-400"><p className="text-xs font-bold uppercase tracking-wide text-slate-700">Contactos incompletos</p><p className="mt-1 text-3xl font-black text-slate-950">{registrationsWithoutContact.length}</p><p className="mt-1 text-xs text-slate-600">Falta correo o teléfono · Ver familias</p></button>
+          <button onClick={()=>{setTab("organizacion");setFilterManualGroup("sin_grupo");}} className="rounded-xl border border-orange-200 bg-orange-50 p-4 text-left transition hover:border-orange-400"><p className="text-xs font-bold uppercase tracking-wide text-orange-800">Menores sin grupo</p><p className="mt-1 text-3xl font-black text-slate-950">{participantsWithoutGroup.length}</p><p className="mt-1 text-xs text-slate-600">Sin asignación manual · Organizar grupos</p></button>
+        </div>
+        <div className="flex flex-wrap gap-2 border-t border-slate-100 pt-4">
+          <button onClick={()=>setTab("inscripciones")} className="rounded-lg bg-slate-900 px-4 py-2.5 text-sm font-bold text-white hover:bg-slate-800">Gestionar familias</button>
+          <button onClick={()=>setTab("organizacion")} className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50">Organizar grupos</button>
+          <button onClick={()=>setTab("comunicaciones")} className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50">Enviar comunicación</button>
+          <button onClick={()=>setTab("plazas")} className="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-700 hover:bg-slate-50">Revisar capacidad</button>
+        </div>
       </section>
       <div className="grid xl:grid-cols-2 gap-5">
       <section className="rounded-2xl border bg-white p-5"><h2 className="font-black text-xl mb-4">Ocupación por grupo</h2><div className="space-y-5">{groupStats.map(g=><div key={g.key}><div className="flex justify-between gap-3 text-sm mb-2"><div><strong>{g.label}</strong><span className="text-slate-500 ml-2">{g.range}</span></div><strong>{g.count} participantes · {g.capacity > 0 ? `${g.capacity} plazas` : "capacidad sin configurar"}</strong></div><div className="h-3 rounded-full bg-slate-100 overflow-hidden"><div className={`h-full rounded-full ${g.capacity > 0 && g.count > g.capacity ? "bg-red-500" : "bg-orange-500"}`} style={{width:`${g.capacity > 0 ? Math.min(100,g.count/g.capacity*100) : 0}%`}}/></div><p className={`mt-1 text-xs ${g.capacity > 0 && g.count > g.capacity ? "font-bold text-red-700" : "text-slate-500"}`}>{g.capacity > 0 ? (g.count > g.capacity ? `Superado el límite en ${g.count-g.capacity} plazas` : `${g.capacity-g.count} plazas libres`) : "Configura el máximo de plazas para ver el porcentaje de ocupación"}</p></div>)}</div><p className="text-xs text-slate-500 mt-4">El porcentaje se calcula sobre la capacidad configurada para cada grupo. Si no hay un límite definido, no se muestra una barra de ocupación ficticia.</p></section>
