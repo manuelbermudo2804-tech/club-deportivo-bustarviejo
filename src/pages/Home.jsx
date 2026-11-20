@@ -47,6 +47,17 @@ export default function Home() {
     enabled: queriesEnabled,
   });
 
+  const { data: campusSettings } = useQuery({
+    queryKey: ['campusPreferenteBanner2027'],
+    queryFn: async () => {
+      const configs = await base44.entities.CampusSettings.filter({ temporada: "2027", activo: true });
+      return configs?.[0] || null;
+    },
+    staleTime: 60000,
+    refetchOnWindowFocus: true,
+    enabled: queriesEnabled && !isAdmin,
+  });
+
   useEffect(() => {
     if (seasonConfig) {
       setLoteriaVisible(seasonConfig.loteria_navidad_abierta === true);
@@ -672,6 +683,21 @@ export default function Home() {
 
         {/* Próximos cumpleaños de entrenadores y coordinadores - Solo Admin */}
 
+
+        {!isAdmin && hasPlayers && campusSettings?.campana_preferente_activa === true && (
+          <Link to="/CampusPreferente" className="block">
+            <div className="rounded-2xl border-2 border-orange-300 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 p-4 text-white shadow-xl transition hover:brightness-105 active:scale-[.99]">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 text-2xl">⚽</div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg font-black">{campusSettings.campana_banner_titulo || "Campus Deportivo 2027"}</p>
+                  <p className="text-sm text-orange-50">{campusSettings.campana_banner_texto || "Acceso preferente para las familias del club. Consulta cómo inscribirte."}</p>
+                </div>
+                <ArrowRight className="h-6 w-6 shrink-0" />
+              </div>
+            </div>
+          </Link>
+        )}
 
         {/* Banner de alertas para familias (NO admin: el admin ya ve el "Resumen del día") */}
         {!isAdmin && hasPlayers && (
