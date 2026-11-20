@@ -15,6 +15,22 @@ export default function CampusPreferente() {
           <p className="mt-2 text-orange-50">Inscripción preferente para las familias del club</p>
         </div>
         <div className="space-y-6 p-6 md:p-8">
+          <div className="rounded-2xl border-2 border-orange-300 bg-gradient-to-br from-orange-50 via-amber-50 to-white p-5 shadow-md">
+            <p className="text-center text-xs font-black uppercase tracking-widest text-orange-700">Ventaja exclusiva para socios</p>
+            <h2 className="mt-2 text-center text-2xl font-black leading-tight text-slate-900">¡Inscripción preferente y descuento especial!</h2>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              <div className="rounded-xl bg-white p-3 text-center shadow-sm">
+                <p className="text-2xl">⏰</p>
+                <p className="mt-1 font-extrabold text-slate-900">Reserva antes</p>
+                <p className="mt-1 text-sm text-slate-600">Acceso anticipado a la inscripción antes de la apertura al público general.</p>
+              </div>
+              <div className="rounded-xl bg-white p-3 text-center shadow-sm">
+                <p className="text-2xl">🎟️</p>
+                <p className="mt-1 font-extrabold text-slate-900">Precio reducido</p>
+                <p className="mt-1 text-sm text-slate-600">Tarifa especial de socio en las modalidades del Campus.</p>
+              </div>
+            </div>
+          </div>
           <div>
             <h2 className="text-xl font-black">¿Qué es el Campus Deportivo?</h2>
             <p className="mt-2 leading-relaxed text-slate-600">Es la propuesta de verano del C.D. Bustarviejo para que niños y niñas disfruten de sus vacaciones haciendo deporte, jugando y compartiendo actividades en un entorno cercano y seguro. Los participantes se organizan en grupos por edades.</p>
