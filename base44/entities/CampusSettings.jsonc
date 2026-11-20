@@ -115,6 +115,11 @@
     "campana_banner_texto": {
       "type": "string"
     },
+    "campana_preferente_activa": {
+      "type": "boolean",
+      "default": false,
+      "description": "Muestra u oculta el banner de acceso preferente al Campus en la app privada."
+    },
     "campana_app_banner_preparado": {
       "type": "boolean",
       "default": false
@@ -136,11 +141,7 @@
         "role": "admin"
       }
     },
-    "read": {
-      "user_condition": {
-        "role": "admin"
-      }
-    },
+    "read": {},
     "update": {
       "user_condition": {
         "role": "admin"
