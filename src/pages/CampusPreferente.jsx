@@ -16,8 +16,13 @@ export default function CampusPreferente() {
         </div>
         <div className="space-y-6 p-6 md:p-8">
           <div>
-            <h2 className="text-xl font-black">Las familias socias tienen prioridad</h2>
-            <p className="mt-2 leading-relaxed text-slate-600">Antes de abrir las inscripciones al público general, las familias socias del C.D. Bustarviejo disponen de un periodo de acceso preferente para reservar plaza en el Campus.</p><p className="mt-2 leading-relaxed text-slate-600">La condición de socio figura en la ficha familiar a nombre del progenitor que se registró como primero. Si el segundo progenitor también es socio del club, también puede realizar la inscripción utilizando sus propios datos de socio.</p>
+            <h2 className="text-xl font-black">¿Qué es el Campus Deportivo?</h2>
+            <p className="mt-2 leading-relaxed text-slate-600">Es la propuesta de verano del C.D. Bustarviejo para que niños y niñas disfruten de sus vacaciones haciendo deporte, jugando y compartiendo actividades en un entorno cercano y seguro. Los participantes se organizan en grupos por edades.</p>
+          </div>
+          <div>
+            <h2 className="text-xl font-black">Inscripción preferente para socios</h2>
+            <p className="mt-2 leading-relaxed text-slate-600">Antes de abrir las inscripciones al público general, las familias socias del C.D. Bustarviejo disponen de un periodo de acceso preferente para reservar plaza en el Campus.</p>
+            <p className="mt-2 leading-relaxed text-slate-600">La condición de socio figura normalmente en la ficha familiar a nombre del progenitor que se registró como primero. Si el segundo progenitor también es socio del club, también puede realizar la inscripción utilizando sus propios datos de socio.</p>
           </div>
           <div className="rounded-2xl border border-orange-200 bg-orange-50 p-5">
             <div className="flex items-center gap-2 font-bold text-slate-900"><ShieldCheck className="h-5 w-5 text-orange-600"/> ¿Cómo identificarte como socio?</div>
