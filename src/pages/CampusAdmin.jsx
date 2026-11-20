@@ -417,6 +417,26 @@ export default function CampusAdmin() {
     } finally { setSendingTestEmail(false); }
   };
   const updateSetting = (field, value) => setSettings(s => ({ ...s, [field]: value }));
+  const saveCampaignPlan = async () => {
+    if (!settings?.id) return;
+    setSaving(true); setNotice(""); setError("");
+    try {
+      await base44.entities.CampusSettings.update(settings.id, {
+        campana_preferente_inicio: settings.campana_preferente_inicio || "2027-02-01",
+        campana_preferente_fin: settings.campana_preferente_fin || "2027-02-21",
+        campana_publica_inicio: settings.campana_publica_inicio || "2027-03-01",
+        campana_banner_titulo: settings.campana_banner_titulo || "Campus Deportivo 2027",
+        campana_banner_texto: settings.campana_banner_texto || "Inscripción preferente para las familias del CD Bustarviejo. Apertura al público general el 1 de marzo.",
+        campana_app_banner_preparado: !!settings.campana_app_banner_preparado,
+        campana_web_preparada: !!settings.campana_web_preparada,
+        campana_notas: settings.campana_notas || "",
+      });
+      setNotice("Plan de campaña guardado. Las fechas y el texto quedan preparados, pero no se ha publicado ningún banner ni se ha abierto ninguna inscripción.");
+      await load();
+    } catch (e) { setError(e?.message || "No se pudo guardar el plan de campaña."); }
+    finally { setSaving(false); }
+  };
+
   const saveSettings = async () => {
     if (!settings?.id) return;
     setSaving(true); setNotice(""); setError("");
@@ -459,7 +479,57 @@ export default function CampusAdmin() {
       ].map(([label, value, Icon]) => <div key={label} className="group rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg"><div className="flex items-center justify-between gap-2 text-sm font-semibold text-slate-500"><span>{label}</span><span className="rounded-xl bg-orange-50 p-2.5"><Icon className="h-5 w-5 text-orange-600"/></span></div><div className="mt-3 text-2xl font-black tracking-tight text-slate-950 md:text-3xl">{value}</div></div>)}
     </div>
 
-    <nav aria-label="Secciones de administración del Campus" className="sticky top-2 z-20 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-lg backdrop-blur">{[["resumen","Resumen"],["inscripciones","Familias e inscripciones"],["plazas","Plazas y edades"],["organizacion","Grupos y listados"],["comunicaciones","Comunicaciones"],["configuracion","Configuración"]].map(([key,label]) => <button key={key} onClick={()=>setTab(key)} aria-current={tab===key?"page":undefined} className={`rounded-xl px-3 py-3 text-sm font-bold transition ${tab===key?"bg-orange-600 text-white shadow-md shadow-orange-600/20":"text-slate-600 hover:bg-slate-100"}`}>{label}</button>)}</nav>
+    <nav aria-label="Secciones de administración del Campus" className="sticky top-2 z-20 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-lg backdrop-blur">{[["resumen","Resumen"],["campana","Campaña"],["inscripciones","Familias e inscripciones"],["plazas","Plazas y edades"],["organizacion","Grupos y listados"],["comunicaciones","Comunicaciones"],["configuracion","Configuración"]].map(([key,label]) => <button key={key} onClick={()=>setTab(key)} aria-current={tab===key?"page":undefined} className={`rounded-xl px-3 py-3 text-sm font-bold transition ${tab===key?"bg-orange-600 text-white shadow-md shadow-orange-600/20":"text-slate-600 hover:bg-slate-100"}`}>{label}</button>)}</nav>
+
+    {tab === "campana" && <section className="space-y-5">
+      <div className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
+        <div className="mb-5">
+          <p className="text-xs font-black uppercase tracking-[.18em] text-orange-600">Lanzamiento · Campus {selectedSeason}</p>
+          <h2 className="mt-1 text-2xl font-black tracking-tight text-slate-950">Planificación de campaña</h2>
+          <p className="mt-1 text-sm text-slate-500">Organiza la prioridad para las familias del club y la posterior apertura pública, usando siempre el mismo enlace y formulario.</p>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          <label className="text-sm font-bold text-slate-700">Inicio de prioridad para familias
+            <input type="date" value={settings?.campana_preferente_inicio || "2027-02-01"} onChange={e=>updateSetting("campana_preferente_inicio",e.target.value)} className="mt-1 w-full rounded-xl border p-3 font-normal"/>
+          </label>
+          <label className="text-sm font-bold text-slate-700">Fin de prioridad para familias
+            <input type="date" value={settings?.campana_preferente_fin || "2027-02-21"} onChange={e=>updateSetting("campana_preferente_fin",e.target.value)} className="mt-1 w-full rounded-xl border p-3 font-normal"/>
+          </label>
+          <label className="text-sm font-bold text-slate-700">Apertura al público general
+            <input type="date" value={settings?.campana_publica_inicio || "2027-03-01"} onChange={e=>updateSetting("campana_publica_inicio",e.target.value)} className="mt-1 w-full rounded-xl border p-3 font-normal"/>
+          </label>
+        </div>
+        <div className="mt-6 rounded-2xl border border-orange-200 bg-orange-50/60 p-5">
+          <h3 className="font-black text-slate-900">Banner para la app del club</h3>
+          <p className="mt-1 text-sm text-slate-600">Dejamos preparado el texto para publicarlo cuando comience la prioridad. Guardarlo aquí no lo muestra todavía en la app.</p>
+          <label className="mt-4 block text-sm font-bold text-slate-700">Título
+            <input value={settings?.campana_banner_titulo || "Campus Deportivo 2027"} onChange={e=>updateSetting("campana_banner_titulo",e.target.value)} className="mt-1 w-full rounded-xl border bg-white p-3 font-normal"/>
+          </label>
+          <label className="mt-3 block text-sm font-bold text-slate-700">Mensaje
+            <textarea rows="3" value={settings?.campana_banner_texto || "Inscripción preferente para las familias del CD Bustarviejo. Apertura al público general el 1 de marzo."} onChange={e=>updateSetting("campana_banner_texto",e.target.value)} className="mt-1 w-full rounded-xl border bg-white p-3 font-normal"/>
+          </label>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <label className="flex items-start gap-3 rounded-xl border bg-white p-3 text-sm"><input type="checkbox" checked={!!settings?.campana_app_banner_preparado} onChange={e=>updateSetting("campana_app_banner_preparado",e.target.checked)} className="mt-1 h-4 w-4 accent-orange-600"/><span><strong>Banner de la app preparado</strong><span className="mt-1 block text-xs font-normal text-slate-500">Marca cuando el diseño y el contenido estén listos para publicar.</span></span></label>
+            <label className="flex items-start gap-3 rounded-xl border bg-white p-3 text-sm"><input type="checkbox" checked={!!settings?.campana_web_preparada} onChange={e=>updateSetting("campana_web_preparada",e.target.checked)} className="mt-1 h-4 w-4 accent-orange-600"/><span><strong>Web pública preparada</strong><span className="mt-1 block text-xs font-normal text-slate-500">La página informativa estará lista antes de abrir al público.</span></span></label>
+          </div>
+        </div>
+        <label className="mt-5 block text-sm font-bold text-slate-700">Notas internas de campaña
+          <textarea rows="3" value={settings?.campana_notas || ""} onChange={e=>updateSetting("campana_notas",e.target.value)} placeholder="Por ejemplo: revisar plazas por edades al terminar el periodo preferente." className="mt-1 w-full rounded-xl border p-3 font-normal"/>
+        </label>
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+          <p className="max-w-2xl text-xs text-slate-500">Este apartado es un planificador. No envía notificaciones, no publica banners, no cambia la visibilidad del formulario y no modifica inscripciones ni pagos.</p>
+          <button onClick={saveCampaignPlan} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700 disabled:opacity-60">{saving?<RefreshCw className="h-4 w-4 animate-spin"/>:<Save className="h-4 w-4"/>}{saving?"Guardando…":"Guardar plan de campaña"}</button>
+        </div>
+      </div>
+      <div className="rounded-2xl border border-slate-200 bg-white p-5">
+        <h3 className="font-black text-slate-900">Calendario previsto</h3>
+        <ol className="mt-3 space-y-3 text-sm text-slate-700">
+          <li><strong>1. Prioridad para familias:</strong> {settings?.campana_preferente_inicio || "01/02/2027"} – {settings?.campana_preferente_fin || "21/02/2027"}. Difusión en la app privada.</li>
+          <li><strong>2. Revisión de plazas:</strong> al terminar el periodo preferente, revisar demanda por edades y semanas antes de abrir al público.</li>
+          <li><strong>3. Apertura general:</strong> desde {settings?.campana_publica_inicio || "01/03/2027"}. Difusión en web y redes, con el mismo enlace de inscripción.</li>
+        </ol>
+      </div>
+    </section>}
 
     {tab === "organizacion" && <section className="space-y-5">
       <div className="rounded-2xl border bg-white p-5 space-y-4">
