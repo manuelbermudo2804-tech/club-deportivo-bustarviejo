@@ -417,6 +417,17 @@ export default function CampusAdmin() {
     } finally { setSendingTestEmail(false); }
   };
   const updateSetting = (field, value) => setSettings(s => ({ ...s, [field]: value }));
+  const togglePreferenteBanner = async (enabled) => {
+    if (!settings?.id) return;
+    setSaving(true); setNotice(""); setError("");
+    try {
+      await base44.entities.CampusSettings.update(settings.id, { campana_preferente_activa: !!enabled });
+      setSettings(current => ({ ...current, campana_preferente_activa: !!enabled }));
+      setNotice(enabled ? "Banner de inscripción preferente ACTIVADO en la app." : "Banner de inscripción preferente DESACTIVADO en la app.");
+    } catch (e) { setError(e?.message || "No se pudo cambiar la activación del banner."); }
+    finally { setSaving(false); }
+  };
+
   const saveCampaignPlan = async () => {
     if (!settings?.id) return;
     setSaving(true); setNotice(""); setError("");
@@ -509,13 +520,13 @@ export default function CampusAdmin() {
           <label className="mt-3 block text-sm font-bold text-slate-700">Mensaje
             <textarea rows="3" value={settings?.campana_banner_texto || "Inscripción preferente para las familias del CD Bustarviejo. Apertura al público general el 1 de marzo."} onChange={e=>updateSetting("campana_banner_texto",e.target.value)} className="mt-1 w-full rounded-xl border bg-white p-3 font-normal"/>
           </label>
-          <label className="mt-4 flex items-center justify-between gap-4 rounded-xl border-2 border-orange-200 bg-white p-4 text-sm"><span><strong className="block text-base text-slate-900">Activar banner de inscripción preferente</strong><span className="mt-1 block text-xs font-normal text-slate-600">Al activarlo, aparecerá en la pantalla principal de la app para las familias del club.</span></span><input type="checkbox" role="switch" aria-label="Activar banner de inscripción preferente" checked={!!settings?.campana_preferente_activa} onChange={e=>updateSetting("campana_preferente_activa",e.target.checked)} className="h-6 w-11 shrink-0 cursor-pointer accent-orange-600"/></label>
+          <label className="mt-4 flex items-center justify-between gap-4 rounded-xl border-2 border-orange-200 bg-white p-4 text-sm"><span><strong className="block text-base text-slate-900">Activar banner de inscripción preferente</strong><span className="mt-1 block text-xs font-normal text-slate-600">Al activarlo, aparecerá en la pantalla principal de la app para las familias del club.</span></span><input type="checkbox" role="switch" aria-label="Activar banner de inscripción preferente" checked={!!settings?.campana_preferente_activa} onChange={e=>togglePreferenteBanner(e.target.checked)} disabled={saving} className="h-6 w-11 shrink-0 cursor-pointer accent-orange-600 disabled:opacity-50"/></label>
         </div>
         <label className="mt-5 block text-sm font-bold text-slate-700">Notas internas de campaña
           <textarea rows="3" value={settings?.campana_notas || ""} onChange={e=>updateSetting("campana_notas",e.target.value)} placeholder="Por ejemplo: revisar plazas por edades al terminar el periodo preferente." className="mt-1 w-full rounded-xl border p-3 font-normal"/>
         </label>
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-          <p className="max-w-2xl text-xs text-slate-500">El switch controla la visibilidad del banner en la app. Guarda los cambios para aplicarlos. El botón del banner abrirá la página informativa y desde allí el formulario público existente.</p>
+          <p className="max-w-2xl text-xs text-slate-500">El switch activa o desactiva el banner inmediatamente. El botón del banner abrirá la página informativa y desde allí el formulario público existente. El botón inferior guarda las fechas y los textos.</p>
           <button onClick={saveCampaignPlan} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700 disabled:opacity-60">{saving?<RefreshCw className="h-4 w-4 animate-spin"/>:<Save className="h-4 w-4"/>}{saving?"Guardando…":"Guardar plan de campaña"}</button>
         </div>
       </div>
