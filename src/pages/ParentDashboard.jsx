@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Bell, CreditCard, Clock, Clover, Heart, Share2, Sparkles } from "lucide-react";
+import { Users, Bell, CreditCard, Clock, Clover, Heart, Share2, Sparkles, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -91,6 +91,17 @@ export default function ParentDashboard() {
   const [myPlayersSports, setMyPlayersSports] = useState([]);
   const [onlyComplementary, setOnlyComplementary] = useState(false);
   const { notifications } = useUnifiedNotifications(user);
+
+  const { data: campusSettings } = useQuery({
+    queryKey: ["campusPreferenteBanner2027"],
+    queryFn: async () => {
+      const configs = await base44.entities.CampusSettings.filter({ temporada: "2027", activo: true });
+      return configs?.[0] || null;
+    },
+    staleTime: 60000,
+    refetchOnWindowFocus: true,
+    enabled: !!user,
+  });
 
 
   useEffect(() => {
@@ -508,7 +519,21 @@ export default function ParentDashboard() {
           ]}
         />
 
-
+        {/* Banner de inscripción preferente Campus 2027 para familias */}
+        {players.length > 0 && campusSettings?.campana_preferente_activa === true && (
+          <Link to="/CampusPreferente" className="block">
+            <div className="rounded-2xl border-2 border-orange-300 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 p-4 text-white shadow-xl transition hover:brightness-105 active:scale-[.99]">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 text-2xl">⚽</div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-lg font-black">{campusSettings.campana_banner_titulo || "Campus Deportivo 2027"}</p>
+                  <p className="text-sm text-orange-50">{campusSettings.campana_banner_texto || "Acceso preferente para las familias del club. Consulta cómo inscribirte."}</p>
+                </div>
+                <ArrowRight className="h-6 w-6 shrink-0" />
+              </div>
+            </div>
+          </Link>
+        )}
 
         {/* Aviso renovaciones (aunque estén inactivos) */}
         {!playersLoading && activeSeason?.permitir_renovaciones && pendingInactivePlayers.length > 0 && (
