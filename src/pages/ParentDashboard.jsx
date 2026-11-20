@@ -519,22 +519,6 @@ export default function ParentDashboard() {
           ]}
         />
 
-        {/* Banner de inscripción preferente Campus 2027 para familias */}
-        {players.length > 0 && campusSettings?.campana_preferente_activa === true && (
-          <Link to="/CampusPreferente" className="block">
-            <div className="rounded-2xl border-2 border-orange-300 bg-gradient-to-r from-orange-600 via-orange-500 to-amber-500 p-4 text-white shadow-xl transition hover:brightness-105 active:scale-[.99]">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/20 text-2xl">⚽</div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-lg font-black">{campusSettings.campana_banner_titulo || "Campus Deportivo 2027"}</p>
-                  <p className="text-sm text-orange-50">{campusSettings.campana_banner_texto || "Acceso preferente para las familias del club. Consulta cómo inscribirte."}</p>
-                </div>
-                <ArrowRight className="h-6 w-6 shrink-0" />
-              </div>
-            </div>
-          </Link>
-        )}
-
         {/* Aviso renovaciones (aunque estén inactivos) */}
         {!playersLoading && activeSeason?.permitir_renovaciones && pendingInactivePlayers.length > 0 && (
           <Card className="border-2 border-green-200 bg-gradient-to-r from-green-50 to-emerald-50 shadow-lg">
@@ -650,6 +634,20 @@ export default function ParentDashboard() {
 
         {/* Banner promocional Porra Mundial 2026 */}
         <PorraPromoBanner />
+
+        {/* Acceso preferente Campus 2027: banner compacto junto al resto de avisos */}
+        {players.length > 0 && campusSettings?.campana_preferente_activa === true && (
+          <Link to="/CampusPreferente" className="block">
+            <div className="flex items-center gap-3 rounded-xl border border-orange-300/70 bg-gradient-to-r from-orange-600 to-amber-500 px-3 py-2.5 text-white shadow-md transition hover:brightness-105 active:scale-[.99]">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-xl">⚽</span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-extrabold leading-tight">{campusSettings.campana_banner_titulo || "Inscripción preferente · Campus 2027"}</p>
+                <p className="mt-0.5 text-xs leading-snug text-orange-50">{campusSettings.campana_banner_texto || "Ya puedes consultar la información y acceder a la inscripción preferente."}</p>
+              </div>
+              <ArrowRight className="h-5 w-5 shrink-0" />
+            </div>
+          </Link>
+        )}
 
         {/* Aviso fino de oportunidades de voluntariado abiertas */}
         <VoluntariadoBanner user={user} />
