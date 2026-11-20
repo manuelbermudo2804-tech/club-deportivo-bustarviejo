@@ -427,11 +427,12 @@ export default function CampusAdmin() {
         campana_publica_inicio: settings.campana_publica_inicio || "2027-03-01",
         campana_banner_titulo: settings.campana_banner_titulo || "Campus Deportivo 2027",
         campana_banner_texto: settings.campana_banner_texto || "Inscripción preferente para las familias del CD Bustarviejo. Apertura al público general el 1 de marzo.",
+        campana_preferente_activa: !!settings.campana_preferente_activa,
         campana_app_banner_preparado: !!settings.campana_app_banner_preparado,
         campana_web_preparada: !!settings.campana_web_preparada,
         campana_notas: settings.campana_notas || "",
       });
-      setNotice("Plan de campaña guardado. Las fechas y el texto quedan preparados, pero no se ha publicado ningún banner ni se ha abierto ninguna inscripción.");
+      setNotice(settings.campana_preferente_activa ? "Acceso preferente activado. El banner aparecerá en la app para las familias del club." : "Acceso preferente desactivado. El banner dejará de mostrarse en la app.");
       await load();
     } catch (e) { setError(e?.message || "No se pudo guardar el plan de campaña."); }
     finally { setSaving(false); }
@@ -508,23 +509,20 @@ export default function CampusAdmin() {
           <label className="mt-3 block text-sm font-bold text-slate-700">Mensaje
             <textarea rows="3" value={settings?.campana_banner_texto || "Inscripción preferente para las familias del CD Bustarviejo. Apertura al público general el 1 de marzo."} onChange={e=>updateSetting("campana_banner_texto",e.target.value)} className="mt-1 w-full rounded-xl border bg-white p-3 font-normal"/>
           </label>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className="flex items-start gap-3 rounded-xl border bg-white p-3 text-sm"><input type="checkbox" checked={!!settings?.campana_app_banner_preparado} onChange={e=>updateSetting("campana_app_banner_preparado",e.target.checked)} className="mt-1 h-4 w-4 accent-orange-600"/><span><strong>Banner de la app preparado</strong><span className="mt-1 block text-xs font-normal text-slate-500">Marca cuando el diseño y el contenido estén listos para publicar.</span></span></label>
-            <label className="flex items-start gap-3 rounded-xl border bg-white p-3 text-sm"><input type="checkbox" checked={!!settings?.campana_web_preparada} onChange={e=>updateSetting("campana_web_preparada",e.target.checked)} className="mt-1 h-4 w-4 accent-orange-600"/><span><strong>Web pública preparada</strong><span className="mt-1 block text-xs font-normal text-slate-500">La página informativa estará lista antes de abrir al público.</span></span></label>
-          </div>
+          <label className="mt-4 flex items-center justify-between gap-4 rounded-xl border-2 border-orange-200 bg-white p-4 text-sm"><span><strong className="block text-base text-slate-900">Activar banner de inscripción preferente</strong><span className="mt-1 block text-xs font-normal text-slate-600">Al activarlo, aparecerá en la pantalla principal de la app para las familias del club.</span></span><input type="checkbox" role="switch" aria-label="Activar banner de inscripción preferente" checked={!!settings?.campana_preferente_activa} onChange={e=>updateSetting("campana_preferente_activa",e.target.checked)} className="h-6 w-11 shrink-0 cursor-pointer accent-orange-600"/></label>
         </div>
         <label className="mt-5 block text-sm font-bold text-slate-700">Notas internas de campaña
           <textarea rows="3" value={settings?.campana_notas || ""} onChange={e=>updateSetting("campana_notas",e.target.value)} placeholder="Por ejemplo: revisar plazas por edades al terminar el periodo preferente." className="mt-1 w-full rounded-xl border p-3 font-normal"/>
         </label>
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-          <p className="max-w-2xl text-xs text-slate-500">Este apartado es un planificador. No envía notificaciones, no publica banners, no cambia la visibilidad del formulario y no modifica inscripciones ni pagos.</p>
+          <p className="max-w-2xl text-xs text-slate-500">El switch controla la visibilidad del banner en la app. Guarda los cambios para aplicarlos. El botón del banner abrirá la página informativa y desde allí el formulario público existente.</p>
           <button onClick={saveCampaignPlan} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700 disabled:opacity-60">{saving?<RefreshCw className="h-4 w-4 animate-spin"/>:<Save className="h-4 w-4"/>}{saving?"Guardando…":"Guardar plan de campaña"}</button>
         </div>
       </div>
       <div className="rounded-2xl border border-slate-200 bg-white p-5">
         <h3 className="font-black text-slate-900">Calendario previsto</h3>
         <ol className="mt-3 space-y-3 text-sm text-slate-700">
-          <li><strong>1. Prioridad para familias:</strong> {settings?.campana_preferente_inicio || "01/02/2027"} – {settings?.campana_preferente_fin || "21/02/2027"}. Difusión en la app privada.</li>
+          <li><strong>1. Prioridad para familias:</strong> {settings?.campana_preferente_inicio || "01/02/2027"} – {settings?.campana_preferente_fin || "21/02/2027"}. Banner: {settings?.campana_preferente_activa ? "ACTIVADO" : "DESACTIVADO"}.</li>
           <li><strong>2. Revisión de plazas:</strong> al terminar el periodo preferente, revisar demanda por edades y semanas antes de abrir al público.</li>
           <li><strong>3. Apertura general:</strong> desde {settings?.campana_publica_inicio || "01/03/2027"}. Difusión en web y redes, con el mismo enlace de inscripción.</li>
         </ol>
