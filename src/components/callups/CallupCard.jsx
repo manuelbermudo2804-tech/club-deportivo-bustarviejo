@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Edit, Trash2, MapPin, Clock, Users, Check, X, HelpCircle, Calendar, ExternalLink, Lock, Unlock, UserCheck, Shield, Ban, RefreshCw, Send } from "lucide-react";
 import AdminQuickConfirmDialog from "./AdminQuickConfirmDialog";
 import CallupStatusBanner from "./CallupStatusBanner";
+import { getCallupMapsUrl } from "./callupLocation";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -125,9 +126,9 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
               <MapPin className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="text-sm">{callup.ubicacion}</span>
-                {callup.enlace_ubicacion && (
+                {getCallupMapsUrl(callup) && (
                   <a 
-                    href={callup.enlace_ubicacion}
+                    href={getCallupMapsUrl(callup)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 hover:underline mt-0.5"
