@@ -55,7 +55,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   const [rivalTeams, setRivalTeams] = useState([]);
   const [isLoadingTeams, setIsLoadingTeams] = useState(false);
   const [useManualInput, setUseManualInput] = useState(false);
-  const [manualLocationEdit, setManualLocationEdit] = useState(false);
+  const [manualLocationEdit, setManualLocationEdit] = useState(!!callup?.ubicacion);
 
   // Cargar equipos rivales desde clasificaciones Y resultados
   useEffect(() => {
@@ -516,7 +516,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   <Alert className="bg-blue-50 border-blue-200">
                     <MapPin className="h-4 w-4 text-blue-600" />
                     <AlertDescription className="text-blue-800 text-xs">
-                      ✈️ Se ha auto-sugerido la ubicación del rival. Puedes editarla si es necesario.
+                      ✈️ Debes indicar el campo concreto del rival y pegar el enlace compartido de Google Maps; no se usará una ubicación aproximada.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -540,12 +540,12 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               <div className="space-y-2 md:col-span-2">
                 <Label className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-orange-600" />
-                  Enlace de Google Maps (opcional)
+                  Enlace compartido de Google Maps (obligatorio)
                 </Label>
                 <div className="flex gap-2">
                   <Input
                     type="text"
-                    placeholder="https://maps.google.com/... (opcional)"
+                    placeholder="Pega el enlace compartido del campo exacto"
                     value={currentCallup.enlace_ubicacion || ""}
                     onChange={(e) => setCurrentCallup({ ...currentCallup, enlace_ubicacion: e.target.value })}
                     className="flex-1"
@@ -566,7 +566,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   </Button>
                 </div>
                 <p className="text-xs text-slate-500">
-                  💡 Busca la ubicación en Google Maps, copia el enlace y pégalo aquí para que los padres puedan ver la ubicación exacta
+                  💡 Abre Google Maps, busca el campo concreto, comprueba que el pin cae en la instalación correcta y usa Compartir → Copiar enlace. No pegues una búsqueda genérica de la localidad
                 </p>
               </div>
 
