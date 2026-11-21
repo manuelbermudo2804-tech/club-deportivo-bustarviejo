@@ -1,5 +1,5 @@
 import React from "react";
-import { MapPin, Navigation, ExternalLink } from "lucide-react";
+import { MapPin, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getCallupMapsUrl } from "./callupLocation";
 
@@ -20,18 +20,12 @@ export default function CallupMap({ ubicacion, enlaceUbicacion, localVisitante }
           {localVisitante && (
             <span className="text-xs text-slate-500 font-medium">{localVisitante}</span>
           )}
-          <div className="flex flex-wrap gap-2 mt-3">
+          <div className="mt-3">
             {mapsUrl ? (
-              <>
-                <Button size="sm" onClick={() => window.open(mapsUrl, "_blank", "noopener,noreferrer")} className="bg-orange-600 hover:bg-orange-700">
-                  <ExternalLink className="w-3 h-3 mr-1" />
-                  Abrir ubicación en Google Maps
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => window.open(mapsUrl, "_blank", "noopener,noreferrer")}>
-                  <Navigation className="w-3 h-3 mr-1" />
-                  Cómo llegar
-                </Button>
-              </>
+              <Button size="sm" onClick={() => window.open(mapsUrl, "_blank", "noopener,noreferrer")} className="bg-orange-600 hover:bg-orange-700">
+                <ExternalLink className="w-3 h-3 mr-1" />
+                Abrir ubicación en Google Maps
+              </Button>
             ) : (
               <p className="text-xs text-amber-700">El club debe confirmar la ubicación exacta.</p>
             )}
