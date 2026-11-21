@@ -91,6 +91,18 @@ function buildJornadaUrl(p, jornada) {
   return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornada?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${jornada}&cod_agrupacion=1&Sch_Tipo_Juego=`;
 }
 
+function buildFieldMapsUrl(field) {
+  const raw = String(field || '').trim();
+  if (!raw) return '';
+  const normalized = raw.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toUpperCase();
+  // Campo oficial BUITRAGO (HA): dirección y coordenadas contrastadas.
+  if (normalized.includes('BUITRAGO')) {
+    return 'https://www.google.com/maps/search/?api=1&query=40.991642%2C-3.640996';
+  }
+  const query = /campo|polideportivo|pvo\\.|\\bmp\\.?\\b/i.test(raw) ? raw : 'Campo de fútbol ' + raw;
+  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query + ', Comunidad de Madrid, España');
+}
+
 function parseJornadaMatches(html) {
   const $ = load(html);
   const matches = [];
@@ -406,7 +418,7 @@ Deno.serve(async (req) => {
           }
           if (umMatch.campo && target.ubicacion !== umMatch.campo) {
             patch.ubicacion = umMatch.campo;
-            patch.enlace_ubicacion = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(umMatch.campo)}`;
+            patch.enlace_ubicacion = buildFieldMapsUrl(umMatch.campo);
             parts.push('campo actualizado');
           }
           const correctTitle = `Jornada ${umJornada}${competitionLabel} vs ${umRival}`;
@@ -520,7 +532,7 @@ Deno.serve(async (req) => {
             titulo:`Jornada ${umJornada}${competitionLabel} vs ${umRival}`,
             categoria:config.categoria,competicion:competition,tipo:'Partido',rival:umRival,fecha_partido:umDate,
             hora_partido:umMatch.hora || '00:00',ubicacion:umMatch.campo || 'Por confirmar',
-            enlace_ubicacion:umMatch.campo ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(umMatch.campo)}` : '',
+            enlace_ubicacion: umMatch.campo ? buildFieldMapsUrl(umMatch.campo) : '',
             local_visitante:umLocal ? 'Local' : 'Visitante',jugadores_convocados,
             entrenador_email:'sistema@cdbustarviejo.es',entrenador_nombre:'Sistema automático',
             publicada:false,notificaciones_enviadas:false,
@@ -580,7 +592,7 @@ Deno.serve(async (req) => {
             fecha_partido: matchDate,
             hora_partido: match.hora || '00:00',
             ubicacion: match.campo || 'Por confirmar',
-            enlace_ubicacion: match.campo ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(match.campo)}` : '',
+            enlace_ubicacion: match.campo ? buildFieldMapsUrl(match.campo) : '',
             local_visitante: isLocal ? 'Local' : 'Visitante',
             jugadores_convocados,
             entrenador_email: 'sistema@cdbustarviejo.es',
@@ -628,7 +640,7 @@ Deno.serve(async (req) => {
         if (venueChanged) {
           updateData.ubicacion = match.campo;
           // Regenerate enlace_ubicacion to match the new venue (Google Maps search)
-          updateData.enlace_ubicacion = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(match.campo)}`;
+          updateData.enlace_ubicacion = buildFieldMapsUrl(match.campo);
           changeParts.push(`📍 Campo: ${match.campo}`);
         }
 
