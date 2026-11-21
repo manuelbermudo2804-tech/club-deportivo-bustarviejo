@@ -191,9 +191,11 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   useEffect(() => {
     if (callup) {
       setCurrentCallup(callup);
+      setManualLocationEdit(!!callup.ubicacion);
       setSelectedPlayers((callup.jugadores_convocados?.map(j => j.jugador_id) || []).filter(id => !overduePlayerIds.has(id)));
     } else {
       setCurrentCallup(getInitialState());
+      setManualLocationEdit(false);
       setSelectedPlayers([]);
     }
   }, [callup?.id, category]);
@@ -524,7 +526,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
 
               {/* Ubicación */}
               <div className="space-y-2 md:col-span-2">
-                <Label>Ubicación *</Label>
+                <Label>Campo o instalación exacta *</Label>
                 <Input
                   placeholder="Campo municipal, pabellón..."
                   value={currentCallup.ubicacion}
