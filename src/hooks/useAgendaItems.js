@@ -3,7 +3,6 @@ import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { eachDayOfInterval } from "date-fns";
 import { esDiaSinEntreno, motivoSinEntreno, fechaISO } from "@/lib/sinEntrenamiento";
-import { getCallupMapsUrl } from "@/components/callups/callupLocation";
 
 const DIAS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 const CAMPO_MUNICIPAL_MAPS =
@@ -146,7 +145,7 @@ export default function useAgendaItems({ start, end, temporada, myCategories = [
           competicion: c.competicion || 'Liga',
           categoria: c.categoria,
           ubicacion: c.ubicacion,
-          mapsUrl: getCallupMapsUrl(c),
+          mapsUrl: c.enlace_ubicacion || mapsUrlFor(c.ubicacion),
           concentracion: c.hora_concentracion,
           rival: c.rival,
           localVisitante: c.local_visitante,

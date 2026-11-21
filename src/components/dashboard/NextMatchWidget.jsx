@@ -5,7 +5,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Trophy, MapPin, Calendar, Clock, ExternalLink } from "lucide-react";
-import { getCallupMapsUrl } from "../callups/callupLocation";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
 
@@ -37,8 +36,12 @@ export default function NextMatchWidget({ categoria }) {
   const additionalMatches = sortedCallups.length - 1;
 
   const openGoogleMaps = (callup) => {
-    const url = getCallupMapsUrl(callup);
-    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+    if (callup.enlace_ubicacion) {
+      window.open(callup.enlace_ubicacion, '_blank');
+    } else if (callup.ubicacion) {
+      const query = encodeURIComponent(callup.ubicacion);
+      window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+    }
   };
 
   if (!nextMatch) {

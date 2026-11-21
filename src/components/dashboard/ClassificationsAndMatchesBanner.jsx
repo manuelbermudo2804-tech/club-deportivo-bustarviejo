@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Trophy, MapPin, Calendar, Clock, Eye, TrendingUp, TrendingDown, Minus, Bell } from "lucide-react";
-import { getCallupMapsUrl } from "../callups/callupLocation";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -124,8 +123,12 @@ export default function ClassificationsAndMatchesBanner({ userEmail, myPlayers =
   // no haya datos todavía (mensajes "Preparando temporada" / "Sin convocatorias").
 
   const openGoogleMaps = (callup) => {
-    const url = getCallupMapsUrl(callup);
-    if (url) window.open(url, '_blank', 'noopener,noreferrer');
+    if (callup.enlace_ubicacion) {
+      window.open(callup.enlace_ubicacion, '_blank');
+    } else if (callup.ubicacion) {
+      const query = encodeURIComponent(callup.ubicacion);
+      window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
+    }
   };
 
   // Calcular tendencia

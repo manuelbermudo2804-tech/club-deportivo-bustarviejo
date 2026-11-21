@@ -1,6 +1,5 @@
 import { format } from "date-fns";
 import callupDescripcion from "@/components/callups/callupDescripcion";
-import { getCallupMapsUrl } from "./callupLocation";
 import { es } from "date-fns/locale";
 
 export function buildCallupEmailHtml(callup, jugadorNombre) {
@@ -12,7 +11,7 @@ export function buildCallupEmailHtml(callup, jugadorNombre) {
 
   const rivalText = callup.rival ? `vs ${callup.rival}` : "";
   const localVisitante = callup.local_visitante === "Local" ? "🏠 Local" : "✈️ Visitante";
-  const mapsLink = getCallupMapsUrl(callup);
+  const mapsLink = callup.enlace_ubicacion || "";
   const concentracion = callup.hora_concentracion || "";
   const descripcion = callupDescripcion({ ...callup, publicada: true });
   const telefono = callup.entrenador_telefono || "";

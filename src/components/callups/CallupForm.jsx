@@ -13,7 +13,6 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Loader2, AlertCircle, Users, Send, Sparkles, MapPin, AlertTriangle, Eye, EyeOff } from "lucide-react";
 import PlayerSuggestionEngine from "./PlayerSuggestionEngine";
-import { isGoogleMapsUrl } from "./callupLocation";
 
 export default function CallupForm({ callup, players, coachName, coachEmail, category, onSubmit, onCancel, isSubmitting, userSuggestionsEnabled = true, onToggleSuggestions }) {
   const getInitialState = () => ({
@@ -55,7 +54,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   const [rivalTeams, setRivalTeams] = useState([]);
   const [isLoadingTeams, setIsLoadingTeams] = useState(false);
   const [useManualInput, setUseManualInput] = useState(false);
-  const [manualLocationEdit, setManualLocationEdit] = useState(!!callup?.ubicacion);
+  const [manualLocationEdit, setManualLocationEdit] = useState(false);
 
   // Cargar equipos rivales desde clasificaciones Y resultados
   useEffect(() => {
@@ -161,12 +160,14 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
           enlace_ubicacion: "https://maps.app.goo.gl/qZKDqVyS6YuH8uZV8"
         }));
       } else if (currentCallup.local_visitante === "Visitante" && currentCallup.rival) {
-        // No asignar una dirección aproximada por el nombre del rival.
-        // El entrenador debe indicar el campo concreto y pegar su enlace compartido de Maps.
+        // Partido VISITANTE - campo del rival
+        const searchQuery = encodeURIComponent(`campo ${currentCallup.rival} Madrid`);
+        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
+        
         setCurrentCallup(prev => ({
           ...prev,
-          ubicacion: "",
-          enlace_ubicacion: ""
+          ubicacion: `Campo del ${currentCallup.rival}`,
+          enlace_ubicacion: mapsUrl
         }));
       }
     }
@@ -191,11 +192,9 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
   useEffect(() => {
     if (callup) {
       setCurrentCallup(callup);
-      setManualLocationEdit(!!callup.ubicacion);
       setSelectedPlayers((callup.jugadores_convocados?.map(j => j.jugador_id) || []).filter(id => !overduePlayerIds.has(id)));
     } else {
       setCurrentCallup(getInitialState());
-      setManualLocationEdit(false);
       setSelectedPlayers([]);
     }
   }, [callup?.id, category]);
@@ -275,16 +274,6 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     }
 
     const data = buildSubmitData();
-
-    // Evitar publicar búsquedas genéricas: la familia debe recibir el campo exacto.
-    if (!data.ubicacion?.trim()) {
-      alert("Indica el nombre exacto del campo o pabellón.");
-      return;
-    }
-    if (!isGoogleMapsUrl(data.enlace_ubicacion) || /\/maps\/search/i.test(data.enlace_ubicacion)) {
-      alert("Pega el enlace compartido de Google Maps del campo exacto. No sirve una búsqueda genérica por nombre o localidad.");
-      return;
-    }
 
     // Para convocatorias nuevas, siempre preguntar publicar vs borrador
     if (!callup) {
@@ -518,7 +507,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   <Alert className="bg-blue-50 border-blue-200">
                     <MapPin className="h-4 w-4 text-blue-600" />
                     <AlertDescription className="text-blue-800 text-xs">
-                      ✈️ Debes indicar el campo concreto del rival y pegar el enlace compartido de Google Maps; no se usará una ubicación aproximada.
+                      ✈️ Se ha auto-sugerido la ubicación del rival. Puedes editarla si es necesario.
                     </AlertDescription>
                   </Alert>
                 )}
@@ -526,7 +515,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
 
               {/* Ubicación */}
               <div className="space-y-2 md:col-span-2">
-                <Label>Campo o instalación exacta *</Label>
+                <Label>Ubicación *</Label>
                 <Input
                   placeholder="Campo municipal, pabellón..."
                   value={currentCallup.ubicacion}
@@ -542,12 +531,12 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
               <div className="space-y-2 md:col-span-2">
                 <Label className="flex items-center gap-2">
                   <MapPin className="w-4 h-4 text-orange-600" />
-                  Enlace compartido de Google Maps (obligatorio)
+                  Enlace de Google Maps (opcional)
                 </Label>
                 <div className="flex gap-2">
                   <Input
                     type="text"
-                    placeholder="Pega el enlace compartido del campo exacto"
+                    placeholder="https://maps.google.com/... (opcional)"
                     value={currentCallup.enlace_ubicacion || ""}
                     onChange={(e) => setCurrentCallup({ ...currentCallup, enlace_ubicacion: e.target.value })}
                     className="flex-1"
@@ -568,7 +557,7 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
                   </Button>
                 </div>
                 <p className="text-xs text-slate-500">
-                  💡 Abre Google Maps, busca el campo concreto, comprueba que el pin cae en la instalación correcta y usa Compartir → Copiar enlace. No pegues una búsqueda genérica de la localidad
+                  💡 Busca la ubicación en Google Maps, copia el enlace y pégalo aquí para que los padres puedan ver la ubicación exacta
                 </p>
               </div>
 
