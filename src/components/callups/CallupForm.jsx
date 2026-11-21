@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Loader2, AlertCircle, Users, Send, Sparkles, MapPin, AlertTriangle, Eye, EyeOff } from "lucide-react";
 import PlayerSuggestionEngine from "./PlayerSuggestionEngine";
+import { isGoogleMapsUrl } from "./callupLocation";
 
 export default function CallupForm({ callup, players, coachName, coachEmail, category, onSubmit, onCancel, isSubmitting, userSuggestionsEnabled = true, onToggleSuggestions }) {
   const getInitialState = () => ({
@@ -160,14 +161,12 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
           enlace_ubicacion: "https://maps.app.goo.gl/qZKDqVyS6YuH8uZV8"
         }));
       } else if (currentCallup.local_visitante === "Visitante" && currentCallup.rival) {
-        // Partido VISITANTE - campo del rival
-        const searchQuery = encodeURIComponent(`campo ${currentCallup.rival} Madrid`);
-        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${searchQuery}`;
-        
+        // No asignar una dirección aproximada por el nombre del rival.
+        // El entrenador debe indicar el campo concreto y pegar su enlace compartido de Maps.
         setCurrentCallup(prev => ({
           ...prev,
-          ubicacion: `Campo del ${currentCallup.rival}`,
-          enlace_ubicacion: mapsUrl
+          ubicacion: "",
+          enlace_ubicacion: ""
         }));
       }
     }
@@ -274,6 +273,16 @@ export default function CallupForm({ callup, players, coachName, coachEmail, cat
     }
 
     const data = buildSubmitData();
+
+    // Evitar publicar búsquedas genéricas: la familia debe recibir el campo exacto.
+    if (!data.ubicacion?.trim()) {
+      alert("Indica el nombre exacto del campo o pabellón.");
+      return;
+    }
+    if (!isGoogleMapsUrl(data.enlace_ubicacion) || /\/maps\/search/i.test(data.enlace_ubicacion)) {
+      alert("Pega el enlace compartido de Google Maps del campo exacto. No sirve una búsqueda genérica por nombre o localidad.");
+      return;
+    }
 
     // Para convocatorias nuevas, siempre preguntar publicar vs borrador
     if (!callup) {
