@@ -10,17 +10,6 @@ let cacheTimestamp = 0;
 let cachedDateStr = '';
 const CACHE_TTL_MS = 2 * 60 * 1000; // 2 minutos (para actualizar hora de partidos de hoy)
 
-function buildFieldMapsUrl(field) {
-  const raw = String(field || '').trim();
-  if (!raw) return '';
-  const normalized = raw.normalize('NFD').replace(/[\\u0300-\\u036f]/g, '').toUpperCase();
-  if (normalized.includes('BUITRAGO')) {
-    return 'https://www.google.com/maps/search/?api=1&query=40.991642%2C-3.640996';
-  }
-  const query = /campo|polideportivo|pvo\\.|\\bmp\\.?\\b/i.test(raw) ? raw : 'Campo de fútbol ' + raw;
-  return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(query + ', Comunidad de Madrid, España');
-}
-
 Deno.serve(async (req) => {
   const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
