@@ -19,10 +19,13 @@ export default function PlayerAttendanceCard({
   onSendReport 
 }) {
   const stats = React.useMemo(() => {
-    const sortedEvals = [...evaluations].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+    const attitudeEvals = evaluations.filter(ev =>
+      (ev.estado === "presente" || ev.estado === "tardanza") && Number.isFinite(Number(ev.actitud)) && ev.actitud !== null && ev.actitud !== ""
+    );
+    const sortedEvals = [...attitudeEvals].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
     
-    const actitudSum = evaluations.reduce((sum, ev) => sum + (ev.actitud || 0), 0);
-    const promedioActitud = evaluations.length > 0 ? (actitudSum / evaluations.length).toFixed(1) : 0;
+    const actitudSum = attitudeEvals.reduce((sum, ev) => sum + Number(ev.actitud), 0);
+    const promedioActitud = attitudeEvals.length > 0 ? (actitudSum / attitudeEvals.length).toFixed(1) : "—";
     
     const attendanceStats = {
       presente: 0,
