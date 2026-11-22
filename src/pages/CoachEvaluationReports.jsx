@@ -20,10 +20,13 @@ import { useStaffPlayers } from "../hooks/useStaffPlayers";
 // Vista de detalle de un jugador individual
 function PlayerDetailView({ player, evaluations, onBack, onSendReport, sendingReport }) {
   const stats = useMemo(() => {
-    const sortedEvals = [...evaluations].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+    const attitudeEvals = evaluations.filter(ev =>
+      (ev.estado === "presente" || ev.estado === "tardanza") && Number.isFinite(Number(ev.actitud)) && ev.actitud !== null && ev.actitud !== ""
+    );
+    const sortedEvals = [...attitudeEvals].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
     
-    const actitudSum = evaluations.reduce((sum, ev) => sum + (ev.actitud || 0), 0);
-    const promedioActitud = evaluations.length > 0 ? (actitudSum / evaluations.length).toFixed(1) : 0;
+    const actitudSum = attitudeEvals.reduce((sum, ev) => sum + Number(ev.actitud), 0);
+    const promedioActitud = attitudeEvals.length > 0 ? (actitudSum / attitudeEvals.length).toFixed(1) : "—";
     
     let tendencia = "estable";
     if (sortedEvals.length >= 6) {
@@ -44,7 +47,8 @@ function PlayerDetailView({ player, evaluations, onBack, onSendReport, sendingRe
   }, [evaluations, player]);
 
   const chartData = useMemo(() => {
-    return [...evaluations]
+    return evaluations
+      .filter(ev => (ev.estado === "presente" || ev.estado === "tardanza") && Number.isFinite(Number(ev.actitud)) && ev.actitud !== null && ev.actitud !== "")
       .sort((a, b) => new Date(a.fecha) - new Date(b.fecha))
       .map(ev => ({
         fecha: format(parseISO(ev.fecha), "dd/MM", { locale: es }),
@@ -296,23 +300,22 @@ export default function CoachEvaluationReports() {
       }
       
       attendance.asistencias?.forEach(asistencia => {
-        if (asistencia.estado === 'presente' || asistencia.estado === 'tardanza') {
-          const player = players.find(p => p.id === asistencia.jugador_id);
-          if (player) {
-            if (!categoryMap[categoria][asistencia.jugador_id]) {
-              categoryMap[categoria][asistencia.jugador_id] = {
-                jugador: player,
-                evaluaciones: []
-              };
-            }
-            
-            categoryMap[categoria][asistencia.jugador_id].evaluaciones.push({
-              ...asistencia,
-              fecha: attendance.fecha,
-              categoria: attendance.categoria,
-              entrenador_nombre: attendance.entrenador_nombre
-            });
+        const player = players.find(p => p.id === asistencia.jugador_id);
+        if (player && asistencia.estado) {
+          if (!categoryMap[categoria][asistencia.jugador_id]) {
+            categoryMap[categoria][asistencia.jugador_id] = {
+              jugador: player,
+              evaluaciones: []
+            };
           }
+          
+          // Guardamos todos los estados para calcular la asistencia real.
+          categoryMap[categoria][asistencia.jugador_id].evaluaciones.push({
+            ...asistencia,
+            fecha: attendance.fecha,
+            categoria: attendance.categoria,
+            entrenador_nombre: attendance.entrenador_nombre
+          });
         }
       });
     });
@@ -320,9 +323,12 @@ export default function CoachEvaluationReports() {
     Object.keys(categoryMap).forEach(categoria => {
       Object.keys(categoryMap[categoria]).forEach(jugadorId => {
         const playerData = categoryMap[categoria][jugadorId];
-        const actitudSum = playerData.evaluaciones.reduce((sum, ev) => sum + (ev.actitud || 0), 0);
+        const attitudeEvals = playerData.evaluaciones.filter(ev =>
+          (ev.estado === 'presente' || ev.estado === 'tardanza') && Number.isFinite(Number(ev.actitud)) && ev.actitud !== null && ev.actitud !== ''
+        );
+        const actitudSum = attitudeEvals.reduce((sum, ev) => sum + Number(ev.actitud), 0);
         playerData.totalSesiones = playerData.evaluaciones.length;
-        playerData.promedioActitud = (actitudSum / playerData.totalSesiones).toFixed(1);
+        playerData.promedioActitud = attitudeEvals.length > 0 ? (actitudSum / attitudeEvals.length).toFixed(1) : '—';
       });
     });
     
