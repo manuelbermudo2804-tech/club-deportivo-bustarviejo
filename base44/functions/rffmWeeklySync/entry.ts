@@ -336,13 +336,12 @@ async function syncCategory(config, cookies, base44, temporada) {
           const uniqueExisting = [...byMatch.values()];
           // UPDATE existing records (pendiente → finalizado) instead of creating duplicates
           let updated = 0;
+          let created = 0;
           for (const m of latestM.filter(m2 => m2.jugado)) {
-            const match = uniqueExisting.find(e => 
+            const match = uniqueExisting.find(e =>
               norm(e.local) === norm(m.local) && norm(e.visitante) === norm(m.visitante)
             );
-            // Actualizar también partidos ya finalizados: la RFFM puede corregir
-            // un acta después del primer cierre (p. ej. un 0-0 provisional).
-            // Un 0-0 real se conserva porque se compara explícitamente, no por truthiness.
+            // Actualizar partidos existentes si RFFM ha corregido marcador o datos.
             if (match && (
               match.estado !== 'finalizado' ||
               Number(match.goles_local) !== Number(m.goles_local) ||
@@ -360,10 +359,23 @@ async function syncCategory(config, cookies, base44, temporada) {
               }));
               updated++;
               await sleep(500);
+            } else if (!match) {
+              // La jornada ya tiene registros, pero este partido aún no existe en BD.
+              await retryOnRateLimit(() => base44.asServiceRole.entities.Resultado.create({
+                temporada, categoria: cat, competicion: competition, jornada: latestJ,
+                local: m.local, visitante: m.visitante,
+                goles_local: m.goles_local, goles_visitante: m.goles_visitante,
+                estado: 'finalizado', fecha_actualizacion: new Date().toISOString(),
+                ...(m.fecha ? { fecha_partido: m.fecha } : {}),
+                ...(m.hora ? { hora_partido: m.hora } : {}),
+                ...(m.campo ? { campo: m.campo } : {}),
+              }));
+              created++;
+              await sleep(500);
             }
           }
-          result.results = updated > 0 
-            ? { jornada: latestJ, updated, matches: updated } 
+          result.results = (updated + created) > 0
+            ? { jornada: latestJ, updated, created, matches: updated + created }
             : { jornada: latestJ, skipped: true };
         } else {
           // No existing records for this jornada — create new ones
