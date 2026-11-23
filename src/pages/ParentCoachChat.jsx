@@ -64,6 +64,7 @@ export default function ParentCoachChat() {
   const [playingAudio, setPlayingAudio] = useState(null);
   const [showReactions, setShowReactions] = useState(null);
   const [editDialogMsg, setEditDialogMsg] = useState(null);
+  const [replyingTo, setReplyingTo] = useState(null);
   const [categoryCoach, setCategoryCoach] = useState(null);
   const teamMentionNames = useMentionNames("equipo", selectedCategory);
   const messagesEndRef = useRef(null);
@@ -289,6 +290,8 @@ export default function ParentCoachChat() {
         archivos_adjuntos: messageData.adjuntos || [],
         audio_url: messageData.audio_url,
         audio_duracion: messageData.audio_duracion,
+        respuesta_a: messageData.respuesta_a,
+        mensaje_citado: messageData.mensaje_citado,
         created_date: new Date().toISOString(),
         grupo_id: gid,
         deporte: selectedCategory,
@@ -318,6 +321,8 @@ export default function ParentCoachChat() {
          archivos_adjuntos: messageData.adjuntos || [],
          ...(messageData.ubicacion ? { ubicacion: messageData.ubicacion } : {}),
          ...(messageData.encuesta ? { encuesta: messageData.encuesta } : {}),
+         ...(messageData.respuesta_a ? { respuesta_a: messageData.respuesta_a } : {}),
+         ...(messageData.mensaje_citado ? { mensaje_citado: messageData.mensaje_citado } : {}),
          grupo_id: gid,
          deporte: selectedCategory,
          leido_por: [{ email: user.email, nombre: user.full_name, fecha: new Date().toISOString() }],
@@ -366,6 +371,7 @@ export default function ParentCoachChat() {
         if (!replaced.some(m => m.id === createdMessage.id)) replaced.push(createdMessage);
         return replaced;
       });
+      setReplyingTo(null);
     },
   });
 
@@ -423,8 +429,15 @@ export default function ParentCoachChat() {
   const [showLocationDlg, setShowLocationDlg] = useState(false);
   const [showPollDlg, setShowPollDlg] = useState(false);
   const handleSendMessage = useCallback((messageData) => {
+    if (replyingTo) {
+      messageData.respuesta_a = replyingTo.id;
+      messageData.mensaje_citado = {
+        autor_nombre: replyingTo.remitente_nombre,
+        mensaje: (replyingTo.mensaje || (replyingTo.audio_url ? "🎤 Audio" : "📎 Archivo")).substring(0, 100)
+      };
+    }
     sendMessageMutation.mutate(messageData);
-  }, [sendMessageMutation]);
+  }, [sendMessageMutation, replyingTo]);
 
   // Subida de imágenes/archivos (lo que antes faltaba en el lado familia)
   const handleFileUpload = async (e) => {
@@ -558,8 +571,14 @@ export default function ParentCoachChat() {
                             {isCoach && <Badge className="text-[10px] bg-green-500 px-1 py-0 h-4">Entrenador</Badge>}
                           </div>
                           <div className="ml-auto" />
-                          <ChatMessageActions message={msg} isMine={isMine} onEdit={(m) => setEditDialogMsg(m)} onDelete={(m) => deleteMessageMutation.mutate(m.id)} />
+                          <ChatMessageActions message={msg} isMine={isMine} onReply={(m) => setReplyingTo(m)} onEdit={(m) => setEditDialogMsg(m)} onDelete={(m) => deleteMessageMutation.mutate(m.id)} />
                         </div>
+                        {msg.mensaje_citado && (
+                          <div className="mb-2 p-2 rounded border-l-2 bg-slate-100 border-slate-400">
+                            <p className="text-xs opacity-70">{msg.mensaje_citado.autor_nombre}</p>
+                            <p className="text-xs italic truncate">{msg.mensaje_citado.mensaje}</p>
+                          </div>
+                        )}
                         {msg.mensaje && <p style={{fontSize: '15px', lineHeight: '1.4', whiteSpace: 'pre-wrap', wordWrap: 'break-word'}}><EmojiScaler content={msg.mensaje} currentUserName={user?.full_name} /></p>}
                         {msg.audio_url && <div className="mt-1"><ChatAudioBubble url={msg.audio_url} duration={msg.audio_duracion} isMine={isMine} /></div>}
                         {(() => {
@@ -616,6 +635,17 @@ export default function ParentCoachChat() {
           )}
           <div ref={messagesEndRef} />
         </div>
+        {replyingTo && (
+          <div className="mx-2 mb-1 p-2 rounded-lg bg-blue-50 border-l-4 border-blue-600 flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-semibold text-blue-900">Respondiendo a {replyingTo.remitente_nombre || "mensaje"}</p>
+              <p className="text-xs text-blue-700 truncate">{replyingTo.mensaje || (replyingTo.audio_url ? "🎤 Audio" : "📎 Archivo")}</p>
+            </div>
+            <Button size="sm" variant="ghost" onClick={() => setReplyingTo(null)} className="h-6 w-6 p-0">
+              <X className="w-3 h-3" />
+            </Button>
+          </div>
+        )}
         <ChatPendingBanner grupoId={toGroupId(selectedCategory || "")} />
         <UnifiedChatInput mentionCandidates={mentionCandidates(messages, user?.full_name, [categoryCoach?.full_name, ...teamMentionNames])} onSendMessage={handleSendMessage} onFileUpload={handleFileUpload} onCameraCapture={handleCameraCapture} onLocationClick={() => setShowLocationDlg(true)} onPollClick={() => setShowPollDlg(true)} uploading={uploading || uploadingImage} placeholder="Escribe tu mensaje..." />
         <ChatLocationDialog open={showLocationDlg} onOpenChange={setShowLocationDlg} onSend={handleSendMessage} />
