@@ -461,6 +461,8 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         archivos_adjuntos: messageData.adjuntos || [],
         audio_url: messageData.audio_url,
         audio_duracion: messageData.audio_duracion,
+        respuesta_a: messageData.respuesta_a,
+        mensaje_citado: messageData.mensaje_citado,
         created_date: new Date().toISOString(),
         grupo_id,
         deporte: selectedCategory,
@@ -781,6 +783,7 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
                        <ChatMessageActions
                          message={msg}
                          isMine={isMine}
+                         onReply={(m) => setReplyingTo(m)}
                          onEdit={(m) => setEditDialogMsg(m)}
                          onDelete={(m) => deleteMessageMutation.mutate(m.id)}
                        />
@@ -892,6 +895,17 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
         onClose={() => setEditDialogMsg(null)}
         onSave={(m, mensaje) => editMessageMutation.mutate({ id: m.id, mensaje })}
       />
+      {replyingTo && (
+        <div className="mx-2 mb-1 p-2 rounded-lg bg-green-50 border-l-4 border-green-600 flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-semibold text-green-900">Respondiendo a {replyingTo.remitente_nombre || "mensaje"}</p>
+            <p className="text-xs text-green-700 truncate">{replyingTo.mensaje || (replyingTo.audio_url ? "🎤 Audio" : "📎 Archivo")}</p>
+          </div>
+          <Button size="sm" variant="ghost" onClick={() => setReplyingTo(null)} className="h-6 w-6 p-0">
+            <X className="w-3 h-3" />
+          </Button>
+        </div>
+      )}
       <ChatPendingBanner grupoId={toGroupId(selectedCategory || "")} />
       <UnifiedChatInput
         mentionCandidates={mentionCandidates(messages, user?.full_name, categoryPlayers.flatMap(p => [p.nombre_tutor_legal, p.nombre_tutor_2]))}
