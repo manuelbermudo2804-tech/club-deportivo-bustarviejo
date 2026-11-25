@@ -19,6 +19,7 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
     contenido: "",
     prioridad: "Normal",
     destinatarios_tipo: "Todos",
+    destinatarios_tipos: ["Todos"],
     destinatarios_modo: "grupo",
     publicado: true,
     destacado: false,
@@ -121,6 +122,26 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
   })();
   const iconoCategoria = (nombre) => (/baloncesto/i.test(nombre) ? '🏀' : '⚽');
 
+  const categoriasSeleccionadas = (() => {
+    const raw = currentAnnouncement.destinatarios_tipos;
+    if (Array.isArray(raw) && raw.length) return raw;
+    return [currentAnnouncement.destinatarios_tipo || "Todos"];
+  })();
+
+  const toggleCategoriaDestinataria = (nombre) => {
+    setCurrentAnnouncement(prev => {
+      const actuales = Array.isArray(prev.destinatarios_tipos) && prev.destinatarios_tipos.length ? prev.destinatarios_tipos : [prev.destinatarios_tipo || "Todos"];
+      let siguientes;
+      if (nombre === "Todos") siguientes = ["Todos"];
+      else {
+        siguientes = actuales.filter(c => c !== "Todos");
+        siguientes = siguientes.includes(nombre) ? siguientes.filter(c => c !== nombre) : [...siguientes, nombre];
+        if (!siguientes.length) siguientes = ["Todos"];
+      }
+      return { ...prev, destinatarios_tipos: siguientes, destinatarios_tipo: siguientes.length === 1 ? siguientes[0] : siguientes.join(", ") };
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     const contenidoActual = convertirHtmlATexto(contenidoRef.current?.innerHTML || "");
@@ -136,7 +157,8 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
       alert("Selecciona una única persona o familia para el anuncio privado.");
       return;
     }
-    const payload = { ...currentAnnouncement, destinatarios_modo: currentAnnouncement.destinatarios_modo || "grupo", contenido: contenidoActual, destinatarios_emails: emails };
+    const grupos = currentAnnouncement.destinatarios_modo === "individual" ? ["Todos"] : categoriasSeleccionadas;
+    const payload = { ...currentAnnouncement, destinatarios_modo: currentAnnouncement.destinatarios_modo || "grupo", destinatarios_tipos: grupos, destinatarios_tipo: grupos.length === 1 ? grupos[0] : grupos.join(", "), contenido: contenidoActual, destinatarios_emails: emails };
     onSubmit(payload);
   };
 
@@ -231,20 +253,20 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
                 )}
                 {currentAnnouncement.destinatarios_modo !== "individual" && (<>
                 <Label>Grupo destinatario *</Label>
-                <Select
-                  value={currentAnnouncement.destinatarios_tipo}
-                  onValueChange={(value) => setCurrentAnnouncement({ ...currentAnnouncement, destinatarios_tipo: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Todos">🏃 Todos los grupos</SelectItem>
-                    {opcionesDestinatarios.map((nombre) => (
-                      <SelectItem key={nombre} value={nombre}>{iconoCategoria(nombre)} {nombre}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="max-h-56 overflow-y-auto rounded-xl border border-slate-200 bg-white p-2 space-y-1">
+                  <label className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-orange-50 cursor-pointer font-semibold">
+                    <input type="checkbox" checked={categoriasSeleccionadas.includes("Todos")} onChange={() => toggleCategoriaDestinataria("Todos")} />
+                    🏃 Todos los grupos
+                  </label>
+                  <div className="border-t border-slate-100 my-1" />
+                  {opcionesDestinatarios.map((nombre) => (
+                    <label key={nombre} className="flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-orange-50 cursor-pointer">
+                      <input type="checkbox" checked={categoriasSeleccionadas.includes(nombre)} onChange={() => toggleCategoriaDestinataria(nombre)} />
+                      {iconoCategoria(nombre)} {nombre}
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-slate-500">Puedes marcar varios grupos. Si marcas «Todos los grupos», se desmarcan las categorías individuales.</p>
                 </>)}
                 <div className="space-y-1">
                   <Label className="text-sm">{currentAnnouncement.destinatarios_modo === "individual" ? "Selecciona una única persona/familia" : "Usuarios específicos (opcional)"}</Label>
