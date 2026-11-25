@@ -53,7 +53,7 @@ Deno.serve(async req => {
       const season = String(body.temporada || '');
       const week = String(body.semana || '');
       const date = String(body.fecha || '');
-      if (!/^20\\d{2}$/.test(season) || !WEEKS.includes(week) || !/^20\\d{2}-\\d{2}-\\d{2}$/.test(date))
+      if (!/^20\d{2}$/.test(season) || !WEEKS.includes(week) || !/^\d{4}-\d{2}-\d{2}$/.test(date))
         return json({error:'Temporada, semana o fecha no válidas.'},400);
       const accessRows = await sr.entities.CampusMonitorAccess.filter({email:cleanEmail(user.email),temporada:season,activo:true});
       const access = accessRows?.find(a=>(a.semanas||[]).includes(week));
