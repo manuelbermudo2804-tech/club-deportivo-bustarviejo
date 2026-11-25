@@ -115,7 +115,7 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
   // se haya desactivado en CategoryConfig.
   const opcionesDestinatarios = (() => {
     const set = new Set(categoriasActivas);
-    const savedCategories = Array.isArray(currentAnnouncement.destinatarios_tipos) ? currentAnnouncement.destinatarios_tipos : [currentAnnouncement.destinatarios_tipo];
+    const savedCategories = Array.isArray(currentAnnouncement.destinatarios_tipos) ? currentAnnouncement.destinatarios_tipos : String(currentAnnouncement.destinatarios_tipo || "").split(",");
     savedCategories.filter(c => c && c !== "Todos").forEach(c => set.add(c));
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   })();
@@ -124,12 +124,12 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
   const categoriasSeleccionadas = (() => {
     const raw = currentAnnouncement.destinatarios_tipos;
     if (Array.isArray(raw) && raw.length) return raw;
-    return [currentAnnouncement.destinatarios_tipo || "Todos"];
+    return String(currentAnnouncement.destinatarios_tipo || "Todos").split(",").map(c => c.trim()).filter(Boolean);
   })();
 
   const toggleCategoriaDestinataria = (nombre) => {
     setCurrentAnnouncement(prev => {
-      const actuales = Array.isArray(prev.destinatarios_tipos) && prev.destinatarios_tipos.length ? prev.destinatarios_tipos : [prev.destinatarios_tipo || "Todos"];
+      const actuales = Array.isArray(prev.destinatarios_tipos) && prev.destinatarios_tipos.length ? prev.destinatarios_tipos : String(prev.destinatarios_tipo || "Todos").split(",").map(c => c.trim()).filter(Boolean);
       let siguientes;
       if (nombre === "Todos") siguientes = ["Todos"];
       else {
