@@ -52,7 +52,7 @@ export default function MandatoryReadModal({ user }) {
         });
 
         if (!cancelled) {
-          setPending(relevant);
+          setPending(prev => prev.length ? prev : relevant);
           setLoaded(true);
         }
       } catch (e) {
@@ -60,8 +60,21 @@ export default function MandatoryReadModal({ user }) {
       }
     };
 
+    // Reconsultar al volver a la app y periódicamente: el anuncio puede publicarse
+    // mientras la sesión familiar ya está abierta.
     load();
-    return () => { cancelled = true; };
+    const refresh = () => {
+      if (document.visibilityState === "visible") load();
+    };
+    const interval = window.setInterval(refresh, 30000);
+    window.addEventListener("focus", refresh);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refresh);
+      document.removeEventListener("visibilitychange", refresh);
+    };
   }, [user]);
 
   const current = pending[index];
