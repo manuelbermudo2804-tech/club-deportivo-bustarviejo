@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Loader2, ChevronDown, ChevronUp, MessageCircle, CheckCircle2 } from "lucide-react";
 import { playerInCategory } from "../utils/playerCategoryFilter";
+import { getAnnouncementCategories } from "../utils/announcementRecipientFilter";
 
 // Panel de lectura (Estrategia C). Solo se muestra a admin en anuncios con
 // requiere_confirmacion = true. Calcula el % de familias que han confirmado y
@@ -44,9 +45,9 @@ export default function ReadConfirmationPanel({ announcement }) {
   } else {
     const scope = targeted.length > 0
       ? players.filter((p) => [p.email_padre, p.email_tutor_2, p.email_jugador].some((email) => targeted.includes(String(email || "").trim().toLowerCase())))
-      : (announcement.destinatarios_tipo === "Todos"
+      : (getAnnouncementCategories(announcement).includes("Todos")
         ? players
-        : players.filter((p) => playerInCategory(p, announcement.destinatarios_tipo)));
+        : players.filter((p) => getAnnouncementCategories(announcement).some(category => playerInCategory(p, category))));
 
     scope.forEach((p) => {
       const email = p.email_padre || p.email_jugador;
