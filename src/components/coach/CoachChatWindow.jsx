@@ -95,10 +95,19 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
 
       let msgs;
       if (selectedCategory === "Todas las categorías") {
-        msgs = await base44.entities.ChatMessage.list('-created_date', 200);
+        // Admin: cargar cada grupo mediante el backend autorizado, no con list() sujeto a RLS.
+        const cats = [...new Set((allPlayers || []).flatMap(p => [
+          p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])
+        ]).filter(Boolean))];
+        const results = await Promise.all(cats.map(async categoria => {
+          const { data } = await base44.functions.invoke('chatGetTeamMessages', { categoria });
+          return data?.messages || [];
+        }));
+        msgs = [...new Map(results.flat().map(m => [m.id, m])).values()]
+          .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+          .slice(-500);
       } else {
-        // Leer vía backend service-role: el RLS de ChatMessage depende de campos de usuario
-        // (categorias_entrena) desincronizados con el grupo_id real, lo que impedía leer.
+        // Leer vía backend service-role para evitar restricciones RLS desincronizadas.
         const { data } = await base44.functions.invoke('chatGetTeamMessages', { categoria: selectedCategory });
         msgs = data?.messages || [];
       }
