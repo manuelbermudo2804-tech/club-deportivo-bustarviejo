@@ -15,16 +15,21 @@ export default function AdminTeamChatsSection() {
   const { data, isLoading } = useQuery({
     queryKey: ["adminTeamChats"],
     queryFn: async () => {
-      const [players, messages] = await Promise.all([
-        base44.entities.Player.filter({ activo: true }, "-created_date", 1000),
-        base44.entities.ChatMessage.list("-created_date", 300),
-      ]);
-      const cats = [...new Set(players.map((p) => p.categoria_principal || p.deporte).filter(Boolean))].sort();
-      return cats.map((cat) => {
-        const gid = toGroupId(cat);
-        const familias = new Set(players.filter((p) => (p.categoria_principal || p.deporte) === cat).flatMap((p) => [p.email_padre, p.email_tutor_2].filter(Boolean))).size;
-        return { cat, familias, last: messages.find((m) => m.grupo_id === gid) };
-      });
+      const players = await base44.entities.Player.filter({ activo: true }, "-created_date", 1000);
+      const cats = [...new Set(players.flatMap(p => [
+        p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])
+      ]).filter(Boolean))].sort();
+      // Usar la misma lectura autorizada que el chat: ChatMessage.list() puede quedar vacío por RLS.
+      const groups = await Promise.all(cats.map(async cat => {
+        const { data } = await base44.functions.invoke("chatGetTeamMessages", { categoria: cat });
+        const messages = (data?.messages || []).filter(m => !m.eliminado)
+          .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0));
+        const familias = new Set(players.filter(p =>
+          [p.categoria_principal, p.deporte, ...(Array.isArray(p.categorias) ? p.categorias : [])].includes(cat)
+        ).flatMap(p => [p.email_padre, p.email_tutor_2].filter(Boolean))).size;
+        return { cat, familias, last: messages[0] || null };
+      }));
+      return groups;
     },
     staleTime: 30000,
   });
