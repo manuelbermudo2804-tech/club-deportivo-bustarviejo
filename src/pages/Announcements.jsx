@@ -14,7 +14,7 @@ import EmptyState from "../components/common/EmptyState";
 import TemplateManager from "../components/announcements/TemplateManager";
 import { playerInCategory, playerAllCategories } from "../components/utils/playerCategoryFilter";
 import { playerBelongsToUser } from "../components/utils/playerBelongsToUser";
-import { announcementTargetsUser } from "../components/utils/announcementRecipientFilter";
+import { announcementTargetsUser, getAnnouncementCategories } from "../components/utils/announcementRecipientFilter";
 
 export default function Announcements() {
   const [showForm, setShowForm] = useState(false);
@@ -192,13 +192,15 @@ export default function Announcements() {
       recipients.push(...targetedEmails);
 
       // En modo individual no se añaden categorías ni personal del grupo.
-      if (data.destinatarios_modo !== "individual" && data.destinatarios_tipo === "Todos") {
+      const targetCategories = getAnnouncementCategories(data);
+      const allGroups = targetCategories.includes("Todos");
+      if (data.destinatarios_modo !== "individual" && allGroups) {
         (allPlayersForRecipients || []).forEach(p => {
           if (p.email_padre) recipients.push(p.email_padre);
           if (p.email_tutor_2) recipients.push(p.email_tutor_2);
         });
       } else if (data.destinatarios_modo !== "individual") {
-        (allPlayersForRecipients || []).filter(p => playerInCategory(p, data.destinatarios_tipo)).forEach(p => {
+        (allPlayersForRecipients || []).filter(p => targetCategories.some(category => playerInCategory(p, category))).forEach(p => {
           if (p.email_padre) recipients.push(p.email_padre);
           if (p.email_tutor_2) recipients.push(p.email_tutor_2);
         });
@@ -208,7 +210,7 @@ export default function Announcements() {
       try {
           if (data.destinatarios_modo !== "individual") {
           const staffUsers = await base44.entities.User.list();
-          const targetCategory = String(data.destinatarios_tipo || "").trim().toLowerCase();
+          const normalizedTargets = targetCategories.map(category => String(category || "").trim().toLowerCase());
           staffUsers.forEach(staff => {
             const isStaff = staff.es_entrenador === true || staff.es_coordinador === true;
             if (!isStaff || !staff.email) return;
@@ -216,7 +218,7 @@ export default function Announcements() {
               ...(Array.isArray(staff.categorias_entrena) ? staff.categorias_entrena : []),
               ...(Array.isArray(staff.categorias_coordina) ? staff.categorias_coordina : []),
             ].map(c => String(c || "").trim().toLowerCase());
-            if (data.destinatarios_tipo === "Todos" || staffCategories.includes(targetCategory)) {
+            if (allGroups || staffCategories.some(category => normalizedTargets.includes(category))) {
               recipients.push(staff.email);
             }
           });
@@ -316,9 +318,9 @@ export default function Announcements() {
       const allPlayersForChat = await base44.entities.Player.list();
       const categoryPlayers = data.destinatarios_modo === "individual"
         ? []
-        : (data.destinatarios_tipo === "Todos"
+        : (getAnnouncementCategories(data).includes("Todos")
           ? allPlayersForChat
-          : allPlayersForChat.filter(p => playerInCategory(p, data.destinatarios_tipo)));
+          : allPlayersForChat.filter(p => getAnnouncementCategories(data).some(category => playerInCategory(p, category))));
       const individualPlayers = allPlayersForChat.filter(p =>
         [p.email_padre, p.email_tutor_2, p.email_jugador, p.acceso_menor_email]
           .some(email => targetedEmails.includes(String(email || "").trim().toLowerCase()))
@@ -359,7 +361,7 @@ export default function Announcements() {
             participante_staff_email: 'sistema@cdbustarviejo.com',
             participante_staff_nombre: '🤖 Sistema de Recordatorios - Administración',
             participante_staff_rol: 'admin',
-            categoria: data.destinatarios_tipo || 'Todos',
+            categoria: getAnnouncementCategories(data).join(", ") || 'Todos',
             jugadores_relacionados: family.jugadores.map(j => ({ jugador_id: j.id, jugador_nombre: j.nombre })),
             ultimo_mensaje: text.slice(0, 100),
             ultimo_mensaje_fecha: new Date().toISOString(),
