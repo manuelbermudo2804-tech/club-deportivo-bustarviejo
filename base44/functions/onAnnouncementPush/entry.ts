@@ -27,7 +27,8 @@ Deno.serve(async (req) => {
       return Response.json({ message: 'Push ya enviada, skip' });
     }
 
-    const categoria = announcement.destinatarios_tipo || 'Todos';
+    const categorias = Array.isArray(announcement.destinatarios_tipos) && announcement.destinatarios_tipos.length ? announcement.destinatarios_tipos : [announcement.destinatarios_tipo || 'Todos'];
+    const todosLosGrupos = categorias.includes('Todos');
     const titulo = announcement.titulo || 'Nuevo anuncio del club';
     const prioridad = announcement.prioridad || 'Normal';
 
@@ -42,16 +43,14 @@ Deno.serve(async (req) => {
       targetEmails = Array.isArray(announcement.destinatarios_emails)
         ? announcement.destinatarios_emails.filter(Boolean)
         : [];
-    } else if (categoria === 'Todos') {
+    } else if (todosLosGrupos) {
       // Anuncios grupales dirigidos a todos los suscriptores activos.
       const allSubs = await base44.asServiceRole.entities.PushSubscription.filter({ activa: true });
       targetEmails = [...new Set(allSubs.map(s => s.usuario_email))];
     } else {
       // Buscar jugadores de esa categoría y recoger emails de padres
-      const players = await base44.asServiceRole.entities.Player.filter({ 
-        categoria_principal: categoria, 
-        activo: true 
-      });
+      const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true });
+      const players = allPlayers.filter(p => [p.categoria_principal, p.deporte, p.categoria].some(category => categorias.includes(category)));
       const emailSet = new Set();
       for (const p of players) {
         if (p.email_padre) emailSet.add(p.email_padre);
