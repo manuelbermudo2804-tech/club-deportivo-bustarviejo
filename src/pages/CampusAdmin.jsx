@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2, Trash2, Mail, MessageCircle, FileDown, Filter, UsersRound, UserCheck, Pencil, X } from "lucide-react";
 import { jsPDF } from "jspdf";
 import CampusAttendance from "@/components/campus/CampusAttendance";
+import CampusMonitorManager from "@/components/campus/CampusMonitorManager";
 
 const GROUPS = [
   { key: "6-8", label: "Iniciación", range: "6–8 años" },
@@ -87,7 +88,16 @@ export default function CampusAdmin() {
       const me = await base44.auth.me();
       setUser(me);
       if (me?.role !== "admin") {
-        setError("Esta sección está reservada a la administración del club.");
+        if (!(me?.es_entrenador === true || me?.es_coordinador === true)) {
+          setError("No tienes permisos para acceder al control del Campus.");
+          setLoading(false); return;
+        }
+        const cfg = await base44.entities.CampusSettings.list("-created_date", 100);
+        const seasons = [...new Set((cfg || []).map(c => String(c.temporada || c.fecha_inicio?.slice(0,4) || "")).filter(Boolean))].sort((a,b)=>b.localeCompare(a));
+        const chosenSeason = seasons.includes(selectedSeason) ? selectedSeason : (seasons[0] || "2027");
+        setSettingsList(cfg || []);
+        setSelectedSeason(chosenSeason);
+        setSettings((cfg || []).find(c => String(c.temporada || c.fecha_inicio?.slice(0,4) || "") === chosenSeason && c.activo === true) || (cfg || []).find(c => String(c.temporada || c.fecha_inicio?.slice(0,4) || "") === chosenSeason) || cfg?.[0] || null);
         setLoading(false); return;
       }
       const [cfg, regs, kids, logs] = await Promise.all([
@@ -474,7 +484,10 @@ export default function CampusAdmin() {
 
   if (loading) return <div className="min-h-screen bg-slate-50 p-8 text-slate-600">Cargando panel del Campus 2027…</div>;
   if (error && !user) return <div className="max-w-3xl mx-auto p-8"><div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-800">{error}</div></div>;
-  if (user?.role !== "admin") return <div className="max-w-3xl mx-auto p-8"><div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-800">{error || "Acceso restringido."}</div></div>;
+  if (user?.role !== "admin") {
+    if (!(user?.es_entrenador === true || user?.es_coordinador === true)) return <div className="max-w-3xl mx-auto p-8"><div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-800">{error || "Acceso restringido."}</div></div>;
+    return <div className="min-h-screen bg-[#f4f5f7] p-3 md:p-7 space-y-5 text-slate-800"><div className="rounded-3xl bg-gradient-to-br from-slate-950 to-orange-950 p-6 text-white"><p className="text-xs font-bold uppercase tracking-widest text-orange-200">C.D. Bustarviejo</p><h1 className="mt-2 text-3xl font-black">Campus Deportivo {selectedSeason}</h1><p className="mt-2 text-sm text-slate-300">Panel operativo de monitor · Solo semanas autorizadas</p></div><CampusAttendance season={selectedSeason} settings={settings}/></div>;
+  }
 
   return <div className="min-h-screen bg-[#f4f5f7] p-3 md:p-7 space-y-6 text-slate-800">
     <div className="relative overflow-hidden rounded-[28px] bg-gradient-to-br from-slate-950 via-slate-900 to-orange-950 p-6 md:p-8 text-white shadow-xl"><div className="absolute -right-12 -top-20 h-64 w-64 rounded-full bg-orange-500/20 blur-3xl"/><div className="relative flex flex-col md:flex-row md:items-end md:justify-between gap-5"><div><div className="mb-3 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-[.18em] text-orange-200">C.D. Bustarviejo · Área de gestión</div><h1 className="text-3xl md:text-4xl font-black tracking-tight">Campus Deportivo {selectedSeason}</h1><p className="mt-2 max-w-2xl text-sm md:text-base text-slate-300">Toda la organización del Campus, las familias y el seguimiento económico en un solo lugar.</p><div className="mt-5 flex flex-wrap items-center gap-3"><label className="text-sm font-semibold text-slate-300">Edición</label><select value={selectedSeason} onChange={e=>{const year=e.target.value;setSelectedSeason(year);setSettings(settingsList.find(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")===year&&c.activo===true)||settingsList.find(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")===year)||null);setSelectedParticipantIds([]);}} className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-bold text-white">{[...new Set(settingsList.map(c=>String(c.temporada||c.fecha_inicio?.slice(0,4)||"")).filter(Boolean))].sort((a,b)=>b.localeCompare(a)).map(year=><option className="text-slate-900" key={year} value={year}>Campus {year}</option>)}</select><span className="rounded-xl bg-orange-500 px-3 py-2 text-xs font-black uppercase tracking-wide">{settings?.activo ? "Edición activa" : "Consulta"}</span></div></div><button onClick={load} className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/10 px-4 py-3 font-bold text-white transition hover:bg-white/20"><RefreshCw className="h-4 w-4"/>Actualizar datos</button></div></div>
@@ -492,7 +505,7 @@ export default function CampusAdmin() {
       ].map(([label, value, Icon]) => <div key={label} className="group rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg"><div className="flex items-center justify-between gap-2 text-sm font-semibold text-slate-500"><span>{label}</span><span className="rounded-xl bg-orange-50 p-2.5"><Icon className="h-5 w-5 text-orange-600"/></span></div><div className="mt-3 text-2xl font-black tracking-tight text-slate-950 md:text-3xl">{value}</div></div>)}
     </div>
 
-    <nav aria-label="Secciones de administración del Campus" className="sticky top-2 z-20 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-lg backdrop-blur">{[["resumen","Resumen"],["campana","Campaña"],["inscripciones","Familias e inscripciones"],["plazas","Plazas y edades"],["organizacion","Grupos y listados"],["asistencia","Asistencia"],["comunicaciones","Comunicaciones"],["configuracion","Configuración"]].map(([key,label]) => <button key={key} onClick={()=>setTab(key)} aria-current={tab===key?"page":undefined} className={`rounded-xl px-3 py-3 text-sm font-bold transition ${tab===key?"bg-orange-600 text-white shadow-md shadow-orange-600/20":"text-slate-600 hover:bg-slate-100"}`}>{label}</button>)}</nav>
+    <nav aria-label="Secciones de administración del Campus" className="sticky top-2 z-20 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-lg backdrop-blur">{[["resumen","Resumen"],["campana","Campaña"],["inscripciones","Familias e inscripciones"],["plazas","Plazas y edades"],["organizacion","Grupos y listados"],["asistencia","Asistencia"],["monitores","Monitores"],["comunicaciones","Comunicaciones"],["configuracion","Configuración"]].map(([key,label]) => <button key={key} onClick={()=>setTab(key)} aria-current={tab===key?"page":undefined} className={`rounded-xl px-3 py-3 text-sm font-bold transition ${tab===key?"bg-orange-600 text-white shadow-md shadow-orange-600/20":"text-slate-600 hover:bg-slate-100"}`}>{label}</button>)}</nav>
 
     {tab === "campana" && <section className="space-y-5">
       <div className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
@@ -674,7 +687,8 @@ export default function CampusAdmin() {
       })}
     </section>}
 
-    {tab === "asistencia" && <CampusAttendance season={selectedSeason} participants={confirmedParticipants} registrations={seasonRegistrations} settings={settings} />}
+    {tab === "asistencia" && <CampusAttendance season={selectedSeason} settings={settings} />}
+    {tab === "monitores" && <CampusMonitorManager season={selectedSeason} />}
 
     {tab === "configuracion" && settings && <section className="rounded-2xl border bg-white p-5 space-y-6">
       <div><h2 className="font-black text-xl">Tarifas aprobadas para el modelo de trabajo</h2><p className="text-sm text-slate-500">Se mantienen los importes acordados: semana 60/55 €, quincena 110/95 €, 4 semanas consecutivas 200/170 € y cuota de socio 25 €.</p></div>
