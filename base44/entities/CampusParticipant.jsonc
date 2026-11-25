@@ -137,6 +137,27 @@
     "grupo_manual": {
       "type": "string",
       "description": "Nombre del grupo manual asignado por la organizaci\u00f3n del Campus."
+    },
+    "autorizados_recogida": {
+      "type": "array",
+      "description": "Personas autorizadas por la familia para recoger al menor.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "dni": {
+            "type": "string"
+          },
+          "telefono": {
+            "type": "string"
+          },
+          "parentesco": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "required": [
