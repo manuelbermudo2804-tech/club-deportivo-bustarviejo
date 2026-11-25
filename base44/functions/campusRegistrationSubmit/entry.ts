@@ -101,6 +101,8 @@ Deno.serve(async req=>{
         throw new Error('Revisa el nombre, fecha de nacimiento y semanas seleccionadas de '+(nombre||'un participante')+'. El campus admite edades de 6 a 16 años.');
       const linked=!!verifiedMember;
       const applied=linked || b.solicitar_alta_socio===true;
+      const authorized=Array.isArray(p.autorizados_recogida)?p.autorizados_recogida:[];
+      if(authorized.some(a=>!clean(a.nombre)||!clean(a.dni)||!clean(a.telefono))) throw new Error('Completa nombre, DNI/NIE y teléfono de cada persona autorizada para recoger a '+nombre+'.');
       return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates),alergias:clean(p.alergias),intolerancias:clean(p.intolerancias),medicacion:clean(p.medicacion),observaciones_medicas:clean(p.observaciones_medicas),contacto_emergencia_nombre:clean(p.contacto_emergencia_nombre),contacto_emergencia_telefono:clean(p.contacto_emergencia_telefono),contacto_emergencia_2_nombre:clean(p.contacto_emergencia_2_nombre),contacto_emergencia_2_telefono:clean(p.contacto_emergencia_2_telefono),autorizados_recogida:Array.isArray(p.autorizados_recogida)?p.autorizados_recogida.map(a=>({nombre:clean(a.nombre),dni:clean(a.dni).toUpperCase(),telefono:clean(a.telefono),parentesco:clean(a.parentesco)})).filter(a=>a.nombre&&a.dni&&a.telefono):[]};
     });
     // Control de aforo: las solicitudes pendientes también ocupan plaza para evitar aceptar más inscripciones que capacidad.
