@@ -334,9 +334,8 @@ Deno.serve(async (req) => {
         if (targetEmails.length === 0) {
           return Response.json({ skipped: 'individual announcement without recipients' });
         }
-      } else if (data.destinatarios_emails && data.destinatarios_emails.length > 0) {
-        targetEmails.push(...data.destinatarios_emails);
       } else {
+        if (Array.isArray(data.destinatarios_emails)) targetEmails.push(...data.destinatarios_emails);
         const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 5000);
         for (const p of allPlayers) {
           const playerCategories = [p.categoria_principal, p.deporte, p.categoria].filter(Boolean);
