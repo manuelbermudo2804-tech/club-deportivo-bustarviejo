@@ -4,7 +4,9 @@ const normalizeCategory = (v) => String(v || "").trim().toLowerCase();
 
 export function getAnnouncementCategories(announcement) {
   const raw = announcement?.destinatarios_tipos;
-  const values = Array.isArray(raw) ? raw : (raw ? [raw] : [announcement?.destinatarios_tipo || "Todos"]);
+  const legacy = announcement?.destinatarios_tipo || "Todos";
+  // Compatibilidad: Base44 puede devolver el campo antiguo como texto separado por comas.
+  const values = Array.isArray(raw) ? raw : (raw ? [raw] : String(legacy).split(","));
   const cleaned = [...new Set(values.map(v => String(v || "").trim()).filter(Boolean))];
   return cleaned.includes("Todos") || cleaned.length === 0 ? ["Todos"] : cleaned;
 }
