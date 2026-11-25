@@ -49,7 +49,7 @@ Deno.serve(async req => {
       }
     }
 
-    if (action === 'roster' || action === 'saveAttendance') {
+    if (action === 'roster' || action === 'weekRoster' || action === 'saveAttendance') {
       const season = String(body.temporada || '');
       const week = String(body.semana || '');
       const date = String(body.fecha || '');
@@ -71,7 +71,7 @@ Deno.serve(async req => {
       const [participants,registrations,attendance] = await Promise.all([
         sr.entities.CampusParticipant.list('-created_date',3000),
         sr.entities.CampusRegistration.list('-created_date',2000),
-        sr.entities.CampusAttendance.filter({temporada:season,fecha:date})
+        action === 'weekRoster' ? sr.entities.CampusAttendance.filter({temporada:season,semana:week}) : sr.entities.CampusAttendance.filter({temporada:season,fecha:date})
       ]);
       const regs = new Map((registrations||[]).map(r=>[r.id,r]));
       const roster = (participants||[]).filter(p=>{
@@ -88,7 +88,7 @@ Deno.serve(async req => {
           responsable:{nombre:reg.adulto_nombre||'',dni:reg.adulto_dni||'',telefono:reg.adulto_telefono||''}
         };
       }).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||'','es'));
-      if (action === 'roster') return json({roster,records:attendance||[],week,dates:allowedDates,monitor:{nombre:user.full_name||user.email}});
+      if (action === 'roster' || action === 'weekRoster') return json({roster,records:action === 'weekRoster' ? (attendance||[]).filter(r=>allowedDates.includes(r.fecha)) : (attendance||[]),week,dates:allowedDates,monitor:{nombre:user.full_name||user.email}});
       const participant = roster.find(p=>p.id===String(body.participant_id||''));
       if (!participant) return json({error:'El menor no pertenece a tu lista autorizada de esta semana.'},403);
       const patch = body.patch || {};
