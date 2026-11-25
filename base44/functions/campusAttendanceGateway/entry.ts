@@ -96,7 +96,7 @@ Deno.serve(async req => {
       const allowedStates = ['pendiente','presente','ausente'];
       const data = {
         temporada:season,participant_id:participant.id,registration_id:participant.registration_id,
-        semana:week,fecha,estado:allowedStates.includes(patch.estado)?patch.estado:(existing?.estado||'pendiente'),
+        semana:week,fecha:date,estado:allowedStates.includes(patch.estado)?patch.estado:(existing?.estado||'pendiente'),
         hora_entrada:existing?.hora_entrada||'',hora_salida:existing?.hora_salida||'',
         persona_recoge:existing?.persona_recoge||'',dni_recoge:existing?.dni_recoge||'',
         recogida_verificada:existing?.recogida_verificada===true,
