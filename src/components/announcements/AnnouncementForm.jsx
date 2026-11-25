@@ -115,9 +115,8 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
   // se haya desactivado en CategoryConfig.
   const opcionesDestinatarios = (() => {
     const set = new Set(categoriasActivas);
-    if (currentAnnouncement.destinatarios_tipo && currentAnnouncement.destinatarios_tipo !== 'Todos') {
-      set.add(currentAnnouncement.destinatarios_tipo);
-    }
+    const savedCategories = Array.isArray(currentAnnouncement.destinatarios_tipos) ? currentAnnouncement.destinatarios_tipos : [currentAnnouncement.destinatarios_tipo];
+    savedCategories.filter(c => c && c !== "Todos").forEach(c => set.add(c));
     return Array.from(set).sort((a, b) => a.localeCompare(b));
   })();
   const iconoCategoria = (nombre) => (/baloncesto/i.test(nombre) ? '🏀' : '⚽');
