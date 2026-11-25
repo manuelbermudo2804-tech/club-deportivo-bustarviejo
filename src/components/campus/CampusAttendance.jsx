@@ -49,7 +49,9 @@ export default function CampusAttendance({ season, participants, registrations, 
     if(!name?.trim()) return;
     const dni=window.prompt("DNI/NIE de la persona que recoge:");
     if(!dni?.trim()) return;
-    const guardian=registrationFor(p);\n    const normalizedDni=(value)=>String(value||"").replace(/[\\s-]/g,"").toUpperCase();\n    const authorized=(p.autorizados_recogida||[]).some(a=>String(a.nombre||"").trim().toLocaleLowerCase("es")===name.trim().toLocaleLowerCase("es") && normalizedDni(a.dni)===normalizedDni(dni)) || (String(guardian?.adulto_nombre||"").trim().toLocaleLowerCase("es")===name.trim().toLocaleLowerCase("es") && normalizedDni(guardian?.adulto_dni)===normalizedDni(dni));
+    const guardian=registrationFor(p);
+    const normalizedDni=(value)=>String(value||"").replace(/[\s-]/g,"").toUpperCase();
+    const authorized=(p.autorizados_recogida||[]).some(a=>String(a.nombre||"").trim().toLocaleLowerCase("es")===name.trim().toLocaleLowerCase("es") && normalizedDni(a.dni)===normalizedDni(dni)) || (String(guardian?.adulto_nombre||"").trim().toLocaleLowerCase("es")===name.trim().toLocaleLowerCase("es") && normalizedDni(guardian?.adulto_dni)===normalizedDni(dni));
     if(!authorized) { setError("RECOGIDA NO VERIFICADA. El nombre y DNI no coinciden con una persona autorizada. No entregues al menor sin comprobarlo con el responsable legal."); return; }
     await save(p,{persona_recoge:name.trim(),dni_recoge:dni.trim().toUpperCase(),recogida_verificada:true,hora_salida:nowTime(),estado:"presente"},"recogida_verificada","Recogida autorizada por "+name.trim()+" a las "+nowTime());
   };
