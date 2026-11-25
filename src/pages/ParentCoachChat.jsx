@@ -179,7 +179,9 @@ export default function ParentCoachChat() {
       return server;
     },
     enabled: !!user && !!selectedCategory,
-    refetchInterval: false,
+    // Revalidar periódicamente: la suscripción realtime puede no llegar a todos los móviles/PWA.
+    refetchInterval: 10000,
+    refetchIntervalInBackground: false,
     // Recargar al entrar/cambiar de categoría y al reconectar: así aparecen
     // los mensajes que pudieran haberse perdido (app en segundo plano, sin red…).
     refetchOnMount: 'always',
