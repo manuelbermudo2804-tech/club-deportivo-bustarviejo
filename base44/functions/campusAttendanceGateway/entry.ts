@@ -23,7 +23,7 @@ Deno.serve(async req => {
           sr.entities.CampusMonitorAccess.filter({temporada:season}),
           sr.entities.User.list('-created_date',1000)
         ]);
-        const candidates = (users||[]).filter(u => u.acceso_activo !== false && (u.es_entrenador === true || u.es_coordinador === true))
+        const candidates = (users||[]).filter(u => u.acceso_activo !== false && !!cleanEmail(u.email))
           .map(u=>({email:cleanEmail(u.email),nombre:u.full_name||u.email,es_entrenador:!!u.es_entrenador,es_coordinador:!!u.es_coordinador}))
           .filter(u=>u.email);
         return json({assignments:assignments||[],candidates});
@@ -31,11 +31,11 @@ Deno.serve(async req => {
       if (action === 'adminSave') {
         const email = cleanEmail(body.email);
         const weeks = [...new Set((Array.isArray(body.semanas)?body.semanas:[]).filter(w=>WEEKS.includes(w)))];
-        if (!email || !weeks.length) return json({error:'Selecciona un entrenador/coordinador y al menos una semana.'},400);
+        if (!email || !weeks.length) return json({error:'Selecciona un usuario y al menos una semana.'},400);
         const candidates = await sr.entities.User.filter({email});
         const candidate = candidates?.[0];
-        if (!candidate || candidate.acceso_activo === false || !(candidate.es_entrenador || candidate.es_coordinador))
-          return json({error:'Ese correo no corresponde a una cuenta activa de entrenador o coordinador.'},400);
+        if (!candidate || candidate.acceso_activo === false)
+          return json({error:'Ese correo no corresponde a una cuenta activa de la aplicación.'},400);
         const existing = await sr.entities.CampusMonitorAccess.filter({email,temporada:season});
         const data = {email,nombre:candidate.full_name||email,temporada:season,semanas,activo:body.activo !== false,asignado_por:user.email};
         const saved = existing?.[0] ? await sr.entities.CampusMonitorAccess.update(existing[0].id,data) : await sr.entities.CampusMonitorAccess.create(data);
