@@ -88,10 +88,6 @@ export default function CampusAdmin() {
       const me = await base44.auth.me();
       setUser(me);
       if (me?.role !== "admin") {
-        if (!(me?.es_entrenador === true || me?.es_coordinador === true)) {
-          setError("No tienes permisos para acceder al control del Campus.");
-          setLoading(false); return;
-        }
         const cfg = await base44.entities.CampusSettings.list("-created_date", 100);
         const seasons = [...new Set((cfg || []).map(c => String(c.temporada || c.fecha_inicio?.slice(0,4) || "")).filter(Boolean))].sort((a,b)=>b.localeCompare(a));
         const chosenSeason = seasons.includes(selectedSeason) ? selectedSeason : (seasons[0] || "2027");
@@ -485,7 +481,6 @@ export default function CampusAdmin() {
   if (loading) return <div className="min-h-screen bg-slate-50 p-8 text-slate-600">Cargando panel del Campus 2027…</div>;
   if (error && !user) return <div className="max-w-3xl mx-auto p-8"><div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-800">{error}</div></div>;
   if (user?.role !== "admin") {
-    if (!(user?.es_entrenador === true || user?.es_coordinador === true)) return <div className="max-w-3xl mx-auto p-8"><div className="rounded-xl border border-red-200 bg-red-50 p-5 text-red-800">{error || "Acceso restringido."}</div></div>;
     return <div className="min-h-screen bg-[#f4f5f7] p-3 md:p-7 space-y-5 text-slate-800"><div className="rounded-3xl bg-gradient-to-br from-slate-950 to-orange-950 p-6 text-white"><p className="text-xs font-bold uppercase tracking-widest text-orange-200">C.D. Bustarviejo</p><h1 className="mt-2 text-3xl font-black">Campus Deportivo {selectedSeason}</h1><p className="mt-2 text-sm text-slate-300">Panel operativo de monitor · Solo semanas autorizadas</p></div><CampusAttendance season={selectedSeason} settings={settings}/></div>;
   }
 
