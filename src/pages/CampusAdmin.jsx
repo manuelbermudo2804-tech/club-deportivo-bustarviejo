@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2, Trash2, Mail, MessageCircle, FileDown, Filter, UsersRound, UserCheck, Pencil, X } from "lucide-react";
 import { jsPDF } from "jspdf";
+import CampusAttendance from "@/components/campus/CampusAttendance";
 
 const GROUPS = [
   { key: "6-8", label: "Iniciación", range: "6–8 años" },
@@ -491,7 +492,7 @@ export default function CampusAdmin() {
       ].map(([label, value, Icon]) => <div key={label} className="group rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg"><div className="flex items-center justify-between gap-2 text-sm font-semibold text-slate-500"><span>{label}</span><span className="rounded-xl bg-orange-50 p-2.5"><Icon className="h-5 w-5 text-orange-600"/></span></div><div className="mt-3 text-2xl font-black tracking-tight text-slate-950 md:text-3xl">{value}</div></div>)}
     </div>
 
-    <nav aria-label="Secciones de administración del Campus" className="sticky top-2 z-20 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-lg backdrop-blur">{[["resumen","Resumen"],["campana","Campaña"],["inscripciones","Familias e inscripciones"],["plazas","Plazas y edades"],["organizacion","Grupos y listados"],["comunicaciones","Comunicaciones"],["configuracion","Configuración"]].map(([key,label]) => <button key={key} onClick={()=>setTab(key)} aria-current={tab===key?"page":undefined} className={`rounded-xl px-3 py-3 text-sm font-bold transition ${tab===key?"bg-orange-600 text-white shadow-md shadow-orange-600/20":"text-slate-600 hover:bg-slate-100"}`}>{label}</button>)}</nav>
+    <nav aria-label="Secciones de administración del Campus" className="sticky top-2 z-20 flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white/95 p-2 shadow-lg backdrop-blur">{[["resumen","Resumen"],["campana","Campaña"],["inscripciones","Familias e inscripciones"],["plazas","Plazas y edades"],["organizacion","Grupos y listados"],["asistencia","Asistencia"],["comunicaciones","Comunicaciones"],["configuracion","Configuración"]].map(([key,label]) => <button key={key} onClick={()=>setTab(key)} aria-current={tab===key?"page":undefined} className={`rounded-xl px-3 py-3 text-sm font-bold transition ${tab===key?"bg-orange-600 text-white shadow-md shadow-orange-600/20":"text-slate-600 hover:bg-slate-100"}`}>{label}</button>)}</nav>
 
     {tab === "campana" && <section className="space-y-5">
       <div className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
@@ -672,6 +673,8 @@ export default function CampusAdmin() {
         </div>;
       })}
     </section>}
+
+    {tab === "asistencia" && <CampusAttendance season={selectedSeason} participants={confirmedParticipants} registrations={seasonRegistrations} settings={settings} />}
 
     {tab === "configuracion" && settings && <section className="rounded-2xl border bg-white p-5 space-y-6">
       <div><h2 className="font-black text-xl">Tarifas aprobadas para el modelo de trabajo</h2><p className="text-sm text-slate-500">Se mantienen los importes acordados: semana 60/55 €, quincena 110/95 €, 4 semanas consecutivas 200/170 € y cuota de socio 25 €.</p></div>
