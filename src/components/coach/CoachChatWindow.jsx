@@ -118,7 +118,9 @@ export default function CoachChatWindow({ selectedCategory, user, allPlayers }) 
       }
       return msgs;
     },
-    refetchInterval: false,
+    // Respaldo al realtime: refrescar cada 10 s para que ningún móvil se quede con el chat congelado.
+    refetchInterval: 10000,
+    refetchIntervalInBackground: false,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
     refetchOnReconnect: true,
