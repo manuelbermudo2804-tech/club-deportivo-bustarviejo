@@ -9,7 +9,6 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { parseChatDate } from "@/lib/chatDate";
 
-import { toGroupId } from "@/lib/chatGroupId";
 
 export default function AdminTeamChatsSection() {
   const { data, isLoading } = useQuery({
