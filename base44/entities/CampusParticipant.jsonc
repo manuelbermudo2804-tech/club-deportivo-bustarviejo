@@ -158,6 +158,11 @@
           }
         }
       }
+    },
+    "autorizacion_recogida": {
+      "type": "boolean",
+      "default": false,
+      "description": "El responsable legal confirma expresamente la autorizaci\u00f3n de recogida para las personas indicadas."
     }
   },
   "required": [
