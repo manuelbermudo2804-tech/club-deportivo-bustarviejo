@@ -103,6 +103,7 @@ Deno.serve(async req=>{
       const applied=linked || b.solicitar_alta_socio===true;
       const authorized=Array.isArray(p.autorizados_recogida)?p.autorizados_recogida:[];
       if(authorized.some(a=>!clean(a.nombre)||!clean(a.dni)||!clean(a.telefono))) throw new Error('Completa nombre, DNI/NIE y teléfono de cada persona autorizada para recoger a '+nombre+'.');
+      if(authorized.length>0 && p.autorizacion_recogida!==true) throw new Error('Confirma la autorización expresa de recogida para '+nombre+'.');
       return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates),alergias:clean(p.alergias),intolerancias:clean(p.intolerancias),medicacion:clean(p.medicacion),observaciones_medicas:clean(p.observaciones_medicas),contacto_emergencia_nombre:clean(p.contacto_emergencia_nombre),contacto_emergencia_telefono:clean(p.contacto_emergencia_telefono),contacto_emergencia_2_nombre:clean(p.contacto_emergencia_2_nombre),contacto_emergencia_2_telefono:clean(p.contacto_emergencia_2_telefono),autorizados_recogida:Array.isArray(p.autorizados_recogida)?p.autorizados_recogida.map(a=>({nombre:clean(a.nombre),dni:clean(a.dni).toUpperCase(),telefono:clean(a.telefono),parentesco:clean(a.parentesco)})).filter(a=>a.nombre&&a.dni&&a.telefono):[]};
     });
     // Control de aforo: las solicitudes pendientes también ocupan plaza para evitar aceptar más inscripciones que capacidad.
@@ -163,7 +164,7 @@ Deno.serve(async req=>{
           registration_id:reg.id,nombre:p.nombre,fecha_nacimiento:p.fecha,edad_inicio:p.edad,grupo_edad:groupFor(p.edad),
           modalidad,periodo,semanas_ocupadas:p.semanas,es_socio:p.linked,precio_aplicado:p.price,estado:'pendiente',
           alergias:p.alergias,intolerancias:p.intolerancias,medicacion:p.medicacion,observaciones_medicas:p.observaciones_medicas,
-          contacto_emergencia_nombre:p.contacto_emergencia_nombre,contacto_emergencia_telefono:p.contacto_emergencia_telefono,contacto_emergencia_2_nombre:p.contacto_emergencia_2_nombre,contacto_emergencia_2_telefono:p.contacto_emergencia_2_telefono,autorizados_recogida:p.autorizados_recogida,consentimiento_salud:b.consentimiento_salud===true,
+          contacto_emergencia_nombre:p.contacto_emergencia_nombre,contacto_emergencia_telefono:p.contacto_emergencia_telefono,contacto_emergencia_2_nombre:p.contacto_emergencia_2_nombre,contacto_emergencia_2_telefono:p.contacto_emergencia_2_telefono,autorizados_recogida:p.autorizados_recogida,autorizacion_recogida:p.autorizacion_recogida===true,consentimiento_salud:b.consentimiento_salud===true,
           autorizacion_imagen:b.consentimiento_imagen===true?'si':'no'
         });
         created.push(row.id);
