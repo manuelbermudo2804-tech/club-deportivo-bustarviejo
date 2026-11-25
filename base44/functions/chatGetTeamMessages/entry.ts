@@ -62,13 +62,15 @@ Deno.serve(async (req) => {
     }
 
     // ===== Cargar mensajes de la categoría (match por grupo_id O por deporte) =====
-    const all = await base44.asServiceRole.entities.ChatMessage.filter(
-      { tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo', 'admin_a_grupo'] } },
-      'created_date', 1000
+    // Filtrar por grupo en el servidor y traer los MÁS RECIENTES (antes se traían
+    // los 1000 más antiguos de todo el club y los nuevos quedaban fuera).
+    const recientes = await base44.asServiceRole.entities.ChatMessage.filter(
+      { grupo_id: targetGid, tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo', 'admin_a_grupo'] } },
+      '-created_date', 500
     );
-    const messages = all.filter(m =>
-      normalizeGid(m.grupo_id || m.deporte) === targetGid && !m.eliminado
-    );
+    const messages = recientes
+      .filter(m => normalizeGid(m.grupo_id || m.deporte) === targetGid && !m.eliminado)
+      .reverse();
 
     return Response.json({ messages });
   } catch (error) {
