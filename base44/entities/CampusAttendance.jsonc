@@ -1,0 +1,110 @@
+{
+  "name": "CampusAttendance",
+  "type": "object",
+  "description": "Control diario de asistencia, entradas, salidas y recogidas del Campus.",
+  "properties": {
+    "temporada": {
+      "type": "string"
+    },
+    "participant_id": {
+      "type": "string"
+    },
+    "registration_id": {
+      "type": "string"
+    },
+    "semana": {
+      "type": "string",
+      "enum": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5"
+      ]
+    },
+    "fecha": {
+      "type": "string",
+      "format": "date"
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "presente",
+        "ausente"
+      ],
+      "default": "pendiente"
+    },
+    "hora_entrada": {
+      "type": "string"
+    },
+    "hora_salida": {
+      "type": "string"
+    },
+    "persona_recoge": {
+      "type": "string"
+    },
+    "dni_recoge": {
+      "type": "string"
+    },
+    "recogida_verificada": {
+      "type": "boolean",
+      "default": false
+    },
+    "historial": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "accion": {
+            "type": "string"
+          },
+          "detalle": {
+            "type": "string"
+          },
+          "usuario": {
+            "type": "string"
+          },
+          "fecha_hora": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "actualizado_por": {
+      "type": "string"
+    },
+    "actualizado_en": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "temporada",
+    "participant_id",
+    "semana",
+    "fecha",
+    "estado"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
