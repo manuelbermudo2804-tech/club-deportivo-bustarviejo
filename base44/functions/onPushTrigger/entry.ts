@@ -325,7 +325,8 @@ Deno.serve(async (req) => {
       if (data.push_enviada) return Response.json({ skipped: 'already pushed' });
       const titulo = data.titulo || 'Nuevo anuncio';
       const prioridad = data.prioridad || 'Normal';
-      const destinatarios = data.destinatarios_tipo || 'Todos';
+      const rawCategories = Array.isArray(data.destinatarios_tipos) && data.destinatarios_tipos.length ? data.destinatarios_tipos : [data.destinatarios_tipo || 'Todos'];
+      const destinatarios = rawCategories.includes('Todos') ? ['Todos'] : rawCategories;
       const targetEmails = [];
       if (data.destinatarios_modo === 'individual') {
         // Seguridad: un anuncio individual nunca puede caer en el envío por categoría.
@@ -338,7 +339,8 @@ Deno.serve(async (req) => {
       } else {
         const allPlayers = await base44.asServiceRole.entities.Player.filter({ activo: true }, '-created_date', 5000);
         for (const p of allPlayers) {
-          const matchCategory = destinatarios === 'Todos' || (p.categoria_principal || p.deporte) === destinatarios;
+          const playerCategories = [p.categoria_principal, p.deporte, p.categoria].filter(Boolean);
+          const matchCategory = destinatarios.includes('Todos') || playerCategories.some(category => destinatarios.includes(category));
           if (!matchCategory) continue;
           if (p.email_padre) targetEmails.push(p.email_padre);
           if (p.email_tutor_2) targetEmails.push(p.email_tutor_2);
