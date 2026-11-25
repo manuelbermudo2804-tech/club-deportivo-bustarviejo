@@ -1,0 +1,65 @@
+{
+  "name": "CampusMonitorAccess",
+  "type": "object",
+  "description": "Permisos de acceso de monitores al control del Campus por semanas.",
+  "properties": {
+    "email": {
+      "type": "string",
+      "format": "email"
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "temporada": {
+      "type": "string"
+    },
+    "semanas": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "S1",
+          "S2",
+          "S3",
+          "S4",
+          "S5"
+        ]
+      }
+    },
+    "activo": {
+      "type": "boolean",
+      "default": true
+    },
+    "asignado_por": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "email",
+    "temporada",
+    "semanas",
+    "activo"
+  ],
+  "rls": {
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
