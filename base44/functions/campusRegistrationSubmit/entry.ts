@@ -71,12 +71,12 @@ Deno.serve(async req=>{
     if(!rates.fecha_inicio || !rates.fecha_inicio || !rates.fecha_fin) return Response.json({error:'No hay una edición del Campus configurada con fechas de inicio y fin.'},{status:409,headers});
     const campusYear=String(rates.temporada || rates.fecha_inicio.slice(0,4));
     const priorRegistrations=await base44.asServiceRole.entities.CampusRegistration.list('-created_date',1000);
-    const normId=adult.dni.replace(/[.\\s-]/g,'').toUpperCase();
+    const normId=adult.dni.replace(/[.\s-]/g,'').toUpperCase();
     const sameResponsible=(priorRegistrations||[]).filter(r=>{
-      const sameDni=String(r.adulto_dni||'').replace(/[.\\s-]/g,'').toUpperCase()===normId;
+      const sameDni=String(r.adulto_dni||'').replace(/[.\s-]/g,'').toUpperCase()===normId;
       const sameEmail=String(r.adulto_email||'').trim().toLowerCase()===adult.email;
       const sameSeason=String(r.temporada||'2027')===campusYear;
-      return sameSeason&&(sameDni||sameEmail);
+      return sameSeason&&r.estado!=='cancelada'&&(sameDni||sameEmail);
     });
     const alreadyRegistered=sameResponsible.reduce((sum,r)=>sum+Number(r.participantes_count||0),0);
     if(alreadyRegistered+b.participantes.length>4) return Response.json({error:'Este DNI o correo ya tiene menores inscritos en esta edición y se superaría el máximo de 4 participantes por responsable. Contacta con el club para revisar el caso.'},{status:409,headers});
@@ -92,7 +92,7 @@ Deno.serve(async req=>{
       const candidates=await base44.asServiceRole.entities.ClubMember.filter({id:verificationChallenge.member_id});
       verifiedMember=candidates?.[0]||null;
       const today=new Date().toISOString().slice(0,10);
-      const normalizeDni=value=>String(value||'').toUpperCase().replace(/[.\\s-]/g,'');
+      const normalizeDni=value=>String(value||'').toUpperCase().replace(/[.\s-]/g,'');
       if(!verifiedMember||verifiedMember.activo!==true||String(verifiedMember.estado_pago||'').toLowerCase()!=='pagado'||(verifiedMember.fecha_vencimiento&&verifiedMember.fecha_vencimiento<today)||verifiedMember.email?.toLowerCase()!==adult.email||normalizeDni(verifiedMember.dni)!==normalizeDni(adult.dni))
         return Response.json({error:'La ficha verificada no coincide con los datos del responsable o ya no está activa y pagada.'},{status:400,headers});
     }
@@ -117,7 +117,7 @@ Deno.serve(async req=>{
       if(!parent) return true;
       if(['cancelada','revision'].includes(parent.estado)) return false;
       // Pago con tarjeta abandonado: el enlace de pago caduca a los 31 min, así que pasado ese tiempo la plaza se libera.
-      const abandoned=parent.stripe_session_id&&parent.estado_pago==='pendiente'&&Date.now()-new Date(parent.created_date).getTime()>35*60*1000;
+      const abandoned=parent.estado_pago==='pendiente'&&Date.now()-new Date(parent.created_date).getTime()>35*60*1000;
       return !abandoned;
     });
     const capacityField={'6-8':'plazas_6_8','9-11':'plazas_9_11','12-16':'plazas_12_16'};
@@ -184,10 +184,10 @@ Deno.serve(async req=>{
       const temporada=membershipSeason;
       const existing=await base44.asServiceRole.entities.ClubMember.filter({email:adult.email,temporada});
       let member=existing?.[0]||null;
-      if(member && String(member.dni||'').replace(/[.\\s-]/g,'').toUpperCase()!==adult.dni.replace(/[.\\s-]/g,'').toUpperCase())
+      if(member && String(member.dni||'').replace(/[.\s-]/g,'').toUpperCase()!==adult.dni.replace(/[.\s-]/g,'').toUpperCase())
         throw new Error('Ya existe una ficha con ese correo y otro DNI. El club debe revisarla antes de continuar.');
       if(!member){
-        const all=await base44.asServiceRole.entities.ClubMember.list();
+        const all=await base44.asServiceRole.entities.ClubMember.list('-created_date',5000);
         const year=new Date().getFullYear();
         const used=new Set(all.map(x=>String(x.numero_socio||'')));
         let serial=1;
