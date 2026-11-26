@@ -65,8 +65,10 @@ Deno.serve(async req=>{
     if(b.declaracion_responsable!==true) return Response.json({error:'Debes declarar que eres padre, madre, tutor legal o persona expresamente autorizada para inscribir a estos menores.'},{status:400,headers});
     const cfgs=await base44.asServiceRole.entities.CampusSettings.list('-created_date',100);
     // Solo se admiten inscripciones en la edición activa; si no hay ninguna activa, se conserva la configuración más reciente por compatibilidad.
-    const rates=(cfgs||[]).find(c=>c.activo===true)||(cfgs||[])[0];
-    if(!rates?.id || !rates.fecha_inicio || !rates.fecha_fin) return Response.json({error:'No hay una edición del Campus configurada con fechas de inicio y fin.'},{status:409,headers});
+    // Solo se admiten inscripciones en la edición activa: desactivar la edición cierra las inscripciones.
+    const rates=(cfgs||[]).find(c=>c.activo===true);
+    if(!rates?.id) return Response.json({error:'Las inscripciones del Campus están cerradas en este momento.'},{status:409,headers});
+    if(!rates.fecha_inicio || !rates.fecha_inicio || !rates.fecha_fin) return Response.json({error:'No hay una edición del Campus configurada con fechas de inicio y fin.'},{status:409,headers});
     const campusYear=String(rates.temporada || rates.fecha_inicio.slice(0,4));
     const priorRegistrations=await base44.asServiceRole.entities.CampusRegistration.list('-created_date',1000);
     const normId=adult.dni.replace(/[.\\s-]/g,'').toUpperCase();
@@ -112,7 +114,11 @@ Deno.serve(async req=>{
     const activeExisting=(existingParticipants||[]).filter(p=>{
       if(String(p.temporada||'2027')!==campusYear || ['cancelado','lista_espera'].includes(p.estado)) return false;
       const parent=registrationById.get(p.registration_id);
-      return !parent || !['cancelada','revision'].includes(parent.estado);
+      if(!parent) return true;
+      if(['cancelada','revision'].includes(parent.estado)) return false;
+      // Pago con tarjeta abandonado: el enlace de pago caduca a los 31 min, así que pasado ese tiempo la plaza se libera.
+      const abandoned=parent.stripe_session_id&&parent.estado_pago==='pendiente'&&Date.now()-new Date(parent.created_date).getTime()>35*60*1000;
+      return !abandoned;
     });
     const capacityField={'6-8':'plazas_6_8','9-11':'plazas_9_11','12-16':'plazas_12_16'};
     const demand=new Map();
@@ -213,7 +219,7 @@ Deno.serve(async req=>{
     const reference='CDB27-'+String(reg.id).replace(/[^a-zA-Z0-9]/g,'').slice(-8).toUpperCase();
     const site='https://www.cdbustarviejo.com/campus-verano-2027.html';
     const session=await stripe.checkout.sessions.create({
-      mode:'payment',customer_email:adult.email,
+      mode:'payment',customer_email:adult.email,expires_at:Math.floor(Date.now()/1000)+31*60,
       line_items:[{price_data:{currency:'eur',unit_amount:Math.round(total*100),product_data:{name:'Campus Deportivo CD Bustarviejo 2027',description:participants.map(p=>p.nombre+' ('+p.semanas.join(', ')+')').join(' · ')}},quantity:1}],
       success_url:site+'?pago=correcto&ref='+encodeURIComponent(reference),
       cancel_url:site+'?pago=cancelado&ref='+encodeURIComponent(reference),

@@ -22,8 +22,8 @@ Deno.serve(async (req) => {
     if (body.action === 'availability') {
       const availabilityClient = createClientFromRequest(req);
       const cfgs = await availabilityClient.asServiceRole.entities.CampusSettings.list('-created_date', 100);
-      const configured = (cfgs || []).find(c => c.activo === true) || (cfgs || [])[0];
-      if (!configured?.id) return Response.json({ error: 'El campus todavía no tiene una edición configurada.' }, { status: 409, headers });
+      const configured = (cfgs || []).find(c => c.activo === true);
+      if (!configured?.id) return Response.json({ error: 'Las inscripciones del Campus están cerradas en este momento.', closed: true }, { status: 409, headers });
       const season = String(configured.temporada || configured.fecha_inicio?.slice(0,4) || '2027');
       const [registrations, participants] = await Promise.all([
         availabilityClient.asServiceRole.entities.CampusRegistration.list('-created_date', 2000),
@@ -33,7 +33,11 @@ Deno.serve(async (req) => {
       const active = (participants || []).filter(p => {
         if (String(p.temporada || '2027') !== season || ['cancelado','lista_espera'].includes(String(p.estado || '').toLowerCase())) return false;
         const parent = registrationsById.get(p.registration_id);
-        return !parent || !['cancelada','revision'].includes(String(parent.estado || '').toLowerCase());
+        if (!parent) return true;
+        if (['cancelada','revision'].includes(String(parent.estado || '').toLowerCase())) return false;
+        // Pago con tarjeta abandonado (el enlace caduca a los 31 min): la plaza vuelve a estar libre.
+        const abandoned = parent.stripe_session_id && parent.estado_pago === 'pendiente' && Date.now() - new Date(parent.created_date).getTime() > 35 * 60 * 1000;
+        return !abandoned;
       });
       const groups = [
         { key:'6-8', label:'6–8 años', capacity:configured.plazas_6_8 },

@@ -1,0 +1,45 @@
+{
+  "definition": {
+    "document": {
+      "dsl": "1.0.0",
+      "name": "campus_liberar_plazas",
+      "version": "1.0",
+      "namespace": "base44"
+    },
+    "do": [
+      {
+        "limpiar": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "campusCleanupAbandoned",
+            "args": {}
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Cancelar pagos caducados",
+            "description": "Libera sus plazas"
+          }
+        }
+      }
+    ]
+  },
+  "description": "Cada 15 minutos cancela las inscripciones del Campus cuyo pago con tarjeta caduc\u00f3 sin completarse.",
+  "trigger": {
+    "condition": null,
+    "config": {
+      "trigger_type": "scheduled",
+      "events": [],
+      "schedule_mode": "recurring",
+      "cron_expression": "*/15 * * * *",
+      "one_time_date": null,
+      "timezone": "Europe/Madrid",
+      "interval_value": null,
+      "interval_unit": null,
+      "interval_anchor": null,
+      "ends_type": "never",
+      "ends_on_date": null,
+      "ends_after_count": null
+    }
+  },
+  "name": "Campus: liberar plazas de pagos abandonados"
+}
