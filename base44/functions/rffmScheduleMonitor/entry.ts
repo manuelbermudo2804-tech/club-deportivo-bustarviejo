@@ -100,9 +100,24 @@ function campoCodeIn($, el) {
 
 // Enlace exacto de Google Maps a partir de la ficha del campo (latitud/longitud de la Federación).
 // Se guarda en CampoRffm para no volver a consultarla.
+// Los nombres completos ("TORRELAGUNA - PVO. MPAL ANTONIO MARTÍN F7") Google los encuentra bien tal cual.
+// Los que son solo el pueblo ("BUSTARVIEJO (HA)") o van abreviados ("ALGETE - URBANIZ. STO. DOMINGO")
+// se buscan como "Campo de fútbol <nombre>, <localidad>".
+function campoQueryUrl(nombre, localidad) {
+  const limpio = String(nombre || '').replace(/\s*\(H\.?A\.?\)/gi, '').trim();
+  const problematico = !limpio.includes(' - ') || /URBANIZ\.|\bSTO\.|\bSTA\./i.test(limpio);
+  let query = limpio;
+  if (problematico) {
+    const sitio = (limpio.includes(' - ') ? limpio.split(' - ').slice(1).join(' - ') : limpio)
+      .replace(/URBANIZ\./gi, 'Urbanización').replace(/\bSTO\./gi, 'Santo').replace(/\bSTA\./gi, 'Santa').trim();
+    query = `Campo de fútbol ${sitio}${localidad ? `, ${localidad}` : ''}`;
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
 const campoCache = new Map();
 async function getCampoMapsUrl(base44, cookies, codigo, nombre) {
-  const fallback = nombre ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nombre)}` : '';
+  const fallback = nombre ? campoQueryUrl(nombre, '') : '';
   if (!codigo) return fallback;
   if (campoCache.has(codigo)) return campoCache.get(codigo) || fallback;
   let url = '';
@@ -123,9 +138,8 @@ async function getCampoMapsUrl(base44, cookies, codigo, nombre) {
       const lat = parseFloat(val('latitud')), lng = parseFloat(val('longitud'));
       const direccion = val('dirección'), localidad = val('localidad'), cp = val('código postal');
       const validCoords = Number.isFinite(lat) && Number.isFinite(lng) && lat > 35 && lat < 44 && lng > -10 && lng < 5;
-      if (validCoords) url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
-      else if (direccion && localidad) url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${direccion}, ${cp} ${localidad}`)}`;
-      if (url) {
+      url = campoQueryUrl(nombre, localidad);
+      if (localidad) {
         await base44.asServiceRole.entities.CampoRffm.create({
           codigo_campo: codigo, nombre: nombre || '', direccion, localidad, codigo_postal: cp,
           ...(validCoords ? { latitud: lat, longitud: lng } : {}), maps_url: url,
