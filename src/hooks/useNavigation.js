@@ -138,6 +138,9 @@ export default function useNavigation({
   const boardTasksUrl = createPageUrl("BoardTasks");
   return useMemo(() => {
     let items = nav;
+    if (campusMonitorWeeks.length > 0 && !items.some((item) => item.url === createPageUrl("CampusAdmin"))) {
+      items = [...items, { title: "🏕️ Campus Verano 2027", url: createPageUrl("CampusAdmin"), icon: ClipboardList }];
+    }
     // Los miembros de Junta deben ver el acceso desde cualquier panel, no solo el de administración.
     if (user?.es_junta === true && !isAdmin && !items.some((item) => item.url === boardTasksUrl)) {
       const taskItem = { title: "🗂️ Tareas de la Junta", url: boardTasksUrl, icon: ClipboardList };
@@ -149,5 +152,5 @@ export default function useNavigation({
       items = items.map((item) => item.url === voluntariadoUrl ? { ...item, badge: volunteerNewCount } : item);
     }
     return items;
-  }, [nav, volunteerNewCount, user?.es_junta, isAdmin, boardTasksUrl]);
+  }, [nav, volunteerNewCount, user?.es_junta, isAdmin, boardTasksUrl, campusMonitorWeeks]);
 }
