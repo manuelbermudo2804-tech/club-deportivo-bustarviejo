@@ -13,7 +13,7 @@ export default function CampusAttendance({season,settings}){
  const [week,setWeek]=useState("S1"),[date,setDate]=useState(()=>dateForWeek(settings?.fecha_inicio,0));
  const [dates,setDates]=useState([]),[roster,setRoster]=useState([]),[records,setRecords]=useState([]);
  const [loading,setLoading]=useState(false),[busy,setBusy]=useState(""),[error,setError]=useState(""),[notice,setNotice]=useState(""),[monitor,setMonitor]=useState("");
- const [selected,setSelected]=useState(null);
+ const [selected,setSelected]=useState(null),[expandedParticipant,setExpandedParticipant]=useState("");
  const invoke=async(action,extra={})=>{const res=await base44.functions.invoke("campusAttendanceGateway",{action,temporada:String(season),semana:week,fecha:date,...extra});const data=res?.data||res;if(data?.error)throw new Error(data.error);return data;};
  const load=async()=>{setLoading(true);setError("");try{const d=await invoke("weekRoster");setRoster(d.roster||[]);setRecords(d.records||[]);setDates(d.dates||[]);setMonitor(d.monitor?.nombre||"");if(d.dates?.length&&!d.dates.includes(date))setDate(d.dates[0]);}catch(e){setError(e.message||"No se pudo cargar la asistencia.");setRoster([]);setRecords([]);setDates([]);}finally{setLoading(false);}};
  useEffect(()=>{if(settings?.fecha_inicio){const first=dateForWeek(settings.fecha_inicio,WEEKS.findIndex(x=>x.key===week));setDate(first);}},[settings?.fecha_inicio,season]);
@@ -55,8 +55,8 @@ export default function CampusAttendance({season,settings}){
    <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
     <table className="w-full min-w-[700px] border-collapse">
      <thead><tr className="bg-slate-800 text-white"><th className="sticky left-0 z-20 min-w-[145px] border-r border-slate-700 bg-slate-800 px-2 py-2 text-left text-[11px]">Participante</th>{dates.map(day=><th key={day} className="min-w-[105px] border-r border-slate-700 px-1 py-2 text-center"><div className="text-[10px] capitalize font-bold">{dayLabel(day)}</div><div className="mt-0.5 text-[9px] font-medium text-slate-300">{presentForDay(day)} P · {absentForDay(day)} A</div></th>)}</tr></thead>
-     <tbody>{roster.map((p,i)=><tr key={p.id} className={i%2?"bg-slate-50":"bg-white"}>
-      <td className={"sticky left-0 z-10 border-t border-r border-slate-200 bg-inherit px-2 py-2 text-[11px] font-semibold text-slate-900"}>{p.nombre}</td>
+     <tbody>{roster.map((p,i)=><React.Fragment key={p.id}><tr className={i%2?"bg-slate-50":"bg-white"}>
+      <td className={"sticky left-0 z-10 border-t border-r border-slate-200 bg-inherit px-2 py-1.5 text-[11px] font-semibold text-slate-900"}><button onClick={()=>setExpandedParticipant(v=>v===p.id?"":p.id)} className="w-full text-left leading-tight">{p.nombre}<span className="ml-1 text-[9px] font-normal text-orange-700">{expandedParticipant===p.id?"− ficha":"+ ficha"}</span></button></td>
       {dates.map(day=>{
        const r=recordFor(p.id,day),active=selected?.participantId===p.id&&selected?.date===day,isBusy=busy===p.id;
        return <td key={day} className={"border-t border-r border-slate-200 px-1 py-1 text-center "+(active?"bg-orange-50":"")}>
@@ -71,7 +71,21 @@ export default function CampusAttendance({season,settings}){
         </button>}
        </td>;
       })}
-     </tr>)}</tbody>
+     </tr>
+      {expandedParticipant===p.id&&<tr className="bg-orange-50/70"><td colSpan={dates.length+1} className="border-t border-orange-100 px-2 py-2">
+       <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 text-[10px] leading-snug sm:grid-cols-3">
+        <div><span className="text-slate-500">Edad</span><div className="font-bold text-slate-900">{p.fecha_nacimiento?(()=>{const b=new Date(p.fecha_nacimiento+"T12:00:00"),s=new Date((settings?.fecha_inicio||"2027-06-28")+"T12:00:00");let a=s.getFullYear()-b.getFullYear();if(s.getMonth()<b.getMonth()||(s.getMonth()===b.getMonth()&&s.getDate()<b.getDate()))a--;return a+" años";})():"No indicada"}</div></div>
+        <div><span className="text-slate-500">Grupo</span><div className="font-bold text-slate-900">{p.grupo_edad||"—"}</div></div>
+        <div><span className="text-slate-500">Alergias</span><div className="font-semibold text-slate-900">{p.alergias||"Ninguna indicada"}</div></div>
+        <div><span className="text-slate-500">Intolerancias</span><div className="font-semibold text-slate-900">{p.intolerancias||"Ninguna indicada"}</div></div>
+        <div><span className="text-slate-500">Medicación</span><div className="font-semibold text-slate-900">{p.medicacion||"Ninguna indicada"}</div></div>
+        <div className="col-span-2 sm:col-span-3"><span className="text-slate-500">Observaciones médicas</span><div className="font-semibold text-slate-900">{p.observaciones_medicas||"Sin observaciones"}</div></div>
+        <div><span className="text-slate-500">Emergencia 1</span><div className="font-semibold text-slate-900">{p.contacto_emergencia_nombre||"—"} · {p.contacto_emergencia_telefono||"—"}</div></div>
+        <div><span className="text-slate-500">Emergencia 2</span><div className="font-semibold text-slate-900">{p.contacto_emergencia_2_nombre||"—"} · {p.contacto_emergencia_2_telefono||"—"}</div></div>
+        <div className="col-span-2 sm:col-span-3"><span className="text-slate-500">Autorizados para recoger</span><div className="font-semibold text-slate-900">{(p.autorizado_recogida||[]).length?(p.autorizado_recogida||[]).map(a=>a.nombre+(a.parentesco?" · "+a.parentesco:"")).join(" / "):"Solo responsable legal registrado"}</div></div>
+       </div>
+      </td></tr>}
+      </React.Fragment>)}</tbody>
     </table>
    </div>
    <p className="text-[10px] text-slate-500">P = presente · A = ausente · Ent. = entrada · Rec. = salida con verificación de la persona autorizada. Los cambios solo se dan por guardados cuando el servidor confirma el registro.</p>
