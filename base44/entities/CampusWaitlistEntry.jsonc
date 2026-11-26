@@ -17,8 +17,16 @@
     "adulto_telefono": {
       "type": "string"
     },
+    "adulto_email": {
+      "type": "string",
+      "format": "email"
+    },
     "menor_nombre": {
       "type": "string"
+    },
+    "fecha_nacimiento": {
+      "type": "string",
+      "format": "date"
     },
     "edad": {
       "type": "number"
