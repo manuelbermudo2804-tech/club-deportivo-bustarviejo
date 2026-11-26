@@ -116,7 +116,7 @@ Deno.serve(async req => {
       }
       const actionLabel=String(body.audit?.accion||'actualización').slice(0,60);
       const detail=String(body.audit?.detalle||'Registro actualizado').slice(0,240);
-      data.historial=[...data.historial,{accion:actionLabel,detalle,usuario:user.full_name||user.email,fecha_hora:new Date().toISOString()}].slice(-200);
+      data.historial=[...data.historial,{accion:actionLabel,detalle:detail,usuario:user.full_name||user.email,fecha_hora:new Date().toISOString()}].slice(-200);
       data.actualizado_por=user.full_name||user.email; data.actualizado_en=new Date().toISOString();
       const saved=existing?await sr.entities.CampusAttendance.update(existing.id,data):await sr.entities.CampusAttendance.create(data);
       return json({ok:true,record:saved});
