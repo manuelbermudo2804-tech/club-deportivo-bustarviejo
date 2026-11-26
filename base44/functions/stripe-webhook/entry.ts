@@ -292,6 +292,7 @@ Deno.serve(async (req) => {
             const updated = await base44.asServiceRole.entities.Payment.update(metadata.payment_id, {
               estado: 'Pagado',
               fecha_pago: today,
+              metodo_pago: 'Tarjeta',
             });
             console.log('[stripe-webhook] Payment marcado Pagado', { payment_id: metadata.payment_id });
 
@@ -481,6 +482,7 @@ Deno.serve(async (req) => {
                   const updated = await base44.asServiceRole.entities.Payment.update(it.payment_id, {
                     estado: 'Pagado',
                     fecha_pago: today,
+                    metodo_pago: 'Tarjeta',
                   });
                   try {
                     const payments = await base44.asServiceRole.entities.Payment.filter({ id: it.payment_id });
@@ -604,6 +606,7 @@ Deno.serve(async (req) => {
               await base44.asServiceRole.entities.Payment.update(initialPayment.id, {
                 estado: 'Pagado',
                 fecha_pago: today,
+                metodo_pago: 'Tarjeta',
                 stripe_subscription_id: subscriptionId || null,
                 stripe_subscription_status: subscriptionId ? 'active' : null,
                 plan_mensual_mensualidad: Number(metadata.mensualidad || 0),
@@ -1538,7 +1541,7 @@ Deno.serve(async (req) => {
                 temporada: subMeta.temporada || '',
                 cantidad: amount,
                 estado: 'Pagado',
-                metodo_pago: 'Transferencia',
+                metodo_pago: 'Tarjeta',
                 fecha_pago: today,
                 stripe_subscription_id: subId,
                 stripe_subscription_status: 'active',
