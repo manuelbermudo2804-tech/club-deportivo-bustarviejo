@@ -64,13 +64,25 @@ Deno.serve(async (req) => {
     // ===== Cargar mensajes de la categoría (match por grupo_id O por deporte) =====
     // Filtrar por grupo en el servidor y traer los MÁS RECIENTES (antes se traían
     // los 1000 más antiguos de todo el club y los nuevos quedaban fuera).
-    const recientes = await base44.asServiceRole.entities.ChatMessage.filter(
-      { grupo_id: targetGid, tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo', 'admin_a_grupo'] } },
-      '-created_date', 500
-    );
-    const messages = recientes
+    const tiposGrupo = { tipo: { $in: ['padre_a_grupo', 'entrenador_a_grupo', 'admin_a_grupo'] } };
+    // Consultar por ambas claves para incluir mensajes históricos que se guardaron
+    // con grupo_id normalizado o únicamente con el nombre de deporte/categoría.
+    const [porGrupo, porDeporte] = await Promise.all([
+      base44.asServiceRole.entities.ChatMessage.filter(
+        { ...tiposGrupo, grupo_id: targetGid },
+        '-created_date', 500
+      ),
+      base44.asServiceRole.entities.ChatMessage.filter(
+        { ...tiposGrupo, deporte: categoria },
+        '-created_date', 500
+      )
+    ]);
+    // Unificar, validar categoría y evitar duplicados antes de devolver los más recientes.
+    const messages = [...new Map([...porGrupo, ...porDeporte]
       .filter(m => normalizeGid(m.grupo_id || m.deporte) === targetGid && !m.eliminado)
-      .reverse();
+      .map(m => [m.id, m])).values()]
+      .sort((a, b) => new Date(a.created_date) - new Date(b.created_date))
+      .slice(-500);
 
     return Response.json({ messages });
   } catch (error) {
