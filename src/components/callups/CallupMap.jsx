@@ -91,7 +91,12 @@ export default function CallupMap({ ubicacion, enlaceUbicacion, localVisitante }
   };
 
   const openNavigation = () => {
-    if (coordinates) {
+    // Si el enlace es una búsqueda, ir al mismo sitio que "Ver en Maps" (no al punto aproximado del mapa)
+    let destino = null;
+    try { destino = enlaceUbicacion ? new URL(enlaceUbicacion).searchParams.get("query") : null; } catch {}
+    if (destino) {
+      window.open(`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destino)}`, "_blank");
+    } else if (coordinates) {
       // Try to open in native maps app
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
       if (isIOS) {

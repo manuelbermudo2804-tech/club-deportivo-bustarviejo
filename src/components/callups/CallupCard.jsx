@@ -1,4 +1,5 @@
 import React from "react";
+import { callupMapsUrl } from "@/lib/campoMaps";
 import callupDescripcion from "@/components/callups/callupDescripcion";
 import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -125,9 +126,9 @@ export default function CallupCard({ callup, onEdit, onDelete, isCoach, onCloseN
               <MapPin className="w-4 h-4 text-orange-600 mt-0.5 flex-shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="text-sm">{callup.ubicacion}</span>
-                {callup.enlace_ubicacion && (
+                {callupMapsUrl(callup) && (
                   <a 
-                    href={callup.enlace_ubicacion}
+                    href={callupMapsUrl(callup)}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1 hover:underline mt-0.5"

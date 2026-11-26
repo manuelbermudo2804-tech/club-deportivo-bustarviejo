@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { campoMapsUrl } from "@/lib/campoMaps";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 import { eachDayOfInterval } from "date-fns";
@@ -16,7 +17,7 @@ const mapsUrlFor = (ubicacion) => {
   if (!ubicacion || ubicacion.includes("Campo Municipal") || ubicacion.includes("Municipal de Bustarviejo")) {
     return CAMPO_MUNICIPAL_MAPS;
   }
-  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(ubicacion)}`;
+  return campoMapsUrl(ubicacion);
 };
 
 /**

@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { campoMapsUrl } from "@/lib/campoMaps";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
@@ -144,7 +145,7 @@ function MatchCard({ match, isFirst }) {
         {match.campo && (
           !isLocal ? (
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + match.campo)}`}
+              href={campoMapsUrl(match.campo)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-1.5 mt-2 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-lg px-3 py-1.5 transition-colors"

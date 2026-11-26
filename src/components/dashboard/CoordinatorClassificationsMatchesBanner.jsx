@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { callupMapsUrl } from "@/lib/campoMaps";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -93,12 +94,8 @@ export default function CoordinatorClassificationsMatchesBanner() {
   const additionalMatches = upcomingMatches.length - 1;
 
   const openGoogleMaps = (callup) => {
-    if (callup.enlace_ubicacion) {
-      window.open(callup.enlace_ubicacion, '_blank');
-    } else if (callup.ubicacion) {
-      const query = encodeURIComponent(callup.ubicacion);
-      window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
-    }
+    const url = callupMapsUrl(callup);
+    if (url) window.open(url, '_blank');
   };
 
   // Calcular tendencia

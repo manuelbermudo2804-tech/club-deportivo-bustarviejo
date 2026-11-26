@@ -1,4 +1,5 @@
 import React from "react";
+import { campoMapsUrl } from "@/lib/campoMaps";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
@@ -99,7 +100,7 @@ export default function NextMatchFromDB({ category, standings }) {
         {match.campo && (
           !isLocal ? (
             <a
-              href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + match.campo)}`}
+              href={campoMapsUrl(match.campo)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1.5 bg-blue-500/20 hover:bg-blue-500/30 border border-blue-400/30 rounded-lg px-3 py-1.5 transition-colors"

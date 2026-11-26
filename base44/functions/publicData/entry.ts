@@ -281,6 +281,20 @@ Deno.serve(async (req) => {
   }
 });
 
+// Misma regla que src/lib/campoMaps.js y rffmScheduleMonitor (enlace de Maps de un campo)
+function campoMapsUrl(nombre) {
+  const limpio = String(nombre || '').replace(/\s*\(H\.?A\.?\)/gi, '').trim();
+  const conGuion = limpio.includes(' - ');
+  let query = limpio;
+  if (!conGuion || /URBANIZ\.|\bSTO\.|\bSTA\./i.test(limpio)) {
+    const pueblo = limpio.split(' - ')[0].trim();
+    const sitio = (conGuion ? limpio.split(' - ').slice(1).join(' - ') : limpio)
+      .replace(/URBANIZ\./gi, 'Urbanización').replace(/\bSTO\./gi, 'Santo').replace(/\bSTA\./gi, 'Santa').trim();
+    query = `Campo de fútbol ${sitio}, ${pueblo}`;
+  }
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
 function generarHTML(data, jornadasCache, crossTableCache) {
   const ESCUDO = 'https://www.cdbustarviejo.com/img/escudo.png';
   const WEB = 'https://www.cdbustarviejo.com/';
@@ -392,7 +406,7 @@ function generarHTML(data, jornadasCache, crossTableCache) {
     const badge = diasHasta(heroMatch.fecha_iso);
     const badgeClass = badge === '¡HOY!' ? 'badge-hoy' : badge === 'MAÑANA' ? 'badge-manana' : 'badge-pronto';
     const campoLink = (!esLocal && heroMatch.campo)
-      ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + heroMatch.campo)}" target="_blank" rel="noopener" class="hero-mapa-btn">📍 Cómo llegar</a>`
+      ? `<a href="${campoMapsUrl(heroMatch.campo)}" target="_blank" rel="noopener" class="hero-mapa-btn">📍 Cómo llegar</a>`
       : '';
     heroHTML = `
       <div class="hero-match">
@@ -446,7 +460,7 @@ function generarHTML(data, jornadasCache, crossTableCache) {
       }
 
       const campoLink = (!esLocal && p.campo)
-        ? `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent('campo de fútbol ' + p.campo)}" target="_blank" rel="noopener" class="match-mapa">📍 Cómo llegar a ${p.campo}</a>`
+        ? `<a href="${campoMapsUrl(p.campo)}" target="_blank" rel="noopener" class="match-mapa">📍 Cómo llegar a ${p.campo}</a>`
         : '';
       const waText = encodeURIComponent(`⚽ ¡Partido del C.D. Bustarviejo!\n${catCorta(p.categoria)}\n${p.local} vs ${p.visitante}\n📅 ${fechaBonita(p.fecha)}${p.hora ? ' 🕐 ' + p.hora : ''}\n${esLocal ? '🏠 En casa' : '✈️ Fuera'}\n\n¡Vamos Bustarviejo! 💪🟠`);
       
