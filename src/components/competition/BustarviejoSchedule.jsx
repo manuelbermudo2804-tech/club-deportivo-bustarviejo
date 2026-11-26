@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { campoMapsUrl } from "@/lib/campoMaps";
 
 const BUST = ["BUSTARVIEJO"];
 function isBust(name) {
@@ -231,7 +232,9 @@ export default function BustarviejoSchedule({ config }) {
                     {!m.isDescansa && m.fecha && (
                       <div className="text-[10px] text-slate-500 mt-0.5">
                         {formatDate(m.fecha)}{m.hora ? ` · ${m.hora}` : ""}
-                        {m.campo && !m.isLocal ? ` · ${m.campo.substring(0, 35)}` : ""}
+                        {m.campo && !m.isLocal && (
+                          <> · <a href={campoMapsUrl(m.campo)} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">📍 {m.campo.substring(0, 35)}</a></>
+                        )}
                       </div>
                     )}
                   </div>

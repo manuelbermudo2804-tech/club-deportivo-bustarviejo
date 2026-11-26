@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Calendar, MapPin, Clock, Filter, X, ChevronDown, ChevronUp } from "lucide-react";
+import { campoMapsUrl } from "@/lib/campoMaps";
 
 const BUST_NAMES = ["BUSTARVIEJO", "C.D. BUSTARVIEJO", "CD BUSTARVIEJO", "BUSTARVIEJO C.D.", "BUSTARVIEJO CD"];
 
@@ -71,7 +72,7 @@ function MatchRow({ match, isNext }) {
               <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{match.hora_partido}</span>
             )}
             {match.campo && (
-              <span className="flex items-center gap-1 truncate"><MapPin className="w-3 h-3" />{match.campo}</span>
+              <a href={campoMapsUrl(match.campo)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 truncate text-blue-600 hover:underline"><MapPin className="w-3 h-3" />{match.campo}</a>
             )}
           </div>
           {isFinalizado && (

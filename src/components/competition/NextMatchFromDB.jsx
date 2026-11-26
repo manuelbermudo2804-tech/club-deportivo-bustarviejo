@@ -109,9 +109,10 @@ export default function NextMatchFromDB({ category, standings }) {
               <span className="text-[10px] text-blue-400 font-semibold">→ Mapa</span>
             </a>
           ) : (
-            <div className="flex items-center gap-1.5 bg-white/10 rounded-lg px-3 py-1.5">
+            <a href={campoMapsUrl(match.campo)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 rounded-lg px-3 py-1.5 transition-colors">
               <span className="text-xs text-slate-300">📍 {match.campo}</span>
-            </div>
+              <span className="text-[10px] text-blue-300 font-semibold">→ Mapa</span>
+            </a>
           )
         )}
       </div>
