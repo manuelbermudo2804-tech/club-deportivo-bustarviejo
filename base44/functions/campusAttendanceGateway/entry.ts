@@ -84,6 +84,13 @@ Deno.serve(async req => {
         const reg=regs.get(p.registration_id)||{};
         return {
           id:p.id,nombre:p.nombre,registration_id:p.registration_id,
+          fecha_nacimiento:p.fecha_nacimiento||'',
+          alergias:p.alergias||'',intolerancias:p.intolerancias||'',medicacion:p.medicacion||'',
+          observaciones_medicas:p.observaciones_medicas||'',
+          contacto_emergencia_nombre:p.contacto_emergencia_nombre||'',
+          contacto_emergencia_telefono:p.contacto_emergencia_telefono||'',
+          contacto_emergencia_2_nombre:p.contacto_emergencia_2_nombre||'',
+          contacto_emergencia_2_telefono:p.contacto_emergencia_2_telefono||'',
           autorizado_recogida:Array.isArray(p.autorizados_recogida)?p.autorizados_recogida.map(a=>({nombre:a.nombre||'',dni:a.dni||'',telefono:a.telefono||'',parentesco:a.parentesco||''})):[],
           responsable:{nombre:reg.adulto_nombre||'',dni:reg.adulto_dni||'',telefono:reg.adulto_telefono||''}
         };
