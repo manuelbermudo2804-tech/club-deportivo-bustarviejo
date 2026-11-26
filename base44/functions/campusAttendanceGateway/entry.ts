@@ -2,7 +2,7 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
 
 const WEEKS = ['S1','S2','S3','S4','S5'];
 const cleanEmail = v => String(v || '').trim().toLowerCase();
-const cleanDni = v => String(v || '').replace(/[\\s.-]/g,'').toUpperCase();
+const cleanDni = v => String(v || '').replace(/[\s.-]/g,'').toUpperCase();
 const json = (data,status=200) => Response.json(data,{status});
 
 Deno.serve(async req => {
