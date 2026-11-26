@@ -4,6 +4,7 @@ import { CalendarDays, Users, Euro, RefreshCw, Save, CheckCircle2, Trash2, Mail,
 import { jsPDF } from "jspdf";
 import CampusAttendance from "@/components/campus/CampusAttendance";
 import CampusMonitorManager from "@/components/campus/CampusMonitorManager";
+import CampusWaitlistManager from "@/components/campus/CampusWaitlistManager";
 
 const GROUPS = [
   { key: "6-8", label: "Iniciación", range: "6–8 años" },
@@ -500,7 +501,7 @@ export default function CampusAdmin() {
       ].map(([label, value, Icon]) => <div key={label} className="group rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg"><div className="flex items-center justify-between gap-2 text-sm font-semibold text-slate-500"><span>{label}</span><span className="rounded-xl bg-orange-50 p-2.5"><Icon className="h-5 w-5 text-orange-600"/></span></div><div className="mt-3 text-2xl font-black tracking-tight text-slate-950 md:text-3xl">{value}</div></div>)}
     </div>
 
-    <nav aria-label="Secciones de administración del Campus" className="sticky top-2 z-20 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur"><div className="mb-2 flex items-center justify-between px-1"><span className="text-[11px] font-black uppercase tracking-[.16em] text-slate-400">Navegación del campus</span><span className="text-[11px] font-semibold text-slate-400">Selecciona una sección</span></div><div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 xl:grid-cols-5">{[["resumen","Resumen"],["campana","Campaña"],["inscripciones","Familias e inscripciones"],["plazas","Plazas y edades"],["organizacion","Grupos y listados"],["asistencia","Asistencia"],["monitores","Monitores"],["comunicaciones","Comunicaciones"],["configuracion","Configuración"]].map(([key,label]) => <button key={key} onClick={()=>setTab(key)} aria-current={tab===key?"page":undefined} className={`flex min-h-[40px] items-center justify-center rounded-lg border px-2 py-1.5 text-center text-xs font-bold leading-tight transition ${tab===key?"border-orange-600 bg-orange-600 text-white shadow-md shadow-orange-600/20":"border-slate-200 bg-slate-50 text-slate-700 hover:border-orange-200 hover:bg-orange-50"}`}>{label}</button>)}</div></nav>
+    <nav aria-label="Secciones de administración del Campus" className="sticky top-2 z-20 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur"><div className="mb-2 flex items-center justify-between px-1"><span className="text-[11px] font-black uppercase tracking-[.16em] text-slate-400">Navegación del campus</span><span className="text-[11px] font-semibold text-slate-400">Selecciona una sección</span></div><div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 xl:grid-cols-5">{[["resumen","Resumen"],["campana","Campaña"],["inscripciones","Familias e inscripciones"],["plazas","Plazas y edades"],["organizacion","Grupos y listados"],["asistencia","Asistencia"],["monitores","Monitores"],["lista_espera","Lista de espera"],["comunicaciones","Comunicaciones"],["configuracion","Configuración"]].map(([key,label]) => <button key={key} onClick={()=>setTab(key)} aria-current={tab===key?"page":undefined} className={`flex min-h-[40px] items-center justify-center rounded-lg border px-2 py-1.5 text-center text-xs font-bold leading-tight transition ${tab===key?"border-orange-600 bg-orange-600 text-white shadow-md shadow-orange-600/20":"border-slate-200 bg-slate-50 text-slate-700 hover:border-orange-200 hover:bg-orange-50"}`}>{label}</button>)}</div></nav>
 
     {tab === "campana" && <section className="space-y-5">
       <div className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
@@ -684,6 +685,7 @@ export default function CampusAdmin() {
 
     {tab === "asistencia" && <CampusAttendance season={selectedSeason} settings={settings} />}
     {tab === "monitores" && <CampusMonitorManager season={selectedSeason} />}
+    {tab === "lista_espera" && <CampusWaitlistManager season={selectedSeason} />}
 
     {tab === "configuracion" && settings && <section className="rounded-2xl border bg-white p-5 space-y-6">
       <div><h2 className="font-black text-xl">Tarifas aprobadas para el modelo de trabajo</h2><p className="text-sm text-slate-500">Se mantienen los importes acordados: semana 60/55 €, quincena 110/95 €, 4 semanas consecutivas 200/170 € y cuota de socio 25 €.</p></div>
