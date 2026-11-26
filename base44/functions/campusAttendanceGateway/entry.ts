@@ -44,7 +44,7 @@ Deno.serve(async req => {
         if (!candidate || candidate.acceso_activo === false)
           return json({error:'Ese correo no corresponde a una cuenta activa de la aplicación.'},400);
         const existing = await sr.entities.CampusMonitorAccess.filter({email,temporada:season});
-        const data = {email,nombre:candidate.full_name||email,temporada:season,semanas,activo:body.activo !== false,asignado_por:user.email};
+        const data = {email,nombre:candidate.full_name||email,temporada:season,semanas:weeks,activo:body.activo !== false,asignado_por:user.email};
         const saved = existing?.[0] ? await sr.entities.CampusMonitorAccess.update(existing[0].id,data) : await sr.entities.CampusMonitorAccess.create(data);
         return json({ok:true,assignment:saved});
       }
