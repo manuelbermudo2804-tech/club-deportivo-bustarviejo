@@ -20,6 +20,10 @@ Deno.serve(async (req) => {
     ]);
 
     const esc = (t) => String(t || '').replace(/([,;\\])/g, '\\$1').replace(/\n/g, '\\n');
+    // Mismo sitio que busca "Ver en Maps" (el nombre de la Federación a secas lo sitúa mal el calendario)
+    const lugarMaps = (c) => {
+      try { return (c.enlace_ubicacion && new URL(c.enlace_ubicacion).searchParams.get('query')) || c.ubicacion; } catch { return c.ubicacion; }
+    };
     const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     const local = (fecha, hora) => `${String(fecha).replace(/-/g, '')}T${String(hora || '00:00').replace(':', '')}00`;
     const addHours = (fecha, hora, h) => {
@@ -74,8 +78,8 @@ Deno.serve(async (req) => {
         `DTSTART;TZID=Europe/Madrid:${local(c.fecha_partido, inicio)}`,
         `DTEND;TZID=Europe/Madrid:${addHours(c.fecha_partido, c.hora_partido, 2)}`,
         `SUMMARY:⚽ ${esc(c.titulo)}`,
-        `DESCRIPTION:${esc(`Concentración ${c.hora_concentracion || '-'} · Partido ${c.hora_partido || '-'}${c.rival ? ` · Rival: ${c.rival}` : ''}`)}`,
-        `LOCATION:${esc(c.ubicacion)}`,
+        `DESCRIPTION:${esc(`Concentración ${c.hora_concentracion || '-'} · Partido ${c.hora_partido || '-'}${c.rival ? ` · Rival: ${c.rival}` : ''}${c.enlace_ubicacion ? `\nMapa: ${c.enlace_ubicacion}` : ''}`)}`,
+        `LOCATION:${esc(lugarMaps(c))}`,
         'BEGIN:VALARM',
         'TRIGGER:-PT12H',
         'ACTION:DISPLAY',
