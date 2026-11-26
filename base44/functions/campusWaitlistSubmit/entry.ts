@@ -47,8 +47,8 @@ Deno.serve(async req => {
         });
       }
     }
-    for (let i=0;i<rows.length;i+=100) {
-      await base44.asServiceRole.entities.CampusWaitlistEntry.bulkCreate(rows.slice(i,i+100));
+    for (const row of rows) {
+      await base44.asServiceRole.entities.CampusWaitlistEntry.create(row);
     }
     return Response.json({success:true,solicitud_id:solicitudId,menores:cleanMinors.length,solicitudes:rows.length,message:'Solicitud añadida a la lista de espera.'},{headers});
   } catch (error) {
