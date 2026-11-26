@@ -15,6 +15,13 @@ Deno.serve(async req => {
     const admin = user.role === 'admin';
     const sr = base44.asServiceRole;
 
+    if (action === 'myAccess') {
+      const season = String(body.temporada || '2027');
+      const rows = await sr.entities.CampusMonitorAccess.filter({email:cleanEmail(user.email),temporada:season,activo:true});
+      const semanas = [...new Set((rows||[]).flatMap(r=>Array.isArray(r.semanas)?r.semanas:[]).filter(w=>WEEKS.includes(w)))];
+      return json({ok:true,temporada:season,semanas});
+    }
+
     if (action === 'adminList' || action === 'adminSave' || action === 'adminDelete') {
       if (!admin) return json({error:'Solo administración puede gestionar permisos.'},403);
       const season = String(body.temporada || '2027');
