@@ -219,7 +219,10 @@ Deno.serve(async (req) => {
     if (entityName === 'Convocatoria') {
       // 2a. Cancelación o reprogramación
       const estado = data.estado_convocatoria;
-      if (estado === 'cancelada' || estado === 'reprogramada') {
+      // Publicada ahora desde borrador → siempre se trata como nueva publicación (2c),
+      // aunque la Federación la haya marcado antes como reprogramada.
+      const recienPublicada = event.type === 'update' && old_data && !old_data.publicada;
+      if (estado === 'cancelada' || (estado === 'reprogramada' && !recienPublicada)) {
         // Cancelación: avisar solo al cambiar realmente a cancelada.
         if (estado === 'cancelada' && (event.type !== 'update' || !old_data || old_data.estado_convocatoria === 'cancelada')) {
           return Response.json({ skipped: 'cancelación ya notificada' });
@@ -260,8 +263,6 @@ Deno.serve(async (req) => {
       }
 
       // 2b. Check if all players responded → notify coach ONCE
-      // Publicada ahora desde borrador → tratar como nueva publicación (2c)
-      const recienPublicada = event.type === 'update' && old_data && !old_data.publicada;
       if (data.publicada && event.type === 'update' && !recienPublicada) {
         const jugadores = data.jugadores_convocados || [];
         if (jugadores.length > 0) {
@@ -288,8 +289,8 @@ Deno.serve(async (req) => {
 
       // 2c. Nueva publicación
       if (!data.publicada) return Response.json({ skipped: 'not published' });
-      // NEVER send push for system-created callups — only human coaches can publish
-      if (data.entrenador_email === 'sistema@cdbustarviejo.es') return Response.json({ skipped: 'system callup - never auto-notify' });
+      // Borradores creados por el sistema: solo avisar cuando una persona los publica
+      if (data.entrenador_email === 'sistema@cdbustarviejo.es' && !data.publicada_por) return Response.json({ skipped: 'system callup - never auto-notify' });
       const jugadores = data.jugadores_convocados || [];
       const targetEmails = [];
       for (const j of jugadores) {
