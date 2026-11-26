@@ -436,6 +436,17 @@ export default function CampusAdmin() {
     finally { setSaving(false); }
   };
 
+  const toggleWaitlist = async (enabled) => {
+    if (!settings?.id) return;
+    setSaving(true); setNotice(""); setError("");
+    try {
+      await base44.entities.CampusSettings.update(settings.id, { lista_espera_activa: !!enabled });
+      setSettings(current => ({ ...current, lista_espera_activa: !!enabled }));
+      setNotice(enabled ? "Lista de espera ACTIVADA en la web. Ya se pueden recibir solicitudes." : "Lista de espera DESACTIVADA en la web. No se admitirán nuevas solicitudes; las existentes se conservan.");
+    } catch (e) { setError(e?.message || "No se pudo cambiar la lista de espera."); }
+    finally { setSaving(false); }
+  };
+
   const saveCampaignPlan = async () => {
     if (!settings?.id) return;
     setSaving(true); setNotice(""); setError("");
@@ -688,6 +699,12 @@ export default function CampusAdmin() {
     {tab === "lista_espera" && <CampusWaitlistManager season={selectedSeason} />}
 
     {tab === "configuracion" && settings && <section className="rounded-2xl border bg-white p-5 space-y-6">
+      <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="max-w-2xl"><p className="text-xs font-black uppercase tracking-wide text-orange-700">Control de publicación</p><h2 className="mt-1 text-xl font-black text-slate-950">Lista de espera del Campus {selectedSeason}</h2><p className="mt-1 text-sm text-slate-600">Activa este interruptor cuando quieras admitir solicitudes. Si está apagado, el formulario no aparece en la web y el servidor rechaza cualquier envío. Las solicitudes anteriores no se borran.</p><p className={`mt-2 text-sm font-black ${settings.lista_espera_activa ? "text-emerald-700" : "text-slate-500"}`}>{settings.lista_espera_activa ? "● ACTIVADA" : "● DESACTIVADA"}</p></div>
+          <button type="button" role="switch" aria-checked={settings.lista_espera_activa === true} onClick={() => toggleWaitlist(!settings.lista_espera_activa)} disabled={saving} className={`relative inline-flex h-10 w-[76px] shrink-0 items-center rounded-full p-1 transition disabled:opacity-50 ${settings.lista_espera_activa ? "bg-emerald-600" : "bg-slate-300"}`}><span className={`h-8 w-8 rounded-full bg-white shadow transition-transform ${settings.lista_espera_activa ? "translate-x-9" : "translate-x-0"}`}/><span className="sr-only">Activar lista de espera</span></button>
+        </div>
+      </div>
       <div><h2 className="font-black text-xl">Tarifas aprobadas para el modelo de trabajo</h2><p className="text-sm text-slate-500">Se mantienen los importes acordados: semana 60/55 €, quincena 110/95 €, 4 semanas consecutivas 200/170 € y cuota de socio 25 €.</p></div>
       <div className="grid md:grid-cols-3 gap-4">{[
         ["Semana","precio_semana_general","precio_semana_socio"],["Quincena","precio_quincena_general","precio_quincena_socio"],["4 semanas consecutivas","precio_mes_general","precio_mes_socio"]
