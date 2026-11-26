@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from "react";
 import {base44} from "@/api/base44Client";
-import {RefreshCw} from "lucide-react";
+import {RefreshCw,X} from "lucide-react";
 
 const WEEKS=[{key:"S1",label:"Semana 1"},{key:"S2",label:"Semana 2"},{key:"S3",label:"Semana 3"},{key:"S4",label:"Semana 4"},{key:"S5",label:"Semana 5"}];
 const dateForWeek=(start,i)=>{const d=new Date((start||"2027-06-28")+"T12:00:00");d.setDate(d.getDate()+i*7);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);};
@@ -13,7 +13,7 @@ export default function CampusAttendance({season,settings}){
  const [week,setWeek]=useState("S1"),[date,setDate]=useState(()=>dateForWeek(settings?.fecha_inicio,0));
  const [dates,setDates]=useState([]),[roster,setRoster]=useState([]),[records,setRecords]=useState([]);
  const [loading,setLoading]=useState(false),[busy,setBusy]=useState(""),[error,setError]=useState(""),[notice,setNotice]=useState(""),[monitor,setMonitor]=useState("");
- const [selected,setSelected]=useState(null),[expandedParticipant,setExpandedParticipant]=useState(""),[pickup,setPickup]=useState(null);
+ const [selected,setSelected]=useState(null),[expandedParticipant,setExpandedParticipant]=useState(""),[pickup,setPickup]=useState(null),[pickupError,setPickupError]=useState("");
  const invoke=async(action,extra={})=>{const res=await base44.functions.invoke("campusAttendanceGateway",{action,temporada:String(season),semana:week,fecha:date,...extra});const data=res?.data||res;if(data?.error)throw new Error(data.error);return data;};
  const load=async()=>{setLoading(true);setError("");try{const d=await invoke("weekRoster");setRoster(d.roster||[]);setRecords(d.records||[]);setDates(d.dates||[]);setMonitor(d.monitor?.nombre||"");if(d.dates?.length&&!d.dates.includes(date))setDate(d.dates[0]);}catch(e){setError(e.message||"No se pudo cargar la asistencia.");setRoster([]);setRecords([]);setDates([]);}finally{setLoading(false);}};
  useEffect(()=>{if(settings?.fecha_inicio){const first=dateForWeek(settings.fecha_inicio,WEEKS.findIndex(x=>x.key===week));setDate(first);}},[settings?.fecha_inicio,season]);
@@ -26,21 +26,26 @@ export default function CampusAttendance({season,settings}){
    if(result?.ok!==true||!result?.record)throw new Error("El servidor no ha confirmado el guardado. No se ha marcado como guardado.");
    setRecords(prev=>{const rest=prev.filter(r=>!(r.participant_id===p.id&&r.fecha===day));return [...rest,result.record];});
    setNotice("Guardado y confirmado · "+p.nombre+" · "+dayLabel(day));
-   setSelected(null);
-  }catch(e){setError(e.message||"No se pudo guardar.");}
-  finally{setBusy("");}
+   setSelected(null);setPickup(null);setPickupError("");
+   return true;
+  }catch(e){
+   const message=e?.response?.data?.error||e?.data?.error||e?.message||"No se pudo guardar.";
+   setError(message);
+   return false;
+  }finally{setBusy("");}
  };
  const confirmPickup=async p=>{
   const person=pickup?.person,dni=pickup?.dni||"";
-  if(!person||!dni.trim()){setError("Selecciona a la persona e introduce su DNI/NIE.");return;}
+  if(!person||!dni.trim()){setPickupError("Selecciona a la persona e introduce su DNI/NIE.");return;}
+  if(cleanDni(person.dni)!==cleanDni(dni)){setPickupError("⛔ NO AUTORIZADO: el DNI/NIE no coincide con el de "+person.nombre+". No se ha registrado la salida.");return;}
+  setPickupError("");
   const t=nowTime();
   await save(p,{estado:"presente",recogida_verificada:true,persona_recoge:person.nombre,dni_recoge:cleanDni(dni),hora_salida:t},"recogida_verificada","Recogida verificada por "+person.nombre+" a las "+t,pickup.date);
-  setPickup(null);
  };
  const presentForDay=day=>records.filter(r=>r.fecha===day&&r.estado==="presente").length;
  const absentForDay=day=>records.filter(r=>r.fecha===day&&r.estado==="ausente").length;
- const chooseWeek=w=>{setWeek(w);setDate(dateForWeek(settings?.fecha_inicio,WEEKS.findIndex(x=>x.key===w)));setSelected(null);setError("");setNotice("");};
- const openDay=(p,day)=>{setDate(day);setSelected({participantId:p.id,date:day});setError("");setNotice("");};
+ const chooseWeek=w=>{setWeek(w);setDate(dateForWeek(settings?.fecha_inicio,WEEKS.findIndex(x=>x.key===w)));setSelected(null);setPickup(null);setPickupError("");setError("");setNotice("");};
+ const openDay=(p,day)=>{setDate(day);setSelected({participantId:p.id,date:day});setPickup(null);setPickupError("");setError("");setNotice("");};
  return <section className="space-y-4">
   <div className="rounded-2xl border bg-white p-4 shadow-sm">
    <p className="text-[10px] font-black uppercase tracking-[.18em] text-orange-600">Operativa semanal</p>
@@ -63,12 +68,14 @@ export default function CampusAttendance({season,settings}){
         {active? <div className="flex min-h-7 flex-wrap items-center justify-center gap-1">
           <button title="Marcar presente y registrar hora de entrada" disabled={isBusy} onClick={()=>{const t=nowTime();save(p,{estado:"presente",hora_entrada:t},"asistencia","Presente; entrada registrada a las "+t,day);}} className="h-6 min-w-7 rounded bg-green-600 px-1.5 text-[10px] font-black text-white disabled:opacity-40">P</button>
           <button title="Marcar ausente" disabled={isBusy} onClick={()=>save(p,{estado:"ausente"},"asistencia","Marcado ausente",day)} className="h-6 min-w-7 rounded bg-red-600 px-1.5 text-[10px] font-black text-white disabled:opacity-40">A</button>
-          <button title="Registrar salida y verificar recogida" disabled={isBusy||!!r?.recogida_verificada} onClick={()=>setPickup({participantId:p.id,date:day,person:null,dni:""})} className="h-6 rounded border border-slate-300 bg-white px-1.5 text-[10px] font-bold text-slate-700 disabled:opacity-40">Rec.</button>
+          <button title="Registrar salida y verificar recogida" disabled={isBusy||!!r?.recogida_verificada} onClick={()=>{setPickupError("");setPickup({participantId:p.id,date:day,person:null,dni:""});}} className="h-6 rounded border border-slate-300 bg-white px-1.5 text-[10px] font-bold text-slate-700 disabled:opacity-40">Rec.</button>
+          <button title="Cerrar opciones" onClick={()=>{setSelected(null);setPickup(null);setPickupError("");}} className="inline-flex h-6 w-6 items-center justify-center rounded border border-slate-300 bg-white text-slate-600"><X className="h-3.5 w-3.5"/></button>
           {pickup?.participantId===p.id&&pickup?.date===day&&<div className="mt-1 w-full basis-full rounded-md border border-slate-200 bg-white p-2 text-left">
-           <div className="mb-1 text-[10px] font-bold text-slate-700">¿Quién recoge a {p.nombre}?</div>
+           <div className="mb-1 flex items-center justify-between gap-2 text-[10px] font-bold text-slate-700"><span>¿Quién recoge a {p.nombre}?</span><button onClick={()=>{setPickup(null);setPickupError("");}} className="rounded border px-1.5 py-0.5 text-slate-500">Cerrar ×</button></div>
            {!pickup.person?<div className="flex flex-col gap-1">{(p.autorizado_recogida||[]).map((person,i)=><button key={i} onClick={()=>setPickup(v=>({...v,person,dni:""}))} className="rounded border px-2 py-1.5 text-left text-[10px] font-semibold text-slate-800">{person.nombre}<span className="ml-1 font-normal text-slate-500">{person.parentesco||""}</span></button>)}</div>:<div className="space-y-1.5"><div className="text-[10px] font-semibold">{pickup.person.nombre} <button onClick={()=>setPickup(v=>({...v,person:null,dni:""}))} className="ml-1 text-orange-700 underline">Cambiar</button></div><input value={pickup.dni} onChange={e=>setPickup(v=>({...v,dni:e.target.value}))} placeholder="DNI / NIE" autoComplete="off" className="h-8 w-full rounded border px-2 text-xs uppercase"/><div className="flex gap-1"><button disabled={!pickup.dni.trim()||isBusy} onClick={()=>confirmPickup(p)} className="rounded bg-green-600 px-2 py-1.5 text-[10px] font-bold text-white disabled:opacity-40">Verificar y registrar</button><button onClick={()=>setPickup(null)} className="rounded border px-2 py-1.5 text-[10px]">Cancelar</button></div></div>}
+           {pickupError&&<div role="alert" className="mt-2 rounded border border-red-300 bg-red-50 p-2 text-[10px] font-bold text-red-800">{pickupError}</div>}
           </div>}
-          {isBusy&&<span className="text-[9px] text-slate-500">Guardando…</span>}
+          {isBusy&&<span className="text-[9px] text-slate-500">Guardando…</span>
         </div>:<button onClick={()=>openDay(p,day)} className={"w-full rounded-md border px-1 py-1.5 text-left transition hover:ring-1 hover:ring-orange-300 "+(r?.estado==="presente"?"border-green-200 bg-green-50":r?.estado==="ausente"?"border-red-200 bg-red-50":"border-amber-200 bg-amber-50")}>
           <span className={"block text-center text-[10px] font-bold "+(r?.estado==="presente"?"text-green-800":r?.estado==="ausente"?"text-red-800":"text-amber-800")}>{statusLabel(r?.estado)}</span>
           <span className="mt-0.5 block text-center text-[9px] text-slate-500">{r?.hora_entrada||"—"}{r?.hora_salida?" · "+r.hora_salida:""}</span>
@@ -84,8 +91,8 @@ export default function CampusAttendance({season,settings}){
         <div><span className="text-slate-500">Intolerancias</span><div className="font-semibold text-slate-900">{p.intolerancias||"Ninguna indicada"}</div></div>
         <div><span className="text-slate-500">Medicación</span><div className="font-semibold text-slate-900">{p.medicacion||"Ninguna indicada"}</div></div>
         <div className="col-span-2 sm:col-span-3"><span className="text-slate-500">Observaciones médicas</span><div className="font-semibold text-slate-900">{p.observaciones_medicas||"Sin observaciones"}</div></div>
-        <div><span className="text-slate-500">Emergencia 1</span><div className="font-semibold text-slate-900">{p.contacto_emergencia_nombre||"—"} · {p.contacto_emergencia_telefono||"—"}</div></div>
-        <div><span className="text-slate-500">Emergencia 2</span><div className="font-semibold text-slate-900">{p.contacto_emergencia_2_nombre||"—"} · {p.contacto_emergencia_2_telefono||"—"}</div></div>
+        <div><span className="text-slate-500">Contacto principal / emergencia</span><div className="font-semibold text-slate-900">{p.contacto_emergencia_nombre||p.responsable?.nombre||"Tutor legal"} · {p.contacto_emergencia_telefono||p.responsable?.telefono||"Teléfono no registrado"}</div></div>
+        <div><span className="text-slate-500">Contacto de emergencia adicional</span><div className="font-semibold text-slate-900">{p.contacto_emergencia_2_nombre||"—"} · {p.contacto_emergencia_2_telefono||"—"}</div></div>
         <div className="col-span-2 sm:col-span-3"><span className="text-slate-500">Autorizados para recoger</span><div className="font-semibold text-slate-900">{(p.autorizado_recogida||[]).length?(p.autorizado_recogida||[]).map(a=>a.nombre+(a.parentesco?" · "+a.parentesco:"")).join(" / "):"Solo responsable legal registrado"}</div></div>
        </div>
       </td></tr>}
