@@ -139,7 +139,8 @@ async function getCampoMapsUrl(base44, cookies, codigo, nombre) {
       const lat = parseFloat(val('latitud')), lng = parseFloat(val('longitud'));
       const direccion = val('dirección'), localidad = val('localidad'), cp = val('código postal');
       const validCoords = Number.isFinite(lat) && Number.isFinite(lng) && lat > 35 && lat < 44 && lng > -10 && lng < 5;
-      url = campoQueryUrl(nombre, localidad);
+      // Coordenadas exactas de la ficha de la Federación; si no las tiene, búsqueda por nombre
+      url = validCoords ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : campoQueryUrl(nombre, localidad);
       if (localidad) {
         await base44.asServiceRole.entities.CampoRffm.create({
           codigo_campo: codigo, nombre: nombre || '', direccion, localidad, codigo_postal: cp,
