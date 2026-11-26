@@ -91,7 +91,10 @@ Deno.serve(async req => {
           contacto_emergencia_telefono:p.contacto_emergencia_telefono||'',
           contacto_emergencia_2_nombre:p.contacto_emergencia_2_nombre||'',
           contacto_emergencia_2_telefono:p.contacto_emergencia_2_telefono||'',
-          autorizado_recogida:Array.isArray(p.autorizados_recogida)?p.autorizados_recogida.map(a=>({nombre:a.nombre||'',dni:a.dni||'',telefono:a.telefono||'',parentesco:a.parentesco||''})):[],
+          autorizado_recogida:[
+            ...(Array.isArray(p.autorizados_recogida)?p.autorizados_recogida.map(a=>({nombre:a.nombre||'',dni:a.dni||'',telefono:a.telefono||'',parentesco:a.parentesco||'',tipo:'autorizado'})):[]),
+            ...(reg.adulto_nombre?[{nombre:reg.adulto_nombre,dni:reg.adulto_dni||'',telefono:reg.adulto_telefono||'',parentesco:'Responsable legal',tipo:'responsable'}]:[])
+          ].filter((a,i,list)=>a.nombre&&list.findIndex(x=>cleanEmail(x.nombre)===cleanEmail(a.nombre)&&cleanDni(x.dni)===cleanDni(a.dni))===i),
           responsable:{nombre:reg.adulto_nombre||'',dni:reg.adulto_dni||'',telefono:reg.adulto_telefono||''}
         };
       }).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||'','es'));
