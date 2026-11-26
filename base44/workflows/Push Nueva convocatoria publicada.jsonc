@@ -1,6 +1,6 @@
 {
   "name": "Push Nueva convocatoria publicada",
-  "description": "Avisa a las familias de los convocados cuando se crea publicada o se publica un borrador.",
+  "description": "Avisa por push y por correo a las familias de los convocados cuando se crea publicada o se publica un borrador.",
   "trigger": {
     "condition": "${ (.trigger.data.publicada == true) and ((.trigger.event_type == \"create\") or ((.trigger.event_type == \"update\") and (.trigger.old_data.publicada != true))) }",
     "config": {
@@ -35,9 +35,24 @@
               "old_data": "${ .trigger.old_data }"
             }
           },
-          "then": "end",
+          "then": "enviar_emails",
           "x-base44": {
             "title": "Enviar push a convocados"
+          }
+        }
+      },
+      {
+        "enviar_emails": {
+          "call": "invoke_backend_function",
+          "with": {
+            "function_name": "callupPublishEmails",
+            "args": {
+              "callup_id": "${ .trigger.entity_id }"
+            }
+          },
+          "then": "end",
+          "x-base44": {
+            "title": "Enviar correo a convocados"
           }
         }
       }

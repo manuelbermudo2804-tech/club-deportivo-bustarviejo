@@ -233,56 +233,8 @@ export default function CoachCallups() {
         toast.error("No se puede publicar: no hay jugadores disponibles en la convocatoria.");
         return;
       }
-      // Reusar allPlayers ya cargado en el componente (evita doble Player.list())
-      const playersForEmails = allPlayers || [];
+      // Los correos los envía el servidor automáticamente al publicarse (no depende de tener la app abierta)
 
-      // Construir la lista de destinatarios (padres, segundo tutor y menores con acceso juvenil)
-      const destinatarios = [];
-      callup.jugadores_convocados.forEach((jugador) => {
-        const emails = [];
-        if (jugador.email_padre) emails.push(jugador.email_padre);
-        if (jugador.email_tutor_2) emails.push(jugador.email_tutor_2);
-        if (!jugador.email_padre && jugador.email_jugador) emails.push(jugador.email_jugador);
-
-        const playerData = playersForEmails.find(p => p.id === jugador.jugador_id);
-        if (playerData?.acceso_menor_email && playerData?.acceso_menor_autorizado && !playerData?.acceso_menor_revocado) {
-          emails.push(playerData.acceso_menor_email);
-        }
-
-        [...new Set(emails.filter(Boolean))].forEach(email => {
-          destinatarios.push({ email, jugadorNombre: jugador.jugador_nombre });
-        });
-      });
-
-      // Envío SECUENCIAL con pausa: el proveedor de email rechaza los envíos en paralelo
-      const subject = `⚽ Convocatoria: ${callup.rival ? `vs ${callup.rival}` : callup.titulo} - CD Bustarviejo`;
-      const fallidos = [];
-      let enviados = 0;
-
-      for (const { email, jugadorNombre } of destinatarios) {
-        let ok = false;
-        // Un reintento si falla (típicamente por límite de velocidad)
-        for (let intento = 1; intento <= 2 && !ok; intento++) {
-          try {
-            const res = await base44.functions.invoke('sendEmail', {
-              to: email,
-              subject,
-              html: buildCallupEmailHtml(callup, jugadorNombre)
-            });
-            if (res?.data?.success) {
-              ok = true;
-            } else {
-              console.error(`❌ [CoachCallups] Respuesta sin éxito para ${email}:`, res?.data);
-            }
-          } catch (error) {
-            console.error(`❌ [CoachCallups] Error enviando a ${email} (intento ${intento}):`, error);
-          }
-          if (!ok) await new Promise(r => setTimeout(r, 1500));
-        }
-        if (ok) { enviados++; } else { fallidos.push(email); }
-        await new Promise(r => setTimeout(r, 700));
-      }
-      
       // Chat al grupo — texto genérico para que solo actúen los convocados
       try {
         const fechaFormateada = callup.fecha_partido ? format(new Date(callup.fecha_partido + 'T12:00:00'), "EEEE d 'de' MMMM", { locale: es }) : '';
@@ -303,19 +255,7 @@ export default function CoachCallups() {
         console.error('⚠️ Error enviando chat de convocatoria:', chatErr);
       }
 
-      // Mark as sent (only update the flag, not the whole object)
-      await base44.entities.Convocatoria.update(callup.id, {
-        notificaciones_enviadas: true
-      });
-      
-      if (fallidos.length > 0) {
-        toast.error(
-          `⚠️ ${enviados} correos enviados, pero ${fallidos.length} NO se pudieron enviar: ${fallidos.slice(0, 3).join(', ')}${fallidos.length > 3 ? '…' : ''}. Avisa a esas familias por el chat.`,
-          { duration: 12000 }
-        );
-      } else {
-        toast.success(`✅ ${enviados} correos enviados a las familias de ${callup.jugadores_convocados.length} jugadores`);
-      }
+      toast.success(`✅ Convocatoria publicada. Las familias de ${callup.jugadores_convocados.length} jugadores recibirán el correo y el aviso en unos segundos.`);
     } catch (error) {
       console.error("Error sending notifications:", error);
       toast.error("Error al enviar notificaciones");
