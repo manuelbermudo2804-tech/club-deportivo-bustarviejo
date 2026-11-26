@@ -19,6 +19,12 @@ Deno.serve(async (req) => {
   if (!ALLOWED_ORIGINS.has(origin)) return Response.json({ error: 'Origen no autorizado' }, { status: 403, headers });
   try {
     const body = await req.json();
+    if (body.action === 'waitlist_status') {
+      const statusClient = createClientFromRequest(req);
+      const cfgs = await statusClient.asServiceRole.entities.CampusSettings.list('-created_date', 100);
+      const configured = (cfgs || []).find(c => c.activo === true && String(c.temporada || c.fecha_inicio?.slice(0,4) || '2027') === '2027');
+      return Response.json({ enabled: configured?.lista_espera_activa === true }, { status:200, headers });
+    }
     if (body.action === 'availability') {
       const availabilityClient = createClientFromRequest(req);
       const cfgs = await availabilityClient.asServiceRole.entities.CampusSettings.list('-created_date', 100);
