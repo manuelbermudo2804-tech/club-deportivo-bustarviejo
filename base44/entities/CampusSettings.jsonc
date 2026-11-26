@@ -120,6 +120,11 @@
       "default": false,
       "description": "Muestra u oculta el banner de acceso preferente al Campus en la app privada."
     },
+    "lista_espera_activa": {
+      "type": "boolean",
+      "default": false,
+      "description": "Permite mostrar y recibir solicitudes de lista de espera del Campus."
+    },
     "campana_app_banner_preparado": {
       "type": "boolean",
       "default": false
