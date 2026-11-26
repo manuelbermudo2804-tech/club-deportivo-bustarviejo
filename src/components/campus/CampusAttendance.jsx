@@ -13,7 +13,7 @@ export default function CampusAttendance({season,settings}){
  const [week,setWeek]=useState("S1"),[date,setDate]=useState(()=>dateForWeek(settings?.fecha_inicio,0));
  const [dates,setDates]=useState([]),[roster,setRoster]=useState([]),[records,setRecords]=useState([]);
  const [loading,setLoading]=useState(false),[busy,setBusy]=useState(""),[error,setError]=useState(""),[notice,setNotice]=useState(""),[monitor,setMonitor]=useState("");
- const [selected,setSelected]=useState(null),[expandedParticipant,setExpandedParticipant]=useState("");
+ const [selected,setSelected]=useState(null),[expandedParticipant,setExpandedParticipant]=useState(""),[pickup,setPickup]=useState(null);
  const invoke=async(action,extra={})=>{const res=await base44.functions.invoke("campusAttendanceGateway",{action,temporada:String(season),semana:week,fecha:date,...extra});const data=res?.data||res;if(data?.error)throw new Error(data.error);return data;};
  const load=async()=>{setLoading(true);setError("");try{const d=await invoke("weekRoster");setRoster(d.roster||[]);setRecords(d.records||[]);setDates(d.dates||[]);setMonitor(d.monitor?.nombre||"");if(d.dates?.length&&!d.dates.includes(date))setDate(d.dates[0]);}catch(e){setError(e.message||"No se pudo cargar la asistencia.");setRoster([]);setRecords([]);setDates([]);}finally{setLoading(false);}};
  useEffect(()=>{if(settings?.fecha_inicio){const first=dateForWeek(settings.fecha_inicio,WEEKS.findIndex(x=>x.key===week));setDate(first);}},[settings?.fecha_inicio,season]);
@@ -30,12 +30,12 @@ export default function CampusAttendance({season,settings}){
   }catch(e){setError(e.message||"No se pudo guardar.");}
   finally{setBusy("");}
  };
- const markPickup=async p=>{
-  const name=window.prompt("Nombre y apellidos de la persona que recoge a "+p.nombre+":");if(!name?.trim())return;
-  const dni=window.prompt("DNI/NIE de la persona que recoge:");if(!dni?.trim())return;
-  const authorized=(p.autorizado_recogida||[]).some(a=>a.nombre.trim().toLocaleLowerCase("es")===name.trim().toLocaleLowerCase("es")&&cleanDni(a.dni)===cleanDni(dni))||((p.responsable?.nombre||"").trim().toLocaleLowerCase("es")===name.trim().toLocaleLowerCase("es")&&cleanDni(p.responsable?.dni)===cleanDni(dni));
-  if(!authorized){setError("RECOGIDA RECHAZADA: nombre y DNI no coinciden con una persona autorizada. No entregues al menor; consulta al responsable legal.");return;}
-  const t=nowTime();await save(p,{estado:"presente",recogida_verificada:true,persona_recoge:name.trim(),dni_recoge:cleanDni(dni),hora_salida:t},"recogida_verificada","Recogida verificada por "+name.trim()+" a las "+t,selected?.date||date);
+ const confirmPickup=async p=>{
+  const person=pickup?.person,dni=pickup?.dni||"";
+  if(!person||!dni.trim()){setError("Selecciona a la persona e introduce su DNI/NIE.");return;}
+  const t=nowTime();
+  await save(p,{estado:"presente",recogida_verificada:true,persona_recoge:person.nombre,dni_recoge:cleanDni(dni),hora_salida:t},"recogida_verificada","Recogida verificada por "+person.nombre+" a las "+t,pickup.date);
+  setPickup(null);
  };
  const presentForDay=day=>records.filter(r=>r.fecha===day&&r.estado==="presente").length;
  const absentForDay=day=>records.filter(r=>r.fecha===day&&r.estado==="ausente").length;
@@ -63,7 +63,11 @@ export default function CampusAttendance({season,settings}){
         {active? <div className="flex min-h-7 flex-wrap items-center justify-center gap-1">
           <button title="Marcar presente y registrar hora de entrada" disabled={isBusy} onClick={()=>{const t=nowTime();save(p,{estado:"presente",hora_entrada:t},"asistencia","Presente; entrada registrada a las "+t,day);}} className="h-6 min-w-7 rounded bg-green-600 px-1.5 text-[10px] font-black text-white disabled:opacity-40">P</button>
           <button title="Marcar ausente" disabled={isBusy} onClick={()=>save(p,{estado:"ausente"},"asistencia","Marcado ausente",day)} className="h-6 min-w-7 rounded bg-red-600 px-1.5 text-[10px] font-black text-white disabled:opacity-40">A</button>
-          <button title="Registrar salida y verificar recogida" disabled={isBusy||!!r?.recogida_verificada} onClick={()=>markPickup(p)} className="h-6 rounded border border-slate-300 bg-white px-1.5 text-[10px] font-bold text-slate-700 disabled:opacity-40">Rec.</button>
+          <button title="Registrar salida y verificar recogida" disabled={isBusy||!!r?.recogida_verificada} onClick={()=>setPickup({participantId:p.id,date:day,person:null,dni:""})} className="h-6 rounded border border-slate-300 bg-white px-1.5 text-[10px] font-bold text-slate-700 disabled:opacity-40">Rec.</button>
+          {pickup?.participantId===p.id&&pickup?.date===day&&<div className="mt-1 w-full basis-full rounded-md border border-slate-200 bg-white p-2 text-left">
+           <div className="mb-1 text-[10px] font-bold text-slate-700">¿Quién recoge a {p.nombre}?</div>
+           {!pickup.person?<div className="flex flex-col gap-1">{(p.autorizado_recogida||[]).map((person,i)=><button key={i} onClick={()=>setPickup(v=>({...v,person,dni:""}))} className="rounded border px-2 py-1.5 text-left text-[10px] font-semibold text-slate-800">{person.nombre}<span className="ml-1 font-normal text-slate-500">{person.parentesco||""}</span></button>)}</div>:<div className="space-y-1.5"><div className="text-[10px] font-semibold">{pickup.person.nombre} <button onClick={()=>setPickup(v=>({...v,person:null,dni:""}))} className="ml-1 text-orange-700 underline">Cambiar</button></div><input value={pickup.dni} onChange={e=>setPickup(v=>({...v,dni:e.target.value}))} placeholder="DNI / NIE" autoComplete="off" className="h-8 w-full rounded border px-2 text-xs uppercase"/><div className="flex gap-1"><button disabled={!pickup.dni.trim()||isBusy} onClick={()=>confirmPickup(p)} className="rounded bg-green-600 px-2 py-1.5 text-[10px] font-bold text-white disabled:opacity-40">Verificar y registrar</button><button onClick={()=>setPickup(null)} className="rounded border px-2 py-1.5 text-[10px]">Cancelar</button></div></div>}
+          </div>}
           {isBusy&&<span className="text-[9px] text-slate-500">Guardando…</span>}
         </div>:<button onClick={()=>openDay(p,day)} className={"w-full rounded-md border px-1 py-1.5 text-left transition hover:ring-1 hover:ring-orange-300 "+(r?.estado==="presente"?"border-green-200 bg-green-50":r?.estado==="ausente"?"border-red-200 bg-red-50":"border-amber-200 bg-amber-50")}>
           <span className={"block text-center text-[10px] font-bold "+(r?.estado==="presente"?"text-green-800":r?.estado==="ausente"?"text-red-800":"text-amber-800")}>{statusLabel(r?.estado)}</span>
