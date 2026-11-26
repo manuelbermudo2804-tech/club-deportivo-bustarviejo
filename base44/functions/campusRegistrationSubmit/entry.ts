@@ -62,7 +62,7 @@ Deno.serve(async req=>{
     if(b.consentimiento_salud!==true) return Response.json({error:'Es necesario aceptar el tratamiento de los datos de salud para gestionar la seguridad del menor.'},{status:400,headers});
     if(!Array.isArray(b.participantes)||!b.participantes.length) return Response.json({error:'Añade al menos un participante.'},{status:400,headers});
     if(b.participantes.length>4) return Response.json({error:'Cada responsable puede inscribir un máximo de 4 menores por edición. Para casos excepcionales, contacta directamente con el club.'},{status:400,headers});
-    if(b.declaracion_responsable!==true) return Response.json({error:'Debes declarar que eres padre, madre, tutor legal o persona expresamente autorizada para inscribir a estos menores.'},{status:400,headers});
+    if(b.declaracion_responsable!==true) return Response.json({error:'Debes aceptar la declaración responsable sobre la veracidad de las fechas de nacimiento de los menores.'},{status:400,headers});
     const cfgs=await base44.asServiceRole.entities.CampusSettings.list('-created_date',100);
     // Solo se admiten inscripciones en la edición activa; si no hay ninguna activa, se conserva la configuración más reciente por compatibilidad.
     // Solo se admiten inscripciones en la edición activa: desactivar la edición cierra las inscripciones.
@@ -157,6 +157,7 @@ Deno.serve(async req=>{
       es_socio:!!verifiedMember,socio_verificado:!!verifiedMember,club_member_id:verifiedMember?.id||'',
       estado:'pendiente',estado_pago:'pendiente',estado_alta_socio:b.solicitar_alta_socio===true?'pendiente':verifiedMember?'pagado':'no_requerida',importe_total:total,cuota_socio_incluida:membershipFee,
       consentimiento_datos:true,consentimiento_imagen:b.consentimiento_imagen===true,
+      declaracion_responsable_edad:true,declaracion_responsable_fecha:new Date().toISOString(),declaracion_responsable_version:'campus-edad-2027-v1',
       semanas_solicitadas:[...new Set(participants.flatMap(p=>p.semanas))],participantes_count:participants.length,
       notas:`Inscripción recibida desde la web del Campus ${campusYear}. Pendiente de revisión y confirmación de plazas.`
     });
