@@ -140,6 +140,20 @@
     "participantes_count": {
       "type": "integer",
       "minimum": 1
+    },
+    "declaracion_responsable_edad": {
+      "type": "boolean",
+      "default": false,
+      "description": "El adulto responsable declar\u00f3 que las fechas de nacimiento de los menores son correctas."
+    },
+    "declaracion_responsable_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora de aceptaci\u00f3n de la declaraci\u00f3n responsable sobre la edad."
+    },
+    "declaracion_responsable_version": {
+      "type": "string",
+      "description": "Versi\u00f3n del texto de la declaraci\u00f3n aceptada."
     }
   },
   "required": [
