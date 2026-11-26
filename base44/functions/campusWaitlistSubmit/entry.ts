@@ -3,7 +3,6 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 const ORIGINS = new Set(['https://www.cdbustarviejo.com','https://cdbustarviejo.com']);
 const WEEKS = ['S1','S2','S3','S4','S5'];
 const clean = v => String(v ?? '').trim();
-const normalize = v => clean(v).normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').replace(/\\s+/g,' ');
 
 Deno.serve(async req => {
   const origin = req.headers.get('origin') || '';
@@ -23,7 +22,7 @@ Deno.serve(async req => {
     const telefono = clean(body.adulto_telefono);
     const menores = Array.isArray(body.menores) ? body.menores : [];
     if (!adulto || !telefono) return Response.json({error:'Indica el nombre y apellidos y el teléfono del adulto responsable.'},{status:400,headers});
-    if (!/^[-+()\\d\\s]{6,25}$/.test(telefono)) return Response.json({error:'Introduce un teléfono válido.'},{status:400,headers});
+    if (!/^[-+()\d\s]{6,25}$/.test(telefono)) return Response.json({error:'Introduce un teléfono válido.'},{status:400,headers});
     if (!menores.length || menores.length > 8) return Response.json({error:'Añade al menos un menor (máximo 8 por solicitud).'}, {status:400,headers});
     const cfgs = await createClientFromRequest(req).asServiceRole.entities.CampusSettings.list('-created_date',100);
     const settings = (cfgs || []).find(x => x.activo === true && String(x.temporada || '') === '2027');

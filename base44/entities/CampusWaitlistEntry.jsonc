@@ -1,0 +1,90 @@
+{
+  "name": "CampusWaitlistEntry",
+  "type": "object",
+  "description": "Solicitud de lista de espera del Campus (una fila por menor y semana)",
+  "properties": {
+    "temporada": {
+      "type": "string",
+      "default": "2027"
+    },
+    "solicitud_id": {
+      "type": "string",
+      "description": "Agrupa las filas de un mismo env\u00edo"
+    },
+    "adulto_nombre": {
+      "type": "string"
+    },
+    "adulto_telefono": {
+      "type": "string"
+    },
+    "menor_nombre": {
+      "type": "string"
+    },
+    "edad": {
+      "type": "number"
+    },
+    "grupo_edad": {
+      "type": "string",
+      "enum": [
+        "6-8",
+        "9-11",
+        "12-16"
+      ]
+    },
+    "semana": {
+      "type": "string",
+      "enum": [
+        "S1",
+        "S2",
+        "S3",
+        "S4",
+        "S5"
+      ]
+    },
+    "estado": {
+      "type": "string",
+      "enum": [
+        "pendiente",
+        "contactado",
+        "inscrito",
+        "descartado"
+      ],
+      "enumColors": [
+        "yellow",
+        "blue",
+        "green",
+        "gray"
+      ],
+      "default": "pendiente"
+    }
+  },
+  "required": [
+    "temporada",
+    "adulto_nombre",
+    "adulto_telefono",
+    "menor_nombre",
+    "semana"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
