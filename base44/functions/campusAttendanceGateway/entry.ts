@@ -1,10 +1,8 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.40';
-
 const WEEKS = ['S1','S2','S3','S4','S5'];
 const cleanEmail = v => String(v || '').trim().toLowerCase();
 const cleanDni = v => String(v || '').replace(/[\s.-]/g,'').toUpperCase();
 const json = (data,status=200) => Response.json(data,{status});
-
 Deno.serve(async req => {
   try {
     const base44 = createClientFromRequest(req);
@@ -14,14 +12,12 @@ Deno.serve(async req => {
     const action = String(body.action || '');
     const admin = user.role === 'admin';
     const sr = base44.asServiceRole;
-
     if (action === 'myAccess') {
       const season = String(body.temporada || '2027');
       const rows = await sr.entities.CampusMonitorAccess.filter({email:cleanEmail(user.email),temporada:season,activo:true});
       const semanas = [...new Set((rows||[]).flatMap(r=>Array.isArray(r.semanas)?r.semanas:[]).filter(w=>WEEKS.includes(w)))];
       return json({ok:true,temporada:season,semanas});
     }
-
     if (action === 'adminList' || action === 'adminSave' || action === 'adminDelete') {
       if (!admin) return json({error:'Solo administración puede gestionar permisos.'},403);
       const season = String(body.temporada || '2027');
@@ -55,7 +51,6 @@ Deno.serve(async req => {
         return json({ok:true});
       }
     }
-
     if (action === 'roster' || action === 'weekRoster' || action === 'saveAttendance') {
       const season = String(body.temporada || '');
       const week = String(body.semana || '');
@@ -65,7 +60,6 @@ Deno.serve(async req => {
       const accessRows = await sr.entities.CampusMonitorAccess.filter({email:cleanEmail(user.email),temporada:season,activo:true});
       const access = accessRows?.find(a=>(a.semanas||[]).includes(week));
       if (!admin && !access) return json({error:'No tienes permiso para acceder a esta semana del Campus.'},403);
-
       const configs = await sr.entities.CampusSettings.filter({temporada:season});
       const cfg = configs?.find(c=>c.activo===true) || configs?.[0];
       if (!cfg?.fecha_inicio) return json({error:'No hay fechas configuradas para esta edición.'},409);
@@ -74,7 +68,6 @@ Deno.serve(async req => {
       start.setDate(start.getDate()+weekIndex*7);
       const allowedDates = Array.from({length:5},(_,i)=>{const d=new Date(start);d.setDate(d.getDate()+i);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);});
       if (!allowedDates.includes(date)) return json({error:'La fecha no pertenece a los cinco días laborables de la semana seleccionada.'},403);
-
       const [participants,registrations,attendance] = await Promise.all([
         sr.entities.CampusParticipant.list('-created_date',3000),
         sr.entities.CampusRegistration.list('-created_date',2000),
