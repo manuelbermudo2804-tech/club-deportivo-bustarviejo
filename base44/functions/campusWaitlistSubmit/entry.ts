@@ -26,7 +26,7 @@ Deno.serve(async req => {
     if (!menores.length || menores.length > 8) return Response.json({error:'Añade al menos un menor (máximo 8 por solicitud).'}, {status:400,headers});
     const cfgs = await createClientFromRequest(req).asServiceRole.entities.CampusSettings.list('-created_date',100);
     const settings = (cfgs || []).find(x => x.activo === true && String(x.temporada || '') === '2027');
-    if (!settings?.id) return Response.json({error:'La lista de espera del Campus no está abierta en este momento.'},{status:409,headers});
+    if (!settings?.id || settings.lista_espera_activa !== true) return Response.json({error:'La lista de espera del Campus no está abierta en este momento.'},{status:409,headers});
     const cleanMinors = menores.map(m => {
       const nombre = clean(m.nombre);
       const edad = Number(m.edad);
