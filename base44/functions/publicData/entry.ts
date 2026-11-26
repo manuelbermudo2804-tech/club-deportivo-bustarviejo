@@ -58,9 +58,6 @@ Deno.serve(async (req) => {
     } else {
       // Cargar datos frescos de la BD
       const base44 = createClientFromRequest(req);
-      // Fichas de campo de la Federación (coordenadas exactas) para los enlaces "Cómo llegar"
-      const campos = await base44.asServiceRole.entities.CampoRffm.list('-updated_date', 500).catch(() => []);
-      camposPorNombre = new Map(campos.filter((c) => c.maps_url).map((c) => [normCampo(c.nombre), c.maps_url]));
 
       [proximosPartidos, resultadosLocal, resultadosVisitante, clasificaciones, goleadoresGlobal, goleadoresBustarviejo] = await Promise.all([
         base44.asServiceRole.entities.ProximoPartido.list('-fecha_iso', 50),
@@ -285,13 +282,7 @@ Deno.serve(async (req) => {
 });
 
 // Misma regla que src/lib/campoMaps.js y rffmScheduleMonitor (enlace de Maps de un campo)
-let camposPorNombre = new Map();
-function normCampo(n) {
-  return String(n || '').replace(/\s*\(H\.?A\.?\)/gi, '').replace(/\s+/g, ' ').trim().toUpperCase();
-}
 function campoMapsUrl(nombre) {
-  const ficha = camposPorNombre.get(normCampo(nombre));
-  if (ficha) return ficha;
   const limpio = String(nombre || '').replace(/\s*\(H\.?A\.?\)/gi, '').trim();
   const conGuion = limpio.includes(' - ');
   let query = limpio;

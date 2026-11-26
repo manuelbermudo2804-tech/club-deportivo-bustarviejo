@@ -4,19 +4,7 @@
 // - Nombres completos ("TORRELAGUNA - PVO. MPAL ANTONIO MARTÍN F7") se buscan tal cual.
 // - Solo el pueblo ("BUSTARVIEJO (HA)") o abreviados ("ALGETE - URBANIZ. STO. DOMINGO")
 //   se buscan como "Campo de fútbol <sitio>, <pueblo>".
-import { base44 } from "@/api/base44Client";
-
-// Fichas de campo de la Federación (coordenadas exactas). Se cargan una vez al abrir la app
-// y tienen prioridad sobre la búsqueda por nombre.
-const normCampo = (n) => String(n || "").replace(/\s*\(H\.?A\.?\)/gi, "").replace(/\s+/g, " ").trim().toUpperCase();
-let camposPorNombre = new Map();
-base44.entities.CampoRffm.list("-updated_date", 500)
-  .then((campos) => { camposPorNombre = new Map((campos || []).filter((c) => c.maps_url).map((c) => [normCampo(c.nombre), c.maps_url])); })
-  .catch(() => {});
-
 export function campoMapsUrl(nombre, localidad) {
-  const ficha = camposPorNombre.get(normCampo(nombre));
-  if (ficha) return ficha;
   const limpio = String(nombre || "").replace(/\s*\(H\.?A\.?\)/gi, "").trim();
   if (!limpio) return "";
   const conGuion = limpio.includes(" - ");
