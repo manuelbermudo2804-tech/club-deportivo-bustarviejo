@@ -91,11 +91,60 @@ function buildJornadaUrl(p, jornada) {
   return `https://intranet.ffmadrid.es/nfg/NPcd/NFG_CmpJornada?cod_primaria=${p.cod_primaria}&CodCompeticion=${p.CodCompeticion}&CodGrupo=${p.CodGrupo}&CodTemporada=${p.CodTemporada}&CodJornada=${jornada}&cod_agrupacion=1&Sch_Tipo_Juego=`;
 }
 
+// Código del campo en la intranet (enlace "NFG_VisCampos?...&Codigo_Campo=1139")
+function campoCodeIn($, el) {
+  const href = $(el).find('a[href*="NFG_VisCampos"]').first().attr('href') || '';
+  const m = href.match(/Codigo_Campo=(\d+)/i);
+  return m ? m[1] : null;
+}
+
+// Enlace exacto de Google Maps a partir de la ficha del campo (latitud/longitud de la Federación).
+// Se guarda en CampoRffm para no volver a consultarla.
+const campoCache = new Map();
+async function getCampoMapsUrl(base44, cookies, codigo, nombre) {
+  const fallback = nombre ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(nombre)}` : '';
+  if (!codigo) return fallback;
+  if (campoCache.has(codigo)) return campoCache.get(codigo) || fallback;
+  let url = '';
+  try {
+    const found = await base44.asServiceRole.entities.CampoRffm.filter({ codigo_campo: codigo });
+    if (found?.[0]?.maps_url) {
+      url = found[0].maps_url;
+    } else {
+      const html = await fetchPage(`https://intranet.ffmadrid.es/nfg/NPcd/NFG_VisCampos?cod_primaria=1000101&Codigo_Campo=${codigo}`, cookies);
+      const $ = load(html);
+      const val = (label) => {
+        let v = '';
+        $('td').each((_, td) => {
+          if (!v && $(td).text().replace(/\s+/g, ' ').trim().toLowerCase().startsWith(label)) v = $(td).next('td').text().replace(/\s+/g, ' ').trim();
+        });
+        return v;
+      };
+      const lat = parseFloat(val('latitud')), lng = parseFloat(val('longitud'));
+      const direccion = val('dirección'), localidad = val('localidad'), cp = val('código postal');
+      const validCoords = Number.isFinite(lat) && Number.isFinite(lng) && lat > 35 && lat < 44 && lng > -10 && lng < 5;
+      if (validCoords) url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+      else if (direccion && localidad) url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${direccion}, ${cp} ${localidad}`)}`;
+      if (url) {
+        await base44.asServiceRole.entities.CampoRffm.create({
+          codigo_campo: codigo, nombre: nombre || '', direccion, localidad, codigo_postal: cp,
+          ...(validCoords ? { latitud: lat, longitud: lng } : {}), maps_url: url,
+        });
+      }
+    }
+  } catch (e) {
+    console.error(`[rffmScheduleMonitor] Ficha de campo ${codigo}:`, e.message);
+  }
+  campoCache.set(codigo, url);
+  return url || fallback;
+}
+
 function parseJornadaMatches(html) {
   const $ = load(html);
   const matches = [];
   const tables = $('table').toArray();
   let currentCampo = null;
+  let currentCampoCode = null;
   for (let i = 3; i < tables.length; i++) {
     const table = tables[i];
     const tableHtml = $(table).html() || '';
@@ -103,7 +152,7 @@ function parseJornadaMatches(html) {
     if (!hasEscudo) {
       const text = $(table).text().replace(/\s+/g, ' ').trim();
       const campoFull = text.match(/Campo:\s*(.+)/);
-      if (campoFull) { let c = campoFull[1].trim(); c = c.replace(/\s*\(H\.?A\.?\)\s*-\s*.*/i, '').replace(/\s*-\s*Hierba\s*.*/i, '').replace(/\s*-\s*Tierra\s*.*/i, '').replace(/\s*-\s*Cesped\s*.*/i, '').trim(); if (c) currentCampo = c; }
+      if (campoFull) { let c = campoFull[1].trim(); c = c.replace(/\s*\(H\.?A\.?\)\s*-\s*.*/i, '').replace(/\s*-\s*Hierba\s*.*/i, '').replace(/\s*-\s*Tierra\s*.*/i, '').replace(/\s*-\s*Cesped\s*.*/i, '').trim(); if (c) { currentCampo = c; currentCampoCode = campoCodeIn($, table); } }
       continue;
     }
     const tds = $(table).find('td').toArray();
@@ -130,7 +179,8 @@ function parseJornadaMatches(html) {
       if (campoMatch) matchCampo = campoMatch[1].replace(/\s*\(HA\)\s*$/i, '').replace(/\s*\(H\.A\.\)\s*$/i, '').trim();
       else { const simpleCampo = campoText.match(/Campo:\s*(.+)/); if (simpleCampo) matchCampo = simpleCampo[1].trim(); }
     }
-    matches.push({ local: localName, visitante: visitanteName, goles_local: golesLocal, goles_visitante: golesVisitante, jugado, fecha, hora, campo: matchCampo });
+    const campoCodigo = campoCodeIn($, table) || currentCampoCode;
+    matches.push({ local: localName, visitante: visitanteName, goles_local: golesLocal, goles_visitante: golesVisitante, jugado, fecha, hora, campo: matchCampo, campo_codigo: campoCodigo });
   }
   return matches;
 }
@@ -404,10 +454,14 @@ Deno.serve(async (req) => {
             patch.hora_partido = umMatch.hora;
             parts.push(`hora ${target.hora_partido || '?'} → ${umMatch.hora}`);
           }
+          const umMaps = umMatch.campo ? await getCampoMapsUrl(base44, currentCookies, umMatch.campo_codigo, umMatch.campo) : '';
           if (umMatch.campo && target.ubicacion !== umMatch.campo) {
             patch.ubicacion = umMatch.campo;
-            patch.enlace_ubicacion = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(umMatch.campo)}`;
+            patch.enlace_ubicacion = umMaps;
             parts.push('campo actualizado');
+          } else if (umMaps && target.enlace_ubicacion !== umMaps) {
+            // Mismo campo: solo se afina el enlace del mapa (sin marcar como reprogramada)
+            patch.enlace_ubicacion = umMaps;
           }
           const correctTitle = `Jornada ${umJornada}${competitionLabel} vs ${umRival}`;
           if (target.titulo !== correctTitle) patch.titulo = correctTitle;
@@ -520,7 +574,7 @@ Deno.serve(async (req) => {
             titulo:`Jornada ${umJornada}${competitionLabel} vs ${umRival}`,
             categoria:config.categoria,competicion:competition,tipo:'Partido',rival:umRival,fecha_partido:umDate,
             hora_partido:umMatch.hora || '00:00',ubicacion:umMatch.campo || 'Por confirmar',
-            enlace_ubicacion:umMatch.campo ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(umMatch.campo)}` : '',
+            enlace_ubicacion:umMatch.campo ? await getCampoMapsUrl(base44, currentCookies, umMatch.campo_codigo, umMatch.campo) : '',
             local_visitante:umLocal ? 'Local' : 'Visitante',jugadores_convocados,
             entrenador_email:'sistema@cdbustarviejo.es',entrenador_nombre:'Sistema automático',
             publicada:false,notificaciones_enviadas:false,
@@ -580,7 +634,7 @@ Deno.serve(async (req) => {
             fecha_partido: matchDate,
             hora_partido: match.hora || '00:00',
             ubicacion: match.campo || 'Por confirmar',
-            enlace_ubicacion: match.campo ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(match.campo)}` : '',
+            enlace_ubicacion: match.campo ? await getCampoMapsUrl(base44, currentCookies, match.campo_codigo, match.campo) : '',
             local_visitante: isLocal ? 'Local' : 'Visitante',
             jugadores_convocados,
             entrenador_email: 'sistema@cdbustarviejo.es',
@@ -628,7 +682,7 @@ Deno.serve(async (req) => {
         if (venueChanged) {
           updateData.ubicacion = match.campo;
           // Regenerate enlace_ubicacion to match the new venue (Google Maps search)
-          updateData.enlace_ubicacion = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(match.campo)}`;
+          updateData.enlace_ubicacion = await getCampoMapsUrl(base44, currentCookies, match.campo_codigo, match.campo);
           changeParts.push(`📍 Campo: ${match.campo}`);
         }
 

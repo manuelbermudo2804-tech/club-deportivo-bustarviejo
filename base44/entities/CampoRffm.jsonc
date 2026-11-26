@@ -1,0 +1,58 @@
+{
+  "name": "CampoRffm",
+  "type": "object",
+  "description": "Ficha de campo de juego de la Federaci\u00f3n (coordenadas exactas para el mapa de las convocatorias)",
+  "properties": {
+    "codigo_campo": {
+      "type": "string",
+      "description": "C\u00f3digo del campo en la intranet de la Federaci\u00f3n"
+    },
+    "nombre": {
+      "type": "string"
+    },
+    "direccion": {
+      "type": "string"
+    },
+    "localidad": {
+      "type": "string"
+    },
+    "codigo_postal": {
+      "type": "string"
+    },
+    "latitud": {
+      "type": "number"
+    },
+    "longitud": {
+      "type": "number"
+    },
+    "maps_url": {
+      "type": "string",
+      "description": "Enlace exacto de Google Maps"
+    }
+  },
+  "required": [
+    "codigo_campo"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
