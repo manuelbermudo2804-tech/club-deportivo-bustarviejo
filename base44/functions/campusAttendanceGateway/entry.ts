@@ -84,7 +84,7 @@ Deno.serve(async req => {
         const reg=regs.get(p.registration_id)||{};
         return {
           id:p.id,nombre:p.nombre,registration_id:p.registration_id,
-          fecha_nacimiento:p.fecha_nacimiento||'',
+          fecha_nacimiento:p.fecha_nacimiento||'',grupo_edad:p.grupo_edad||'',
           alergias:p.alergias||'',intolerancias:p.intolerancias||'',medicacion:p.medicacion||'',
           observaciones_medicas:p.observaciones_medicas||'',
           contacto_emergencia_nombre:p.contacto_emergencia_nombre||'',
