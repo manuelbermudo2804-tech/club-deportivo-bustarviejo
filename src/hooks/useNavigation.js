@@ -52,6 +52,22 @@ export default function useNavigation({
 }) {
   // Landings con panel de gestión accesibles para este usuario
   const landingMenuItems = useLandingMenuItems(user, isAdmin);
+  const [campusMonitorWeeks, setCampusMonitorWeeks] = useState([]);
+  useEffect(() => {
+    let cancelled = false;
+    if (!user?.email || isAdmin) { setCampusMonitorWeeks([]); return; }
+    const loadCampusAccess = async () => {
+      try {
+        const response = await base44.functions.invoke("campusAttendanceGateway", { action: "myAccess", temporada: "2027" });
+        const data = response?.data || response;
+        if (!cancelled) setCampusMonitorWeeks(data?.ok && Array.isArray(data.semanas) ? data.semanas : []);
+      } catch {
+        if (!cancelled) setCampusMonitorWeeks([]);
+      }
+    };
+    loadCampusAccess();
+    return () => { cancelled = true; };
+  }, [user?.email, isAdmin]);
 
   // Jugadores activos sin dorsal en la temporada siguiente (solo admin)
   const pendingDorsalCount = useDorsalPending(isAdmin);
