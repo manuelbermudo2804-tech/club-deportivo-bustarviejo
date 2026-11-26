@@ -80,7 +80,8 @@ Deno.serve(async (req) => {
             dateTime: new Date(`${callup.fecha_partido}T${callup.hora_partido || '10:00'}`).toISOString(),
             timeZone: 'Europe/Madrid'
           },
-          location: callup.ubicacion,
+          // Mismo sitio que busca "Ver en Maps" (el nombre de la Federación a secas lo sitúa mal)
+          location: (() => { try { return (callup.enlace_ubicacion && new URL(callup.enlace_ubicacion).searchParams.get('query')) || callup.ubicacion; } catch { return callup.ubicacion; } })(),
           visibility: 'public'
         };
 
