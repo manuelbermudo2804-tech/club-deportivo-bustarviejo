@@ -235,6 +235,14 @@ Deno.serve(async req=>{
       payment_intent_data:{metadata:{tipo:'campus_2027',campus_registration_id:String(reg.id),reference,test_mode:campusTestMode?'true':'false'}}
     });
     await base44.asServiceRole.entities.CampusRegistration.update(reg.id,{stripe_session_id:session.id,notas:(campusTestMode?'[PRUEBA STRIPE TEST] ':'')+'Inscripción guardada. Checkout Stripe generado; pendiente de pago.'});
+    if(b.acepta_comunicaciones===true){
+      try {
+        await base44.asServiceRole.entities.ConsentimientoComercial.create({
+          nombre:adult.nombre,email:adult.email,telefono:adult.telefono,origen:'campus-verano-2027',
+          acepta_promociones:true,acepta_patrocinadores:false,texto_version:'campus-comercial-v1.0',fecha:new Date().toISOString(),revocado:false
+        });
+      } catch(consentError) { console.error('[campusRegistrationSubmit] No se pudo guardar el consentimiento comercial:',consentError?.message||consentError); }
+    }
     if(verificationChallenge) await base44.asServiceRole.entities.CampusMemberVerification.update(verificationChallenge.id,{consumed:true,used:true});
     return Response.json({success:true,registration_id:reg.id,reference,participants_saved:created.length,amount:total,club_member_id:provisionalMemberId||verifiedMember?.id||null,payment_started:true,payment_status:'pendiente',payment_url:session.url,message:'Inscripción guardada. Continúa a Stripe para completar el pago.'},{headers});
   } catch(e) {
