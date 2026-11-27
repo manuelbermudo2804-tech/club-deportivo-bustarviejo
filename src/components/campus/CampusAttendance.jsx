@@ -1,6 +1,7 @@
 import React,{useEffect,useState} from "react";
 import {base44} from "@/api/base44Client";
 import {RefreshCw,X} from "lucide-react";
+import CampusPasarLista from "@/components/campus/CampusPasarLista";
 
 const WEEKS=[{key:"S1",label:"Semana 1"},{key:"S2",label:"Semana 2"},{key:"S3",label:"Semana 3"},{key:"S4",label:"Semana 4"},{key:"S5",label:"Semana 5"}];
 const dateForWeek=(start,i)=>{const d=new Date((start||"2027-06-28")+"T12:00:00");d.setDate(d.getDate()+i*7);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);};
@@ -13,6 +14,7 @@ export default function CampusAttendance({season,settings}){
  const [week,setWeek]=useState("S1"),[date,setDate]=useState(()=>dateForWeek(settings?.fecha_inicio,0));
  const [dates,setDates]=useState([]),[roster,setRoster]=useState([]),[records,setRecords]=useState([]);
  const [loading,setLoading]=useState(false),[busy,setBusy]=useState(""),[error,setError]=useState(""),[notice,setNotice]=useState(""),[monitor,setMonitor]=useState("");
+ const [view,setView]=useState("lista");
  const [selected,setSelected]=useState(null),[expandedParticipant,setExpandedParticipant]=useState(""),[pickup,setPickup]=useState(null),[pickupError,setPickupError]=useState("");
  const invoke=async(action,extra={})=>{const res=await base44.functions.invoke("campusAttendanceGateway",{action,temporada:String(season),semana:week,fecha:date,...extra});const data=res?.data||res;if(data?.error)throw new Error(data.error);return data;};
  const load=async()=>{setLoading(true);setError("");try{const d=await invoke("weekRoster");setRoster(d.roster||[]);setRecords(d.records||[]);setDates(d.dates||[]);setMonitor(d.monitor?.nombre||"");if(d.dates?.length&&!d.dates.includes(date))setDate(d.dates[0]);}catch(e){setError(e.message||"No se pudo cargar la asistencia.");setRoster([]);setRecords([]);setDates([]);}finally{setLoading(false);}};
@@ -55,6 +57,8 @@ export default function CampusAttendance({season,settings}){
   </div>
   {error&&<div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-800">{error}</div>}
   {notice&&<div className="rounded-lg border border-green-200 bg-green-50 p-2.5 text-xs font-semibold text-green-800">{notice}</div>}
+  <div className="flex gap-1.5 rounded-xl bg-slate-100 p-1">{[["lista","Pasar lista"],["semana","Vista semanal"]].map(([k,l])=><button key={k} onClick={()=>setView(k)} className={"flex-1 rounded-lg py-2 text-sm font-black "+(view===k?"bg-white text-slate-950 shadow-sm":"text-slate-500")}>{l}</button>)}</div>
+  {view==="lista"?(loading?<p className="rounded-xl bg-white p-6 text-center text-sm text-slate-500">Cargando lista…</p>:roster.length===0?<p className="rounded-xl bg-white p-6 text-center text-sm text-slate-500">No hay menores en tu lista para esta semana o no tienes permiso asignado.</p>:<CampusPasarLista roster={roster} records={records} dates={dates} busy={busy} save={save}/>):<>
   <div className="flex items-center justify-between gap-2"><div><h3 className="text-sm font-black">Asistencia semanal</h3><p className="text-[11px] text-slate-500">{roster.length} menores inscritos · Pulsa una casilla para editarla</p></div><button onClick={load} disabled={loading} className="inline-flex items-center gap-1.5 rounded-lg border bg-white px-2.5 py-1.5 text-xs font-bold disabled:opacity-50"><RefreshCw className={"h-3.5 w-3.5 "+(loading?"animate-spin":"")}/>Actualizar</button></div>
   {loading?<p className="rounded-xl bg-white p-6 text-center text-sm text-slate-500">Cargando semana…</p>:roster.length===0?<p className="rounded-xl bg-white p-6 text-center text-sm text-slate-500">No hay menores en tu lista para esta semana o no tienes permiso asignado.</p>:<>
    <div className="overflow-x-auto rounded-xl border bg-white shadow-sm">
@@ -100,6 +104,7 @@ export default function CampusAttendance({season,settings}){
     </table>
    </div>
    <p className="text-[10px] text-slate-500">P = presente · A = ausente · Ent. = entrada · Rec. = salida con verificación de la persona autorizada. Los cambios solo se dan por guardados cuando el servidor confirma el registro.</p>
+  </>}
   </>}
  </section>;
 }

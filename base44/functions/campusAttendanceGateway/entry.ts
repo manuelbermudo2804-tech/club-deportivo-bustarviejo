@@ -95,7 +95,8 @@ Deno.serve(async req => {
             ...(Array.isArray(p.autorizados_recogida)?p.autorizados_recogida.map(a=>({nombre:a.nombre||'',dni:a.dni||'',telefono:a.telefono||'',parentesco:a.parentesco||'',tipo:'autorizado'})):[]),
             ...(reg.adulto_nombre?[{nombre:reg.adulto_nombre,dni:reg.adulto_dni||'',telefono:reg.adulto_telefono||'',parentesco:'Responsable legal',tipo:'responsable'}]:[])
           ].filter((a,i,list)=>a.nombre&&list.findIndex(x=>cleanEmail(x.nombre)===cleanEmail(a.nombre)&&cleanDni(x.dni)===cleanDni(a.dni))===i),
-          responsable:{nombre:reg.adulto_nombre||'',dni:reg.adulto_dni||'',telefono:reg.adulto_telefono||''}
+          responsable:{nombre:reg.adulto_nombre||'',dni:reg.adulto_dni||'',telefono:reg.adulto_telefono||''},
+          salida_autonoma:p.salida_modalidad==='salida_autonoma'&&p.autorizacion_salida_solo===true
         };
       }).sort((a,b)=>(a.nombre||'').localeCompare(b.nombre||'','es'));
       if (action === 'roster' || action === 'weekRoster') return json({roster,records:action === 'weekRoster' ? (attendance||[]).filter(r=>allowedDates.includes(r.fecha)) : (attendance||[]),week,dates:allowedDates,monitor:{nombre:user.full_name||user.email}});
@@ -114,6 +115,12 @@ Deno.serve(async req => {
       };
       if (patch.hora_entrada !== undefined) data.hora_entrada=String(patch.hora_entrada||'').slice(0,5);
       if (patch.hora_salida !== undefined) data.hora_salida=String(patch.hora_salida||'').slice(0,5);
+      if (patch.salida_autonoma === true) {
+        if (!participant.salida_autonoma) return json({error:'Salida rechazada: la familia no ha autorizado que este menor salga solo.'},403);
+        data.persona_recoge='Salida autónoma (autorizada por la familia)'; data.dni_recoge=''; data.recogida_verificada=true;
+        data.hora_salida=String(patch.hora_salida||new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',hour12:false})).slice(0,5);
+        data.estado='presente';
+      }
       if (patch.recogida_verificada === true) {
         const name=String(patch.persona_recoge||'').trim();
         const dni=cleanDni(patch.dni_recoge);
