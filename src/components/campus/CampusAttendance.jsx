@@ -126,5 +126,6 @@ export default function CampusAttendance({season,settings,adminView=false}){
    <p className="text-[10px] text-slate-500">P = presente · A = ausente · Ent. = entrada · Rec. = salida con verificación de la persona autorizada. Los cambios solo se dan por guardados cuando el servidor confirma el registro.</p>
   </>}
   </>}
+  </>}
  </section>;
 }
