@@ -125,10 +125,12 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
         )}
       </div>
 
+      {modo === "salida" && filtroSalida === "solos" &&
+        <CampusSalenSolos lista={lista} onTodos={darSalidaTodos} />}
       {modo === "entrada" && counts.pendiente === 0 && roster.length > 0 &&
         <p className="rounded-xl bg-blue-50 p-3 text-xs font-bold text-blue-800">Todos están registrados: ya han llegado, faltan o tienen su asistencia anotada.</p>}
-      {modo === "salida" && filtroSalida === "pendiente" &&
-        <p className="rounded-xl bg-orange-50 p-3 text-xs font-semibold text-orange-900">Comprueba quién viene a recoger al menor. Si tiene autorización de salida autónoma, aparecerá su botón específico.</p>}
+      {modo === "salida" && filtroSalida === "recogen" &&
+        <p className="rounded-xl bg-orange-50 p-3 text-xs font-semibold text-orange-900">Estos menores deben salir con una persona autorizada. Selecciona quién viene a recogerlo y verifica su DNI/NIE antes de entregarlo.</p>}
 
       {lista.length === 0 ? (
         <p className="rounded-xl bg-white p-6 text-center text-sm text-slate-500">{q ? "Nadie coincide con «" + q + "»." : "No hay menores en este apartado."}</p>
