@@ -4,7 +4,8 @@ import moment from "moment";
 import { Download, ExternalLink, ChevronLeft, ChevronRight, Loader2, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 4;
+const CLUB_SHIELD = "https://www.cdbustarviejo.com/img/escudo.png";
 
 function formatDay(date) {
   const parsed = moment(date, ["YYYY-MM-DD", "DD/MM/YYYY"], true);
@@ -102,7 +103,7 @@ export default function WeekendMatchesGraphic({ matches = [], weekendLabel = "" 
         >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "2%", marginBottom: "2.1%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "2.5%" }}>
-              <div style={{ width: "8.5%", aspectRatio: "1", minWidth: "8.5%", borderRadius: "22%", background: "linear-gradient(145deg,#fb923c,#ea580c)", display: "flex", alignItems: "center", justifyContent: "center", border: "2px solid rgba(255,255,255,.75)", boxShadow: "0 5px 18px rgba(0,0,0,.35)", fontWeight: 900, fontSize: "2.2vw", color: "#111827" }}>CD</div>
+              <div style={{ width: "9%", aspectRatio: "1", minWidth: "9%", borderRadius: "12px", background: "#fff", padding: "3px", boxSizing: "border-box", display: "flex", alignItems: "center", justifyContent: "center" }}><img src={CLUB_SHIELD} crossOrigin="anonymous" alt="Escudo CD Bustarviejo" style={{ width: "100%", height: "100%", objectFit: "contain" }} /></div>
               <div>
                 <div style={{ fontSize: "1.2vw", fontWeight: 800, letterSpacing: ".16em", color: "#fdba74" }}>CLUB DEPORTIVO</div>
                 <div style={{ fontSize: "2.25vw", lineHeight: 1.05, fontWeight: 900, letterSpacing: "-.035em" }}>BUSTARVIEJO</div>
@@ -123,17 +124,17 @@ export default function WeekendMatchesGraphic({ matches = [], weekendLabel = "" 
             {currentMatches.map((match, index) => (
               <div key={match.id || index} style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", gap: "2%", padding: "1.05% 1.5%", borderRadius: "10px", background: index % 2 === 0 ? "rgba(255,255,255,.105)" : "rgba(255,255,255,.065)", border: "1px solid rgba(255,255,255,.12)" }}>
                 <div style={{ width: "19%", minWidth: "19%" }}>
-                  <div style={{ display: "inline-block", maxWidth: "100%", padding: "5% 8%", borderRadius: "6px", background: "#f97316", color: "#111827", fontSize: "1.12vw", lineHeight: 1.15, fontWeight: 900, textTransform: "uppercase" }}>{match.categoria}</div>
-                  <div style={{ marginTop: "5%", fontSize: "1.08vw", color: "#fdba74", fontWeight: 800 }}>{formatDay(match.fecha)}</div>
+                  <div style={{ display: "inline-block", maxWidth: "100%", padding: "5% 8%", borderRadius: "6px", background: "#f97316", color: "#111827", fontSize: "clamp(9px,1.05vw,15px)", lineHeight: 1.12, fontWeight: 900, textTransform: "uppercase" }}>{match.categoria}</div>
+                  <div style={{ marginTop: "5%", fontSize: "clamp(9px,1vw,14px)", color: "#fdba74", fontWeight: 800 }}>{formatDay(match.fecha)}</div>
                 </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: "1.6vw", lineHeight: 1.1, fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.local}</div>
-                  <div style={{ margin: "1% 0", color: "#fb923c", fontSize: "1.05vw", fontWeight: 900, letterSpacing: ".14em" }}>VS</div>
-                  <div style={{ fontSize: "1.6vw", lineHeight: 1.1, fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.visitante}</div>
+                <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: "1.5%" }}>
+                  <div style={{ flex: 1, minWidth: 0, fontSize: "clamp(11px,1.45vw,21px)", lineHeight: 1.15, fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.local}</div>
+                  <div style={{ flexShrink: 0, color: "#fb923c", fontSize: "clamp(9px,1vw,14px)", fontWeight: 900, letterSpacing: ".08em" }}>VS</div>
+                  <div style={{ flex: 1, minWidth: 0, fontSize: "clamp(11px,1.45vw,21px)", lineHeight: 1.15, fontWeight: 900, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.visitante}</div>
                 </div>
                 <div style={{ width: "19%", minWidth: "19%", textAlign: "right" }}>
-                  <div style={{ fontSize: "2.35vw", lineHeight: 1, fontWeight: 900, color: "#fdba74" }}>{match.hora || "—"}</div>
-                  <div style={{ marginTop: "5%", fontSize: "1.02vw", lineHeight: 1.15, color: "#cbd5e1", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.campo || "Campo por confirmar"}</div>
+                  <div style={{ fontSize: "clamp(17px,2.1vw,30px)", lineHeight: 1, fontWeight: 900, color: "#fdba74" }}>{match.hora || "—"}</div>
+                  <div style={{ marginTop: "5%", fontSize: "clamp(8px,.95vw,13px)", lineHeight: 1.15, color: "#cbd5e1", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{match.campo || "Campo por confirmar"}</div>
                 </div>
               </div>
             ))}
