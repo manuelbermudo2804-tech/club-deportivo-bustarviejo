@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Search, X, CalendarDays } from "lucide-react";
 import CampusAlumnoFila, { estadoDia } from "@/components/campus/CampusAlumnoFila";
+import CampusSalenSolos from "@/components/campus/CampusSalenSolos";
+import CampusSalidaFiltros from "@/components/campus/CampusSalidaFiltros";
 
 const norm = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const dayLabel = d => new Date(d + "T12:00:00").toLocaleDateString("es-ES", { weekday: "long", day: "2-digit", month: "long" });
