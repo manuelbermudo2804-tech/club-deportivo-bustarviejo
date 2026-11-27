@@ -22,9 +22,15 @@ Deno.serve(async (req) => {
 
     const cancelled = [];
     for (const reg of candidates) {
-      const isTest = String(reg.notas || '').includes('[PRUEBA');
-      const stripe = isTest ? (test || live) : (live || test);
-      if (!stripe) continue;
+      // Seleccionar la cuenta por el prefijo de la sesión, no por notas editables.
+      // Nunca probar una sesión de un entorno con la clave del otro.
+      const isTest = String(reg.stripe_session_id).startsWith('cs_test_');
+      const isLive = String(reg.stripe_session_id).startsWith('cs_live_');
+      const stripe = isTest ? test : isLive ? live : null;
+      if (!stripe) {
+        console.warn('[campusCleanupAbandoned] Entorno Stripe no identificable; se conserva la plaza', reg.id);
+        continue;
+      }
       const session = await stripe.checkout.sessions.retrieve(reg.stripe_session_id).catch(() => null);
       // Solo se cancela si Stripe confirma que el enlace caducó sin pago.
       if (!session || session.status !== 'expired') continue;
