@@ -3,13 +3,19 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.31';
 const ORIGINS = new Set(['https://www.cdbustarviejo.com','https://cdbustarviejo.com']);
 const WEEKS = ['S1','S2','S3','S4','S5'];
 const clean = v => String(v ?? '').trim();
+function isValidISODate(value) {
+  const text = String(value || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
+  const [year, month, day] = text.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return Number.isFinite(date.getTime()) && date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
 function ageAtCampus(birth) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(birth || ''))) return null;
-  const date = new Date(String(birth) + 'T00:00:00Z');
+  if (!isValidISODate(birth)) return null;
+  const [year, month, day] = String(birth).split('-').map(Number);
   const start = new Date('2027-06-28T00:00:00Z');
-  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0,10) !== birth) return null;
-  let age = start.getUTCFullYear() - date.getUTCFullYear();
-  if (start.getUTCMonth() < date.getUTCMonth() || (start.getUTCMonth() === date.getUTCMonth() && start.getUTCDate() < date.getUTCDate())) age--;
+  let age = start.getUTCFullYear() - year;
+  if (start.getUTCMonth() + 1 < month || (start.getUTCMonth() + 1 === month && start.getUTCDate() < day)) age--;
   return age;
 }
 
@@ -34,7 +40,7 @@ Deno.serve(async req => {
     if (!adulto || !telefono || !email) return Response.json({error:'Indica nombre, teléfono y correo del adulto responsable.'},{status:400,headers});
     if (!/^[-+()\d\s]{6,25}$/.test(telefono)) return Response.json({error:'Introduce un teléfono válido.'},{status:400,headers});
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return Response.json({error:'Introduce un correo electrónico válido.'},{status:400,headers});
-    if (!menores.length || menores.length > 8) return Response.json({error:'Añade al menos un menor (máximo 8 por solicitud).'}, {status:400,headers});
+    if (!menores.length || menores.length > 4) return Response.json({error:'Añade al menos un menor (máximo 4 por responsable).'}, {status:400,headers});
     const base44 = createClientFromRequest(req);
     const cfgs = await base44.asServiceRole.entities.CampusSettings.list('-created_date',100);
     const settings = (cfgs || []).find(x => x.activo === true && String(x.temporada || '') === '2027');
@@ -69,16 +75,28 @@ Deno.serve(async req => {
       }
       return {nombre,fecha,edad, semanas,grupo};
     });
-    const solicitudId = crypto.randomUUID();
+    const existingWaitlist = await base44.asServiceRole.entities.CampusWaitlistEntry.list('-created_date',3000);
+    const activeWaitlist = (existingWaitlist || []).filter(row => ['pendiente','contactado'].includes(String(row.estado || '').toLowerCase()));
+    const normalizeName = value => clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ');
     const rows = [];
-    for (const menor of cleanMinors) for (const semana of menor.semanas) rows.push({
-      temporada:'2027',solicitud_id:solicitudId,
-      adulto_nombre:adulto,adulto_telefono:telefono,adulto_email:email,
-      menor_nombre:menor.nombre,fecha_nacimiento:menor.fecha,edad:menor.edad,grupo_edad:menor.grupo,
-      semana,estado:'pendiente'
-    });
-    for (const row of rows) await base44.asServiceRole.entities.CampusWaitlistEntry.create(row);
-    return Response.json({success:true,solicitud_id:solicitudId,menores:cleanMinors.length,solicitudes:rows.length,message:'Solicitud añadida a la lista de espera. No se ha realizado ningún pago ni reservado una plaza.'},{headers});
+    const duplicates = [];
+    for (const menor of cleanMinors) for (const semana of menor.semanas) {
+      const duplicate = activeWaitlist.some(row =>
+        String(row.temporada || '2027') === '2027' && row.semana === semana &&
+        normalizeName(row.menor_nombre) === normalizeName(menor.nombre) &&
+        (String(row.adulto_email || '').trim().toLowerCase() === email || String(row.adulto_telefono || '').replace(/\D/g,'') === telefono.replace(/\D/g,''))
+      );
+      if (duplicate) { duplicates.push({menor:menor.nombre,semana}); continue; }
+      rows.push({
+        temporada:'2027',adulto_nombre:adulto,adulto_telefono:telefono,adulto_email:email,
+        menor_nombre:menor.nombre,fecha_nacimiento:menor.fecha,edad:menor.edad,grupo_edad:menor.grupo,
+        semana,estado:'pendiente'
+      });
+    }
+    if (!rows.length) return Response.json({success:true,duplicate:true,solicitudes:0,duplicadas:duplicates.length,message:'Esta solicitud ya está en la lista de espera. No se ha creado otra entrada.'},{headers});
+    const solicitudId = crypto.randomUUID();
+    for (const row of rows) await base44.asServiceRole.entities.CampusWaitlistEntry.create({...row,solicitud_id:solicitudId});
+    return Response.json({success:true,solicitud_id:solicitudId,menores:cleanMinors.length,solicitudes:rows.length,duplicadas:duplicates.length,message:duplicates.length?'Se han añadido las semanas nuevas; las solicitudes que ya existían no se han duplicado.':'Solicitud añadida a la lista de espera. No se ha realizado ningún pago ni reservado una plaza.'},{headers});
   } catch (error) {
     console.error('[campusWaitlistSubmit]',error?.message || error);
     return Response.json({error:error?.message || 'No se ha podido guardar la solicitud.'},{status:400,headers});
