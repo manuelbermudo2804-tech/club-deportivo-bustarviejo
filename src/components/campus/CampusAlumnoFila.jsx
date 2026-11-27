@@ -49,7 +49,7 @@ export default function CampusAlumnoFila({ p, r, busy, modoSalida, onLlega, onFa
         </div>
         {p.salida_autonoma && <p className="rounded-lg border border-blue-200 bg-blue-50 p-2 font-bold text-blue-800">🚶 Autorización familiar para salir solo</p>}
         {r?.hora_entrada && <p><b>Hora de entrada:</b> {r.hora_entrada}</p>}
-        {r?.hora_salida && <p><b>Hora de salida:</b> {r.hora_salida}</p>
+        {r?.hora_salida && <p><b>Hora de salida:</b> {r.hora_salida}</p>}
         <div className="border-t pt-2"><b>Contactos de emergencia</b>
           {contactos.length ? contactos.map((c, i) => <a key={i} href={"tel:" + tel(c[1])} className="mt-1 flex items-center gap-1.5 font-bold text-blue-700"><Phone className="h-3.5 w-3.5" />{c[0]} · {c[1]}</a>) : <p>No consta teléfono de emergencia.</p>}
         </div>
