@@ -121,14 +121,7 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
             ))}
           </div>
         ) : (
-          <div className="grid grid-cols-2 gap-1.5">
-            {[["pendiente", "Pendientes de salida"], ["salido", "Ya han salido"]].map(([k, label]) => (
-              <button key={k} onClick={() => { setFiltroSalida(k); setQ(""); }}
-                className={"rounded-xl px-2 py-2 text-xs font-bold " + (!q && filtroSalida === k ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700")}>
-                <span className="block text-lg font-black">{salidaCounts[k]}</span>{label}
-              </button>
-            ))}
-          </div>
+          <CampusSalidaFiltros value={filtroSalida} onChange={k => { setFiltroSalida(k); setQ(""); }} counts={salidaCounts} />
         )}
       </div>
 
