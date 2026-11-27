@@ -147,9 +147,16 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
                 const t = nowTime();
                 save(p, { salida_autonoma: true, hora_salida: t }, "salida_autonoma", "Salida autónoma autorizada por la familia a las " + t, day);
               }}
-              onPickup={(person, dni) => {
+              onPickup={(person, dni, dniComprobado) => {
                 const t = nowTime();
-                save(p, { estado: "presente", recogida_verificada: true, persona_recoge: person.nombre, dni_recoge: dni, hora_salida: t }, "recogida_verificada", "Recogida verificada por " + person.nombre + " a las " + t, day);
+                const patch = { estado: "presente", persona_recoge: person.nombre, hora_salida: t };
+                if (dniComprobado) {
+                  patch.recogida_verificada = true;
+                  patch.dni_recoge = dni;
+                } else {
+                  patch.recogida_autorizada = true;
+                }
+                save(p, patch, dniComprobado ? "recogida_verificada" : "recogida_autorizada", (dniComprobado ? "Identidad comprobada por DNI de " : "Persona autorizada seleccionada: ") + person.nombre + " a las " + t, day);
               }}
             />
           ))}
