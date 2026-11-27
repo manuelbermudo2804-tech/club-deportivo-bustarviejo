@@ -115,6 +115,13 @@ Deno.serve(async req => {
       };
       if (patch.hora_entrada !== undefined) data.hora_entrada=String(patch.hora_entrada||'').slice(0,5);
       if (patch.hora_salida !== undefined) data.hora_salida=String(patch.hora_salida||'').slice(0,5);
+      if (patch.persona_recoge !== undefined) data.persona_recoge=String(patch.persona_recoge||'').slice(0,160);
+      if (patch.dni_recoge !== undefined) data.dni_recoge=cleanDni(patch.dni_recoge);
+      if (patch.recogida_verificada === false) {
+        data.recogida_verificada=false;
+        data.persona_recoge='';
+        data.dni_recoge='';
+      }
       if (patch.salida_autonoma === true) {
         if (!participant.salida_autonoma) return json({error:'Salida rechazada: la familia no ha autorizado que este menor salga solo.'},403);
         data.persona_recoge='Salida autónoma (autorizada por la familia)'; data.dni_recoge=''; data.recogida_verificada=true;
