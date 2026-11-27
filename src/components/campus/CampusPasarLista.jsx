@@ -1,66 +1,148 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, CalendarDays } from "lucide-react";
 import CampusAlumnoFila, { estadoDia } from "@/components/campus/CampusAlumnoFila";
-import CampusSalidaFiltros from "@/components/campus/CampusSalidaFiltros";
-import CampusSalenSolos from "@/components/campus/CampusSalenSolos";
 
 const norm = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-const dayLabel = d => new Date(d + "T12:00:00").toLocaleDateString("es-ES", { weekday: "short", day: "2-digit" });
+const dayLabel = d => new Date(d + "T12:00:00").toLocaleDateString("es-ES", { weekday: "long", day: "2-digit", month: "long" });
 const nowTime = () => new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", hour12: false });
-const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-const FILTROS = [["pendiente", "Por llegar"], ["dentro", "Han llegado"], ["ausente", "Faltan"], ["todos", "Todos"]];
+const today = () => {
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+};
+const FILTROS_ENTRADA = [["pendiente", "Por llegar"], ["dentro", "Han llegado"], ["ausente", "Faltan"], ["todos", "Todos"]];
 
 export default function CampusPasarLista({ roster, records, dates, busy, save }) {
   const [day, setDay] = useState("");
   const [q, setQ] = useState("");
-  const [filtro, setFiltro] = useState("pendiente");
+  const [filtroEntrada, setFiltroEntrada] = useState("pendiente");
+  const [filtroSalida, setFiltroSalida] = useState("pendiente");
+  const [modo, setModo] = useState("entrada");
   const inputRef = useRef(null);
-  useEffect(() => { if (dates.length && !dates.includes(day)) setDay(dates.includes(today()) ? today() : dates[0]); }, [dates]);
+
+  // Al abrir: hoy si es uno de los días del Campus; antes de empezar, el lunes 28.
+  // Al cambiar de semana: hoy si pertenece a ella; si no, su primer día (lunes).
+  useEffect(() => {
+    if (!dates.length) return;
+    setDay(current => dates.includes(current) ? current : dates.includes(today()) ? today() : dates[0]);
+  }, [dates]);
+
   const rec = id => records.find(r => r.participant_id === id && r.fecha === day);
   const counts = useMemo(() => {
-    const c = { pendiente: 0, dentro: 0, salido: 0, ausente: 0, todos: roster.length };
-    roster.forEach(p => { const e = estadoDia(records.find(r => r.participant_id === p.id && r.fecha === day)); c[e === "salido" ? "dentro" : e]++; });
+    const c = { pendiente: 0, dentro: 0, ausente: 0, todos: roster.length };
+    roster.forEach(p => {
+      const e = estadoDia(records.find(r => r.participant_id === p.id && r.fecha === day));
+      if (e === "salido") c.dentro++;
+      else c[e]++;
+    });
     return c;
   }, [roster, records, day]);
-  const [modo, setModo] = useState("entrada");
-  const [salidaTipo, setSalidaTipo] = useState("recogen");
+
   const salidaCounts = useMemo(() => {
-    const c = { solos: 0, recogen: 0, salido: 0 };
-    roster.forEach(p => { const e = estadoDia(records.find(r => r.participant_id === p.id && r.fecha === day)); if (e === "salido") c.salido++; else if (e === "dentro") c[p.salida_autonoma ? "solos" : "recogen"]++; });
+    const c = { pendiente: 0, salido: 0 };
+    roster.forEach(p => {
+      const e = estadoDia(records.find(r => r.participant_id === p.id && r.fecha === day));
+      if (e === "salido") c.salido++;
+      else if (e === "dentro") c.pendiente++;
+    });
     return c;
   }, [roster, records, day]);
-  const enSalida = p => { const e = estadoDia(rec(p.id)); if (q) return e === "dentro" || e === "salido"; return salidaTipo === "salido" ? e === "salido" : e === "dentro" && !p.salida_autonoma; };
-  const enEntrada = p => { const e = estadoDia(rec(p.id)); return filtro === "todos" || e === filtro || (filtro === "dentro" && e === "salido"); };
-  const lista = roster.filter(p => modo === "salida" ? enSalida(p) && (!q || norm(p.nombre).includes(norm(q))) : (q ? norm(p.nombre).includes(norm(q)) : enEntrada(p)));
-  const solosDentro = roster.filter(p => p.salida_autonoma && estadoDia(rec(p.id)) === "dentro");
-  const autonoma = p => { const t = nowTime(); return save(p, { salida_autonoma: true, hora_salida: t }, "salida_autonoma", "Salida autónoma autorizada por la familia a las " + t, day); };
-  const salidaTodos = async () => { for (const p of solosDentro) await autonoma(p); };
+
+  const lista = roster.filter(p => {
+    const e = estadoDia(rec(p.id));
+    const matchesSearch = !q || norm(p.nombre).includes(norm(q));
+    if (!matchesSearch) return false;
+    if (modo === "entrada") return filtroEntrada === "todos" || e === filtroEntrada || (filtroEntrada === "dentro" && e === "salido");
+    return filtroSalida === "salido" ? e === "salido" : e === "dentro";
+  });
+
   const after = ok => { if (ok && q) { setQ(""); inputRef.current?.focus(); } };
-  const llega = async p => { const t = nowTime(); after(await save(p, { estado: "presente", hora_entrada: t }, "asistencia", "Llegada registrada a las " + t, day)); };
-  const onEnter = e => { if (modo === "entrada" && e.key === "Enter" && lista.length === 1 && estadoDia(rec(lista[0].id)) === "pendiente") llega(lista[0]); };
+  const llega = async p => {
+    const t = nowTime();
+    after(await save(p, { estado: "presente", hora_entrada: t }, "asistencia", "Llegada registrada a las " + t, day));
+  };
+  const onEnter = e => {
+    if (modo === "entrada" && e.key === "Enter" && lista.length === 1 && estadoDia(rec(lista[0].id)) === "pendiente") llega(lista[0]);
+  };
+
   return (
     <div className="space-y-3">
-      <div className="flex gap-1.5 overflow-x-auto">{dates.map(d => <button key={d} onClick={() => setDay(d)} className={"shrink-0 rounded-lg px-3 py-2 text-xs font-bold capitalize " + (d === day ? "bg-orange-600 text-white" : "border bg-white text-slate-700")}>{dayLabel(d)}{d === today() ? " · hoy" : ""}</button>)}</div>
+      <div className="rounded-xl border bg-white p-2 shadow-sm">
+        <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-slate-500">
+          <CalendarDays className="h-4 w-4 text-orange-600" /> Día de control
+        </div>
+        <div className="flex gap-1.5 overflow-x-auto pb-1">
+          {dates.map(d => (
+            <button key={d} onClick={() => { setDay(d); setQ(""); }}
+              className={"shrink-0 rounded-lg px-3 py-2.5 text-xs font-bold capitalize " + (d === day ? "bg-orange-600 text-white shadow-sm" : "border bg-slate-50 text-slate-700")}>
+              {new Date(d + "T12:00:00").toLocaleDateString("es-ES", { weekday: "short", day: "2-digit" })}
+              {d === today() ? " · hoy" : ""}
+            </button>
+          ))}
+        </div>
+        <p className="mt-1 text-[11px] capitalize text-slate-500">{day ? dayLabel(day) : "Selecciona un día"}</p>
+      </div>
+
       <div className="sticky top-[100px] z-20 space-y-2 rounded-2xl border bg-white/95 p-3 shadow-sm backdrop-blur lg:top-2">
-        <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">{[["entrada", "🌅 Entrada"], ["salida", "🏁 Salida"]].map(([k, l]) => <button key={k} onClick={() => { setModo(k); setQ(""); }} className={"rounded-lg py-2.5 text-sm font-black " + (modo === k ? "bg-white text-slate-900 shadow" : "text-slate-500")}>{l}</button>)}</div>
-        <div className="relative"><Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
-          <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} onKeyDown={onEnter} placeholder={modo === "salida" ? "Busca al menor que viene a salir…" : "Busca por nombre según vayan llegando…"} autoComplete="off" className="h-12 w-full rounded-xl border-2 border-slate-200 pl-10 pr-10 text-base focus:border-orange-500" />
+        <div className="grid grid-cols-2 gap-1 rounded-xl bg-slate-100 p-1">
+          {[["entrada", "🌅 Entrada"], ["salida", "🏁 Salida"]].map(([k, label]) => (
+            <button key={k} onClick={() => { setModo(k); setQ(""); }}
+              className={"rounded-lg py-3 text-sm font-black " + (modo === k ? "bg-white text-slate-900 shadow" : "text-slate-500")}>{label}</button>
+          ))}
+        </div>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+          <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} onKeyDown={onEnter}
+            placeholder="Buscar menor por nombre…" autoComplete="off"
+            className="h-12 w-full rounded-xl border-2 border-slate-200 pl-10 pr-10 text-base focus:border-orange-500" />
           {q && <button onClick={() => { setQ(""); inputRef.current?.focus(); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"><X className="h-5 w-5" /></button>}
         </div>
-        {modo === "entrada"
-          ? <div className="flex gap-1.5 overflow-x-auto">{FILTROS.map(([k, l]) => <button key={k} onClick={() => { setFiltro(k); setQ(""); }} className={"shrink-0 rounded-full px-3 py-1.5 text-xs font-bold " + (!q && filtro === k ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700")}>{l} · {counts[k]}</button>)}</div>
-          : <CampusSalidaFiltros value={q ? "" : salidaTipo} onChange={k => { setSalidaTipo(k); setQ(""); }} counts={salidaCounts} />}
+        {modo === "entrada" ? (
+          <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+            {FILTROS_ENTRADA.map(([k, label]) => (
+              <button key={k} onClick={() => { setFiltroEntrada(k); setQ(""); }}
+                className={"rounded-xl px-2 py-2 text-xs font-bold " + (!q && filtroEntrada === k ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700")}>
+                <span className="block text-lg font-black">{counts[k]}</span>{label}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-1.5">
+            {[["pendiente", "Pendientes de salida"], ["salido", "Ya han salido"]].map(([k, label]) => (
+              <button key={k} onClick={() => { setFiltroSalida(k); setQ(""); }}
+                className={"rounded-xl px-2 py-2 text-xs font-bold " + (!q && filtroSalida === k ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700")}>
+                <span className="block text-lg font-black">{salidaCounts[k]}</span>{label}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
-      {modo === "entrada" && counts.dentro > 0 && counts.pendiente === 0 && <p className="rounded-xl bg-blue-50 p-2.5 text-xs font-bold text-blue-800">Todos han llegado o están marcados. La salida se registra en la pestaña 🏁 Salida.</p>}
-      {modo === "salida" && !q && salidaTipo === "recogen" && <CampusSalenSolos lista={solosDentro} onTodos={salidaTodos} />}
-      {lista.length === 0 ? <p className="rounded-xl bg-white p-6 text-center text-sm text-slate-500">{q ? "Nadie coincide con «" + q + "» en la lista de esta semana." : "No hay menores en este apartado."}</p>
-        : <div className="grid gap-2 md:grid-cols-2 2xl:grid-cols-3">{lista.map(p => <CampusAlumnoFila key={p.id} p={p} r={rec(p.id)} busy={busy === p.id} modoSalida={modo === "salida"}
-          onLlega={() => llega(p)}
-          onFalta={async () => after(await save(p, { estado: "ausente" }, "asistencia", "Marcado ausente", day))}
-          onDeshacer={() => save(p, { estado: "pendiente", hora_entrada: "" }, "correccion", "Registro deshecho por el monitor", day)}
-          onAutonoma={() => autonoma(p)}
-          onPickup={(person, dni) => { const t = nowTime(); save(p, { estado: "presente", recogida_verificada: true, persona_recoge: person.nombre, dni_recoge: dni, hora_salida: t }, "recogida_verificada", "Recogida verificada por " + person.nombre + " a las " + t, day); }}
-        />)}</div>}
+
+      {modo === "entrada" && counts.pendiente === 0 && roster.length > 0 &&
+        <p className="rounded-xl bg-blue-50 p-3 text-xs font-bold text-blue-800">Todos están registrados: ya han llegado, faltan o tienen su asistencia anotada.</p>}
+      {modo === "salida" && filtroSalida === "pendiente" &&
+        <p className="rounded-xl bg-orange-50 p-3 text-xs font-semibold text-orange-900">Comprueba quién viene a recoger al menor. Si tiene autorización de salida autónoma, aparecerá su botón específico.</p>}
+
+      {lista.length === 0 ? (
+        <p className="rounded-xl bg-white p-6 text-center text-sm text-slate-500">{q ? "Nadie coincide con «" + q + "»." : "No hay menores en este apartado."}</p>
+      ) : (
+        <div className="grid gap-2 md:grid-cols-2 2xl:grid-cols-3">
+          {lista.map(p => (
+            <CampusAlumnoFila key={p.id} p={p} r={rec(p.id)} busy={busy === p.id} modoSalida={modo === "salida"}
+              onLlega={() => llega(p)}
+              onFalta={async () => after(await save(p, { estado: "ausente" }, "asistencia", "Marcado ausente", day))}
+              onDeshacer={() => save(p, { estado: "pendiente", hora_entrada: "", hora_salida: "", persona_recoge: "", dni_recoge: "", recogida_verificada: false }, "correccion", "Registro del día reiniciado por el monitor", day)}
+              onAutonoma={() => {
+                const t = nowTime();
+                save(p, { salida_autonoma: true, hora_salida: t }, "salida_autonoma", "Salida autónoma autorizada por la familia a las " + t, day);
+              }}
+              onPickup={(person, dni) => {
+                const t = nowTime();
+                save(p, { estado: "presente", recogida_verificada: true, persona_recoge: person.nombre, dni_recoge: dni, hora_salida: t }, "recogida_verificada", "Recogida verificada por " + person.nombre + " a las " + t, day);
+              }}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
