@@ -26,31 +26,14 @@ export default function CampusAlumnoFila({ p, r, busy, modoSalida, onLlega, onFa
 
   return (
     <article className={"rounded-2xl border bg-white p-3 shadow-sm " + (modoSalida && estado === "dentro" ? (p.salida_autonoma ? "border-l-8 border-l-blue-500 " : "border-l-8 border-l-orange-500 ") : "") + (estado === "pendiente" ? "border-amber-200" : "border-slate-200")}>
-      <div className="flex items-start justify-between gap-2">
-        <button onClick={() => setFicha(v => !v)} className="min-w-0 flex-1 text-left">
-          <p className="truncate text-base font-black text-slate-900">{p.nombre}</p>
-          <p className="text-xs text-slate-500">Grupo {p.grupo_edad || "—"}{r?.hora_entrada ? " · Entrada " + r.hora_entrada : ""}{r?.hora_salida ? " · Salida " + r.hora_salida : ""}</p>
-        </button>
-        <span className={"shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black " + cls}>{label}</span>
-      </div>
-
-      {p.salida_autonoma && <p className="mt-2 rounded-lg bg-blue-50 px-2 py-1.5 text-xs font-bold text-blue-800">🚶 Autorizado por su familia para salir solo</p>}
-      {salud.length > 0 ? (
-        <div className="mt-2 flex items-start gap-1.5 rounded-lg bg-red-50 px-2 py-1.5 text-xs font-bold text-red-800"><AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />{salud.join(" · ")}</div>
-      ) : (
-        <p className="mt-2 rounded-lg bg-slate-50 px-2 py-1.5 text-xs text-slate-500">Sin alertas médicas comunicadas</p>
-      )}
-
-      <div className="mt-2 flex flex-wrap gap-2">
-        {contactos.map((c, i) => (
-          <a key={i} href={"tel:" + tel(c[1])} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-2 text-xs font-bold text-blue-800">
-            <Phone className="h-3.5 w-3.5" />{c[0]} · {c[1]}
-          </a>
-        ))}
-        <button onClick={() => setFicha(v => !v)} className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border bg-slate-50 px-2.5 py-2 text-xs font-bold text-slate-700">
-          <ClipboardList className="h-3.5 w-3.5" />Ficha completa <ChevronDown className={"h-3 w-3 transition " + (ficha ? "rotate-180" : "")} />
-        </button>
-      </div>
+      <button onClick={() => setFicha(v => !v)} className="flex w-full items-center justify-between gap-3 text-left">
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-sm font-extrabold text-slate-900">{p.nombre}</span>
+          <span className="mt-0.5 block text-[11px] text-slate-500">Grupo {p.grupo_edad || "—"}</span>
+        </span>
+        <span className={"shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold " + cls}>{label}</span>
+        <ChevronDown className={"h-4 w-4 shrink-0 text-slate-400 transition " + (ficha ? "rotate-180" : "")} />
+      </button>
 
       {ficha && <div className="mt-2 space-y-2 rounded-xl border bg-slate-50 p-3 text-xs text-slate-700">
         <div className="grid grid-cols-2 gap-2">
