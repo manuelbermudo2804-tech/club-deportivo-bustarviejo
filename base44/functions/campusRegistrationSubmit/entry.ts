@@ -124,9 +124,9 @@ Deno.serve(async req=>{
       const parent=registrationById.get(p.registration_id);
       if(!parent) return true;
       if(['cancelada','revision'].includes(parent.estado)) return false;
-      // Pago con tarjeta abandonado: el enlace de pago caduca a los 31 min, así que pasado ese tiempo la plaza se libera.
-      const abandoned=parent.estado_pago==='pendiente'&&Date.now()-new Date(parent.created_date).getTime()>35*60*1000;
-      return !abandoned;
+      // Las solicitudes pendientes ocupan plaza hasta que se cancelan explícitamente.
+      // No se libera por antigüedad: la limpieza debe confirmar primero la caducidad en Stripe.
+      return true;
     });
     const capacityField={'6-8':'plazas_6_8','9-11':'plazas_9_11','12-16':'plazas_12_16'};
     const demand=new Map();
