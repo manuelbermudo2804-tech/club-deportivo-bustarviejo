@@ -362,9 +362,19 @@ export async function fetchWeekendMatchesForGraphic() {
       })),
   ];
 
+  const normalizeTeam = (value) => String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/gi, "")
+    .toLowerCase();
   const unique = new Map();
   matches.forEach((match) => {
-    const key = [match.categoria, match.local, match.visitante, match.fecha, match.hora].join("|").toLowerCase();
+    const localKey = normalizeTeam(match.local);
+    const visitanteKey = normalizeTeam(match.visitante);
+    const localIsClub = localKey.includes("bustarviejo");
+    const visitanteIsClub = visitanteKey.includes("bustarviejo");
+    const rivalKey = localIsClub ? visitanteKey : visitanteIsClub ? localKey : [localKey, visitanteKey].sort().join("-");
+    const key = [normalizeTeam(match.categoria), rivalKey, match.fecha, match.hora].join("|");
     if (!unique.has(key)) unique.set(key, match);
   });
 
