@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const cleanDni = v => String(v || "").replace(/[\\s.-]/g, "").toUpperCase();
+const cleanDni = v => String(v || "").replace(/[\s.-]/g, "").toUpperCase();
 
 export default function CampusSalidaPanel({ p, busy, onPickup, onAutonoma, onClose }) {
   const [person, setPerson] = useState(null);
