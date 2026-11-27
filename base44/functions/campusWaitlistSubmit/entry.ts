@@ -54,8 +54,9 @@ Deno.serve(async req => {
       if (String(p.temporada || '2027') !== '2027' || ['cancelado','lista_espera'].includes(String(p.estado || '').toLowerCase())) return false;
       const parent = registrationById.get(p.registration_id);
       if (parent && ['cancelada','revision'].includes(String(parent.estado || '').toLowerCase())) return false;
-      const abandoned = parent?.stripe_session_id && parent.estado_pago === 'pendiente' && Date.now() - new Date(parent.created_date).getTime() > 35*60*1000;
-      return !abandoned;
+      // Mismo criterio que disponibilidad e inscripción: pendiente sigue ocupando
+      // hasta que la limpieza confirme la caducidad en Stripe y cancele el registro.
+      return true;
     });
     const capacities = {'6-8':settings.plazas_6_8,'9-11':settings.plazas_9_11,'12-16':settings.plazas_12_16};
     const cleanMinors = menores.map(m => {
