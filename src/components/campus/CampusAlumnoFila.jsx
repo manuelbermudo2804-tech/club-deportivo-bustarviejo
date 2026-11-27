@@ -26,14 +26,22 @@ export default function CampusAlumnoFila({ p, r, busy, modoSalida, onLlega, onFa
 
   return (
     <article className={"rounded-2xl border bg-white p-3 shadow-sm " + (modoSalida && estado === "dentro" ? (p.salida_autonoma ? "border-l-8 border-l-blue-500 " : "border-l-8 border-l-orange-500 ") : "") + (estado === "pendiente" ? "border-amber-200" : "border-slate-200")}>
-      <button onClick={() => setFicha(v => !v)} className="flex w-full items-center justify-between gap-3 text-left">
-        <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-extrabold text-slate-900">{p.nombre}</span>
-          <span className="mt-0.5 block text-[11px] text-slate-500">Grupo {p.grupo_edad || "—"}</span>
-        </span>
-        <span className={"shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold " + cls}>{label}</span>
-        <ChevronDown className={"h-4 w-4 shrink-0 text-slate-400 transition " + (ficha ? "rotate-180" : "")} />
-      </button>
+      <div className="flex w-full items-center gap-2">
+        <button onClick={() => setFicha(v => !v)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
+          <span className="min-w-0 flex-1">
+            <span className="block truncate text-sm font-extrabold text-slate-900">{p.nombre}</span>
+            <span className="mt-0.5 block text-[11px] text-slate-500">Grupo {p.grupo_edad || "—"}</span>
+          </span>
+          {!(estado === "pendiente" && !modoSalida) && <span className={"shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold " + cls}>{label}</span>}
+          <ChevronDown className={"h-4 w-4 shrink-0 text-slate-400 transition " + (ficha ? "rotate-180" : "")} />
+        </button>
+        {estado === "pendiente" && !modoSalida && <>
+          <button disabled={busy} onClick={e => { e.stopPropagation(); onLlega?.(); }} className="shrink-0 rounded-lg bg-green-600 px-3 py-2.5 text-xs font-black text-white disabled:opacity-40">Ha llegado</button>
+          <button disabled={busy} onClick={e => { e.stopPropagation(); onFalta?.(); }} className="shrink-0 rounded-lg bg-red-600 px-3 py-2.5 text-xs font-black text-white disabled:opacity-40">Falta</button>
+        </>}
+        {estado === "ausente" && !modoSalida && <button disabled={busy} onClick={e => { e.stopPropagation(); onLlega?.(); }} className="shrink-0 rounded-lg border-2 border-green-600 px-3 py-2 text-xs font-black text-green-700 disabled:opacity-40">Ha llegado</button>}
+      </div>
+      {busy && <p className="mt-1 text-[11px] text-slate-500">Guardando…</p>}
 
       {ficha && <div className="mt-2 space-y-2 rounded-xl border bg-slate-50 p-3 text-xs text-slate-700">
         <div className="grid grid-cols-2 gap-2">
@@ -60,15 +68,12 @@ export default function CampusAlumnoFila({ p, r, busy, modoSalida, onLlega, onFa
 
       {ficha && <>
       <div className="mt-3 flex flex-wrap gap-2">
-        {estado === "pendiente" && <><button disabled={busy} onClick={onLlega} className="flex-1 rounded-xl bg-green-600 py-3 text-sm font-black text-white disabled:opacity-40">✓ Ha llegado</button><button disabled={busy} onClick={onFalta} className="rounded-xl bg-red-600 px-4 py-3 text-sm font-black text-white disabled:opacity-40">Falta</button></>}
         {estado === "dentro" && modoSalida && p.salida_autonoma && <button disabled={busy} onClick={onAutonoma} className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-black text-white disabled:opacity-40">🚶 Registrar salida autónoma</button>}
         {estado === "dentro" && !modoSalida && <p className="flex-1 rounded-xl bg-green-50 px-3 py-2.5 text-xs font-bold text-green-800">✓ Dentro desde las {r?.hora_entrada || "—"}</p>}
         {estado === "dentro" && modoSalida && !p.salida_autonoma && !panelAbierto && <button disabled={busy} onClick={() => setSalida(true)} className="flex-1 rounded-xl bg-slate-900 py-3 text-sm font-black text-white disabled:opacity-40">Registrar recogida</button>}
-        {estado === "ausente" && <button disabled={busy} onClick={onLlega} className="flex-1 rounded-xl border-2 border-green-600 py-2.5 text-sm font-black text-green-700 disabled:opacity-40">Ha llegado tarde</button>}
         {(estado === "dentro" || estado === "ausente" || estado === "salido") && <button disabled={busy} onClick={onDeshacer} className="rounded-xl border px-3 py-2.5 text-xs font-bold text-slate-600 disabled:opacity-40">Deshacer</button>}
         {estado === "salido" && <p className="flex-1 rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600">{r.persona_recoge?.startsWith("Salida autónoma") ? "Salió solo (autorizado)" : <>Entregado a <b>{r.persona_recoge || "persona autorizada"}</b></>} · {r.hora_salida}</p>}
       </div>
-      {busy && <p className="mt-1 text-[11px] text-slate-500">Guardando…</p>}
       {panelAbierto && <CampusSalidaPanel p={p} busy={busy} onClose={() => setSalida(false)} onAutonoma={onAutonoma} onPickup={onPickup} />}
       </>}
     </article>
