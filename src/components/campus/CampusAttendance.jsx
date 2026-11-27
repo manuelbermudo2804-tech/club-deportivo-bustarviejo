@@ -49,9 +49,9 @@ export default function CampusAttendance({season,settings}){
  const chooseWeek=w=>{setWeek(w);setDate(dateForWeek(settings?.fecha_inicio,WEEKS.findIndex(x=>x.key===w)));setSelected(null);setPickup(null);setPickupError("");setError("");setNotice("");};
  const openDay=(p,day)=>{setDate(day);setSelected({participantId:p.id,date:day});setPickup(null);setPickupError("");setError("");setNotice("");};
  return <section className="space-y-4">
-  <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border bg-white p-2 shadow-sm">
-   <div className="flex flex-wrap gap-1">{WEEKS.map(w=><button key={w.key} onClick={()=>chooseWeek(w.key)} className={"rounded-lg px-3 py-2 text-xs font-bold "+(week===w.key?"bg-orange-600 text-white":"bg-slate-50 text-slate-700")}>{w.label}</button>)}</div>
-   <div className="flex gap-1 rounded-lg bg-slate-100 p-1">{[["lista","Hoy (entrada y salida)"],["semana","Cuadro de la semana"]].map(([k,l])=><button key={k} onClick={()=>setView(k)} className={"rounded-md px-3 py-1.5 text-xs font-black "+(view===k?"bg-white text-slate-950 shadow-sm":"text-slate-500")}>{l}</button>)}</div>
+  <div className="rounded-2xl border bg-white p-2 shadow-sm">
+   <p className="mb-2 px-1 text-[11px] font-bold uppercase tracking-wide text-slate-500">Semana del Campus</p>
+   <div className="grid grid-cols-5 gap-1">{WEEKS.map(w=><button key={w.key} onClick={()=>chooseWeek(w.key)} className={"rounded-lg px-2 py-3 text-xs font-black "+(week===w.key?"bg-orange-600 text-white":"bg-slate-50 text-slate-700")}>{w.key}</button>)}</div>
   </div>
   {error&&<div className="rounded-lg border border-red-200 bg-red-50 p-3 text-xs text-red-800">{error}</div>}
   {notice&&<div className="rounded-lg border border-green-200 bg-green-50 p-2.5 text-xs font-semibold text-green-800">{notice}</div>}
