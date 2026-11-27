@@ -37,10 +37,11 @@ export default function CampusAlumnoFila({ p, r, busy, modoSalida, onLlega, onFa
       <div className="mt-3 flex gap-2">
         {estado === "pendiente" && <><button disabled={busy} onClick={onLlega} className="flex-1 rounded-xl bg-green-600 py-3 text-sm font-black text-white disabled:opacity-40">✓ Ha llegado</button><button disabled={busy} onClick={onFalta} className="rounded-xl bg-red-600 px-4 py-3 text-sm font-black text-white disabled:opacity-40">Falta</button></>}
         {estado === "dentro" && modoSalida && p.salida_autonoma && <button disabled={busy} onClick={onAutonoma} className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-black text-white disabled:opacity-40">🚶 Sale solo</button>}
-        {estado === "dentro" && !(modoSalida && p.salida_autonoma) && !panelAbierto && <button disabled={busy} onClick={() => setSalida(true)} className="flex-1 rounded-xl bg-slate-900 py-3 text-sm font-black text-white disabled:opacity-40">Registrar salida</button>}
+        {estado === "dentro" && !modoSalida && <p className="flex-1 rounded-xl bg-green-50 px-3 py-2.5 text-xs font-bold text-green-800">✓ Dentro desde las {r?.hora_entrada || "—"}</p>}
+        {estado === "dentro" && modoSalida && !p.salida_autonoma && !panelAbierto && <button disabled={busy} onClick={() => setSalida(true)} className="flex-1 rounded-xl bg-slate-900 py-3 text-sm font-black text-white disabled:opacity-40">Registrar salida</button>}
         {estado === "ausente" && <button disabled={busy} onClick={onLlega} className="flex-1 rounded-xl border-2 border-green-600 py-2.5 text-sm font-black text-green-700 disabled:opacity-40">Ha llegado tarde</button>}
         {(estado === "dentro" || estado === "ausente") && <button disabled={busy} onClick={onDeshacer} className="rounded-xl border px-3 py-2.5 text-xs font-bold text-slate-600 disabled:opacity-40">Deshacer</button>}
-        {estado === "salido" && <p className="flex-1 rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600">Entregado a <b>{r.persona_recoge || "—"}</b></p>}
+        {estado === "salido" && <p className="flex-1 rounded-xl bg-slate-50 px-3 py-2.5 text-xs text-slate-600">{r.persona_recoge ? <>Entregado a <b>{r.persona_recoge}</b></> : "Salió solo (autorizado)"} · {r.hora_salida}</p>}
       </div>
       {busy && <p className="mt-1 text-[11px] text-slate-500">Guardando…</p>}
       {panelAbierto && <CampusSalidaPanel p={p} busy={busy} onClose={() => setSalida(false)} onAutonoma={onAutonoma} onPickup={onPickup} />}

@@ -1,5 +1,5 @@
-import React from "react";
-import { Pencil, Trash2 } from "lucide-react";
+import React, { useState } from "react";
+import { Pencil, Trash2, ChevronDown } from "lucide-react";
 import CampusFichaMenor from "@/components/campus/CampusFichaMenor";
 import CampusFamiliaDatos from "@/components/campus/CampusFamiliaDatos";
 
@@ -7,14 +7,19 @@ const money = (v) => new Intl.NumberFormat("es-ES", { style: "currency", currenc
 const pill = (ok) => `inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${ok ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`;
 
 export default function CampusFamiliaCard({ r, kids, onStatus, onEdit, onDelete, deleting }) {
+  const [open, setOpen] = useState(false);
   const completada = r.estado === "confirmada" && r.estado_pago === "pagado" && ["pagado", "no_requerida"].includes(r.estado_alta_socio || "no_requerida");
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="min-w-0">
-          <p className="font-black text-slate-900">{r.adulto_nombre}</p>
-          <p className="text-xs text-slate-500 break-all">{r.adulto_email || "Sin correo"} · {r.adulto_telefono || "Sin teléfono"}</p>
-        </div>
+        <button onClick={() => setOpen(o => !o)} aria-expanded={open} className="flex min-w-0 items-start gap-2 text-left">
+          <ChevronDown className={"mt-0.5 h-5 w-5 shrink-0 text-orange-600 transition " + (open ? "rotate-180" : "")} />
+          <div className="min-w-0">
+            <p className="font-black text-slate-900">{r.adulto_nombre}</p>
+            <p className="text-xs text-slate-500 break-all">{r.adulto_email || "Sin correo"} · {r.adulto_telefono || "Sin teléfono"}</p>
+            {!open && <p className="mt-1 text-xs text-slate-600">{kids.length ? kids.map(k => `${k.nombre} (${k.grupo_edad || "—"} · ${(k.semanas_ocupadas || []).join(", ") || "sin semanas"})`).join(" · ") : "Sin menores"}</p>}
+          </div>
+        </button>
         <div className="flex flex-wrap items-center gap-2">
           <span className={pill(r.estado === "confirmada")}>{completada ? "Completada" : (r.estado || "pendiente")}</span>
           <span className={pill(r.estado_pago === "pagado")}>Pago: {r.estado_pago || "pendiente"}</span>
@@ -23,6 +28,7 @@ export default function CampusFamiliaCard({ r, kids, onStatus, onEdit, onDelete,
         </div>
       </div>
 
+      {open && <>
       <CampusFamiliaDatos r={r} />
 
       {kids.length > 0
@@ -36,6 +42,7 @@ export default function CampusFamiliaCard({ r, kids, onStatus, onEdit, onDelete,
         <button onClick={() => onEdit(r)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50"><Pencil className="h-3.5 w-3.5" />Editar contacto</button>
         <button onClick={() => onDelete(r)} disabled={deleting} className="ml-auto inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />{deleting ? "Borrando…" : "Borrar"}</button>
       </div>
+      </>}
 
     </div>
   );

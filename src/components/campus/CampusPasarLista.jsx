@@ -2,12 +2,13 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Search, X } from "lucide-react";
 import CampusAlumnoFila, { estadoDia } from "@/components/campus/CampusAlumnoFila";
 import CampusSalidaFiltros from "@/components/campus/CampusSalidaFiltros";
+import CampusSalenSolos from "@/components/campus/CampusSalenSolos";
 
 const norm = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const dayLabel = d => new Date(d + "T12:00:00").toLocaleDateString("es-ES", { weekday: "short", day: "2-digit" });
 const nowTime = () => new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", hour12: false });
 const today = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
-const FILTROS = [["pendiente", "Por llegar"], ["dentro", "En el campus"], ["salido", "Han salido"], ["ausente", "Faltan"], ["todos", "Todos"]];
+const FILTROS = [["pendiente", "Por llegar"], ["dentro", "Han llegado"], ["ausente", "Faltan"], ["todos", "Todos"]];
 
 export default function CampusPasarLista({ roster, records, dates, busy, save }) {
   const [day, setDay] = useState("");
@@ -18,7 +19,7 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
   const rec = id => records.find(r => r.participant_id === id && r.fecha === day);
   const counts = useMemo(() => {
     const c = { pendiente: 0, dentro: 0, salido: 0, ausente: 0, todos: roster.length };
-    roster.forEach(p => c[estadoDia(records.find(r => r.participant_id === p.id && r.fecha === day))]++);
+    roster.forEach(p => { const e = estadoDia(records.find(r => r.participant_id === p.id && r.fecha === day)); c[e === "salido" ? "dentro" : e]++; });
     return c;
   }, [roster, records, day]);
   const [modo, setModo] = useState("entrada");
@@ -28,8 +29,12 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
     roster.forEach(p => { const e = estadoDia(records.find(r => r.participant_id === p.id && r.fecha === day)); if (e === "salido") c.salido++; else if (e === "dentro") c[p.salida_autonoma ? "solos" : "recogen"]++; });
     return c;
   }, [roster, records, day]);
-  const enSalida = p => { const e = estadoDia(rec(p.id)); if (q) return e === "dentro" || e === "salido"; return salidaTipo === "salido" ? e === "salido" : e === "dentro" && (salidaTipo === "solos" ? !!p.salida_autonoma : !p.salida_autonoma); };
-  const lista = roster.filter(p => modo === "salida" ? enSalida(p) && (!q || norm(p.nombre).includes(norm(q))) : (q ? norm(p.nombre).includes(norm(q)) : filtro === "todos" || estadoDia(rec(p.id)) === filtro));
+  const enSalida = p => { const e = estadoDia(rec(p.id)); if (q) return e === "dentro" || e === "salido"; return salidaTipo === "salido" ? e === "salido" : e === "dentro" && !p.salida_autonoma; };
+  const enEntrada = p => { const e = estadoDia(rec(p.id)); return filtro === "todos" || e === filtro || (filtro === "dentro" && e === "salido"); };
+  const lista = roster.filter(p => modo === "salida" ? enSalida(p) && (!q || norm(p.nombre).includes(norm(q))) : (q ? norm(p.nombre).includes(norm(q)) : enEntrada(p)));
+  const solosDentro = roster.filter(p => p.salida_autonoma && estadoDia(rec(p.id)) === "dentro");
+  const autonoma = p => { const t = nowTime(); return save(p, { salida_autonoma: true, hora_salida: t }, "salida_autonoma", "Salida autónoma autorizada por la familia a las " + t, day); };
+  const salidaTodos = async () => { for (const p of solosDentro) await autonoma(p); };
   const after = ok => { if (ok && q) { setQ(""); inputRef.current?.focus(); } };
   const llega = async p => { const t = nowTime(); after(await save(p, { estado: "presente", hora_entrada: t }, "asistencia", "Llegada registrada a las " + t, day)); };
   const onEnter = e => { if (modo === "entrada" && e.key === "Enter" && lista.length === 1 && estadoDia(rec(lista[0].id)) === "pendiente") llega(lista[0]); };
@@ -46,13 +51,14 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
           ? <div className="flex gap-1.5 overflow-x-auto">{FILTROS.map(([k, l]) => <button key={k} onClick={() => { setFiltro(k); setQ(""); }} className={"shrink-0 rounded-full px-3 py-1.5 text-xs font-bold " + (!q && filtro === k ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700")}>{l} · {counts[k]}</button>)}</div>
           : <CampusSalidaFiltros value={q ? "" : salidaTipo} onChange={k => { setSalidaTipo(k); setQ(""); }} counts={salidaCounts} />}
       </div>
-      {modo === "entrada" && counts.dentro > 0 && counts.pendiente === 0 && <p className="rounded-xl bg-blue-50 p-2.5 text-xs font-bold text-blue-800">Todos han llegado o están marcados. Quedan {counts.dentro} menores en el campus pendientes de salida.</p>}
+      {modo === "entrada" && counts.dentro > 0 && counts.pendiente === 0 && <p className="rounded-xl bg-blue-50 p-2.5 text-xs font-bold text-blue-800">Todos han llegado o están marcados. La salida se registra en la pestaña 🏁 Salida.</p>}
+      {modo === "salida" && !q && salidaTipo === "recogen" && <CampusSalenSolos lista={solosDentro} onTodos={salidaTodos} />}
       {lista.length === 0 ? <p className="rounded-xl bg-white p-6 text-center text-sm text-slate-500">{q ? "Nadie coincide con «" + q + "» en la lista de esta semana." : "No hay menores en este apartado."}</p>
         : <div className="grid gap-2 md:grid-cols-2 2xl:grid-cols-3">{lista.map(p => <CampusAlumnoFila key={p.id} p={p} r={rec(p.id)} busy={busy === p.id} modoSalida={modo === "salida"}
           onLlega={() => llega(p)}
           onFalta={async () => after(await save(p, { estado: "ausente" }, "asistencia", "Marcado ausente", day))}
           onDeshacer={() => save(p, { estado: "pendiente", hora_entrada: "" }, "correccion", "Registro deshecho por el monitor", day)}
-          onAutonoma={() => { const t = nowTime(); save(p, { salida_autonoma: true, hora_salida: t }, "salida_autonoma", "Salida autónoma autorizada por la familia a las " + t, day); }}
+          onAutonoma={() => autonoma(p)}
           onPickup={(person, dni) => { const t = nowTime(); save(p, { estado: "presente", recogida_verificada: true, persona_recoge: person.nombre, dni_recoge: dni, hora_salida: t }, "recogida_verificada", "Recogida verificada por " + person.nombre + " a las " + t, day); }}
         />)}</div>}
     </div>
