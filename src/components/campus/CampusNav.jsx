@@ -6,7 +6,7 @@ const SECTIONS = [
   { key: "grupos", label: "Participantes y grupos", help: "Busca menores, haz grupos y descarga listados en PDF.", tabs: [["organizacion", "Participantes"]] },
   { key: "espera", label: "Lista de espera", help: "Abre o cierra la lista de espera y gestiona las solicitudes por orden.", tabs: [["lista_espera", "Lista de espera"]] },
   { key: "comunicaciones", label: "Comunicaciones", help: "Envía correos o WhatsApp a una familia o a varias a la vez.", tabs: [["comunicaciones", "Comunicaciones"]] },
-  { key: "equipo", label: "Monitores y asistencia", help: "Da acceso a los monitores y pasa lista durante el campus.", tabs: [["asistencia", "Pasar lista"], ["monitores", "Accesos de monitores"]] },
+  { key: "equipo", label: "Monitores y asistencia", help: "Da acceso a los monitores y pasa lista durante el campus.", tabs: [["asistencia", "Asistencia"], ["monitores", "Accesos de monitores"]] },
   { key: "ajustes", label: "Ajustes", help: "Se configura una vez: fechas de lanzamiento, plazas por semana y precios.", tabs: [["campana", "Lanzamiento"], ["plazas", "Plazas y monitores"], ["configuracion", "Precios"]] },
 ];
 

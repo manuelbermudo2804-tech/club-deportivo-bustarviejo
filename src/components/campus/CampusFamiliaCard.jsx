@@ -1,12 +1,12 @@
-import React, { useState } from "react";
-import { Pencil, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import React from "react";
+import { Pencil, Trash2 } from "lucide-react";
 import CampusFichaMenor from "@/components/campus/CampusFichaMenor";
+import CampusFamiliaDatos from "@/components/campus/CampusFamiliaDatos";
 
 const money = (v) => new Intl.NumberFormat("es-ES", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(Number(v || 0));
 const pill = (ok) => `inline-flex rounded-full px-2.5 py-1 text-xs font-bold ${ok ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-800"}`;
 
 export default function CampusFamiliaCard({ r, kids, onStatus, onEdit, onDelete, deleting }) {
-  const [open, setOpen] = useState(false);
   const completada = r.estado === "confirmada" && r.estado_pago === "pagado" && ["pagado", "no_requerida"].includes(r.estado_alta_socio || "no_requerida");
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-4">
@@ -23,25 +23,20 @@ export default function CampusFamiliaCard({ r, kids, onStatus, onEdit, onDelete,
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap gap-2">
-        {kids.map(k => (
-          <span key={k.id} className="rounded-lg border border-orange-100 bg-orange-50 px-2.5 py-1 text-xs">
-            <b className="text-slate-900">{k.nombre}</b> <span className="text-slate-500">· {k.grupo_edad} · {(k.semanas_ocupadas || []).join(", ") || "sin semanas"}</span>
-          </span>
-        ))}
-        {kids.length === 0 && <span className="text-xs text-slate-400">Sin menores</span>}
-      </div>
+      <CampusFamiliaDatos r={r} />
+
+      {kids.length > 0
+        ? <div className="mt-3 grid gap-3 md:grid-cols-2 2xl:grid-cols-3">{kids.map(k => <CampusFichaMenor key={k.id} k={k} />)}</div>
+        : <p className="mt-3 text-xs text-slate-400">Sin menores</p>}
 
       <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
         <select aria-label="Estado de inscripción" value={r.estado || "pendiente"} onChange={e => onStatus(r, e.target.value)} className="rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs">
           <option value="pendiente">Pendiente</option><option value="revision">En revisión</option><option value="confirmada">Confirmada</option><option value="cancelada">Cancelada</option>
         </select>
-        {kids.length > 0 && <button onClick={() => setOpen(o => !o)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-orange-700 hover:bg-orange-50">{open ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}Fichas de salud</button>}
         <button onClick={() => onEdit(r)} className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50"><Pencil className="h-3.5 w-3.5" />Editar contacto</button>
         <button onClick={() => onDelete(r)} disabled={deleting} className="ml-auto inline-flex items-center gap-1 rounded-lg border border-red-200 bg-red-50 px-3 py-1.5 text-xs font-bold text-red-700 hover:bg-red-100 disabled:opacity-50"><Trash2 className="h-3.5 w-3.5" />{deleting ? "Borrando…" : "Borrar"}</button>
       </div>
 
-      {open && <div className="mt-3 grid gap-3 md:grid-cols-2 xl:grid-cols-3">{kids.map(k => <CampusFichaMenor key={k.id} k={k} />)}</div>}
     </div>
   );
 }
