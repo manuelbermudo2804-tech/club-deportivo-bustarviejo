@@ -163,6 +163,28 @@
       "type": "boolean",
       "default": false,
       "description": "El responsable legal confirma expresamente la autorizaci\u00f3n de recogida para las personas indicadas."
+    },
+    "salida_modalidad": {
+      "type": "string",
+      "enum": [
+        "recogida",
+        "salida_autonoma"
+      ],
+      "description": "Modalidad autorizada de salida del Campus: recogida por adulto o salida aut\u00f3noma."
+    },
+    "autorizacion_salida_solo": {
+      "type": "boolean",
+      "default": false,
+      "description": "El responsable legal autoriza expresamente al menor a abandonar solo las instalaciones al finalizar la jornada."
+    },
+    "autorizacion_salida_fecha": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Fecha y hora de la autorizaci\u00f3n de salida aut\u00f3noma."
+    },
+    "autorizacion_salida_version": {
+      "type": "string",
+      "description": "Versi\u00f3n del texto de autorizaci\u00f3n de salida aut\u00f3noma."
     }
   },
   "required": [
