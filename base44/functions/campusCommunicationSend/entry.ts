@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     const { registration_id, recipient_email, recipient_name, subject, body, template_key, test_mode } = await req.json();
     const email = String(recipient_email || "").trim().toLowerCase();
     const title = String(subject || "").trim();
-    const message = String(body || "").trim();
+    const message = String(body || "").replace(/\\r/g, "").replace(/\\n/g, "\n").trim();
     if (!/^\S+@\S+\.\S+$/.test(email) || !title || !message) {
       return Response.json({ error: "Faltan destinatario, asunto o contenido." }, { status: 400 });
     }

@@ -71,7 +71,7 @@ export default function CampusAdmin() {
   const [sendingTestEmail, setSendingTestEmail] = useState(false);
   const [communicationTemplate, setCommunicationTemplate] = useState("recepcion");
   const [communicationSubject, setCommunicationSubject] = useState("Hemos recibido tu solicitud · Campus 2027");
-  const [communicationBody, setCommunicationBody] = useState("Hola,\\n\\nHemos recibido la solicitud de inscripción al Campus Deportivo 2027 del C.D. Bustarviejo. La inscripción queda pendiente de revisión por parte del club. Este mensaje no confirma plaza ni implica ningún cobro.\\n\\nMuchas gracias.\\nC.D. Bustarviejo");
+  const [communicationBody, setCommunicationBody] = useState("Hola,\n\nHemos recibido la solicitud de inscripción al Campus Deportivo 2027 del C.D. Bustarviejo. La inscripción queda pendiente de revisión por parte del club. Este mensaje no confirma plaza ni implica ningún cobro.\n\nMuchas gracias.\nC.D. Bustarviejo");
   const [sendingEmail, setSendingEmail] = useState(false);
   const [communicationLogs, setCommunicationLogs] = useState([]);
   const [filterText, setFilterText] = useState("");
@@ -330,12 +330,12 @@ export default function CampusAdmin() {
 
   const applyCommunicationTemplate = (key) => {
     const templates = {
-      recepcion: ["Hemos recibido tu solicitud · Campus 2027", "Hola,\\n\\nHemos recibido la solicitud de inscripción al Campus Deportivo 2027 del C.D. Bustarviejo. La inscripción queda pendiente de revisión por parte del club. Este mensaje no confirma plaza ni implica ningún cobro.\\n\\nMuchas gracias.\\nC.D. Bustarviejo"],
-      documentacion: ["Información del Campus Deportivo 2027", "Hola,\\n\\nTe enviamos la información general del Campus Deportivo 2027. La documentación definitiva y cualquier indicación específica se comunicarán cuando estén cerradas la organización y las condiciones del servicio.\\n\\nC.D. Bustarviejo"],
-      horarios: ["Horarios y organización · Campus 2027", "Hola,\\n\\nEl horario previsto del Campus es de 09:00 a 14:00. La distribución definitiva de grupos, turnos y actividades se comunicará cuando esté confirmada.\\n\\nC.D. Bustarviejo"],
-      material: ["Material necesario · Campus 2027", "Hola,\\n\\nComo orientación, los menores deberán traer ropa y calzado deportivo, muda, almuerzo, botella de agua, gorra y protección solar. En las jornadas de piscina se indicará el material específico.\\n\\nC.D. Bustarviejo"],
-      aviso: ["Aviso importante · Campus 2027", "Hola,\\n\\nTe escribimos para comunicarte una actualización relativa al Campus Deportivo 2027:\\n\\n[Escribe aquí el aviso]\\n\\nC.D. Bustarviejo"],
-      personalizado: ["Información Campus Deportivo 2027", "Hola,\\n\\n\\n\\nC.D. Bustarviejo"]
+      recepcion: ["Hemos recibido tu solicitud · Campus 2027", "Hola,\n\nHemos recibido la solicitud de inscripción al Campus Deportivo 2027 del C.D. Bustarviejo. La inscripción queda pendiente de revisión por parte del club. Este mensaje no confirma plaza ni implica ningún cobro.\n\nMuchas gracias.\nC.D. Bustarviejo"],
+      documentacion: ["Información del Campus Deportivo 2027", "Hola,\n\nTe enviamos la información general del Campus Deportivo 2027. La documentación definitiva y cualquier indicación específica se comunicarán cuando estén cerradas la organización y las condiciones del servicio.\n\nC.D. Bustarviejo"],
+      horarios: ["Horarios y organización · Campus 2027", "Hola,\n\nEl horario previsto del Campus es de 09:00 a 14:00. La distribución definitiva de grupos, turnos y actividades se comunicará cuando esté confirmada.\n\nC.D. Bustarviejo"],
+      material: ["Material necesario · Campus 2027", "Hola,\n\nComo orientación, los menores deberán traer ropa y calzado deportivo, muda, almuerzo, botella de agua, gorra y protección solar. En las jornadas de piscina se indicará el material específico.\n\nC.D. Bustarviejo"],
+      aviso: ["Aviso importante · Campus 2027", "Hola,\n\nTe escribimos para comunicarte una actualización relativa al Campus Deportivo 2027:\n\n[Escribe aquí el aviso]\n\nC.D. Bustarviejo"],
+      personalizado: ["Información Campus Deportivo 2027", "Hola,\n\n\n\nC.D. Bustarviejo"]
     };
     const draft = templates[key] || templates.personalizado;
     setCommunicationTemplate(key);
@@ -406,7 +406,7 @@ export default function CampusAdmin() {
     if (phone.startsWith("00")) phone = phone.slice(2);
     if (phone.length === 9) phone = "34" + phone;
     if (phone.length < 10 || phone.length > 15) { setError("El teléfono registrado no parece válido. Revísalo en la inscripción."); return; }
-    const body = communicationBody.replace(/\\n/g, "\n").replace(/\\r/g, "");
+    const body = communicationBody.replace(/\n/g, "\n").replace(/\\r/g, "");
     const message = `*${communicationSubject.trim()}*\n\n${body}`;
     const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
     setError("");
