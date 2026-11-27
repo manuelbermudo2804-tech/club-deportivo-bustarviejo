@@ -98,6 +98,14 @@ Deno.serve(async req => {
     if (!rows.length) return Response.json({success:true,duplicate:true,solicitudes:0,duplicadas:duplicates.length,message:'Esta solicitud ya está en la lista de espera. No se ha creado otra entrada.'},{headers});
     const solicitudId = crypto.randomUUID();
     for (const row of rows) await base44.asServiceRole.entities.CampusWaitlistEntry.create({...row,solicitud_id:solicitudId});
+    if(body.acepta_comunicaciones===true){
+      try {
+        await base44.asServiceRole.entities.ConsentimientoComercial.create({
+          nombre:adulto,email,telefono,origen:'campus-verano-2027',
+          acepta_promociones:true,acepta_patrocinadores:false,texto_version:'campus-comercial-v1.0',fecha:new Date().toISOString(),revocado:false
+        });
+      } catch(consentError) { console.error('[campusWaitlistSubmit] No se pudo guardar el consentimiento comercial:',consentError?.message||consentError); }
+    }
     return Response.json({success:true,solicitud_id:solicitudId,menores:cleanMinors.length,solicitudes:rows.length,duplicadas:duplicates.length,message:duplicates.length?'Se han añadido las semanas nuevas; las solicitudes que ya existían no se han duplicado.':'Solicitud añadida a la lista de espera. No se ha realizado ningún pago ni reservado una plaza.'},{headers});
   } catch (error) {
     console.error('[campusWaitlistSubmit]',error?.message || error);
