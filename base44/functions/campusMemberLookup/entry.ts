@@ -41,9 +41,9 @@ Deno.serve(async (req) => {
         const parent = registrationsById.get(p.registration_id);
         if (!parent) return true;
         if (['cancelada','revision'].includes(String(parent.estado || '').toLowerCase())) return false;
-        // Pago con tarjeta abandonado (el enlace caduca a los 31 min): la plaza vuelve a estar libre.
-        const abandoned = parent.stripe_session_id && parent.estado_pago === 'pendiente' && Date.now() - new Date(parent.created_date).getTime() > 35 * 60 * 1000;
-        return !abandoned;
+        // Una plaza solo se libera cuando el registro se cancela explícitamente.
+        // La limpieza automática confirma antes en Stripe que la sesión ha caducado.
+        return true;
       });
       const groups = [
         { key:'6-8', label:'6–8 años', capacity:configured.plazas_6_8 },
