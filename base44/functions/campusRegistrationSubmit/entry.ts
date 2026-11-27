@@ -122,11 +122,9 @@ Deno.serve(async req=>{
     const activeExisting=(existingParticipants||[]).filter(p=>{
       if(String(p.temporada||'2027')!==campusYear || ['cancelado','lista_espera'].includes(p.estado)) return false;
       const parent=registrationById.get(p.registration_id);
-      if(!parent) return true;
-      if(['cancelada','revision'].includes(parent.estado)) return false;
-      // Las solicitudes pendientes ocupan plaza hasta que se cancelan explícitamente.
-      // No se libera por antigüedad: la limpieza debe confirmar primero la caducidad en Stripe.
-      return true;
+      // Solo un participante de una inscripción pagada y confirmada ocupa plaza.
+      // Los checkouts abiertos, abandonados, fallidos o en revisión no bloquean aforo.
+      return !!parent && parent.estado === 'confirmada' && parent.estado_pago === 'pagado' && p.estado === 'confirmado';
     });
     const capacityField={'6-8':'plazas_6_8','9-11':'plazas_9_11','12-16':'plazas_12_16'};
     const demand=new Map();
