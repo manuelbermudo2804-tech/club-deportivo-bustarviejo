@@ -133,6 +133,7 @@ Deno.serve(async (req) => {
   // A partir de aquí, el request es auténtico. Usamos service role para operar en BD.
   const base44 = createClientFromRequest(req);
   let referralProcessingFailed = false;
+  let campusProcessingFailed = false;
 
   try {
     console.log('[stripe-webhook] Recibido', { id: event.id, type: event.type, livemode: event.livemode });
@@ -182,7 +183,11 @@ Deno.serve(async (req) => {
               try { await sendEmailResend({to:'info@cdbustarviejo.com',subject:'Nueva inscripción pagada · Campus 2027',body:'Referencia: '+(metadata.reference||rid)+'\nResponsable: '+reg.adulto_nombre+'\nEmail: '+reg.adulto_email+'\nParticipantes: '+kids.map(k=>k.nombre).join(', ')+'\nImporte: '+paid.toFixed(2)+' €'}); } catch(adminErr) { console.error('[stripe-webhook] Email admin Campus:',adminErr?.message||adminErr); }
             }
             console.log('[stripe-webhook] Campus 2027 confirmado',{registration_id:rid,session_id:session.id});
-          } catch(campusErr) { console.error('[stripe-webhook] Error Campus 2027:',campusErr?.message||campusErr); throw campusErr; }
+          } catch(campusErr) {
+            campusProcessingFailed = true;
+            console.error('[stripe-webhook] Error Campus 2027:',campusErr?.message||campusErr);
+            throw campusErr;
+          }
         }
         // Fallback log: si el tipo no es uno de los conocidos, registramos igualmente
         try {
@@ -1859,6 +1864,9 @@ Deno.serve(async (req) => {
     console.error('[stripe-webhook] Error general manejando evento:', e?.message || e);
     // Stripe solo debe reintentar los fallos de asignación de papeleta; mantenemos el comportamiento
     // histórico para el resto de eventos para no provocar reintentos masivos ajenos a referidos.
+    if (campusProcessingFailed) {
+      return Response.json({ received: false, retry: true, error: 'No se pudo completar la confirmación del Campus 2027' }, { status: 500 });
+    }
     if (referralProcessingFailed) {
       return Response.json({ received: false, retry: true, error: 'No se pudo completar la asignación de la papeleta' }, { status: 500 });
     }
