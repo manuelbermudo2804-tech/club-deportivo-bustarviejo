@@ -128,6 +128,14 @@ Deno.serve(async req => {
         data.hora_salida=String(patch.hora_salida||new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',hour12:false})).slice(0,5);
         data.estado='presente';
       }
+      if (patch.recogida_autorizada === true) {
+        const name=String(patch.persona_recoge||'').trim();
+        const match=(participant.autorizado_recogida||[]).some(a=>a.nombre.trim().toLocaleLowerCase('es')===name.toLocaleLowerCase('es'));
+        if (!name || !match) return json({error:'Salida rechazada: selecciona una persona incluida en las autorizaciones familiares.'},403);
+        data.persona_recoge=name; data.dni_recoge=''; data.recogida_verificada=false;
+        data.hora_salida=String(patch.hora_salida||new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',hour12:false}));
+        data.estado='presente';
+      }
       if (patch.recogida_verificada === true) {
         const name=String(patch.persona_recoge||'').trim();
         const dni=cleanDni(patch.dni_recoge);
