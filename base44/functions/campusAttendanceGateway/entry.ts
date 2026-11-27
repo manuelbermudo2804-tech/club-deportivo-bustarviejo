@@ -51,6 +51,26 @@ Deno.serve(async req => {
         return json({ok:true});
       }
     }
+    if (action === 'adminHistory') {
+      if (!admin) return json({error:'Solo administración puede consultar el historial de movimientos.'},403);
+      const season = String(body.temporada || '2027');
+      const date = String(body.fecha || '');
+      const query = String(body.buscar || '').trim().toLocaleLowerCase('es');
+      if (!/^20\\d{2}$/.test(season)) return json({error:'Temporada no válida.'},400);
+      if (date && !/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return json({error:'Fecha no válida.'},400);
+      const [attendance, participants] = await Promise.all([
+        date ? sr.entities.CampusAttendance.filter({temporada:season,fecha:date}) : sr.entities.CampusAttendance.filter({temporada:season}),
+        sr.entities.CampusParticipant.list('-created_date',3000)
+      ]);
+      const names = new Map((participants||[]).map(p=>[p.id,p.nombre||'Menor sin nombre']));
+      const rows = (attendance||[]).map(record=>{
+        const {dni_recoge,...safeRecord}=record;
+        return {...safeRecord,participant_nombre:names.get(record.participant_id)||'Menor no localizado'};
+      }).filter(record=>!query||record.participant_nombre.toLocaleLowerCase('es').includes(query))
+        .sort((a,b)=>String(b.fecha||'').localeCompare(String(a.fecha||''))||String(b.actualizado_en||'').localeCompare(String(a.actualizado_en||'')))
+        .slice(0,500);
+      return json({ok:true,temporada:season,records:rows});
+    }
     if (action === 'roster' || action === 'weekRoster' || action === 'saveAttendance') {
       const season = String(body.temporada || '');
       const week = String(body.semana || '');
