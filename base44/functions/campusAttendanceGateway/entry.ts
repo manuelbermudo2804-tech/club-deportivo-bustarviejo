@@ -56,8 +56,8 @@ Deno.serve(async req => {
       const season = String(body.temporada || '2027');
       const date = String(body.fecha || '');
       const query = String(body.buscar || '').trim().toLocaleLowerCase('es');
-      if (!/^20\\d{2}$/.test(season)) return json({error:'Temporada no válida.'},400);
-      if (date && !/^\\d{4}-\\d{2}-\\d{2}$/.test(date)) return json({error:'Fecha no válida.'},400);
+      if (!/^20\d{2}$/.test(season)) return json({error:'Temporada no válida.'},400);
+      if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) return json({error:'Fecha no válida.'},400);
       const [attendance, participants] = await Promise.all([
         date ? sr.entities.CampusAttendance.filter({temporada:season,fecha:date}) : sr.entities.CampusAttendance.filter({temporada:season}),
         sr.entities.CampusParticipant.list('-created_date',3000)
