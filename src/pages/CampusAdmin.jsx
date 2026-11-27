@@ -659,7 +659,7 @@ export default function CampusAdmin() {
       </div>
     </section>}
 
-    {tab === "asistencia" && <CampusAttendance season={selectedSeason} settings={settings} />}
+    {tab === "asistencia" && <CampusAttendance season={selectedSeason} settings={settings} adminView={true} />}
     {tab === "monitores" && <CampusMonitorManager season={selectedSeason} />}
     {tab === "lista_espera" && <section className="space-y-5">
       {settings && <CampusWaitlistSwitch active={settings.lista_espera_activa === true} saving={saving} onToggle={toggleWaitlist} />}
