@@ -19,7 +19,8 @@ import ToneSelector from "@/components/social/ToneSelector";
 import MessagePreview from "@/components/social/MessagePreview";
 import ImageGenerator from "@/components/social/ImageGenerator";
 import { getContentTypeById, getTonoById } from "@/components/social/contentTypes";
-import { fetchDataForType } from "@/components/social/fetchContentData";
+import { fetchDataForType, fetchWeekendMatchesForGraphic } from "@/components/social/fetchContentData";
+import WeekendMatchesGraphic from "@/components/social/WeekendMatchesGraphic";
 
 moment.locale('es');
 
@@ -68,6 +69,8 @@ export default function SocialHub() {
   const [showImageTools, setShowImageTools] = useState(false);
 
   const [imageUrl, setImageUrl] = useState(null);
+  const [graphicMatches, setGraphicMatches] = useState([]);
+  const [graphicWeekendLabel, setGraphicWeekendLabel] = useState("");
 
   const [publishing, setPublishing] = useState(false);
   const [search, setSearch] = useState("");
@@ -91,7 +94,7 @@ export default function SocialHub() {
 
   const resetEditor = () => {
     setText(""); setDatos(""); setTono("cercano"); setEditing(false);
-    setImageUrl(null); setShowDatos(false); setShowAdvanced(false); setShowImageTools(false);
+    setImageUrl(null); setGraphicMatches([]); setGraphicWeekendLabel(""); setShowDatos(false); setShowAdvanced(false); setShowImageTools(false);
   };
 
   const selectType = async (type) => {
@@ -101,6 +104,16 @@ export default function SocialHub() {
     setLoading(true);
     const d = await fetchDataForType(type);
     setDatos(d);
+    if (type === "partidos_finde") {
+      try {
+        const graphicData = await fetchWeekendMatchesForGraphic();
+        setGraphicMatches(graphicData.matches || []);
+        setGraphicWeekendLabel(graphicData.label || "");
+      } catch (error) {
+        console.error("No se pudieron cargar los partidos para la imagen:", error);
+        setGraphicMatches([]);
+      }
+    }
     setLoading(false);
     setTimeout(() => generateText(d, type), 100);
   };
@@ -443,6 +456,10 @@ ${mensaje}`,
                       onStopEdit={() => setEditing(false)}
                     />
                     </div>
+
+                    {selectedType === "partidos_finde" && (
+                      <WeekendMatchesGraphic matches={graphicMatches} weekendLabel={graphicWeekendLabel} />
+                    )}
 
                     <button
                       onClick={() => generateText(datos, selectedType)}
