@@ -128,8 +128,8 @@ export default function CampusAdmin() {
   const seasonRegistrations = registrations.filter(r => String(r.temporada || "2027") === selectedSeason);
   const seasonRegistrationIds = new Set(seasonRegistrations.map(r => r.id));
   const seasonParticipants = participants.filter(p => String(p.temporada || "2027") === selectedSeason || seasonRegistrationIds.has(p.registration_id));
-  const cancelledRegistrationIds = new Set(seasonRegistrations.filter(r => r.estado === "cancelada").map(r => r.id));
-  const confirmedParticipants = seasonParticipants.filter(p => !cancelledRegistrationIds.has(p.registration_id) && !["cancelado", "lista_espera"].includes(p.estado));
+  const paidConfirmedRegistrationIds = new Set(seasonRegistrations.filter(r => r.estado === "confirmada" && r.estado_pago === "pagado").map(r => r.id));
+  const confirmedParticipants = seasonParticipants.filter(p => paidConfirmedRegistrationIds.has(p.registration_id) && p.estado === "confirmado");
   const confirmedRegistrations = seasonRegistrations.filter(r => r.estado === "confirmada");
   const paid = seasonRegistrations.filter(r => r.estado_pago === "pagado").reduce((s, r) => s + Number(r.importe_total || 0), 0);
   const expectedIncome = seasonRegistrations.filter(r => r.estado !== "cancelada").reduce((s, r) => s + Number(r.importe_total || 0), 0);
