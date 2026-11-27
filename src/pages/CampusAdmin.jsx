@@ -9,6 +9,8 @@ import CampusOccupancyCalendar from "@/components/campus/CampusOccupancyCalendar
 import CampusPlazasResumen from "@/components/campus/CampusPlazasResumen";
 import CampusMonitorPlanner from "@/components/campus/CampusMonitorPlanner";
 import CampusListadosRapidos from "@/components/campus/CampusListadosRapidos";
+import CampusNav from "@/components/campus/CampusNav";
+import CampusWaitlistSwitch from "@/components/campus/CampusWaitlistSwitch";
 
 const GROUPS = [
   { key: "6-8", label: "Iniciación", range: "6–8 años" },
@@ -511,14 +513,14 @@ export default function CampusAdmin() {
 
     <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
       {[
-        ["Participantes", confirmedParticipants.length, Users],
-        ["Inscripciones confirmadas", confirmedRegistrations.length, CheckCircle2],
-        ["Ingresos cobrados", money(paid), Euro],
-        ["Grupos de edad", "3", CalendarDays],
+        ["Menores inscritos", confirmedParticipants.length, Users],
+        ["Familias confirmadas", confirmedRegistrations.length, CheckCircle2],
+        ["Cobrado", money(paid), Euro],
+        ["Pendiente de cobro", money(pendingIncome), CalendarDays],
       ].map(([label, value, Icon]) => <div key={label} className="group rounded-2xl border border-slate-200/80 bg-white p-5 shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg"><div className="flex items-center justify-between gap-2 text-sm font-semibold text-slate-500"><span>{label}</span><span className="rounded-xl bg-orange-50 p-2.5"><Icon className="h-5 w-5 text-orange-600"/></span></div><div className="mt-3 text-2xl font-black tracking-tight text-slate-950 md:text-3xl">{value}</div></div>)}
     </div>
 
-    <nav aria-label="Secciones de administración del Campus" className="sticky top-2 z-20 rounded-2xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur"><div className="mb-2 flex items-center justify-between px-1"><span className="text-[11px] font-black uppercase tracking-[.16em] text-slate-400">Navegación del campus</span><span className="text-[11px] font-semibold text-slate-400">Selecciona una sección</span></div><div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4 xl:grid-cols-5">{[["resumen","Resumen"],["campana","Campaña"],["inscripciones","Familias e inscripciones"],["plazas","Plazas y edades"],["organizacion","Grupos y listados"],["asistencia","Asistencia"],["monitores","Monitores"],["lista_espera","Lista de espera"],["comunicaciones","Comunicaciones"],["configuracion","Configuración"]].map(([key,label]) => <button key={key} onClick={()=>setTab(key)} aria-current={tab===key?"page":undefined} className={`flex min-h-[40px] items-center justify-center rounded-lg border px-2 py-1.5 text-center text-xs font-bold leading-tight transition ${tab===key?"border-orange-600 bg-orange-600 text-white shadow-md shadow-orange-600/20":"border-slate-200 bg-slate-50 text-slate-700 hover:border-orange-200 hover:bg-orange-50"}`}>{label}</button>)}</div></nav>
+    <CampusNav tab={tab} setTab={setTab} />
 
     {tab === "campana" && <section className="space-y-5">
       <div className="rounded-3xl border border-slate-200 bg-white p-5 md:p-6 shadow-sm">
@@ -556,14 +558,6 @@ export default function CampusAdmin() {
           <p className="max-w-2xl text-xs text-slate-500">El switch activa o desactiva el banner inmediatamente. El botón del banner abrirá la página informativa y desde allí el formulario público existente. El botón inferior guarda las fechas y los textos.</p>
           <button onClick={saveCampaignPlan} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700 disabled:opacity-60">{saving?<RefreshCw className="h-4 w-4 animate-spin"/>:<Save className="h-4 w-4"/>}{saving?"Guardando…":"Guardar plan de campaña"}</button>
         </div>
-      </div>
-      <div className="rounded-2xl border border-slate-200 bg-white p-5">
-        <h3 className="font-black text-slate-900">Calendario previsto</h3>
-        <ol className="mt-3 space-y-3 text-sm text-slate-700">
-          <li><strong>1. Prioridad para familias:</strong> {settings?.campana_preferente_inicio || "01/02/2027"} – {settings?.campana_preferente_fin || "21/02/2027"}. Banner: {settings?.campana_preferente_activa ? "ACTIVADO" : "DESACTIVADO"}.</li>
-          <li><strong>2. Revisión de plazas:</strong> al terminar el periodo preferente, revisar demanda por edades y semanas antes de abrir al público.</li>
-          <li><strong>3. Apertura general:</strong> desde {settings?.campana_publica_inicio || "01/03/2027"}. Difusión en web y redes, con el mismo enlace de inscripción.</li>
-        </ol>
       </div>
     </section>}
 
@@ -635,9 +629,6 @@ export default function CampusAdmin() {
     </section>}
 
     {tab === "resumen" && <div className="space-y-5">
-      <section className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-        {[["Ingresos previstos", money(expectedIncome), "Importe total de inscripciones no canceladas"], ["Ingresos cobrados", money(paid), "Inscripciones marcadas como pagadas"], ["Pendiente de cobro", money(pendingIncome), "Según el estado registrado"], ["Pagos fallidos", money(failedIncome), "No incluye pagos pendientes"]].map(([label,value,help]) => <div key={label} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><p className="text-xs font-bold uppercase tracking-wide text-slate-500">{label}</p><p className="mt-2 text-2xl font-black text-slate-950">{value}</p><p className="mt-1 text-xs text-slate-500">{help}</p></div>)}
-      </section>
       <section className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
         <div><h2 className="text-xl font-black text-slate-950">Pendientes de atención</h2><p className="mt-1 text-sm text-slate-500">Avisos calculados a partir de los estados y datos que ya constan en las inscripciones.</p></div>
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -665,45 +656,17 @@ export default function CampusAdmin() {
         <CampusMonitorPlanner groupStats={groupStats} settings={settings} updateSetting={updateSetting} />
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3"><p className="text-xs text-slate-500">La edad se calcula a fecha de inicio del Campus: 28/06/2027. Al guardar, los nuevos límites se aplican de inmediato en el formulario público.</p><button onClick={saveSettings} disabled={saving} className="inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-3 font-bold text-white hover:bg-orange-700 disabled:opacity-60">{saving?<RefreshCw className="h-4 w-4 animate-spin"/>:<Save className="h-4 w-4"/>}{saving?"Guardando…":"Guardar capacidades y monitores"}</button></div>
       </div>
-      {GROUPS.map(group => {
-        const groupKids = confirmedParticipants.filter(p => groupForParticipant(p, settings?.fecha_inicio) === group.key);
-        return <div key={group.key} className="rounded-2xl border bg-white p-5">
-          <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
-            <div><h3 className="text-lg font-black">{group.label}</h3><p className="text-sm text-slate-500">{group.range}</p></div>
-            <span className="rounded-full bg-orange-50 px-3 py-1 text-sm font-bold text-orange-700">{groupKids.length} menores</span>
-          </div>
-          {groupKids.length === 0 ? <p className="py-5 text-center text-sm text-slate-400">Todavía no hay menores en este grupo.</p> :
-            <div className="overflow-x-auto"><table className="w-full text-sm">
-              <caption className="mb-2 text-left text-xs text-slate-500">Listado de todos los menores de este grupo, vengan las semanas que vengan.</caption>
-              <thead><tr className="border-b text-left text-slate-500"><th className="p-3">Menor</th><th className="p-3">Edad al inicio · 28/06/2027</th><th className="p-3">Familia / correo</th><th className="p-3">Semanas</th><th className="p-3">Estado</th></tr></thead>
-              <tbody>{groupKids.map(kid => {
-                const registration = seasonRegistrations.find(r => r.id === kid.registration_id);
-                const calculatedAge = naturalAge(kid.fecha_nacimiento, settings?.fecha_inicio) ?? kid.edad_inicio;
-                return <tr key={kid.id} className="border-b last:border-0 align-top">
-                  <td className="p-3 font-semibold">{kid.nombre}<div className="text-xs font-normal text-slate-500">{kid.fecha_nacimiento || "Sin fecha"}</div></td>
-                  <td className="p-3">{calculatedAge == null ? "—" : `${calculatedAge} años el 28/06/2027`}</td>
-                  <td className="p-3">{registration?.adulto_nombre || "Familia sin localizar"}<div className="text-xs text-slate-500 break-all">{registration?.adulto_email || "Sin correo asociado"}</div></td>
-                  <td className="p-3">{(kid.semanas_ocupadas || []).join(", ") || "—"}</td>
-                  <td className="p-3">{kid.estado || "pendiente"}</td>
-                </tr>;
-              })}</tbody>
-            </table></div>}
-        </div>;
-      })}
     </section>}
 
     {tab === "asistencia" && <CampusAttendance season={selectedSeason} settings={settings} />}
     {tab === "monitores" && <CampusMonitorManager season={selectedSeason} />}
-    {tab === "lista_espera" && <CampusWaitlistManager season={selectedSeason} />}
+    {tab === "lista_espera" && <section className="space-y-5">
+      {settings && <CampusWaitlistSwitch active={settings.lista_espera_activa === true} saving={saving} onToggle={toggleWaitlist} />}
+      <CampusWaitlistManager season={selectedSeason} />
+    </section>}
 
     {tab === "configuracion" && settings && <section className="rounded-2xl border bg-white p-5 space-y-6">
-      <div className="rounded-2xl border border-orange-200 bg-orange-50/70 p-5">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="max-w-2xl"><p className="text-xs font-black uppercase tracking-wide text-orange-700">Control de publicación</p><h2 className="mt-1 text-xl font-black text-slate-950">Lista de espera del Campus {selectedSeason}</h2><p className="mt-1 text-sm text-slate-600">Activa este interruptor cuando quieras admitir solicitudes. Si está apagado, el formulario no aparece en la web y el servidor rechaza cualquier envío. Las solicitudes anteriores no se borran.</p><p className={`mt-2 text-sm font-black ${settings.lista_espera_activa ? "text-emerald-700" : "text-slate-500"}`}>{settings.lista_espera_activa ? "● ACTIVADA" : "● DESACTIVADA"}</p></div>
-          <button type="button" role="switch" aria-checked={settings.lista_espera_activa === true} onClick={() => toggleWaitlist(!settings.lista_espera_activa)} disabled={saving} className={`relative inline-flex h-10 w-[76px] shrink-0 items-center rounded-full p-1 transition disabled:opacity-50 ${settings.lista_espera_activa ? "bg-emerald-600" : "bg-slate-300"}`}><span className={`h-8 w-8 rounded-full bg-white shadow transition-transform ${settings.lista_espera_activa ? "translate-x-9" : "translate-x-0"}`}/><span className="sr-only">Activar lista de espera</span></button>
-        </div>
-      </div>
-      <div><h2 className="font-black text-xl">Tarifas aprobadas para el modelo de trabajo</h2><p className="text-sm text-slate-500">Se mantienen los importes acordados: semana 60/55 €, quincena 110/95 €, 4 semanas consecutivas 200/170 € y cuota de socio 25 €.</p></div>
+      <div><h2 className="font-black text-xl">Precios del Campus</h2><p className="text-sm text-slate-500">Se mantienen los importes acordados: semana 60/55 €, quincena 110/95 €, 4 semanas consecutivas 200/170 € y cuota de socio 25 €.</p></div>
       <div className="grid md:grid-cols-3 gap-4">{[
         ["Semana","precio_semana_general","precio_semana_socio"],["Quincena","precio_quincena_general","precio_quincena_socio"],["4 semanas consecutivas","precio_mes_general","precio_mes_socio"]
       ].map(([label,general,socio])=><div key={label} className="rounded-xl border p-4 space-y-3"><h3 className="font-bold">{label}</h3><label className="block text-xs font-bold text-slate-500">No socio (€)<input type="number" min="0" value={settings[general]??0} onChange={e=>updateSetting(general,e.target.value)} className="mt-1 w-full rounded-lg border p-2 text-base text-slate-900"/></label><label className="block text-xs font-bold text-slate-500">Socio (€)<input type="number" min="0" value={settings[socio]??0} onChange={e=>updateSetting(socio,e.target.value)} className="mt-1 w-full rounded-lg border p-2 text-base text-slate-900"/></label></div>)}</div>
