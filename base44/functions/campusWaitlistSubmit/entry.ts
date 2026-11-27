@@ -53,10 +53,11 @@ Deno.serve(async req => {
     const active = (participants || []).filter(p => {
       if (String(p.temporada || '2027') !== '2027' || ['cancelado','lista_espera'].includes(String(p.estado || '').toLowerCase())) return false;
       const parent = registrationById.get(p.registration_id);
-      if (parent && ['cancelada','revision'].includes(String(parent.estado || '').toLowerCase())) return false;
-      // Mismo criterio que disponibilidad e inscripción: pendiente sigue ocupando
-      // hasta que la limpieza confirme la caducidad en Stripe y cancele el registro.
-      return true;
+      // Solo una inscripción pagada y confirmada ocupa aforo.
+      // Las solicitudes de pago sin confirmar no impiden entrar en lista de espera.
+      return !!parent && String(parent.estado || '').toLowerCase() === 'confirmada' &&
+        String(parent.estado_pago || '').toLowerCase() === 'pagado' &&
+        String(p.estado || '').toLowerCase() === 'confirmado';
     });
     const capacities = {'6-8':settings.plazas_6_8,'9-11':settings.plazas_9_11,'12-16':settings.plazas_12_16};
     const cleanMinors = menores.map(m => {
