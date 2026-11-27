@@ -17,7 +17,7 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
   const [day, setDay] = useState("");
   const [q, setQ] = useState("");
   const [filtroEntrada, setFiltroEntrada] = useState("pendiente");
-  const [filtroSalida, setFiltroSalida] = useState("pendiente");
+  const [filtroSalida, setFiltroSalida] = useState("solos");
   const [modo, setModo] = useState("entrada");
   const inputRef = useRef(null);
 
@@ -39,22 +39,35 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
     return c;
   }, [roster, records, day]);
 
-  const salidaCounts = useMemo(() => {
-    const c = { pendiente: 0, salido: 0 };
+  const salidaLists = useMemo(() => {
+    const c = { solos: [], recogen: [], salido: [] };
     roster.forEach(p => {
       const e = estadoDia(records.find(r => r.participant_id === p.id && r.fecha === day));
-      if (e === "salido") c.salido++;
-      else if (e === "dentro") c.pendiente++;
+      if (e === "salido") c.salido.push(p);
+      else if (e === "dentro" && p.salida_autonoma) c.solos.push(p);
+      else if (e === "dentro") c.recogen.push(p);
     });
     return c;
   }, [roster, records, day]);
+  const salidaCounts = { solos: salidaLists.solos.length, recogen: salidaLists.recogen.length, salido: salidaLists.salido.length };
+  const darSalidaTodos = async () => {
+    const pendientes = salidaLists.solos;
+    const t = nowTime();
+    for (const p of pendientes) {
+      const ok = await save(p, { salida_autonoma: true, hora_salida: t }, "salida_autonoma", "Salida autónoma autorizada por la familia a las " + t, day);
+      if (!ok) return false;
+    }
+    return true;
+  };
 
   const lista = roster.filter(p => {
     const e = estadoDia(rec(p.id));
     const matchesSearch = !q || norm(p.nombre).includes(norm(q));
     if (!matchesSearch) return false;
     if (modo === "entrada") return filtroEntrada === "todos" || e === filtroEntrada || (filtroEntrada === "dentro" && e === "salido");
-    return filtroSalida === "salido" ? e === "salido" : e === "dentro";
+    if (filtroSalida === "salido") return e === "salido";
+    if (filtroSalida === "solos") return e === "dentro" && !!p.salida_autonoma;
+    return e === "dentro" && !p.salida_autonoma;
   });
 
   const after = ok => { if (ok && q) { setQ(""); inputRef.current?.focus(); } };
