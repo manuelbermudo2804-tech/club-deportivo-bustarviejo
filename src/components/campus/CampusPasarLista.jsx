@@ -20,7 +20,10 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
     roster.forEach(p => c[estadoDia(records.find(r => r.participant_id === p.id && r.fecha === day))]++);
     return c;
   }, [roster, records, day]);
-  const lista = roster.filter(p => (q ? norm(p.nombre).includes(norm(q)) : filtro === "todos" || estadoDia(rec(p.id)) === filtro));
+  const [salidaTipo, setSalidaTipo] = useState("todos");
+  const pasaSalida = p => salidaTipo === "todos" || (salidaTipo === "solos" ? !!p.salida_autonoma : !p.salida_autonoma);
+  const nSolos = roster.filter(p => p.salida_autonoma).length;
+  const lista = roster.filter(p => pasaSalida(p) && (q ? norm(p.nombre).includes(norm(q)) : filtro === "todos" || estadoDia(rec(p.id)) === filtro));
   const after = ok => { if (ok && q) { setQ(""); inputRef.current?.focus(); } };
   const llega = async p => { const t = nowTime(); after(await save(p, { estado: "presente", hora_entrada: t }, "asistencia", "Llegada registrada a las " + t, day)); };
   const onEnter = e => { if (e.key === "Enter" && lista.length === 1 && estadoDia(rec(lista[0].id)) === "pendiente") llega(lista[0]); };
@@ -33,6 +36,7 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
           {q && <button onClick={() => { setQ(""); inputRef.current?.focus(); }} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"><X className="h-5 w-5" /></button>}
         </div>
         <div className="flex gap-1.5 overflow-x-auto">{FILTROS.map(([k, l]) => <button key={k} onClick={() => { setFiltro(k); setQ(""); }} className={"shrink-0 rounded-full px-3 py-1.5 text-xs font-bold " + (!q && filtro === k ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-700")}>{l} · {counts[k]}</button>)}</div>
+        <div className="flex gap-1.5 overflow-x-auto border-t pt-2">{[["todos", "Todas las salidas", roster.length], ["recogen", "🔒 Les recogen (pedir DNI)", roster.length - nSolos], ["solos", "🚶 Salen solos", nSolos]].map(([k, l, n]) => <button key={k} onClick={() => setSalidaTipo(k)} className={"shrink-0 rounded-full px-3 py-1.5 text-xs font-bold " + (salidaTipo === k ? (k === "solos" ? "bg-blue-600 text-white" : k === "recogen" ? "bg-orange-600 text-white" : "bg-slate-900 text-white") : "bg-slate-100 text-slate-700")}>{l} · {n}</button>)}</div>
       </div>
       {counts.dentro > 0 && counts.pendiente === 0 && <p className="rounded-xl bg-blue-50 p-2.5 text-xs font-bold text-blue-800">Todos han llegado o están marcados. Quedan {counts.dentro} menores en el campus pendientes de salida.</p>}
       {lista.length === 0 ? <p className="rounded-xl bg-white p-6 text-center text-sm text-slate-500">{q ? "Nadie coincide con «" + q + "» en la lista de esta semana." : "No hay menores en este apartado."}</p>
