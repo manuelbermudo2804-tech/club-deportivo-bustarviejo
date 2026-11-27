@@ -5,6 +5,7 @@ import CampusPasarLista from "@/components/campus/CampusPasarLista";
 
 const WEEKS=[{key:"S1",label:"Semana 1"},{key:"S2",label:"Semana 2"},{key:"S3",label:"Semana 3"},{key:"S4",label:"Semana 4"},{key:"S5",label:"Semana 5"}];
 const dateForWeek=(start,i)=>{const d=new Date((start||"2027-06-28")+"T12:00:00");d.setDate(d.getDate()+i*7);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);};
+const defaultWeekIndex=start=>{const now=new Date();const todayLocal=new Date(now.getFullYear(),now.getMonth(),now.getDate());const first=new Date((start||"2027-06-28")+"T12:00:00");const diff=Math.floor((todayLocal-first)/86400000);return diff<0?0:Math.min(4,Math.floor(diff/7));};
 const nowTime=()=>new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit",hour12:false});
 const cleanDni=v=>String(v||"").replace(/[\s.-]/g,"").toUpperCase();
 const dayLabel=date=>new Date(date+"T12:00:00").toLocaleDateString("es-ES",{weekday:"short",day:"2-digit",month:"2-digit"});
@@ -18,7 +19,7 @@ export default function CampusAttendance({season,settings}){
  const [selected,setSelected]=useState(null),[expandedParticipant,setExpandedParticipant]=useState(""),[pickup,setPickup]=useState(null),[pickupError,setPickupError]=useState("");
  const invoke=async(action,extra={})=>{const res=await base44.functions.invoke("campusAttendanceGateway",{action,temporada:String(season),semana:week,fecha:date,...extra});const data=res?.data||res;if(data?.error)throw new Error(data.error);return data;};
  const load=async()=>{setLoading(true);setError("");try{const d=await invoke("weekRoster");setRoster(d.roster||[]);setRecords(d.records||[]);setDates(d.dates||[]);setMonitor(d.monitor?.nombre||"");if(d.dates?.length&&!d.dates.includes(date))setDate(d.dates[0]);}catch(e){setError(e.message||"No se pudo cargar la asistencia.");setRoster([]);setRecords([]);setDates([]);}finally{setLoading(false);}};
- useEffect(()=>{if(settings?.fecha_inicio){const first=dateForWeek(settings.fecha_inicio,WEEKS.findIndex(x=>x.key===week));setDate(first);}},[settings?.fecha_inicio,season]);
+ useEffect(()=>{if(settings?.fecha_inicio){const index=defaultWeekIndex(settings.fecha_inicio);const selected=WEEKS[index].key;setWeek(selected);setDate(dateForWeek(settings.fecha_inicio,index));}},[settings?.fecha_inicio,season]);
  useEffect(()=>{load();},[season,week]);
  const recordFor=(participantId,day)=>records.find(r=>r.participant_id===participantId&&r.fecha===day);
  const save=async(p,patch,accion,detalle,day=selected?.date||date)=>{
