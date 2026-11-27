@@ -39,11 +39,11 @@ Deno.serve(async (req) => {
       const active = (participants || []).filter(p => {
         if (String(p.temporada || '2027') !== season || ['cancelado','lista_espera'].includes(String(p.estado || '').toLowerCase())) return false;
         const parent = registrationsById.get(p.registration_id);
-        if (!parent) return true;
-        if (['cancelada','revision'].includes(String(parent.estado || '').toLowerCase())) return false;
-        // Una plaza solo se libera cuando el registro se cancela explícitamente.
-        // La limpieza automática confirma antes en Stripe que la sesión ha caducado.
-        return true;
+        // Solo las inscripciones pagadas y confirmadas consumen aforo.
+        // Un checkout pendiente, abandonado, fallido o en revisión no bloquea plazas.
+        return !!parent && String(parent.estado || '').toLowerCase() === 'confirmada' &&
+          String(parent.estado_pago || '').toLowerCase() === 'pagado' &&
+          String(p.estado || '').toLowerCase() === 'confirmado';
       });
       const groups = [
         { key:'6-8', label:'6–8 años', capacity:configured.plazas_6_8 },
