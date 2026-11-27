@@ -11,11 +11,18 @@ const cors = origin => ({
 });
 const clean = v => String(v || '').trim();
 const normalize = v => clean(v).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/\s+/g,' ');
+function isValidISODate(value) {
+  const text = String(value || '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) return false;
+  const [year, month, day] = text.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return Number.isFinite(date.getTime()) && date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
 function ageOnStart(date, startDate) {
-  // Edad cumplida exactamente en la fecha de inicio del Campus (28/06/2027 para esta edición).
-  const birth = String(date || '').slice(0,10).split('-').map(Number);
-  const start = String(startDate || '').slice(0,10).split('-').map(Number);
-  if (birth.length !== 3 || start.length !== 3 || [...birth, ...start].some(n => !Number.isFinite(n))) return NaN;
+  // Rechaza fechas imposibles antes de calcular la edad.
+  if (!isValidISODate(date) || !isValidISODate(String(startDate || '').slice(0,10))) return NaN;
+  const birth = String(date).split('-').map(Number);
+  const start = String(startDate).slice(0,10).split('-').map(Number);
   let age = start[0] - birth[0];
   if (start[1] < birth[1] || (start[1] === birth[1] && start[2] < birth[2])) age -= 1;
   return age;
@@ -57,6 +64,7 @@ Deno.serve(async req=>{
     };
     if(!adult.nombre||!adult.dni||!adult.email||!adult.telefono||!adult.direccion||!adult.municipio||!adult.nacimiento)
       return Response.json({error:'Completa todos los datos obligatorios del adulto responsable.'},{status:400,headers});
+    if(!isValidISODate(adult.nacimiento)) return Response.json({error:'La fecha de nacimiento del adulto no es una fecha válida.'},{status:400,headers});
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adult.email)) return Response.json({error:'Correo electrónico no válido.'},{status:400,headers});
     if(b.consentimiento_datos!==true) return Response.json({error:'Es obligatorio aceptar la información de protección de datos para enviar la inscripción.'},{status:400,headers});
     if(b.consentimiento_salud!==true) return Response.json({error:'Es necesario aceptar el tratamiento de los datos de salud para gestionar la seguridad del menor.'},{status:400,headers});
