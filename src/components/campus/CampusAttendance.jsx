@@ -1,6 +1,6 @@
 import React,{useEffect,useState} from "react";
 import {base44} from "@/api/base44Client";
-import {RefreshCw,X} from "lucide-react";
+import {RefreshCw,X,Search,Clock3} from "lucide-react";
 import CampusPasarLista from "@/components/campus/CampusPasarLista";
 
 const WEEKS=[{key:"S1",label:"Semana 1"},{key:"S2",label:"Semana 2"},{key:"S3",label:"Semana 3"},{key:"S4",label:"Semana 4"},{key:"S5",label:"Semana 5"}];
@@ -10,15 +10,21 @@ const nowTime=()=>new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"
 const cleanDni=v=>String(v||"").replace(/[\s.-]/g,"").toUpperCase();
 const dayLabel=date=>new Date(date+"T12:00:00").toLocaleDateString("es-ES",{weekday:"short",day:"2-digit",month:"2-digit"});
 const statusLabel=status=>status==="presente"?"Presente":status==="ausente"?"Ausente":"Pendiente";
+const formatAuditDate=value=>value?new Date(value).toLocaleString("es-ES",{timeZone:"Europe/Madrid",dateStyle:"short",timeStyle:"medium"}):"Fecha no disponible";
 
-export default function CampusAttendance({season,settings}){
+export default function CampusAttendance({season,settings,adminView=false}){
  const [week,setWeek]=useState("S1"),[date,setDate]=useState(()=>dateForWeek(settings?.fecha_inicio,0));
  const [dates,setDates]=useState([]),[roster,setRoster]=useState([]),[records,setRecords]=useState([]);
  const [loading,setLoading]=useState(false),[busy,setBusy]=useState(""),[error,setError]=useState(""),[notice,setNotice]=useState(""),[monitor,setMonitor]=useState("");
  const [view,setView]=useState("lista");
+ const [panel,setPanel]=useState("control");
+ const [historyRecords,setHistoryRecords]=useState([]),[historyLoading,setHistoryLoading]=useState(false),[historyError,setHistoryError]=useState("");
+ const [historySearch,setHistorySearch]=useState(""),[historyDate,setHistoryDate]=useState("");
  const [selected,setSelected]=useState(null),[expandedParticipant,setExpandedParticipant]=useState(""),[pickup,setPickup]=useState(null),[pickupError,setPickupError]=useState("");
  const invoke=async(action,extra={})=>{const res=await base44.functions.invoke("campusAttendanceGateway",{action,temporada:String(season),semana:week,fecha:date,...extra});const data=res?.data||res;if(data?.error)throw new Error(data.error);return data;};
  const load=async()=>{setLoading(true);setError("");try{const d=await invoke("weekRoster");setRoster(d.roster||[]);setRecords(d.records||[]);setDates(d.dates||[]);setMonitor(d.monitor?.nombre||"");if(d.dates?.length&&!d.dates.includes(date))setDate(d.dates[0]);}catch(e){setError(e.message||"No se pudo cargar la asistencia.");setRoster([]);setRecords([]);setDates([]);}finally{setLoading(false);}};
+ const loadHistory=async()=>{if(!adminView)return;setHistoryLoading(true);setHistoryError("");try{const res=await base44.functions.invoke("campusAttendanceGateway",{action:"adminHistory",temporada:String(season),fecha:historyDate,buscar:historySearch});const data=res?.data||res;if(data?.error)throw new Error(data.error);setHistoryRecords(data.records||[]);}catch(e){setHistoryError(e?.response?.data?.error||e?.message||"No se pudo cargar el historial.");setHistoryRecords([]);}finally{setHistoryLoading(false);}};
+ useEffect(()=>{if(adminView&&panel==="historial")loadHistory();},[adminView,panel,season]);
  useEffect(()=>{if(settings?.fecha_inicio){const index=defaultWeekIndex(settings.fecha_inicio);const selected=WEEKS[index].key;setWeek(selected);setDate(dateForWeek(settings.fecha_inicio,index));}},[settings?.fecha_inicio,season]);
  useEffect(()=>{load();},[season,week]);
  const recordFor=(participantId,day)=>records.find(r=>r.participant_id===participantId&&r.fecha===day);
