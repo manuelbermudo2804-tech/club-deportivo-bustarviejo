@@ -5,8 +5,8 @@ import CampusSalidaPanel from "@/components/campus/CampusSalidaPanel";
 export const estadoDia = r => !r || r.estado === "pendiente" || !r.estado ? "pendiente" : r.estado === "ausente" ? "ausente" : r.hora_salida ? "salido" : "dentro";
 const BADGE = {
   pendiente: ["Por llegar", "bg-amber-100 text-amber-800"],
-  dentro: ["En el campus", "bg-green-100 text-green-800"],
-  salido: ["Ya ha salido", "bg-slate-200 text-slate-700"],
+  dentro: ["Ha llegado", "bg-green-100 text-green-800"],
+  salido: ["Ha salido", "bg-slate-200 text-slate-700"],
   ausente: ["Falta", "bg-red-100 text-red-800"],
 };
 const tel = n => String(n || "").replace(/[^\d+]/g, "");
@@ -40,10 +40,16 @@ export default function CampusAlumnoFila({ p, r, busy, modoSalida, onLlega, onFa
           <p><b>Fecha nacimiento:</b> {p.fecha_nacimiento || "No indicada"}</p>
           <p><b>Grupo:</b> {p.grupo_edad || "—"}</p>
         </div>
-        <div><b>Alergias:</b> {p.alergias || "Ninguna indicada"}</div>
-        <div><b>Intolerancias:</b> {p.intolerancias || "Ninguna indicada"}</div>
-        <div><b>Medicación:</b> {p.medicacion || "Ninguna indicada"}</div>
-        <div><b>Observaciones médicas:</b> {p.observaciones_medicas || "Sin observaciones"}</div>
+        <div className="rounded-lg border border-red-200 bg-red-50 p-2.5">
+          <p className="mb-1 font-extrabold text-red-800"><AlertTriangle className="mr-1 inline h-3.5 w-3.5" />Información médica</p>
+          <div><b>Alergias:</b> {p.alergias || "Ninguna comunicada"}</div>
+          <div><b>Intolerancias:</b> {p.intolerancias || "Ninguna comunicada"}</div>
+          <div><b>Medicación:</b> {p.medicacion || "Ninguna comunicada"}</div>
+          <div><b>Observaciones:</b> {p.observaciones_medicas || "Sin observaciones"}</div>
+        </div>
+        {p.salida_autonoma && <p className="rounded-lg border border-blue-200 bg-blue-50 p-2 font-bold text-blue-800">🚶 Autorización familiar para salir solo</p>}
+        {r?.hora_entrada && <p><b>Hora de entrada:</b> {r.hora_entrada}</p>}
+        {r?.hora_salida && <p><b>Hora de salida:</b> {r.hora_salida}</p>
         <div className="border-t pt-2"><b>Contactos de emergencia</b>
           {contactos.length ? contactos.map((c, i) => <a key={i} href={"tel:" + tel(c[1])} className="mt-1 flex items-center gap-1.5 font-bold text-blue-700"><Phone className="h-3.5 w-3.5" />{c[0]} · {c[1]}</a>) : <p>No consta teléfono de emergencia.</p>}
         </div>
@@ -52,7 +58,8 @@ export default function CampusAlumnoFila({ p, r, busy, modoSalida, onLlega, onFa
         </div>
       </div>}
 
-      <div className="mt-3 flex gap-2">
+      {ficha && <>
+      <div className="mt-3 flex flex-wrap gap-2">
         {estado === "pendiente" && <><button disabled={busy} onClick={onLlega} className="flex-1 rounded-xl bg-green-600 py-3 text-sm font-black text-white disabled:opacity-40">✓ Ha llegado</button><button disabled={busy} onClick={onFalta} className="rounded-xl bg-red-600 px-4 py-3 text-sm font-black text-white disabled:opacity-40">Falta</button></>}
         {estado === "dentro" && modoSalida && p.salida_autonoma && <button disabled={busy} onClick={onAutonoma} className="flex-1 rounded-xl bg-blue-600 py-3 text-sm font-black text-white disabled:opacity-40">🚶 Registrar salida autónoma</button>}
         {estado === "dentro" && !modoSalida && <p className="flex-1 rounded-xl bg-green-50 px-3 py-2.5 text-xs font-bold text-green-800">✓ Dentro desde las {r?.hora_entrada || "—"}</p>}
@@ -63,6 +70,7 @@ export default function CampusAlumnoFila({ p, r, busy, modoSalida, onLlega, onFa
       </div>
       {busy && <p className="mt-1 text-[11px] text-slate-500">Guardando…</p>}
       {panelAbierto && <CampusSalidaPanel p={p} busy={busy} onClose={() => setSalida(false)} onAutonoma={onAutonoma} onPickup={onPickup} />}
+      </>}
     </article>
   );
 }
