@@ -64,6 +64,8 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
     const e = estadoDia(rec(p.id));
     const matchesSearch = !q || norm(p.nombre).includes(norm(q));
     if (!matchesSearch) return false;
+    // Una búsqueda por nombre debe encontrar al menor aunque esté en otro filtro.
+    if (q) return true;
     if (modo === "entrada") return filtroEntrada === "todos" || e === filtroEntrada || (filtroEntrada === "dentro" && e === "salido");
     if (filtroSalida === "salido") return e === "salido";
     if (filtroSalida === "solos") return e === "dentro" && !!p.salida_autonoma;
