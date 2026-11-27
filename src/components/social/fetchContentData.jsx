@@ -309,3 +309,68 @@ export async function fetchDataForType(type) {
 
   return "";
 }
+
+/**
+ * Datos estructurados para la tarjeta gráfica de partidos.
+ * Reutiliza las entidades ProximoPartido y Convocatoria del calendario del club.
+ */
+export async function fetchWeekendMatchesForGraphic() {
+  const today = new Date();
+  const dow = today.getDay();
+  const saturday = new Date(today);
+  saturday.setDate(today.getDate() + ((6 - dow + 7) % 7 || 7));
+  const sunday = new Date(saturday);
+  sunday.setDate(saturday.getDate() + 1);
+  const toIsoDate = (date) => {
+    const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  };
+  const satStr = toIsoDate(saturday);
+  const sunStr = toIsoDate(sunday);
+
+  const [partidos, convocatorias] = await Promise.all([
+    base44.entities.ProximoPartido.filter({ jugado: false }, "fecha_iso", 100).catch(() => []),
+    base44.entities.Convocatoria.filter({ publicada: true, cerrada: false }, "-fecha_partido", 100).catch(() => []),
+  ]);
+
+  const matches = [
+    ...partidos
+      .filter((p) => p.fecha_iso >= satStr && p.fecha_iso <= sunStr)
+      .map((p) => ({
+        id: p.id,
+        categoria: p.categoria || "Equipo",
+        local: p.local || "Por confirmar",
+        visitante: p.visitante || "Por confirmar",
+        fecha: p.fecha_iso || satStr,
+        hora: p.hora || "",
+        campo: p.campo || "",
+      })),
+    ...convocatorias
+      .filter((c) =>
+        c.fecha_partido >= satStr &&
+        c.fecha_partido <= sunStr &&
+        ["Partido", "Amistoso", "Torneo"].includes(c.tipo)
+      )
+      .map((c) => ({
+        id: c.id,
+        categoria: c.categoria || "Equipo",
+        local: c.local_visitante === "Visitante" ? (c.rival || "Rival por confirmar") : "CD Bustarviejo",
+        visitante: c.local_visitante === "Visitante" ? "CD Bustarviejo" : (c.rival || "Rival por confirmar"),
+        fecha: c.fecha_partido || satStr,
+        hora: c.hora_partido || "",
+        campo: c.ubicacion || "",
+      })),
+  ];
+
+  const unique = new Map();
+  matches.forEach((match) => {
+    const key = [match.categoria, match.local, match.visitante, match.fecha, match.hora].join("|").toLowerCase();
+    if (!unique.has(key)) unique.set(key, match);
+  });
+
+  const ordered = [...unique.values()].sort((a, b) =>
+    a.fecha.localeCompare(b.fecha) || a.hora.localeCompare(b.hora) || a.categoria.localeCompare(b.categoria, "es")
+  );
+  const label = `${moment(saturday).format("D [de] MMMM")} – ${moment(sunday).format("D [de] MMMM [de] YYYY")}`;
+  return { matches: ordered, label };
+}
