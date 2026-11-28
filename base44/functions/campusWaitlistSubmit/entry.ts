@@ -36,8 +36,12 @@ Deno.serve(async req => {
     const adulto = clean(body.adulto_nombre);
     const telefono = clean(body.adulto_telefono);
     const email = clean(body.adulto_email).toLowerCase();
+    const direccion = clean(body.adulto_direccion);
+    const municipio = clean(body.adulto_municipio);
+    const nacimiento = clean(body.adulto_fecha_nacimiento);
     const menores = Array.isArray(body.menores) ? body.menores : [];
-    if (!adulto || !telefono || !email) return Response.json({error:'Indica nombre, teléfono y correo del adulto responsable.'},{status:400,headers});
+    if (!adulto || !telefono || !email || !direccion || !municipio || !nacimiento) return Response.json({error:'Completa nombre, teléfono, correo, dirección, municipio y fecha de nacimiento del adulto responsable.'},{status:400,headers});
+    if (!isValidISODate(nacimiento)) return Response.json({error:'La fecha de nacimiento del adulto responsable no es válida.'},{status:400,headers});
     if (!/^[-+()\d\s]{6,25}$/.test(telefono)) return Response.json({error:'Introduce un teléfono válido.'},{status:400,headers});
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return Response.json({error:'Introduce un correo electrónico válido.'},{status:400,headers});
     if (!menores.length || menores.length > 4) return Response.json({error:'Añade al menos un menor (máximo 4 por responsable).'}, {status:400,headers});
@@ -90,7 +94,7 @@ Deno.serve(async req => {
       );
       if (duplicate) { duplicates.push({menor:menor.nombre,semana}); continue; }
       rows.push({
-        temporada:'2027',adulto_nombre:adulto,adulto_telefono:telefono,adulto_email:email,
+        temporada:'2027',adulto_nombre:adulto,adulto_telefono:telefono,adulto_email:email,adulto_direccion:direccion,adulto_municipio:municipio,adulto_fecha_nacimiento:nacimiento,
         menor_nombre:menor.nombre,fecha_nacimiento:menor.fecha,edad:menor.edad,grupo_edad:menor.grupo,
         semana,estado:'pendiente'
       });
