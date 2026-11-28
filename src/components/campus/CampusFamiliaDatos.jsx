@@ -22,7 +22,9 @@ export default function CampusFamiliaDatos({ r }) {
       <Dato l="Alta de socio" v={r.estado_alta_socio} />
       <Dato l="Semanas pedidas" v={(r.semanas_solicitadas || []).join(", ")} />
       <Dato l="Inscrito el" v={fecha(r.created_date)} />
-      <Dato l="Consentimientos" v={`Datos: ${r.consentimiento_datos ? "Sí" : "No"} · Imagen: ${r.consentimiento_imagen ? "Sí" : "No"}`} />
+      <Dato l="Consentimiento datos" v={r.consentimiento_datos ? `Sí · ${fecha(r.consentimiento_datos_fecha)} · ${r.consentimiento_datos_version || "versión no registrada"}` : "No"} />
+      <Dato l="Consentimiento imagen" v={`${r.consentimiento_imagen ? "Sí autoriza" : "No autoriza"} · ${fecha(r.consentimiento_imagen_fecha)} · ${r.consentimiento_imagen_version || "versión no registrada"}`} />
+      <Dato l="Comunicaciones comerciales" v={r.acepta_comunicaciones ? `Aceptado · ${fecha(r.consentimiento_comercial_fecha)} · ${r.consentimiento_comercial_version || "versión no registrada"}` : "No aceptado"} />
       {r.notas && <div className="col-span-2 sm:col-span-3 xl:col-span-6"><Dato l="Notas" v={r.notas} /></div>}
     </div>
   );
