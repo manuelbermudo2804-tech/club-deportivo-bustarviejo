@@ -6,7 +6,6 @@ import CampusPasarLista from "@/components/campus/CampusPasarLista";
 const WEEKS=[{key:"S1",label:"Semana 1"},{key:"S2",label:"Semana 2"},{key:"S3",label:"Semana 3"},{key:"S4",label:"Semana 4"},{key:"S5",label:"Semana 5"}];
 const dateForWeek=(start,i)=>{const d=new Date((start||"2027-06-28")+"T12:00:00");d.setDate(d.getDate()+i*7);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);};
 const defaultWeekIndex=start=>{const now=new Date();const todayLocal=new Date(now.getFullYear(),now.getMonth(),now.getDate());const first=new Date((start||"2027-06-28")+"T12:00:00");const diff=Math.floor((todayLocal-first)/86400000);return diff<0?0:Math.min(4,Math.floor(diff/7));};
-const nowTime=()=>new Date().toLocaleTimeString("es-ES",{hour:"2-digit",minute:"2-digit",hour12:false});
 const cleanDni=v=>String(v||"").replace(/[\s.-]/g,"").toUpperCase();
 const dayLabel=date=>new Date(date+"T12:00:00").toLocaleDateString("es-ES",{weekday:"short",day:"2-digit",month:"2-digit"});
 const statusLabel=status=>status==="presente"?"Presente":status==="ausente"?"Ausente":"Pendiente";
@@ -49,8 +48,7 @@ export default function CampusAttendance({season,settings,adminView=false}){
   if(!person||!dni.trim()){setPickupError("Selecciona a la persona e introduce su DNI/NIE.");return;}
   if(cleanDni(person.dni)!==cleanDni(dni)){setPickupError("⛔ NO AUTORIZADO: el DNI/NIE no coincide con el de "+person.nombre+". No se ha registrado la salida.");return;}
   setPickupError("");
-  const t=nowTime();
-  await save(p,{estado:"presente",recogida_verificada:true,persona_recoge:person.nombre,dni_recoge:cleanDni(dni),hora_salida:t},"recogida_verificada","Recogida verificada por "+person.nombre+" a las "+t,pickup.date);
+  await save(p,{estado:"presente",recogida_verificada:true,persona_recoge:person.nombre,dni_recoge:cleanDni(dni),hora_salida:true},"recogida_verificada","Recogida verificada por "+person.nombre,pickup.date);
  };
  const presentForDay=day=>records.filter(r=>r.fecha===day&&r.estado==="presente").length;
  const absentForDay=day=>records.filter(r=>r.fecha===day&&r.estado==="ausente").length;
