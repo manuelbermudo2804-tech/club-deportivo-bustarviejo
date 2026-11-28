@@ -89,7 +89,7 @@ Deno.serve(async req=>{
       return sameSeason&&r.estado!=='cancelada'&&sameDni;
     });
     const alreadyRegistered=sameResponsible.reduce((sum,r)=>sum+Number(r.participantes_count||0),0);
-    if(alreadyRegistered+b.participantes.length>4) return Response.json({error:'Este DNI o correo ya tiene menores inscritos en esta edición y se superaría el máximo de 4 participantes por responsable. Contacta con el club para revisar el caso.'},{status:409,headers});
+    if(alreadyRegistered+b.participantes.length>4) return Response.json({error:'Este DNI/NIE ya tiene menores inscritos en esta edición y se superaría el máximo de 4 participantes por responsable. Contacta con el club para revisar el caso.'},{status:409,headers});
     const membershipSeason=`${campusYear}-${Number(campusYear)+1}`;
     let verifiedMember=null, verificationChallenge=null;
     if(b.es_socio===true){
