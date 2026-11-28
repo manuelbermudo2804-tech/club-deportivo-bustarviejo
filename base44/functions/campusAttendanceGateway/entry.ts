@@ -106,7 +106,7 @@ Deno.serve(async req => {
         return {
           id:p.id,nombre:p.nombre,registration_id:p.registration_id,
           fecha_nacimiento:p.fecha_nacimiento||'',grupo_edad:p.grupo_edad||'',
-          alergias:p.alergias||'',intolerancias:p.intolerancias||'',medicacion:p.medicacion||'',
+          alergias:p.alergias||'',alergia_gravedad:p.alergia_gravedad||'',alergia_reaccion:p.alergia_reaccion||'',protocolo_emergencia:p.protocolo_emergencia||'',intolerancias:p.intolerancias||'',medicacion:p.medicacion||'',medicacion_durante_campus:p.medicacion_durante_campus||'',instrucciones_medicacion:p.instrucciones_medicacion||'',autorizacion_medicacion:p.autorizacion_medicacion===true,
           observaciones_medicas:p.observaciones_medicas||'',
           contacto_emergencia_nombre:p.contacto_emergencia_nombre||'',
           contacto_emergencia_telefono:p.contacto_emergencia_telefono||'',
