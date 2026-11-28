@@ -84,9 +84,9 @@ Deno.serve(async req=>{
     const normId=adult.dni.replace(/[.\s-]/g,'').toUpperCase();
     const sameResponsible=(priorRegistrations||[]).filter(r=>{
       const sameDni=String(r.adulto_dni||'').replace(/[.\s-]/g,'').toUpperCase()===normId;
-      const sameEmail=String(r.adulto_email||'').trim().toLowerCase()===adult.email;
       const sameSeason=String(r.temporada||'2027')===campusYear;
-      return sameSeason&&r.estado!=='cancelada'&&(sameDni||sameEmail);
+      // La identidad familiar se basa en el DNI/NIE del responsable, nunca solo en el correo compartido.
+      return sameSeason&&r.estado!=='cancelada'&&sameDni;
     });
     const alreadyRegistered=sameResponsible.reduce((sum,r)=>sum+Number(r.participantes_count||0),0);
     if(alreadyRegistered+b.participantes.length>4) return Response.json({error:'Este DNI o correo ya tiene menores inscritos en esta edición y se superaría el máximo de 4 participantes por responsable. Contacta con el club para revisar el caso.'},{status:409,headers});
@@ -261,7 +261,7 @@ Deno.serve(async req=>{
       } catch(consentError) { console.error('[campusRegistrationSubmit] No se pudo guardar el consentimiento comercial:',consentError?.message||consentError); }
     }
     if(verificationChallenge) await base44.asServiceRole.entities.CampusMemberVerification.update(verificationChallenge.id,{consumed:true,used:true});
-    return Response.json({success:true,registration_id:reg.id,reference,participants_saved:created.length,amount:total,club_member_id:provisionalMemberId||verifiedMember?.id||null,payment_started:true,payment_status:'pendiente',payment_url:session.url,message:'Inscripción guardada. Continúa a Stripe para completar el pago.'},{headers});
+    return Response.json({success:true,registration_id:reg.id,reference,family_existing:sameResponsible.length>0,family_registrations:sameResponsible.length+1,participants_saved:created.length,amount:total,club_member_id:provisionalMemberId||verifiedMember?.id||null,payment_started:true,payment_status:'pendiente',payment_url:session.url,message:sameResponsible.length>0?'Hemos localizado una familia ya inscrita. Esta nueva solicitud se añade a su expediente familiar y mantiene su propio pago.':'Inscripción guardada. Continúa a Stripe para completar el pago.'},{headers});
   } catch(e) {
     console.error('[campusRegistrationSubmit]',e?.message||e);
     return Response.json({error:e?.message||'No se ha podido guardar la inscripción.'},{status:400,headers});
