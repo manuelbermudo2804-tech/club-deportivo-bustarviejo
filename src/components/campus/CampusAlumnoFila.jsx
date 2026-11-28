@@ -50,9 +50,13 @@ export default function CampusAlumnoFila({ p, r, busy, modoSalida, onLlega, onFa
         </div>
         <div className="rounded-lg border border-red-200 bg-red-50 p-2.5">
           <p className="mb-1 font-extrabold text-red-800"><AlertTriangle className="mr-1 inline h-3.5 w-3.5" />Información médica</p>
-          <div><b>Alergias:</b> {p.alergias || "Ninguna comunicada"}</div>
+          <div><b>Alergias:</b> {p.alergias || "Ninguna comunicada"}{p.alergia_gravedad ? " · Gravedad: " + p.alergia_gravedad : ""}</div>
+          {p.alergia_reaccion && <div><b>Reacción:</b> {p.alergia_reaccion}</div>}
           <div><b>Intolerancias:</b> {p.intolerancias || "Ninguna comunicada"}</div>
           <div><b>Medicación:</b> {p.medicacion || "Ninguna comunicada"}</div>
+          <div><b>¿Medicación durante el Campus?:</b> {p.medicacion_durante_campus === "si" ? "Sí" : p.medicacion_durante_campus === "no" ? "No" : "No indicado"}</div>
+          {p.medicacion_durante_campus === "si" && <><div><b>Instrucciones:</b> {p.instrucciones_medicacion || "No indicadas"}</div><div className="font-bold text-red-800"><b>Autorización familiar:</b> {p.autorizacion_medicacion ? "Sí" : "NO CONSTA"}</div></>}
+          {p.protocolo_emergencia && <div><b>Protocolo de emergencia:</b> {p.protocolo_emergencia}</div>}
           <div><b>Observaciones:</b> {p.observaciones_medicas || "Sin observaciones"}</div>
         </div>
         {p.salida_autonoma && <p className="rounded-lg border border-blue-200 bg-blue-50 p-2 font-bold text-blue-800">🚶 Autorización familiar para salir solo</p>}
