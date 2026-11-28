@@ -93,6 +93,36 @@
     "alergias": {
       "type": "string"
     },
+    "alergia_gravedad": {
+      "type": "string"
+    },
+    "alergia_reaccion": {
+      "type": "string"
+    },
+    "protocolo_emergencia": {
+      "type": "string"
+    },
+    "medicacion_durante_campus": {
+      "type": "string",
+      "enum": [
+        "si",
+        "no"
+      ]
+    },
+    "instrucciones_medicacion": {
+      "type": "string"
+    },
+    "autorizacion_medicacion": {
+      "type": "boolean",
+      "default": false
+    },
+    "consentimiento_salud_fecha": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "consentimiento_salud_version": {
+      "type": "string"
+    },
     "medicacion": {
       "type": "string"
     },
