@@ -116,8 +116,7 @@ Deno.serve(async req=>{
       const authorized=Array.isArray(p.autorizados_recogida)?p.autorizados_recogida:[];
       const salidaModalidad=clean(p.salida_modalidad);
       const medicacionDurante=clean(p.medicacion_durante_campus)||'no';
-      if(clean(p.contacto_emergencia_nombre)&&normalize(p.contacto_emergencia_nombre)===normalize(adult.nombre)) throw new Error('El contacto alternativo de emergencia debe ser una persona distinta del responsable de '+nombre+'.');
-      if(clean(p.contacto_emergencia_telefono)&&clean(p.contacto_emergencia_telefono).replace(/\D/g,'')===adult.telefono.replace(/\D/g,'')) throw new Error('El contacto alternativo de emergencia debe ser una persona distinta del responsable de '+nombre+'.')
+
 
       if(!['recogida','salida_autonoma'].includes(salidaModalidad)) throw new Error('Indica cómo saldrá del Campus '+nombre+': recogida por un adulto o salida autónoma.');
       if(authorized.some(a=>!clean(a.nombre)||!clean(a.dni)||!clean(a.telefono))) throw new Error('Completa nombre, DNI/NIE y teléfono de cada persona autorizada para recoger a '+nombre+'.');
