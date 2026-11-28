@@ -71,6 +71,26 @@
       "type": "boolean",
       "default": false
     },
+    "email_total_destinatarios": {
+      "type": "number",
+      "default": 0
+    },
+    "email_enviados": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "email_fallidos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "email_ultimo_envio": {
+      "type": "string",
+      "format": "date-time"
+    },
     "fecha_publicacion": {
       "type": "string",
       "format": "date-time"
