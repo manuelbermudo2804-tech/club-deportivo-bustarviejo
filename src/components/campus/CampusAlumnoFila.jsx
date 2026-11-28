@@ -29,7 +29,7 @@ export default function CampusAlumnoFila({ p, r, busy, modoSalida, onLlega, onFa
       <div className="flex w-full items-center gap-2">
         <button onClick={() => setFicha(v => !v)} className="flex min-w-0 flex-1 items-center gap-2 text-left">
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-extrabold text-slate-900">{p.nombre}</span>
+            <span className="flex items-center gap-1.5"><span className="block truncate text-sm font-extrabold text-slate-900">{p.nombre}</span>{p.alerta_medica && <span title="Alerta médica: abre la ficha antes de la actividad" aria-label="Alerta médica" className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-red-600 text-sm font-black leading-none text-white">✚</span>}</span>
             <span className="mt-0.5 block text-[11px] text-slate-500">Grupo {p.grupo_edad || "—"}</span>
           </span>
           {!(estado === "pendiente" && !modoSalida) && <span className={"shrink-0 rounded-full px-2.5 py-1 text-[11px] font-bold " + cls}>{label}</span>}
@@ -57,6 +57,7 @@ export default function CampusAlumnoFila({ p, r, busy, modoSalida, onLlega, onFa
           <div><b>¿Medicación durante el Campus?:</b> {p.medicacion_durante_campus === "si" ? "Sí" : p.medicacion_durante_campus === "no" ? "No" : "No indicado"}</div>
           {p.medicacion_durante_campus === "si" && <><div><b>Instrucciones:</b> {p.instrucciones_medicacion || "No indicadas"}</div><div className="font-bold text-red-800"><b>Autorización familiar:</b> {p.autorizacion_medicacion ? "Sí" : "NO CONSTA"}</div></>}
           {p.protocolo_emergencia && <div><b>Protocolo de emergencia:</b> {p.protocolo_emergencia}</div>}
+          {p.requiere_vigilancia_especial && <div className="mt-1 rounded bg-red-100 p-2 font-bold text-red-900"><span aria-hidden="true">✚ </span>VIGILANCIA ESPECIAL: {p.detalle_vigilancia_especial || "Revisar las indicaciones de la familia."}</div>}
           <div><b>Observaciones:</b> {p.observaciones_medicas || "Sin observaciones"}</div>
         </div>
         {p.salida_autonoma && <p className="rounded-lg border border-blue-200 bg-blue-50 p-2 font-bold text-blue-800">🚶 Autorización familiar para salir solo</p>}
