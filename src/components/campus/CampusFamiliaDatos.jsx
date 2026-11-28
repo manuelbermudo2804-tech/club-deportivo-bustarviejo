@@ -1,6 +1,6 @@
 import React from "react";
 
-const fecha = (v) => v ? new Date(String(v).length === 10 ? v + "T12:00:00" : v).toLocaleDateString("es-ES") : "—";
+const fecha = (v) => v ? new Date(String(v).length === 10 ? v + "T12:00:00" : v).toLocaleString("es-ES", String(v).length === 10 ? { dateStyle: "short" } : { dateStyle: "short", timeStyle: "short", timeZone: "Europe/Madrid" }) : "—";
 
 function Dato({ l, v }) {
   return <div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-wide text-slate-400">{l}</p><p className="break-words text-xs font-semibold text-slate-800">{v || "—"}</p></div>;
