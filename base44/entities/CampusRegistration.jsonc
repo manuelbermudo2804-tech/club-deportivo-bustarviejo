@@ -89,6 +89,31 @@
       "type": "boolean",
       "default": false
     },
+    "consentimiento_datos_fecha": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "consentimiento_datos_version": {
+      "type": "string"
+    },
+    "consentimiento_imagen_fecha": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "consentimiento_imagen_version": {
+      "type": "string"
+    },
+    "acepta_comunicaciones": {
+      "type": "boolean",
+      "default": false
+    },
+    "consentimiento_comercial_fecha": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "consentimiento_comercial_version": {
+      "type": "string"
+    },
     "notas": {
       "type": "string"
     },
