@@ -194,6 +194,20 @@
       "default": false,
       "description": "El responsable legal confirma expresamente la autorizaci\u00f3n de recogida para las personas indicadas."
     },
+    "autorizacion_recogida_fecha": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "autorizacion_recogida_version": {
+      "type": "string"
+    },
+    "autorizacion_medicacion_fecha": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "autorizacion_medicacion_version": {
+      "type": "string"
+    },
     "salida_modalidad": {
       "type": "string",
       "enum": [
