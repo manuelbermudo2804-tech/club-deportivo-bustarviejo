@@ -6,7 +6,6 @@ import CampusSalidaFiltros from "@/components/campus/CampusSalidaFiltros";
 
 const norm = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const dayLabel = d => new Date(d + "T12:00:00").toLocaleDateString("es-ES", { weekday: "long", day: "2-digit", month: "long" });
-const nowTime = () => new Date().toLocaleTimeString("es-ES", { hour: "2-digit", minute: "2-digit", hour12: false });
 const today = () => {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -52,9 +51,8 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
   const salidaCounts = { solos: salidaLists.solos.length, recogen: salidaLists.recogen.length, salido: salidaLists.salido.length };
   const darSalidaTodos = async () => {
     const pendientes = salidaLists.solos;
-    const t = nowTime();
     for (const p of pendientes) {
-      const ok = await save(p, { salida_autonoma: true, hora_salida: t }, "salida_autonoma", "Salida autónoma autorizada por la familia a las " + t, day);
+      const ok = await save(p, { salida_autonoma: true, hora_salida: true }, "salida_autonoma", "Salida autónoma autorizada por la familia", day);
       if (!ok) return false;
     }
     return true;
@@ -74,8 +72,7 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
 
   const after = ok => { if (ok && q) { setQ(""); inputRef.current?.focus(); } };
   const llega = async p => {
-    const t = nowTime();
-    after(await save(p, { estado: "presente", hora_entrada: t }, "asistencia", "Llegada registrada a las " + t, day));
+    after(await save(p, { estado: "presente", hora_entrada: true }, "asistencia", "Llegada registrada por el monitor", day));
   };
   const onEnter = e => {
     if (modo === "entrada" && e.key === "Enter" && lista.length === 1 && estadoDia(rec(lista[0].id)) === "pendiente") llega(lista[0]);
@@ -144,19 +141,17 @@ export default function CampusPasarLista({ roster, records, dates, busy, save })
               onFalta={async () => after(await save(p, { estado: "ausente" }, "asistencia", "Marcado ausente", day))}
               onDeshacer={() => save(p, { estado: "pendiente", hora_entrada: "", hora_salida: "", persona_recoge: "", dni_recoge: "", recogida_verificada: false }, "correccion", "Registro del día reiniciado por el monitor", day)}
               onAutonoma={() => {
-                const t = nowTime();
-                save(p, { salida_autonoma: true, hora_salida: t }, "salida_autonoma", "Salida autónoma autorizada por la familia a las " + t, day);
+                save(p, { salida_autonoma: true, hora_salida: true }, "salida_autonoma", "Salida autónoma autorizada por la familia", day);
               }}
               onPickup={(person, dni, dniComprobado) => {
-                const t = nowTime();
-                const patch = { estado: "presente", persona_recoge: person.nombre, hora_salida: t };
+                const patch = { estado: "presente", persona_recoge: person.nombre, hora_salida: true };
                 if (dniComprobado) {
                   patch.recogida_verificada = true;
                   patch.dni_recoge = dni;
                 } else {
                   patch.recogida_autorizada = true;
                 }
-                save(p, patch, dniComprobado ? "recogida_verificada" : "recogida_autorizada", (dniComprobado ? "Identidad comprobada por DNI de " : "Persona autorizada seleccionada: ") + person.nombre + " a las " + t, day);
+                save(p, patch, dniComprobado ? "recogida_verificada" : "recogida_autorizada", (dniComprobado ? "Identidad comprobada por DNI de " : "Persona autorizada seleccionada: ") + person.nombre, day);
               }}
             />
           ))}
