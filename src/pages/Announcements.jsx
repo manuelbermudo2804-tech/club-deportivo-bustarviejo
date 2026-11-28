@@ -238,6 +238,8 @@ export default function Announcements() {
 
       let successCount = 0;
       let errorCount = 0;
+      const sentEmails = [];
+      const failedEmails = [];
 
       const priorityEmoji = {
         "Urgente": "URGENTE",
@@ -284,18 +286,24 @@ export default function Announcements() {
           });
           console.log('✅ [Announcements] Email enviado a:', email);
           successCount++;
+          sentEmails.push(email);
         } catch (error) {
           console.error(`❌ [Announcements] Error sending email to ${email}:`, error);
           errorCount++;
+          failedEmails.push(email);
         }
         
         await new Promise(resolve => setTimeout(resolve, 300));
       }
 
-      // No marcar como enviado si todos los envíos han fallado; permite reintentar.
-      if (successCount > 0 && errorCount === 0) {
-        await base44.entities.Announcement.update(announcement.id, { email_enviado: true });
-      }
+      // Guardar el resultado por destinatario para que administración pueda localizar fallos.
+      await base44.entities.Announcement.update(announcement.id, {
+        email_enviado: successCount === recipients.length && errorCount === 0,
+        email_total_destinatarios: recipients.length,
+        email_enviados: sentEmails,
+        email_fallidos: failedEmails,
+        email_ultimo_envio: new Date().toISOString(),
+      });
 
       if (successCount > 0) {
         toast.success(`✅ Emails enviados correctamente a ${successCount} destinatarios${errorCount > 0 ? ` (${errorCount} fallidos)` : ""}`);
