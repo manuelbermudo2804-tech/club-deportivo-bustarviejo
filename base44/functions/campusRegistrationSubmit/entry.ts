@@ -64,9 +64,9 @@ Deno.serve(async req=>{
     };
     if(!adult.nombre||!adult.dni||!adult.email||!adult.telefono)
       return Response.json({error:'Completa nombre, DNI/NIE, correo y teléfono del adulto responsable.'},{status:400,headers});
-    if(b.solicitar_alta_socio===true&&(!adult.direccion||!adult.municipio||!adult.nacimiento))
-      return Response.json({error:'Para solicitar el alta como socio necesitamos también dirección, municipio y fecha de nacimiento.'},{status:400,headers});
-    if(adult.nacimiento&&!isValidISODate(adult.nacimiento)) return Response.json({error:'La fecha de nacimiento del adulto no es una fecha válida.'},{status:400,headers});
+    if(!adult.direccion||!adult.municipio||!adult.nacimiento)
+      return Response.json({error:'Completa la dirección, el municipio y la fecha de nacimiento del adulto responsable.'},{status:400,headers});
+    if(!isValidISODate(adult.nacimiento)) return Response.json({error:'La fecha de nacimiento del adulto no es una fecha válida.'},{status:400,headers});
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adult.email)) return Response.json({error:'Correo electrónico no válido.'},{status:400,headers});
     if(b.consentimiento_datos!==true) return Response.json({error:'Es obligatorio aceptar la información de protección de datos para enviar la inscripción.'},{status:400,headers});
     if(b.consentimiento_salud!==true) return Response.json({error:'Es necesario aceptar el tratamiento de los datos de salud para gestionar la seguridad del menor.'},{status:400,headers});
