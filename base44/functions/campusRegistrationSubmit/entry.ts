@@ -62,9 +62,11 @@ Deno.serve(async req=>{
       direccion:clean(b.adulto_direccion), municipio:clean(b.adulto_municipio),
       nacimiento:clean(b.adulto_fecha_nacimiento)
     };
-    if(!adult.nombre||!adult.dni||!adult.email||!adult.telefono||!adult.direccion||!adult.municipio||!adult.nacimiento)
-      return Response.json({error:'Completa todos los datos obligatorios del adulto responsable.'},{status:400,headers});
-    if(!isValidISODate(adult.nacimiento)) return Response.json({error:'La fecha de nacimiento del adulto no es una fecha válida.'},{status:400,headers});
+    if(!adult.nombre||!adult.dni||!adult.email||!adult.telefono)
+      return Response.json({error:'Completa nombre, DNI/NIE, correo y teléfono del adulto responsable.'},{status:400,headers});
+    if(b.solicitar_alta_socio===true&&(!adult.direccion||!adult.municipio||!adult.nacimiento))
+      return Response.json({error:'Para solicitar el alta como socio necesitamos también dirección, municipio y fecha de nacimiento.'},{status:400,headers});
+    if(adult.nacimiento&&!isValidISODate(adult.nacimiento)) return Response.json({error:'La fecha de nacimiento del adulto no es una fecha válida.'},{status:400,headers});
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adult.email)) return Response.json({error:'Correo electrónico no válido.'},{status:400,headers});
     if(b.consentimiento_datos!==true) return Response.json({error:'Es obligatorio aceptar la información de protección de datos para enviar la inscripción.'},{status:400,headers});
     if(b.consentimiento_salud!==true) return Response.json({error:'Es necesario aceptar el tratamiento de los datos de salud para gestionar la seguridad del menor.'},{status:400,headers});
@@ -113,13 +115,17 @@ Deno.serve(async req=>{
       const applied=linked || b.solicitar_alta_socio===true;
       const authorized=Array.isArray(p.autorizados_recogida)?p.autorizados_recogida:[];
       const salidaModalidad=clean(p.salida_modalidad);
+      const medicacionDurante=clean(p.medicacion_durante_campus);
+      if(!clean(p.contacto_emergencia_nombre)||!clean(p.contacto_emergencia_telefono)) throw new Error('Indica al menos un contacto alternativo de emergencia, con nombre y teléfono, para '+nombre+'.');
+      if(!['si','no'].includes(medicacionDurante)) throw new Error('Indica si '+nombre+' necesita recibir medicación durante el Campus.');
+      if(medicacionDurante==='si'&&(!clean(p.medicacion)||!clean(p.instrucciones_medicacion)||p.autorizacion_medicacion!==true)) throw new Error('Para administrar medicación a '+nombre+' necesitamos el medicamento, las instrucciones y la autorización expresa de la familia.');
       if(!['recogida','salida_autonoma'].includes(salidaModalidad)) throw new Error('Indica cómo saldrá del Campus '+nombre+': recogida por un adulto o salida autónoma.');
       if(authorized.some(a=>!clean(a.nombre)||!clean(a.dni)||!clean(a.telefono))) throw new Error('Completa nombre, DNI/NIE y teléfono de cada persona autorizada para recoger a '+nombre+'.');
       if(salidaModalidad==='recogida' && authorized.length>0 && p.autorizacion_recogida!==true) throw new Error('Confirma la autorización expresa de recogida para '+nombre+'.');
       if(salidaModalidad==='salida_autonoma' && p.autorizacion_salida_solo!==true) throw new Error('Debes marcar la autorización expresa de salida autónoma para '+nombre+'.');
       if(salidaModalidad==='salida_autonoma' && authorized.length>0) throw new Error('Has elegido salida autónoma para '+nombre+'. Quita las personas autorizadas o cambia a recogida por un adulto.');
       if(salidaModalidad==='recogida' && p.autorizacion_salida_solo===true) throw new Error('La autorización de salida autónoma no corresponde a la modalidad de recogida para '+nombre+'.');
-      return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates),alergias:clean(p.alergias),intolerancias:clean(p.intolerancias),medicacion:clean(p.medicacion),observaciones_medicas:clean(p.observaciones_medicas),contacto_emergencia_nombre:clean(p.contacto_emergencia_nombre),contacto_emergencia_telefono:clean(p.contacto_emergencia_telefono),contacto_emergencia_2_nombre:clean(p.contacto_emergencia_2_nombre),contacto_emergencia_2_telefono:clean(p.contacto_emergencia_2_telefono),autorizados_recogida:Array.isArray(p.autorizados_recogida)?p.autorizados_recogida.map(a=>({nombre:clean(a.nombre),dni:clean(a.dni).toUpperCase(),telefono:clean(a.telefono),parentesco:clean(a.parentesco)})).filter(a=>a.nombre&&a.dni&&a.telefono):[],autorizacion_recogida:p.autorizacion_recogida===true,salida_modalidad:salidaModalidad,autorizacion_salida_solo:p.autorizacion_salida_solo===true};
+      return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates),alergias:clean(p.alergias),alergia_gravedad:clean(p.alergia_gravedad),alergia_reaccion:clean(p.alergia_reaccion),protocolo_emergencia:clean(p.protocolo_emergencia),intolerancias:clean(p.intolerancias),medicacion:clean(p.medicacion),medicacion_durante_campus:medicacionDurante,instrucciones_medicacion:clean(p.instrucciones_medicacion),autorizacion_medicacion:p.autorizacion_medicacion===true,observaciones_medicas:clean(p.observaciones_medicas),contacto_emergencia_nombre:clean(p.contacto_emergencia_nombre),contacto_emergencia_telefono:clean(p.contacto_emergencia_telefono),contacto_emergencia_2_nombre:clean(p.contacto_emergencia_2_nombre),contacto_emergencia_2_telefono:clean(p.contacto_emergencia_2_telefono),autorizados_recogida:Array.isArray(p.autorizados_recogida)?p.autorizados_recogida.map(a=>({nombre:clean(a.nombre),dni:clean(a.dni).toUpperCase(),telefono:clean(a.telefono),parentesco:clean(a.parentesco)})).filter(a=>a.nombre&&a.dni&&a.telefono):[],autorizacion_recogida:p.autorizacion_recogida===true,salida_modalidad:salidaModalidad,autorizacion_salida_solo:p.autorizacion_salida_solo===true};
     });
     // Control de aforo: las solicitudes pendientes también ocupan plaza para evitar aceptar más inscripciones que capacidad.
     const existingParticipants=await base44.asServiceRole.entities.CampusParticipant.list('-created_date',2000);
@@ -157,6 +163,7 @@ Deno.serve(async req=>{
     }
     const membershipFee=b.solicitar_alta_socio===true?Number(rates.cuota_socio ?? 25):0;
     const total=participants.reduce((s,p)=>s+p.price,0)+membershipFee;
+    const consentAt=new Date().toISOString();
     const reg=await base44.asServiceRole.entities.CampusRegistration.create({
       temporada:campusYear,campus_settings_id:rates.id,
       adulto_nombre:adult.nombre,adulto_dni:adult.dni,adulto_email:adult.email,adulto_telefono:adult.telefono,
@@ -167,7 +174,9 @@ Deno.serve(async req=>{
       segundo_progenitor_telefono:clean(b.segundo_progenitor_telefono),es_segundo_progenitor:b.es_segundo_progenitor===true,
       es_socio:!!verifiedMember,socio_verificado:!!verifiedMember,club_member_id:verifiedMember?.id||'',
       estado:'pendiente',estado_pago:'pendiente',estado_alta_socio:b.solicitar_alta_socio===true?'pendiente':verifiedMember?'pagado':'no_requerida',importe_total:total,cuota_socio_incluida:membershipFee,
-      consentimiento_datos:true,consentimiento_imagen:b.consentimiento_imagen===true,
+      consentimiento_datos:true,consentimiento_datos_fecha:consentAt,consentimiento_datos_version:'campus-privacidad-2027-v1',
+      consentimiento_imagen:b.consentimiento_imagen===true,consentimiento_imagen_fecha:consentAt,consentimiento_imagen_version:'campus-imagen-2027-v1',
+      acepta_comunicaciones:b.acepta_comunicaciones===true,consentimiento_comercial_fecha:b.acepta_comunicaciones===true?consentAt:'',consentimiento_comercial_version:b.acepta_comunicaciones===true?'campus-comercial-v1.0':'',
       declaracion_responsable_edad:true,declaracion_responsable_fecha:new Date().toISOString(),declaracion_responsable_version:'campus-edad-2027-v1',
       semanas_solicitadas:[...new Set(participants.flatMap(p=>p.semanas))],participantes_count:participants.length,
       notas:`Inscripción recibida desde la web del Campus ${campusYear}. Pendiente de revisión y confirmación de plazas.`
@@ -181,8 +190,8 @@ Deno.serve(async req=>{
           temporada:campusYear,campus_settings_id:rates.id,
           registration_id:reg.id,nombre:p.nombre,fecha_nacimiento:p.fecha,edad_inicio:p.edad,grupo_edad:groupFor(p.edad),
           modalidad,periodo,semanas_ocupadas:p.semanas,es_socio:p.linked,precio_aplicado:p.price,estado:'pendiente',
-          alergias:p.alergias,intolerancias:p.intolerancias,medicacion:p.medicacion,observaciones_medicas:p.observaciones_medicas,
-          contacto_emergencia_nombre:p.contacto_emergencia_nombre,contacto_emergencia_telefono:p.contacto_emergencia_telefono,contacto_emergencia_2_nombre:p.contacto_emergencia_2_nombre,contacto_emergencia_2_telefono:p.contacto_emergencia_2_telefono,autorizados_recogida:p.salida_modalidad==='recogida'?p.autorizados_recogida:[],autorizacion_recogida:p.salida_modalidad==='recogida'&&p.autorizacion_recogida===true,salida_modalidad:p.salida_modalidad,autorizacion_salida_solo:p.salida_modalidad==='salida_autonoma'&&p.autorizacion_salida_solo===true,autorizacion_salida_fecha:p.salida_modalidad==='salida_autonoma'?new Date().toISOString():'',autorizacion_salida_version:p.salida_modalidad==='salida_autonoma'?'campus-salida-autonoma-v1': '',consentimiento_salud:b.consentimiento_salud===true,
+          alergias:p.alergias,alergia_gravedad:p.alergia_gravedad,alergia_reaccion:p.alergia_reaccion,protocolo_emergencia:p.protocolo_emergencia,intolerancias:p.intolerancias,medicacion:p.medicacion,medicacion_durante_campus:p.medicacion_durante_campus,instrucciones_medicacion:p.instrucciones_medicacion,autorizacion_medicacion:p.autorizacion_medicacion,observaciones_medicas:p.observaciones_medicas,
+          contacto_emergencia_nombre:p.contacto_emergencia_nombre,contacto_emergencia_telefono:p.contacto_emergencia_telefono,contacto_emergencia_2_nombre:p.contacto_emergencia_2_nombre,contacto_emergencia_2_telefono:p.contacto_emergencia_2_telefono,autorizados_recogida:p.salida_modalidad==='recogida'?p.autorizados_recogida:[],autorizacion_recogida:p.salida_modalidad==='recogida'&&p.autorizacion_recogida===true,salida_modalidad:p.salida_modalidad,autorizacion_salida_solo:p.salida_modalidad==='salida_autonoma'&&p.autorizacion_salida_solo===true,autorizacion_salida_fecha:p.salida_modalidad==='salida_autonoma'?new Date().toISOString():'',autorizacion_salida_version:p.salida_modalidad==='salida_autonoma'?'campus-salida-autonoma-v1': '',consentimiento_salud:b.consentimiento_salud===true,consentimiento_salud_fecha:consentAt,consentimiento_salud_version:'campus-salud-2027-v1',
           autorizacion_imagen:b.consentimiento_imagen===true?'si':'no'
         });
         created.push(row.id);
