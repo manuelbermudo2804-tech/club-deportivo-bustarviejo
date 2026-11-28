@@ -99,6 +99,13 @@
     "alergia_reaccion": {
       "type": "string"
     },
+    "requiere_vigilancia_especial": {
+      "type": "boolean",
+      "default": false
+    },
+    "detalle_vigilancia_especial": {
+      "type": "string"
+    },
     "protocolo_emergencia": {
       "type": "string"
     },
