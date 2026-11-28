@@ -21,6 +21,16 @@
       "type": "string",
       "format": "email"
     },
+    "adulto_direccion": {
+      "type": "string"
+    },
+    "adulto_municipio": {
+      "type": "string"
+    },
+    "adulto_fecha_nacimiento": {
+      "type": "string",
+      "format": "date"
+    },
     "menor_nombre": {
       "type": "string"
     },
