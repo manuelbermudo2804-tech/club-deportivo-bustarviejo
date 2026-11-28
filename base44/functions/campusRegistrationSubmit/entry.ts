@@ -118,10 +118,7 @@ Deno.serve(async req=>{
       const medicacionDurante=clean(p.medicacion_durante_campus)||'no';
       if(clean(p.contacto_emergencia_nombre)&&normalize(p.contacto_emergencia_nombre)===normalize(adult.nombre)) throw new Error('El contacto alternativo de emergencia debe ser una persona distinta del responsable de '+nombre+'.');
       if(clean(p.contacto_emergencia_telefono)&&clean(p.contacto_emergencia_telefono).replace(/\D/g,'')===adult.telefono.replace(/\D/g,'')) throw new Error('El contacto alternativo de emergencia debe ser una persona distinta del responsable de '+nombre+'.')
-      if(clean(p.alergias)&&!['ninguna','no'].includes(normalize(p.alergias))&&(!clean(p.alergia_gravedad)||!clean(p.alergia_reaccion))) throw new Error('Completa la gravedad y la reacción de la alergia indicada para '+nombre+'.');
-      if(clean(p.alergia_gravedad)==='grave'&&!clean(p.protocolo_emergencia)) throw new Error('Indica el protocolo de actuación ante una alergia grave de '+nombre+'.');
-      if(p.requiere_vigilancia_especial===true&&!clean(p.detalle_vigilancia_especial)) throw new Error('Describe la vigilancia especial que necesita '+nombre+'.');
-      if(medicacionDurante==='si'&&(!clean(p.medicacion)||!clean(p.instrucciones_medicacion)||p.autorizacion_medicacion!==true)) throw new Error('Para administrar medicación a '+nombre+' necesitamos el medicamento, las instrucciones y la autorización expresa de la familia.');
+
       if(!['recogida','salida_autonoma'].includes(salidaModalidad)) throw new Error('Indica cómo saldrá del Campus '+nombre+': recogida por un adulto o salida autónoma.');
       if(authorized.some(a=>!clean(a.nombre)||!clean(a.dni)||!clean(a.telefono))) throw new Error('Completa nombre, DNI/NIE y teléfono de cada persona autorizada para recoger a '+nombre+'.');
       if(salidaModalidad==='recogida' && authorized.length>0 && p.autorizacion_recogida!==true) throw new Error('Confirma la autorización expresa de recogida para '+nombre+'.');
