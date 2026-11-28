@@ -3,6 +3,7 @@ const WEEKS = ['S1','S2','S3','S4','S5'];
 const cleanEmail = v => String(v || '').trim().toLowerCase();
 const cleanDni = v => String(v || '').replace(/[\s.-]/g,'').toUpperCase();
 const json = (data,status=200) => Response.json(data,{status});
+const madridTime = () => new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Madrid',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date());
 Deno.serve(async req => {
   try {
     const base44 = createClientFromRequest(req);
@@ -133,8 +134,8 @@ Deno.serve(async req => {
         recogida_verificada:existing?.recogida_verificada===true,
         historial:Array.isArray(existing?.historial)?existing.historial:[],
       };
-      if (patch.hora_entrada !== undefined) data.hora_entrada=String(patch.hora_entrada||'').slice(0,5);
-      if (patch.hora_salida !== undefined) data.hora_salida=String(patch.hora_salida||'').slice(0,5);
+      if (patch.hora_entrada !== undefined) data.hora_entrada=patch.hora_entrada ? madridTime() : '';
+      if (patch.hora_salida !== undefined) data.hora_salida=patch.hora_salida ? madridTime() : '';
       if (patch.persona_recoge !== undefined) data.persona_recoge=String(patch.persona_recoge||'').slice(0,160);
       if (patch.dni_recoge !== undefined) data.dni_recoge=cleanDni(patch.dni_recoge);
       if (patch.recogida_verificada === false) {
@@ -145,7 +146,7 @@ Deno.serve(async req => {
       if (patch.salida_autonoma === true) {
         if (!participant.salida_autonoma) return json({error:'Salida rechazada: la familia no ha autorizado que este menor salga solo.'},403);
         data.persona_recoge='Salida autónoma (autorizada por la familia)'; data.dni_recoge=''; data.recogida_verificada=true;
-        data.hora_salida=String(patch.hora_salida||new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',hour12:false})).slice(0,5);
+        data.hora_salida=madridTime();
         data.estado='presente';
       }
       if (patch.recogida_autorizada === true) {
@@ -153,7 +154,7 @@ Deno.serve(async req => {
         const match=(participant.autorizado_recogida||[]).some(a=>a.nombre.trim().toLocaleLowerCase('es')===name.toLocaleLowerCase('es'));
         if (!name || !match) return json({error:'Salida rechazada: selecciona una persona incluida en las autorizaciones familiares.'},403);
         data.persona_recoge=name; data.dni_recoge=''; data.recogida_verificada=false;
-        data.hora_salida=String(patch.hora_salida||new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',hour12:false}));
+        data.hora_salida=madridTime();
         data.estado='presente';
       }
       if (patch.recogida_verificada === true) {
@@ -163,7 +164,7 @@ Deno.serve(async req => {
           (participant.responsable.nombre.trim().toLocaleLowerCase('es')===name.toLocaleLowerCase('es')&&cleanDni(participant.responsable.dni)===dni);
         if (!name || !dni || !match) return json({error:'Recogida rechazada: el nombre y DNI no coinciden con una persona autorizada.'},403);
         data.persona_recoge=name; data.dni_recoge=dni; data.recogida_verificada=true;
-        data.hora_salida=String(patch.hora_salida||new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit',hour12:false}));
+        data.hora_salida=madridTime();
         data.estado='presente';
       }
       const actionLabel=String(body.audit?.accion||'actualización').slice(0,60);
