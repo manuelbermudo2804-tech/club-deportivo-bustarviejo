@@ -16,6 +16,11 @@ export default function CampusFichaMenor({ k }) {
       <p><b>Nacimiento:</b> {fecha(k.fecha_nacimiento)} ({k.edad_inicio ?? "—"} años) · <b>Grupo:</b> {k.grupo_edad || "—"}{k.grupo_manual ? " · " + k.grupo_manual : ""}</p>
       <p><b>Semanas:</b> {(k.semanas_ocupadas || []).join(", ") || "—"} · <b>Precio:</b> {money(k.precio_aplicado)} · <b>Estado:</b> {k.estado || "—"}</p>
       {salud.length > 0 ? <p className="rounded-md bg-red-50 px-2 py-1 font-bold text-red-800">⚠️ {salud.join(" · ")}</p> : <p><b>Salud:</b> Sin alergias, intolerancias ni medicación</p>}
+      {k.alergia_gravedad && <p><b>Gravedad de alergia:</b> {k.alergia_gravedad}</p>}
+      {k.alergia_reaccion && <p><b>Reacción:</b> {k.alergia_reaccion}</p>}
+      {k.medicacion_durante_campus && <p><b>Medicación durante el Campus:</b> {k.medicacion_durante_campus === "si" ? "Sí" : "No"}</p>}
+      {k.medicacion_durante_campus === "si" && <p><b>Instrucciones:</b> {k.instrucciones_medicacion || "No indicadas"} · <b>Autorización:</b> {k.autorizacion_medicacion ? "Sí" : "NO CONSTA"}</p>}
+      {k.protocolo_emergencia && <p><b>Protocolo de emergencia:</b> {k.protocolo_emergencia}</p>}
       {k.observaciones_medicas && <p><b>Observaciones:</b> {k.observaciones_medicas}</p>}
       <p><b>Emergencia 1:</b> {k.contacto_emergencia_nombre || "—"} · {k.contacto_emergencia_telefono || "—"}</p>
       {(k.contacto_emergencia_2_nombre || k.contacto_emergencia_2_telefono) && <p><b>Emergencia 2:</b> {k.contacto_emergencia_2_nombre || "—"} · {k.contacto_emergencia_2_telefono || "—"}</p>}
