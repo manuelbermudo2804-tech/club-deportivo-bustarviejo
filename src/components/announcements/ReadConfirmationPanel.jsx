@@ -31,7 +31,6 @@ export default function ReadConfirmationPanel({ announcement }) {
   const addFamily = (player, standaloneEmail = "") => {
     const emails = [...new Set([player?.email_padre, player?.email_tutor_2]
       .map(normalizeEmail).filter(Boolean))];
-    if (!emails.length && player?.email_jugador) emails.push(normalizeEmail(player.email_jugador));
     if (standaloneEmail && !emails.includes(normalizeEmail(standaloneEmail))) emails.push(normalizeEmail(standaloneEmail));
     const key = emails[0] || normalizeEmail(standaloneEmail);
     if (!key) return;
@@ -64,7 +63,7 @@ export default function ReadConfirmationPanel({ announcement }) {
     targeted.forEach(email => {
       const linked = players.find(p => [p.email_padre, p.email_tutor_2, p.email_jugador, p.acceso_menor_email]
         .some(value => normalizeEmail(value) === email));
-      if (!linked) addFamily(null, email);
+      addFamily(linked, email);
     });
   }
 
@@ -75,7 +74,7 @@ export default function ReadConfirmationPanel({ announcement }) {
   const pendientes = families.filter(f => !f.emails.some(email => confirmedEmails.has(email)));
   const familiesWithoutEmail = announcement.destinatarios_modo === "individual"
     ? 0
-    : scopePlayers.filter(p => !p.email_padre && !p.email_tutor_2 && !p.email_jugador).length;
+    : scopePlayers.filter(p => !p.email_padre && !p.email_tutor_2 && ![p.email_jugador, p.acceso_menor_email].some(value => targeted.includes(normalizeEmail(value)))).length;
 
   const whatsappLink = (f) => {
     const msg = `Hola ${f.nombre}, te recordamos leer y confirmar el anuncio importante del club en la app: "${announcement.titulo}". Gracias.`;
