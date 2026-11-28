@@ -114,6 +114,7 @@ export default function ReadConfirmationPanel({ announcement }) {
                 </div>
               </div>
 
+              {announcement.enviar_email && <div className="rounded-lg border bg-slate-50 p-2 text-xs text-slate-700"><b>Control del correo:</b> {announcement.email_enviados?.length || 0} de {announcement.email_total_destinatarios || 0} solicitudes de envío aceptadas por la aplicación. {announcement.email_fallidos?.length > 0 && <div className="mt-1 text-red-700"><b>Fallos ({announcement.email_fallidos.length}):</b> {announcement.email_fallidos.join(", ")}</div>}<p className="mt-1 text-[10px] text-slate-500">Esto confirma la aceptación del envío por el servicio, no que el mensaje haya llegado a la bandeja de entrada.</p></div>}
               {familiesWithoutEmail > 0 && <p className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs font-medium text-amber-800">{familiesWithoutEmail} ficha(s) de menores sin correo familiar asociado. Revisa esos datos: no podrán recibir recordatorios por email ni aparecer como familia confirmada por correo.</p>}
               {pendientes.length === 0 ? (
                 <p className="text-xs text-green-700 font-medium">✅ Todas las familias han confirmado.</p>
