@@ -25,7 +25,9 @@ export default function CampusFichaMenor({ k }) {
       <p><b>Emergencia 1:</b> {k.contacto_emergencia_nombre || "—"} · {k.contacto_emergencia_telefono || "—"}</p>
       {(k.contacto_emergencia_2_nombre || k.contacto_emergencia_2_telefono) && <p><b>Emergencia 2:</b> {k.contacto_emergencia_2_nombre || "—"} · {k.contacto_emergencia_2_telefono || "—"}</p>}
       <p><b>Recogida:</b> {autorizados.length ? autorizados.map(a => `${a.nombre} (DNI ${a.dni || "—"}, ${a.telefono || "—"}${a.parentesco ? `, ${a.parentesco}` : ""})`).join(" · ") : "Solo el responsable legal"}</p>
-      <p><b>Consentimiento salud:</b> {k.consentimiento_salud ? "Sí" : "No consta"} · <b>Imagen:</b> {k.autorizacion_imagen === "si" ? "Sí autoriza" : k.autorizacion_imagen === "no" ? "No autoriza" : "Pendiente"}</p>
+      <p><b>Consentimiento salud:</b> {k.consentimiento_salud ? "Sí" : "No consta"} · {k.consentimiento_salud_fecha ? new Date(k.consentimiento_salud_fecha).toLocaleString("es-ES", { timeZone: "Europe/Madrid" }) : "Fecha no registrada"} · {k.consentimiento_salud_version || "Versión no registrada"}</p>
+      <p><b>Imagen:</b> {k.autorizacion_imagen === "si" ? "Sí autoriza" : k.autorizacion_imagen === "no" ? "No autoriza" : "Pendiente"}</p>
+      <p><b>Autorización de recogida:</b> {k.autorizacion_recogida ? "Sí" : "No consta"}{k.autorizacion_recogida_fecha ? " · " + new Date(k.autorizacion_recogida_fecha).toLocaleString("es-ES", { timeZone: "Europe/Madrid" }) : ""} · {k.autorizacion_recogida_version || "Versión no registrada"}</p>
       {k.observaciones_admin && <p className="text-slate-500"><b>Nota interna:</b> {k.observaciones_admin}</p>}
     </div>
   );
