@@ -20,54 +20,62 @@ export default function ReadConfirmationPanel({ announcement }) {
     enabled: open,
   });
 
-  // Construir el universo de familias destinatarias (por email)
+  // Construir el universo real de familias: categoría + destinatarios específicos.
+  // Si una familia tiene dos tutores, basta con que uno confirme la lectura.
   const targetedRaw = announcement.destinatarios_emails;
-  const targeted = (Array.isArray(targetedRaw) ? targetedRaw : String(targetedRaw || "").split(","))
-    .map((email) => String(email || "").trim().toLowerCase()).filter(Boolean);
-
+  const targeted = [...new Set((Array.isArray(targetedRaw) ? targetedRaw : String(targetedRaw || "").split(","))
+    .map((email) => String(email || "").trim().toLowerCase()).filter(Boolean))];
   const familiesMap = {};
   const confirmedEmails = new Set((announcement.confirmado_por || []).map((c) => String(c?.email || "").trim().toLowerCase()));
+  const normalizeEmail = value => String(value || "").trim().toLowerCase();
+  const addFamily = (player, standaloneEmail = "") => {
+    const emails = [...new Set([player?.email_padre, player?.email_tutor_2]
+      .map(normalizeEmail).filter(Boolean))];
+    if (!emails.length && player?.email_jugador) emails.push(normalizeEmail(player.email_jugador));
+    if (standaloneEmail && !emails.includes(normalizeEmail(standaloneEmail))) emails.push(normalizeEmail(standaloneEmail));
+    const key = emails[0] || normalizeEmail(standaloneEmail);
+    if (!key) return;
+    if (!familiesMap[key]) familiesMap[key] = {
+      key, email: emails[0] || key, emails: [], telefono: player?.telefono || "",
+      nombre: player?.nombre_tutor_legal || player?.nombre || key,
+      categoria: player?.categoria_principal || player?.deporte || "",
+    };
+    familiesMap[key].emails = [...new Set([...familiesMap[key].emails, ...emails])];
+    if (!familiesMap[key].telefono && player?.telefono) familiesMap[key].telefono = player.telefono;
+  };
 
+  let scopePlayers = [];
   if (announcement.destinatarios_modo === "individual") {
-    // En anuncios privados, el universo son los emails destinatarios guardados,
-    // no la lista reconstruida por email_padre: el destinatario puede ser el tutor 2
-    // o un usuario sin ficha de jugador, y aun así debe constar su confirmación.
-    targeted.forEach((email) => {
-      const player = players.find((p) => [p.email_padre, p.email_tutor_2, p.email_jugador, p.acceso_menor_email]
-        .some((value) => String(value || "").trim().toLowerCase() === email));
-      familiesMap[email] = {
-        email,
-        telefono: player?.telefono || "",
-        nombre: player?.nombre_tutor_legal || player?.nombre || email,
-        categoria: player?.categoria_principal || player?.deporte || "",
-      };
+    targeted.forEach(email => {
+      const player = players.find(p => [p.email_padre, p.email_tutor_2, p.email_jugador, p.acceso_menor_email]
+        .some(value => normalizeEmail(value) === email));
+      addFamily(player, email);
     });
   } else {
-    const scope = targeted.length > 0
-      ? players.filter((p) => [p.email_padre, p.email_tutor_2, p.email_jugador].some((email) => targeted.includes(String(email || "").trim().toLowerCase())))
-      : (getAnnouncementCategories(announcement).includes("Todos")
-        ? players
-        : players.filter((p) => getAnnouncementCategories(announcement).some(category => playerInCategory(p, category))));
-
-    scope.forEach((p) => {
-      const email = p.email_padre || p.email_jugador;
-      if (!email) return;
-      const normalizedEmail = String(email).trim().toLowerCase();
-      if (!familiesMap[normalizedEmail]) {
-        familiesMap[normalizedEmail] = {
-          email: normalizedEmail,
-          telefono: p.telefono || "",
-          nombre: p.nombre_tutor_legal || p.nombre || "Familia",
-          categoria: p.categoria_principal || p.deporte || "",
-        };
-      }
+    const categories = getAnnouncementCategories(announcement);
+    const categoryPlayers = categories.includes("Todos")
+      ? players
+      : players.filter(p => categories.some(category => playerInCategory(p, category)));
+    const individuallySelectedPlayers = players.filter(p =>
+      [p.email_padre, p.email_tutor_2, p.email_jugador, p.acceso_menor_email]
+        .some(value => targeted.includes(normalizeEmail(value))));
+    scopePlayers = [...new Map([...categoryPlayers, ...individuallySelectedPlayers].map(p => [p.id, p])).values()];
+    scopePlayers.forEach(p => addFamily(p));
+    targeted.forEach(email => {
+      const linked = players.find(p => [p.email_padre, p.email_tutor_2, p.email_jugador, p.acceso_menor_email]
+        .some(value => normalizeEmail(value) === email));
+      if (!linked) addFamily(null, email);
     });
   }
+
   const families = Object.values(familiesMap);
-  const confirmedCount = families.filter((f) => confirmedEmails.has(f.email)).length;
+  const confirmedCount = families.filter(f => f.emails.some(email => confirmedEmails.has(email))).length;
   const total = families.length;
   const pct = total > 0 ? Math.round((confirmedCount / total) * 100) : 0;
-  const pendientes = families.filter((f) => !confirmedEmails.has(f.email));
+  const pendientes = families.filter(f => !f.emails.some(email => confirmedEmails.has(email)));
+  const familiesWithoutEmail = announcement.destinatarios_modo === "individual"
+    ? 0
+    : scopePlayers.filter(p => !p.email_padre && !p.email_tutor_2 && !p.email_jugador).length;
 
   const whatsappLink = (f) => {
     const msg = `Hola ${f.nombre}, te recordamos leer y confirmar el anuncio importante del club en la app: "${announcement.titulo}". Gracias.`;
@@ -106,6 +114,7 @@ export default function ReadConfirmationPanel({ announcement }) {
                 </div>
               </div>
 
+              {familiesWithoutEmail > 0 && <p className="rounded-lg border border-amber-200 bg-amber-50 p-2 text-xs font-medium text-amber-800">{familiesWithoutEmail} ficha(s) de menores sin correo familiar asociado. Revisa esos datos: no podrán recibir recordatorios por email ni aparecer como familia confirmada por correo.</p>}
               {pendientes.length === 0 ? (
                 <p className="text-xs text-green-700 font-medium">✅ Todas las familias han confirmado.</p>
               ) : (
