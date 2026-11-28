@@ -69,7 +69,7 @@ Deno.serve(async req=>{
     if(!isValidISODate(adult.nacimiento)) return Response.json({error:'La fecha de nacimiento del adulto no es una fecha válida.'},{status:400,headers});
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adult.email)) return Response.json({error:'Correo electrónico no válido.'},{status:400,headers});
     if(b.consentimiento_datos!==true) return Response.json({error:'Es obligatorio aceptar la información de protección de datos para enviar la inscripción.'},{status:400,headers});
-    if(b.consentimiento_salud!==true) return Response.json({error:'Es necesario aceptar el tratamiento de los datos de salud para gestionar la seguridad del menor.'},{status:400,headers});
+
     if(!Array.isArray(b.participantes)||!b.participantes.length) return Response.json({error:'Añade al menos un participante.'},{status:400,headers});
     if(b.participantes.length>4) return Response.json({error:'Cada responsable puede inscribir un máximo de 4 menores por edición. Para casos excepcionales, contacta directamente con el club.'},{status:400,headers});
     if(b.declaracion_responsable!==true) return Response.json({error:'Debes aceptar la declaración responsable sobre la veracidad de las fechas de nacimiento de los menores.'},{status:400,headers});
@@ -116,8 +116,8 @@ Deno.serve(async req=>{
       const authorized=Array.isArray(p.autorizados_recogida)?p.autorizados_recogida:[];
       const salidaModalidad=clean(p.salida_modalidad);
       const medicacionDurante=clean(p.medicacion_durante_campus)||'no';
-      if(!clean(p.contacto_emergencia_nombre)||!clean(p.contacto_emergencia_telefono)) throw new Error('Indica al menos un contacto alternativo de emergencia, con nombre y teléfono, para '+nombre+'.');
-      if(normalize(p.contacto_emergencia_nombre)===normalize(adult.nombre)||clean(p.contacto_emergencia_telefono).replace(/\D/g,'')===adult.telefono.replace(/\D/g,'')) throw new Error('El contacto alternativo de emergencia debe ser una persona distinta del responsable de '+nombre+'.');
+      if(clean(p.contacto_emergencia_nombre)&&normalize(p.contacto_emergencia_nombre)===normalize(adult.nombre)) throw new Error('El contacto alternativo de emergencia debe ser una persona distinta del responsable de '+nombre+'.');
+      if(clean(p.contacto_emergencia_telefono)&&clean(p.contacto_emergencia_telefono).replace(/\D/g,'')===adult.telefono.replace(/\D/g,'')) throw new Error('El contacto alternativo de emergencia debe ser una persona distinta del responsable de '+nombre+'.')
       if(clean(p.alergias)&&!['ninguna','no'].includes(normalize(p.alergias))&&(!clean(p.alergia_gravedad)||!clean(p.alergia_reaccion))) throw new Error('Completa la gravedad y la reacción de la alergia indicada para '+nombre+'.');
       if(clean(p.alergia_gravedad)==='grave'&&!clean(p.protocolo_emergencia)) throw new Error('Indica el protocolo de actuación ante una alergia grave de '+nombre+'.');
       if(p.requiere_vigilancia_especial===true&&!clean(p.detalle_vigilancia_especial)) throw new Error('Describe la vigilancia especial que necesita '+nombre+'.');
@@ -130,6 +130,8 @@ Deno.serve(async req=>{
       if(salidaModalidad==='recogida' && p.autorizacion_salida_solo===true) throw new Error('La autorización de salida autónoma no corresponde a la modalidad de recogida para '+nombre+'.');
       return {nombre,fecha,edad,semanas,linked:applied,price:priceForWeeks(semanas,applied,rates),alergias:clean(p.alergias),alergia_gravedad:clean(p.alergia_gravedad),alergia_reaccion:clean(p.alergia_reaccion),protocolo_emergencia:clean(p.protocolo_emergencia),intolerancias:clean(p.intolerancias),medicacion:clean(p.medicacion),medicacion_durante_campus:medicacionDurante,instrucciones_medicacion:clean(p.instrucciones_medicacion),autorizacion_medicacion:p.autorizacion_medicacion===true,requiere_vigilancia_especial:p.requiere_vigilancia_especial===true,detalle_vigilancia_especial:clean(p.detalle_vigilancia_especial),observaciones_medicas:clean(p.observaciones_medicas),contacto_emergencia_nombre:clean(p.contacto_emergencia_nombre),contacto_emergencia_telefono:clean(p.contacto_emergencia_telefono),contacto_emergencia_2_nombre:clean(p.contacto_emergencia_2_nombre),contacto_emergencia_2_telefono:clean(p.contacto_emergencia_2_telefono),autorizados_recogida:Array.isArray(p.autorizados_recogida)?p.autorizados_recogida.map(a=>({nombre:clean(a.nombre),dni:clean(a.dni).toUpperCase(),telefono:clean(a.telefono),parentesco:clean(a.parentesco)})).filter(a=>a.nombre&&a.dni&&a.telefono):[],autorizacion_recogida:p.autorizacion_recogida===true,salida_modalidad:salidaModalidad,autorizacion_salida_solo:p.autorizacion_salida_solo===true};
     });
+    const hasHealthData=participants.some(p=>[p.alergias,p.alergia_gravedad,p.alergia_reaccion,p.protocolo_emergencia,p.intolerancias,p.medicacion,p.instrucciones_medicacion,p.observaciones_medicas,p.contacto_emergencia_nombre,p.contacto_emergencia_telefono,p.contacto_emergencia_2_nombre,p.contacto_emergencia_2_telefono,p.detalle_vigilancia_especial].some(v=>clean(v))||p.medicacion_durante_campus==='si'||p.requiere_vigilancia_especial);
+    if(hasHealthData&&b.consentimiento_salud!==true) return Response.json({error:'Para guardar información de salud, debes aceptar su tratamiento. Si no tienes nada que comunicar, deja el apartado en blanco.'},{status:400,headers});
     // Control de aforo: las solicitudes pendientes también ocupan plaza para evitar aceptar más inscripciones que capacidad.
     const existingParticipants=await base44.asServiceRole.entities.CampusParticipant.list('-created_date',2000);
     const registrationById=new Map((priorRegistrations||[]).map(r=>[r.id,r]));
