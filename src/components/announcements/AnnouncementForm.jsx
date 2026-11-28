@@ -677,6 +677,8 @@ export default function AnnouncementForm({ announcement, onSubmit, onCancel, isS
               </div>
             </div>
 
+            {/campus|campamento/i.test(`${currentAnnouncement.titulo || ""} ${currentAnnouncement.contenido || ""}`) && !currentAnnouncement.requiere_confirmacion && <Alert className="border-2 border-red-200 bg-red-50"><ShieldAlert className="h-4 w-4 text-red-700" /><AlertDescription className="flex flex-wrap items-center justify-between gap-2 text-sm text-red-900"><span><b>Este aviso parece relacionado con el Campus.</b> Para comprobar que ninguna familia se queda sin leerlo, activa la confirmación obligatoria.</span><Button type="button" size="sm" className="bg-red-700 hover:bg-red-800" onClick={() => setCurrentAnnouncement(prev => ({ ...prev, requiere_confirmacion: true }))}>Activar confirmación</Button></AlertDescription></Alert>}
+
             {/* Alertas informativas */}
             {currentAnnouncement.enviar_email && (
               <Alert className="bg-blue-50 border-blue-200">
