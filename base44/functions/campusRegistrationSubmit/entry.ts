@@ -117,6 +117,7 @@ Deno.serve(async req=>{
       const salidaModalidad=clean(p.salida_modalidad);
       const medicacionDurante=clean(p.medicacion_durante_campus);
       if(!clean(p.contacto_emergencia_nombre)||!clean(p.contacto_emergencia_telefono)) throw new Error('Indica al menos un contacto alternativo de emergencia, con nombre y teléfono, para '+nombre+'.');
+      if(normalize(p.contacto_emergencia_nombre)===normalize(adult.nombre)||clean(p.contacto_emergencia_telefono).replace(/\\D/g,'')===adult.telefono.replace(/\\D/g,'')) throw new Error('El contacto alternativo de emergencia debe ser una persona distinta del responsable de '+nombre+'.');
       if(clean(p.alergias)&&!['ninguna','no'].includes(normalize(p.alergias))&&(!clean(p.alergia_gravedad)||!clean(p.alergia_reaccion))) throw new Error('Completa la gravedad y la reacción de la alergia indicada para '+nombre+'.');
       if(clean(p.alergia_gravedad)==='grave'&&!clean(p.protocolo_emergencia)) throw new Error('Indica el protocolo de actuación ante una alergia grave de '+nombre+'.');
       if(!['si','no'].includes(medicacionDurante)) throw new Error('Indica si '+nombre+' necesita recibir medicación durante el Campus.');
