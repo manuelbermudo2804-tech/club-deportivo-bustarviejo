@@ -171,7 +171,7 @@ export default function CampusAdmin() {
   const familyGroups = useMemo(() => {
     const groups = new Map();
     filteredRegistrations.forEach(reg => {
-      const dni = String(reg.adulto_dni || "").replace(/[.\\s-]/g, "").toUpperCase();
+      const dni = String(reg.adulto_dni || "").replace(/[.\s-]/g, "").toUpperCase();
       const email = String(reg.adulto_email || "").trim().toLowerCase();
       const key = dni ? `${selectedSeason}:dni:${dni}` : email ? `${selectedSeason}:email:${email}` : `${selectedSeason}:registration:${reg.id}`;
       if (!groups.has(key)) groups.set(key, { key, name: reg.adulto_nombre || "Familia", registrations: [] });
